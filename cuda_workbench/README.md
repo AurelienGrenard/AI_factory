@@ -1,22 +1,20 @@
 # CUDA Workbench
 
-`cuda_workbench` est un projet CUDA autonome et pédagogique. Son code doit
-rester assez direct pour qu'un lecteur puisse suivre toute la chaîne, depuis
-les paramètres financiers jusqu'au JSON de prix, sans dépendre de l'ancien
-`src_cpp` ni de la documentation générale du dépôt.
+`cuda_workbench` est un projet CUDA autonome qui construit des bases de donnees
+de pricing reproductibles. Son cas de reference est le call europeen sous
+Heston, simule avec le schema QE-M d'Andersen.
 
-L'exemple de référence price un call européen sous Heston avec le schéma QE-M
-d'Andersen :
+Le projet separe volontairement trois responsabilites :
 
-```text
-dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S
-dV_t       = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V
-d<W^S,W^V>_t = rho dt
-```
+- `src` contient le code financier et numerique qui calcule les prix ;
+- `tools` contient les fonctions reutilisables qui construisent et ecrivent les
+  bases ;
+- `registry` contient les JSON, les YAML et leurs generators reproductibles.
 
-`gamma` désigne partout la volatility of variance.
+Il n'existe pas de dossier `examples`. Les generators du registry sont les
+programmes executables de reference.
 
-## Structure
+## Architecture Globale
 
 ```text
 cuda_workbench/
@@ -24,254 +22,368 @@ cuda_workbench/
   README.md
   src/
     common/
-      check_cuda.cuh       erreurs et validations CUDA partagées
-      philox.cuh           générateur aléatoire counter-based
-      reductions.cuh       réduction de bloc et statistiques Monte Carlo
+      check_cuda.cuh
+      philox.cuh
+      reductions.cuh
     heston/
-      common.hpp/.cpp      type Heston FP32 et loader JSON
-      dynamics.cuh         dynamique Heston QE-M réutilisable
-      european_call.hpp    déclaration du launcher spécialisé
-      european_call.cu     simulation, payoff, réduction et lancement
+      common.hpp/.cpp
+      dynamics.cuh
+      european_call.hpp/.cu
     products/
       european_call.hpp/.cpp
-                           type produit FP32 et loader JSON
-  tools/registry/
-    common.hpp             lecture JSON, écriture texte/YAML, constructions
-    parameter_database.*  génération uniforme, aligned et Cartesian grid
-    result_output.*        écriture des résultats JSON/YAML
-  registry/production/
-    models/<model>/        générateur, JSON et YAML du modèle
-    products/<product>/    générateur, JSON et YAML du produit
-    results/<model>/<product>/
-                           générateur CUDA, JSON et YAML des prix
+  tools/
+    registry/
+      common.hpp
+      parameter_database.hpp/.cpp
+      result_output.hpp/.cpp
+  registry/
+    production/
+      models/<model>/{data,specifications,generators}/
+      products/<product>/{data,specifications,generators}/
+      results/<model>/<product>/{data,specifications,generators}/
 ```
 
-Les responsabilités sont strictes :
+### `src` : simulation et pricing
 
-- `src/common` contient uniquement du code CUDA partagé par plusieurs couples ;
-- `src/<model>` possède les paramètres, le loader et la dynamique du modèle ;
-- `src/products` possède les paramètres et loaders indépendants du modèle ;
-- le `.cu` d'un couple modèle-produit contient son kernel spécialisé ;
-- `tools/registry` construit et sérialise les bases, sans pricing financier ;
-- les generators constituent les programmes exécutables complets.
+`src` possede toute la logique financiere et numerique :
 
-Il n'existe pas de fichier d'exemple parallèle aux generators. Le generator de
-résultat est l'exemple exécutable canonique, ce qui évite deux pipelines qui
-finissent par diverger.
+- les structures FP32 chargees depuis les JSON ;
+- la dynamique Heston et le schema QE-M ;
+- le generateur Philox ;
+- le payoff du call europeen ;
+- le kernel CUDA specialise ;
+- la reduction Monte Carlo et l'erreur standard.
 
-## Générer Les Paramètres
+`src/common` contient uniquement les mecanismes partages. `src/heston`
+appartient au modele Heston. `src/products` decrit les parametres contractuels
+independants du modele. Le fichier `src/heston/european_call.cu` reunit le
+modele et le produit dans un kernel specialise.
 
-Un generator modèle ou produit définit les bornes, la construction et les
-métadonnées, puis écrit simultanément le JSON et le YAML.
+Le code de pricing ne depend jamais du registry ni de ses outils d'ecriture.
 
-### Uniforme
+### `tools` : construction et serialisation
 
-```cpp
-GeneratedRows rows = uniform_rows(1'000U, seed, {
-    {"risk_free_rate", 0.0f, 0.08f},
-    {"rho", -1.0f, -0.30f},
-});
-```
+`tools/registry` fournit le code reutilisable pour :
 
-Chaque paramètre est tiré indépendamment. Les paramètres conditionnels sont
-ajoutés ensuite. Dans Heston, `kappa` et `theta` sont d'abord tirés, puis :
+- tirer des parametres uniformement ;
+- construire des grilles alignees ou cartesiennes ;
+- lire les metadonnees des bases sources ;
+- ecrire les JSON de donnees ;
+- ecrire les YAML de specification ;
+- construire les references entre modele, produit et resultat.
+
+Ces outils ne contiennent aucune seconde implementation de Heston ou du
+payoff. Ils preparent et serialisent les donnees ; `src` calcule les prix.
+
+### `registry` : donnees reproductibles
+
+Le registry contient trois familles de bases :
 
 ```text
-gamma_min = max(sqrt(kappa * theta / 5), 0.1)
-gamma_max = min(sqrt(12 * kappa * theta), 0.8)
-gamma ~ Uniform(gamma_min, gamma_max)
+models/    parametres des modeles
+products/  parametres contractuels des produits
+results/   prix produits par un modele et une methode numerique
 ```
 
-Cela contrôle ligne par ligne le ratio de Feller
-`2 * kappa * theta / gamma^2` dans `[1/6, 10]`. La condition de Feller peut donc
-être violée volontairement, mais seulement dans cette plage contrôlée.
+Chaque base possede trois fichiers de meme nom :
 
-### Grille aligned
-
-```cpp
-GeneratedRows rows = aligned_grid({
-    {"strike", {0.8f, 1.0f, 1.2f}},
-    {"maturity", {0.5f, 1.0f, 2.0f}},
-});
+```text
+data/<database_id>.json              lignes machine-readable
+specifications/<database_id>.yaml   description et construction
+generators/<database_id>.cpp        programme qui regenere la base
 ```
 
-Les valeurs de même indice forment une ligne. Toutes les listes doivent avoir
-la même taille.
+Le JSON contient les lignes. Le YAML explique leur signification et leur
+provenance. Le generator reconstruit les deux fichiers.
 
-### Produit cartésien
+## Exemple Heston / Call Europeen
 
-```cpp
-GeneratedRows rows = cartesian_grid({
-    {"strike", linear_grid(0.70f, 1.30f, 20U)},
-    {"maturity", linear_grid(1.0f / 12.0f, 3.0f, 50U)},
-});
+### 1. Base modele
+
+Le JSON modele contient 1 000 jeux de parametres Heston. Chaque ligne possede
+un identifiant local et un objet `parameters` :
+
+```json
+{
+  "database_id": "heston_01",
+  "model_family": "Heston",
+  "specification": "cuda_workbench/registry/production/models/heston/specifications/heston_01.yaml",
+  "generation_script": "cuda_workbench/registry/production/models/heston/generators/heston_01.cpp",
+  "row_count": 1000,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.02982048,
+        "dividend_yield": 0.04603526,
+        "initial_variance": 0.07711430,
+        "kappa": 1.59042335,
+        "theta": 0.14153057,
+        "rho": -0.46044695,
+        "gamma": 0.76693642
+      }
+    }
+  ]
+}
 ```
 
-Les 20 strikes et 50 maturités produisent 1 000 lignes. Le YAML résume chaque
-axe par `minimum`, `maximum`, `count` et `spacing: linear`; le JSON contient les
-valeurs exactes.
+Le YAML documente les champs, la dynamique et la construction sans recopier
+les 1 000 lignes :
 
-## Charger Les JSON
+```yaml
+title: "Heston parameter database heston_01"
+database_id: "heston_01"
+model_family: "Heston"
+json_path: "cuda_workbench/registry/production/models/heston/data/heston_01.json"
+generation_script: "cuda_workbench/registry/production/models/heston/generators/heston_01.cpp"
 
-Chaque famille possède un loader typé :
+parameters:
+  spot: "Initial spot."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_variance: "Initial variance v0."
+  kappa: "Variance mean-reversion speed."
+  theta: "Long-run variance."
+  gamma: "Volatility of variance."
+  rho: "Spot/variance Brownian correlation."
 
-```cpp
-const std::vector<heston::HestonModelInput> models =
-    heston::load_heston(model_json_path);
-const std::vector<products::EuropeanCallInput> products =
-    products::load_european_calls(product_json_path);
+dynamics:
+  spot: "dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S"
+  variance: "dV_t = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V"
+  correlation: "d<W^S, W^V>_t = rho dt"
+
+construction:
+  row_count: 1000
+  method: "conditional uniform sample"
+  conditional_bounds:
+    gamma:
+      minimum: "max(sqrt(kappa * theta / 5), 0.1)"
+      maximum: "min(sqrt(12 * kappa * theta), 0.8)"
 ```
 
-Le parser JSON est temporaire. Les loaders retournent directement deux
-`std::vector` contigus de structures FP32, prêts pour `cudaMemcpy`. Il n'existe
-pas de table générique intermédiaire ni de seconde conversion.
+`kappa`, `theta` et les autres parametres sont d'abord tires dans leurs bornes.
+`gamma` est ensuite tire conditionnellement afin de controler le ratio de
+Feller `2 * kappa * theta / gamma^2`.
 
-Deux constructions de résultat sont disponibles :
+### 2. Base produit
 
-- `Aligned` exige le même nombre de modèles et produits et price `(i, i)` ;
-- `CartesianProduct` expose tous les couples sans dupliquer leurs structures.
+Le produit est stocke independamment du modele :
 
-Dans le second cas :
+```json
+{
+  "database_id": "european_calls_01",
+  "product_family": "European Calls",
+  "specification": "cuda_workbench/registry/production/products/european_calls/specifications/european_calls_01.yaml",
+  "generation_script": "cuda_workbench/registry/production/products/european_calls/generators/european_calls_01.cpp",
+  "row_count": 1000,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "strike": 0.7,
+        "maturity": 0.08333334
+      }
+    }
+  ]
+}
+```
+
+Le YAML precise le payoff et la grille utilisee :
+
+```yaml
+title: "European Calls parameter database european_calls_01"
+database_id: "european_calls_01"
+product_family: "European Calls"
+json_path: "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
+generation_script: "cuda_workbench/registry/production/products/european_calls/generators/european_calls_01.cpp"
+
+parameters:
+  strike: "Strike in normalized spot units."
+  maturity: "Maturity in years."
+
+payoff:
+  expression: "max(S_T - K, 0)"
+
+construction:
+  row_count: 1000
+  method: "Cartesian grid"
+  grid:
+    strike: {minimum: 0.7, maximum: 1.3, count: 20, spacing: "linear"}
+    maturity: {minimum: 0.0833333, maximum: 3.0, count: 50, spacing: "linear"}
+```
+
+Les 20 strikes et 50 maturites forment ici 1 000 lignes produit.
+
+### 3. Base resultat
+
+Le YAML resultat indique quelles bases sont pricees et comment :
+
+```yaml
+title: "heston_01 x european_calls_01 cpp_gpu_philox"
+database_id: heston_01__european_calls_01__cpp_gpu_philox_01
+json_path: "cuda_workbench/registry/production/results/heston/european_calls/data/heston_01__european_calls_01__cpp_gpu_philox_01.json"
+generation_script: "cuda_workbench/registry/production/results/heston/european_calls/generators/heston_01__european_calls_01__cpp_gpu_philox_01.cpp"
+
+summary:
+  row_count: 1000
+  monte_carlo_paths_per_price: 16384
+  model: "Heston"
+  numerical_method: "Andersen QE-M"
+  payoff: "European Calls"
+  implementation: CUDA
+  device: gpu
+  threads_per_block: 512
+  source_files:
+    - "cuda_workbench/src/heston/european_call.cu"
+
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 0.003968254197
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+
+model_database:
+  id: heston_01
+  json_path: "cuda_workbench/registry/production/models/heston/data/heston_01.json"
+
+product_database:
+  id: european_calls_01
+  json_path: "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
+
+result_construction:
+  rule: "aligned row pairing"
+
+timing:
+  wall_seconds: 2.204893417
+  kernel_seconds: 0.295830536
+```
+
+Le JSON resultat reference les bases et les lignes utilisees. Il ne recopie pas
+tous les parametres modele et produit :
+
+```json
+{
+  "database_id": "heston_01__european_calls_01__cpp_gpu_philox_01",
+  "specification": "cuda_workbench/registry/production/results/heston/european_calls/specifications/heston_01__european_calls_01__cpp_gpu_philox_01.yaml",
+  "generation_script": "cuda_workbench/registry/production/results/heston/european_calls/generators/heston_01__european_calls_01__cpp_gpu_philox_01.cpp",
+  "row_count": 1000,
+  "model_database": {
+    "id": "heston_01",
+    "json_path": "cuda_workbench/registry/production/models/heston/data/heston_01.json"
+  },
+  "product_database": {
+    "id": "european_calls_01",
+    "json_path": "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
+  },
+  "timing": {
+    "wall_seconds": 2.204893417,
+    "kernel_seconds": 0.295830536
+  },
+  "results": [
+    {
+      "id": "000001",
+      "model_id": "000001",
+      "product_id": "000001",
+      "seed": 900000001,
+      "outputs": {
+        "price": 0.29776946,
+        "standard_error": 0.00063856
+      }
+    }
+  ]
+}
+```
+
+La ligne resultat `000001` signifie donc :
+
+```text
+modele  = ligne 000001 de heston_01
+produit = ligne 000001 de european_calls_01
+sorties = prix et erreur standard de ce couple
+```
+
+Cette representation normalisee evite la duplication, reduit la taille des
+resultats et garantit que les parametres ont une source unique. Une exportation
+denormalisee peut naturellement recopier les parametres modele et produit si
+un fichier autonome ou tabulaire est necessaire.
+
+## Constructions De Resultat
+
+Deux constructions sont actuellement disponibles :
+
+- `Aligned` exige le meme nombre de modeles et de produits et associe `(i, i)` ;
+- `CartesianProduct` price tous les couples sans materialiser un tableau de
+  parametres duplique.
+
+Pour un produit cartesien :
 
 ```text
 model_index   = result_index / product_count
 product_index = result_index % product_count
 ```
 
-## Generator De Résultat
+Le JSON resultat conserve dans les deux cas les `model_id` et `product_id`
+effectivement utilises.
 
-Le fichier
+## Pipeline Executable
 
-```text
-registry/production/results/heston/european_calls/generators/
-  heston_01__european_calls_01__cpp_gpu_philox_01.cpp
-```
-
-contient en tête toutes les décisions : chemins JSON, construction, nombre de
-chemins Monte Carlo par prix, `target_dt`, threads par bloc, seed, méthode
-numérique et chemins de sortie.
-
-Son `main` suit toujours cet ordre :
-
-1. charger les vectors modèle et produit ;
-2. calculer le nombre de résultats et créer les sorties CPU ;
-3. allouer explicitement les quatre tableaux GPU avec `cudaMalloc` ;
-4. copier modèles et produits avec `cudaMemcpyHostToDevice` ;
-5. créer les événements et lancer le kernel spécialisé ;
-6. copier prix et erreurs standards vers le CPU ;
-7. détruire événements et allocations ;
-8. écrire le JSON et le YAML avec `write_monte_carlo_result`.
-
-Les allocations restent visibles dans le generator. Il n'y a ni workspace
-caché ni réutilisation implicite de buffers dans ce projet pédagogique.
-
-## Architecture Du Kernel
-
-La convention pour un pricing Monte Carlo européen est :
+Les trois generators sont executes dans cet ordre :
 
 ```text
-une ligne de résultat -> un bloc CUDA -> un prix et une erreur standard
+generate_heston_01
+  -> heston_01.json + heston_01.yaml
+
+generate_european_calls_01
+  -> european_calls_01.json + european_calls_01.yaml
+
+generate_heston_european_calls_01
+  -> result JSON + result YAML
 ```
 
-Dans le bloc :
+Le generator resultat :
+
+1. charge directement les JSON dans deux `std::vector` FP32 contigus ;
+2. valide la construction `Aligned` ou `CartesianProduct` ;
+3. alloue explicitement les tableaux GPU ;
+4. copie les modeles et produits sur le GPU ;
+5. lance le kernel Heston/call europeen ;
+6. recupere prix et erreurs standards ;
+7. ecrit automatiquement le JSON et le YAML resultat.
+
+## Contrat CUDA
+
+Le kernel europeen suit la convention :
 
 ```text
-result_index = blockIdx.x
-path = threadIdx.x, threadIdx.x + blockDim.x, ...
+une ligne resultat -> un bloc CUDA -> un prix et une erreur standard
 ```
 
-Le thread simule chaque trajectoire qui lui est attribuée et calcule son payoff
-immédiatement. La dynamique, le payoff et l'accumulation sont fusionnés : aucun
-tableau de trajectoires ou de payoffs n'est écrit en mémoire globale.
+Chaque thread traite plusieurs trajectoires. Simulation et payoff sont fusionnes
+et restent dans le thread. Les etats Heston sont en FP32 ; les sommes et sommes
+de carres sont accumulees en FP64 ; le prix et l'erreur standard sont finalement
+stockes en FP32. `reduce_block` termine la reduction dans le bloc sans atomique
+globale ni second kernel.
 
-Les constantes communes à la ligne sont préparées une seule fois par le thread
-0 dans `PreparedRow`, placé en shared memory. Cela inclut `log(S0)`, calculé une
-fois au lieu d'une fois par trajectoire. Chaque état `(log_spot, variance)` reste
-ensuite privé au thread, normalement dans ses registres.
+Le cas actuel utilise 512 threads par bloc et 16 384 chemins Monte Carlo par
+prix. Toute nouvelle configuration doit etre profilee sur le volume cible.
 
-Après sa boucle, chaque thread possède `sum` et `sumsq`. `reduce_block` :
+## Compilation Et Generation
 
-1. réduit ces deux valeurs dans chaque warp avec `__shfl_down_sync` ;
-2. écrit une paire FP64 par warp en shared memory ;
-3. fait réduire ces paires par le premier warp ;
-4. laisse le thread 0 calculer prix et erreur standard.
+Dependances : un compilateur C++17, CUDA et `nlohmann-json3-dev`.
 
-Il n'y a ni atomique globale, ni tableau de moments partiels, ni second kernel
-de finalisation.
-
-## Taille Des Blocs
-
-Le generator Heston utilise actuellement `512` threads par bloc. C'est un
-multiple de warp et une puissance de deux facile à expliquer et à réutiliser.
-Sur la RTX 4090 Laptop testée, il est nettement meilleur que 128 threads pour
-1 000 lignes et 16 384 trajectoires par prix.
-
-Cette valeur n'est pas une constante universelle. Le nombre de registres par
-thread, le nombre de pas, le coût du payoff et le nombre de lignes modifient
-l'occupation et le compromis entre parallélisme intra-ligne et nombre de blocs
-résidents. Pour tout nouveau kernel, comparer au minimum `128`, `256` et `512`
-sur le volume cible, puis conserver une puissance de deux sauf gain mesuré et
-justifié d'une autre taille.
-
-## Précision
-
-La frontière numérique est explicite :
-
-```text
-JSON, modèle et produit              float (FP32)
-coefficients et états de trajectoire float (FP32)
-transformations Philox               float (FP32)
-payoff                               float (FP32)
-sum et sumsq                         double (FP64)
-statistiques intermédiaires          double (FP64)
-prix et erreur standard stockés      float (FP32)
-```
-
-Les calculs répétés d'une trajectoire bénéficient du débit FP32. Les sommes
-Monte Carlo utilisent FP64 car additionner des milliers de valeurs en FP32
-peut perdre les petites contributions et dégrader fortement la variance. Les
-sorties reviennent en FP32 après la réduction.
-
-`--use_fast_math` n'est pas activé. Les fonctions `expf`, `logf` et `sqrtf`
-rendent la précision choisie visible. Toute activation future doit être
-benchmarkée et validée financièrement.
-
-## QE-M Et Fallback
-
-Le schéma QE choisit une loi quadratique gaussienne lorsque `psi <= 1.5`, puis
-une masse en zéro avec queue exponentielle sinon. QE-M ajoute une correction
-de martingale au log-spot.
-
-Cette correction requiert l'existence d'un moment exponentiel :
-
-- branche quadratique : `1 - 2 * A * a > 0` ;
-- branche exponentielle : `A < beta` et moment strictement positif.
-
-Si cette condition échoue, le code emploie le pas QE sans correction de
-martingale pour éviter `NaN` ou infini. Ce fallback est défensif, mais des
-activations fréquentes peuvent introduire un biais de martingale. Un nouveau
-domaine de paramètres doit donc tester sa fréquence et la convergence des prix.
-
-## RNG
-
-Philox est counter-based : un tirage dépend de la seed, du numéro de stream et
-de son index, sans état global partagé. Une ligne utilise `base_seed + row`, et
-chaque trajectoire réserve une plage de `num_steps` indices. Trois streams
-séparent normale de variance, normale de spot et uniforme de variance.
-
-L'implémentation actuelle conserve trois objets de séquence distincts. Une
-fusion future pourrait partager seed, index et gestion du cache entre ces trois
-streams, réduire les registres et charger trois `RandomQuad` ensemble. Cette
-optimisation doit préserver exactement le mapping Philox et faire l'objet d'un
-benchmark dédié ; elle n'est pas cachée dans le code actuel.
-
-## Compilation Et Exécution
-
-Depuis la racine du dépôt :
+Depuis la racine du depot :
 
 ```bash
 cmake -S cuda_workbench -B /tmp/ai_factory_cuda_workbench \
-  -DCMAKE_BUILD_TYPE=Release
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCUDA_WORKBENCH_ARCHITECTURES=89
 cmake --build /tmp/ai_factory_cuda_workbench -j
 
 /tmp/ai_factory_cuda_workbench/generate_heston_01
@@ -279,55 +391,21 @@ cmake --build /tmp/ai_factory_cuda_workbench -j
 /tmp/ai_factory_cuda_workbench/generate_heston_european_calls_01
 ```
 
-CUDA 11.8 ou plus récent active par défaut `70;86;89`, dont le code natif
-`sm_89` de la RTX 4090 Laptop. CUDA 11.5 ne sait pas compiler `sm_89` et utilise
-`70;86`. La liste reste configurable :
-
-```bash
-cmake -S cuda_workbench -B /tmp/ai_factory_cuda_workbench \
-  -DCUDA_WORKBENCH_ARCHITECTURES=89
-```
-
-Pour cette machine, préférer un toolkit CUDA >= 11.8 et `89` lors d'un build
-spécialisé. Une liste plus large est utile pour distribuer le binaire.
+La valeur `89` produit ici du code natif pour la RTX 4090 Laptop. La liste des
+architectures reste configurable pour un binaire destine a d'autres GPU.
 
 ## Ajouter Un Nouveau Couple
 
-Pour reproduire correctement l'architecture :
+1. definir la dynamique, le payoff et la construction des parametres ;
+2. ajouter le type FP32 et le loader du modele dans `src/<model>` ;
+3. ajouter le type FP32 et le loader produit dans `src/products` ;
+4. ecrire le kernel specialise dans `src/<model>/<product>.cu` ;
+5. ajouter les generators modele et produit au registry ;
+6. ajouter le generator resultat et ses references de bases ;
+7. enregistrer les executables dans CMake ;
+8. regenerer JSON et YAML depuis un build propre ;
+9. verifier IDs, nombres de lignes, valeurs finies et timings ;
+10. profiler threads par bloc, registres, spills et temps kernel.
 
-1. définir la dynamique, le payoff, les bornes et la construction financière ;
-2. ajouter le generator modèle sous `registry/production/models/<model>` ;
-3. ajouter le generator produit sous `registry/production/products/<product>` ;
-4. ajouter le type FP32 et le loader du modèle dans `src/<model>/common.*` ;
-5. ajouter le type FP32 et le loader produit dans `src/products/<product>.*` ;
-6. placer la dynamique réutilisable dans `src/<model>/dynamics.cuh` ;
-7. écrire le `.hpp/.cu` spécialisé du couple modèle-produit ;
-8. conserver `prepare_row`, `evaluate_path`, un bloc par prix et la réduction ;
-9. écrire le generator résultat sous le registry et l'ajouter à CMake ;
-10. générer modèle, produit, puis résultat depuis un build propre ;
-11. vérifier schémas JSON/YAML, bornes, valeurs finies et correspondance des IDs ;
-12. profiler registres, spills et temps pour 128/256/512 threads.
-
-Un payoff path-dependent change surtout `evaluate_path`, qui maintient un petit
-accumulateur au fil des appels à la transition. Un modèle différent remplace
-les paramètres préparés et sa fonction de transition. Les options américaines
-et bermudéennes demandent une architecture de régression distincte et ne sont
-pas couvertes par le contrat européen ci-dessus.
-
-## Validation Minimale
-
-Avant de considérer un nouveau generator comme propre :
-
-- compilation Release sans warning nouveau ;
-- aucune allocation ou copie cachée dans le launcher ;
-- aucune sortie non finie ou erreur standard négative ;
-- même nombre de lignes dans la construction et les résultats ;
-- IDs modèle/produit conformes à la construction ;
-- kernel sans spill de registres selon `ptxas` ;
-- prix stables lorsque le nombre de trajectoires augmente ;
-- timing kernel mesuré uniquement avec des événements CUDA autour du launch ;
-- timing wall couvrant allocation, transferts, kernel, retours et libération.
-
-La validation CPU, les tests pathwise, les gradients, le C API et les notebooks
-ne sont pas encore fournis par ce workbench. Ils devront être ajoutés avant de
-remplacer un kernel certifié du projet principal.
+Les options americaines et bermudeennes demandent une architecture de
+regression distincte. Elles ne sont pas couvertes par ce contrat europeen.
