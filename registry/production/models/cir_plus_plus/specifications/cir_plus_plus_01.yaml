@@ -1,0 +1,44 @@
+title: CIR++ production model parameter database
+format: ai_factory.models.v1
+database_id: cir_plus_plus_01
+model_family: Cir Plus Plus
+json_path: registry/production/models/cir_plus_plus/data/cir_plus_plus_01.json
+generation_script: registry/production/models/cir_plus_plus/generators/cir_plus_plus_01.py
+parameters:
+  initial_factor: Initial positive CIR factor x0.
+  kappa: Positive CIR mean-reversion speed.
+  theta: Positive CIR long-run factor level.
+  volatility: CIR square-root volatility.
+dynamics:
+  measure: Risk-neutral
+  representation: Deterministically shifted CIR
+  equations:
+    factor: dx_t = kappa (theta - x_t) dt + volatility sqrt(x_t) dW_t
+    short_rate: r_t = x_t + phi(t)
+    curve_shift: phi(t) = f(0,t) - f_CIR(0,t)
+  initial_conditions:
+    factor: x_0 = initial_factor
+construction:
+  row_count: 1000
+  method: conditional random sample
+  rule: CIR factor parameters are uniform with conditional volatility bounds controlling
+    the Feller ratio.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 742200001
+    bounds:
+      initial_factor:
+      - 0.001
+      - 0.12
+      kappa:
+      - 0.1
+      - 2.0
+      theta:
+      - 0.005
+      - 0.12
+      volatility:
+      - max(sqrt(kappa theta / 5), 0.01)
+      - min(sqrt(12 kappa theta), 0.30)
+      feller_ratio:
+      - 1/6
+      - 10.0

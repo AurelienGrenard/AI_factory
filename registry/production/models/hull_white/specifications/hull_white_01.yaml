@@ -1,0 +1,32 @@
+title: Hull White 1-factor production model parameter database
+format: ai_factory.models.v1
+database_id: hull_white_01
+model_family: Hull White
+json_path: registry/production/models/hull_white/data/hull_white_01.json
+generation_script: registry/production/models/hull_white/generators/hull_white_01.py
+parameters:
+  mean_reversion: Positive Ornstein-Uhlenbeck mean-reversion speed a.
+  volatility: Constant short-rate volatility sigma.
+dynamics:
+  measure: Risk-neutral
+  representation: Shifted Ornstein-Uhlenbeck
+  equations:
+    state: dx_t = -a x_t dt + sigma dW_t
+    short_rate: r_t = x_t + phi(t)
+    curve_shift: phi(t) = f(0,t) + sigma^2 / (2 a^2) (1 - exp(-a t))^2
+  initial_conditions:
+    state: x_0 = 0
+construction:
+  row_count: 1000
+  method: random sample
+  rule: Mean reversion and short-rate volatility are independent uniforms.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 740200001
+    bounds:
+      mean_reversion:
+      - 0.02
+      - 0.5
+      volatility:
+      - 0.002
+      - 0.03

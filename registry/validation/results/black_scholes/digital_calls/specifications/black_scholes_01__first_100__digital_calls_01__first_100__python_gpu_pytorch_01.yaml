@@ -1,0 +1,41 @@
+title: black_scholes_01__first_100 x digital_calls_01__first_100 python_gpu_pytorch
+format: ai_factory.results.v1
+database_id: black_scholes_01__first_100__digital_calls_01__first_100__python_gpu_pytorch_01
+status: priced
+json_path: registry/validation/results/black_scholes/digital_calls/data/black_scholes_01__first_100__digital_calls_01__first_100__python_gpu_pytorch_01.json
+generation_script: registry/validation/results/black_scholes/digital_calls/generators/black_scholes_01__first_100__digital_calls_01__first_100__python_gpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Black Scholes
+  payoff: Cash-or-Nothing Digital Call
+  engine: python_gpu_pytorch
+  device: gpu
+  source_files:
+  - src_python/ai_factory/pytorch/black_scholes/digital_calls.py
+  source_production_result: black_scholes_01__digital_calls_01__cpp_gpu_philox_01
+time_grid:
+  rule: exact model transition on contractual dates
+  schedule: single terminal date T
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: black_scholes_01__first_100
+  json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+product_database:
+  id: digital_calls_01__first_100
+  json_path: registry/validation/products/digital_calls/data/digital_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.0025781780004763277
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.0025781780004763277
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

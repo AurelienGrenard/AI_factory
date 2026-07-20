@@ -1,0 +1,40 @@
+title: black_76_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__python_cpu_pytorch_01
+format: ai_factory.results.v1
+database_id: black_76_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/black_76/swaptions/data/black_76_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/black_76/swaptions/generators/black_76_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  model: Black 76
+  payoff: Swaptions
+  engine: python_cpu_pytorch
+  device: cpu
+  source_files:
+  - src_python/ai_factory/pytorch/black_76/swaptions.py
+  curve: Nelson Siegel
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: black_76_01__first_100
+  json_path: registry/validation/models/black_76/data/black_76_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: swaptions_01__first_100
+  json_path: registry/validation/products/swaptions/data/swaptions_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.0020225169992045267
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.1464720869989833
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

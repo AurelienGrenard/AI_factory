@@ -1,0 +1,43 @@
+title: rough_heston_01__first_100 x european_calls_01__first_100 python_cpu_pytorch
+format: ai_factory.results.v1
+database_id: rough_heston_01__first_100__european_calls_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/rough_heston/european_calls/data/rough_heston_01__first_100__european_calls_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/rough_heston/european_calls/generators/rough_heston_01__first_100__european_calls_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Heston
+  payoff: European Call
+  engine: python_cpu_pytorch
+  device: cpu
+  source_files:
+  - src_python/ai_factory/pytorch/rough_heston/european_calls.py
+  source_production_result: rough_heston_01__european_calls_01__cpp_gpu_philox_01
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_heston_01__first_100
+  json_path: registry/validation/models/rough_heston/data/rough_heston_01__first_100.json
+product_database:
+  id: european_calls_01__first_100
+  json_path: registry/validation/products/european_calls/data/european_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 12.18163719599761
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 12.18163719599761
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

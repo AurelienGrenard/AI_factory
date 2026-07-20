@@ -1,0 +1,35 @@
+title: Black Scholes production model parameter database black_scholes_01
+format: ai_factory.models.v1
+database_id: black_scholes_01
+model_family: Black Scholes
+json_path: registry/production/models/black_scholes/data/black_scholes_01.json
+generation_script: registry/production/models/black_scholes/generators/black_scholes_01.py
+parameters:
+  spot: Initial spot.
+  risk_free_rate: Continuously compounded risk-free rate.
+  dividend_yield: Continuously compounded dividend yield.
+  volatility: Constant Black-Scholes volatility sigma.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    spot: dS_t / S_t = (r - q) dt + sigma dW_t
+  initial_conditions:
+    spot: S_0 = spot
+construction:
+  row_count: 1000
+  method: random sample
+  rule: volatility, risk_free_rate, and dividend_yield are independent uniforms.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 730100001
+    spot: 1.0
+    bounds:
+      volatility:
+      - 0.05
+      - 0.5
+      risk_free_rate:
+      - 0.0
+      - 0.08
+      dividend_yield:
+      - 0.0
+      - 0.05

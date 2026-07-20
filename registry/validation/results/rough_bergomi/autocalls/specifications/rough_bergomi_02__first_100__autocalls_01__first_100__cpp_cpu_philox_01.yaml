@@ -1,0 +1,54 @@
+title: rough_bergomi_02__first_100 x autocalls_01__first_100 cpp_cpu_philox
+format: ai_factory.results.v1
+database_id: rough_bergomi_02__first_100__autocalls_01__first_100__cpp_cpu_philox_01
+status: priced
+json_path: registry/validation/results/rough_bergomi/autocalls/data/rough_bergomi_02__first_100__autocalls_01__first_100__cpp_cpu_philox_01.json
+generation_script: registry/validation/results/rough_bergomi/autocalls/generators/rough_bergomi_02__first_100__autocalls_01__first_100__cpp_cpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Bergomi
+  payoff: Memory Autocall
+  engine: cpp_cpu_philox
+  device: cpu
+  scheme: hybrid
+  source_files:
+  - src_cpp/ai_factory/cpu/rough_bergomi/autocalls.cpp
+  references:
+  - topic: Rough Bergomi hybrid simulation scheme
+    reference:
+      authors: Bennedsen, M.; Lunde, A.; Pakkanen, M. S.
+      year: 2017
+      title: Hybrid Scheme for Brownian Semistationary Processes
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_bergomi_02__first_100
+  json_path: registry/validation/models/rough_bergomi/data/rough_bergomi_02__first_100.json
+product_database:
+  id: autocalls_01__first_100
+  json_path: registry/validation/products/autocalls/data/autocalls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 934100001
+timing:
+  wall_seconds: 4.007039456999337
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 4.007039456999337
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

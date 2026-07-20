@@ -1,0 +1,39 @@
+title: hull_white_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_cpu_analytic_01
+format: ai_factory.results.v1
+database_id: hull_white_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_cpu_analytic_01
+status: priced
+json_path: registry/validation/results/hull_white/interest_rate_swaps/data/hull_white_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_cpu_analytic_01.json
+generation_script: registry/validation/results/hull_white/interest_rate_swaps/generators/hull_white_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_cpu_analytic_01.py
+summary:
+  row_count: 100
+  model: Hull White
+  payoff: Interest Rate Swaps
+  engine: cpp_cpu_analytic
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/hull_white/interest_rate_swaps.cpp
+  curve: Nelson Siegel
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: hull_white_01__first_100
+  json_path: registry/validation/models/hull_white/data/hull_white_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: interest_rate_swaps_01__first_100
+  json_path: registry/validation/products/interest_rate_swaps/data/interest_rate_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+timing:
+  wall_seconds: 0.000117173000035109
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.011892517999513075
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

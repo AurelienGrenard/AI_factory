@@ -1,0 +1,38 @@
+title: Fixed-for-floating interest-rate swap production database
+format: ai_factory.products.v1
+database_id: interest_rate_swaps_01
+product_family: Interest Rate Swaps
+json_path: registry/production/products/interest_rate_swaps/data/interest_rate_swaps_01.json
+generation_script: registry/production/products/interest_rate_swaps/generators/interest_rate_swaps_01.py
+parameters:
+  start_time: Swap start T0 in years.
+  accrual_period: Fixed-leg year fraction delta.
+  payment_count: Number of fixed-leg payments.
+  fixed_rate: Annualized fixed rate K.
+  direction: +1 payer-fixed or -1 receiver-fixed.
+  notional: Contract notional N.
+payoff:
+  expression: direction N [P(0,T0) - P(0,Tn) - K delta sum_i P(0,Ti)]
+  direction: +1 payer fixed, -1 receiver fixed
+construction:
+  row_count: 1000
+  method: random sample
+  rng: Project Philox-4x32-10 generator
+  seed: 741300001
+  rule: Quarterly start dates, semiannual coupons, 1Y-10Y tenors, uniform fixed rate,
+    balanced payer/receiver direction.
+  bounds:
+    start_time:
+    - 0.25
+    - 5.0
+    accrual_period: 0.5
+    payment_count:
+    - 2
+    - 20
+    fixed_rate:
+    - 0.0
+    - 0.08
+    direction:
+    - -1
+    - 1
+    notional: 1.0

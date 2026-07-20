@@ -1,0 +1,45 @@
+title: black_scholes_01__first_100 x volatility_swaps_01__first_100 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: black_scholes_01__first_100__volatility_swaps_01__first_100__cpp_gpu_philox_01
+status: priced
+json_path: registry/validation/results/black_scholes/volatility_swaps/data/black_scholes_01__first_100__volatility_swaps_01__first_100__cpp_gpu_philox_01.json
+generation_script: registry/validation/results/black_scholes/volatility_swaps/generators/black_scholes_01__first_100__volatility_swaps_01__first_100__cpp_gpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Black Scholes
+  payoff: Volatility Swap
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/black_scholes/volatility_swaps.cu
+  source_production_result: registry/production/results/black_scholes/volatility_swaps/data/black_scholes_01__volatility_swaps_01__cpp_gpu_philox_01.json
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: black_scholes_01__first_100
+  json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+product_database:
+  id: volatility_swaps_01__first_100
+  json_path: registry/validation/products/volatility_swaps/data/volatility_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.06639288099904661
+  kernel_seconds: 0.056272672004997755
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.06639288099904661
+  benchmark_kernel_seconds: 0.056272672004997755
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

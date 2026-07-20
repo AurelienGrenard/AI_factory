@@ -1,0 +1,25 @@
+title: "European Calls parameter database european_calls_01"
+database_id: "european_calls_01"
+product_family: "European Calls"
+json_path: "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
+generation_script: "cuda_workbench/registry/production/products/european_calls/generators/european_calls_01.cpp"
+parameters:
+  strike: "Strike in normalized spot units."
+  maturity: "Maturity in years."
+payoff:
+  expression: "max(S_T - K, 0)"
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  row_count: 1000
+  method: "Cartesian grid"
+  grid:
+    strike:
+      minimum: 0.7
+      maximum: 1.3
+      count: 20
+      spacing: "linear"
+    maturity:
+      minimum: 0.0833333
+      maximum: 3.0
+      count: 50
+      spacing: "linear"

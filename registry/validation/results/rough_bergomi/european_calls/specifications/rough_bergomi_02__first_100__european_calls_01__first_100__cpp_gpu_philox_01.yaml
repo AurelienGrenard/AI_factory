@@ -1,0 +1,45 @@
+title: rough_bergomi_02__first_100 x european_calls_01__first_100 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: rough_bergomi_02__first_100__european_calls_01__first_100__cpp_gpu_philox_01
+status: priced
+json_path: registry/validation/results/rough_bergomi/european_calls/data/rough_bergomi_02__first_100__european_calls_01__first_100__cpp_gpu_philox_01.json
+generation_script: registry/validation/results/rough_bergomi/european_calls/generators/rough_bergomi_02__first_100__european_calls_01__first_100__cpp_gpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Bergomi
+  payoff: European Call
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/rough_bergomi/european_calls.cu
+  source_production_result: rough_bergomi_02__european_calls_01__cpp_gpu_philox_01
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_bergomi_02__first_100
+  json_path: registry/validation/models/rough_bergomi/data/rough_bergomi_02__first_100.json
+product_database:
+  id: european_calls_01__first_100
+  json_path: registry/validation/products/european_calls/data/european_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.3194553890007228
+  kernel_seconds: 0.2841465276479722
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_kernel_seconds: 0.2841465276479722
+  benchmark_seconds: 0.3194553890007228
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

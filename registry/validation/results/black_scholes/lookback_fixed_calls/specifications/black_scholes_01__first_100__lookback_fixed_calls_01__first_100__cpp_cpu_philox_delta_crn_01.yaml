@@ -1,0 +1,46 @@
+title: black_scholes_01__first_100 x lookback_fixed_calls_01__first_100 cpp_cpu_philox_delta_crn
+format: ai_factory.results.v1
+database_id: black_scholes_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01
+status: priced
+json_path: registry/validation/results/black_scholes/lookback_fixed_calls/data/black_scholes_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01.json
+generation_script: registry/validation/results/black_scholes/lookback_fixed_calls/generators/black_scholes_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Black Scholes
+  payoff: Lookback Fixed Call
+  engine: cpp_cpu_philox_delta_crn
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/black_scholes/lookback_fixed_calls.cpp
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+  delta:
+    estimator: Central finite difference with common random numbers
+  delta_standard_error:
+    estimator: Monte Carlo standard error of pathwise finite-difference delta
+model_database:
+  id: black_scholes_01__first_100
+  json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+product_database:
+  id: lookback_fixed_calls_01__first_100
+  json_path: registry/validation/products/lookback_fixed_calls/data/lookback_fixed_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 2.4170163290000346
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 2.4170163290000346
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

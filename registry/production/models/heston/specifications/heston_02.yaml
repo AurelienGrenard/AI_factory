@@ -1,0 +1,58 @@
+title: Heston production model parameter database heston_02
+format: ai_factory.models.v1
+database_id: heston_02
+model_family: Heston
+json_path: registry/production/models/heston/data/heston_02.json
+generation_script: registry/production/models/heston/generators/heston_02.py
+parameters:
+  spot: Initial spot.
+  risk_free_rate: Continuously compounded risk-free rate.
+  dividend_yield: Continuously compounded dividend yield.
+  initial_variance: Initial variance v0.
+  theta: Long-run variance theta.
+  kappa: Variance mean-reversion speed kappa.
+  volatility_of_variance: Volatility of variance gamma.
+  rho: Spot/variance Brownian correlation rho.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    spot: dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S
+    variance: dV_t = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V
+    correlation: d<W^S, W^V>_t = rho dt
+  initial_conditions:
+    spot: S_0 = spot
+    variance: V_0 = initial_variance
+construction:
+  row_count: 1000
+  method: random sample
+  rule: kappa, theta, rho, initial_variance, and risk_free_rate are independent uniforms.
+    gamma is sampled uniformly from [max(sqrt(kappa * theta / 5), 0.1), min(sqrt(12
+    * kappa * theta), 0.8)].
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 710000101
+    spot: 1.0
+    dividend_yield: 0.0
+    bounds:
+      kappa:
+      - 0.5
+      - 4.0
+      theta:
+      - 0.01
+      - 0.15
+      rho:
+      - -1.0
+      - -0.3
+      initial_variance:
+      - 0.01
+      - 0.12
+      risk_free_rate:
+      - 0.01
+      - 0.05
+      volatility_of_variance: gamma is sampled uniformly from [max(sqrt(kappa * theta
+        / 5), 0.1), min(sqrt(12 * kappa * theta), 0.8)].
+    feller_ratio:
+      expression: 2 * kappa * theta / volatility_of_variance^2
+      guaranteed_range:
+      - 0.16666666666666666
+      - 10.0

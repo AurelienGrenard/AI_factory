@@ -1,0 +1,71 @@
+title: heston_02__first_100 x american_puts_01__first_100 python_cpu_pytorch
+format: ai_factory.results.v1
+database_id: heston_02__first_100__american_puts_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/heston/american_puts/data/heston_02__first_100__american_puts_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/heston/american_puts/generators/heston_02__first_100__american_puts_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Heston
+  payoff: American Put
+  engine: python_cpu_pytorch
+  device: cpu
+  heston_scheme: qe_martingale
+  source_files:
+  - src_python/ai_factory/pytorch/heston/american_puts.py
+  references:
+  - topic: Heston QE-M simulation scheme
+    reference:
+      authors: Andersen, L. B. G.
+      year: 2007
+      title: Efficient Simulation of the Heston Stochastic Volatility Model
+  - topic: American option least-squares regression
+    reference:
+      authors: Longstaff, F. A.; Schwartz, E. S.
+      year: 2001
+      title: 'Valuing American Options by Simulation: A Simple Least-Squares Approach'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Longstaff-Schwartz Monte Carlo price
+  standard_error:
+    estimator: Monte Carlo standard error of realized discounted cashflows
+exercise_policy:
+  method: Longstaff-Schwartz
+  regression_target: realized future cashflow discounted to current exercise date
+  basis:
+    state:
+    - spot
+    - instantaneous_variance
+    functions:
+    - '1'
+    - L1(S_t / K)
+    - L2(S_t / K)
+    - V_t / theta
+    - (V_t / theta)^2
+    - L1(S_t / K) * V_t / theta
+    regularization: relative ridge 1e-10 on the normal matrix
+model_database:
+  id: heston_02__first_100
+  json_path: registry/validation/models/heston/data/heston_02__first_100.json
+product_database:
+  id: american_puts_01__first_100
+  json_path: registry/validation/products/american_puts/data/american_puts_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 46.366280187001394
+  simulation_seconds: 28.167320330998336
+  lsm_seconds: 18.073337878984603
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 46.366280187001394
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

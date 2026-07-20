@@ -1,0 +1,36 @@
+title: "heston_01 x european_calls_01 cpp_gpu_philox"
+database_id: heston_01__european_calls_01__cpp_gpu_philox_01
+json_path: "cuda_workbench/registry/production/results/heston/european_calls/data/heston_01__european_calls_01__cpp_gpu_philox_01.json"
+generation_script: "cuda_workbench/registry/production/results/heston/european_calls/generators/heston_01__european_calls_01__cpp_gpu_philox_01.cpp"
+summary:
+  row_count: 1000
+  monte_carlo_paths_per_price: 16384
+  model: "Heston"
+  numerical_method: "Andersen QE-M"
+  payoff: "European Calls"
+  implementation: CUDA
+  device: gpu
+  threads_per_block: 512
+  source_files:
+  - "cuda_workbench/src/heston/european_call.cu"
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 0.003968254197
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: heston_01
+  json_path: "cuda_workbench/registry/production/models/heston/data/heston_01.json"
+product_database:
+  id: european_calls_01
+  json_path: "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
+result_construction:
+  rule: "aligned row pairing"
+timing:
+  wall_seconds: 2.204893417
+  kernel_seconds: 0.2958305359

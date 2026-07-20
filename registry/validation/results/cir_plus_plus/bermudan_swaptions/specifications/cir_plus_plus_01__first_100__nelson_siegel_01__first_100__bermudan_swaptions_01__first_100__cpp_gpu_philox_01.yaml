@@ -1,0 +1,65 @@
+title: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__bermudan_swaptions_01__first_100__cpp_gpu_philox_01
+format: ai_factory.results.v1
+database_id: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__bermudan_swaptions_01__first_100__cpp_gpu_philox_01
+status: priced
+json_path: registry/validation/results/cir_plus_plus/bermudan_swaptions/data/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__bermudan_swaptions_01__first_100__cpp_gpu_philox_01.json
+generation_script: registry/validation/results/cir_plus_plus/bermudan_swaptions/generators/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__bermudan_swaptions_01__first_100__cpp_gpu_philox_01.py
+summary:
+  row_count: 100
+  model: Cir Plus Plus
+  payoff: Bermudan Swaptions
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/cir_plus_plus/bermudan_swaptions.cu
+  curve: Nelson Siegel
+  num_paths: 16384
+  source_production_result: cir_plus_plus_01__nelson_siegel_01__bermudan_swaptions_01__cpp_gpu_philox_01
+  references:
+  - topic: Longstaff-Schwartz exercise policy
+    reference:
+      authors: Longstaff, F. A.; Schwartz, E. S.
+      year: 2001
+      title: 'Valuing American Options by Simulation: A Simple Least-Squares Approach'
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  target_dt: 1/52
+  step_count: round((first_exercise + (exercise_count - 1) * exercise_period) / target_dt)
+  effective_dt: (first_exercise + (exercise_count - 1) * exercise_period) / step_count
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error
+exercise:
+  method: Longstaff-Schwartz
+  dates: first_exercise + j * exercise_period
+  regression_target: Realized future exercise cashflow discounted to the current exercise
+    date
+  basis: Laguerre polynomials of degree 0 to 3 on par swap rate / 0.04
+  regression_sample: In-the-money paths only
+model_database:
+  id: cir_plus_plus_01__first_100
+  json_path: registry/validation/models/cir_plus_plus/data/cir_plus_plus_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: bermudan_swaptions_01__first_100
+  json_path: registry/validation/products/bermudan_swaptions/data/bermudan_swaptions_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.43256635400030063
+  kernel_seconds: 0.43199078369140625
+  benchmark_repetitions: 3
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_kernel_seconds: 0.4319764404296875
+  benchmark_seconds: 0.43248590500024875
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

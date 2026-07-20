@@ -1,0 +1,40 @@
+title: cir_01__first_100__caplets_01__first_100__cpp_cpu_philox_01
+format: ai_factory.results.v1
+database_id: cir_01__first_100__caplets_01__first_100__cpp_cpu_philox_01
+status: priced
+json_path: registry/validation/results/cir/caplets/data/cir_01__first_100__caplets_01__first_100__cpp_cpu_philox_01.json
+generation_script: registry/validation/results/cir/caplets/generators/cir_01__first_100__caplets_01__first_100__cpp_cpu_philox_01.py
+summary:
+  row_count: 100
+  model: Cir
+  payoff: Caplets
+  engine: cpp_cpu_philox
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/cir/caplets.cpp
+  num_paths: 16384
+time_grid:
+  target_dt: 1/52
+  step_count: round((fixing_time) / target_dt)
+  effective_dt: (fixing_time) / step_count
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error
+model_database:
+  id: cir_01__first_100
+  json_path: registry/validation/models/cir/data/cir_01__first_100.json
+product_database:
+  id: caplets_01__first_100
+  json_path: registry/validation/products/caplets/data/caplets_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 1.8126048470003298
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 1.827108097000746
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

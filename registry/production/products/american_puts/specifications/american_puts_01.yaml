@@ -1,0 +1,29 @@
+title: American put production product parameter database american_puts_01
+format: ai_factory.products.v1
+database_id: american_puts_01
+product_family: American Puts
+json_path: registry/production/products/american_puts/data/american_puts_01.json
+generation_script: registry/production/products/american_puts/generators/american_puts_01.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+  exercise_frequency: Exercise-date convention.
+  exercise_dates_per_year: Number of exercise dates per year.
+payoff:
+  expression: sup_tau E[exp(-r tau) max(K - S_tau, 0)]
+  scaling_rule: V(s, K) = s * V(1, K / s)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is uniform on [1/12, 3]. Conditional on T, log(K) is uniform on [-aT, aT].
+    Exercise dates are weekly.
+  rng: Project Philox-4x32-10 generator
+  seed: 731000101
+  bounds:
+    maturity:
+    - 1/12
+    - 3.0
+    log_strike_given_maturity: uniform on [-aT, aT]
+    a: 0.2
+    exercise_frequency: weekly
+    exercise_dates_per_year: 52

@@ -1,0 +1,39 @@
+title: cir_plus_plus_01__nelson_siegel_01__swaptions_01__cpp_gpu_philox_01
+format: ai_factory.results.v1
+database_id: cir_plus_plus_01__nelson_siegel_01__swaptions_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/cir_plus_plus/swaptions/data/cir_plus_plus_01__nelson_siegel_01__swaptions_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/cir_plus_plus/swaptions/generators/cir_plus_plus_01__nelson_siegel_01__swaptions_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  model: Cir Plus Plus
+  payoff: Swaptions
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/cir_plus_plus/swaptions.cu
+  curve: Nelson Siegel
+  num_paths: 16384
+time_grid:
+  target_dt: 1/52
+  step_count: round((expiry) / target_dt)
+  effective_dt: (expiry) / step_count
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error
+model_database:
+  id: cir_plus_plus_01
+  json_path: registry/production/models/cir_plus_plus/data/cir_plus_plus_01.json
+curve_database:
+  id: nelson_siegel_01
+  json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+product_database:
+  id: swaptions_01
+  json_path: registry/production/products/swaptions/data/swaptions_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.989265102999525
+  kernel_seconds: 0.9887481689453125

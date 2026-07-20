@@ -1,0 +1,39 @@
+title: cir_01__first_100__interest_rate_swaps_01__first_100__python_gpu_pytorch_01
+format: ai_factory.results.v1
+database_id: cir_01__first_100__interest_rate_swaps_01__first_100__python_gpu_pytorch_01
+status: priced
+json_path: registry/validation/results/cir/interest_rate_swaps/data/cir_01__first_100__interest_rate_swaps_01__first_100__python_gpu_pytorch_01.json
+generation_script: registry/validation/results/cir/interest_rate_swaps/generators/cir_01__first_100__interest_rate_swaps_01__first_100__python_gpu_pytorch_01.py
+summary:
+  row_count: 100
+  model: Cir
+  payoff: Interest Rate Swaps
+  engine: python_gpu_pytorch
+  device: gpu
+  source_files:
+  - src_python/ai_factory/pytorch/cir/interest_rate_swaps.py
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: cir_01__first_100
+  json_path: registry/validation/models/cir/data/cir_01__first_100.json
+product_database:
+  id: interest_rate_swaps_01__first_100
+  json_path: registry/validation/products/interest_rate_swaps/data/interest_rate_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+timing:
+  wall_seconds: 0.0012175760002719471
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.003872247998515377
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

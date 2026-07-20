@@ -1,0 +1,47 @@
+title: black_scholes_01 x down_and_out_calls_01 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: black_scholes_01__down_and_out_calls_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/black_scholes/down_and_out_calls/data/black_scholes_01__down_and_out_calls_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/black_scholes/down_and_out_calls/generators/black_scholes_01__down_and_out_calls_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  num_paths: 16384
+  model: Black Scholes
+  payoff: Down And Out Call
+  engine: cpp_gpu_philox
+  device: cuda
+  source_files:
+  - src_cpp/ai_factory/cuda/black_scholes/down_and_out_calls.cu
+  references:
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+monitoring:
+  type: discrete
+  dates: Every time-grid date after t0, including maturity
+  rebate: 0.0
+model_database:
+  id: black_scholes_01
+  json_path: registry/production/models/black_scholes/data/black_scholes_01.json
+product_database:
+  id: down_and_out_calls_01
+  json_path: registry/production/products/down_and_out_calls/data/down_and_out_calls_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 935200001
+timing:
+  wall_seconds: 0.8465048969992495
+  kernel_seconds: 0.6456282569319007

@@ -1,0 +1,23 @@
+title: Zero-coupon bond production database
+format: ai_factory.products.v1
+database_id: zero_coupon_bonds_01
+product_family: Zero Coupon Bonds
+json_path: registry/production/products/zero_coupon_bonds/data/zero_coupon_bonds_01.json
+generation_script: registry/production/products/zero_coupon_bonds/generators/zero_coupon_bonds_01.py
+parameters:
+  maturity: Payment date T in years.
+  notional: Amount N paid at maturity.
+payoff:
+  expression: N paid at maturity T
+  price: N P(0,T)
+construction:
+  row_count: 1000
+  method: random sample
+  rng: Project Philox-4x32-10 generator
+  seed: 741500001
+  rule: Continuous uniform maturity from one month to thirty years.
+  bounds:
+    maturity:
+    - 1/12
+    - 30.0
+    notional: 1.0

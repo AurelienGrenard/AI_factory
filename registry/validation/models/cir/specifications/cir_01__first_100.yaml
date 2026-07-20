@@ -1,0 +1,24 @@
+title: Production slice cir_01__first_100
+format: ai_factory.models.v1
+database_id: cir_01__first_100
+model_family: Cir
+json_path: registry/validation/models/cir/data/cir_01__first_100.json
+generation_script: registry/validation/models/cir/generators/cir_01__first_100.py
+parameters:
+  initial_rate: Initial short rate r0.
+  kappa: Positive mean-reversion speed kappa.
+  theta: Positive long-run short-rate level theta.
+  volatility: Square-root short-rate volatility sigma.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    short_rate: dr_t = kappa (theta - r_t) dt + sigma sqrt(r_t) dW_t
+  initial_conditions:
+    short_rate: r_0 = initial_rate
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: cir_01
+source_json_path: registry/production/models/cir/data/cir_01.json
+source_yaml_path: registry/production/models/cir/specifications/cir_01.yaml

@@ -1,0 +1,21 @@
+title: Production slice caplets_01__first_100
+format: ai_factory.products.v1
+database_id: caplets_01__first_100
+product_family: Caplets
+json_path: registry/validation/products/caplets/data/caplets_01__first_100.json
+generation_script: registry/validation/products/caplets/generators/caplets_01__first_100.py
+parameters:
+  fixing_time: Forward-rate fixing date T in years.
+  accrual_period: Year fraction delta from fixing to payment.
+  strike: Caplet strike K.
+  notional: Contract notional N.
+payoff:
+  expression: N delta max(L(T;T,T+delta) - K, 0) paid at T+delta
+  bond_option_equivalent: N max(1 - (1 + delta K) P(T,T+delta), 0) at T
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: caplets_01
+source_json_path: registry/production/products/caplets/data/caplets_01.json
+source_yaml_path: registry/production/products/caplets/specifications/caplets_01.yaml

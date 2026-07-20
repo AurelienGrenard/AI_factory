@@ -1,0 +1,29 @@
+title: Up-and-in call production product parameter database up_and_in_calls_01
+format: ai_factory.products.v1
+database_id: up_and_in_calls_01
+product_family: Up And In Calls
+json_path: registry/production/products/up_and_in_calls/data/up_and_in_calls_01.json
+generation_script: registry/production/products/up_and_in_calls/generators/up_and_in_calls_01.py
+parameters:
+  strike: Strike in normalized spot units.
+  barrier: Discrete barrier in normalized spot units.
+  maturity: Maturity in years.
+  observation_count: Number of equally spaced monitoring dates, round(52T).
+  rebate: Cash rebate, fixed to zero for this database.
+payoff:
+  expression: 1_{max_i S(t_i) >= B} * max(S_T - K, 0)
+  scaling_rule: V(s, K, B) = s * V(1, K / s, B / s)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is uniform on [1/12, 3], log(K) is uniform on [-a sqrt(T), a sqrt(T)], and
+    the barrier is sampled conditionally on its direction.
+  rng: Project Philox-4x32-10 generator
+  seed: 735000001
+  bounds:
+    maturity:
+    - 1/12
+    - 3.0
+    log_strike_given_maturity: uniform on [-a sqrt(T), a sqrt(T)]
+    a: 0.3
+    barrier: uniform on [max(1.05, K + 0.05), max(1.50, K + 0.10)]

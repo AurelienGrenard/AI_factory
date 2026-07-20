@@ -1,0 +1,43 @@
+title: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_gpu_analytic_01
+format: ai_factory.results.v1
+database_id: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_gpu_analytic_01
+status: priced
+json_path: registry/validation/results/cir_plus_plus/interest_rate_swaps/data/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_gpu_analytic_01.json
+generation_script: registry/validation/results/cir_plus_plus/interest_rate_swaps/generators/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__cpp_gpu_analytic_01.py
+summary:
+  row_count: 100
+  model: Cir Plus Plus
+  payoff: Interest Rate Swaps
+  engine: cpp_gpu_analytic
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/cir_plus_plus/interest_rate_swaps.cu
+  curve: Nelson Siegel
+  source_production_result: registry/production/results/cir_plus_plus/interest_rate_swaps/data/cir_plus_plus_01__nelson_siegel_01__interest_rate_swaps_01__cpp_gpu_analytic_01.json
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: cir_plus_plus_01__first_100
+  json_path: registry/validation/models/cir_plus_plus/data/cir_plus_plus_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: interest_rate_swaps_01__first_100
+  json_path: registry/validation/products/interest_rate_swaps/data/interest_rate_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  purpose: curve_implied_pricing
+timing:
+  wall_seconds: 0.010938704000182042
+  kernel_seconds: 0.0032296960353851317
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_kernel_seconds: 0.0007442880272865295
+  benchmark_seconds: 0.002671059000022069
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

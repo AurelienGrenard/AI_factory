@@ -1,0 +1,49 @@
+title: black_scholes_01__first_100 x asian_arithmetic_calls_01__first_100 cpp_gpu_philox_delta_crn
+format: ai_factory.results.v1
+database_id: black_scholes_01__first_100__asian_arithmetic_calls_01__first_100__cpp_gpu_philox_delta_crn_01
+status: priced
+json_path: registry/validation/results/black_scholes/asian_arithmetic_calls/data/black_scholes_01__first_100__asian_arithmetic_calls_01__first_100__cpp_gpu_philox_delta_crn_01.json
+generation_script: registry/validation/results/black_scholes/asian_arithmetic_calls/generators/black_scholes_01__first_100__asian_arithmetic_calls_01__first_100__cpp_gpu_philox_delta_crn_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Black Scholes
+  payoff: Asian Arithmetic Call
+  engine: cpp_gpu_philox_delta_crn
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/black_scholes/asian_arithmetic_calls.cu
+  source_production_result: registry/production/results/black_scholes/asian_arithmetic_calls/data/black_scholes_01__asian_arithmetic_calls_01__cpp_gpu_philox_delta_crn_01.json
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+  delta:
+    estimator: Central finite difference with common random numbers
+  delta_standard_error:
+    estimator: Monte Carlo standard error of pathwise finite-difference delta
+model_database:
+  id: black_scholes_01__first_100
+  json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+product_database:
+  id: asian_arithmetic_calls_01__first_100
+  json_path: registry/validation/products/asian_arithmetic_calls/data/asian_arithmetic_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.07927086999916355
+  kernel_seconds: 0.06669750388711691
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.07927086999916355
+  benchmark_kernel_seconds: 0.06669750388711691
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

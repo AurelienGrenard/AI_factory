@@ -1,0 +1,24 @@
+title: Production slice black_76_01__first_100
+format: ai_factory.models.v1
+database_id: black_76_01__first_100
+model_family: Black 76
+json_path: registry/validation/models/black_76/data/black_76_01__first_100.json
+generation_script: registry/validation/models/black_76/generators/black_76_01__first_100.py
+parameters:
+  volatility: Annualized Black volatility sigma.
+  displacement: Positive shift s applied to the forward and strike.
+dynamics:
+  measure: Product forward measure
+  representation: Shifted lognormal forward model
+  equations:
+    shifted_forward: X_t = F_t + displacement
+    dynamics: dX_t / X_t = volatility dW_t
+  initial_conditions:
+    forward: F_0 implied by the aligned Nelson-Siegel curve
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: black_76_01
+source_json_path: registry/production/models/black_76/data/black_76_01.json
+source_yaml_path: registry/production/models/black_76/specifications/black_76_01.yaml

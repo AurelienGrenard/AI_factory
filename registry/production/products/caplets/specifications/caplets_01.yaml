@@ -1,0 +1,29 @@
+title: Caplet production database
+format: ai_factory.products.v1
+database_id: caplets_01
+product_family: Caplets
+json_path: registry/production/products/caplets/data/caplets_01.json
+generation_script: registry/production/products/caplets/generators/caplets_01.py
+parameters:
+  fixing_time: Forward-rate fixing date T in years.
+  accrual_period: Year fraction delta from fixing to payment.
+  strike: Caplet strike K.
+  notional: Contract notional N.
+payoff:
+  expression: N delta max(L(T;T,T+delta) - K, 0) paid at T+delta
+  bond_option_equivalent: N max(1 - (1 + delta K) P(T,T+delta), 0) at T
+construction:
+  row_count: 1000
+  method: random sample
+  rng: Project Philox-4x32-10 generator
+  seed: 741500101
+  rule: Quarterly fixing dates, semiannual accrual, and uniform strike.
+  bounds:
+    fixing_time:
+    - 0.25
+    - 10.0
+    accrual_period: 0.5
+    strike:
+    - 0.0
+    - 0.08
+    notional: 1.0

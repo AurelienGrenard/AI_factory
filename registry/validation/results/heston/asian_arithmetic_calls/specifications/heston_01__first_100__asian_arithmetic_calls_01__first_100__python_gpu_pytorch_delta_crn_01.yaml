@@ -1,0 +1,65 @@
+title: heston_01__first_100 x asian_arithmetic_calls_01__first_100 python_gpu_pytorch_delta_crn
+format: ai_factory.results.v1
+database_id: heston_01__first_100__asian_arithmetic_calls_01__first_100__python_gpu_pytorch_delta_crn_01
+status: priced
+json_path: registry/validation/results/heston/asian_arithmetic_calls/data/heston_01__first_100__asian_arithmetic_calls_01__first_100__python_gpu_pytorch_delta_crn_01.json
+generation_script: registry/validation/results/heston/asian_arithmetic_calls/generators/heston_01__first_100__asian_arithmetic_calls_01__first_100__python_gpu_pytorch_delta_crn_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Heston
+  payoff: Asian Arithmetic Call
+  engine: python_gpu_pytorch_delta_crn
+  device: cuda
+  heston_scheme: qe_martingale
+  source_files:
+  - src_python/ai_factory/pytorch/heston/asian_arithmetic_calls.py
+  references:
+  - topic: Heston QE-M simulation scheme
+    reference:
+      authors: Andersen, L. B. G.
+      year: 2007
+      title: Efficient Simulation of the Heston Stochastic Volatility Model
+  - topic: Common random numbers finite-difference delta
+    reference:
+      authors: Glasserman, P.; Yao, D. D.
+      year: 1992
+      title: Some Guidelines and Guarantees for Common Random Numbers
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+  delta:
+    estimator: Central finite difference with common random numbers
+  delta_standard_error:
+    estimator: Monte Carlo standard error of pathwise finite-difference delta
+delta_method:
+  method: central finite difference with common random numbers
+  relative_bump: 0.0005
+  spot_bumps: S0 * (1 - relative_bump), S0, S0 * (1 + relative_bump)
+  random_numbers: identical Brownian drivers for base, down, and up paths
+model_database:
+  id: heston_01__first_100
+  json_path: registry/validation/models/heston/data/heston_01__first_100.json
+product_database:
+  id: asian_arithmetic_calls_01__first_100
+  json_path: registry/validation/products/asian_arithmetic_calls/data/asian_arithmetic_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 7.181011833999946
+  simulation_seconds: 7.124370155004726
+  payoff_seconds: 0.05413257499822066
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 7.181011833999946
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

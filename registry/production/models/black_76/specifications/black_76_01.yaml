@@ -1,0 +1,31 @@
+title: Shifted Black-76 production model parameter database
+format: ai_factory.models.v1
+database_id: black_76_01
+model_family: Black 76
+json_path: registry/production/models/black_76/data/black_76_01.json
+generation_script: registry/production/models/black_76/generators/black_76_01.py
+parameters:
+  volatility: Annualized Black volatility sigma.
+  displacement: Positive shift s applied to the forward and strike.
+dynamics:
+  measure: Product forward measure
+  representation: Shifted lognormal forward model
+  equations:
+    shifted_forward: X_t = F_t + displacement
+    dynamics: dX_t / X_t = volatility dW_t
+  initial_conditions:
+    forward: F_0 implied by the aligned Nelson-Siegel curve
+construction:
+  row_count: 1000
+  method: uniform random sample
+  rule: Black volatility and positive displacement are sampled independently.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 744100001
+    bounds:
+      volatility:
+      - 0.05
+      - 0.8
+      displacement:
+      - 0.03
+      - 0.06

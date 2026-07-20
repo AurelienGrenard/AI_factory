@@ -1,0 +1,56 @@
+title: g2_plus_plus_01__nelson_siegel_01__bermudan_swaptions_01__cpp_gpu_philox_01
+format: ai_factory.results.v1
+database_id: g2_plus_plus_01__nelson_siegel_01__bermudan_swaptions_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/g2_plus_plus/bermudan_swaptions/data/g2_plus_plus_01__nelson_siegel_01__bermudan_swaptions_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/g2_plus_plus/bermudan_swaptions/generators/g2_plus_plus_01__nelson_siegel_01__bermudan_swaptions_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  model: G2 Plus Plus
+  payoff: Bermudan Swaptions
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/g2_plus_plus/bermudan_swaptions.cu
+  curve: Nelson Siegel
+  num_paths: 16384
+  references:
+  - topic: Longstaff-Schwartz exercise policy
+    reference:
+      authors: Longstaff, F. A.; Schwartz, E. S.
+      year: 2001
+      title: 'Valuing American Options by Simulation: A Simple Least-Squares Approach'
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: exact model transition on contractual dates
+  schedule: exercise dates
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error
+exercise:
+  method: Longstaff-Schwartz
+  dates: first_exercise + j * exercise_period
+  regression_target: Realized future exercise cashflow discounted to the current exercise
+    date
+  basis: Laguerre polynomials of degree 0 to 3 on par swap rate / 0.04
+  regression_sample: In-the-money paths only
+model_database:
+  id: g2_plus_plus_01
+  json_path: registry/production/models/g2_plus_plus/data/g2_plus_plus_01.json
+curve_database:
+  id: nelson_siegel_01
+  json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+product_database:
+  id: bermudan_swaptions_01
+  json_path: registry/production/products/bermudan_swaptions/data/bermudan_swaptions_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.4558809210002437
+  kernel_seconds: 0.43971963500976563

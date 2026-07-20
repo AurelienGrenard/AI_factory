@@ -1,0 +1,43 @@
+title: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_gpu_analytic_01
+format: ai_factory.results.v1
+database_id: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_gpu_analytic_01
+status: priced
+json_path: registry/validation/results/cir_plus_plus/zero_coupon_bonds/data/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_gpu_analytic_01.json
+generation_script: registry/validation/results/cir_plus_plus/zero_coupon_bonds/generators/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_gpu_analytic_01.py
+summary:
+  row_count: 100
+  model: Cir Plus Plus
+  payoff: Zero Coupon Bonds
+  engine: cpp_gpu_analytic
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/cir_plus_plus/zero_coupon_bonds.cu
+  curve: Nelson Siegel
+  source_production_result: cir_plus_plus_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: cir_plus_plus_01__first_100
+  json_path: registry/validation/models/cir_plus_plus/data/cir_plus_plus_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: zero_coupon_bonds_01__first_100
+  json_path: registry/validation/products/zero_coupon_bonds/data/zero_coupon_bonds_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  purpose: initial_curve_reproduction
+timing:
+  wall_seconds: 0.004083175999767263
+  kernel_seconds: 0.0009656320214271546
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_kernel_seconds: 7.971200346946716e-05
+  benchmark_seconds: 0.001639271999920311
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

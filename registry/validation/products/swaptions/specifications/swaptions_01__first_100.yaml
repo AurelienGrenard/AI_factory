@@ -1,0 +1,23 @@
+title: Production slice swaptions_01__first_100
+format: ai_factory.products.v1
+database_id: swaptions_01__first_100
+product_family: Swaptions
+json_path: registry/validation/products/swaptions/data/swaptions_01__first_100.json
+generation_script: registry/validation/products/swaptions/generators/swaptions_01__first_100.py
+parameters:
+  expiry: Option expiry and underlying swap start T0.
+  accrual_period: Underlying fixed-leg year fraction delta.
+  payment_count: Number of underlying fixed-leg payments.
+  fixed_rate: Underlying fixed rate K.
+  direction: +1 payer or -1 receiver swaption.
+  notional: Contract notional N.
+payoff:
+  expression: N max(direction [1 - P(T0,Tn) - K delta sum_i P(T0,Ti)], 0) at T0
+  direction: +1 payer swaption, -1 receiver swaption
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: swaptions_01
+source_json_path: registry/production/products/swaptions/data/swaptions_01.json
+source_yaml_path: registry/production/products/swaptions/specifications/swaptions_01.yaml

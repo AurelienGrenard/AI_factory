@@ -1,0 +1,40 @@
+title: hull_white_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01
+format: ai_factory.results.v1
+database_id: hull_white_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01
+status: priced
+json_path: registry/validation/results/hull_white/zero_coupon_bonds/data/hull_white_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01.json
+generation_script: registry/validation/results/hull_white/zero_coupon_bonds/generators/hull_white_01__first_100__nelson_siegel_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01.py
+summary:
+  row_count: 100
+  model: Hull White
+  payoff: Zero Coupon Bonds
+  engine: cpp_cpu_analytic
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/hull_white/zero_coupon_bonds.cpp
+  curve: Nelson Siegel
+  source_production_result: hull_white_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: hull_white_01__first_100
+  json_path: registry/validation/models/hull_white/data/hull_white_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: zero_coupon_bonds_01__first_100
+  json_path: registry/validation/products/zero_coupon_bonds/data/zero_coupon_bonds_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+timing:
+  wall_seconds: 3.0048999178688973e-05
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.01433227899906342
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

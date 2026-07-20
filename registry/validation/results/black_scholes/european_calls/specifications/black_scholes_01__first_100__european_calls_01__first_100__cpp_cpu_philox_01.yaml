@@ -1,0 +1,41 @@
+title: black_scholes_01__first_100 x european_calls_01__first_100 cpp_cpu_philox
+format: ai_factory.results.v1
+database_id: black_scholes_01__first_100__european_calls_01__first_100__cpp_cpu_philox_01
+status: priced
+json_path: registry/validation/results/black_scholes/european_calls/data/black_scholes_01__first_100__european_calls_01__first_100__cpp_cpu_philox_01.json
+generation_script: registry/validation/results/black_scholes/european_calls/generators/black_scholes_01__first_100__european_calls_01__first_100__cpp_cpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Black Scholes
+  payoff: European Call
+  engine: cpp_cpu_philox
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/black_scholes/european_calls.cpp
+  source_production_result: black_scholes_01__european_calls_01__cpp_gpu_philox_01
+time_grid:
+  rule: exact model transition on contractual dates
+  schedule: single terminal date T
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: black_scholes_01__first_100
+  json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+product_database:
+  id: european_calls_01__first_100
+  json_path: registry/validation/products/european_calls/data/european_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.00865243900079804
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.00865243900079804
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

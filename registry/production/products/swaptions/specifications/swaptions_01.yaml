@@ -1,0 +1,38 @@
+title: European swaption production database
+format: ai_factory.products.v1
+database_id: swaptions_01
+product_family: Swaptions
+json_path: registry/production/products/swaptions/data/swaptions_01.json
+generation_script: registry/production/products/swaptions/generators/swaptions_01.py
+parameters:
+  expiry: Option expiry and underlying swap start T0.
+  accrual_period: Underlying fixed-leg year fraction delta.
+  payment_count: Number of underlying fixed-leg payments.
+  fixed_rate: Underlying fixed rate K.
+  direction: +1 payer or -1 receiver swaption.
+  notional: Contract notional N.
+payoff:
+  expression: N max(direction [1 - P(T0,Tn) - K delta sum_i P(T0,Ti)], 0) at T0
+  direction: +1 payer swaption, -1 receiver swaption
+construction:
+  row_count: 1000
+  method: random sample
+  rng: Project Philox-4x32-10 generator
+  seed: 741300101
+  rule: Quarterly expiries, semiannual underlying swaps, 1Y-10Y tenors, uniform strike,
+    balanced payer/receiver direction.
+  bounds:
+    expiry:
+    - 0.25
+    - 5.0
+    accrual_period: 0.5
+    payment_count:
+    - 2
+    - 20
+    fixed_rate:
+    - 0.0
+    - 0.08
+    direction:
+    - -1
+    - 1
+    notional: 1.0

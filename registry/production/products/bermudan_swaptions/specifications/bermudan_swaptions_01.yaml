@@ -1,0 +1,46 @@
+title: Bermudan swaption production database
+format: ai_factory.products.v1
+database_id: bermudan_swaptions_01
+product_family: Bermudan Swaptions
+json_path: registry/production/products/bermudan_swaptions/data/bermudan_swaptions_01.json
+generation_script: registry/production/products/bermudan_swaptions/generators/bermudan_swaptions_01.py
+parameters:
+  first_exercise: First exercise date in years.
+  exercise_period: Year fraction between exercise opportunities.
+  exercise_count: Number of Bermudan exercise opportunities.
+  accrual_period: Underlying fixed-leg year fraction.
+  payment_count: Fixed-leg payments remaining at first exercise.
+  fixed_rate: Underlying fixed rate K.
+  direction: +1 payer or -1 receiver swaption.
+  notional: Contract notional N.
+payoff:
+  exercise_value: N max(direction [1 - P(t,Tn) - K delta sum_i P(t,Ti)], 0)
+  exercise_rule: At exercise j, enter the remaining swap with payment_count - j fixed-leg
+    payments.
+  direction: +1 payer swaption, -1 receiver swaption
+construction:
+  row_count: 1000
+  method: random sample
+  rng: Project Philox-4x32-10 generator
+  seed: 741400101
+  rule: Semiannual exercises and payments; at least two fixed coupons remain after
+    the last exercise.
+  bounds:
+    first_exercise:
+    - 0.5
+    - 5.0
+    exercise_period: 0.5
+    exercise_count:
+    - 2
+    - 8
+    accrual_period: 0.5
+    payment_count:
+    - 4
+    - 20
+    fixed_rate:
+    - 0.0
+    - 0.08
+    direction:
+    - -1
+    - 1
+    notional: 1.0

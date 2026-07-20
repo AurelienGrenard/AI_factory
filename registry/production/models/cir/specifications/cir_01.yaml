@@ -1,0 +1,41 @@
+title: CIR production model parameter database
+format: ai_factory.models.v1
+database_id: cir_01
+model_family: Cir
+json_path: registry/production/models/cir/data/cir_01.json
+generation_script: registry/production/models/cir/generators/cir_01.py
+parameters:
+  initial_rate: Initial short rate r0.
+  kappa: Positive mean-reversion speed kappa.
+  theta: Positive long-run short-rate level theta.
+  volatility: Square-root short-rate volatility sigma.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    short_rate: dr_t = kappa (theta - r_t) dt + sigma sqrt(r_t) dW_t
+  initial_conditions:
+    short_rate: r_0 = initial_rate
+construction:
+  row_count: 1000
+  method: conditional random sample
+  rule: Kappa, theta, and r0 are uniform; volatility is conditionally uniform under
+    the documented Feller-ratio bounds.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 741200001
+    bounds:
+      kappa:
+      - 0.1
+      - 2.0
+      theta:
+      - 0.005
+      - 0.12
+      initial_rate:
+      - 0.001
+      - 0.12
+      volatility:
+      - max(sqrt(kappa theta / 5), 0.01)
+      - min(sqrt(12 kappa theta), 0.30)
+      feller_ratio:
+      - 1/6
+      - 10.0

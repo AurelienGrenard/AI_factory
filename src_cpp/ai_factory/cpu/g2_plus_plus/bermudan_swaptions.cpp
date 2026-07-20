@@ -1,0 +1,16 @@
+#include "ai_factory/cpu/g2_plus_plus/bermudan_swaptions.hpp"
+#include "ai_factory/common/fixed_income/g2_plus_plus.hpp"
+#include "ai_factory/cpu/common/bermudan_lsm.hpp"
+#include "ai_factory/cpu/common/philox.hpp"
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <stdexcept>
+#include <vector>
+namespace ai_factory::cpu::g2_plus_plus {namespace {constexpr std::size_t kMaxExercises=8,kMaxPayments=20;constexpr double kBasisScale=.04;}
+void price_bermudan_swaption_batch(const cuda::G2PlusPlusBermudanSwaptionRow* rows,std::size_t count,std::size_t paths,cuda::MonteCarloOutput* outputs){if(paths<2)throw std::invalid_argument("G2++ Bermudan requires two paths.");
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+for(std::ptrdiff_t ri=0;ri<static_cast<std::ptrdiff_t>(count);++ri){const auto&r=rows[ri];const auto&m=r.model;const auto&p=r.product;const auto exercises=static_cast<std::size_t>(p.exercise_count);std::array<fixed_income::G2Transition,kMaxExercises> transitions{};std::array<std::array<double,kMaxPayments>,kMaxExercises> ba{},bbx{},bby{};double previous=0;for(std::size_t e=0;e<exercises;++e){const double time=p.first_exercise+e*p.exercise_period;transitions[e]=fixed_income::make_g2_transition(m.mean_reversion_x,m.volatility_x,m.mean_reversion_y,m.volatility_y,m.rho,time-previous);for(int j=static_cast<int>(e);j<p.payment_count;++j){const double maturity=p.first_exercise+(j+1)*p.accrual_period;ba[e][j]=fixed_income::g2_bond_price(0,0,time,maturity,m.mean_reversion_x,m.volatility_x,m.mean_reversion_y,m.volatility_y,m.rho,r.curve.beta0,r.curve.beta1,r.curve.beta2,r.curve.tau);bbx[e][j]=fixed_income::ou_b(m.mean_reversion_x,maturity-time);bby[e][j]=fixed_income::ou_b(m.mean_reversion_y,maturity-time);}previous=time;}const auto size=exercises*paths;std::vector<double> immediate(size),basis(size),discounts(size);for(std::size_t path=0;path<paths;++path){double x=0,y=0,ix=0,iy=0;for(std::size_t e=0;e<exercises;++e){fixed_income::apply_g2_transition(transitions[e],simulation::philox_standard_normal(r.seed,0U,path*4U*exercises+4U*e),simulation::philox_standard_normal(r.seed,0U,path*4U*exercises+4U*e+1U),simulation::philox_standard_normal(r.seed,0U,path*4U*exercises+4U*e+2U),simulation::philox_standard_normal(r.seed,0U,path*4U*exercises+4U*e+3U),x,y,ix,iy);double annuity=0,end=1;for(int j=static_cast<int>(e);j<p.payment_count;++j){const double bond=ba[e][j]*std::exp(-bbx[e][j]*x-bby[e][j]*y);annuity+=p.accrual_period*bond;end=bond;}const double signed_swap=static_cast<double>(p.direction)*(1-end-p.fixed_rate*annuity);const auto index=e*paths+path;immediate[index]=p.notional*std::max(signed_swap,0.0);basis[index]=(1-end)/annuity/kBasisScale;const double time=p.first_exercise+e*p.exercise_period;discounts[index]=fixed_income::g2_path_discount(ix,iy,time,m.mean_reversion_x,m.volatility_x,m.mean_reversion_y,m.volatility_y,m.rho,r.curve.beta0,r.curve.beta1,r.curve.beta2,r.curve.tau);}}const auto cashflows=lsm::bermudan_cashflows_present_value(immediate,basis,discounts,exercises,paths);double sum=0,sumsq=0;for(double value:cashflows){sum+=value;sumsq+=value*value;}const double n=static_cast<double>(paths),mean=sum/n,var=(sumsq-n*mean*mean)/(n-1);outputs[ri]={mean,std::sqrt(std::max(var,0.0)/n)};}}
+}

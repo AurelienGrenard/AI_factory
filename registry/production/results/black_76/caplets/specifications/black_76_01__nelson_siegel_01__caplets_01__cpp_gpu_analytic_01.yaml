@@ -1,0 +1,35 @@
+title: black_76_01__nelson_siegel_01__caplets_01__cpp_gpu_analytic_01
+format: ai_factory.results.v1
+database_id: black_76_01__nelson_siegel_01__caplets_01__cpp_gpu_analytic_01
+status: priced
+json_path: registry/production/results/black_76/caplets/data/black_76_01__nelson_siegel_01__caplets_01__cpp_gpu_analytic_01.json
+generation_script: registry/production/results/black_76/caplets/generators/black_76_01__nelson_siegel_01__caplets_01__cpp_gpu_analytic_01.py
+summary:
+  row_count: 1000
+  model: Black 76
+  payoff: Caplets
+  engine: cpp_gpu_analytic
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/black_76/caplets.cu
+  curve: Nelson Siegel
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: black_76_01
+  json_path: registry/production/models/black_76/data/black_76_01.json
+curve_database:
+  id: nelson_siegel_01
+  json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+product_database:
+  id: caplets_01
+  json_path: registry/production/products/caplets/data/caplets_01.json
+result_construction:
+  rule: aligned row pairing
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.0004057509995618602
+  kernel_seconds: 9.571199864149093e-05

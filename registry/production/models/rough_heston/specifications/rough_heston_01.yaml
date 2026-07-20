@@ -1,0 +1,65 @@
+title: Rough Heston production model parameter database rough_heston_01
+format: ai_factory.models.v1
+database_id: rough_heston_01
+model_family: Rough Heston
+json_path: registry/production/models/rough_heston/data/rough_heston_01.json
+generation_script: registry/production/models/rough_heston/generators/rough_heston_01.py
+parameters:
+  spot: Initial spot.
+  risk_free_rate: Continuously compounded risk-free rate.
+  dividend_yield: Continuously compounded dividend yield.
+  initial_variance: Initial variance v0.
+  theta: Long-run variance theta.
+  kappa: Volterra variance mean-reversion speed kappa.
+  volatility_of_variance: Volatility of variance gamma.
+  hurst: Hurst exponent H of the fractional kernel.
+  rho: Spot/variance Brownian correlation rho.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    spot: dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S
+    variance: V_t = v0 + integral_0^t K(t-s) [kappa(theta-V_s) ds + gamma sqrt(V_s)
+      dW_s^V]
+    kernel: K(t) = t^(H-1/2) / Gamma(H+1/2)
+    correlation: d<W^S, W^V>_t = rho dt
+  initial_conditions:
+    spot: S_0 = spot
+    variance: V_0 = initial_variance
+  numerical_representation:
+    type: eight-factor positive-exponential approximation of K
+    quadrature: geometric Laplace-measure partition with interval mass and first-moment
+      nodes
+    variance_step: explicit lifted Euler with full truncation
+construction:
+  row_count: 1000
+  method: random sample
+  rule: All listed parameters are sampled independently and uniformly; gamma is uniform
+    on [max(sqrt(kappa * theta / 5), 0.1), min(sqrt(12 * kappa * theta), 0.8)].
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 725000101
+    spot: 1.0
+    bounds:
+      kappa:
+      - 0.5
+      - 4.0
+      theta:
+      - 0.01
+      - 0.15
+      rho:
+      - -0.95
+      - -0.3
+      initial_variance:
+      - 0.01
+      - 0.12
+      hurst:
+      - 0.05
+      - 0.4
+      risk_free_rate:
+      - 0.0
+      - 0.08
+      dividend_yield:
+      - 0.0
+      - 0.05
+      volatility_of_variance: gamma is uniform on [max(sqrt(kappa * theta / 5), 0.1),
+        min(sqrt(12 * kappa * theta), 0.8)].

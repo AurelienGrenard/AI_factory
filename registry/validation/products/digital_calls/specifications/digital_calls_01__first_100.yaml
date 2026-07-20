@@ -1,0 +1,19 @@
+title: Production slice digital_calls_01__first_100
+format: ai_factory.products.v1
+database_id: digital_calls_01__first_100
+product_family: Digital Calls
+json_path: registry/validation/products/digital_calls/data/digital_calls_01__first_100.json
+generation_script: registry/validation/products/digital_calls/generators/digital_calls_01__first_100.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+payoff:
+  expression: 1 if S_T > K else 0
+  scaling_rule: V(s, K) = V(1, K / s)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: digital_calls_01
+source_json_path: registry/production/products/digital_calls/data/digital_calls_01.json
+source_yaml_path: registry/production/products/digital_calls/specifications/digital_calls_01.yaml

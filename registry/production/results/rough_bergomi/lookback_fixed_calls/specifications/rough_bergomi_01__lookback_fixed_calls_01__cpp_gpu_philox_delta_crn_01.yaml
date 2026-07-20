@@ -1,0 +1,64 @@
+title: rough_bergomi_01 x lookback_fixed_calls_01 cpp_gpu_philox_delta_crn
+format: ai_factory.results.v1
+database_id: rough_bergomi_01__lookback_fixed_calls_01__cpp_gpu_philox_delta_crn_01
+status: priced
+json_path: registry/production/results/rough_bergomi/lookback_fixed_calls/data/rough_bergomi_01__lookback_fixed_calls_01__cpp_gpu_philox_delta_crn_01.json
+generation_script: registry/production/results/rough_bergomi/lookback_fixed_calls/generators/rough_bergomi_01__lookback_fixed_calls_01__cpp_gpu_philox_delta_crn_01.py
+summary:
+  row_count: 1000
+  num_paths: 16384
+  model: Rough Bergomi
+  payoff: Lookback Fixed Call
+  engine: cpp_gpu_philox_delta_crn
+  device: cuda
+  scheme: hybrid
+  source_files:
+  - src_cpp/ai_factory/cuda/rough_bergomi/lookback_fixed_calls.cu
+  references:
+  - topic: Rough Bergomi hybrid simulation scheme
+    reference:
+      authors: Bennedsen, M.; Lunde, A.; Pakkanen, M. S.
+      year: 2017
+      title: Hybrid Scheme for Brownian Semistationary Processes
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+  - topic: Common random numbers finite-difference delta
+    reference:
+      authors: Glasserman, P.; Yao, D. D.
+      year: 1992
+      title: Some Guidelines and Guarantees for Common Random Numbers
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+  delta:
+    estimator: Central finite difference with common random numbers
+  delta_standard_error:
+    estimator: Monte Carlo standard error of pathwise finite-difference delta
+delta_method:
+  method: Common Random Numbers central bump
+  relative_bump: 0.0005
+  bumped_spots:
+    up: S0 * (1 + relative_bump)
+    down: S0 * (1 - relative_bump)
+model_database:
+  id: rough_bergomi_01
+  json_path: registry/production/models/rough_bergomi/data/rough_bergomi_01.json
+product_database:
+  id: lookback_fixed_calls_01
+  json_path: registry/production/products/lookback_fixed_calls/data/lookback_fixed_calls_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 941700001
+timing:
+  wall_seconds: 2.7090866660000756
+  kernel_seconds: 2.5176267174780365

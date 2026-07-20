@@ -1,0 +1,24 @@
+title: Production slice black_scholes_01__first_100
+format: ai_factory.models.v1
+database_id: black_scholes_01__first_100
+model_family: Black Scholes
+json_path: registry/validation/models/black_scholes/data/black_scholes_01__first_100.json
+generation_script: registry/validation/models/black_scholes/generators/black_scholes_01__first_100.py
+parameters:
+  spot: Initial spot.
+  risk_free_rate: Continuously compounded risk-free rate.
+  dividend_yield: Continuously compounded dividend yield.
+  volatility: Constant Black-Scholes volatility sigma.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    spot: dS_t / S_t = (r - q) dt + sigma dW_t
+  initial_conditions:
+    spot: S_0 = spot
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: black_scholes_01
+source_json_path: registry/production/models/black_scholes/data/black_scholes_01.json
+source_yaml_path: registry/production/models/black_scholes/specifications/black_scholes_01.yaml

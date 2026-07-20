@@ -1,0 +1,23 @@
+title: Production slice interest_rate_swaps_01__first_100
+format: ai_factory.products.v1
+database_id: interest_rate_swaps_01__first_100
+product_family: Interest Rate Swaps
+json_path: registry/validation/products/interest_rate_swaps/data/interest_rate_swaps_01__first_100.json
+generation_script: registry/validation/products/interest_rate_swaps/generators/interest_rate_swaps_01__first_100.py
+parameters:
+  start_time: Swap start T0 in years.
+  accrual_period: Fixed-leg year fraction delta.
+  payment_count: Number of fixed-leg payments.
+  fixed_rate: Annualized fixed rate K.
+  direction: +1 payer-fixed or -1 receiver-fixed.
+  notional: Contract notional N.
+payoff:
+  expression: direction N [P(0,T0) - P(0,Tn) - K delta sum_i P(0,Ti)]
+  direction: +1 payer fixed, -1 receiver fixed
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: interest_rate_swaps_01
+source_json_path: registry/production/products/interest_rate_swaps/data/interest_rate_swaps_01.json
+source_yaml_path: registry/production/products/interest_rate_swaps/specifications/interest_rate_swaps_01.yaml

@@ -1,0 +1,49 @@
+title: heston_03 x autocalls_01 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: heston_03__autocalls_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/heston/autocalls/data/heston_03__autocalls_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/heston/autocalls/generators/heston_03__autocalls_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  num_paths: 16384
+  model: Heston
+  payoff: Memory Autocall
+  engine: cpp_gpu_philox
+  device: cuda
+  scheme: qe_martingale
+  source_files:
+  - src_cpp/ai_factory/cuda/heston/autocalls.cu
+  references:
+  - topic: Heston QE-M simulation
+    reference:
+      authors: Andersen, L. B. G.
+      year: 2007
+      title: Efficient Simulation of the Heston Stochastic Volatility Model
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: heston_03
+  json_path: registry/production/models/heston/data/heston_03.json
+product_database:
+  id: autocalls_01
+  json_path: registry/production/products/autocalls/data/autocalls_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 934100001
+timing:
+  wall_seconds: 5.527631453999675
+  kernel_seconds: 5.294328872680664

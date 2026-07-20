@@ -1,0 +1,44 @@
+title: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__caplets_01__first_100__python_gpu_pytorch_01
+format: ai_factory.results.v1
+database_id: cir_plus_plus_01__first_100__nelson_siegel_01__first_100__caplets_01__first_100__python_gpu_pytorch_01
+status: priced
+json_path: registry/validation/results/cir_plus_plus/caplets/data/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__caplets_01__first_100__python_gpu_pytorch_01.json
+generation_script: registry/validation/results/cir_plus_plus/caplets/generators/cir_plus_plus_01__first_100__nelson_siegel_01__first_100__caplets_01__first_100__python_gpu_pytorch_01.py
+summary:
+  row_count: 100
+  model: Cir Plus Plus
+  payoff: Caplets
+  engine: python_gpu_pytorch
+  device: gpu
+  source_files:
+  - src_python/ai_factory/pytorch/cir_plus_plus/caplets.py
+  curve: Nelson Siegel
+  num_paths: 16384
+time_grid:
+  target_dt: 1/52
+  step_count: round((fixing_time) / target_dt)
+  effective_dt: (fixing_time) / step_count
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error
+model_database:
+  id: cir_plus_plus_01__first_100
+  json_path: registry/validation/models/cir_plus_plus/data/cir_plus_plus_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: caplets_01__first_100
+  json_path: registry/validation/products/caplets/data/caplets_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+  purpose: model_dependent_pricing
+timing:
+  wall_seconds: 0.9292653920001612
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.9386142650000693
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

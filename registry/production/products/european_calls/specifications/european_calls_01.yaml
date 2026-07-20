@@ -1,0 +1,24 @@
+title: European call production product parameter database european_calls_01
+format: ai_factory.products.v1
+database_id: european_calls_01
+product_family: European Calls
+json_path: registry/production/products/european_calls/data/european_calls_01.json
+generation_script: registry/production/products/european_calls/generators/european_calls_01.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+payoff:
+  expression: max(S_T - K, 0)
+  scaling_rule: V(s, K) = s * V(1, K / s)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is uniform on [1/12, 3]. Conditional on T, log(K) is uniform on [-aT, aT].
+  rng: Project Philox-4x32-10 generator
+  seed: 731600001
+  bounds:
+    maturity:
+    - 1/12
+    - 3.0
+    log_strike_given_maturity: uniform on [-aT, aT]
+    a: 0.2

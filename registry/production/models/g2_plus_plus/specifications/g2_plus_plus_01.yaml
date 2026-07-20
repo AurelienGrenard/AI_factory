@@ -1,0 +1,48 @@
+title: G2++ production model parameter database
+format: ai_factory.models.v1
+database_id: g2_plus_plus_01
+model_family: G2 Plus Plus
+json_path: registry/production/models/g2_plus_plus/data/g2_plus_plus_01.json
+generation_script: registry/production/models/g2_plus_plus/generators/g2_plus_plus_01.py
+parameters:
+  mean_reversion_x: Positive mean-reversion speed a of the first factor.
+  volatility_x: Volatility sigma of the first factor.
+  mean_reversion_y: Positive mean-reversion speed b of the second factor.
+  volatility_y: Volatility eta of the second factor.
+  rho: Brownian correlation between the two factors.
+dynamics:
+  measure: Risk-neutral
+  representation: Deterministically shifted two-factor Gaussian model
+  equations:
+    first_factor: dx_t = -a x_t dt + sigma dW_t^x
+    second_factor: dy_t = -b y_t dt + eta dW_t^y
+    correlation: d<W^x,W^y>_t = rho dt
+    short_rate: r_t = x_t + y_t + phi(t)
+    curve_shift: phi(t) = f(0,t) + 0.5 dV(0,t)/dt
+  initial_conditions:
+    first_factor: x_0 = 0
+    second_factor: y_0 = 0
+construction:
+  row_count: 1000
+  method: random sample
+  rule: The two OU factors and their Brownian correlation are sampled independently
+    within documented bounds.
+  values:
+    rng: Project Philox-4x32-10 generator
+    seed: 743200001
+    bounds:
+      mean_reversion_x:
+      - 0.02
+      - 0.5
+      volatility_x:
+      - 0.002
+      - 0.03
+      mean_reversion_y:
+      - 0.05
+      - 1.0
+      volatility_y:
+      - 0.002
+      - 0.03
+      rho:
+      - -0.95
+      - 0.5

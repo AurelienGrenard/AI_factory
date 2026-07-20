@@ -1,0 +1,54 @@
+title: rough_bergomi_02__first_100 x down_and_in_calls_01__first_100 python_cpu_pytorch
+format: ai_factory.results.v1
+database_id: rough_bergomi_02__first_100__down_and_in_calls_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/rough_bergomi/down_and_in_calls/data/rough_bergomi_02__first_100__down_and_in_calls_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/rough_bergomi/down_and_in_calls/generators/rough_bergomi_02__first_100__down_and_in_calls_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Bergomi
+  payoff: Down And In Call
+  engine: python_cpu_pytorch
+  device: cpu
+  source_files:
+  - src_python/ai_factory/pytorch/rough_bergomi/down_and_in_calls.py
+  references:
+  - topic: Rough Bergomi hybrid scheme
+    reference:
+      authors: Bennedsen, M.; Lunde, A.; Pakkanen, M. S.
+      year: 2017
+      title: Hybrid Scheme for Brownian Semistationary Processes
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+monitoring:
+  type: discrete
+  dates: Every time-grid date after t0, including maturity
+  rebate: 0.0
+model_database:
+  id: rough_bergomi_02__first_100
+  json_path: registry/validation/models/rough_bergomi/data/rough_bergomi_02__first_100.json
+product_database:
+  id: down_and_in_calls_01__first_100
+  json_path: registry/validation/products/down_and_in_calls/data/down_and_in_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 935200001
+timing:
+  wall_seconds: 11.090931378999812
+  simulation_seconds: 11.000301217005472
+  payoff_seconds: 0.07998135497837211
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 11.090931378999812
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

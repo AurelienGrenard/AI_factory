@@ -1,0 +1,23 @@
+title: Production slice nelson_siegel_01__first_100
+format: ai_factory.curves.v1
+database_id: nelson_siegel_01__first_100
+curve_family: Nelson Siegel
+json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+generation_script: registry/validation/curves/nelson_siegel/generators/nelson_siegel_01__first_100.py
+parameters:
+  beta0: Long-rate level.
+  beta1: Short-rate slope loading.
+  beta2: Curvature loading.
+  tau: Positive decay time in years.
+equations:
+  zero_rate: y(0,T) = beta0 + beta1 A(T/tau) + beta2 (A(T/tau) - exp(-T/tau))
+  loading: A(x) = (1 - exp(-x)) / x
+  discount_factor: P(0,T) = exp(-T y(0,T))
+  instantaneous_forward: f(0,T) = beta0 + beta1 exp(-T/tau) + beta2 (T/tau) exp(-T/tau)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: nelson_siegel_01
+source_json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+source_yaml_path: registry/production/curves/nelson_siegel/specifications/nelson_siegel_01.yaml

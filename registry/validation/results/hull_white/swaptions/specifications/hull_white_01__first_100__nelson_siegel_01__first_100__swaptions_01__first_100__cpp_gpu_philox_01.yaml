@@ -1,0 +1,45 @@
+title: hull_white_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__cpp_gpu_philox_01
+format: ai_factory.results.v1
+database_id: hull_white_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__cpp_gpu_philox_01
+status: priced
+json_path: registry/validation/results/hull_white/swaptions/data/hull_white_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__cpp_gpu_philox_01.json
+generation_script: registry/validation/results/hull_white/swaptions/generators/hull_white_01__first_100__nelson_siegel_01__first_100__swaptions_01__first_100__cpp_gpu_philox_01.py
+summary:
+  row_count: 100
+  model: Hull White
+  payoff: Swaptions
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/hull_white/swaptions.cu
+  curve: Nelson Siegel
+  num_paths: 16384
+  source_production_result: registry/production/results/hull_white/swaptions/data/hull_white_01__nelson_siegel_01__swaptions_01__cpp_gpu_philox_01.json
+time_grid:
+  rule: exact model transition on contractual dates
+  schedule: exercise dates
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: hull_white_01__first_100
+  json_path: registry/validation/models/hull_white/data/hull_white_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: swaptions_01__first_100
+  json_path: registry/validation/products/swaptions/data/swaptions_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 950100001
+timing:
+  wall_seconds: 0.004068137999638566
+  kernel_seconds: 0.003887104034423828
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.004032396000184235
+  benchmark_kernel_seconds: 0.003890176057815552
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

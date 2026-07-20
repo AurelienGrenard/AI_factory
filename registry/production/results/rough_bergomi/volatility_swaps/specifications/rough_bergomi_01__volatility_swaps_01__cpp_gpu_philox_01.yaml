@@ -1,0 +1,49 @@
+title: rough_bergomi_01 x volatility_swaps_01 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: rough_bergomi_01__volatility_swaps_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/rough_bergomi/volatility_swaps/data/rough_bergomi_01__volatility_swaps_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/rough_bergomi/volatility_swaps/generators/rough_bergomi_01__volatility_swaps_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  num_paths: 16384
+  model: Rough Bergomi
+  payoff: Volatility Swap
+  engine: cpp_gpu_philox
+  device: cuda
+  scheme: hybrid
+  source_files:
+  - src_cpp/ai_factory/cuda/rough_bergomi/volatility_swaps.cu
+  references:
+  - topic: Rough Bergomi hybrid simulation scheme
+    reference:
+      authors: Bennedsen, M.; Lunde, A.; Pakkanen, M. S.
+      year: 2017
+      title: Hybrid Scheme for Brownian Semistationary Processes
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_bergomi_01
+  json_path: registry/production/models/rough_bergomi/data/rough_bergomi_01.json
+product_database:
+  id: volatility_swaps_01
+  json_path: registry/production/products/volatility_swaps/data/volatility_swaps_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 941700001
+timing:
+  wall_seconds: 4.432258676002675
+  kernel_seconds: 4.427277268588543

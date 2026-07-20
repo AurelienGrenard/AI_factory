@@ -1,0 +1,54 @@
+title: rough_heston_01__first_100 x down_and_out_calls_01__first_100 python_gpu_pytorch
+format: ai_factory.results.v1
+database_id: rough_heston_01__first_100__down_and_out_calls_01__first_100__python_gpu_pytorch_01
+status: priced
+json_path: registry/validation/results/rough_heston/down_and_out_calls/data/rough_heston_01__first_100__down_and_out_calls_01__first_100__python_gpu_pytorch_01.json
+generation_script: registry/validation/results/rough_heston/down_and_out_calls/generators/rough_heston_01__first_100__down_and_out_calls_01__first_100__python_gpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Heston
+  payoff: Down And Out Call
+  engine: python_gpu_pytorch
+  device: cuda
+  source_files:
+  - src_python/ai_factory/pytorch/rough_heston/down_and_out_calls.py
+  references:
+  - topic: Markovian approximation of rough Heston
+    reference:
+      authors: Abi Jaber, E.; El Euch, O.
+      year: 2019
+      title: Multifactor Approximation of Rough Volatility Models
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+monitoring:
+  type: discrete
+  dates: Every time-grid date after t0, including maturity
+  rebate: 0.0
+model_database:
+  id: rough_heston_01__first_100
+  json_path: registry/validation/models/rough_heston/data/rough_heston_01__first_100.json
+product_database:
+  id: down_and_out_calls_01__first_100
+  json_path: registry/validation/products/down_and_out_calls/data/down_and_out_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 935200001
+timing:
+  wall_seconds: 1.8508210719992348
+  simulation_seconds: 1.7958725990065432
+  payoff_seconds: 0.05032234302780125
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 1.8508210719992348
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

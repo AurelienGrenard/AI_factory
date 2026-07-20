@@ -1,0 +1,40 @@
+title: g2_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__python_cpu_pytorch_01
+format: ai_factory.results.v1
+database_id: g2_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/g2_plus_plus/interest_rate_swaps/data/g2_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/g2_plus_plus/interest_rate_swaps/generators/g2_plus_plus_01__first_100__nelson_siegel_01__first_100__interest_rate_swaps_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  model: G2 Plus Plus
+  payoff: Interest Rate Swaps
+  engine: python_cpu_pytorch
+  device: cpu
+  source_files:
+  - src_python/ai_factory/pytorch/g2_plus_plus/interest_rate_swaps.py
+  curve: Nelson Siegel
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: g2_plus_plus_01__first_100
+  json_path: registry/validation/models/g2_plus_plus/data/g2_plus_plus_01__first_100.json
+curve_database:
+  id: nelson_siegel_01__first_100
+  json_path: registry/validation/curves/nelson_siegel/data/nelson_siegel_01__first_100.json
+product_database:
+  id: interest_rate_swaps_01__first_100
+  json_path: registry/validation/products/interest_rate_swaps/data/interest_rate_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  purpose: curve_implied_pricing
+timing:
+  wall_seconds: 0.00284787399959896
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.033387454000148864
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

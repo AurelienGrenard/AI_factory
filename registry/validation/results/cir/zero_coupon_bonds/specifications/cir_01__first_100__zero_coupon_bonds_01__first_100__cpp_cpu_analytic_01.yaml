@@ -1,0 +1,36 @@
+title: cir_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01
+format: ai_factory.results.v1
+database_id: cir_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01
+status: priced
+json_path: registry/validation/results/cir/zero_coupon_bonds/data/cir_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01.json
+generation_script: registry/validation/results/cir/zero_coupon_bonds/generators/cir_01__first_100__zero_coupon_bonds_01__first_100__cpp_cpu_analytic_01.py
+summary:
+  row_count: 100
+  model: Cir
+  payoff: Zero Coupon Bonds
+  engine: cpp_cpu_analytic
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/cir/zero_coupon_bonds.cpp
+  source_production_result: cir_01__zero_coupon_bonds_01__cpp_gpu_analytic_01
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: cir_01__first_100
+  json_path: registry/validation/models/cir/data/cir_01__first_100.json
+product_database:
+  id: zero_coupon_bonds_01__first_100
+  json_path: registry/validation/products/zero_coupon_bonds/data/zero_coupon_bonds_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+timing:
+  wall_seconds: 2.848199801519513e-05
+  benchmark_repetitions: 5
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 0.013629356999445008
+  benchmark_row_count: 100000
+  benchmark_workload: duplicated validation slice

@@ -1,0 +1,24 @@
+title: Arithmetic Asian call production product parameter database asian_arithmetic_calls_01
+format: ai_factory.products.v1
+database_id: asian_arithmetic_calls_01
+product_family: Asian Arithmetic Calls
+json_path: registry/production/products/asian_arithmetic_calls/data/asian_arithmetic_calls_01.json
+generation_script: registry/production/products/asian_arithmetic_calls/generators/asian_arithmetic_calls_01.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+payoff:
+  expression: max((1/N) sum_i S_{t_i} - K, 0)
+  scaling_rule: V(s, K) = s * V(1, K / s)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is uniform on [1/12, 3]. Conditional on T, log(K) is uniform on [-aT, aT].
+  rng: Project Philox-4x32-10 generator
+  seed: 731000001
+  bounds:
+    maturity:
+    - 1/12
+    - 3.0
+    log_strike_given_maturity: uniform on [-aT, aT]
+    a: 0.2

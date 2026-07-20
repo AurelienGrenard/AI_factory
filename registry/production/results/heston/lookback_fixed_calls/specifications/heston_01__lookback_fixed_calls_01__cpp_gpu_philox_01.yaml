@@ -1,0 +1,49 @@
+title: heston_01 x lookback_fixed_calls_01 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: heston_01__lookback_fixed_calls_01__cpp_gpu_philox_01
+status: priced
+json_path: registry/production/results/heston/lookback_fixed_calls/data/heston_01__lookback_fixed_calls_01__cpp_gpu_philox_01.json
+generation_script: registry/production/results/heston/lookback_fixed_calls/generators/heston_01__lookback_fixed_calls_01__cpp_gpu_philox_01.py
+summary:
+  row_count: 1000
+  num_paths: 16384
+  model: Heston
+  payoff: Lookback Fixed Call
+  engine: cpp_gpu_philox
+  device: cuda
+  heston_scheme: qe_martingale
+  source_files:
+  - src_cpp/ai_factory/cuda/heston/lookback_fixed_calls.cu
+  references:
+  - topic: Heston QE-M simulation scheme
+    reference:
+      authors: Andersen, L. B. G.
+      year: 2007
+      title: Efficient Simulation of the Heston Stochastic Volatility Model
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: heston_01
+  json_path: registry/production/models/heston/data/heston_01.json
+product_database:
+  id: lookback_fixed_calls_01
+  json_path: registry/production/products/lookback_fixed_calls/data/lookback_fixed_calls_01.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 2.075428207999721
+  kernel_seconds: 1.684191516816617

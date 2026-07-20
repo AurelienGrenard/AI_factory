@@ -1,0 +1,30 @@
+title: cir_01__interest_rate_swaps_01__cpp_gpu_analytic_01
+format: ai_factory.results.v1
+database_id: cir_01__interest_rate_swaps_01__cpp_gpu_analytic_01
+status: priced
+json_path: registry/production/results/cir/interest_rate_swaps/data/cir_01__interest_rate_swaps_01__cpp_gpu_analytic_01.json
+generation_script: registry/production/results/cir/interest_rate_swaps/generators/cir_01__interest_rate_swaps_01__cpp_gpu_analytic_01.py
+summary:
+  row_count: 1000
+  model: Cir
+  payoff: Interest Rate Swaps
+  engine: cpp_gpu_analytic
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/cir/interest_rate_swaps.cu
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Monte Carlo standard error; zero for deterministic swaps
+model_database:
+  id: cir_01
+  json_path: registry/production/models/cir/data/cir_01.json
+product_database:
+  id: interest_rate_swaps_01
+  json_path: registry/production/products/interest_rate_swaps/data/interest_rate_swaps_01.json
+result_construction:
+  rule: aligned row pairing
+timing:
+  wall_seconds: 0.0003803190002145129
+  kernel_seconds: 0.00022508800029754638

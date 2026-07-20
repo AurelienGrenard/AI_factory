@@ -1,0 +1,44 @@
+title: Nelson Siegel production zero-coupon curve database
+format: ai_factory.curves.v1
+database_id: nelson_siegel_01
+curve_family: Nelson Siegel
+json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+generation_script: registry/production/curves/nelson_siegel/generators/nelson_siegel_01.py
+parameters:
+  beta0: Long-rate level.
+  beta1: Short-rate slope loading.
+  beta2: Curvature loading.
+  tau: Positive decay time in years.
+equations:
+  zero_rate: y(0,T) = beta0 + beta1 A(T/tau) + beta2 (A(T/tau) - exp(-T/tau))
+  loading: A(x) = (1 - exp(-x)) / x
+  discount_factor: P(0,T) = exp(-T y(0,T))
+  instantaneous_forward: f(0,T) = beta0 + beta1 exp(-T/tau) + beta2 (T/tau) exp(-T/tau)
+construction:
+  row_count: 1000
+  method: uniform rejection sample
+  rule: Accept the first 1,000 candidates whose zero and instantaneous-forward curves
+    stay inside the admissibility ranges on 256 maturities from 1/52 to 30 years.
+  rng: Project Philox-4x32-10 generator
+  seed: 740100001
+  candidate_count: 100000
+  bounds:
+    beta0:
+    - 0.01
+    - 0.06
+    short_rate:
+    - -0.005
+    - 0.06
+    beta2:
+    - -0.04
+    - 0.04
+    tau:
+    - 0.25
+    - 5.0
+  admissibility:
+    zero_rate:
+    - -0.01
+    - 0.08
+    instantaneous_forward:
+    - -0.02
+    - 0.1

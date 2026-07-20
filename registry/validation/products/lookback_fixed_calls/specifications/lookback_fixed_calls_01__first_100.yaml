@@ -1,0 +1,19 @@
+title: Production slice lookback_fixed_calls_01__first_100
+format: ai_factory.products.v1
+database_id: lookback_fixed_calls_01__first_100
+product_family: Lookback Fixed Calls
+json_path: registry/validation/products/lookback_fixed_calls/data/lookback_fixed_calls_01__first_100.json
+generation_script: registry/validation/products/lookback_fixed_calls/generators/lookback_fixed_calls_01__first_100.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+payoff:
+  expression: max(max_t S_t - K, 0)
+  scaling_rule: V(s, K) = s * V(1, K / s)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: lookback_fixed_calls_01
+source_json_path: registry/production/products/lookback_fixed_calls/data/lookback_fixed_calls_01.json
+source_yaml_path: registry/production/products/lookback_fixed_calls/specifications/lookback_fixed_calls_01.yaml

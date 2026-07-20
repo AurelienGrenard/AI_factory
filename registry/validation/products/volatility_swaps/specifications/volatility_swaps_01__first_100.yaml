@@ -1,0 +1,21 @@
+title: Production slice volatility_swaps_01__first_100
+format: ai_factory.products.v1
+database_id: volatility_swaps_01__first_100
+product_family: Volatility Swap
+json_path: registry/validation/products/volatility_swaps/data/volatility_swaps_01__first_100.json
+generation_script: registry/validation/products/volatility_swaps/generators/volatility_swaps_01__first_100.py
+parameters:
+  volatility_strike: Annualized realized-volatility strike.
+  maturity: Maturity in years.
+  observation_frequency: Fixed weekly observation convention.
+  observations_per_year: Annualization factor for weekly log-return observations.
+payoff:
+  expression: sqrt(52 / N * sum_i log(S_i / S_{i-1})^2) - K_vol
+  scaling_rule: V(s, K_vol) = V(1, K_vol)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: volatility_swaps_01
+source_json_path: registry/production/products/volatility_swaps/data/volatility_swaps_01.json
+source_yaml_path: registry/production/products/volatility_swaps/specifications/volatility_swaps_01.yaml

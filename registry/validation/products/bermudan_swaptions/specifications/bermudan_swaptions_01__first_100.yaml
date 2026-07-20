@@ -1,0 +1,27 @@
+title: Production slice bermudan_swaptions_01__first_100
+format: ai_factory.products.v1
+database_id: bermudan_swaptions_01__first_100
+product_family: Bermudan Swaptions
+json_path: registry/validation/products/bermudan_swaptions/data/bermudan_swaptions_01__first_100.json
+generation_script: registry/validation/products/bermudan_swaptions/generators/bermudan_swaptions_01__first_100.py
+parameters:
+  first_exercise: First exercise date in years.
+  exercise_period: Year fraction between exercise opportunities.
+  exercise_count: Number of Bermudan exercise opportunities.
+  accrual_period: Underlying fixed-leg year fraction.
+  payment_count: Fixed-leg payments remaining at first exercise.
+  fixed_rate: Underlying fixed rate K.
+  direction: +1 payer or -1 receiver swaption.
+  notional: Contract notional N.
+payoff:
+  exercise_value: N max(direction [1 - P(t,Tn) - K delta sum_i P(t,Ti)], 0)
+  exercise_rule: At exercise j, enter the remaining swap with payment_count - j fixed-leg
+    payments.
+  direction: +1 payer swaption, -1 receiver swaption
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: bermudan_swaptions_01
+source_json_path: registry/production/products/bermudan_swaptions/data/bermudan_swaptions_01.json
+source_yaml_path: registry/production/products/bermudan_swaptions/specifications/bermudan_swaptions_01.yaml

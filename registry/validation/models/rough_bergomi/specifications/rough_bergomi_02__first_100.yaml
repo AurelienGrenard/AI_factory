@@ -1,0 +1,31 @@
+title: Production slice rough_bergomi_02__first_100
+format: ai_factory.models.v1
+database_id: rough_bergomi_02__first_100
+model_family: Rough Bergomi
+json_path: registry/validation/models/rough_bergomi/data/rough_bergomi_02__first_100.json
+generation_script: registry/validation/models/rough_bergomi/generators/rough_bergomi_02__first_100.py
+parameters:
+  spot: Initial spot.
+  risk_free_rate: Continuously compounded risk-free rate.
+  dividend_yield: Continuously compounded dividend yield.
+  forward_variance: Flat initial forward variance xi_0.
+  eta: Rough Bergomi volatility of volatility eta.
+  hurst: Hurst exponent H.
+  correlation: Spot/volatility Brownian correlation rho.
+dynamics:
+  measure: Risk-neutral
+  equations:
+    spot: dS_t / S_t = (r - q) dt + sqrt(V_t) dZ_t
+    variance: V_t = xi_0(t) exp(eta W_tilde_t^H - 0.5 eta^2 t^(2H))
+    volterra_process: W_tilde_t^H = sqrt(2H) integral_0^t (t - s)^(H - 0.5) dW_s
+    correlation: d<Z, W>_t = rho dt
+  initial_forward_variance:
+    convention: xi_0(t) is flat
+    value: xi_0(t) = forward_variance
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: rough_bergomi_02
+source_json_path: registry/production/models/rough_bergomi/data/rough_bergomi_02.json
+source_yaml_path: registry/production/models/rough_bergomi/specifications/rough_bergomi_02.yaml

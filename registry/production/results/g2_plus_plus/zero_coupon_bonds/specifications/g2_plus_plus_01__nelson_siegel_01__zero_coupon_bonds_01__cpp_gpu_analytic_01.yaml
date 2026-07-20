@@ -1,0 +1,35 @@
+title: g2_plus_plus_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01
+format: ai_factory.results.v1
+database_id: g2_plus_plus_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01
+status: priced
+json_path: registry/production/results/g2_plus_plus/zero_coupon_bonds/data/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01.json
+generation_script: registry/production/results/g2_plus_plus/zero_coupon_bonds/generators/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bonds_01__cpp_gpu_analytic_01.py
+summary:
+  row_count: 1000
+  model: G2 Plus Plus
+  payoff: Zero Coupon Bonds
+  engine: cpp_gpu_analytic
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/g2_plus_plus/zero_coupon_bonds.cu
+  curve: Nelson Siegel
+time_grid:
+  rule: not applicable for analytic pricing
+outputs:
+  price: Present value
+  standard_error: Exactly zero for deterministic analytic pricing
+model_database:
+  id: g2_plus_plus_01
+  json_path: registry/production/models/g2_plus_plus/data/g2_plus_plus_01.json
+curve_database:
+  id: nelson_siegel_01
+  json_path: registry/production/curves/nelson_siegel/data/nelson_siegel_01.json
+product_database:
+  id: zero_coupon_bonds_01
+  json_path: registry/production/products/zero_coupon_bonds/data/zero_coupon_bonds_01.json
+result_construction:
+  rule: aligned row pairing
+  purpose: initial_curve_reproduction
+timing:
+  wall_seconds: 0.00030589000016334467
+  kernel_seconds: 6.054399907588959e-05

@@ -1,0 +1,57 @@
+title: heston_03__first_100 x up_and_out_calls_01__first_100 cpp_cpu_philox
+format: ai_factory.results.v1
+database_id: heston_03__first_100__up_and_out_calls_01__first_100__cpp_cpu_philox_01
+status: priced
+json_path: registry/validation/results/heston/up_and_out_calls/data/heston_03__first_100__up_and_out_calls_01__first_100__cpp_cpu_philox_01.json
+generation_script: registry/validation/results/heston/up_and_out_calls/generators/heston_03__first_100__up_and_out_calls_01__first_100__cpp_cpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Heston
+  payoff: Up And Out Call
+  engine: cpp_cpu_philox
+  device: cpu
+  source_files:
+  - src_cpp/ai_factory/cpu/heston/up_and_out_calls.cpp
+  references:
+  - topic: Heston QE-M simulation scheme
+    reference:
+      authors: Andersen, L. B. G.
+      year: 2007
+      title: Efficient Simulation of the Heston Stochastic Volatility Model
+  - topic: C++ Philox counter-based random numbers
+    reference:
+      authors: Salmon, J. K.; Moraes, M. A.; Dror, R. O.; Shaw, D. E.
+      year: 2011
+      title: 'Parallel Random Numbers: As Easy as 1, 2, 3'
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+monitoring:
+  type: discrete
+  dates: Every time-grid date after t0, including maturity
+  rebate: 0.0
+model_database:
+  id: heston_03__first_100
+  json_path: registry/validation/models/heston/data/heston_03__first_100.json
+product_database:
+  id: up_and_out_calls_01__first_100
+  json_path: registry/validation/products/up_and_out_calls/data/up_and_out_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 935200001
+timing:
+  wall_seconds: 8.224755623999954
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 8.224755623999954
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

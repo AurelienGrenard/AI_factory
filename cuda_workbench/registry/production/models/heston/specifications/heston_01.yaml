@@ -1,0 +1,52 @@
+title: "Heston parameter database heston_01"
+database_id: "heston_01"
+model_family: "Heston"
+json_path: "cuda_workbench/registry/production/models/heston/data/heston_01.json"
+generation_script: "cuda_workbench/registry/production/models/heston/generators/heston_01.cpp"
+parameters:
+  spot: "Initial spot."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_variance: "Initial variance v0."
+  kappa: "Variance mean-reversion speed."
+  theta: "Long-run variance."
+  gamma: "Volatility of variance."
+  rho: "Spot/variance Brownian correlation."
+dynamics:
+  spot: "dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S"
+  variance: "dV_t = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V"
+  correlation: "d<W^S, W^V>_t = rho dt"
+construction:
+  row_count: 1000
+  method: "conditional uniform sample"
+  bounds:
+    spot:
+      - 1.0
+      - 1.0
+    risk_free_rate:
+      - 0.0
+      - 0.07999999821186066
+    dividend_yield:
+      - 0.0
+      - 0.05000000074505806
+    initial_variance:
+      - 0.009999999776482582
+      - 0.11999999731779099
+    kappa:
+      - 0.5
+      - 4.0
+    theta:
+      - 0.009999999776482582
+      - 0.15000000596046448
+    rho:
+      - -1.0
+      - -0.30000001192092896
+  conditional_bounds:
+    gamma:
+      minimum: "max(sqrt(kappa * theta / 5), 0.1)"
+      maximum: "min(sqrt(12 * kappa * theta), 0.8)"
+  feller_ratio:
+    expression: "2 * kappa * theta / gamma^2"
+    controlled_range:
+      - 0.16666666666666666
+      - 10.0

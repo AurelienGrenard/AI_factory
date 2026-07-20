@@ -1,0 +1,21 @@
+title: Production slice american_puts_01__first_100
+format: ai_factory.products.v1
+database_id: american_puts_01__first_100
+product_family: American Puts
+json_path: registry/validation/products/american_puts/data/american_puts_01__first_100.json
+generation_script: registry/validation/products/american_puts/generators/american_puts_01__first_100.py
+parameters:
+  strike: Strike in normalized spot units.
+  maturity: Maturity in years.
+  exercise_frequency: Exercise-date convention.
+  exercise_dates_per_year: Number of exercise dates per year.
+payoff:
+  expression: sup_tau E[exp(-r tau) max(K - S_tau, 0)]
+  scaling_rule: V(s, K) = s * V(1, K / s)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: american_puts_01
+source_json_path: registry/production/products/american_puts/data/american_puts_01.json
+source_yaml_path: registry/production/products/american_puts/specifications/american_puts_01.yaml

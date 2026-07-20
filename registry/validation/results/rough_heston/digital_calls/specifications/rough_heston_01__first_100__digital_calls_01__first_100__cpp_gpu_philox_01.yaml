@@ -1,0 +1,45 @@
+title: rough_heston_01__first_100 x digital_calls_01__first_100 cpp_gpu_philox
+format: ai_factory.results.v1
+database_id: rough_heston_01__first_100__digital_calls_01__first_100__cpp_gpu_philox_01
+status: priced
+json_path: registry/validation/results/rough_heston/digital_calls/data/rough_heston_01__first_100__digital_calls_01__first_100__cpp_gpu_philox_01.json
+generation_script: registry/validation/results/rough_heston/digital_calls/generators/rough_heston_01__first_100__digital_calls_01__first_100__cpp_gpu_philox_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Heston
+  payoff: Cash-or-Nothing Digital Call
+  engine: cpp_gpu_philox
+  device: gpu
+  source_files:
+  - src_cpp/ai_factory/cuda/rough_heston/digital_calls.cu
+  source_production_result: rough_heston_01__digital_calls_01__cpp_gpu_philox_01
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_heston_01__first_100
+  json_path: registry/validation/models/rough_heston/data/rough_heston_01__first_100.json
+product_database:
+  id: digital_calls_01__first_100
+  json_path: registry/validation/products/digital_calls/data/digital_calls_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 931700001
+timing:
+  wall_seconds: 0.19056042800002615
+  kernel_seconds: 0.154941376298666
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_kernel_seconds: 0.154941376298666
+  benchmark_seconds: 0.19056042800002615
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

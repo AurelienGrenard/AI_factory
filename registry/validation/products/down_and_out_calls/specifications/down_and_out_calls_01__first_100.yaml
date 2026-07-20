@@ -1,0 +1,22 @@
+title: Production slice down_and_out_calls_01__first_100
+format: ai_factory.products.v1
+database_id: down_and_out_calls_01__first_100
+product_family: Down And Out Calls
+json_path: registry/validation/products/down_and_out_calls/data/down_and_out_calls_01__first_100.json
+generation_script: registry/validation/products/down_and_out_calls/generators/down_and_out_calls_01__first_100.py
+parameters:
+  strike: Strike in normalized spot units.
+  barrier: Discrete barrier in normalized spot units.
+  maturity: Maturity in years.
+  observation_count: Number of equally spaced monitoring dates, round(52T).
+  rebate: Cash rebate, fixed to zero for this database.
+payoff:
+  expression: 1_{not (min_i S(t_i) <= B)} * max(S_T - K, 0)
+  scaling_rule: V(s, K, B) = s * V(1, K / s, B / s)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: down_and_out_calls_01
+source_json_path: registry/production/products/down_and_out_calls/data/down_and_out_calls_01.json
+source_yaml_path: registry/production/products/down_and_out_calls/specifications/down_and_out_calls_01.yaml

@@ -1,0 +1,51 @@
+title: rough_heston_01__first_100 x volatility_swaps_01__first_100 python_cpu_pytorch
+format: ai_factory.results.v1
+database_id: rough_heston_01__first_100__volatility_swaps_01__first_100__python_cpu_pytorch_01
+status: priced
+json_path: registry/validation/results/rough_heston/volatility_swaps/data/rough_heston_01__first_100__volatility_swaps_01__first_100__python_cpu_pytorch_01.json
+generation_script: registry/validation/results/rough_heston/volatility_swaps/generators/rough_heston_01__first_100__volatility_swaps_01__first_100__python_cpu_pytorch_01.py
+summary:
+  row_count: 100
+  num_paths: 16384
+  model: Rough Heston
+  payoff: Volatility Swap
+  engine: python_cpu_pytorch
+  device: cpu
+  scheme: eight-factor Markovian approximation
+  source_files:
+  - src_python/ai_factory/pytorch/rough_heston/volatility_swaps.py
+  references:
+  - topic: Markovian approximation of rough Heston
+    reference:
+      authors: Abi Jaber, E.; El Euch, O.
+      year: 2019
+      title: Multifactor Approximation of Rough Volatility Models
+time_grid:
+  rule: nearest integer step count to target dt
+  target_dt: 1/52
+  step_count: round(maturity / target_dt)
+  effective_dt: maturity / step_count
+outputs:
+  price:
+    estimator: Monte Carlo discounted payoff mean
+  standard_error:
+    estimator: Monte Carlo standard error of discounted payoff
+model_database:
+  id: rough_heston_01__first_100
+  json_path: registry/validation/models/rough_heston/data/rough_heston_01__first_100.json
+product_database:
+  id: volatility_swaps_01__first_100
+  json_path: registry/validation/products/volatility_swaps/data/volatility_swaps_01__first_100.json
+result_construction:
+  rule: aligned row pairing
+  first_seed: 941700001
+timing:
+  wall_seconds: 13.369388472001447
+  simulation_seconds: 13.320073553990369
+  payoff_seconds: 0.022940219008887652
+  benchmark_repetitions: 1
+  benchmark_statistic: median
+  warmup_calls: 1
+  benchmark_seconds: 13.369388472001447
+  benchmark_row_count: 100
+  benchmark_workload: validation slice

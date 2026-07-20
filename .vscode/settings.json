@@ -1,0 +1,6 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python.defaultInterpreterPath": "/home/aurelieng/miniconda3/envs/AI_factory_wsl/bin/python",
+    "jupyter.notebookFileRoot": "${workspaceFolder}"
+}

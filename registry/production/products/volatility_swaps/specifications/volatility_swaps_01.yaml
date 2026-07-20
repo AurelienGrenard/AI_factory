@@ -1,0 +1,30 @@
+title: Volatility swap production product parameter database volatility_swaps_01
+format: ai_factory.products.v1
+database_id: volatility_swaps_01
+product_family: Volatility Swap
+json_path: registry/production/products/volatility_swaps/data/volatility_swaps_01.json
+generation_script: registry/production/products/volatility_swaps/generators/volatility_swaps_01.py
+parameters:
+  volatility_strike: Annualized realized-volatility strike.
+  maturity: Maturity in years.
+  observation_frequency: Fixed weekly observation convention.
+  observations_per_year: Annualization factor for weekly log-return observations.
+payoff:
+  expression: sqrt(52 / N * sum_i log(S_i / S_{i-1})^2) - K_vol
+  scaling_rule: V(s, K_vol) = V(1, K_vol)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is uniform on [1/12, 3]. K_vol is uniform on [0.05, 0.45]. Observation frequency
+    is weekly.
+  rng: Project Philox-4x32-10 generator
+  seed: 733000001
+  bounds:
+    maturity:
+    - 1/12
+    - 3.0
+    volatility_strike:
+    - 0.05
+    - 0.45
+    observation_frequency: weekly
+    observations_per_year: 52

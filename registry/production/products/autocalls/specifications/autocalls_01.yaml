@@ -1,0 +1,40 @@
+title: Quarterly memory autocall production product parameter database autocalls_01
+format: ai_factory.products.v1
+database_id: autocalls_01
+product_family: Autocalls
+json_path: registry/production/products/autocalls/data/autocalls_01.json
+generation_script: registry/production/products/autocalls/generators/autocalls_01.py
+parameters:
+  maturity: Maturity in years.
+  autocall_barrier: Autocall barrier as a fraction of initial spot.
+  coupon_barrier: Coupon barrier as a fraction of initial spot.
+  protection_barrier: European downside protection barrier at maturity.
+  coupon_rate_per_observation: Coupon rate per quarterly observation.
+  observation_count: Number of quarterly observation dates.
+  first_autocall_observation: First observation eligible for autocall.
+payoff:
+  expression: Quarterly memory coupons; redemption at the first eligible autocall
+    date, otherwise max-protected nominal or S_T/S_0 at maturity.
+  scaling_rule: V(N) = N * V(1)
+construction:
+  row_count: 1000
+  method: random sample
+  rule: T is sampled on the quarterly grid [2, 5], with Bd < Bc <= Ba.
+  rng: Project Philox-4x32-10 generator
+  seed: 734100001
+  bounds:
+    maturity:
+    - 2.0
+    - 5.0
+    autocall_barrier:
+    - 0.9
+    - 1.05
+    coupon_barrier: uniform on [0.65, min(0.90, Ba)]
+    protection_barrier: uniform on [0.50, min(0.75, Bc - 0.05)]
+    coupon_rate_per_observation:
+    - 0.005
+    - 0.03
+  observation_frequency: quarterly
+  first_autocall_observation: 4
+  coupon_memory: true
+  nominal: 1.0

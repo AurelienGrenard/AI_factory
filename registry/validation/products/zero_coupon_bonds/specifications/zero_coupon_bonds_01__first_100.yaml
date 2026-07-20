@@ -1,0 +1,19 @@
+title: Production slice zero_coupon_bonds_01__first_100
+format: ai_factory.products.v1
+database_id: zero_coupon_bonds_01__first_100
+product_family: Zero Coupon Bonds
+json_path: registry/validation/products/zero_coupon_bonds/data/zero_coupon_bonds_01__first_100.json
+generation_script: registry/validation/products/zero_coupon_bonds/generators/zero_coupon_bonds_01__first_100.py
+parameters:
+  maturity: Payment date T in years.
+  notional: Amount N paid at maturity.
+payoff:
+  expression: N paid at maturity T
+  price: N P(0,T)
+construction:
+  row_count: 100
+  method: production database slice
+  rule: first rows
+  source_database_id: zero_coupon_bonds_01
+source_json_path: registry/production/products/zero_coupon_bonds/data/zero_coupon_bonds_01.json
+source_yaml_path: registry/production/products/zero_coupon_bonds/specifications/zero_coupon_bonds_01.yaml
