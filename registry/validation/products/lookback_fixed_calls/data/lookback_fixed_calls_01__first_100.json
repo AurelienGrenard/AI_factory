@@ -1,0 +1,710 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "lookback_fixed_calls_01__first_100",
+  "product_family": "Lookback Fixed Calls",
+  "specification": "registry/validation/products/lookback_fixed_calls/specifications/lookback_fixed_calls_01__first_100.yaml",
+  "generation_script": "registry/validation/products/lookback_fixed_calls/generators/lookback_fixed_calls_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "strike": 1.310366946977,
+        "maturity": 2.658502822422
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "strike": 0.679111297951,
+        "maturity": 2.95209802238
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "strike": 0.969346097754,
+        "maturity": 0.757161152307
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "strike": 1.217573304702,
+        "maturity": 1.150619498386
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "strike": 1.00917316789,
+        "maturity": 0.449094651432
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "strike": 0.998592789446,
+        "maturity": 0.584133140093
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "strike": 0.608645680839,
+        "maturity": 2.955522734623
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "strike": 1.054814121986,
+        "maturity": 1.587697774783
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "strike": 0.830335717712,
+        "maturity": 1.845681853757
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "strike": 1.142485884786,
+        "maturity": 2.619899976581
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "strike": 1.195830802549,
+        "maturity": 2.558703759249
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "strike": 0.967989291068,
+        "maturity": 0.392359517544
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "strike": 1.072982320543,
+        "maturity": 1.293627949752
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "strike": 1.026574794916,
+        "maturity": 0.994579572454
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "strike": 0.885123305311,
+        "maturity": 2.61651600291
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "strike": 1.082629755472,
+        "maturity": 1.91013845389
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "strike": 0.736599511014,
+        "maturity": 2.303168769936
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "strike": 1.032496990122,
+        "maturity": 2.308253963003
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "strike": 1.025542472087,
+        "maturity": 0.322318364119
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "strike": 1.075979259131,
+        "maturity": 0.506845533256
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "strike": 1.269338988366,
+        "maturity": 1.786194255857
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "strike": 0.922101580585,
+        "maturity": 0.461339785999
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "strike": 1.450265893741,
+        "maturity": 2.19327991156
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "strike": 0.81300335684,
+        "maturity": 1.564458341425
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "strike": 1.15056901689,
+        "maturity": 2.979075480126
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "strike": 0.83186371833,
+        "maturity": 2.810263721981
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "strike": 0.912361037012,
+        "maturity": 1.126025598855
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "strike": 0.826128997708,
+        "maturity": 2.359626474761
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "strike": 1.241649293624,
+        "maturity": 1.841714805118
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "strike": 1.075402804625,
+        "maturity": 1.725558782996
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "strike": 1.234365084437,
+        "maturity": 1.067022876882
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "strike": 0.83355838488,
+        "maturity": 1.911737449283
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "strike": 1.119136450578,
+        "maturity": 0.93757168028
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "strike": 0.940966562445,
+        "maturity": 0.613947632926
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "strike": 0.9927704505,
+        "maturity": 0.249499711373
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "strike": 1.007666199018,
+        "maturity": 0.509015038425
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "strike": 1.172005493186,
+        "maturity": 1.452524052943
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "strike": 1.072956897356,
+        "maturity": 1.854803643044
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "strike": 1.26708339839,
+        "maturity": 1.641054922531
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "strike": 1.007573753799,
+        "maturity": 1.461514837739
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "strike": 1.029742890687,
+        "maturity": 0.767929621962
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "strike": 1.545532239909,
+        "maturity": 2.245204090403
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "strike": 1.114638950986,
+        "maturity": 1.257869713561
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "strike": 0.603523216616,
+        "maturity": 2.935432834948
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "strike": 0.722803065438,
+        "maturity": 2.506815860756
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "strike": 1.664338446089,
+        "maturity": 2.562799424699
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "strike": 1.013214309336,
+        "maturity": 0.547459581741
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "strike": 0.884443499681,
+        "maturity": 0.628521979544
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "strike": 0.734367619729,
+        "maturity": 1.771288115677
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "strike": 1.197439170709,
+        "maturity": 2.109623910481
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "strike": 1.036171422355,
+        "maturity": 1.84344392558
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "strike": 1.008123568723,
+        "maturity": 1.629917852668
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "strike": 0.64228296477,
+        "maturity": 2.282921405053
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "strike": 0.974208932668,
+        "maturity": 0.55370332777
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "strike": 0.962341005891,
+        "maturity": 0.757914316074
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "strike": 1.172306587559,
+        "maturity": 1.652252080938
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "strike": 0.908649109396,
+        "maturity": 1.28029469194
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "strike": 0.868864866855,
+        "maturity": 0.804927621376
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "strike": 1.020223851216,
+        "maturity": 0.371310379676
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "strike": 1.270025382411,
+        "maturity": 1.342298901359
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "strike": 0.875663775614,
+        "maturity": 1.249841474123
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "strike": 0.975960370278,
+        "maturity": 0.482721877993
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "strike": 0.844056952129,
+        "maturity": 2.662606852216
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "strike": 1.257551362662,
+        "maturity": 1.338279778788
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "strike": 0.821679401895,
+        "maturity": 2.531109842501
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "strike": 0.988680208045,
+        "maturity": 2.424489670831
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "strike": 1.139633529025,
+        "maturity": 0.862746111302
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "strike": 0.958534832192,
+        "maturity": 1.087152388519
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "strike": 1.039883826005,
+        "maturity": 2.414106659096
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "strike": 1.126583355606,
+        "maturity": 0.922561234688
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "strike": 1.058187031046,
+        "maturity": 2.839261543287
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "strike": 1.179320406505,
+        "maturity": 1.804441287599
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "strike": 0.707126630893,
+        "maturity": 2.64732300592
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "strike": 0.985145786508,
+        "maturity": 0.549169293149
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "strike": 0.660359799975,
+        "maturity": 2.791906829196
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "strike": 0.917295019554,
+        "maturity": 1.960087350521
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "strike": 0.975674529657,
+        "maturity": 1.444954924101
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "strike": 1.075732169087,
+        "maturity": 1.567586512315
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "strike": 0.938199223293,
+        "maturity": 0.85989890753
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "strike": 0.656252383074,
+        "maturity": 2.734278625547
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "strike": 0.777585201518,
+        "maturity": 1.538668547165
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "strike": 0.990785633177,
+        "maturity": 0.269415878254
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "strike": 1.05557809848,
+        "maturity": 0.67652977321
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "strike": 1.240548895596,
+        "maturity": 2.618654612908
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "strike": 0.914510121282,
+        "maturity": 1.298249365519
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "strike": 0.722674247231,
+        "maturity": 2.253961522433
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "strike": 0.726390230984,
+        "maturity": 2.379639629187
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "strike": 0.880171501927,
+        "maturity": 1.302837427133
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "strike": 1.332282567233,
+        "maturity": 1.632673573593
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "strike": 0.966033605553,
+        "maturity": 2.659003414514
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "strike": 0.96117787667,
+        "maturity": 2.421435226638
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "strike": 0.866796238776,
+        "maturity": 2.076601172613
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "strike": 1.034485921231,
+        "maturity": 0.704944078141
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "strike": 0.985777702229,
+        "maturity": 2.313945878966
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "strike": 0.571463580638,
+        "maturity": 2.808761727036
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "strike": 1.040761294396,
+        "maturity": 0.216548855116
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "strike": 1.02570385634,
+        "maturity": 0.175620252431
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "strike": 0.918199719057,
+        "maturity": 1.444882012312
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "strike": 1.11455165714,
+        "maturity": 0.785455485913
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "strike": 0.926960528845,
+        "maturity": 2.057183132051
+      }
+    }
+  ]
+}

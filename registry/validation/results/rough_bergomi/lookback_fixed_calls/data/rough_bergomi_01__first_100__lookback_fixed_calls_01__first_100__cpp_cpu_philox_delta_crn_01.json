@@ -1,0 +1,1223 @@
+{
+  "format": "ai_factory.results.v1",
+  "database_id": "rough_bergomi_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01",
+  "status": "priced",
+  "specification": "registry/validation/results/rough_bergomi/lookback_fixed_calls/specifications/rough_bergomi_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01.yaml",
+  "generation_script": "registry/validation/results/rough_bergomi/lookback_fixed_calls/generators/rough_bergomi_01__first_100__lookback_fixed_calls_01__first_100__cpp_cpu_philox_delta_crn_01.py",
+  "row_count": 100,
+  "model_database": {
+    "id": "rough_bergomi_01__first_100",
+    "json_path": "registry/validation/models/rough_bergomi/data/rough_bergomi_01__first_100.json"
+  },
+  "product_database": {
+    "id": "lookback_fixed_calls_01__first_100",
+    "json_path": "registry/validation/products/lookback_fixed_calls/data/lookback_fixed_calls_01__first_100.json"
+  },
+  "result_construction": {
+    "rule": "aligned row pairing",
+    "first_seed": 941700001
+  },
+  "engine": "cpp_cpu_philox_delta_crn",
+  "results": [
+    {
+      "id": "000001",
+      "model_id": "000001",
+      "product_id": "000001",
+      "seed": 941700001,
+      "outputs": {
+        "price": 0.05366239131083411,
+        "standard_error": 0.001673699558076333,
+        "delta": 0.3345151269262281,
+        "delta_standard_error": 0.005213129034889292
+      }
+    },
+    {
+      "id": "000002",
+      "model_id": "000002",
+      "product_id": "000002",
+      "seed": 941700002,
+      "outputs": {
+        "price": 0.6783813220468988,
+        "standard_error": 0.003036124069960572,
+        "delta": 1.3574926199977646,
+        "delta_standard_error": 0.0030361240699601044
+      }
+    },
+    {
+      "id": "000003",
+      "model_id": "000003",
+      "product_id": "000003",
+      "seed": 941700003,
+      "outputs": {
+        "price": 0.1293996329623896,
+        "standard_error": 0.0005551791524799837,
+        "delta": 1.0987457307162758,
+        "delta_standard_error": 0.0005551791524795024
+      }
+    },
+    {
+      "id": "000004",
+      "model_id": "000004",
+      "product_id": "000004",
+      "seed": 941700004,
+      "outputs": {
+        "price": 0.011810154204082476,
+        "standard_error": 0.0005882253283144713,
+        "delta": 0.11520612459584874,
+        "delta_standard_error": 0.0029940830189604576
+      }
+    },
+    {
+      "id": "000005",
+      "model_id": "000005",
+      "product_id": "000005",
+      "seed": 941700005,
+      "outputs": {
+        "price": 0.13139963685023057,
+        "standard_error": 0.0009837420324760812,
+        "delta": 0.9861573976781217,
+        "delta_standard_error": 0.0033870372237634347
+      }
+    },
+    {
+      "id": "000006",
+      "model_id": "000006",
+      "product_id": "000006",
+      "seed": 941700006,
+      "outputs": {
+        "price": 0.14528035170146592,
+        "standard_error": 0.001053969753832335,
+        "delta": 1.143873141147345,
+        "delta_standard_error": 0.0010539697538329443
+      }
+    },
+    {
+      "id": "000007",
+      "model_id": "000007",
+      "product_id": "000007",
+      "seed": 941700007,
+      "outputs": {
+        "price": 0.491961857140156,
+        "standard_error": 0.0005466291969057725,
+        "delta": 1.1006075379790365,
+        "delta_standard_error": 0.0005466291969054873
+      }
+    },
+    {
+      "id": "000008",
+      "model_id": "000008",
+      "product_id": "000008",
+      "seed": 941700008,
+      "outputs": {
+        "price": 0.06402227289015648,
+        "standard_error": 0.0004860905018363113,
+        "delta": 0.8323699528371394,
+        "delta_standard_error": 0.003982529072542329
+      }
+    },
+    {
+      "id": "000009",
+      "model_id": "000009",
+      "product_id": "000009",
+      "seed": 941700009,
+      "outputs": {
+        "price": 0.345020640862608,
+        "standard_error": 0.0010183048720251988,
+        "delta": 1.1753563585744768,
+        "delta_standard_error": 0.0010183048720256605
+      }
+    },
+    {
+      "id": "000010",
+      "model_id": "000010",
+      "product_id": "000010",
+      "seed": 941700010,
+      "outputs": {
+        "price": 0.04246163789048046,
+        "standard_error": 0.0020910930759219246,
+        "delta": 0.31576771973438345,
+        "delta_standard_error": 0.004831230543112952
+      }
+    },
+    {
+      "id": "000011",
+      "model_id": "000011",
+      "product_id": "000011",
+      "seed": 941700011,
+      "outputs": {
+        "price": 0.12091961525114077,
+        "standard_error": 0.002366556315499034,
+        "delta": 0.6490953812311897,
+        "delta_standard_error": 0.006079303609940085
+      }
+    },
+    {
+      "id": "000012",
+      "model_id": "000012",
+      "product_id": "000012",
+      "seed": 941700012,
+      "outputs": {
+        "price": 0.11390189320019459,
+        "standard_error": 0.00048259369021181117,
+        "delta": 1.0818911842680898,
+        "delta_standard_error": 0.00048259369021234785
+      }
+    },
+    {
+      "id": "000013",
+      "model_id": "000013",
+      "product_id": "000013",
+      "seed": 941700013,
+      "outputs": {
+        "price": 0.1617406340437241,
+        "standard_error": 0.001444685129855055,
+        "delta": 0.9571704565743896,
+        "delta_standard_error": 0.004583547254621866
+      }
+    },
+    {
+      "id": "000014",
+      "model_id": "000014",
+      "product_id": "000014",
+      "seed": 941700014,
+      "outputs": {
+        "price": 0.050352142945554464,
+        "standard_error": 0.0004014618190964487,
+        "delta": 0.8399218478137875,
+        "delta_standard_error": 0.003602223401506142
+      }
+    },
+    {
+      "id": "000015",
+      "model_id": "000015",
+      "product_id": "000015",
+      "seed": 941700015,
+      "outputs": {
+        "price": 0.3356180811896806,
+        "standard_error": 0.0016822592905642816,
+        "delta": 1.2207413865005439,
+        "delta_standard_error": 0.0016822592905644698
+      }
+    },
+    {
+      "id": "000016",
+      "model_id": "000016",
+      "product_id": "000016",
+      "seed": 941700016,
+      "outputs": {
+        "price": 0.13255999465950036,
+        "standard_error": 0.0011315689731878828,
+        "delta": 0.9299507798356442,
+        "delta_standard_error": 0.004443935035905792
+      }
+    },
+    {
+      "id": "000017",
+      "model_id": "000017",
+      "product_id": "000017",
+      "seed": 941700017,
+      "outputs": {
+        "price": 0.42521487118609136,
+        "standard_error": 0.0011414885481928901,
+        "delta": 1.1618143821999678,
+        "delta_standard_error": 0.0011414885481927602
+      }
+    },
+    {
+      "id": "000018",
+      "model_id": "000018",
+      "product_id": "000018",
+      "seed": 941700018,
+      "outputs": {
+        "price": 0.26078168367640947,
+        "standard_error": 0.002295955380801575,
+        "delta": 1.1529943477703257,
+        "delta_standard_error": 0.004164633413857334
+      }
+    },
+    {
+      "id": "000019",
+      "model_id": "000019",
+      "product_id": "000019",
+      "seed": 941700019,
+      "outputs": {
+        "price": 0.07645775764222165,
+        "standard_error": 0.000668695075752956,
+        "delta": 0.8441536973016326,
+        "delta_standard_error": 0.003858064287233902
+      }
+    },
+    {
+      "id": "000020",
+      "model_id": "000020",
+      "product_id": "000020",
+      "seed": 941700020,
+      "outputs": {
+        "price": 0.03529883450789693,
+        "standard_error": 0.0005149161892452382,
+        "delta": 0.5214416821873296,
+        "delta_standard_error": 0.00450065605250244
+      }
+    },
+    {
+      "id": "000021",
+      "model_id": "000021",
+      "product_id": "000021",
+      "seed": 941700021,
+      "outputs": {
+        "price": 0.006792063311177875,
+        "standard_error": 0.00025254606866644236,
+        "delta": 0.12601136287852308,
+        "delta_standard_error": 0.003057273600624447
+      }
+    },
+    {
+      "id": "000022",
+      "model_id": "000022",
+      "product_id": "000022",
+      "seed": 941700022,
+      "outputs": {
+        "price": 0.1146417089900341,
+        "standard_error": 0.0004480817239491532,
+        "delta": 1.0367432895749373,
+        "delta_standard_error": 0.00044808172394837707
+      }
+    },
+    {
+      "id": "000023",
+      "model_id": "000023",
+      "product_id": "000023",
+      "seed": 941700023,
+      "outputs": {
+        "price": 0.00983758032319022,
+        "standard_error": 0.0007005325453962747,
+        "delta": 0.07832376451517126,
+        "delta_standard_error": 0.0028141303412538023
+      }
+    },
+    {
+      "id": "000024",
+      "model_id": "000024",
+      "product_id": "000024",
+      "seed": 941700024,
+      "outputs": {
+        "price": 0.3368398232745396,
+        "standard_error": 0.0013124640025718346,
+        "delta": 1.1498431801144386,
+        "delta_standard_error": 0.0013124640025712132
+      }
+    },
+    {
+      "id": "000025",
+      "model_id": "000025",
+      "product_id": "000025",
+      "seed": 941700025,
+      "outputs": {
+        "price": 0.08196721401797867,
+        "standard_error": 0.0018801449705092086,
+        "delta": 0.5752515560488477,
+        "delta_standard_error": 0.005464130696545516
+      }
+    },
+    {
+      "id": "000026",
+      "model_id": "000026",
+      "product_id": "000026",
+      "seed": 941700026,
+      "outputs": {
+        "price": 0.43006217503240657,
+        "standard_error": 0.0028920802935909233,
+        "delta": 1.2619258933622803,
+        "delta_standard_error": 0.0028920802935905004
+      }
+    },
+    {
+      "id": "000027",
+      "model_id": "000027",
+      "product_id": "000027",
+      "seed": 941700027,
+      "outputs": {
+        "price": 0.19671422819235915,
+        "standard_error": 0.0011785902639411742,
+        "delta": 1.10907526520426,
+        "delta_standard_error": 0.0011785902639407406
+      }
+    },
+    {
+      "id": "000028",
+      "model_id": "000028",
+      "product_id": "000028",
+      "seed": 941700028,
+      "outputs": {
+        "price": 0.31471350574693147,
+        "standard_error": 0.0010899049894408732,
+        "delta": 1.1408425034548229,
+        "delta_standard_error": 0.0010899049894406957
+      }
+    },
+    {
+      "id": "000029",
+      "model_id": "000029",
+      "product_id": "000029",
+      "seed": 941700029,
+      "outputs": {
+        "price": 0.10050175337470058,
+        "standard_error": 0.0016989531867853491,
+        "delta": 0.592122360684408,
+        "delta_standard_error": 0.00587918865052934
+      }
+    },
+    {
+      "id": "000030",
+      "model_id": "000030",
+      "product_id": "000030",
+      "seed": 941700030,
+      "outputs": {
+        "price": 0.11121561939353332,
+        "standard_error": 0.001677094720808542,
+        "delta": 0.8072312563736322,
+        "delta_standard_error": 0.004902787592792819
+      }
+    },
+    {
+      "id": "000031",
+      "model_id": "000031",
+      "product_id": "000031",
+      "seed": 941700031,
+      "outputs": {
+        "price": 0.004874455441653552,
+        "standard_error": 0.00020595255286687253,
+        "delta": 0.09156122772137096,
+        "delta_standard_error": 0.002605319152216415
+      }
+    },
+    {
+      "id": "000032",
+      "model_id": "000032",
+      "product_id": "000032",
+      "seed": 941700032,
+      "outputs": {
+        "price": 0.3249977303506902,
+        "standard_error": 0.0011099777115560875,
+        "delta": 1.158556115230578,
+        "delta_standard_error": 0.0011099777115555333
+      }
+    },
+    {
+      "id": "000033",
+      "model_id": "000033",
+      "product_id": "000033",
+      "seed": 941700033,
+      "outputs": {
+        "price": 0.02151418434956665,
+        "standard_error": 0.0003352771308872189,
+        "delta": 0.43763471781158264,
+        "delta_standard_error": 0.004443136925292674
+      }
+    },
+    {
+      "id": "000034",
+      "model_id": "000034",
+      "product_id": "000034",
+      "seed": 941700034,
+      "outputs": {
+        "price": 0.18384762765395637,
+        "standard_error": 0.0011003177778200668,
+        "delta": 1.124814190098843,
+        "delta_standard_error": 0.001100317777819756
+      }
+    },
+    {
+      "id": "000035",
+      "model_id": "000035",
+      "product_id": "000035",
+      "seed": 941700035,
+      "outputs": {
+        "price": 0.03552570634719635,
+        "standard_error": 0.00020995001086785673,
+        "delta": 1.0282961568471032,
+        "delta_standard_error": 0.00020995001086571716
+      }
+    },
+    {
+      "id": "000036",
+      "model_id": "000036",
+      "product_id": "000036",
+      "seed": 941700036,
+      "outputs": {
+        "price": 0.09811394807489343,
+        "standard_error": 0.0006453402907325721,
+        "delta": 0.9630155796968203,
+        "delta_standard_error": 0.0031013697689729327
+      }
+    },
+    {
+      "id": "000037",
+      "model_id": "000037",
+      "product_id": "000037",
+      "seed": 941700037,
+      "outputs": {
+        "price": 0.009400437658476852,
+        "standard_error": 0.0004373131506320539,
+        "delta": 0.12067122731068329,
+        "delta_standard_error": 0.002932288815676025
+      }
+    },
+    {
+      "id": "000038",
+      "model_id": "000038",
+      "product_id": "000038",
+      "seed": 941700038,
+      "outputs": {
+        "price": 0.08412260425520764,
+        "standard_error": 0.0008730753720976632,
+        "delta": 0.7950974931051943,
+        "delta_standard_error": 0.004489427822618507
+      }
+    },
+    {
+      "id": "000039",
+      "model_id": "000039",
+      "product_id": "000039",
+      "seed": 941700039,
+      "outputs": {
+        "price": 0.00816309668548506,
+        "standard_error": 0.00030108906779839975,
+        "delta": 0.13071935463423995,
+        "delta_standard_error": 0.0031245965445665497
+      }
+    },
+    {
+      "id": "000040",
+      "model_id": "000040",
+      "product_id": "000040",
+      "seed": 941700040,
+      "outputs": {
+        "price": 0.13423835781874388,
+        "standard_error": 0.0008874483663629958,
+        "delta": 1.047980503109853,
+        "delta_standard_error": 0.002743391268375793
+      }
+    },
+    {
+      "id": "000041",
+      "model_id": "000041",
+      "product_id": "000041",
+      "seed": 941700041,
+      "outputs": {
+        "price": 0.09762918278438534,
+        "standard_error": 0.0007691703723675246,
+        "delta": 0.9210629224316426,
+        "delta_standard_error": 0.0036571269207009093
+      }
+    },
+    {
+      "id": "000042",
+      "model_id": "000042",
+      "product_id": "000042",
+      "seed": 941700042,
+      "outputs": {
+        "price": 0.0005819444763876078,
+        "standard_error": 0.00012936748727516704,
+        "delta": 0.004895000435380519,
+        "delta_standard_error": 0.0007281408720591502
+      }
+    },
+    {
+      "id": "000043",
+      "model_id": "000043",
+      "product_id": "000043",
+      "seed": 941700043,
+      "outputs": {
+        "price": 0.022107156027820155,
+        "standard_error": 0.0006894125522411619,
+        "delta": 0.26473207225138645,
+        "delta_standard_error": 0.003962461126252445
+      }
+    },
+    {
+      "id": "000044",
+      "model_id": "000044",
+      "product_id": "000044",
+      "seed": 941700044,
+      "outputs": {
+        "price": 0.5002625707101712,
+        "standard_error": 0.0008865882511628417,
+        "delta": 1.1037857873260528,
+        "delta_standard_error": 0.0008865882511631779
+      }
+    },
+    {
+      "id": "000045",
+      "model_id": "000045",
+      "product_id": "000045",
+      "seed": 941700045,
+      "outputs": {
+        "price": 0.423725899675242,
+        "standard_error": 0.001014475425503591,
+        "delta": 1.1465289651131094,
+        "delta_standard_error": 0.0010144754255042123
+      }
+    },
+    {
+      "id": "000046",
+      "model_id": "000046",
+      "product_id": "000046",
+      "seed": 941700046,
+      "outputs": {
+        "price": 0.0016652567229993632,
+        "standard_error": 0.00046069235189493356,
+        "delta": 0.009283993506242672,
+        "delta_standard_error": 0.001148683119993519
+      }
+    },
+    {
+      "id": "000047",
+      "model_id": "000047",
+      "product_id": "000047",
+      "seed": 941700047,
+      "outputs": {
+        "price": 0.05113859986171009,
+        "standard_error": 0.0006157365333038916,
+        "delta": 0.8041823292794968,
+        "delta_standard_error": 0.0037262350109090515
+      }
+    },
+    {
+      "id": "000048",
+      "model_id": "000048",
+      "product_id": "000048",
+      "seed": 941700048,
+      "outputs": {
+        "price": 0.24840475426659683,
+        "standard_error": 0.0009558775790106366,
+        "delta": 1.1328482539474742,
+        "delta_standard_error": 0.0009558775790105697
+      }
+    },
+    {
+      "id": "000049",
+      "model_id": "000049",
+      "product_id": "000049",
+      "seed": 941700049,
+      "outputs": {
+        "price": 0.3998691894989486,
+        "standard_error": 0.001048754657514966,
+        "delta": 1.1342368092278219,
+        "delta_standard_error": 0.0010487546575151056
+      }
+    },
+    {
+      "id": "000050",
+      "model_id": "000050",
+      "product_id": "000050",
+      "seed": 941700050,
+      "outputs": {
+        "price": 0.017967307713619034,
+        "standard_error": 0.00042960341134579486,
+        "delta": 0.2710871495766443,
+        "delta_standard_error": 0.004097976182358958
+      }
+    },
+    {
+      "id": "000051",
+      "model_id": "000051",
+      "product_id": "000051",
+      "seed": 941700051,
+      "outputs": {
+        "price": 0.08026541936622313,
+        "standard_error": 0.0008305984717879767,
+        "delta": 0.8659805899257421,
+        "delta_standard_error": 0.0038872100559613327
+      }
+    },
+    {
+      "id": "000052",
+      "model_id": "000052",
+      "product_id": "000052",
+      "seed": 941700052,
+      "outputs": {
+        "price": 0.06714020074839212,
+        "standard_error": 0.0004127813404866934,
+        "delta": 0.9678805628739143,
+        "delta_standard_error": 0.0026293693338560195
+      }
+    },
+    {
+      "id": "000053",
+      "model_id": "000053",
+      "product_id": "000053",
+      "seed": 941700053,
+      "outputs": {
+        "price": 0.5085628935486206,
+        "standard_error": 0.002253628694154706,
+        "delta": 1.1508458583185086,
+        "delta_standard_error": 0.0022536286941539575
+      }
+    },
+    {
+      "id": "000054",
+      "model_id": "000054",
+      "product_id": "000054",
+      "seed": 941700054,
+      "outputs": {
+        "price": 0.10236942128050958,
+        "standard_error": 0.0005466753746084367,
+        "delta": 1.0765783539484026,
+        "delta_standard_error": 0.000546675374608547
+      }
+    },
+    {
+      "id": "000055",
+      "model_id": "000055",
+      "product_id": "000055",
+      "seed": 941700055,
+      "outputs": {
+        "price": 0.13482904364752837,
+        "standard_error": 0.0012110994755813705,
+        "delta": 1.097170049538421,
+        "delta_standard_error": 0.001211099475581298
+      }
+    },
+    {
+      "id": "000056",
+      "model_id": "000056",
+      "product_id": "000056",
+      "seed": 941700056,
+      "outputs": {
+        "price": 0.011051410502889058,
+        "standard_error": 0.000718805063060735,
+        "delta": 0.09291638749535168,
+        "delta_standard_error": 0.002724486303499093
+      }
+    },
+    {
+      "id": "000057",
+      "model_id": "000057",
+      "product_id": "000057",
+      "seed": 941700057,
+      "outputs": {
+        "price": 0.2640039421327829,
+        "standard_error": 0.0021296371425698173,
+        "delta": 1.1726530515286597,
+        "delta_standard_error": 0.0021296371425695614
+      }
+    },
+    {
+      "id": "000058",
+      "model_id": "000058",
+      "product_id": "000058",
+      "seed": 941700058,
+      "outputs": {
+        "price": 0.2420975884579268,
+        "standard_error": 0.0008026468492305074,
+        "delta": 1.1109624553128081,
+        "delta_standard_error": 0.0008026468492303739
+      }
+    },
+    {
+      "id": "000059",
+      "model_id": "000059",
+      "product_id": "000059",
+      "seed": 941700059,
+      "outputs": {
+        "price": 0.053492534282455186,
+        "standard_error": 0.00045756553240130224,
+        "delta": 0.8197847238073587,
+        "delta_standard_error": 0.0036971638983532085
+      }
+    },
+    {
+      "id": "000060",
+      "model_id": "000060",
+      "product_id": "000060",
+      "seed": 941700060,
+      "outputs": {
+        "price": 0.07289042663969307,
+        "standard_error": 0.001592741150291924,
+        "delta": 0.46411367590606395,
+        "delta_standard_error": 0.005595452591703585
+      }
+    },
+    {
+      "id": "000061",
+      "model_id": "000061",
+      "product_id": "000061",
+      "seed": 941700061,
+      "outputs": {
+        "price": 0.3486772684577296,
+        "standard_error": 0.001596281427244096,
+        "delta": 1.2243410440716131,
+        "delta_standard_error": 0.0015962814272435055
+      }
+    },
+    {
+      "id": "000062",
+      "model_id": "000062",
+      "product_id": "000062",
+      "seed": 941700062,
+      "outputs": {
+        "price": 0.11670723857815828,
+        "standard_error": 0.0006415786116009901,
+        "delta": 1.0926676088560523,
+        "delta_standard_error": 0.0006415786116008955
+      }
+    },
+    {
+      "id": "000063",
+      "model_id": "000063",
+      "product_id": "000063",
+      "seed": 941700063,
+      "outputs": {
+        "price": 0.29563884391049444,
+        "standard_error": 0.0008003246567286048,
+        "delta": 1.1396957960393828,
+        "delta_standard_error": 0.0008003246567280185
+      }
+    },
+    {
+      "id": "000064",
+      "model_id": "000064",
+      "product_id": "000064",
+      "seed": 941700064,
+      "outputs": {
+        "price": 0.01006325700357739,
+        "standard_error": 0.00031572134116581455,
+        "delta": 0.16592878633780736,
+        "delta_standard_error": 0.0034500562114425913
+      }
+    },
+    {
+      "id": "000065",
+      "model_id": "000065",
+      "product_id": "000065",
+      "seed": 941700065,
+      "outputs": {
+        "price": 0.28432476554713704,
+        "standard_error": 0.0005347956649425096,
+        "delta": 1.1060041674420285,
+        "delta_standard_error": 0.0005347956649420566
+      }
+    },
+    {
+      "id": "000066",
+      "model_id": "000066",
+      "product_id": "000066",
+      "seed": 941700066,
+      "outputs": {
+        "price": 0.208101843754765,
+        "standard_error": 0.00348603688950809,
+        "delta": 1.1967820517996541,
+        "delta_standard_error": 0.0034860368895076226
+      }
+    },
+    {
+      "id": "000067",
+      "model_id": "000067",
+      "product_id": "000067",
+      "seed": 941700067,
+      "outputs": {
+        "price": 0.008344504189176162,
+        "standard_error": 0.0001994622854134123,
+        "delta": 0.22260942388467064,
+        "delta_standard_error": 0.0036090011483568053
+      }
+    },
+    {
+      "id": "000068",
+      "model_id": "000068",
+      "product_id": "000068",
+      "seed": 941700068,
+      "outputs": {
+        "price": 0.2207264856656098,
+        "standard_error": 0.0013458699621922672,
+        "delta": 1.1792613178574918,
+        "delta_standard_error": 0.0013458699621921861
+      }
+    },
+    {
+      "id": "000069",
+      "model_id": "000069",
+      "product_id": "000069",
+      "seed": 941700069,
+      "outputs": {
+        "price": 0.0831461495228004,
+        "standard_error": 0.0006214943496543301,
+        "delta": 0.9163430691359862,
+        "delta_standard_error": 0.00359884718948899
+      }
+    },
+    {
+      "id": "000070",
+      "model_id": "000070",
+      "product_id": "000070",
+      "seed": 941700070,
+      "outputs": {
+        "price": 0.0017513967527289214,
+        "standard_error": 0.00010392449871683212,
+        "delta": 0.04865987359613166,
+        "delta_standard_error": 0.0018199251555927542
+      }
+    },
+    {
+      "id": "000071",
+      "model_id": "000071",
+      "product_id": "000071",
+      "seed": 941700071,
+      "outputs": {
+        "price": 0.15717846852935108,
+        "standard_error": 0.002419335438509184,
+        "delta": 0.9138920897918947,
+        "delta_standard_error": 0.005051902995967759
+      }
+    },
+    {
+      "id": "000072",
+      "model_id": "000072",
+      "product_id": "000072",
+      "seed": 941700072,
+      "outputs": {
+        "price": 0.004338884431745635,
+        "standard_error": 0.00025704412140384043,
+        "delta": 0.0693943920293323,
+        "delta_standard_error": 0.00224994255166744
+      }
+    },
+    {
+      "id": "000073",
+      "model_id": "000073",
+      "product_id": "000073",
+      "seed": 941700073,
+      "outputs": {
+        "price": 0.39640175012767576,
+        "standard_error": 0.0011999141311449723,
+        "delta": 1.1035283810205674,
+        "delta_standard_error": 0.0011999141311445417
+      }
+    },
+    {
+      "id": "000074",
+      "model_id": "000074",
+      "product_id": "000074",
+      "seed": 941700074,
+      "outputs": {
+        "price": 0.10743211152784943,
+        "standard_error": 0.0007244705654245163,
+        "delta": 1.0925778980357457,
+        "delta_standard_error": 0.0007244705654235713
+      }
+    },
+    {
+      "id": "000075",
+      "model_id": "000075",
+      "product_id": "000075",
+      "seed": 941700075,
+      "outputs": {
+        "price": 0.5292034270836344,
+        "standard_error": 0.002496160098491764,
+        "delta": 1.1895632270585053,
+        "delta_standard_error": 0.0024961600984916774
+      }
+    },
+    {
+      "id": "000076",
+      "model_id": "000076",
+      "product_id": "000076",
+      "seed": 941700076,
+      "outputs": {
+        "price": 0.255499257525021,
+        "standard_error": 0.0010179017049068253,
+        "delta": 1.1727942770788902,
+        "delta_standard_error": 0.001017901704906939
+      }
+    },
+    {
+      "id": "000077",
+      "model_id": "000077",
+      "product_id": "000077",
+      "seed": 941700077,
+      "outputs": {
+        "price": 0.14698186641695957,
+        "standard_error": 0.001697135908083961,
+        "delta": 1.1226563960738547,
+        "delta_standard_error": 0.001697135908083756
+      }
+    },
+    {
+      "id": "000078",
+      "model_id": "000078",
+      "product_id": "000078",
+      "seed": 941700078,
+      "outputs": {
+        "price": 0.20503031310613956,
+        "standard_error": 0.001861179937110614,
+        "delta": 1.0198104735718396,
+        "delta_standard_error": 0.004790306280319669
+      }
+    },
+    {
+      "id": "000079",
+      "model_id": "000079",
+      "product_id": "000079",
+      "seed": 941700079,
+      "outputs": {
+        "price": 0.22645441791363793,
+        "standard_error": 0.0010837025522989977,
+        "delta": 1.164653641206511,
+        "delta_standard_error": 0.0010837025522990379
+      }
+    },
+    {
+      "id": "000080",
+      "model_id": "000080",
+      "product_id": "000080",
+      "seed": 941700080,
+      "outputs": {
+        "price": 0.4456962618896579,
+        "standard_error": 0.0012072564382202646,
+        "delta": 1.1019486449635671,
+        "delta_standard_error": 0.001207256438219776
+      }
+    },
+    {
+      "id": "000081",
+      "model_id": "000081",
+      "product_id": "000081",
+      "seed": 941700081,
+      "outputs": {
+        "price": 0.3256423776764021,
+        "standard_error": 0.0010104112350362226,
+        "delta": 1.1032275791943027,
+        "delta_standard_error": 0.001010411235035244
+      }
+    },
+    {
+      "id": "000082",
+      "model_id": "000082",
+      "product_id": "000082",
+      "seed": 941700082,
+      "outputs": {
+        "price": 0.07466248253213259,
+        "standard_error": 0.00046323158835341415,
+        "delta": 1.065448115709032,
+        "delta_standard_error": 0.00046323158835308184
+      }
+    },
+    {
+      "id": "000083",
+      "model_id": "000083",
+      "product_id": "000083",
+      "seed": 941700083,
+      "outputs": {
+        "price": 0.10498127298071666,
+        "standard_error": 0.0010448652690130359,
+        "delta": 0.8351172906021902,
+        "delta_standard_error": 0.0044411136654674025
+      }
+    },
+    {
+      "id": "000084",
+      "model_id": "000084",
+      "product_id": "000084",
+      "seed": 941700084,
+      "outputs": {
+        "price": 0.03983828950515229,
+        "standard_error": 0.0007966357846299916,
+        "delta": 0.38649654048599114,
+        "delta_standard_error": 0.0048836248540602275
+      }
+    },
+    {
+      "id": "000085",
+      "model_id": "000085",
+      "product_id": "000085",
+      "seed": 941700085,
+      "outputs": {
+        "price": 0.19281627029839207,
+        "standard_error": 0.0012423489883916002,
+        "delta": 1.1073263915802924,
+        "delta_standard_error": 0.0012423489883912663
+      }
+    },
+    {
+      "id": "000086",
+      "model_id": "000086",
+      "product_id": "000086",
+      "seed": 941700086,
+      "outputs": {
+        "price": 0.5823981156890842,
+        "standard_error": 0.002213828266321609,
+        "delta": 1.3050723629199514,
+        "delta_standard_error": 0.0022138282663215015
+      }
+    },
+    {
+      "id": "000087",
+      "model_id": "000087",
+      "product_id": "000087",
+      "seed": 941700087,
+      "outputs": {
+        "price": 0.477437704093838,
+        "standard_error": 0.00176513520830203,
+        "delta": 1.2038279350777221,
+        "delta_standard_error": 0.0017651352083016439
+      }
+    },
+    {
+      "id": "000088",
+      "model_id": "000088",
+      "product_id": "000088",
+      "seed": 941700088,
+      "outputs": {
+        "price": 0.28214468887451694,
+        "standard_error": 0.0012725053757276813,
+        "delta": 1.162316190801405,
+        "delta_standard_error": 0.0012725053757272954
+      }
+    },
+    {
+      "id": "000089",
+      "model_id": "000089",
+      "product_id": "000089",
+      "seed": 941700089,
+      "outputs": {
+        "price": 0.02908271736422104,
+        "standard_error": 0.0010065607170468547,
+        "delta": 0.21628423667303207,
+        "delta_standard_error": 0.004259792161313854
+      }
+    },
+    {
+      "id": "000090",
+      "model_id": "000090",
+      "product_id": "000090",
+      "seed": 941700090,
+      "outputs": {
+        "price": 0.13437086928726177,
+        "standard_error": 0.0005482756380682822,
+        "delta": 1.1004044748401562,
+        "delta_standard_error": 0.000548275638067483
+      }
+    },
+    {
+      "id": "000091",
+      "model_id": "000091",
+      "product_id": "000091",
+      "seed": 941700091,
+      "outputs": {
+        "price": 0.2764385572588945,
+        "standard_error": 0.0016018920499310133,
+        "delta": 1.2376164339287625,
+        "delta_standard_error": 0.001601892049930759
+      }
+    },
+    {
+      "id": "000092",
+      "model_id": "000092",
+      "product_id": "000092",
+      "seed": 941700092,
+      "outputs": {
+        "price": 0.3317445158137729,
+        "standard_error": 0.0019554803500875383,
+        "delta": 1.1985407545896525,
+        "delta_standard_error": 0.001955480350087295
+      }
+    },
+    {
+      "id": "000093",
+      "model_id": "000093",
+      "product_id": "000093",
+      "seed": 941700093,
+      "outputs": {
+        "price": 0.10714941592866101,
+        "standard_error": 0.0008894355860827284,
+        "delta": 0.909070954814092,
+        "delta_standard_error": 0.003894936236984536
+      }
+    },
+    {
+      "id": "000094",
+      "model_id": "000094",
+      "product_id": "000094",
+      "seed": 941700094,
+      "outputs": {
+        "price": 0.16847696588169697,
+        "standard_error": 0.0011287771834413308,
+        "delta": 1.1542546681105783,
+        "delta_standard_error": 0.00112877718344101
+      }
+    },
+    {
+      "id": "000095",
+      "model_id": "000095",
+      "product_id": "000095",
+      "seed": 941700095,
+      "outputs": {
+        "price": 0.6939282990439052,
+        "standard_error": 0.0017838928509694393,
+        "delta": 1.2653918796817796,
+        "delta_standard_error": 0.001783892850968844
+      }
+    },
+    {
+      "id": "000096",
+      "model_id": "000096",
+      "product_id": "000096",
+      "seed": 941700096,
+      "outputs": {
+        "price": 0.044816057768815094,
+        "standard_error": 0.0004249839494985845,
+        "delta": 0.6943965069366776,
+        "delta_standard_error": 0.004216217207714383
+      }
+    },
+    {
+      "id": "000097",
+      "model_id": "000097",
+      "product_id": "000097",
+      "seed": 941700097,
+      "outputs": {
+        "price": 0.02085822798210979,
+        "standard_error": 0.0003362644341966462,
+        "delta": 0.5312524276215977,
+        "delta_standard_error": 0.0041669341010848685
+      }
+    },
+    {
+      "id": "000098",
+      "model_id": "000098",
+      "product_id": "000098",
+      "seed": 941700098,
+      "outputs": {
+        "price": 0.3375186718903857,
+        "standard_error": 0.0021183454558458673,
+        "delta": 1.2557183909472565,
+        "delta_standard_error": 0.002118345455845547
+      }
+    },
+    {
+      "id": "000099",
+      "model_id": "000099",
+      "product_id": "000099",
+      "seed": 941700099,
+      "outputs": {
+        "price": 0.04823978589903489,
+        "standard_error": 0.0011353389165377832,
+        "delta": 0.44376179443458014,
+        "delta_standard_error": 0.004778553677103885
+      }
+    },
+    {
+      "id": "000100",
+      "model_id": "000100",
+      "product_id": "000100",
+      "seed": 941700100,
+      "outputs": {
+        "price": 0.33518483828811635,
+        "standard_error": 0.002232336047144303,
+        "delta": 1.2621453671329748,
+        "delta_standard_error": 0.002232336047144268
+      }
+    }
+  ]
+}

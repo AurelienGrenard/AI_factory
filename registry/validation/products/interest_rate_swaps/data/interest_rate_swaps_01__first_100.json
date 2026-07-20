@@ -1,0 +1,1110 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "interest_rate_swaps_01__first_100",
+  "product_family": "Interest Rate Swaps",
+  "specification": "registry/validation/products/interest_rate_swaps/specifications/interest_rate_swaps_01__first_100.yaml",
+  "generation_script": "registry/validation/products/interest_rate_swaps/generators/interest_rate_swaps_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "start_time": 1.25,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.07663230537436903,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.002671035947278142,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.020385641707107424,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "start_time": 4.5,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.07742336881347,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.07272514653392136,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "start_time": 4.5,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.05470495493151248,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "start_time": 3.75,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.07580532344989478,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.06113785565830767,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.014737871820107103,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 7,
+        "fixed_rate": 0.04099588424898684,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.0791662601288408,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "start_time": 2.5,
+        "accrual_period": 0.5,
+        "payment_count": 7,
+        "fixed_rate": 0.002168589076027274,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "start_time": 4.75,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.05965519555844367,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "start_time": 2.5,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.07666874325834215,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.012731338562443852,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.004136247904971242,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "start_time": 4.75,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.02106428108178079,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "start_time": 3.5,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.007002579336985946,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.01815102214924991,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.03956972691230476,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "start_time": 4.75,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.07406612432561815,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.034438749225810174,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.05367255982942879,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "start_time": 3.5,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.016700545260682702,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "start_time": 4.25,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.06545449762605131,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.000592075688764453,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "start_time": 4.25,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.05453510367311537,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "start_time": 3.0,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.011903482219204307,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.006551278112456203,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.07305181891657413,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.07363220090977848,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.07831839255057275,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 3,
+        "fixed_rate": 0.018076662635430694,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.06292040958069264,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.07708808704279363,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.07783969945274294,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "start_time": 4.5,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.009846189031377435,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.01058484430424869,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.018300056727603077,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "start_time": 3.25,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.07555944618768991,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "start_time": 1.25,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.03267006159760058,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.057231115391477946,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.017376729091629385,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "start_time": 1.5,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.07105190561152995,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.03981075533665717,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.017253978932276367,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.025500524686649442,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "start_time": 3.0,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.04632540854625404,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.06887886724434793,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "start_time": 3.75,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.02511670666746795,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "start_time": 3.5,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.06939155128784479,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "start_time": 3.25,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.01719077398069203,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "start_time": 4.5,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.025559812067076564,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.04512377447448671,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 3,
+        "fixed_rate": 0.01813682251609862,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "start_time": 1.75,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.07328933143056929,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "start_time": 1.75,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.04479182538576424,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.03472227766178548,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "start_time": 3.5,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.010522843087092042,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.042344568287953736,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "start_time": 1.25,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.016368639180436732,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "start_time": 5.0,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.06709279631264507,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.007022344442084431,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "start_time": 4.25,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.0742149328161031,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "start_time": 2.0,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.04082447203807533,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.07872920379973948,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.057472368897870184,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.04510478583164513,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.07706980164162815,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.01638051907531917,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.027661762954667213,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.042237235931679606,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 7,
+        "fixed_rate": 0.03197950183413923,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.062385783484205606,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "start_time": 1.5,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.04441234088502825,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.025914383167400957,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "start_time": 0.25,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.0020469656866043805,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.017002138057723642,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "start_time": 1.75,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.02177599393762648,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "start_time": 1.0,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.028740294752642514,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "start_time": 3.0,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.05609223482199013,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "start_time": 2.25,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.0003680679108947516,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "start_time": 0.5,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.06443899798206985,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "start_time": 3.0,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.05673493024893105,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "start_time": 4.75,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.009280405761674047,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "start_time": 1.5,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.0023194630164653065,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.013029107293114066,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "start_time": 4.25,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.005284189330413937,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "start_time": 3.25,
+        "accrual_period": 0.5,
+        "payment_count": 2,
+        "fixed_rate": 0.06141621499322355,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.02386529286392033,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "start_time": 1.25,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.06481270750053227,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "start_time": 2.75,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.05700122614391148,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "start_time": 3.75,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.04079959305934608,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "start_time": 2.5,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.015733553813770413,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "start_time": 0.75,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.004913173830136657,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "start_time": 5.0,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.02521302324719727,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "start_time": 4.75,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.06528232689015567,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "start_time": 2.5,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.051755658769980076,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "start_time": 2.5,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.006750266617164016,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "start_time": 1.75,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.010095199039205908,
+        "direction": -1,
+        "notional": 1.0
+      }
+    }
+  ]
+}

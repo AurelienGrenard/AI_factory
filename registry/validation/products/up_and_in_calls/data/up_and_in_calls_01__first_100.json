@@ -1,0 +1,1010 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "up_and_in_calls_01__first_100",
+  "product_family": "Up And In Calls",
+  "specification": "registry/validation/products/up_and_in_calls/specifications/up_and_in_calls_01__first_100.yaml",
+  "generation_script": "registry/validation/products/up_and_in_calls/generators/up_and_in_calls_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "strike": 1.11915749811,
+        "barrier": 1.227642206474,
+        "maturity": 1.841904164437,
+        "observation_count": 96,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "strike": 0.837018683906,
+        "barrier": 1.067925312178,
+        "maturity": 1.408907844714,
+        "observation_count": 73,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "strike": 0.972945603011,
+        "barrier": 1.164458584489,
+        "maturity": 0.322528269287,
+        "observation_count": 17,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "strike": 0.852315199585,
+        "barrier": 1.444361205917,
+        "maturity": 1.733148485529,
+        "observation_count": 90,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "strike": 0.987867549846,
+        "barrier": 1.09822704434,
+        "maturity": 0.837705043639,
+        "observation_count": 44,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "strike": 1.39098005255,
+        "barrier": 1.485404181165,
+        "maturity": 2.406168553154,
+        "observation_count": 125,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "strike": 0.812100393426,
+        "barrier": 1.411146102328,
+        "maturity": 1.533559857606,
+        "observation_count": 80,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "strike": 1.101627295532,
+        "barrier": 1.162519158241,
+        "maturity": 1.648940430285,
+        "observation_count": 86,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "strike": 1.145953592733,
+        "barrier": 1.220273095058,
+        "maturity": 2.448430281627,
+        "observation_count": 127,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "strike": 1.086435219334,
+        "barrier": 1.490848269149,
+        "maturity": 1.422765839641,
+        "observation_count": 74,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "strike": 1.130421193174,
+        "barrier": 1.438274287332,
+        "maturity": 0.431892981355,
+        "observation_count": 22,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "strike": 1.173826765287,
+        "barrier": 1.28423522103,
+        "maturity": 0.573835360187,
+        "observation_count": 30,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "strike": 0.878392922797,
+        "barrier": 1.326629488083,
+        "maturity": 1.342924595975,
+        "observation_count": 70,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "strike": 1.548532922306,
+        "barrier": 1.631097883803,
+        "maturity": 2.364115812399,
+        "observation_count": 123,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "strike": 0.953614975068,
+        "barrier": 1.146206350584,
+        "maturity": 1.003934144072,
+        "observation_count": 52,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "strike": 0.934995842138,
+        "barrier": 1.475867502642,
+        "maturity": 1.480258971055,
+        "observation_count": 77,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "strike": 1.113383859054,
+        "barrier": 1.445627381867,
+        "maturity": 0.259138042524,
+        "observation_count": 13,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "strike": 1.036626123845,
+        "barrier": 1.31755048642,
+        "maturity": 2.88671489511,
+        "observation_count": 150,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "strike": 0.802702119679,
+        "barrier": 1.340437336435,
+        "maturity": 2.963066980951,
+        "observation_count": 154,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "strike": 0.89800026744,
+        "barrier": 1.168665363622,
+        "maturity": 0.801538928713,
+        "observation_count": 42,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "strike": 0.734249097123,
+        "barrier": 1.20506664706,
+        "maturity": 2.898050392852,
+        "observation_count": 151,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "strike": 1.517491551289,
+        "barrier": 1.588540653412,
+        "maturity": 2.834683659186,
+        "observation_count": 147,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "strike": 1.246821273736,
+        "barrier": 1.351995103494,
+        "maturity": 0.672162716481,
+        "observation_count": 35,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "strike": 1.546166793453,
+        "barrier": 1.619016080784,
+        "maturity": 2.585347962032,
+        "observation_count": 134,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "strike": 1.343637863311,
+        "barrier": 1.431520609811,
+        "maturity": 2.712033641845,
+        "observation_count": 141,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "strike": 1.3766482512,
+        "barrier": 1.44322497396,
+        "maturity": 1.920774425739,
+        "observation_count": 100,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "strike": 0.895642855065,
+        "barrier": 1.44841241148,
+        "maturity": 2.765415172975,
+        "observation_count": 144,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "strike": 0.864839702056,
+        "barrier": 1.487035204255,
+        "maturity": 0.39040660182,
+        "observation_count": 20,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "strike": 1.388694240317,
+        "barrier": 1.481960091619,
+        "maturity": 1.430361916786,
+        "observation_count": 74,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "strike": 0.801354910648,
+        "barrier": 1.295316681516,
+        "maturity": 0.590395982115,
+        "observation_count": 31,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "strike": 0.863231872789,
+        "barrier": 1.39365978096,
+        "maturity": 2.683270403135,
+        "observation_count": 140,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "strike": 0.975419201144,
+        "barrier": 1.262193963683,
+        "maturity": 0.554069466957,
+        "observation_count": 29,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "strike": 0.905921915148,
+        "barrier": 1.212886196194,
+        "maturity": 2.170973294385,
+        "observation_count": 113,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "strike": 0.94530560267,
+        "barrier": 1.401798415527,
+        "maturity": 0.315703457037,
+        "observation_count": 16,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "strike": 1.312912179464,
+        "barrier": 1.396178488975,
+        "maturity": 0.970401279696,
+        "observation_count": 50,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "strike": 1.310599342868,
+        "barrier": 1.462869947078,
+        "maturity": 1.908174556612,
+        "observation_count": 99,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "strike": 0.966893084329,
+        "barrier": 1.061548086995,
+        "maturity": 0.240217097424,
+        "observation_count": 12,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "strike": 1.37789788715,
+        "barrier": 1.433730657272,
+        "maturity": 1.781003918702,
+        "observation_count": 93,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "strike": 1.128077429816,
+        "barrier": 1.268006426445,
+        "maturity": 1.991092086702,
+        "observation_count": 104,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "strike": 1.392196488887,
+        "barrier": 1.462160028982,
+        "maturity": 2.6918961414,
+        "observation_count": 140,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "strike": 0.958623095845,
+        "barrier": 1.454673805466,
+        "maturity": 0.129886980353,
+        "observation_count": 7,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "strike": 0.967642768338,
+        "barrier": 1.411629990017,
+        "maturity": 0.096770676872,
+        "observation_count": 5,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "strike": 0.894551656862,
+        "barrier": 1.382541244762,
+        "maturity": 0.792174982266,
+        "observation_count": 41,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "strike": 0.777138654196,
+        "barrier": 1.093826263334,
+        "maturity": 1.792400292053,
+        "observation_count": 93,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "strike": 0.886726600973,
+        "barrier": 1.283099158999,
+        "maturity": 0.331942108431,
+        "observation_count": 17,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "strike": 0.779765772384,
+        "barrier": 1.349209142482,
+        "maturity": 1.421914503997,
+        "observation_count": 74,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "strike": 1.473546673259,
+        "barrier": 1.547330303526,
+        "maturity": 2.486797932332,
+        "observation_count": 129,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "strike": 1.581418648768,
+        "barrier": 1.645450539298,
+        "maturity": 2.551765268795,
+        "observation_count": 133,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "strike": 1.258453806012,
+        "barrier": 1.417242254768,
+        "maturity": 0.963778010308,
+        "observation_count": 50,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "strike": 0.764436128006,
+        "barrier": 1.227590365458,
+        "maturity": 0.864745206462,
+        "observation_count": 45,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "strike": 1.161775960419,
+        "barrier": 1.250395500953,
+        "maturity": 1.239508715002,
+        "observation_count": 64,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "strike": 1.168571606443,
+        "barrier": 1.466557160993,
+        "maturity": 0.494840198051,
+        "observation_count": 26,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "strike": 0.854223796243,
+        "barrier": 1.166622985509,
+        "maturity": 2.417310981031,
+        "observation_count": 126,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "strike": 0.635323299246,
+        "barrier": 1.054364173935,
+        "maturity": 2.334012345304,
+        "observation_count": 121,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "strike": 0.989253520078,
+        "barrier": 1.264280779607,
+        "maturity": 1.045169185837,
+        "observation_count": 54,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "strike": 1.357251206019,
+        "barrier": 1.410670433523,
+        "maturity": 1.558687015466,
+        "observation_count": 81,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "strike": 0.839946283802,
+        "barrier": 1.301985281875,
+        "maturity": 1.398094083192,
+        "observation_count": 73,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "strike": 1.454225129179,
+        "barrier": 1.523933593398,
+        "maturity": 2.579779310297,
+        "observation_count": 134,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "strike": 1.017123138795,
+        "barrier": 1.080186028803,
+        "maturity": 0.994637530016,
+        "observation_count": 52,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "strike": 1.055396486921,
+        "barrier": 1.230307583003,
+        "maturity": 1.517999740094,
+        "observation_count": 79,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "strike": 1.052578638069,
+        "barrier": 1.234336636312,
+        "maturity": 0.169214847139,
+        "observation_count": 9,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "strike": 1.237580335994,
+        "barrier": 1.392268395612,
+        "maturity": 1.031261078868,
+        "observation_count": 54,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "strike": 0.922772556874,
+        "barrier": 1.335587433045,
+        "maturity": 1.138800090383,
+        "observation_count": 59,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "strike": 1.342619029416,
+        "barrier": 1.438547812833,
+        "maturity": 1.538923052887,
+        "observation_count": 80,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "strike": 1.126219746967,
+        "barrier": 1.318195207172,
+        "maturity": 0.23366063549,
+        "observation_count": 12,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "strike": 1.308380104786,
+        "barrier": 1.38101308033,
+        "maturity": 2.681041728909,
+        "observation_count": 139,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "strike": 0.97712769573,
+        "barrier": 1.465939336777,
+        "maturity": 0.880265231215,
+        "observation_count": 46,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "strike": 1.033611823056,
+        "barrier": 1.41621061409,
+        "maturity": 0.312705769776,
+        "observation_count": 16,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "strike": 0.7559810134,
+        "barrier": 1.463024591451,
+        "maturity": 0.877314547804,
+        "observation_count": 46,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "strike": 1.494635590319,
+        "barrier": 1.566540268665,
+        "maturity": 2.720058543559,
+        "observation_count": 141,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "strike": 1.330625704021,
+        "barrier": 1.450264296217,
+        "maturity": 2.293607055006,
+        "observation_count": 119,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "strike": 1.231537247587,
+        "barrier": 1.388190608767,
+        "maturity": 0.506887327812,
+        "observation_count": 26,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "strike": 0.732375862233,
+        "barrier": 1.217386088072,
+        "maturity": 1.15877023672,
+        "observation_count": 60,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "strike": 0.806961360712,
+        "barrier": 1.429464895354,
+        "maturity": 0.796804692431,
+        "observation_count": 41,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "strike": 0.802297193447,
+        "barrier": 1.079209625657,
+        "maturity": 0.910672909978,
+        "observation_count": 47,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "strike": 0.834331250056,
+        "barrier": 1.309393095371,
+        "maturity": 2.39235813387,
+        "observation_count": 124,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "strike": 0.699046259455,
+        "barrier": 1.115496446454,
+        "maturity": 1.69773627254,
+        "observation_count": 88,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "strike": 0.894502417133,
+        "barrier": 1.376383043424,
+        "maturity": 0.613958151342,
+        "observation_count": 32,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "strike": 1.529768052584,
+        "barrier": 1.596744818529,
+        "maturity": 2.656324296229,
+        "observation_count": 138,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "strike": 1.179344577715,
+        "barrier": 1.381130484519,
+        "maturity": 0.564210169415,
+        "observation_count": 29,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "strike": 1.003777054691,
+        "barrier": 1.215323631763,
+        "maturity": 0.099933691158,
+        "observation_count": 5,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "strike": 0.768166358279,
+        "barrier": 1.064777311165,
+        "maturity": 1.555878922489,
+        "observation_count": 81,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "strike": 0.895385774656,
+        "barrier": 1.308141147805,
+        "maturity": 0.794649677671,
+        "observation_count": 41,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "strike": 1.151157570616,
+        "barrier": 1.354614073843,
+        "maturity": 2.438565169257,
+        "observation_count": 127,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "strike": 0.990718224602,
+        "barrier": 1.194405493716,
+        "maturity": 0.168575290949,
+        "observation_count": 9,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "strike": 0.926408885958,
+        "barrier": 1.379759926972,
+        "maturity": 2.916094919463,
+        "observation_count": 152,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "strike": 1.028420648008,
+        "barrier": 1.283386975461,
+        "maturity": 0.129784685724,
+        "observation_count": 7,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "strike": 1.134338736489,
+        "barrier": 1.251361947989,
+        "maturity": 0.721076534217,
+        "observation_count": 37,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "strike": 1.068144752363,
+        "barrier": 1.437935528511,
+        "maturity": 0.645234171505,
+        "observation_count": 34,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "strike": 0.945754512901,
+        "barrier": 1.091959868831,
+        "maturity": 0.598153448246,
+        "observation_count": 31,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "strike": 1.379100269104,
+        "barrier": 1.497787890876,
+        "maturity": 2.711404746001,
+        "observation_count": 141,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "strike": 1.037152311826,
+        "barrier": 1.294507728919,
+        "maturity": 0.174753876995,
+        "observation_count": 9,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "strike": 1.475719030695,
+        "barrier": 1.547326452272,
+        "maturity": 2.240516085168,
+        "observation_count": 117,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "strike": 1.115933007071,
+        "barrier": 1.167464351143,
+        "maturity": 0.925995858241,
+        "observation_count": 48,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "strike": 1.141384265151,
+        "barrier": 1.208519100818,
+        "maturity": 0.53593302424,
+        "observation_count": 28,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "strike": 0.764298716029,
+        "barrier": 1.317570275062,
+        "maturity": 2.535513655622,
+        "observation_count": 132,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "strike": 1.326737479216,
+        "barrier": 1.477460502736,
+        "maturity": 1.48211370947,
+        "observation_count": 77,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "strike": 1.12638784131,
+        "barrier": 1.376624616924,
+        "maturity": 1.264353227035,
+        "observation_count": 66,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "strike": 1.044339818052,
+        "barrier": 1.154825677176,
+        "maturity": 1.676476331069,
+        "observation_count": 87,
+        "rebate": 0.0
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "strike": 1.060757408455,
+        "barrier": 1.48668023546,
+        "maturity": 1.011751145289,
+        "observation_count": 53,
+        "rebate": 0.0
+      }
+    }
+  ]
+}

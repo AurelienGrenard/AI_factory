@@ -1,0 +1,710 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "zero_coupon_bonds_01__first_100",
+  "product_family": "Zero Coupon Bonds",
+  "specification": "registry/validation/products/zero_coupon_bonds/specifications/zero_coupon_bonds_01__first_100.yaml",
+  "generation_script": "registry/validation/products/zero_coupon_bonds/generators/zero_coupon_bonds_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "maturity": 13.73430774359925,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "maturity": 25.065480348178728,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "maturity": 12.337279288884021,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "maturity": 14.188525176636178,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "maturity": 13.978796232423823,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "maturity": 13.154040208794566,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "maturity": 6.7781901932418505,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "maturity": 29.952392702524474,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "maturity": 8.0362541298479,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "maturity": 17.84879667039301,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "maturity": 29.899268949123023,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "maturity": 0.7465888462514462,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "maturity": 22.354346459935186,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "maturity": 12.683477055310506,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "maturity": 10.399685254252594,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "maturity": 25.982969780035393,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "maturity": 22.80809709886671,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "maturity": 13.025965725857533,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "maturity": 12.230782110098518,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "maturity": 13.378151273383994,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "maturity": 25.599627065093955,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "maturity": 11.289517718726227,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "maturity": 1.1498089867042534,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "maturity": 11.775086873026643,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "maturity": 23.41897567671064,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "maturity": 0.8160863493394573,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "maturity": 28.580237453386264,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "maturity": 4.695244679567016,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "maturity": 7.777701266624111,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "maturity": 24.174706995632732,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "maturity": 3.6922941524244384,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "maturity": 27.669739993318217,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "maturity": 8.146770544146422,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "maturity": 23.084690072350593,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "maturity": 16.98903626423756,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "maturity": 14.70861962522031,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "maturity": 1.1862601906468626,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "maturity": 5.564721960700505,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "maturity": 27.401734387511777,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "maturity": 29.324966216178534,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "maturity": 18.096066281092742,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "maturity": 10.936227064104363,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "maturity": 9.126001285631599,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "maturity": 7.312017332248312,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "maturity": 16.62009923401638,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "maturity": 26.65643287813873,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "maturity": 29.666424756452518,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "maturity": 8.802556922998823,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "maturity": 22.330731930201484,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "maturity": 22.71387222026048,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "maturity": 16.77463359759228,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "maturity": 20.14734513462948,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "maturity": 21.6360696440582,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "maturity": 13.67435428708753,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "maturity": 15.667317235308778,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "maturity": 7.018906882605127,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "maturity": 25.133880176377716,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "maturity": 29.555706885478383,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "maturity": 16.330538300263772,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "maturity": 9.423195137128157,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "maturity": 5.376809460760948,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "maturity": 4.956390526058385,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "maturity": 25.356588455547655,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "maturity": 8.481969634235915,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "maturity": 28.50982289125871,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "maturity": 13.557230731870126,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "maturity": 27.57042213086,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "maturity": 1.9162245515714555,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "maturity": 11.259974294371206,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "maturity": 15.177406857517783,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "maturity": 23.31805575932958,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "maturity": 19.70668263899279,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "maturity": 21.466250094788847,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "maturity": 13.943830348308742,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "maturity": 16.905312334003003,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "maturity": 19.028662302793236,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "maturity": 0.3829947922786232,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "maturity": 15.85175254928375,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "maturity": 24.52023706851954,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "maturity": 20.66313154344486,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "maturity": 29.058226586076973,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "maturity": 2.15161734323677,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "maturity": 23.883808411007823,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "maturity": 14.994253142901774,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "maturity": 26.456737558813376,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "maturity": 17.768060758777818,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "maturity": 6.420439058517029,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "maturity": 18.45637405301871,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "maturity": 11.831759410939414,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "maturity": 6.035002683376661,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "maturity": 16.369192446397694,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "maturity": 3.109997172519798,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "maturity": 19.87259906094793,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "maturity": 8.999055620409006,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "maturity": 5.047642515147648,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "maturity": 25.18668995911139,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "maturity": 3.3115144899250786,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "maturity": 21.228381451985722,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "maturity": 16.802315891594237,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "maturity": 0.10699340013282684,
+        "notional": 1.0
+      }
+    }
+  ]
+}

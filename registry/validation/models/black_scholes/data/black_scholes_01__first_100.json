@@ -1,0 +1,910 @@
+{
+  "format": "ai_factory.models.v1",
+  "database_id": "black_scholes_01__first_100",
+  "model_family": "Black Scholes",
+  "specification": "registry/validation/models/black_scholes/specifications/black_scholes_01__first_100.yaml",
+  "generation_script": "registry/validation/models/black_scholes/generators/black_scholes_01__first_100.py",
+  "row_count": 100,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.063868186986,
+        "dividend_yield": 0.038193425437,
+        "volatility": 0.407609247958
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.072911319053,
+        "dividend_yield": 0.001815534063,
+        "volatility": 0.22463103616
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.074207360661,
+        "dividend_yield": 0.008804181457,
+        "volatility": 0.111115563876
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.064263201607,
+        "dividend_yield": 0.023842587863,
+        "volatility": 0.326485397719
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.011039972091,
+        "dividend_yield": 0.00571942188,
+        "volatility": 0.154208527034
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07631381792,
+        "dividend_yield": 0.040486824914,
+        "volatility": 0.4118428869
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.075787924202,
+        "dividend_yield": 0.022504499141,
+        "volatility": 0.104136062384
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.066786170853,
+        "dividend_yield": 0.01671771332,
+        "volatility": 0.384851567907
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.078186182501,
+        "dividend_yield": 0.007792926551,
+        "volatility": 0.229987752793
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.048058958324,
+        "dividend_yield": 0.024580457195,
+        "volatility": 0.326969723782
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.009955957262,
+        "dividend_yield": 0.044334581861,
+        "volatility": 0.431266744173
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.03817703235,
+        "dividend_yield": 0.027994551795,
+        "volatility": 0.483733664063
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.047667186772,
+        "dividend_yield": 0.03476646202,
+        "volatility": 0.333625694603
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.035524278367,
+        "dividend_yield": 0.016270174837,
+        "volatility": 0.091357180552
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.065410077544,
+        "dividend_yield": 0.00666828141,
+        "volatility": 0.215621876199
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.009744129265,
+        "dividend_yield": 0.039739764744,
+        "volatility": 0.25212457595
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.026131498897,
+        "dividend_yield": 0.041274363775,
+        "volatility": 0.154210160562
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.035879917266,
+        "dividend_yield": 0.000983720477,
+        "volatility": 0.310106762667
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.019140158137,
+        "dividend_yield": 0.041174948384,
+        "volatility": 0.091825217853
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.041185898157,
+        "dividend_yield": 0.046012468979,
+        "volatility": 0.345232909272
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.032448582919,
+        "dividend_yield": 0.00670571989,
+        "volatility": 0.169635972503
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.054898245549,
+        "dividend_yield": 0.016711380816,
+        "volatility": 0.120006664417
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.049462737804,
+        "dividend_yield": 0.022896713828,
+        "volatility": 0.080485758156
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.067172545744,
+        "dividend_yield": 0.00184182084,
+        "volatility": 0.1235219247
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.034303707359,
+        "dividend_yield": 0.044017510623,
+        "volatility": 0.353745019651
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.011931809252,
+        "dividend_yield": 0.00717134822,
+        "volatility": 0.213959527918
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.054979661098,
+        "dividend_yield": 0.044118011981,
+        "volatility": 0.293240744987
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.012974961055,
+        "dividend_yield": 0.019101608783,
+        "volatility": 0.171629795508
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.023122223737,
+        "dividend_yield": 0.040792118799,
+        "volatility": 0.439912201726
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.028148260517,
+        "dividend_yield": 0.001083543402,
+        "volatility": 0.245713232021
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007049339348,
+        "dividend_yield": 0.025266219786,
+        "volatility": 0.447181243071
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.011764708562,
+        "dividend_yield": 0.01260136356,
+        "volatility": 0.480441784748
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.04685654656,
+        "dividend_yield": 0.039944687852,
+        "volatility": 0.426620565873
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.070489178328,
+        "dividend_yield": 0.029381683393,
+        "volatility": 0.358003812266
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.037798609072,
+        "dividend_yield": 0.014620688505,
+        "volatility": 0.37991186133
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.04449294447,
+        "dividend_yield": 0.01655255729,
+        "volatility": 0.255843156792
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.008189635659,
+        "dividend_yield": 0.031076710409,
+        "volatility": 0.068937497289
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.032566965325,
+        "dividend_yield": 0.005960598524,
+        "volatility": 0.161227204493
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.017135853348,
+        "dividend_yield": 0.03940661528,
+        "volatility": 0.470697800518
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.06769739748,
+        "dividend_yield": 0.014000964927,
+        "volatility": 0.464639695134
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.057548273792,
+        "dividend_yield": 0.010999578348,
+        "volatility": 0.383616609726
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.05689089342,
+        "dividend_yield": 0.002973051352,
+        "volatility": 0.449555677088
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.044270267067,
+        "dividend_yield": 0.010021727026,
+        "volatility": 0.25728130865
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.046632174654,
+        "dividend_yield": 0.02068525728,
+        "volatility": 0.235550763988
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.047716964213,
+        "dividend_yield": 0.035989901359,
+        "volatility": 0.363389643439
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.079152034549,
+        "dividend_yield": 0.006904734095,
+        "volatility": 0.484454143752
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.071388308993,
+        "dividend_yield": 0.009715526371,
+        "volatility": 0.499398657592
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.077832885319,
+        "dividend_yield": 0.018981182057,
+        "volatility": 0.321354684123
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.024695424708,
+        "dividend_yield": 0.002561771945,
+        "volatility": 0.332361316989
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.060512335869,
+        "dividend_yield": 0.000272722269,
+        "volatility": 0.344379916304
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 7.7653462e-05,
+        "dividend_yield": 0.016465759563,
+        "volatility": 0.165602982178
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.048322793813,
+        "dividend_yield": 0.014518408041,
+        "volatility": 0.082192916301
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.003288144926,
+        "dividend_yield": 0.009218976012,
+        "volatility": 0.427111004229
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.026394429365,
+        "dividend_yield": 0.018178015988,
+        "volatility": 0.263693606231
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.038100235919,
+        "dividend_yield": 0.009162816539,
+        "volatility": 0.48142496575
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07119306813,
+        "dividend_yield": 0.012884968839,
+        "volatility": 0.431248672161
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.015250674272,
+        "dividend_yield": 0.025375225936,
+        "volatility": 0.462749277049
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.011324178418,
+        "dividend_yield": 0.01362154482,
+        "volatility": 0.23177285635
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.058387870481,
+        "dividend_yield": 0.005239901372,
+        "volatility": 0.056736643234
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.019588107495,
+        "dividend_yield": 0.026158387988,
+        "volatility": 0.101111904095
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.042977554323,
+        "dividend_yield": 0.042432260927,
+        "volatility": 0.344972698117
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.025846401872,
+        "dividend_yield": 0.001376112824,
+        "volatility": 0.407970864949
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.045747542148,
+        "dividend_yield": 0.004860001471,
+        "volatility": 0.42435217278
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.015242599985,
+        "dividend_yield": 0.012932075042,
+        "volatility": 0.263036675722
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.000449658511,
+        "dividend_yield": 0.026315100753,
+        "volatility": 0.200816811871
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.072531330073,
+        "dividend_yield": 0.006557305512,
+        "volatility": 0.310087352589
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.016350367377,
+        "dividend_yield": 0.025440401636,
+        "volatility": 0.342914625414
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.039872891447,
+        "dividend_yield": 0.000763401302,
+        "volatility": 0.451153596299
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.023759405864,
+        "dividend_yield": 0.006523549935,
+        "volatility": 0.282211057172
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.044076595576,
+        "dividend_yield": 0.038183143194,
+        "volatility": 0.208912666672
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.003234461835,
+        "dividend_yield": 0.012704151979,
+        "volatility": 0.4238447727
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.044759188248,
+        "dividend_yield": 0.004323554673,
+        "volatility": 0.089708137704
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.043868370326,
+        "dividend_yield": 0.028076131683,
+        "volatility": 0.267622088891
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.005486718761,
+        "dividend_yield": 0.041820831044,
+        "volatility": 0.066864111478
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.015275505064,
+        "dividend_yield": 0.024004891404,
+        "volatility": 0.459189226705
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.014758179961,
+        "dividend_yield": 0.024506175757,
+        "volatility": 0.16974483509
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.078368104724,
+        "dividend_yield": 0.042906175676,
+        "volatility": 0.284154271398
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.059611841301,
+        "dividend_yield": 0.037333598459,
+        "volatility": 0.427251367684
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.023459557695,
+        "dividend_yield": 0.0390646605,
+        "volatility": 0.381444074697
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.034529124005,
+        "dividend_yield": 0.003398942453,
+        "volatility": 0.153390317288
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.049518340705,
+        "dividend_yield": 0.043496644188,
+        "volatility": 0.359170638147
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.020581126316,
+        "dividend_yield": 0.025246654107,
+        "volatility": 0.06171884627
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.071635513389,
+        "dividend_yield": 0.027854461881,
+        "volatility": 0.114113003801
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.046573090954,
+        "dividend_yield": 0.015814046393,
+        "volatility": 0.249016139825
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.038174139997,
+        "dividend_yield": 0.037314587325,
+        "volatility": 0.48797579995
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.034752476653,
+        "dividend_yield": 0.018192353816,
+        "volatility": 0.407443308696
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.009931547968,
+        "dividend_yield": 0.026255516586,
+        "volatility": 0.278135921276
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.001909526577,
+        "dividend_yield": 0.012908093998,
+        "volatility": 0.084164201102
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.034443205381,
+        "dividend_yield": 0.011793941871,
+        "volatility": 0.195538577199
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.025246347515,
+        "dividend_yield": 0.035058643069,
+        "volatility": 0.40343564775
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.060198844625,
+        "dividend_yield": 0.024780327681,
+        "volatility": 0.159214753547
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.054397200709,
+        "dividend_yield": 0.04217706059,
+        "volatility": 0.061710784555
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.062702303557,
+        "dividend_yield": 0.010494932061,
+        "volatility": 0.270739717031
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.048852457432,
+        "dividend_yield": 0.020503975992,
+        "volatility": 0.19770416363
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.037485845843,
+        "dividend_yield": 0.024698393181,
+        "volatility": 0.351124211744
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.051138986172,
+        "dividend_yield": 0.034372901352,
+        "volatility": 0.144856695906
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.030633837199,
+        "dividend_yield": 0.049552439252,
+        "volatility": 0.130362050963
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.026662555253,
+        "dividend_yield": 0.031462607178,
+        "volatility": 0.399363988038
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.032219954031,
+        "dividend_yield": 0.00759839933,
+        "volatility": 0.175045579992
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.062597268065,
+        "dividend_yield": 0.008562956849,
+        "volatility": 0.240303918003
+      }
+    }
+  ]
+}

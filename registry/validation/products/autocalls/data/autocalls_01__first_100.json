@@ -1,0 +1,1210 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "autocalls_01__first_100",
+  "product_family": "Autocalls",
+  "specification": "registry/validation/products/autocalls/specifications/autocalls_01__first_100.yaml",
+  "generation_script": "registry/validation/products/autocalls/generators/autocalls_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.919763263495,
+        "coupon_barrier": 0.875356203009,
+        "protection_barrier": 0.66478926703,
+        "coupon_rate_per_observation": 0.012436217499,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "maturity": 2.25,
+        "autocall_barrier": 0.989571810194,
+        "coupon_barrier": 0.836358468112,
+        "protection_barrier": 0.638363109349,
+        "coupon_rate_per_observation": 0.023385019261,
+        "observation_count": 9,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 0.999998729542,
+        "coupon_barrier": 0.780260538572,
+        "protection_barrier": 0.703055424576,
+        "coupon_rate_per_observation": 0.014518101826,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 1.024607482395,
+        "coupon_barrier": 0.726559726644,
+        "protection_barrier": 0.524297237433,
+        "coupon_rate_per_observation": 0.013162450054,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "maturity": 4.0,
+        "autocall_barrier": 0.982411491108,
+        "coupon_barrier": 0.676467663731,
+        "protection_barrier": 0.618570315215,
+        "coupon_rate_per_observation": 0.011970106272,
+        "observation_count": 16,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 0.953103409399,
+        "coupon_barrier": 0.787408892071,
+        "protection_barrier": 0.547679695488,
+        "coupon_rate_per_observation": 0.028584854321,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.902372805396,
+        "coupon_barrier": 0.745714985655,
+        "protection_barrier": 0.680806383329,
+        "coupon_rate_per_observation": 0.027301516464,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 0.96002867624,
+        "coupon_barrier": 0.668830145273,
+        "protection_barrier": 0.568454814273,
+        "coupon_rate_per_observation": 0.025047257972,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 1.021058283997,
+        "coupon_barrier": 0.672216856625,
+        "protection_barrier": 0.608421434724,
+        "coupon_rate_per_observation": 0.021821922679,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 0.953989622084,
+        "coupon_barrier": 0.859662796784,
+        "protection_barrier": 0.576057422528,
+        "coupon_rate_per_observation": 0.011940103273,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.966421551834,
+        "coupon_barrier": 0.851097508107,
+        "protection_barrier": 0.632959453302,
+        "coupon_rate_per_observation": 0.026475849571,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.926948361268,
+        "coupon_barrier": 0.75864583464,
+        "protection_barrier": 0.634779889726,
+        "coupon_rate_per_observation": 0.012664073,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 1.028693196183,
+        "coupon_barrier": 0.734623003757,
+        "protection_barrier": 0.541791031367,
+        "coupon_rate_per_observation": 0.017759756207,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 1.021869224537,
+        "coupon_barrier": 0.676844628883,
+        "protection_barrier": 0.583988109898,
+        "coupon_rate_per_observation": 0.026190219119,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.971647419658,
+        "coupon_barrier": 0.701134391309,
+        "protection_barrier": 0.519966233781,
+        "coupon_rate_per_observation": 0.013716316338,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 1.015421382344,
+        "coupon_barrier": 0.883899354556,
+        "protection_barrier": 0.578226310987,
+        "coupon_rate_per_observation": 0.026929404032,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.914470068313,
+        "coupon_barrier": 0.669386469241,
+        "protection_barrier": 0.614637685179,
+        "coupon_rate_per_observation": 0.007529525835,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 1.010467694368,
+        "coupon_barrier": 0.822696285386,
+        "protection_barrier": 0.641347556404,
+        "coupon_rate_per_observation": 0.017524334426,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 0.946496065106,
+        "coupon_barrier": 0.683864607889,
+        "protection_barrier": 0.574031504893,
+        "coupon_rate_per_observation": 0.011278106771,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 1.029787260893,
+        "coupon_barrier": 0.816957429814,
+        "protection_barrier": 0.559041556815,
+        "coupon_rate_per_observation": 0.01755884484,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 1.027279865689,
+        "coupon_barrier": 0.82290171553,
+        "protection_barrier": 0.744913257629,
+        "coupon_rate_per_observation": 0.025363853555,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.962869579863,
+        "coupon_barrier": 0.660307951045,
+        "protection_barrier": 0.524712845853,
+        "coupon_rate_per_observation": 0.018624896124,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 0.933087215497,
+        "coupon_barrier": 0.697434239212,
+        "protection_barrier": 0.602258283956,
+        "coupon_rate_per_observation": 0.015410178584,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 1.020599654788,
+        "coupon_barrier": 0.704608181032,
+        "protection_barrier": 0.595372655993,
+        "coupon_rate_per_observation": 0.024667356866,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.962040424923,
+        "coupon_barrier": 0.674479270302,
+        "protection_barrier": 0.536065431235,
+        "coupon_rate_per_observation": 0.01072519078,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "maturity": 4.5,
+        "autocall_barrier": 0.99732884877,
+        "coupon_barrier": 0.848543798382,
+        "protection_barrier": 0.711920337373,
+        "coupon_rate_per_observation": 0.011139919619,
+        "observation_count": 18,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 0.928761100798,
+        "coupon_barrier": 0.876641812624,
+        "protection_barrier": 0.550219228404,
+        "coupon_rate_per_observation": 0.015372163277,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 0.991518913727,
+        "coupon_barrier": 0.744686825847,
+        "protection_barrier": 0.548771079114,
+        "coupon_rate_per_observation": 0.012524631618,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 1.013729439065,
+        "coupon_barrier": 0.8912538098,
+        "protection_barrier": 0.741362288507,
+        "coupon_rate_per_observation": 0.012317508708,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.961835348181,
+        "coupon_barrier": 0.706115528947,
+        "protection_barrier": 0.544102738245,
+        "coupon_rate_per_observation": 0.027866507075,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 1.045446403505,
+        "coupon_barrier": 0.857301837247,
+        "protection_barrier": 0.591281128436,
+        "coupon_rate_per_observation": 0.023648298018,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 0.983013116807,
+        "coupon_barrier": 0.875304461346,
+        "protection_barrier": 0.592563588667,
+        "coupon_rate_per_observation": 0.007661180517,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 0.900049298076,
+        "coupon_barrier": 0.898845203576,
+        "protection_barrier": 0.529807055107,
+        "coupon_rate_per_observation": 0.028859677443,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.95213728784,
+        "coupon_barrier": 0.898444879457,
+        "protection_barrier": 0.671430906717,
+        "coupon_rate_per_observation": 0.016818384202,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 0.985239497951,
+        "coupon_barrier": 0.754685545113,
+        "protection_barrier": 0.52558535761,
+        "coupon_rate_per_observation": 0.021568051712,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.987618971517,
+        "coupon_barrier": 0.886164032103,
+        "protection_barrier": 0.607345431548,
+        "coupon_rate_per_observation": 0.005243729804,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "maturity": 4.0,
+        "autocall_barrier": 0.938027639285,
+        "coupon_barrier": 0.720858115185,
+        "protection_barrier": 0.667543367623,
+        "coupon_rate_per_observation": 0.026223917461,
+        "observation_count": 16,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.9442583539,
+        "coupon_barrier": 0.771634161711,
+        "protection_barrier": 0.574663931236,
+        "coupon_rate_per_observation": 0.013750246486,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.948469260003,
+        "coupon_barrier": 0.666071680147,
+        "protection_barrier": 0.538338917235,
+        "coupon_rate_per_observation": 0.012096209048,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 1.003489811736,
+        "coupon_barrier": 0.89419553639,
+        "protection_barrier": 0.546262627846,
+        "coupon_rate_per_observation": 0.012507113231,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 1.032401543943,
+        "coupon_barrier": 0.668503084633,
+        "protection_barrier": 0.509523065553,
+        "coupon_rate_per_observation": 0.014355528708,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 0.93758426577,
+        "coupon_barrier": 0.827402884903,
+        "protection_barrier": 0.582847218291,
+        "coupon_rate_per_observation": 0.009402621349,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.948654115159,
+        "coupon_barrier": 0.819175832911,
+        "protection_barrier": 0.628609118139,
+        "coupon_rate_per_observation": 0.008145898457,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "maturity": 2.25,
+        "autocall_barrier": 0.92258091488,
+        "coupon_barrier": 0.848185004032,
+        "protection_barrier": 0.625421748351,
+        "coupon_rate_per_observation": 0.009100926346,
+        "observation_count": 9,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.915407617675,
+        "coupon_barrier": 0.74273743318,
+        "protection_barrier": 0.623625590787,
+        "coupon_rate_per_observation": 0.023613133059,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.915271787083,
+        "coupon_barrier": 0.704590829561,
+        "protection_barrier": 0.649572673412,
+        "coupon_rate_per_observation": 0.014094670069,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 1.00475240142,
+        "coupon_barrier": 0.748887880769,
+        "protection_barrier": 0.65421723687,
+        "coupon_rate_per_observation": 0.023227570385,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "maturity": 4.0,
+        "autocall_barrier": 1.038631545642,
+        "coupon_barrier": 0.720156694303,
+        "protection_barrier": 0.641646319202,
+        "coupon_rate_per_observation": 0.024347386897,
+        "observation_count": 16,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 1.004167174635,
+        "coupon_barrier": 0.887675253913,
+        "protection_barrier": 0.544297335233,
+        "coupon_rate_per_observation": 0.018682152281,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 1.021693977172,
+        "coupon_barrier": 0.657691555162,
+        "protection_barrier": 0.547413730934,
+        "coupon_rate_per_observation": 0.026558728282,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.934720054659,
+        "coupon_barrier": 0.89463528351,
+        "protection_barrier": 0.577743511618,
+        "coupon_rate_per_observation": 0.027063754653,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.913502739026,
+        "coupon_barrier": 0.837693554937,
+        "protection_barrier": 0.502664625499,
+        "coupon_rate_per_observation": 0.017444714675,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.979421322729,
+        "coupon_barrier": 0.716566605965,
+        "protection_barrier": 0.642115772759,
+        "coupon_rate_per_observation": 0.019846791778,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 1.006775062747,
+        "coupon_barrier": 0.80191031291,
+        "protection_barrier": 0.691560588632,
+        "coupon_rate_per_observation": 0.018131481913,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 1.005226540257,
+        "coupon_barrier": 0.703503255855,
+        "protection_barrier": 0.6381584124,
+        "coupon_rate_per_observation": 0.028950894954,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.96106122323,
+        "coupon_barrier": 0.707582069276,
+        "protection_barrier": 0.510285653831,
+        "coupon_rate_per_observation": 0.006617624701,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "maturity": 4.5,
+        "autocall_barrier": 1.026710885897,
+        "coupon_barrier": 0.881899893173,
+        "protection_barrier": 0.673115840385,
+        "coupon_rate_per_observation": 0.025064687586,
+        "observation_count": 18,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 1.029776297574,
+        "coupon_barrier": 0.877282085834,
+        "protection_barrier": 0.703862041497,
+        "coupon_rate_per_observation": 0.026418038171,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 1.04750737446,
+        "coupon_barrier": 0.73199876346,
+        "protection_barrier": 0.655764097501,
+        "coupon_rate_per_observation": 0.026092284293,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "maturity": 2.25,
+        "autocall_barrier": 0.985342471936,
+        "coupon_barrier": 0.680668448802,
+        "protection_barrier": 0.612930937955,
+        "coupon_rate_per_observation": 0.016800337679,
+        "observation_count": 9,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 1.037376452592,
+        "coupon_barrier": 0.853344996116,
+        "protection_barrier": 0.558805242035,
+        "coupon_rate_per_observation": 0.008848731171,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 1.006617589592,
+        "coupon_barrier": 0.796096940298,
+        "protection_barrier": 0.617097532462,
+        "coupon_rate_per_observation": 0.01401019453,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 1.03601432498,
+        "coupon_barrier": 0.751922800619,
+        "protection_barrier": 0.536056724261,
+        "coupon_rate_per_observation": 0.011750804759,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "maturity": 5.0,
+        "autocall_barrier": 0.952086462005,
+        "coupon_barrier": 0.70931016439,
+        "protection_barrier": 0.63883707372,
+        "coupon_rate_per_observation": 0.014113696279,
+        "observation_count": 20,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "maturity": 4.0,
+        "autocall_barrier": 1.044263226871,
+        "coupon_barrier": 0.857874970074,
+        "protection_barrier": 0.562960966461,
+        "coupon_rate_per_observation": 0.029404303081,
+        "observation_count": 16,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.980206052325,
+        "coupon_barrier": 0.736481132108,
+        "protection_barrier": 0.676377129327,
+        "coupon_rate_per_observation": 0.01839521076,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 1.017655297456,
+        "coupon_barrier": 0.866794868786,
+        "protection_barrier": 0.677494239673,
+        "coupon_rate_per_observation": 0.012872423241,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.948412531352,
+        "coupon_barrier": 0.766926983319,
+        "protection_barrier": 0.685332227427,
+        "coupon_rate_per_observation": 0.016726345911,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.958298034867,
+        "coupon_barrier": 0.863525968633,
+        "protection_barrier": 0.51185910395,
+        "coupon_rate_per_observation": 0.029739438176,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.937381419068,
+        "coupon_barrier": 0.684329825925,
+        "protection_barrier": 0.58930887991,
+        "coupon_rate_per_observation": 0.017685580787,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 1.031403717521,
+        "coupon_barrier": 0.825550784712,
+        "protection_barrier": 0.635293441446,
+        "coupon_rate_per_observation": 0.007660866795,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 0.979713289911,
+        "coupon_barrier": 0.874993205135,
+        "protection_barrier": 0.72192238018,
+        "coupon_rate_per_observation": 0.010617108874,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 1.036612604029,
+        "coupon_barrier": 0.820618626376,
+        "protection_barrier": 0.665110340487,
+        "coupon_rate_per_observation": 0.024157335054,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.943672663945,
+        "coupon_barrier": 0.819534888439,
+        "protection_barrier": 0.625565359223,
+        "coupon_rate_per_observation": 0.025289974127,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 1.020880273503,
+        "coupon_barrier": 0.662002278731,
+        "protection_barrier": 0.516845458447,
+        "coupon_rate_per_observation": 0.025261323507,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.962372835731,
+        "coupon_barrier": 0.764760609373,
+        "protection_barrier": 0.576374334056,
+        "coupon_rate_per_observation": 0.023678330907,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 0.901472724852,
+        "coupon_barrier": 0.674178543856,
+        "protection_barrier": 0.558049822701,
+        "coupon_rate_per_observation": 0.024766217101,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.972890110669,
+        "coupon_barrier": 0.704330780898,
+        "protection_barrier": 0.612216041671,
+        "coupon_rate_per_observation": 0.008874648429,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.965030372579,
+        "coupon_barrier": 0.789327237994,
+        "protection_barrier": 0.514900818343,
+        "coupon_rate_per_observation": 0.010395138191,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.982980270608,
+        "coupon_barrier": 0.744488431379,
+        "protection_barrier": 0.564708045693,
+        "coupon_rate_per_observation": 0.005455407312,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.977943263127,
+        "coupon_barrier": 0.850919555937,
+        "protection_barrier": 0.568372936017,
+        "coupon_rate_per_observation": 0.011362368193,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.933962765353,
+        "coupon_barrier": 0.685171282565,
+        "protection_barrier": 0.514945743394,
+        "coupon_rate_per_observation": 0.028437313575,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 0.998333251389,
+        "coupon_barrier": 0.851328204741,
+        "protection_barrier": 0.668201074848,
+        "coupon_rate_per_observation": 0.023727307246,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "maturity": 3.0,
+        "autocall_barrier": 1.003977654356,
+        "coupon_barrier": 0.65701866587,
+        "protection_barrier": 0.57203964663,
+        "coupon_rate_per_observation": 0.011638822475,
+        "observation_count": 12,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.932347322378,
+        "coupon_barrier": 0.8389444314,
+        "protection_barrier": 0.568928265857,
+        "coupon_rate_per_observation": 0.025316607444,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "maturity": 4.0,
+        "autocall_barrier": 1.024458093935,
+        "coupon_barrier": 0.821281414194,
+        "protection_barrier": 0.527418988262,
+        "coupon_rate_per_observation": 0.025445082113,
+        "observation_count": 16,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.919865814579,
+        "coupon_barrier": 0.775560554588,
+        "protection_barrier": 0.507717494582,
+        "coupon_rate_per_observation": 0.010327101328,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "maturity": 3.75,
+        "autocall_barrier": 0.941031387536,
+        "coupon_barrier": 0.73419185059,
+        "protection_barrier": 0.54471825352,
+        "coupon_rate_per_observation": 0.020537167733,
+        "observation_count": 15,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 1.013430877734,
+        "coupon_barrier": 0.751694156154,
+        "protection_barrier": 0.578232088442,
+        "coupon_rate_per_observation": 0.026853154493,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "maturity": 2.0,
+        "autocall_barrier": 0.946934442938,
+        "coupon_barrier": 0.774048574158,
+        "protection_barrier": 0.648928669014,
+        "coupon_rate_per_observation": 0.020390554603,
+        "observation_count": 8,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "maturity": 2.25,
+        "autocall_barrier": 0.944684274792,
+        "coupon_barrier": 0.843015939876,
+        "protection_barrier": 0.504856689571,
+        "coupon_rate_per_observation": 0.005749991104,
+        "observation_count": 9,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "maturity": 4.75,
+        "autocall_barrier": 0.976821221615,
+        "coupon_barrier": 0.6519805505,
+        "protection_barrier": 0.530447455328,
+        "coupon_rate_per_observation": 0.02656095636,
+        "observation_count": 19,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 1.044141375792,
+        "coupon_barrier": 0.714473006205,
+        "protection_barrier": 0.644642866589,
+        "coupon_rate_per_observation": 0.021960132119,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "maturity": 3.25,
+        "autocall_barrier": 1.009804963757,
+        "coupon_barrier": 0.779904219561,
+        "protection_barrier": 0.512252536858,
+        "coupon_rate_per_observation": 0.025693481617,
+        "observation_count": 13,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "maturity": 2.75,
+        "autocall_barrier": 0.924708495877,
+        "coupon_barrier": 0.659198954591,
+        "protection_barrier": 0.595581540066,
+        "coupon_rate_per_observation": 0.027331808988,
+        "observation_count": 11,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.933655253443,
+        "coupon_barrier": 0.844093814614,
+        "protection_barrier": 0.716738645657,
+        "coupon_rate_per_observation": 0.019243162572,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.909821124544,
+        "coupon_barrier": 0.657235144178,
+        "protection_barrier": 0.521593145767,
+        "coupon_rate_per_observation": 0.015386004651,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "maturity": 3.5,
+        "autocall_barrier": 0.967345512245,
+        "coupon_barrier": 0.820436105895,
+        "protection_barrier": 0.586563145131,
+        "coupon_rate_per_observation": 0.029931532281,
+        "observation_count": 14,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "maturity": 4.25,
+        "autocall_barrier": 0.976744197338,
+        "coupon_barrier": 0.869586977473,
+        "protection_barrier": 0.623602975073,
+        "coupon_rate_per_observation": 0.026074481463,
+        "observation_count": 17,
+        "first_autocall_observation": 4
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "maturity": 2.5,
+        "autocall_barrier": 0.926025683252,
+        "coupon_barrier": 0.881577765575,
+        "protection_barrier": 0.607630633604,
+        "coupon_rate_per_observation": 0.005276724456,
+        "observation_count": 10,
+        "first_autocall_observation": 4
+      }
+    }
+  ]
+}

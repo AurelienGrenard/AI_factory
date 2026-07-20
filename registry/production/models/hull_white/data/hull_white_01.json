@@ -1,0 +1,7010 @@
+{
+  "format": "ai_factory.models.v1",
+  "database_id": "hull_white_01",
+  "model_family": "Hull White",
+  "specification": "registry/production/models/hull_white/specifications/hull_white_01.yaml",
+  "generation_script": "registry/production/models/hull_white/generators/hull_white_01.py",
+  "row_count": 1000,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "mean_reversion": 0.488955658209,
+        "volatility": 0.020102523833
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "mean_reversion": 0.426629381347,
+        "volatility": 0.005781595872
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "mean_reversion": 0.273691161405,
+        "volatility": 0.006931239735
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "mean_reversion": 0.38145035116,
+        "volatility": 0.016951241155
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "mean_reversion": 0.38404441854,
+        "volatility": 0.017602785893
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "mean_reversion": 0.404370752666,
+        "volatility": 0.003334830014
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "mean_reversion": 0.316396413241,
+        "volatility": 0.015125682778
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "mean_reversion": 0.371212487314,
+        "volatility": 0.018217998729
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "mean_reversion": 0.137328178342,
+        "volatility": 0.022507040864
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "mean_reversion": 0.264215214346,
+        "volatility": 0.027879351741
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "mean_reversion": 0.266889791582,
+        "volatility": 0.023752698097
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "mean_reversion": 0.334188103434,
+        "volatility": 0.003337154331
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "mean_reversion": 0.49218592288,
+        "volatility": 0.018938733754
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "mean_reversion": 0.08076702198,
+        "volatility": 0.007201339055
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "mean_reversion": 0.385311544035,
+        "volatility": 0.013202768456
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "mean_reversion": 0.24066055065,
+        "volatility": 0.024716174683
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "mean_reversion": 0.446817980465,
+        "volatility": 0.028996202171
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "mean_reversion": 0.080924146678,
+        "volatility": 0.027183254556
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "mean_reversion": 0.482607885022,
+        "volatility": 0.023289345914
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "mean_reversion": 0.479495051038,
+        "volatility": 0.00812538181
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "mean_reversion": 0.386123773586,
+        "volatility": 0.002270238901
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "mean_reversion": 0.162980832513,
+        "volatility": 0.01105526692
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "mean_reversion": 0.11720391402,
+        "volatility": 0.007909748713
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "mean_reversion": 0.486255540755,
+        "volatility": 0.020920275679
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "mean_reversion": 0.427257239092,
+        "volatility": 0.004685263438
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "mean_reversion": 0.288986629304,
+        "volatility": 0.028706544901
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "mean_reversion": 0.43590757316,
+        "volatility": 0.019610676019
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "mean_reversion": 0.11738918582,
+        "volatility": 0.011353032492
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "mean_reversion": 0.464974314291,
+        "volatility": 0.018890913504
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "mean_reversion": 0.081233563069,
+        "volatility": 0.012357664006
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "mean_reversion": 0.441186920796,
+        "volatility": 0.025597777368
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "mean_reversion": 0.268831085395,
+        "volatility": 0.02485937943
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "mean_reversion": 0.28214429142,
+        "volatility": 0.017118736911
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "mean_reversion": 0.304285456557,
+        "volatility": 0.027480995837
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "mean_reversion": 0.488316972721,
+        "volatility": 0.024960438112
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "mean_reversion": 0.30922293542,
+        "volatility": 0.022203904865
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "mean_reversion": 0.464716354068,
+        "volatility": 0.026204105941
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "mean_reversion": 0.136706748288,
+        "volatility": 0.008904392411
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "mean_reversion": 0.259673497099,
+        "volatility": 0.029270834651
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "mean_reversion": 0.135779448058,
+        "volatility": 0.017774938982
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "mean_reversion": 0.265724514816,
+        "volatility": 0.028345516065
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "mean_reversion": 0.074830173608,
+        "volatility": 0.009080323723
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "mean_reversion": 0.23887884995,
+        "volatility": 0.01841707632
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "mean_reversion": 0.179024721216,
+        "volatility": 0.007042214809
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "mean_reversion": 0.49689430153,
+        "volatility": 0.022672981015
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "mean_reversion": 0.327172489259,
+        "volatility": 0.0150908505
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "mean_reversion": 0.478977258075,
+        "volatility": 0.014988333101
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "mean_reversion": 0.417833079118,
+        "volatility": 0.006581934637
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "mean_reversion": 0.251476704124,
+        "volatility": 0.015165866135
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "mean_reversion": 0.024369402919,
+        "volatility": 0.005746693903
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "mean_reversion": 0.409399332758,
+        "volatility": 0.00561666884
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "mean_reversion": 0.483354224321,
+        "volatility": 0.025107583548
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "mean_reversion": 0.050634443741,
+        "volatility": 0.014650570623
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "mean_reversion": 0.141039198022,
+        "volatility": 0.008474477073
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "mean_reversion": 0.124545896146,
+        "volatility": 0.003153415602
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "mean_reversion": 0.116294172537,
+        "volatility": 0.019148021814
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "mean_reversion": 0.39900841983,
+        "volatility": 0.009428565282
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "mean_reversion": 0.064342596661,
+        "volatility": 0.018549737849
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "mean_reversion": 0.04689868426,
+        "volatility": 0.029476216782
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "mean_reversion": 0.371361028384,
+        "volatility": 0.020197847322
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "mean_reversion": 0.090717951264,
+        "volatility": 0.015856239764
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "mean_reversion": 0.403956255596,
+        "volatility": 0.018548531871
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "mean_reversion": 0.127636066694,
+        "volatility": 0.016326382699
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "mean_reversion": 0.292218043525,
+        "volatility": 0.01481975108
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "mean_reversion": 0.484583356213,
+        "volatility": 0.00648368979
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "mean_reversion": 0.217219826523,
+        "volatility": 0.028784612227
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "mean_reversion": 0.033336543869,
+        "volatility": 0.010200751635
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "mean_reversion": 0.095569900852,
+        "volatility": 0.010861231062
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "mean_reversion": 0.401726406831,
+        "volatility": 0.023007887562
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "mean_reversion": 0.274441027027,
+        "volatility": 0.019507002619
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "mean_reversion": 0.332777586151,
+        "volatility": 0.027472533599
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "mean_reversion": 0.420333393682,
+        "volatility": 0.010649331766
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "mean_reversion": 0.423764210586,
+        "volatility": 0.008480479504
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "mean_reversion": 0.065954149645,
+        "volatility": 0.0218301742
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "mean_reversion": 0.056689369101,
+        "volatility": 0.013206714321
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "mean_reversion": 0.069967636559,
+        "volatility": 0.02601149679
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "mean_reversion": 0.183909103964,
+        "volatility": 0.027952682122
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "mean_reversion": 0.240157410484,
+        "volatility": 0.020461015622
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "mean_reversion": 0.328025864456,
+        "volatility": 0.017947043084
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "mean_reversion": 0.166958217453,
+        "volatility": 0.021308693842
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "mean_reversion": 0.280859987158,
+        "volatility": 0.028012012475
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "mean_reversion": 0.334504157174,
+        "volatility": 0.021950679679
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "mean_reversion": 0.433333524894,
+        "volatility": 0.028401024698
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "mean_reversion": 0.331234589089,
+        "volatility": 0.00387765231
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "mean_reversion": 0.081543017793,
+        "volatility": 0.013539384255
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "mean_reversion": 0.440769100022,
+        "volatility": 0.010547417359
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "mean_reversion": 0.206663136985,
+        "volatility": 0.012205342351
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "mean_reversion": 0.065045589227,
+        "volatility": 0.014723670079
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "mean_reversion": 0.217787004542,
+        "volatility": 0.00475972993
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "mean_reversion": 0.254300256725,
+        "volatility": 0.011765730183
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "mean_reversion": 0.194382788073,
+        "volatility": 0.009940827892
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "mean_reversion": 0.049149974827,
+        "volatility": 0.026890907518
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "mean_reversion": 0.490926828478,
+        "volatility": 0.027199506825
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "mean_reversion": 0.420647378433,
+        "volatility": 0.011306142468
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "mean_reversion": 0.248358807694,
+        "volatility": 0.008852392912
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "mean_reversion": 0.404716928396,
+        "volatility": 0.016175638841
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "mean_reversion": 0.315668694843,
+        "volatility": 0.027675813119
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "mean_reversion": 0.053932650443,
+        "volatility": 0.005164919568
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "mean_reversion": 0.022071539033,
+        "volatility": 0.005543929887
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "mean_reversion": 0.19956668159,
+        "volatility": 0.022975246661
+      }
+    },
+    {
+      "id": "000101",
+      "parameters": {
+        "mean_reversion": 0.383847246114,
+        "volatility": 0.015088368775
+      }
+    },
+    {
+      "id": "000102",
+      "parameters": {
+        "mean_reversion": 0.437832710352,
+        "volatility": 0.027954872769
+      }
+    },
+    {
+      "id": "000103",
+      "parameters": {
+        "mean_reversion": 0.487353963684,
+        "volatility": 0.002076655245
+      }
+    },
+    {
+      "id": "000104",
+      "parameters": {
+        "mean_reversion": 0.075118622389,
+        "volatility": 0.015476979796
+      }
+    },
+    {
+      "id": "000105",
+      "parameters": {
+        "mean_reversion": 0.310854283776,
+        "volatility": 0.024898406316
+      }
+    },
+    {
+      "id": "000106",
+      "parameters": {
+        "mean_reversion": 0.387331894841,
+        "volatility": 0.005256198496
+      }
+    },
+    {
+      "id": "000107",
+      "parameters": {
+        "mean_reversion": 0.38705947293,
+        "volatility": 0.014540856159
+      }
+    },
+    {
+      "id": "000108",
+      "parameters": {
+        "mean_reversion": 0.055653377715,
+        "volatility": 0.005748584866
+      }
+    },
+    {
+      "id": "000109",
+      "parameters": {
+        "mean_reversion": 0.338645549696,
+        "volatility": 0.028330918781
+      }
+    },
+    {
+      "id": "000110",
+      "parameters": {
+        "mean_reversion": 0.291521903779,
+        "volatility": 0.026173149055
+      }
+    },
+    {
+      "id": "000111",
+      "parameters": {
+        "mean_reversion": 0.058655115943,
+        "volatility": 0.007834415186
+      }
+    },
+    {
+      "id": "000112",
+      "parameters": {
+        "mean_reversion": 0.271861148644,
+        "volatility": 0.002672237408
+      }
+    },
+    {
+      "id": "000113",
+      "parameters": {
+        "mean_reversion": 0.121808547284,
+        "volatility": 0.017215362889
+      }
+    },
+    {
+      "id": "000114",
+      "parameters": {
+        "mean_reversion": 0.140637418088,
+        "volatility": 0.022125561937
+      }
+    },
+    {
+      "id": "000115",
+      "parameters": {
+        "mean_reversion": 0.192575919535,
+        "volatility": 0.010258439173
+      }
+    },
+    {
+      "id": "000116",
+      "parameters": {
+        "mean_reversion": 0.487855345551,
+        "volatility": 0.027144006648
+      }
+    },
+    {
+      "id": "000117",
+      "parameters": {
+        "mean_reversion": 0.134627000857,
+        "volatility": 0.017167358789
+      }
+    },
+    {
+      "id": "000118",
+      "parameters": {
+        "mean_reversion": 0.106849367153,
+        "volatility": 0.029323197918
+      }
+    },
+    {
+      "id": "000119",
+      "parameters": {
+        "mean_reversion": 0.494825640004,
+        "volatility": 0.024494313009
+      }
+    },
+    {
+      "id": "000120",
+      "parameters": {
+        "mean_reversion": 0.417164351996,
+        "volatility": 0.018787448042
+      }
+    },
+    {
+      "id": "000121",
+      "parameters": {
+        "mean_reversion": 0.055099506024,
+        "volatility": 0.01686518425
+      }
+    },
+    {
+      "id": "000122",
+      "parameters": {
+        "mean_reversion": 0.137901071366,
+        "volatility": 0.008871034385
+      }
+    },
+    {
+      "id": "000123",
+      "parameters": {
+        "mean_reversion": 0.324619885702,
+        "volatility": 0.009563268929
+      }
+    },
+    {
+      "id": "000124",
+      "parameters": {
+        "mean_reversion": 0.287597828191,
+        "volatility": 0.029241510833
+      }
+    },
+    {
+      "id": "000125",
+      "parameters": {
+        "mean_reversion": 0.389082543161,
+        "volatility": 0.008667415661
+      }
+    },
+    {
+      "id": "000126",
+      "parameters": {
+        "mean_reversion": 0.147200955767,
+        "volatility": 0.007962768632
+      }
+    },
+    {
+      "id": "000127",
+      "parameters": {
+        "mean_reversion": 0.202680617291,
+        "volatility": 0.024847831392
+      }
+    },
+    {
+      "id": "000128",
+      "parameters": {
+        "mean_reversion": 0.065248209331,
+        "volatility": 0.029795034127
+      }
+    },
+    {
+      "id": "000129",
+      "parameters": {
+        "mean_reversion": 0.425631917547,
+        "volatility": 0.009730406087
+      }
+    },
+    {
+      "id": "000130",
+      "parameters": {
+        "mean_reversion": 0.219141578991,
+        "volatility": 0.009276030532
+      }
+    },
+    {
+      "id": "000131",
+      "parameters": {
+        "mean_reversion": 0.035594681334,
+        "volatility": 0.018114046604
+      }
+    },
+    {
+      "id": "000132",
+      "parameters": {
+        "mean_reversion": 0.151878457498,
+        "volatility": 0.002924071475
+      }
+    },
+    {
+      "id": "000133",
+      "parameters": {
+        "mean_reversion": 0.432263835799,
+        "volatility": 0.007476130814
+      }
+    },
+    {
+      "id": "000134",
+      "parameters": {
+        "mean_reversion": 0.21224000955,
+        "volatility": 0.025992999289
+      }
+    },
+    {
+      "id": "000135",
+      "parameters": {
+        "mean_reversion": 0.058521771599,
+        "volatility": 0.015278275993
+      }
+    },
+    {
+      "id": "000136",
+      "parameters": {
+        "mean_reversion": 0.423014216777,
+        "volatility": 0.014451140672
+      }
+    },
+    {
+      "id": "000137",
+      "parameters": {
+        "mean_reversion": 0.344507557396,
+        "volatility": 0.024804665468
+      }
+    },
+    {
+      "id": "000138",
+      "parameters": {
+        "mean_reversion": 0.049106918108,
+        "volatility": 0.010409644145
+      }
+    },
+    {
+      "id": "000139",
+      "parameters": {
+        "mean_reversion": 0.043806516584,
+        "volatility": 0.023912502407
+      }
+    },
+    {
+      "id": "000140",
+      "parameters": {
+        "mean_reversion": 0.349591710847,
+        "volatility": 0.002674022961
+      }
+    },
+    {
+      "id": "000141",
+      "parameters": {
+        "mean_reversion": 0.051773586515,
+        "volatility": 0.002237996561
+      }
+    },
+    {
+      "id": "000142",
+      "parameters": {
+        "mean_reversion": 0.413745996412,
+        "volatility": 0.02775626755
+      }
+    },
+    {
+      "id": "000143",
+      "parameters": {
+        "mean_reversion": 0.146911077704,
+        "volatility": 0.022914962489
+      }
+    },
+    {
+      "id": "000144",
+      "parameters": {
+        "mean_reversion": 0.287540978324,
+        "volatility": 0.01016723285
+      }
+    },
+    {
+      "id": "000145",
+      "parameters": {
+        "mean_reversion": 0.418150691669,
+        "volatility": 0.00696392792
+      }
+    },
+    {
+      "id": "000146",
+      "parameters": {
+        "mean_reversion": 0.160918291789,
+        "volatility": 0.015510444106
+      }
+    },
+    {
+      "id": "000147",
+      "parameters": {
+        "mean_reversion": 0.455940522011,
+        "volatility": 0.010639573154
+      }
+    },
+    {
+      "id": "000148",
+      "parameters": {
+        "mean_reversion": 0.427061213981,
+        "volatility": 0.017516907166
+      }
+    },
+    {
+      "id": "000149",
+      "parameters": {
+        "mean_reversion": 0.44764916731,
+        "volatility": 0.007424629145
+      }
+    },
+    {
+      "id": "000150",
+      "parameters": {
+        "mean_reversion": 0.041787626352,
+        "volatility": 0.029490035849
+      }
+    },
+    {
+      "id": "000151",
+      "parameters": {
+        "mean_reversion": 0.390222871918,
+        "volatility": 0.004180964558
+      }
+    },
+    {
+      "id": "000152",
+      "parameters": {
+        "mean_reversion": 0.433464982528,
+        "volatility": 0.024794535506
+      }
+    },
+    {
+      "id": "000153",
+      "parameters": {
+        "mean_reversion": 0.324159740899,
+        "volatility": 0.016249157087
+      }
+    },
+    {
+      "id": "000154",
+      "parameters": {
+        "mean_reversion": 0.499169286061,
+        "volatility": 0.002569340901
+      }
+    },
+    {
+      "id": "000155",
+      "parameters": {
+        "mean_reversion": 0.222158469129,
+        "volatility": 0.007629481664
+      }
+    },
+    {
+      "id": "000156",
+      "parameters": {
+        "mean_reversion": 0.069805417228,
+        "volatility": 0.005808051738
+      }
+    },
+    {
+      "id": "000157",
+      "parameters": {
+        "mean_reversion": 0.273204699103,
+        "volatility": 0.006940553636
+      }
+    },
+    {
+      "id": "000158",
+      "parameters": {
+        "mean_reversion": 0.491631908584,
+        "volatility": 0.021755974
+      }
+    },
+    {
+      "id": "000159",
+      "parameters": {
+        "mean_reversion": 0.115763373096,
+        "volatility": 0.025428663662
+      }
+    },
+    {
+      "id": "000160",
+      "parameters": {
+        "mean_reversion": 0.054208181147,
+        "volatility": 0.004713612457
+      }
+    },
+    {
+      "id": "000161",
+      "parameters": {
+        "mean_reversion": 0.303499785569,
+        "volatility": 0.025782329042
+      }
+    },
+    {
+      "id": "000162",
+      "parameters": {
+        "mean_reversion": 0.093099456932,
+        "volatility": 0.008659771629
+      }
+    },
+    {
+      "id": "000163",
+      "parameters": {
+        "mean_reversion": 0.130334911663,
+        "volatility": 0.017720630309
+      }
+    },
+    {
+      "id": "000164",
+      "parameters": {
+        "mean_reversion": 0.079883730654,
+        "volatility": 0.022377403358
+      }
+    },
+    {
+      "id": "000165",
+      "parameters": {
+        "mean_reversion": 0.246356717814,
+        "volatility": 0.002183374801
+      }
+    },
+    {
+      "id": "000166",
+      "parameters": {
+        "mean_reversion": 0.023882233296,
+        "volatility": 0.018581318927
+      }
+    },
+    {
+      "id": "000167",
+      "parameters": {
+        "mean_reversion": 0.351532251853,
+        "volatility": 0.021886048967
+      }
+    },
+    {
+      "id": "000168",
+      "parameters": {
+        "mean_reversion": 0.090690064225,
+        "volatility": 0.010312632044
+      }
+    },
+    {
+      "id": "000169",
+      "parameters": {
+        "mean_reversion": 0.483020890672,
+        "volatility": 0.026014429348
+      }
+    },
+    {
+      "id": "000170",
+      "parameters": {
+        "mean_reversion": 0.345328721609,
+        "volatility": 0.00278542311
+      }
+    },
+    {
+      "id": "000171",
+      "parameters": {
+        "mean_reversion": 0.241404403541,
+        "volatility": 0.011255540169
+      }
+    },
+    {
+      "id": "000172",
+      "parameters": {
+        "mean_reversion": 0.373624392692,
+        "volatility": 0.007354255521
+      }
+    },
+    {
+      "id": "000173",
+      "parameters": {
+        "mean_reversion": 0.46868599603,
+        "volatility": 0.028780385779
+      }
+    },
+    {
+      "id": "000174",
+      "parameters": {
+        "mean_reversion": 0.232021784391,
+        "volatility": 0.026961600259
+      }
+    },
+    {
+      "id": "000175",
+      "parameters": {
+        "mean_reversion": 0.19304259954,
+        "volatility": 0.027545080802
+      }
+    },
+    {
+      "id": "000176",
+      "parameters": {
+        "mean_reversion": 0.433967903089,
+        "volatility": 0.020299715722
+      }
+    },
+    {
+      "id": "000177",
+      "parameters": {
+        "mean_reversion": 0.119972721394,
+        "volatility": 0.027419443069
+      }
+    },
+    {
+      "id": "000178",
+      "parameters": {
+        "mean_reversion": 0.228656723183,
+        "volatility": 0.027883238229
+      }
+    },
+    {
+      "id": "000179",
+      "parameters": {
+        "mean_reversion": 0.348008083459,
+        "volatility": 0.003461281421
+      }
+    },
+    {
+      "id": "000180",
+      "parameters": {
+        "mean_reversion": 0.19351619551,
+        "volatility": 0.019896127462
+      }
+    },
+    {
+      "id": "000181",
+      "parameters": {
+        "mean_reversion": 0.173091792557,
+        "volatility": 0.027799508315
+      }
+    },
+    {
+      "id": "000182",
+      "parameters": {
+        "mean_reversion": 0.473055649567,
+        "volatility": 0.02994603766
+      }
+    },
+    {
+      "id": "000183",
+      "parameters": {
+        "mean_reversion": 0.049800114352,
+        "volatility": 0.014573312474
+      }
+    },
+    {
+      "id": "000184",
+      "parameters": {
+        "mean_reversion": 0.300898205768,
+        "volatility": 0.010953903006
+      }
+    },
+    {
+      "id": "000185",
+      "parameters": {
+        "mean_reversion": 0.33171500871,
+        "volatility": 0.014206670029
+      }
+    },
+    {
+      "id": "000186",
+      "parameters": {
+        "mean_reversion": 0.147803291176,
+        "volatility": 0.005347040504
+      }
+    },
+    {
+      "id": "000187",
+      "parameters": {
+        "mean_reversion": 0.302754492108,
+        "volatility": 0.008272362798
+      }
+    },
+    {
+      "id": "000188",
+      "parameters": {
+        "mean_reversion": 0.138027887661,
+        "volatility": 0.016602276277
+      }
+    },
+    {
+      "id": "000189",
+      "parameters": {
+        "mean_reversion": 0.450835897271,
+        "volatility": 0.022797324062
+      }
+    },
+    {
+      "id": "000190",
+      "parameters": {
+        "mean_reversion": 0.411472879369,
+        "volatility": 0.01608743004
+      }
+    },
+    {
+      "id": "000191",
+      "parameters": {
+        "mean_reversion": 0.026169058103,
+        "volatility": 0.016288697326
+      }
+    },
+    {
+      "id": "000192",
+      "parameters": {
+        "mean_reversion": 0.0664017036,
+        "volatility": 0.029872689762
+      }
+    },
+    {
+      "id": "000193",
+      "parameters": {
+        "mean_reversion": 0.029075334612,
+        "volatility": 0.010430725659
+      }
+    },
+    {
+      "id": "000194",
+      "parameters": {
+        "mean_reversion": 0.437413244601,
+        "volatility": 0.022234863987
+      }
+    },
+    {
+      "id": "000195",
+      "parameters": {
+        "mean_reversion": 0.394637775663,
+        "volatility": 0.016417294411
+      }
+    },
+    {
+      "id": "000196",
+      "parameters": {
+        "mean_reversion": 0.361068292912,
+        "volatility": 0.017355279974
+      }
+    },
+    {
+      "id": "000197",
+      "parameters": {
+        "mean_reversion": 0.269427901376,
+        "volatility": 0.021715377674
+      }
+    },
+    {
+      "id": "000198",
+      "parameters": {
+        "mean_reversion": 0.41631857438,
+        "volatility": 0.025624957387
+      }
+    },
+    {
+      "id": "000199",
+      "parameters": {
+        "mean_reversion": 0.282465902586,
+        "volatility": 0.005007802868
+      }
+    },
+    {
+      "id": "000200",
+      "parameters": {
+        "mean_reversion": 0.33780089939,
+        "volatility": 0.024956669994
+      }
+    },
+    {
+      "id": "000201",
+      "parameters": {
+        "mean_reversion": 0.231970714461,
+        "volatility": 0.020747919679
+      }
+    },
+    {
+      "id": "000202",
+      "parameters": {
+        "mean_reversion": 0.209341307264,
+        "volatility": 0.002680108825
+      }
+    },
+    {
+      "id": "000203",
+      "parameters": {
+        "mean_reversion": 0.036803096402,
+        "volatility": 0.017969546383
+      }
+    },
+    {
+      "id": "000204",
+      "parameters": {
+        "mean_reversion": 0.452255437169,
+        "volatility": 0.019949105365
+      }
+    },
+    {
+      "id": "000205",
+      "parameters": {
+        "mean_reversion": 0.336525210831,
+        "volatility": 0.002135483165
+      }
+    },
+    {
+      "id": "000206",
+      "parameters": {
+        "mean_reversion": 0.075393149499,
+        "volatility": 0.004617535381
+      }
+    },
+    {
+      "id": "000207",
+      "parameters": {
+        "mean_reversion": 0.480723389667,
+        "volatility": 0.023796078231
+      }
+    },
+    {
+      "id": "000208",
+      "parameters": {
+        "mean_reversion": 0.389694907572,
+        "volatility": 0.022670219007
+      }
+    },
+    {
+      "id": "000209",
+      "parameters": {
+        "mean_reversion": 0.102781255152,
+        "volatility": 0.008116291989
+      }
+    },
+    {
+      "id": "000210",
+      "parameters": {
+        "mean_reversion": 0.123949897122,
+        "volatility": 0.00471750699
+      }
+    },
+    {
+      "id": "000211",
+      "parameters": {
+        "mean_reversion": 0.167446912583,
+        "volatility": 0.023673379171
+      }
+    },
+    {
+      "id": "000212",
+      "parameters": {
+        "mean_reversion": 0.42475412989,
+        "volatility": 0.027506181413
+      }
+    },
+    {
+      "id": "000213",
+      "parameters": {
+        "mean_reversion": 0.076270947773,
+        "volatility": 0.010513964367
+      }
+    },
+    {
+      "id": "000214",
+      "parameters": {
+        "mean_reversion": 0.131749773566,
+        "volatility": 0.011160492921
+      }
+    },
+    {
+      "id": "000215",
+      "parameters": {
+        "mean_reversion": 0.252550515998,
+        "volatility": 0.014367581341
+      }
+    },
+    {
+      "id": "000216",
+      "parameters": {
+        "mean_reversion": 0.080700619984,
+        "volatility": 0.007641002621
+      }
+    },
+    {
+      "id": "000217",
+      "parameters": {
+        "mean_reversion": 0.086754916254,
+        "volatility": 0.024914216638
+      }
+    },
+    {
+      "id": "000218",
+      "parameters": {
+        "mean_reversion": 0.234263041373,
+        "volatility": 0.015293179512
+      }
+    },
+    {
+      "id": "000219",
+      "parameters": {
+        "mean_reversion": 0.417108866032,
+        "volatility": 0.025413054049
+      }
+    },
+    {
+      "id": "000220",
+      "parameters": {
+        "mean_reversion": 0.487663350794,
+        "volatility": 0.009986685578
+      }
+    },
+    {
+      "id": "000221",
+      "parameters": {
+        "mean_reversion": 0.138550444227,
+        "volatility": 0.00954108583
+      }
+    },
+    {
+      "id": "000222",
+      "parameters": {
+        "mean_reversion": 0.29387022024,
+        "volatility": 0.011037222272
+      }
+    },
+    {
+      "id": "000223",
+      "parameters": {
+        "mean_reversion": 0.341922591869,
+        "volatility": 0.011429393962
+      }
+    },
+    {
+      "id": "000224",
+      "parameters": {
+        "mean_reversion": 0.436559306029,
+        "volatility": 0.012644038192
+      }
+    },
+    {
+      "id": "000225",
+      "parameters": {
+        "mean_reversion": 0.185258907657,
+        "volatility": 0.019268274652
+      }
+    },
+    {
+      "id": "000226",
+      "parameters": {
+        "mean_reversion": 0.179349262249,
+        "volatility": 0.014423807145
+      }
+    },
+    {
+      "id": "000227",
+      "parameters": {
+        "mean_reversion": 0.160049458016,
+        "volatility": 0.005354659456
+      }
+    },
+    {
+      "id": "000228",
+      "parameters": {
+        "mean_reversion": 0.196832957733,
+        "volatility": 0.002973990947
+      }
+    },
+    {
+      "id": "000229",
+      "parameters": {
+        "mean_reversion": 0.090264448617,
+        "volatility": 0.026923367275
+      }
+    },
+    {
+      "id": "000230",
+      "parameters": {
+        "mean_reversion": 0.085354161877,
+        "volatility": 0.021749385227
+      }
+    },
+    {
+      "id": "000231",
+      "parameters": {
+        "mean_reversion": 0.329156361129,
+        "volatility": 0.007876860321
+      }
+    },
+    {
+      "id": "000232",
+      "parameters": {
+        "mean_reversion": 0.344957628939,
+        "volatility": 0.01640547362
+      }
+    },
+    {
+      "id": "000233",
+      "parameters": {
+        "mean_reversion": 0.220935394894,
+        "volatility": 0.012013098904
+      }
+    },
+    {
+      "id": "000234",
+      "parameters": {
+        "mean_reversion": 0.417097493578,
+        "volatility": 0.004299307873
+      }
+    },
+    {
+      "id": "000235",
+      "parameters": {
+        "mean_reversion": 0.380352665056,
+        "volatility": 0.009869152842
+      }
+    },
+    {
+      "id": "000236",
+      "parameters": {
+        "mean_reversion": 0.371042576749,
+        "volatility": 0.018029595933
+      }
+    },
+    {
+      "id": "000237",
+      "parameters": {
+        "mean_reversion": 0.290114833359,
+        "volatility": 0.012214026531
+      }
+    },
+    {
+      "id": "000238",
+      "parameters": {
+        "mean_reversion": 0.283564479407,
+        "volatility": 0.008972081509
+      }
+    },
+    {
+      "id": "000239",
+      "parameters": {
+        "mean_reversion": 0.418273745608,
+        "volatility": 0.005967165079
+      }
+    },
+    {
+      "id": "000240",
+      "parameters": {
+        "mean_reversion": 0.141663803477,
+        "volatility": 0.01131678899
+      }
+    },
+    {
+      "id": "000241",
+      "parameters": {
+        "mean_reversion": 0.49996382108,
+        "volatility": 0.024667386108
+      }
+    },
+    {
+      "id": "000242",
+      "parameters": {
+        "mean_reversion": 0.191524248961,
+        "volatility": 0.013657854083
+      }
+    },
+    {
+      "id": "000243",
+      "parameters": {
+        "mean_reversion": 0.199795201663,
+        "volatility": 0.009843414302
+      }
+    },
+    {
+      "id": "000244",
+      "parameters": {
+        "mean_reversion": 0.108330946099,
+        "volatility": 0.017751964308
+      }
+    },
+    {
+      "id": "000245",
+      "parameters": {
+        "mean_reversion": 0.120369222071,
+        "volatility": 0.017855423987
+      }
+    },
+    {
+      "id": "000246",
+      "parameters": {
+        "mean_reversion": 0.226209673155,
+        "volatility": 0.025340014668
+      }
+    },
+    {
+      "id": "000247",
+      "parameters": {
+        "mean_reversion": 0.473924071174,
+        "volatility": 0.027865922089
+      }
+    },
+    {
+      "id": "000248",
+      "parameters": {
+        "mean_reversion": 0.389516862761,
+        "volatility": 0.020929106992
+      }
+    },
+    {
+      "id": "000249",
+      "parameters": {
+        "mean_reversion": 0.259734240416,
+        "volatility": 0.002838783823
+      }
+    },
+    {
+      "id": "000250",
+      "parameters": {
+        "mean_reversion": 0.147922283243,
+        "volatility": 0.018188296396
+      }
+    },
+    {
+      "id": "000251",
+      "parameters": {
+        "mean_reversion": 0.155229195599,
+        "volatility": 0.01949253853
+      }
+    },
+    {
+      "id": "000252",
+      "parameters": {
+        "mean_reversion": 0.266958495695,
+        "volatility": 0.007576590676
+      }
+    },
+    {
+      "id": "000253",
+      "parameters": {
+        "mean_reversion": 0.130851069931,
+        "volatility": 0.020113677436
+      }
+    },
+    {
+      "id": "000254",
+      "parameters": {
+        "mean_reversion": 0.177793968488,
+        "volatility": 0.007748855172
+      }
+    },
+    {
+      "id": "000255",
+      "parameters": {
+        "mean_reversion": 0.202677648198,
+        "volatility": 0.026103280694
+      }
+    },
+    {
+      "id": "000256",
+      "parameters": {
+        "mean_reversion": 0.27525556216,
+        "volatility": 0.026816782883
+      }
+    },
+    {
+      "id": "000257",
+      "parameters": {
+        "mean_reversion": 0.03402773248,
+        "volatility": 0.018171028609
+      }
+    },
+    {
+      "id": "000258",
+      "parameters": {
+        "mean_reversion": 0.36477847496,
+        "volatility": 0.025620006486
+      }
+    },
+    {
+      "id": "000259",
+      "parameters": {
+        "mean_reversion": 0.042221182864,
+        "volatility": 0.02272828581
+      }
+    },
+    {
+      "id": "000260",
+      "parameters": {
+        "mean_reversion": 0.024400593434,
+        "volatility": 0.027721090937
+      }
+    },
+    {
+      "id": "000261",
+      "parameters": {
+        "mean_reversion": 0.22284972636,
+        "volatility": 0.022988144191
+      }
+    },
+    {
+      "id": "000262",
+      "parameters": {
+        "mean_reversion": 0.458672045339,
+        "volatility": 0.011693889153
+      }
+    },
+    {
+      "id": "000263",
+      "parameters": {
+        "mean_reversion": 0.128385900799,
+        "volatility": 0.016340058101
+      }
+    },
+    {
+      "id": "000264",
+      "parameters": {
+        "mean_reversion": 0.218784731869,
+        "volatility": 0.004326689826
+      }
+    },
+    {
+      "id": "000265",
+      "parameters": {
+        "mean_reversion": 0.173298577126,
+        "volatility": 0.009555454927
+      }
+    },
+    {
+      "id": "000266",
+      "parameters": {
+        "mean_reversion": 0.111073876973,
+        "volatility": 0.013241304429
+      }
+    },
+    {
+      "id": "000267",
+      "parameters": {
+        "mean_reversion": 0.457509468887,
+        "volatility": 0.018183398119
+      }
+    },
+    {
+      "id": "000268",
+      "parameters": {
+        "mean_reversion": 0.280052926,
+        "volatility": 0.023867353742
+      }
+    },
+    {
+      "id": "000269",
+      "parameters": {
+        "mean_reversion": 0.056995976772,
+        "volatility": 0.003968980694
+      }
+    },
+    {
+      "id": "000270",
+      "parameters": {
+        "mean_reversion": 0.47435107192,
+        "volatility": 0.018789862462
+      }
+    },
+    {
+      "id": "000271",
+      "parameters": {
+        "mean_reversion": 0.197626558226,
+        "volatility": 0.006671762307
+      }
+    },
+    {
+      "id": "000272",
+      "parameters": {
+        "mean_reversion": 0.494150386844,
+        "volatility": 0.010966102304
+      }
+    },
+    {
+      "id": "000273",
+      "parameters": {
+        "mean_reversion": 0.384988690224,
+        "volatility": 0.013138972144
+      }
+    },
+    {
+      "id": "000274",
+      "parameters": {
+        "mean_reversion": 0.380510286409,
+        "volatility": 0.009111376917
+      }
+    },
+    {
+      "id": "000275",
+      "parameters": {
+        "mean_reversion": 0.3753358992,
+        "volatility": 0.017561903339
+      }
+    },
+    {
+      "id": "000276",
+      "parameters": {
+        "mean_reversion": 0.373672205079,
+        "volatility": 0.018476324171
+      }
+    },
+    {
+      "id": "000277",
+      "parameters": {
+        "mean_reversion": 0.468330341931,
+        "volatility": 0.00717777212
+      }
+    },
+    {
+      "id": "000278",
+      "parameters": {
+        "mean_reversion": 0.033316686582,
+        "volatility": 0.00852467167
+      }
+    },
+    {
+      "id": "000279",
+      "parameters": {
+        "mean_reversion": 0.360227110703,
+        "volatility": 0.018148547547
+      }
+    },
+    {
+      "id": "000280",
+      "parameters": {
+        "mean_reversion": 0.376779306624,
+        "volatility": 0.020241405549
+      }
+    },
+    {
+      "id": "000281",
+      "parameters": {
+        "mean_reversion": 0.383301236983,
+        "volatility": 0.023608680953
+      }
+    },
+    {
+      "id": "000282",
+      "parameters": {
+        "mean_reversion": 0.051491880026,
+        "volatility": 0.003642475958
+      }
+    },
+    {
+      "id": "000283",
+      "parameters": {
+        "mean_reversion": 0.152922109049,
+        "volatility": 0.024788680208
+      }
+    },
+    {
+      "id": "000284",
+      "parameters": {
+        "mean_reversion": 0.462287422027,
+        "volatility": 0.029476831881
+      }
+    },
+    {
+      "id": "000285",
+      "parameters": {
+        "mean_reversion": 0.02459249923,
+        "volatility": 0.019054908379
+      }
+    },
+    {
+      "id": "000286",
+      "parameters": {
+        "mean_reversion": 0.110777110551,
+        "volatility": 0.022769362267
+      }
+    },
+    {
+      "id": "000287",
+      "parameters": {
+        "mean_reversion": 0.332718021665,
+        "volatility": 0.0289247551
+      }
+    },
+    {
+      "id": "000288",
+      "parameters": {
+        "mean_reversion": 0.126166329812,
+        "volatility": 0.003019235256
+      }
+    },
+    {
+      "id": "000289",
+      "parameters": {
+        "mean_reversion": 0.111663845833,
+        "volatility": 0.029317676387
+      }
+    },
+    {
+      "id": "000290",
+      "parameters": {
+        "mean_reversion": 0.160269638877,
+        "volatility": 0.027444985953
+      }
+    },
+    {
+      "id": "000291",
+      "parameters": {
+        "mean_reversion": 0.2352793031,
+        "volatility": 0.019053301421
+      }
+    },
+    {
+      "id": "000292",
+      "parameters": {
+        "mean_reversion": 0.372731353659,
+        "volatility": 0.002578388934
+      }
+    },
+    {
+      "id": "000293",
+      "parameters": {
+        "mean_reversion": 0.239225307312,
+        "volatility": 0.013018081859
+      }
+    },
+    {
+      "id": "000294",
+      "parameters": {
+        "mean_reversion": 0.036619263273,
+        "volatility": 0.009051696253
+      }
+    },
+    {
+      "id": "000295",
+      "parameters": {
+        "mean_reversion": 0.233005803954,
+        "volatility": 0.023370482813
+      }
+    },
+    {
+      "id": "000296",
+      "parameters": {
+        "mean_reversion": 0.427835428249,
+        "volatility": 0.010045114298
+      }
+    },
+    {
+      "id": "000297",
+      "parameters": {
+        "mean_reversion": 0.460690462384,
+        "volatility": 0.026392806484
+      }
+    },
+    {
+      "id": "000298",
+      "parameters": {
+        "mean_reversion": 0.129668064658,
+        "volatility": 0.019757713913
+      }
+    },
+    {
+      "id": "000299",
+      "parameters": {
+        "mean_reversion": 0.061616463568,
+        "volatility": 0.021811878913
+      }
+    },
+    {
+      "id": "000300",
+      "parameters": {
+        "mean_reversion": 0.214675574694,
+        "volatility": 0.025337310108
+      }
+    },
+    {
+      "id": "000301",
+      "parameters": {
+        "mean_reversion": 0.270081730504,
+        "volatility": 0.029840587058
+      }
+    },
+    {
+      "id": "000302",
+      "parameters": {
+        "mean_reversion": 0.219968297165,
+        "volatility": 0.014824225064
+      }
+    },
+    {
+      "id": "000303",
+      "parameters": {
+        "mean_reversion": 0.100010445062,
+        "volatility": 0.029101715228
+      }
+    },
+    {
+      "id": "000304",
+      "parameters": {
+        "mean_reversion": 0.215793002639,
+        "volatility": 0.023593604582
+      }
+    },
+    {
+      "id": "000305",
+      "parameters": {
+        "mean_reversion": 0.113716941159,
+        "volatility": 0.022355480215
+      }
+    },
+    {
+      "id": "000306",
+      "parameters": {
+        "mean_reversion": 0.418163958434,
+        "volatility": 0.004651906298
+      }
+    },
+    {
+      "id": "000307",
+      "parameters": {
+        "mean_reversion": 0.223232341018,
+        "volatility": 0.014936048071
+      }
+    },
+    {
+      "id": "000308",
+      "parameters": {
+        "mean_reversion": 0.341618289668,
+        "volatility": 0.022763065015
+      }
+    },
+    {
+      "id": "000309",
+      "parameters": {
+        "mean_reversion": 0.43808536673,
+        "volatility": 0.00527207197
+      }
+    },
+    {
+      "id": "000310",
+      "parameters": {
+        "mean_reversion": 0.039950480368,
+        "volatility": 0.002148753955
+      }
+    },
+    {
+      "id": "000311",
+      "parameters": {
+        "mean_reversion": 0.16761030918,
+        "volatility": 0.022247417124
+      }
+    },
+    {
+      "id": "000312",
+      "parameters": {
+        "mean_reversion": 0.477715204414,
+        "volatility": 0.006694316045
+      }
+    },
+    {
+      "id": "000313",
+      "parameters": {
+        "mean_reversion": 0.275115617458,
+        "volatility": 0.002167116587
+      }
+    },
+    {
+      "id": "000314",
+      "parameters": {
+        "mean_reversion": 0.146953470912,
+        "volatility": 0.024039025722
+      }
+    },
+    {
+      "id": "000315",
+      "parameters": {
+        "mean_reversion": 0.080508874897,
+        "volatility": 0.020544776737
+      }
+    },
+    {
+      "id": "000316",
+      "parameters": {
+        "mean_reversion": 0.325438850392,
+        "volatility": 0.002960917878
+      }
+    },
+    {
+      "id": "000317",
+      "parameters": {
+        "mean_reversion": 0.254807966817,
+        "volatility": 0.027609321238
+      }
+    },
+    {
+      "id": "000318",
+      "parameters": {
+        "mean_reversion": 0.268406190742,
+        "volatility": 0.025579626672
+      }
+    },
+    {
+      "id": "000319",
+      "parameters": {
+        "mean_reversion": 0.072752576303,
+        "volatility": 0.015244916481
+      }
+    },
+    {
+      "id": "000320",
+      "parameters": {
+        "mean_reversion": 0.174197971318,
+        "volatility": 0.026079706287
+      }
+    },
+    {
+      "id": "000321",
+      "parameters": {
+        "mean_reversion": 0.189292258676,
+        "volatility": 0.009065488036
+      }
+    },
+    {
+      "id": "000322",
+      "parameters": {
+        "mean_reversion": 0.495192131009,
+        "volatility": 0.003848824314
+      }
+    },
+    {
+      "id": "000323",
+      "parameters": {
+        "mean_reversion": 0.155192151833,
+        "volatility": 0.00220005738
+      }
+    },
+    {
+      "id": "000324",
+      "parameters": {
+        "mean_reversion": 0.287625320051,
+        "volatility": 0.008474589178
+      }
+    },
+    {
+      "id": "000325",
+      "parameters": {
+        "mean_reversion": 0.346088206526,
+        "volatility": 0.008858481078
+      }
+    },
+    {
+      "id": "000326",
+      "parameters": {
+        "mean_reversion": 0.344918637555,
+        "volatility": 0.010439673093
+      }
+    },
+    {
+      "id": "000327",
+      "parameters": {
+        "mean_reversion": 0.189161947016,
+        "volatility": 0.019091902405
+      }
+    },
+    {
+      "id": "000328",
+      "parameters": {
+        "mean_reversion": 0.237845365983,
+        "volatility": 0.020618320213
+      }
+    },
+    {
+      "id": "000329",
+      "parameters": {
+        "mean_reversion": 0.087635048497,
+        "volatility": 0.027332519045
+      }
+    },
+    {
+      "id": "000330",
+      "parameters": {
+        "mean_reversion": 0.469225071985,
+        "volatility": 0.01332654303
+      }
+    },
+    {
+      "id": "000331",
+      "parameters": {
+        "mean_reversion": 0.096027857307,
+        "volatility": 0.005834329296
+      }
+    },
+    {
+      "id": "000332",
+      "parameters": {
+        "mean_reversion": 0.137309295479,
+        "volatility": 0.010253009733
+      }
+    },
+    {
+      "id": "000333",
+      "parameters": {
+        "mean_reversion": 0.226918265056,
+        "volatility": 0.00481868034
+      }
+    },
+    {
+      "id": "000334",
+      "parameters": {
+        "mean_reversion": 0.441346874107,
+        "volatility": 0.007744847608
+      }
+    },
+    {
+      "id": "000335",
+      "parameters": {
+        "mean_reversion": 0.457424510475,
+        "volatility": 0.022779114614
+      }
+    },
+    {
+      "id": "000336",
+      "parameters": {
+        "mean_reversion": 0.416899671275,
+        "volatility": 0.021510648623
+      }
+    },
+    {
+      "id": "000337",
+      "parameters": {
+        "mean_reversion": 0.483828339744,
+        "volatility": 0.010858113103
+      }
+    },
+    {
+      "id": "000338",
+      "parameters": {
+        "mean_reversion": 0.190431131218,
+        "volatility": 0.012956763237
+      }
+    },
+    {
+      "id": "000339",
+      "parameters": {
+        "mean_reversion": 0.034180601966,
+        "volatility": 0.021911454842
+      }
+    },
+    {
+      "id": "000340",
+      "parameters": {
+        "mean_reversion": 0.409612983223,
+        "volatility": 0.003346246538
+      }
+    },
+    {
+      "id": "000341",
+      "parameters": {
+        "mean_reversion": 0.140673674736,
+        "volatility": 0.021301443729
+      }
+    },
+    {
+      "id": "000342",
+      "parameters": {
+        "mean_reversion": 0.477350811567,
+        "volatility": 0.029522407707
+      }
+    },
+    {
+      "id": "000343",
+      "parameters": {
+        "mean_reversion": 0.261269510929,
+        "volatility": 0.007945466039
+      }
+    },
+    {
+      "id": "000344",
+      "parameters": {
+        "mean_reversion": 0.382793423738,
+        "volatility": 0.013065266515
+      }
+    },
+    {
+      "id": "000345",
+      "parameters": {
+        "mean_reversion": 0.17623572005,
+        "volatility": 0.01321360828
+      }
+    },
+    {
+      "id": "000346",
+      "parameters": {
+        "mean_reversion": 0.091045288276,
+        "volatility": 0.017239284844
+      }
+    },
+    {
+      "id": "000347",
+      "parameters": {
+        "mean_reversion": 0.42516325539,
+        "volatility": 0.020225841342
+      }
+    },
+    {
+      "id": "000348",
+      "parameters": {
+        "mean_reversion": 0.159042102452,
+        "volatility": 0.020587054002
+      }
+    },
+    {
+      "id": "000349",
+      "parameters": {
+        "mean_reversion": 0.227143174093,
+        "volatility": 0.020666180244
+      }
+    },
+    {
+      "id": "000350",
+      "parameters": {
+        "mean_reversion": 0.456588610765,
+        "volatility": 0.027788939366
+      }
+    },
+    {
+      "id": "000351",
+      "parameters": {
+        "mean_reversion": 0.478792912643,
+        "volatility": 0.013013869382
+      }
+    },
+    {
+      "id": "000352",
+      "parameters": {
+        "mean_reversion": 0.250583311822,
+        "volatility": 0.018163395875
+      }
+    },
+    {
+      "id": "000353",
+      "parameters": {
+        "mean_reversion": 0.12351550689,
+        "volatility": 0.019750095658
+      }
+    },
+    {
+      "id": "000354",
+      "parameters": {
+        "mean_reversion": 0.2092927357,
+        "volatility": 0.005105419949
+      }
+    },
+    {
+      "id": "000355",
+      "parameters": {
+        "mean_reversion": 0.192990460973,
+        "volatility": 0.019495318491
+      }
+    },
+    {
+      "id": "000356",
+      "parameters": {
+        "mean_reversion": 0.313765300196,
+        "volatility": 0.025029061661
+      }
+    },
+    {
+      "id": "000357",
+      "parameters": {
+        "mean_reversion": 0.387439921256,
+        "volatility": 0.013970081911
+      }
+    },
+    {
+      "id": "000358",
+      "parameters": {
+        "mean_reversion": 0.423588670064,
+        "volatility": 0.014406948911
+      }
+    },
+    {
+      "id": "000359",
+      "parameters": {
+        "mean_reversion": 0.054948634338,
+        "volatility": 0.017860961413
+      }
+    },
+    {
+      "id": "000360",
+      "parameters": {
+        "mean_reversion": 0.178423544522,
+        "volatility": 0.019739640587
+      }
+    },
+    {
+      "id": "000361",
+      "parameters": {
+        "mean_reversion": 0.077059700284,
+        "volatility": 0.025447262316
+      }
+    },
+    {
+      "id": "000362",
+      "parameters": {
+        "mean_reversion": 0.047564581428,
+        "volatility": 0.027598877876
+      }
+    },
+    {
+      "id": "000363",
+      "parameters": {
+        "mean_reversion": 0.18584279025,
+        "volatility": 0.017680155926
+      }
+    },
+    {
+      "id": "000364",
+      "parameters": {
+        "mean_reversion": 0.372429262828,
+        "volatility": 0.004530658236
+      }
+    },
+    {
+      "id": "000365",
+      "parameters": {
+        "mean_reversion": 0.141611777227,
+        "volatility": 0.028001314229
+      }
+    },
+    {
+      "id": "000366",
+      "parameters": {
+        "mean_reversion": 0.491347460207,
+        "volatility": 0.013163780542
+      }
+    },
+    {
+      "id": "000367",
+      "parameters": {
+        "mean_reversion": 0.426533258017,
+        "volatility": 0.004460564693
+      }
+    },
+    {
+      "id": "000368",
+      "parameters": {
+        "mean_reversion": 0.3676633651,
+        "volatility": 0.005813868755
+      }
+    },
+    {
+      "id": "000369",
+      "parameters": {
+        "mean_reversion": 0.049767893534,
+        "volatility": 0.002799535217
+      }
+    },
+    {
+      "id": "000370",
+      "parameters": {
+        "mean_reversion": 0.403908537198,
+        "volatility": 0.018610740965
+      }
+    },
+    {
+      "id": "000371",
+      "parameters": {
+        "mean_reversion": 0.037789395172,
+        "volatility": 0.027378708268
+      }
+    },
+    {
+      "id": "000372",
+      "parameters": {
+        "mean_reversion": 0.149290495496,
+        "volatility": 0.029854294652
+      }
+    },
+    {
+      "id": "000373",
+      "parameters": {
+        "mean_reversion": 0.236914277691,
+        "volatility": 0.010782934363
+      }
+    },
+    {
+      "id": "000374",
+      "parameters": {
+        "mean_reversion": 0.262090420444,
+        "volatility": 0.023939596189
+      }
+    },
+    {
+      "id": "000375",
+      "parameters": {
+        "mean_reversion": 0.315086347591,
+        "volatility": 0.019349795953
+      }
+    },
+    {
+      "id": "000376",
+      "parameters": {
+        "mean_reversion": 0.094467577767,
+        "volatility": 0.026283986579
+      }
+    },
+    {
+      "id": "000377",
+      "parameters": {
+        "mean_reversion": 0.02393758459,
+        "volatility": 0.026562491166
+      }
+    },
+    {
+      "id": "000378",
+      "parameters": {
+        "mean_reversion": 0.3316376899,
+        "volatility": 0.003521650135
+      }
+    },
+    {
+      "id": "000379",
+      "parameters": {
+        "mean_reversion": 0.285558719691,
+        "volatility": 0.009256227151
+      }
+    },
+    {
+      "id": "000380",
+      "parameters": {
+        "mean_reversion": 0.036817236226,
+        "volatility": 0.020960595061
+      }
+    },
+    {
+      "id": "000381",
+      "parameters": {
+        "mean_reversion": 0.288703144286,
+        "volatility": 0.015374256284
+      }
+    },
+    {
+      "id": "000382",
+      "parameters": {
+        "mean_reversion": 0.06382790288,
+        "volatility": 0.026415752369
+      }
+    },
+    {
+      "id": "000383",
+      "parameters": {
+        "mean_reversion": 0.37520943528,
+        "volatility": 0.022472469272
+      }
+    },
+    {
+      "id": "000384",
+      "parameters": {
+        "mean_reversion": 0.144486649204,
+        "volatility": 0.019138947828
+      }
+    },
+    {
+      "id": "000385",
+      "parameters": {
+        "mean_reversion": 0.26290790936,
+        "volatility": 0.007819085907
+      }
+    },
+    {
+      "id": "000386",
+      "parameters": {
+        "mean_reversion": 0.104847752359,
+        "volatility": 0.02272781632
+      }
+    },
+    {
+      "id": "000387",
+      "parameters": {
+        "mean_reversion": 0.270243960004,
+        "volatility": 0.009926550332
+      }
+    },
+    {
+      "id": "000388",
+      "parameters": {
+        "mean_reversion": 0.273674918506,
+        "volatility": 0.010012701042
+      }
+    },
+    {
+      "id": "000389",
+      "parameters": {
+        "mean_reversion": 0.228432711344,
+        "volatility": 0.002027049285
+      }
+    },
+    {
+      "id": "000390",
+      "parameters": {
+        "mean_reversion": 0.398301515821,
+        "volatility": 0.015745129989
+      }
+    },
+    {
+      "id": "000391",
+      "parameters": {
+        "mean_reversion": 0.427098032665,
+        "volatility": 0.007584097243
+      }
+    },
+    {
+      "id": "000392",
+      "parameters": {
+        "mean_reversion": 0.295696533006,
+        "volatility": 0.0173317248
+      }
+    },
+    {
+      "id": "000393",
+      "parameters": {
+        "mean_reversion": 0.179529407229,
+        "volatility": 0.002587136233
+      }
+    },
+    {
+      "id": "000394",
+      "parameters": {
+        "mean_reversion": 0.499193967972,
+        "volatility": 0.016919065722
+      }
+    },
+    {
+      "id": "000395",
+      "parameters": {
+        "mean_reversion": 0.406042084377,
+        "volatility": 0.020455489794
+      }
+    },
+    {
+      "id": "000396",
+      "parameters": {
+        "mean_reversion": 0.033000929113,
+        "volatility": 0.026452318769
+      }
+    },
+    {
+      "id": "000397",
+      "parameters": {
+        "mean_reversion": 0.309240686279,
+        "volatility": 0.002935737935
+      }
+    },
+    {
+      "id": "000398",
+      "parameters": {
+        "mean_reversion": 0.405920024533,
+        "volatility": 0.023583833831
+      }
+    },
+    {
+      "id": "000399",
+      "parameters": {
+        "mean_reversion": 0.417117999624,
+        "volatility": 0.01152635374
+      }
+    },
+    {
+      "id": "000400",
+      "parameters": {
+        "mean_reversion": 0.474601734858,
+        "volatility": 0.023829608528
+      }
+    },
+    {
+      "id": "000401",
+      "parameters": {
+        "mean_reversion": 0.102339776177,
+        "volatility": 0.009584005268
+      }
+    },
+    {
+      "id": "000402",
+      "parameters": {
+        "mean_reversion": 0.36713192014,
+        "volatility": 0.004601856272
+      }
+    },
+    {
+      "id": "000403",
+      "parameters": {
+        "mean_reversion": 0.239310520981,
+        "volatility": 0.016348583973
+      }
+    },
+    {
+      "id": "000404",
+      "parameters": {
+        "mean_reversion": 0.376258829441,
+        "volatility": 0.015320273347
+      }
+    },
+    {
+      "id": "000405",
+      "parameters": {
+        "mean_reversion": 0.466627552602,
+        "volatility": 0.011133631733
+      }
+    },
+    {
+      "id": "000406",
+      "parameters": {
+        "mean_reversion": 0.225958828833,
+        "volatility": 0.023156950821
+      }
+    },
+    {
+      "id": "000407",
+      "parameters": {
+        "mean_reversion": 0.263904742282,
+        "volatility": 0.028750048457
+      }
+    },
+    {
+      "id": "000408",
+      "parameters": {
+        "mean_reversion": 0.279741655421,
+        "volatility": 0.029540155761
+      }
+    },
+    {
+      "id": "000409",
+      "parameters": {
+        "mean_reversion": 0.386083456073,
+        "volatility": 0.018525469422
+      }
+    },
+    {
+      "id": "000410",
+      "parameters": {
+        "mean_reversion": 0.16987823179,
+        "volatility": 0.016633202523
+      }
+    },
+    {
+      "id": "000411",
+      "parameters": {
+        "mean_reversion": 0.051772581246,
+        "volatility": 0.015904958218
+      }
+    },
+    {
+      "id": "000412",
+      "parameters": {
+        "mean_reversion": 0.320640457813,
+        "volatility": 0.002337474988
+      }
+    },
+    {
+      "id": "000413",
+      "parameters": {
+        "mean_reversion": 0.445072054509,
+        "volatility": 0.024863369001
+      }
+    },
+    {
+      "id": "000414",
+      "parameters": {
+        "mean_reversion": 0.292769094761,
+        "volatility": 0.017717033387
+      }
+    },
+    {
+      "id": "000415",
+      "parameters": {
+        "mean_reversion": 0.137683434468,
+        "volatility": 0.024450227602
+      }
+    },
+    {
+      "id": "000416",
+      "parameters": {
+        "mean_reversion": 0.131440395731,
+        "volatility": 0.015444854536
+      }
+    },
+    {
+      "id": "000417",
+      "parameters": {
+        "mean_reversion": 0.370237303842,
+        "volatility": 0.02842464629
+      }
+    },
+    {
+      "id": "000418",
+      "parameters": {
+        "mean_reversion": 0.331619544309,
+        "volatility": 0.021139483768
+      }
+    },
+    {
+      "id": "000419",
+      "parameters": {
+        "mean_reversion": 0.237261961494,
+        "volatility": 0.004127507027
+      }
+    },
+    {
+      "id": "000420",
+      "parameters": {
+        "mean_reversion": 0.229756415579,
+        "volatility": 0.004479899222
+      }
+    },
+    {
+      "id": "000421",
+      "parameters": {
+        "mean_reversion": 0.461503909994,
+        "volatility": 0.022988076254
+      }
+    },
+    {
+      "id": "000422",
+      "parameters": {
+        "mean_reversion": 0.302533421759,
+        "volatility": 0.005786987951
+      }
+    },
+    {
+      "id": "000423",
+      "parameters": {
+        "mean_reversion": 0.366725754235,
+        "volatility": 0.025148074328
+      }
+    },
+    {
+      "id": "000424",
+      "parameters": {
+        "mean_reversion": 0.416804538015,
+        "volatility": 0.024899351713
+      }
+    },
+    {
+      "id": "000425",
+      "parameters": {
+        "mean_reversion": 0.098973160852,
+        "volatility": 0.015901045933
+      }
+    },
+    {
+      "id": "000426",
+      "parameters": {
+        "mean_reversion": 0.43305248091,
+        "volatility": 0.012022297825
+      }
+    },
+    {
+      "id": "000427",
+      "parameters": {
+        "mean_reversion": 0.352387013305,
+        "volatility": 0.009415230453
+      }
+    },
+    {
+      "id": "000428",
+      "parameters": {
+        "mean_reversion": 0.148292375561,
+        "volatility": 0.008492189955
+      }
+    },
+    {
+      "id": "000429",
+      "parameters": {
+        "mean_reversion": 0.398901269268,
+        "volatility": 0.025250237796
+      }
+    },
+    {
+      "id": "000430",
+      "parameters": {
+        "mean_reversion": 0.132511098143,
+        "volatility": 0.014987166199
+      }
+    },
+    {
+      "id": "000431",
+      "parameters": {
+        "mean_reversion": 0.163277194928,
+        "volatility": 0.013688465115
+      }
+    },
+    {
+      "id": "000432",
+      "parameters": {
+        "mean_reversion": 0.335942664649,
+        "volatility": 0.022964713574
+      }
+    },
+    {
+      "id": "000433",
+      "parameters": {
+        "mean_reversion": 0.125246828999,
+        "volatility": 0.028833279544
+      }
+    },
+    {
+      "id": "000434",
+      "parameters": {
+        "mean_reversion": 0.309932752643,
+        "volatility": 0.011814008007
+      }
+    },
+    {
+      "id": "000435",
+      "parameters": {
+        "mean_reversion": 0.16120489521,
+        "volatility": 0.017445829267
+      }
+    },
+    {
+      "id": "000436",
+      "parameters": {
+        "mean_reversion": 0.47396225689,
+        "volatility": 0.028976372896
+      }
+    },
+    {
+      "id": "000437",
+      "parameters": {
+        "mean_reversion": 0.451086220127,
+        "volatility": 0.008023733565
+      }
+    },
+    {
+      "id": "000438",
+      "parameters": {
+        "mean_reversion": 0.04374893168,
+        "volatility": 0.022643908234
+      }
+    },
+    {
+      "id": "000439",
+      "parameters": {
+        "mean_reversion": 0.04220988797,
+        "volatility": 0.012213460314
+      }
+    },
+    {
+      "id": "000440",
+      "parameters": {
+        "mean_reversion": 0.179238615986,
+        "volatility": 0.012960498798
+      }
+    },
+    {
+      "id": "000441",
+      "parameters": {
+        "mean_reversion": 0.076208916325,
+        "volatility": 0.028597119324
+      }
+    },
+    {
+      "id": "000442",
+      "parameters": {
+        "mean_reversion": 0.305176215824,
+        "volatility": 0.010669310593
+      }
+    },
+    {
+      "id": "000443",
+      "parameters": {
+        "mean_reversion": 0.409622470196,
+        "volatility": 0.005086679234
+      }
+    },
+    {
+      "id": "000444",
+      "parameters": {
+        "mean_reversion": 0.460642509069,
+        "volatility": 0.002631745247
+      }
+    },
+    {
+      "id": "000445",
+      "parameters": {
+        "mean_reversion": 0.259548886586,
+        "volatility": 0.022027723723
+      }
+    },
+    {
+      "id": "000446",
+      "parameters": {
+        "mean_reversion": 0.229676431213,
+        "volatility": 0.014347013975
+      }
+    },
+    {
+      "id": "000447",
+      "parameters": {
+        "mean_reversion": 0.127961364668,
+        "volatility": 0.02026942088
+      }
+    },
+    {
+      "id": "000448",
+      "parameters": {
+        "mean_reversion": 0.318290438373,
+        "volatility": 0.004700100897
+      }
+    },
+    {
+      "id": "000449",
+      "parameters": {
+        "mean_reversion": 0.335731894877,
+        "volatility": 0.004944634289
+      }
+    },
+    {
+      "id": "000450",
+      "parameters": {
+        "mean_reversion": 0.434801463243,
+        "volatility": 0.022399175183
+      }
+    },
+    {
+      "id": "000451",
+      "parameters": {
+        "mean_reversion": 0.360776566472,
+        "volatility": 0.011847574396
+      }
+    },
+    {
+      "id": "000452",
+      "parameters": {
+        "mean_reversion": 0.150784077328,
+        "volatility": 0.014079750414
+      }
+    },
+    {
+      "id": "000453",
+      "parameters": {
+        "mean_reversion": 0.342325300965,
+        "volatility": 0.023234128926
+      }
+    },
+    {
+      "id": "000454",
+      "parameters": {
+        "mean_reversion": 0.362003916036,
+        "volatility": 0.009796652356
+      }
+    },
+    {
+      "id": "000455",
+      "parameters": {
+        "mean_reversion": 0.471406871099,
+        "volatility": 0.025156903971
+      }
+    },
+    {
+      "id": "000456",
+      "parameters": {
+        "mean_reversion": 0.185939394925,
+        "volatility": 0.028210959192
+      }
+    },
+    {
+      "id": "000457",
+      "parameters": {
+        "mean_reversion": 0.102892913502,
+        "volatility": 0.027869115515
+      }
+    },
+    {
+      "id": "000458",
+      "parameters": {
+        "mean_reversion": 0.347800981719,
+        "volatility": 0.022598422627
+      }
+    },
+    {
+      "id": "000459",
+      "parameters": {
+        "mean_reversion": 0.316401826385,
+        "volatility": 0.002457523291
+      }
+    },
+    {
+      "id": "000460",
+      "parameters": {
+        "mean_reversion": 0.465815519188,
+        "volatility": 0.019097963639
+      }
+    },
+    {
+      "id": "000461",
+      "parameters": {
+        "mean_reversion": 0.488627645727,
+        "volatility": 0.023856193515
+      }
+    },
+    {
+      "id": "000462",
+      "parameters": {
+        "mean_reversion": 0.31990085287,
+        "volatility": 0.005871654943
+      }
+    },
+    {
+      "id": "000463",
+      "parameters": {
+        "mean_reversion": 0.156948883738,
+        "volatility": 0.01389523532
+      }
+    },
+    {
+      "id": "000464",
+      "parameters": {
+        "mean_reversion": 0.290317424294,
+        "volatility": 0.022753158605
+      }
+    },
+    {
+      "id": "000465",
+      "parameters": {
+        "mean_reversion": 0.484700175133,
+        "volatility": 0.003460222381
+      }
+    },
+    {
+      "id": "000466",
+      "parameters": {
+        "mean_reversion": 0.051502580587,
+        "volatility": 0.012496016997
+      }
+    },
+    {
+      "id": "000467",
+      "parameters": {
+        "mean_reversion": 0.464831235763,
+        "volatility": 0.010705591828
+      }
+    },
+    {
+      "id": "000468",
+      "parameters": {
+        "mean_reversion": 0.113133001011,
+        "volatility": 0.013436998049
+      }
+    },
+    {
+      "id": "000469",
+      "parameters": {
+        "mean_reversion": 0.289565678556,
+        "volatility": 0.024663724214
+      }
+    },
+    {
+      "id": "000470",
+      "parameters": {
+        "mean_reversion": 0.114582442064,
+        "volatility": 0.002750821854
+      }
+    },
+    {
+      "id": "000471",
+      "parameters": {
+        "mean_reversion": 0.1481606392,
+        "volatility": 0.022160979912
+      }
+    },
+    {
+      "id": "000472",
+      "parameters": {
+        "mean_reversion": 0.266684553195,
+        "volatility": 0.004690460362
+      }
+    },
+    {
+      "id": "000473",
+      "parameters": {
+        "mean_reversion": 0.255060106535,
+        "volatility": 0.027489141285
+      }
+    },
+    {
+      "id": "000474",
+      "parameters": {
+        "mean_reversion": 0.176134658102,
+        "volatility": 0.017260216206
+      }
+    },
+    {
+      "id": "000475",
+      "parameters": {
+        "mean_reversion": 0.371894460972,
+        "volatility": 0.02065577221
+      }
+    },
+    {
+      "id": "000476",
+      "parameters": {
+        "mean_reversion": 0.483450270761,
+        "volatility": 0.002944017823
+      }
+    },
+    {
+      "id": "000477",
+      "parameters": {
+        "mean_reversion": 0.060546368565,
+        "volatility": 0.007358686869
+      }
+    },
+    {
+      "id": "000478",
+      "parameters": {
+        "mean_reversion": 0.063770967964,
+        "volatility": 0.0192945217
+      }
+    },
+    {
+      "id": "000479",
+      "parameters": {
+        "mean_reversion": 0.0909317117,
+        "volatility": 0.026359360063
+      }
+    },
+    {
+      "id": "000480",
+      "parameters": {
+        "mean_reversion": 0.058965038266,
+        "volatility": 0.028508098126
+      }
+    },
+    {
+      "id": "000481",
+      "parameters": {
+        "mean_reversion": 0.421794429813,
+        "volatility": 0.025926338285
+      }
+    },
+    {
+      "id": "000482",
+      "parameters": {
+        "mean_reversion": 0.105908986237,
+        "volatility": 0.015695969073
+      }
+    },
+    {
+      "id": "000483",
+      "parameters": {
+        "mean_reversion": 0.384526406359,
+        "volatility": 0.02576673806
+      }
+    },
+    {
+      "id": "000484",
+      "parameters": {
+        "mean_reversion": 0.244888112824,
+        "volatility": 0.020755587057
+      }
+    },
+    {
+      "id": "000485",
+      "parameters": {
+        "mean_reversion": 0.492825499196,
+        "volatility": 0.006369009346
+      }
+    },
+    {
+      "id": "000486",
+      "parameters": {
+        "mean_reversion": 0.262747064549,
+        "volatility": 0.017147021077
+      }
+    },
+    {
+      "id": "000487",
+      "parameters": {
+        "mean_reversion": 0.230550014284,
+        "volatility": 0.023616984656
+      }
+    },
+    {
+      "id": "000488",
+      "parameters": {
+        "mean_reversion": 0.476111904029,
+        "volatility": 0.028925501555
+      }
+    },
+    {
+      "id": "000489",
+      "parameters": {
+        "mean_reversion": 0.093196265232,
+        "volatility": 0.016907830961
+      }
+    },
+    {
+      "id": "000490",
+      "parameters": {
+        "mean_reversion": 0.031090255287,
+        "volatility": 0.021950499643
+      }
+    },
+    {
+      "id": "000491",
+      "parameters": {
+        "mean_reversion": 0.123106968459,
+        "volatility": 0.02950669788
+      }
+    },
+    {
+      "id": "000492",
+      "parameters": {
+        "mean_reversion": 0.425624723975,
+        "volatility": 0.017720516874
+      }
+    },
+    {
+      "id": "000493",
+      "parameters": {
+        "mean_reversion": 0.285119544398,
+        "volatility": 0.017594317155
+      }
+    },
+    {
+      "id": "000494",
+      "parameters": {
+        "mean_reversion": 0.112527124416,
+        "volatility": 0.007543558874
+      }
+    },
+    {
+      "id": "000495",
+      "parameters": {
+        "mean_reversion": 0.252451298181,
+        "volatility": 0.026407108152
+      }
+    },
+    {
+      "id": "000496",
+      "parameters": {
+        "mean_reversion": 0.383644760679,
+        "volatility": 0.009172361617
+      }
+    },
+    {
+      "id": "000497",
+      "parameters": {
+        "mean_reversion": 0.044757826049,
+        "volatility": 0.007316508444
+      }
+    },
+    {
+      "id": "000498",
+      "parameters": {
+        "mean_reversion": 0.348637806345,
+        "volatility": 0.023139338419
+      }
+    },
+    {
+      "id": "000499",
+      "parameters": {
+        "mean_reversion": 0.169437816758,
+        "volatility": 0.015767296379
+      }
+    },
+    {
+      "id": "000500",
+      "parameters": {
+        "mean_reversion": 0.367642923202,
+        "volatility": 0.018502115184
+      }
+    },
+    {
+      "id": "000501",
+      "parameters": {
+        "mean_reversion": 0.359598321114,
+        "volatility": 0.009861706082
+      }
+    },
+    {
+      "id": "000502",
+      "parameters": {
+        "mean_reversion": 0.160409975853,
+        "volatility": 0.006255043569
+      }
+    },
+    {
+      "id": "000503",
+      "parameters": {
+        "mean_reversion": 0.420942665618,
+        "volatility": 0.023135953875
+      }
+    },
+    {
+      "id": "000504",
+      "parameters": {
+        "mean_reversion": 0.482375690881,
+        "volatility": 0.029812995159
+      }
+    },
+    {
+      "id": "000505",
+      "parameters": {
+        "mean_reversion": 0.375838123057,
+        "volatility": 0.011239830374
+      }
+    },
+    {
+      "id": "000506",
+      "parameters": {
+        "mean_reversion": 0.145435080659,
+        "volatility": 0.020484803814
+      }
+    },
+    {
+      "id": "000507",
+      "parameters": {
+        "mean_reversion": 0.10955408169,
+        "volatility": 0.015961623126
+      }
+    },
+    {
+      "id": "000508",
+      "parameters": {
+        "mean_reversion": 0.179740266409,
+        "volatility": 0.016271166748
+      }
+    },
+    {
+      "id": "000509",
+      "parameters": {
+        "mean_reversion": 0.424414255898,
+        "volatility": 0.003212892514
+      }
+    },
+    {
+      "id": "000510",
+      "parameters": {
+        "mean_reversion": 0.294296216723,
+        "volatility": 0.013218735331
+      }
+    },
+    {
+      "id": "000511",
+      "parameters": {
+        "mean_reversion": 0.092284790818,
+        "volatility": 0.002556616541
+      }
+    },
+    {
+      "id": "000512",
+      "parameters": {
+        "mean_reversion": 0.381962471586,
+        "volatility": 0.002772659335
+      }
+    },
+    {
+      "id": "000513",
+      "parameters": {
+        "mean_reversion": 0.465108344611,
+        "volatility": 0.007677920534
+      }
+    },
+    {
+      "id": "000514",
+      "parameters": {
+        "mean_reversion": 0.370426404942,
+        "volatility": 0.027836374986
+      }
+    },
+    {
+      "id": "000515",
+      "parameters": {
+        "mean_reversion": 0.236251664106,
+        "volatility": 0.009338527027
+      }
+    },
+    {
+      "id": "000516",
+      "parameters": {
+        "mean_reversion": 0.249598761294,
+        "volatility": 0.008714870983
+      }
+    },
+    {
+      "id": "000517",
+      "parameters": {
+        "mean_reversion": 0.237198290545,
+        "volatility": 0.026548399568
+      }
+    },
+    {
+      "id": "000518",
+      "parameters": {
+        "mean_reversion": 0.426176177207,
+        "volatility": 0.012137789382
+      }
+    },
+    {
+      "id": "000519",
+      "parameters": {
+        "mean_reversion": 0.07079375783,
+        "volatility": 0.011652295791
+      }
+    },
+    {
+      "id": "000520",
+      "parameters": {
+        "mean_reversion": 0.401774931345,
+        "volatility": 0.028671479892
+      }
+    },
+    {
+      "id": "000521",
+      "parameters": {
+        "mean_reversion": 0.216189994048,
+        "volatility": 0.003232956007
+      }
+    },
+    {
+      "id": "000522",
+      "parameters": {
+        "mean_reversion": 0.070700548161,
+        "volatility": 0.008810778982
+      }
+    },
+    {
+      "id": "000523",
+      "parameters": {
+        "mean_reversion": 0.123900027927,
+        "volatility": 0.012231632224
+      }
+    },
+    {
+      "id": "000524",
+      "parameters": {
+        "mean_reversion": 0.413067170437,
+        "volatility": 0.026372370742
+      }
+    },
+    {
+      "id": "000525",
+      "parameters": {
+        "mean_reversion": 0.314521149937,
+        "volatility": 0.012120287671
+      }
+    },
+    {
+      "id": "000526",
+      "parameters": {
+        "mean_reversion": 0.170523511823,
+        "volatility": 0.017872079857
+      }
+    },
+    {
+      "id": "000527",
+      "parameters": {
+        "mean_reversion": 0.040124008227,
+        "volatility": 0.022448883502
+      }
+    },
+    {
+      "id": "000528",
+      "parameters": {
+        "mean_reversion": 0.335120133851,
+        "volatility": 0.028651098742
+      }
+    },
+    {
+      "id": "000529",
+      "parameters": {
+        "mean_reversion": 0.276395107936,
+        "volatility": 0.029438474685
+      }
+    },
+    {
+      "id": "000530",
+      "parameters": {
+        "mean_reversion": 0.184653234016,
+        "volatility": 0.016024102248
+      }
+    },
+    {
+      "id": "000531",
+      "parameters": {
+        "mean_reversion": 0.075993814338,
+        "volatility": 0.003023533109
+      }
+    },
+    {
+      "id": "000532",
+      "parameters": {
+        "mean_reversion": 0.412518873047,
+        "volatility": 0.028660706805
+      }
+    },
+    {
+      "id": "000533",
+      "parameters": {
+        "mean_reversion": 0.226368547101,
+        "volatility": 0.011841154947
+      }
+    },
+    {
+      "id": "000534",
+      "parameters": {
+        "mean_reversion": 0.355285923127,
+        "volatility": 0.027075895506
+      }
+    },
+    {
+      "id": "000535",
+      "parameters": {
+        "mean_reversion": 0.087205584254,
+        "volatility": 0.009946138662
+      }
+    },
+    {
+      "id": "000536",
+      "parameters": {
+        "mean_reversion": 0.309162885118,
+        "volatility": 0.008994576606
+      }
+    },
+    {
+      "id": "000537",
+      "parameters": {
+        "mean_reversion": 0.465098728109,
+        "volatility": 0.013536725382
+      }
+    },
+    {
+      "id": "000538",
+      "parameters": {
+        "mean_reversion": 0.112806502637,
+        "volatility": 0.017824221547
+      }
+    },
+    {
+      "id": "000539",
+      "parameters": {
+        "mean_reversion": 0.049331350829,
+        "volatility": 0.00224484439
+      }
+    },
+    {
+      "id": "000540",
+      "parameters": {
+        "mean_reversion": 0.479484687094,
+        "volatility": 0.009128897463
+      }
+    },
+    {
+      "id": "000541",
+      "parameters": {
+        "mean_reversion": 0.075015743133,
+        "volatility": 0.008016991042
+      }
+    },
+    {
+      "id": "000542",
+      "parameters": {
+        "mean_reversion": 0.087166111972,
+        "volatility": 0.011266798263
+      }
+    },
+    {
+      "id": "000543",
+      "parameters": {
+        "mean_reversion": 0.461830484252,
+        "volatility": 0.005127770925
+      }
+    },
+    {
+      "id": "000544",
+      "parameters": {
+        "mean_reversion": 0.082233697902,
+        "volatility": 0.01655394789
+      }
+    },
+    {
+      "id": "000545",
+      "parameters": {
+        "mean_reversion": 0.471720556002,
+        "volatility": 0.009233861415
+      }
+    },
+    {
+      "id": "000546",
+      "parameters": {
+        "mean_reversion": 0.340411099028,
+        "volatility": 0.01202643537
+      }
+    },
+    {
+      "id": "000547",
+      "parameters": {
+        "mean_reversion": 0.360439202692,
+        "volatility": 0.02101092018
+      }
+    },
+    {
+      "id": "000548",
+      "parameters": {
+        "mean_reversion": 0.072340598274,
+        "volatility": 0.026765293216
+      }
+    },
+    {
+      "id": "000549",
+      "parameters": {
+        "mean_reversion": 0.475352751594,
+        "volatility": 0.003305565475
+      }
+    },
+    {
+      "id": "000550",
+      "parameters": {
+        "mean_reversion": 0.388237331491,
+        "volatility": 0.022343144032
+      }
+    },
+    {
+      "id": "000551",
+      "parameters": {
+        "mean_reversion": 0.336253093909,
+        "volatility": 0.015144203038
+      }
+    },
+    {
+      "id": "000552",
+      "parameters": {
+        "mean_reversion": 0.482720474098,
+        "volatility": 0.025231405126
+      }
+    },
+    {
+      "id": "000553",
+      "parameters": {
+        "mean_reversion": 0.113236917946,
+        "volatility": 0.017059684918
+      }
+    },
+    {
+      "id": "000554",
+      "parameters": {
+        "mean_reversion": 0.04383831853,
+        "volatility": 0.027475400097
+      }
+    },
+    {
+      "id": "000555",
+      "parameters": {
+        "mean_reversion": 0.208034661319,
+        "volatility": 0.005886945687
+      }
+    },
+    {
+      "id": "000556",
+      "parameters": {
+        "mean_reversion": 0.233049897458,
+        "volatility": 0.012196711668
+      }
+    },
+    {
+      "id": "000557",
+      "parameters": {
+        "mean_reversion": 0.175289243367,
+        "volatility": 0.011655426371
+      }
+    },
+    {
+      "id": "000558",
+      "parameters": {
+        "mean_reversion": 0.400672858823,
+        "volatility": 0.012484273969
+      }
+    },
+    {
+      "id": "000559",
+      "parameters": {
+        "mean_reversion": 0.398635529745,
+        "volatility": 0.025295337162
+      }
+    },
+    {
+      "id": "000560",
+      "parameters": {
+        "mean_reversion": 0.259277755041,
+        "volatility": 0.026043684355
+      }
+    },
+    {
+      "id": "000561",
+      "parameters": {
+        "mean_reversion": 0.435923125055,
+        "volatility": 0.003324812365
+      }
+    },
+    {
+      "id": "000562",
+      "parameters": {
+        "mean_reversion": 0.403935698364,
+        "volatility": 0.005371365485
+      }
+    },
+    {
+      "id": "000563",
+      "parameters": {
+        "mean_reversion": 0.297966565508,
+        "volatility": 0.024874003143
+      }
+    },
+    {
+      "id": "000564",
+      "parameters": {
+        "mean_reversion": 0.467622898016,
+        "volatility": 0.019672725632
+      }
+    },
+    {
+      "id": "000565",
+      "parameters": {
+        "mean_reversion": 0.48515707368,
+        "volatility": 0.024229147847
+      }
+    },
+    {
+      "id": "000566",
+      "parameters": {
+        "mean_reversion": 0.286297953036,
+        "volatility": 0.006647139382
+      }
+    },
+    {
+      "id": "000567",
+      "parameters": {
+        "mean_reversion": 0.239473161753,
+        "volatility": 0.021653877406
+      }
+    },
+    {
+      "id": "000568",
+      "parameters": {
+        "mean_reversion": 0.338521566372,
+        "volatility": 0.028878255162
+      }
+    },
+    {
+      "id": "000569",
+      "parameters": {
+        "mean_reversion": 0.312689461913,
+        "volatility": 0.003048323585
+      }
+    },
+    {
+      "id": "000570",
+      "parameters": {
+        "mean_reversion": 0.262824594583,
+        "volatility": 0.02686811833
+      }
+    },
+    {
+      "id": "000571",
+      "parameters": {
+        "mean_reversion": 0.345079375077,
+        "volatility": 0.017917863029
+      }
+    },
+    {
+      "id": "000572",
+      "parameters": {
+        "mean_reversion": 0.149752258565,
+        "volatility": 0.019782971723
+      }
+    },
+    {
+      "id": "000573",
+      "parameters": {
+        "mean_reversion": 0.219636266846,
+        "volatility": 0.011105831824
+      }
+    },
+    {
+      "id": "000574",
+      "parameters": {
+        "mean_reversion": 0.110032605547,
+        "volatility": 0.010106025805
+      }
+    },
+    {
+      "id": "000575",
+      "parameters": {
+        "mean_reversion": 0.499261283372,
+        "volatility": 0.02329633909
+      }
+    },
+    {
+      "id": "000576",
+      "parameters": {
+        "mean_reversion": 0.086673970539,
+        "volatility": 0.008736941853
+      }
+    },
+    {
+      "id": "000577",
+      "parameters": {
+        "mean_reversion": 0.217981807012,
+        "volatility": 0.006004770956
+      }
+    },
+    {
+      "id": "000578",
+      "parameters": {
+        "mean_reversion": 0.288433739524,
+        "volatility": 0.005156147704
+      }
+    },
+    {
+      "id": "000579",
+      "parameters": {
+        "mean_reversion": 0.222128526065,
+        "volatility": 0.011218173262
+      }
+    },
+    {
+      "id": "000580",
+      "parameters": {
+        "mean_reversion": 0.240847658087,
+        "volatility": 0.010133664643
+      }
+    },
+    {
+      "id": "000581",
+      "parameters": {
+        "mean_reversion": 0.46962312622,
+        "volatility": 0.023858704479
+      }
+    },
+    {
+      "id": "000582",
+      "parameters": {
+        "mean_reversion": 0.335905710291,
+        "volatility": 0.019210783643
+      }
+    },
+    {
+      "id": "000583",
+      "parameters": {
+        "mean_reversion": 0.107628444824,
+        "volatility": 0.026245623836
+      }
+    },
+    {
+      "id": "000584",
+      "parameters": {
+        "mean_reversion": 0.089325447362,
+        "volatility": 0.023871902169
+      }
+    },
+    {
+      "id": "000585",
+      "parameters": {
+        "mean_reversion": 0.243910265025,
+        "volatility": 0.022366274235
+      }
+    },
+    {
+      "id": "000586",
+      "parameters": {
+        "mean_reversion": 0.157300942224,
+        "volatility": 0.003131255686
+      }
+    },
+    {
+      "id": "000587",
+      "parameters": {
+        "mean_reversion": 0.362031312007,
+        "volatility": 0.028496545271
+      }
+    },
+    {
+      "id": "000588",
+      "parameters": {
+        "mean_reversion": 0.42074608082,
+        "volatility": 0.008811235859
+      }
+    },
+    {
+      "id": "000589",
+      "parameters": {
+        "mean_reversion": 0.025468444321,
+        "volatility": 0.029641152778
+      }
+    },
+    {
+      "id": "000590",
+      "parameters": {
+        "mean_reversion": 0.289554409366,
+        "volatility": 0.009730927204
+      }
+    },
+    {
+      "id": "000591",
+      "parameters": {
+        "mean_reversion": 0.061555561107,
+        "volatility": 0.018655665406
+      }
+    },
+    {
+      "id": "000592",
+      "parameters": {
+        "mean_reversion": 0.14291404916,
+        "volatility": 0.013049145107
+      }
+    },
+    {
+      "id": "000593",
+      "parameters": {
+        "mean_reversion": 0.421741083022,
+        "volatility": 0.00541673057
+      }
+    },
+    {
+      "id": "000594",
+      "parameters": {
+        "mean_reversion": 0.199031563681,
+        "volatility": 0.003216531636
+      }
+    },
+    {
+      "id": "000595",
+      "parameters": {
+        "mean_reversion": 0.148116445001,
+        "volatility": 0.012999044224
+      }
+    },
+    {
+      "id": "000596",
+      "parameters": {
+        "mean_reversion": 0.150085657928,
+        "volatility": 0.003065989366
+      }
+    },
+    {
+      "id": "000597",
+      "parameters": {
+        "mean_reversion": 0.141946080271,
+        "volatility": 0.016473588138
+      }
+    },
+    {
+      "id": "000598",
+      "parameters": {
+        "mean_reversion": 0.152773802672,
+        "volatility": 0.01787985683
+      }
+    },
+    {
+      "id": "000599",
+      "parameters": {
+        "mean_reversion": 0.489621093031,
+        "volatility": 0.020419884
+      }
+    },
+    {
+      "id": "000600",
+      "parameters": {
+        "mean_reversion": 0.390849467013,
+        "volatility": 0.003499999549
+      }
+    },
+    {
+      "id": "000601",
+      "parameters": {
+        "mean_reversion": 0.498974216599,
+        "volatility": 0.01401687208
+      }
+    },
+    {
+      "id": "000602",
+      "parameters": {
+        "mean_reversion": 0.271547439266,
+        "volatility": 0.024020554623
+      }
+    },
+    {
+      "id": "000603",
+      "parameters": {
+        "mean_reversion": 0.417627032492,
+        "volatility": 0.025156194376
+      }
+    },
+    {
+      "id": "000604",
+      "parameters": {
+        "mean_reversion": 0.17460114019,
+        "volatility": 0.005249293207
+      }
+    },
+    {
+      "id": "000605",
+      "parameters": {
+        "mean_reversion": 0.478763651531,
+        "volatility": 0.005826436326
+      }
+    },
+    {
+      "id": "000606",
+      "parameters": {
+        "mean_reversion": 0.331157278325,
+        "volatility": 0.027597252077
+      }
+    },
+    {
+      "id": "000607",
+      "parameters": {
+        "mean_reversion": 0.267882868294,
+        "volatility": 0.019752248578
+      }
+    },
+    {
+      "id": "000608",
+      "parameters": {
+        "mean_reversion": 0.178066210803,
+        "volatility": 0.003518594292
+      }
+    },
+    {
+      "id": "000609",
+      "parameters": {
+        "mean_reversion": 0.195352801252,
+        "volatility": 0.002503643235
+      }
+    },
+    {
+      "id": "000610",
+      "parameters": {
+        "mean_reversion": 0.381843582559,
+        "volatility": 0.010949294008
+      }
+    },
+    {
+      "id": "000611",
+      "parameters": {
+        "mean_reversion": 0.374608079772,
+        "volatility": 0.005168588887
+      }
+    },
+    {
+      "id": "000612",
+      "parameters": {
+        "mean_reversion": 0.483096806798,
+        "volatility": 0.026409198963
+      }
+    },
+    {
+      "id": "000613",
+      "parameters": {
+        "mean_reversion": 0.346765634734,
+        "volatility": 0.005133987279
+      }
+    },
+    {
+      "id": "000614",
+      "parameters": {
+        "mean_reversion": 0.474330138955,
+        "volatility": 0.009141105686
+      }
+    },
+    {
+      "id": "000615",
+      "parameters": {
+        "mean_reversion": 0.378699783925,
+        "volatility": 0.014363259542
+      }
+    },
+    {
+      "id": "000616",
+      "parameters": {
+        "mean_reversion": 0.438839096632,
+        "volatility": 0.029479481079
+      }
+    },
+    {
+      "id": "000617",
+      "parameters": {
+        "mean_reversion": 0.408301496785,
+        "volatility": 0.021959455317
+      }
+    },
+    {
+      "id": "000618",
+      "parameters": {
+        "mean_reversion": 0.426590088662,
+        "volatility": 0.011154363038
+      }
+    },
+    {
+      "id": "000619",
+      "parameters": {
+        "mean_reversion": 0.460901025515,
+        "volatility": 0.023207146083
+      }
+    },
+    {
+      "id": "000620",
+      "parameters": {
+        "mean_reversion": 0.457934629861,
+        "volatility": 0.008016405065
+      }
+    },
+    {
+      "id": "000621",
+      "parameters": {
+        "mean_reversion": 0.463836624268,
+        "volatility": 0.016642992329
+      }
+    },
+    {
+      "id": "000622",
+      "parameters": {
+        "mean_reversion": 0.421952100452,
+        "volatility": 0.008657274154
+      }
+    },
+    {
+      "id": "000623",
+      "parameters": {
+        "mean_reversion": 0.152622452434,
+        "volatility": 0.004039729514
+      }
+    },
+    {
+      "id": "000624",
+      "parameters": {
+        "mean_reversion": 0.084770855177,
+        "volatility": 0.014074168574
+      }
+    },
+    {
+      "id": "000625",
+      "parameters": {
+        "mean_reversion": 0.497173521053,
+        "volatility": 0.01507632071
+      }
+    },
+    {
+      "id": "000626",
+      "parameters": {
+        "mean_reversion": 0.376445512641,
+        "volatility": 0.027353150612
+      }
+    },
+    {
+      "id": "000627",
+      "parameters": {
+        "mean_reversion": 0.360292758998,
+        "volatility": 0.005178546101
+      }
+    },
+    {
+      "id": "000628",
+      "parameters": {
+        "mean_reversion": 0.088232580516,
+        "volatility": 0.02250489936
+      }
+    },
+    {
+      "id": "000629",
+      "parameters": {
+        "mean_reversion": 0.396772468928,
+        "volatility": 0.010525109566
+      }
+    },
+    {
+      "id": "000630",
+      "parameters": {
+        "mean_reversion": 0.455704699848,
+        "volatility": 0.015783242973
+      }
+    },
+    {
+      "id": "000631",
+      "parameters": {
+        "mean_reversion": 0.127971719559,
+        "volatility": 0.009911234607
+      }
+    },
+    {
+      "id": "000632",
+      "parameters": {
+        "mean_reversion": 0.336909788977,
+        "volatility": 0.023438696893
+      }
+    },
+    {
+      "id": "000633",
+      "parameters": {
+        "mean_reversion": 0.407107237075,
+        "volatility": 0.02212101939
+      }
+    },
+    {
+      "id": "000634",
+      "parameters": {
+        "mean_reversion": 0.05013629796,
+        "volatility": 0.010412113171
+      }
+    },
+    {
+      "id": "000635",
+      "parameters": {
+        "mean_reversion": 0.440432841759,
+        "volatility": 0.003092278678
+      }
+    },
+    {
+      "id": "000636",
+      "parameters": {
+        "mean_reversion": 0.254892944004,
+        "volatility": 0.003953990384
+      }
+    },
+    {
+      "id": "000637",
+      "parameters": {
+        "mean_reversion": 0.49437037481,
+        "volatility": 0.011168767711
+      }
+    },
+    {
+      "id": "000638",
+      "parameters": {
+        "mean_reversion": 0.026520891283,
+        "volatility": 0.029586008246
+      }
+    },
+    {
+      "id": "000639",
+      "parameters": {
+        "mean_reversion": 0.472482694853,
+        "volatility": 0.017594663908
+      }
+    },
+    {
+      "id": "000640",
+      "parameters": {
+        "mean_reversion": 0.343219220769,
+        "volatility": 0.002564462364
+      }
+    },
+    {
+      "id": "000641",
+      "parameters": {
+        "mean_reversion": 0.16946715476,
+        "volatility": 0.025570247995
+      }
+    },
+    {
+      "id": "000642",
+      "parameters": {
+        "mean_reversion": 0.159637689646,
+        "volatility": 0.005255845087
+      }
+    },
+    {
+      "id": "000643",
+      "parameters": {
+        "mean_reversion": 0.125226581339,
+        "volatility": 0.02110590247
+      }
+    },
+    {
+      "id": "000644",
+      "parameters": {
+        "mean_reversion": 0.270702535603,
+        "volatility": 0.019022188341
+      }
+    },
+    {
+      "id": "000645",
+      "parameters": {
+        "mean_reversion": 0.115025276449,
+        "volatility": 0.027221652015
+      }
+    },
+    {
+      "id": "000646",
+      "parameters": {
+        "mean_reversion": 0.0922775607,
+        "volatility": 0.017614288928
+      }
+    },
+    {
+      "id": "000647",
+      "parameters": {
+        "mean_reversion": 0.220496628415,
+        "volatility": 0.012656812997
+      }
+    },
+    {
+      "id": "000648",
+      "parameters": {
+        "mean_reversion": 0.213025335204,
+        "volatility": 0.018456400067
+      }
+    },
+    {
+      "id": "000649",
+      "parameters": {
+        "mean_reversion": 0.329273770135,
+        "volatility": 0.014743198608
+      }
+    },
+    {
+      "id": "000650",
+      "parameters": {
+        "mean_reversion": 0.306868729945,
+        "volatility": 0.022809781549
+      }
+    },
+    {
+      "id": "000651",
+      "parameters": {
+        "mean_reversion": 0.494938074853,
+        "volatility": 0.01468189174
+      }
+    },
+    {
+      "id": "000652",
+      "parameters": {
+        "mean_reversion": 0.343421700951,
+        "volatility": 0.016009025831
+      }
+    },
+    {
+      "id": "000653",
+      "parameters": {
+        "mean_reversion": 0.127944139969,
+        "volatility": 0.002604621437
+      }
+    },
+    {
+      "id": "000654",
+      "parameters": {
+        "mean_reversion": 0.420043166373,
+        "volatility": 0.013790078821
+      }
+    },
+    {
+      "id": "000655",
+      "parameters": {
+        "mean_reversion": 0.123932057191,
+        "volatility": 0.019021136002
+      }
+    },
+    {
+      "id": "000656",
+      "parameters": {
+        "mean_reversion": 0.020929977354,
+        "volatility": 0.010599391081
+      }
+    },
+    {
+      "id": "000657",
+      "parameters": {
+        "mean_reversion": 0.230719227698,
+        "volatility": 0.0207219332
+      }
+    },
+    {
+      "id": "000658",
+      "parameters": {
+        "mean_reversion": 0.482899406832,
+        "volatility": 0.016573970461
+      }
+    },
+    {
+      "id": "000659",
+      "parameters": {
+        "mean_reversion": 0.44579797091,
+        "volatility": 0.029640218908
+      }
+    },
+    {
+      "id": "000660",
+      "parameters": {
+        "mean_reversion": 0.109730069134,
+        "volatility": 0.005905195463
+      }
+    },
+    {
+      "id": "000661",
+      "parameters": {
+        "mean_reversion": 0.077992363479,
+        "volatility": 0.014062297148
+      }
+    },
+    {
+      "id": "000662",
+      "parameters": {
+        "mean_reversion": 0.125018474441,
+        "volatility": 0.005001664973
+      }
+    },
+    {
+      "id": "000663",
+      "parameters": {
+        "mean_reversion": 0.044586633276,
+        "volatility": 0.009345858226
+      }
+    },
+    {
+      "id": "000664",
+      "parameters": {
+        "mean_reversion": 0.303999323081,
+        "volatility": 0.014270567108
+      }
+    },
+    {
+      "id": "000665",
+      "parameters": {
+        "mean_reversion": 0.393531554993,
+        "volatility": 0.026739384837
+      }
+    },
+    {
+      "id": "000666",
+      "parameters": {
+        "mean_reversion": 0.205597910751,
+        "volatility": 0.0196719764
+      }
+    },
+    {
+      "id": "000667",
+      "parameters": {
+        "mean_reversion": 0.351500313338,
+        "volatility": 0.007117405219
+      }
+    },
+    {
+      "id": "000668",
+      "parameters": {
+        "mean_reversion": 0.476953460518,
+        "volatility": 0.005608814986
+      }
+    },
+    {
+      "id": "000669",
+      "parameters": {
+        "mean_reversion": 0.481572133359,
+        "volatility": 0.011397736967
+      }
+    },
+    {
+      "id": "000670",
+      "parameters": {
+        "mean_reversion": 0.393041476626,
+        "volatility": 0.016438302439
+      }
+    },
+    {
+      "id": "000671",
+      "parameters": {
+        "mean_reversion": 0.367620792631,
+        "volatility": 0.026274575724
+      }
+    },
+    {
+      "id": "000672",
+      "parameters": {
+        "mean_reversion": 0.037314941678,
+        "volatility": 0.016609215395
+      }
+    },
+    {
+      "id": "000673",
+      "parameters": {
+        "mean_reversion": 0.359252390359,
+        "volatility": 0.005844972937
+      }
+    },
+    {
+      "id": "000674",
+      "parameters": {
+        "mean_reversion": 0.332882326413,
+        "volatility": 0.004442448079
+      }
+    },
+    {
+      "id": "000675",
+      "parameters": {
+        "mean_reversion": 0.172093919385,
+        "volatility": 0.01896818754
+      }
+    },
+    {
+      "id": "000676",
+      "parameters": {
+        "mean_reversion": 0.288212103117,
+        "volatility": 0.022344742841
+      }
+    },
+    {
+      "id": "000677",
+      "parameters": {
+        "mean_reversion": 0.443066306207,
+        "volatility": 0.024644750885
+      }
+    },
+    {
+      "id": "000678",
+      "parameters": {
+        "mean_reversion": 0.129427865464,
+        "volatility": 0.012620545621
+      }
+    },
+    {
+      "id": "000679",
+      "parameters": {
+        "mean_reversion": 0.081716363821,
+        "volatility": 0.025792711945
+      }
+    },
+    {
+      "id": "000680",
+      "parameters": {
+        "mean_reversion": 0.395626725461,
+        "volatility": 0.003706259609
+      }
+    },
+    {
+      "id": "000681",
+      "parameters": {
+        "mean_reversion": 0.319609114472,
+        "volatility": 0.018817161138
+      }
+    },
+    {
+      "id": "000682",
+      "parameters": {
+        "mean_reversion": 0.195094353762,
+        "volatility": 0.010463202379
+      }
+    },
+    {
+      "id": "000683",
+      "parameters": {
+        "mean_reversion": 0.231152292583,
+        "volatility": 0.009307953226
+      }
+    },
+    {
+      "id": "000684",
+      "parameters": {
+        "mean_reversion": 0.430386942718,
+        "volatility": 0.016075154701
+      }
+    },
+    {
+      "id": "000685",
+      "parameters": {
+        "mean_reversion": 0.409152466152,
+        "volatility": 0.01183430487
+      }
+    },
+    {
+      "id": "000686",
+      "parameters": {
+        "mean_reversion": 0.235525416676,
+        "volatility": 0.004304845813
+      }
+    },
+    {
+      "id": "000687",
+      "parameters": {
+        "mean_reversion": 0.405116423648,
+        "volatility": 0.010199010999
+      }
+    },
+    {
+      "id": "000688",
+      "parameters": {
+        "mean_reversion": 0.157411199231,
+        "volatility": 0.020949106022
+      }
+    },
+    {
+      "id": "000689",
+      "parameters": {
+        "mean_reversion": 0.051405942943,
+        "volatility": 0.011359221817
+      }
+    },
+    {
+      "id": "000690",
+      "parameters": {
+        "mean_reversion": 0.177299497668,
+        "volatility": 0.003068350198
+      }
+    },
+    {
+      "id": "000691",
+      "parameters": {
+        "mean_reversion": 0.410887174103,
+        "volatility": 0.009075911072
+      }
+    },
+    {
+      "id": "000692",
+      "parameters": {
+        "mean_reversion": 0.205491457451,
+        "volatility": 0.009315120205
+      }
+    },
+    {
+      "id": "000693",
+      "parameters": {
+        "mean_reversion": 0.06259927256,
+        "volatility": 0.017072909722
+      }
+    },
+    {
+      "id": "000694",
+      "parameters": {
+        "mean_reversion": 0.051014631335,
+        "volatility": 0.019922677877
+      }
+    },
+    {
+      "id": "000695",
+      "parameters": {
+        "mean_reversion": 0.244107911196,
+        "volatility": 0.025341785279
+      }
+    },
+    {
+      "id": "000696",
+      "parameters": {
+        "mean_reversion": 0.302111936975,
+        "volatility": 0.009769641798
+      }
+    },
+    {
+      "id": "000697",
+      "parameters": {
+        "mean_reversion": 0.279226959739,
+        "volatility": 0.007269055788
+      }
+    },
+    {
+      "id": "000698",
+      "parameters": {
+        "mean_reversion": 0.131084352713,
+        "volatility": 0.005078712153
+      }
+    },
+    {
+      "id": "000699",
+      "parameters": {
+        "mean_reversion": 0.172129776273,
+        "volatility": 0.00359133833
+      }
+    },
+    {
+      "id": "000700",
+      "parameters": {
+        "mean_reversion": 0.135170564484,
+        "volatility": 0.015775477135
+      }
+    },
+    {
+      "id": "000701",
+      "parameters": {
+        "mean_reversion": 0.217342240755,
+        "volatility": 0.013836788294
+      }
+    },
+    {
+      "id": "000702",
+      "parameters": {
+        "mean_reversion": 0.166139437165,
+        "volatility": 0.02315359176
+      }
+    },
+    {
+      "id": "000703",
+      "parameters": {
+        "mean_reversion": 0.333729663957,
+        "volatility": 0.020503424764
+      }
+    },
+    {
+      "id": "000704",
+      "parameters": {
+        "mean_reversion": 0.421326278057,
+        "volatility": 0.021546615584
+      }
+    },
+    {
+      "id": "000705",
+      "parameters": {
+        "mean_reversion": 0.354510896374,
+        "volatility": 0.015108691558
+      }
+    },
+    {
+      "id": "000706",
+      "parameters": {
+        "mean_reversion": 0.085428089481,
+        "volatility": 0.013841318709
+      }
+    },
+    {
+      "id": "000707",
+      "parameters": {
+        "mean_reversion": 0.38458892988,
+        "volatility": 0.015592773241
+      }
+    },
+    {
+      "id": "000708",
+      "parameters": {
+        "mean_reversion": 0.046620309632,
+        "volatility": 0.010381087956
+      }
+    },
+    {
+      "id": "000709",
+      "parameters": {
+        "mean_reversion": 0.156474679131,
+        "volatility": 0.006834310364
+      }
+    },
+    {
+      "id": "000710",
+      "parameters": {
+        "mean_reversion": 0.330224918332,
+        "volatility": 0.01614929551
+      }
+    },
+    {
+      "id": "000711",
+      "parameters": {
+        "mean_reversion": 0.104296956491,
+        "volatility": 0.028619141254
+      }
+    },
+    {
+      "id": "000712",
+      "parameters": {
+        "mean_reversion": 0.387045657877,
+        "volatility": 0.027747301491
+      }
+    },
+    {
+      "id": "000713",
+      "parameters": {
+        "mean_reversion": 0.237478305567,
+        "volatility": 0.008907406473
+      }
+    },
+    {
+      "id": "000714",
+      "parameters": {
+        "mean_reversion": 0.402926214132,
+        "volatility": 0.014807176859
+      }
+    },
+    {
+      "id": "000715",
+      "parameters": {
+        "mean_reversion": 0.405134988222,
+        "volatility": 0.018351850237
+      }
+    },
+    {
+      "id": "000716",
+      "parameters": {
+        "mean_reversion": 0.034376561027,
+        "volatility": 0.028271063928
+      }
+    },
+    {
+      "id": "000717",
+      "parameters": {
+        "mean_reversion": 0.232157587651,
+        "volatility": 0.003652828461
+      }
+    },
+    {
+      "id": "000718",
+      "parameters": {
+        "mean_reversion": 0.092842548583,
+        "volatility": 0.028077894453
+      }
+    },
+    {
+      "id": "000719",
+      "parameters": {
+        "mean_reversion": 0.448005591761,
+        "volatility": 0.007845328482
+      }
+    },
+    {
+      "id": "000720",
+      "parameters": {
+        "mean_reversion": 0.249735438507,
+        "volatility": 0.025795699727
+      }
+    },
+    {
+      "id": "000721",
+      "parameters": {
+        "mean_reversion": 0.330899169017,
+        "volatility": 0.007684425951
+      }
+    },
+    {
+      "id": "000722",
+      "parameters": {
+        "mean_reversion": 0.361103520487,
+        "volatility": 0.005235880785
+      }
+    },
+    {
+      "id": "000723",
+      "parameters": {
+        "mean_reversion": 0.382913652416,
+        "volatility": 0.027482562923
+      }
+    },
+    {
+      "id": "000724",
+      "parameters": {
+        "mean_reversion": 0.356580764223,
+        "volatility": 0.026966633335
+      }
+    },
+    {
+      "id": "000725",
+      "parameters": {
+        "mean_reversion": 0.433027006518,
+        "volatility": 0.013899702968
+      }
+    },
+    {
+      "id": "000726",
+      "parameters": {
+        "mean_reversion": 0.096837144028,
+        "volatility": 0.005245751229
+      }
+    },
+    {
+      "id": "000727",
+      "parameters": {
+        "mean_reversion": 0.175922863726,
+        "volatility": 0.026234494771
+      }
+    },
+    {
+      "id": "000728",
+      "parameters": {
+        "mean_reversion": 0.386499401424,
+        "volatility": 0.014933119797
+      }
+    },
+    {
+      "id": "000729",
+      "parameters": {
+        "mean_reversion": 0.060859581288,
+        "volatility": 0.004178153239
+      }
+    },
+    {
+      "id": "000730",
+      "parameters": {
+        "mean_reversion": 0.46314864805,
+        "volatility": 0.018903140281
+      }
+    },
+    {
+      "id": "000731",
+      "parameters": {
+        "mean_reversion": 0.462193869483,
+        "volatility": 0.006582824946
+      }
+    },
+    {
+      "id": "000732",
+      "parameters": {
+        "mean_reversion": 0.392331292946,
+        "volatility": 0.010949346325
+      }
+    },
+    {
+      "id": "000733",
+      "parameters": {
+        "mean_reversion": 0.433571031261,
+        "volatility": 0.010632101015
+      }
+    },
+    {
+      "id": "000734",
+      "parameters": {
+        "mean_reversion": 0.076780220475,
+        "volatility": 0.017114324064
+      }
+    },
+    {
+      "id": "000735",
+      "parameters": {
+        "mean_reversion": 0.377332726363,
+        "volatility": 0.028004051887
+      }
+    },
+    {
+      "id": "000736",
+      "parameters": {
+        "mean_reversion": 0.38380599631,
+        "volatility": 0.010896410517
+      }
+    },
+    {
+      "id": "000737",
+      "parameters": {
+        "mean_reversion": 0.183225543555,
+        "volatility": 0.01947189189
+      }
+    },
+    {
+      "id": "000738",
+      "parameters": {
+        "mean_reversion": 0.293183103893,
+        "volatility": 0.013643844732
+      }
+    },
+    {
+      "id": "000739",
+      "parameters": {
+        "mean_reversion": 0.267344334032,
+        "volatility": 0.004139765559
+      }
+    },
+    {
+      "id": "000740",
+      "parameters": {
+        "mean_reversion": 0.122926122975,
+        "volatility": 0.02423273134
+      }
+    },
+    {
+      "id": "000741",
+      "parameters": {
+        "mean_reversion": 0.339498649631,
+        "volatility": 0.025074796498
+      }
+    },
+    {
+      "id": "000742",
+      "parameters": {
+        "mean_reversion": 0.255017433148,
+        "volatility": 0.002052806339
+      }
+    },
+    {
+      "id": "000743",
+      "parameters": {
+        "mean_reversion": 0.297157093156,
+        "volatility": 0.026409295513
+      }
+    },
+    {
+      "id": "000744",
+      "parameters": {
+        "mean_reversion": 0.135966239665,
+        "volatility": 0.009362830136
+      }
+    },
+    {
+      "id": "000745",
+      "parameters": {
+        "mean_reversion": 0.089680812564,
+        "volatility": 0.024360823423
+      }
+    },
+    {
+      "id": "000746",
+      "parameters": {
+        "mean_reversion": 0.417652179878,
+        "volatility": 0.017168724769
+      }
+    },
+    {
+      "id": "000747",
+      "parameters": {
+        "mean_reversion": 0.358939062413,
+        "volatility": 0.019044347371
+      }
+    },
+    {
+      "id": "000748",
+      "parameters": {
+        "mean_reversion": 0.33096833514,
+        "volatility": 0.029738124303
+      }
+    },
+    {
+      "id": "000749",
+      "parameters": {
+        "mean_reversion": 0.045579422098,
+        "volatility": 0.019303264449
+      }
+    },
+    {
+      "id": "000750",
+      "parameters": {
+        "mean_reversion": 0.441909433585,
+        "volatility": 0.01871238241
+      }
+    },
+    {
+      "id": "000751",
+      "parameters": {
+        "mean_reversion": 0.262325615305,
+        "volatility": 0.021652463594
+      }
+    },
+    {
+      "id": "000752",
+      "parameters": {
+        "mean_reversion": 0.331553859245,
+        "volatility": 0.020760545226
+      }
+    },
+    {
+      "id": "000753",
+      "parameters": {
+        "mean_reversion": 0.377128879707,
+        "volatility": 0.02262149009
+      }
+    },
+    {
+      "id": "000754",
+      "parameters": {
+        "mean_reversion": 0.291185729336,
+        "volatility": 0.024543694791
+      }
+    },
+    {
+      "id": "000755",
+      "parameters": {
+        "mean_reversion": 0.479944515061,
+        "volatility": 0.016607839832
+      }
+    },
+    {
+      "id": "000756",
+      "parameters": {
+        "mean_reversion": 0.15423874544,
+        "volatility": 0.018656675813
+      }
+    },
+    {
+      "id": "000757",
+      "parameters": {
+        "mean_reversion": 0.234149086159,
+        "volatility": 0.010866859092
+      }
+    },
+    {
+      "id": "000758",
+      "parameters": {
+        "mean_reversion": 0.035966935512,
+        "volatility": 0.020110493378
+      }
+    },
+    {
+      "id": "000759",
+      "parameters": {
+        "mean_reversion": 0.125312459413,
+        "volatility": 0.018194108692
+      }
+    },
+    {
+      "id": "000760",
+      "parameters": {
+        "mean_reversion": 0.201645933371,
+        "volatility": 0.026051579809
+      }
+    },
+    {
+      "id": "000761",
+      "parameters": {
+        "mean_reversion": 0.429557568263,
+        "volatility": 0.02793853869
+      }
+    },
+    {
+      "id": "000762",
+      "parameters": {
+        "mean_reversion": 0.06767839944,
+        "volatility": 0.028116988279
+      }
+    },
+    {
+      "id": "000763",
+      "parameters": {
+        "mean_reversion": 0.300776959416,
+        "volatility": 0.029908985907
+      }
+    },
+    {
+      "id": "000764",
+      "parameters": {
+        "mean_reversion": 0.258140122686,
+        "volatility": 0.004569231245
+      }
+    },
+    {
+      "id": "000765",
+      "parameters": {
+        "mean_reversion": 0.485474297646,
+        "volatility": 0.027061354862
+      }
+    },
+    {
+      "id": "000766",
+      "parameters": {
+        "mean_reversion": 0.250976358596,
+        "volatility": 0.021799128235
+      }
+    },
+    {
+      "id": "000767",
+      "parameters": {
+        "mean_reversion": 0.084352195542,
+        "volatility": 0.014258351896
+      }
+    },
+    {
+      "id": "000768",
+      "parameters": {
+        "mean_reversion": 0.130575814154,
+        "volatility": 0.023099286165
+      }
+    },
+    {
+      "id": "000769",
+      "parameters": {
+        "mean_reversion": 0.091388343368,
+        "volatility": 0.002671985712
+      }
+    },
+    {
+      "id": "000770",
+      "parameters": {
+        "mean_reversion": 0.449201241862,
+        "volatility": 0.010854189696
+      }
+    },
+    {
+      "id": "000771",
+      "parameters": {
+        "mean_reversion": 0.373011227753,
+        "volatility": 0.029451939255
+      }
+    },
+    {
+      "id": "000772",
+      "parameters": {
+        "mean_reversion": 0.207318099122,
+        "volatility": 0.002910220608
+      }
+    },
+    {
+      "id": "000773",
+      "parameters": {
+        "mean_reversion": 0.455517207403,
+        "volatility": 0.003061506685
+      }
+    },
+    {
+      "id": "000774",
+      "parameters": {
+        "mean_reversion": 0.215413493644,
+        "volatility": 0.017355412263
+      }
+    },
+    {
+      "id": "000775",
+      "parameters": {
+        "mean_reversion": 0.39539683545,
+        "volatility": 0.025814221585
+      }
+    },
+    {
+      "id": "000776",
+      "parameters": {
+        "mean_reversion": 0.34216413619,
+        "volatility": 0.008919537665
+      }
+    },
+    {
+      "id": "000777",
+      "parameters": {
+        "mean_reversion": 0.158764613178,
+        "volatility": 0.013759572781
+      }
+    },
+    {
+      "id": "000778",
+      "parameters": {
+        "mean_reversion": 0.302185303662,
+        "volatility": 0.023555697795
+      }
+    },
+    {
+      "id": "000779",
+      "parameters": {
+        "mean_reversion": 0.492199941445,
+        "volatility": 0.005215700148
+      }
+    },
+    {
+      "id": "000780",
+      "parameters": {
+        "mean_reversion": 0.173413117062,
+        "volatility": 0.027263024093
+      }
+    },
+    {
+      "id": "000781",
+      "parameters": {
+        "mean_reversion": 0.429535229485,
+        "volatility": 0.014742351945
+      }
+    },
+    {
+      "id": "000782",
+      "parameters": {
+        "mean_reversion": 0.12456970768,
+        "volatility": 0.025014342323
+      }
+    },
+    {
+      "id": "000783",
+      "parameters": {
+        "mean_reversion": 0.322164626215,
+        "volatility": 0.010568179429
+      }
+    },
+    {
+      "id": "000784",
+      "parameters": {
+        "mean_reversion": 0.329738332536,
+        "volatility": 0.012689697719
+      }
+    },
+    {
+      "id": "000785",
+      "parameters": {
+        "mean_reversion": 0.076567170378,
+        "volatility": 0.008914629368
+      }
+    },
+    {
+      "id": "000786",
+      "parameters": {
+        "mean_reversion": 0.461126934905,
+        "volatility": 0.02236869526
+      }
+    },
+    {
+      "id": "000787",
+      "parameters": {
+        "mean_reversion": 0.236646633688,
+        "volatility": 0.022268497093
+      }
+    },
+    {
+      "id": "000788",
+      "parameters": {
+        "mean_reversion": 0.427011050638,
+        "volatility": 0.024865024625
+      }
+    },
+    {
+      "id": "000789",
+      "parameters": {
+        "mean_reversion": 0.453117808495,
+        "volatility": 0.013947284105
+      }
+    },
+    {
+      "id": "000790",
+      "parameters": {
+        "mean_reversion": 0.336306326259,
+        "volatility": 0.010084650319
+      }
+    },
+    {
+      "id": "000791",
+      "parameters": {
+        "mean_reversion": 0.242548759859,
+        "volatility": 0.021916660352
+      }
+    },
+    {
+      "id": "000792",
+      "parameters": {
+        "mean_reversion": 0.493730507251,
+        "volatility": 0.019548606757
+      }
+    },
+    {
+      "id": "000793",
+      "parameters": {
+        "mean_reversion": 0.425789678935,
+        "volatility": 0.007812544249
+      }
+    },
+    {
+      "id": "000794",
+      "parameters": {
+        "mean_reversion": 0.271982210819,
+        "volatility": 0.00890142759
+      }
+    },
+    {
+      "id": "000795",
+      "parameters": {
+        "mean_reversion": 0.021515718382,
+        "volatility": 0.002512153318
+      }
+    },
+    {
+      "id": "000796",
+      "parameters": {
+        "mean_reversion": 0.085552373994,
+        "volatility": 0.023582927022
+      }
+    },
+    {
+      "id": "000797",
+      "parameters": {
+        "mean_reversion": 0.390255428236,
+        "volatility": 0.014942239737
+      }
+    },
+    {
+      "id": "000798",
+      "parameters": {
+        "mean_reversion": 0.358702710513,
+        "volatility": 0.002162523965
+      }
+    },
+    {
+      "id": "000799",
+      "parameters": {
+        "mean_reversion": 0.341361934636,
+        "volatility": 0.026675640816
+      }
+    },
+    {
+      "id": "000800",
+      "parameters": {
+        "mean_reversion": 0.350067738574,
+        "volatility": 0.018982945934
+      }
+    },
+    {
+      "id": "000801",
+      "parameters": {
+        "mean_reversion": 0.135338520166,
+        "volatility": 0.0179309041
+      }
+    },
+    {
+      "id": "000802",
+      "parameters": {
+        "mean_reversion": 0.417593333889,
+        "volatility": 0.012872221604
+      }
+    },
+    {
+      "id": "000803",
+      "parameters": {
+        "mean_reversion": 0.092901763376,
+        "volatility": 0.005354844844
+      }
+    },
+    {
+      "id": "000804",
+      "parameters": {
+        "mean_reversion": 0.278415448684,
+        "volatility": 0.003276739806
+      }
+    },
+    {
+      "id": "000805",
+      "parameters": {
+        "mean_reversion": 0.178674601745,
+        "volatility": 0.019775062428
+      }
+    },
+    {
+      "id": "000806",
+      "parameters": {
+        "mean_reversion": 0.179212123249,
+        "volatility": 0.027064195049
+      }
+    },
+    {
+      "id": "000807",
+      "parameters": {
+        "mean_reversion": 0.470746306945,
+        "volatility": 0.027530573093
+      }
+    },
+    {
+      "id": "000808",
+      "parameters": {
+        "mean_reversion": 0.387280286569,
+        "volatility": 0.012019011369
+      }
+    },
+    {
+      "id": "000809",
+      "parameters": {
+        "mean_reversion": 0.207736846935,
+        "volatility": 0.023812157459
+      }
+    },
+    {
+      "id": "000810",
+      "parameters": {
+        "mean_reversion": 0.210487634782,
+        "volatility": 0.007714523038
+      }
+    },
+    {
+      "id": "000811",
+      "parameters": {
+        "mean_reversion": 0.346709614228,
+        "volatility": 0.00517762141
+      }
+    },
+    {
+      "id": "000812",
+      "parameters": {
+        "mean_reversion": 0.444153486658,
+        "volatility": 0.023300993475
+      }
+    },
+    {
+      "id": "000813",
+      "parameters": {
+        "mean_reversion": 0.402293695826,
+        "volatility": 0.026519309465
+      }
+    },
+    {
+      "id": "000814",
+      "parameters": {
+        "mean_reversion": 0.244530863147,
+        "volatility": 0.029742483868
+      }
+    },
+    {
+      "id": "000815",
+      "parameters": {
+        "mean_reversion": 0.041137024369,
+        "volatility": 0.015818518822
+      }
+    },
+    {
+      "id": "000816",
+      "parameters": {
+        "mean_reversion": 0.039238771852,
+        "volatility": 0.013653294148
+      }
+    },
+    {
+      "id": "000817",
+      "parameters": {
+        "mean_reversion": 0.418137333486,
+        "volatility": 0.00330431424
+      }
+    },
+    {
+      "id": "000818",
+      "parameters": {
+        "mean_reversion": 0.161997652818,
+        "volatility": 0.022540127044
+      }
+    },
+    {
+      "id": "000819",
+      "parameters": {
+        "mean_reversion": 0.37326439688,
+        "volatility": 0.016420839759
+      }
+    },
+    {
+      "id": "000820",
+      "parameters": {
+        "mean_reversion": 0.030690478962,
+        "volatility": 0.023337841977
+      }
+    },
+    {
+      "id": "000821",
+      "parameters": {
+        "mean_reversion": 0.061379159261,
+        "volatility": 0.019301480473
+      }
+    },
+    {
+      "id": "000822",
+      "parameters": {
+        "mean_reversion": 0.063362435568,
+        "volatility": 0.008802176984
+      }
+    },
+    {
+      "id": "000823",
+      "parameters": {
+        "mean_reversion": 0.283523561526,
+        "volatility": 0.028202057725
+      }
+    },
+    {
+      "id": "000824",
+      "parameters": {
+        "mean_reversion": 0.133288147617,
+        "volatility": 0.01049945491
+      }
+    },
+    {
+      "id": "000825",
+      "parameters": {
+        "mean_reversion": 0.28048998246,
+        "volatility": 0.014037475086
+      }
+    },
+    {
+      "id": "000826",
+      "parameters": {
+        "mean_reversion": 0.102770453114,
+        "volatility": 0.029330972707
+      }
+    },
+    {
+      "id": "000827",
+      "parameters": {
+        "mean_reversion": 0.177627208736,
+        "volatility": 0.022065766546
+      }
+    },
+    {
+      "id": "000828",
+      "parameters": {
+        "mean_reversion": 0.456957346108,
+        "volatility": 0.027372230662
+      }
+    },
+    {
+      "id": "000829",
+      "parameters": {
+        "mean_reversion": 0.077833179627,
+        "volatility": 0.026622747084
+      }
+    },
+    {
+      "id": "000830",
+      "parameters": {
+        "mean_reversion": 0.154898083378,
+        "volatility": 0.028471475979
+      }
+    },
+    {
+      "id": "000831",
+      "parameters": {
+        "mean_reversion": 0.492437851261,
+        "volatility": 0.012021987704
+      }
+    },
+    {
+      "id": "000832",
+      "parameters": {
+        "mean_reversion": 0.066365951654,
+        "volatility": 0.026963838973
+      }
+    },
+    {
+      "id": "000833",
+      "parameters": {
+        "mean_reversion": 0.471375974733,
+        "volatility": 0.009907164001
+      }
+    },
+    {
+      "id": "000834",
+      "parameters": {
+        "mean_reversion": 0.109453805182,
+        "volatility": 0.025990235104
+      }
+    },
+    {
+      "id": "000835",
+      "parameters": {
+        "mean_reversion": 0.420115135182,
+        "volatility": 0.022546419758
+      }
+    },
+    {
+      "id": "000836",
+      "parameters": {
+        "mean_reversion": 0.353855719995,
+        "volatility": 0.017979935616
+      }
+    },
+    {
+      "id": "000837",
+      "parameters": {
+        "mean_reversion": 0.083356521558,
+        "volatility": 0.024887117719
+      }
+    },
+    {
+      "id": "000838",
+      "parameters": {
+        "mean_reversion": 0.420109166484,
+        "volatility": 0.010921409877
+      }
+    },
+    {
+      "id": "000839",
+      "parameters": {
+        "mean_reversion": 0.480489111897,
+        "volatility": 0.009718180829
+      }
+    },
+    {
+      "id": "000840",
+      "parameters": {
+        "mean_reversion": 0.41790624151,
+        "volatility": 0.0243600853
+      }
+    },
+    {
+      "id": "000841",
+      "parameters": {
+        "mean_reversion": 0.074768153783,
+        "volatility": 0.026694430609
+      }
+    },
+    {
+      "id": "000842",
+      "parameters": {
+        "mean_reversion": 0.364066699278,
+        "volatility": 0.022906002134
+      }
+    },
+    {
+      "id": "000843",
+      "parameters": {
+        "mean_reversion": 0.299330829326,
+        "volatility": 0.02297744618
+      }
+    },
+    {
+      "id": "000844",
+      "parameters": {
+        "mean_reversion": 0.247144997921,
+        "volatility": 0.009183525787
+      }
+    },
+    {
+      "id": "000845",
+      "parameters": {
+        "mean_reversion": 0.225686390605,
+        "volatility": 0.012069835127
+      }
+    },
+    {
+      "id": "000846",
+      "parameters": {
+        "mean_reversion": 0.165131956097,
+        "volatility": 0.005144535595
+      }
+    },
+    {
+      "id": "000847",
+      "parameters": {
+        "mean_reversion": 0.260115698818,
+        "volatility": 0.01833839692
+      }
+    },
+    {
+      "id": "000848",
+      "parameters": {
+        "mean_reversion": 0.343809422981,
+        "volatility": 0.015025625891
+      }
+    },
+    {
+      "id": "000849",
+      "parameters": {
+        "mean_reversion": 0.450265866052,
+        "volatility": 0.025862129787
+      }
+    },
+    {
+      "id": "000850",
+      "parameters": {
+        "mean_reversion": 0.221716258582,
+        "volatility": 0.022351171624
+      }
+    },
+    {
+      "id": "000851",
+      "parameters": {
+        "mean_reversion": 0.325243623126,
+        "volatility": 0.023385902475
+      }
+    },
+    {
+      "id": "000852",
+      "parameters": {
+        "mean_reversion": 0.216216666829,
+        "volatility": 0.002102199008
+      }
+    },
+    {
+      "id": "000853",
+      "parameters": {
+        "mean_reversion": 0.075043991711,
+        "volatility": 0.019650524664
+      }
+    },
+    {
+      "id": "000854",
+      "parameters": {
+        "mean_reversion": 0.159401177932,
+        "volatility": 0.011055305781
+      }
+    },
+    {
+      "id": "000855",
+      "parameters": {
+        "mean_reversion": 0.433673688788,
+        "volatility": 0.021774262572
+      }
+    },
+    {
+      "id": "000856",
+      "parameters": {
+        "mean_reversion": 0.297045564335,
+        "volatility": 0.010265599001
+      }
+    },
+    {
+      "id": "000857",
+      "parameters": {
+        "mean_reversion": 0.418041805271,
+        "volatility": 0.005088082458
+      }
+    },
+    {
+      "id": "000858",
+      "parameters": {
+        "mean_reversion": 0.053178618457,
+        "volatility": 0.023163521796
+      }
+    },
+    {
+      "id": "000859",
+      "parameters": {
+        "mean_reversion": 0.177729965616,
+        "volatility": 0.02015833541
+      }
+    },
+    {
+      "id": "000860",
+      "parameters": {
+        "mean_reversion": 0.05044005556,
+        "volatility": 0.028053099394
+      }
+    },
+    {
+      "id": "000861",
+      "parameters": {
+        "mean_reversion": 0.13084689999,
+        "volatility": 0.019938328086
+      }
+    },
+    {
+      "id": "000862",
+      "parameters": {
+        "mean_reversion": 0.430925230775,
+        "volatility": 0.012472566144
+      }
+    },
+    {
+      "id": "000863",
+      "parameters": {
+        "mean_reversion": 0.373149378505,
+        "volatility": 0.003358465942
+      }
+    },
+    {
+      "id": "000864",
+      "parameters": {
+        "mean_reversion": 0.088324685674,
+        "volatility": 0.024667809084
+      }
+    },
+    {
+      "id": "000865",
+      "parameters": {
+        "mean_reversion": 0.311342661176,
+        "volatility": 0.01831192825
+      }
+    },
+    {
+      "id": "000866",
+      "parameters": {
+        "mean_reversion": 0.388837603498,
+        "volatility": 0.024705026856
+      }
+    },
+    {
+      "id": "000867",
+      "parameters": {
+        "mean_reversion": 0.196841676701,
+        "volatility": 0.014731440761
+      }
+    },
+    {
+      "id": "000868",
+      "parameters": {
+        "mean_reversion": 0.072756122518,
+        "volatility": 0.024937333366
+      }
+    },
+    {
+      "id": "000869",
+      "parameters": {
+        "mean_reversion": 0.487501173373,
+        "volatility": 0.026347594778
+      }
+    },
+    {
+      "id": "000870",
+      "parameters": {
+        "mean_reversion": 0.495334005672,
+        "volatility": 0.023568032838
+      }
+    },
+    {
+      "id": "000871",
+      "parameters": {
+        "mean_reversion": 0.264677258935,
+        "volatility": 0.025555327259
+      }
+    },
+    {
+      "id": "000872",
+      "parameters": {
+        "mean_reversion": 0.179919494633,
+        "volatility": 0.014319718989
+      }
+    },
+    {
+      "id": "000873",
+      "parameters": {
+        "mean_reversion": 0.484270685632,
+        "volatility": 0.005291633845
+      }
+    },
+    {
+      "id": "000874",
+      "parameters": {
+        "mean_reversion": 0.169313906189,
+        "volatility": 0.006408876311
+      }
+    },
+    {
+      "id": "000875",
+      "parameters": {
+        "mean_reversion": 0.328999752533,
+        "volatility": 0.01436414195
+      }
+    },
+    {
+      "id": "000876",
+      "parameters": {
+        "mean_reversion": 0.118475560825,
+        "volatility": 0.019813170379
+      }
+    },
+    {
+      "id": "000877",
+      "parameters": {
+        "mean_reversion": 0.341102092955,
+        "volatility": 0.025117627365
+      }
+    },
+    {
+      "id": "000878",
+      "parameters": {
+        "mean_reversion": 0.21586085761,
+        "volatility": 0.019202562448
+      }
+    },
+    {
+      "id": "000879",
+      "parameters": {
+        "mean_reversion": 0.225431637745,
+        "volatility": 0.022515351047
+      }
+    },
+    {
+      "id": "000880",
+      "parameters": {
+        "mean_reversion": 0.202968392279,
+        "volatility": 0.004039475308
+      }
+    },
+    {
+      "id": "000881",
+      "parameters": {
+        "mean_reversion": 0.073918440696,
+        "volatility": 0.006910266115
+      }
+    },
+    {
+      "id": "000882",
+      "parameters": {
+        "mean_reversion": 0.160664968323,
+        "volatility": 0.00342933308
+      }
+    },
+    {
+      "id": "000883",
+      "parameters": {
+        "mean_reversion": 0.334519498628,
+        "volatility": 0.012150490696
+      }
+    },
+    {
+      "id": "000884",
+      "parameters": {
+        "mean_reversion": 0.026767336447,
+        "volatility": 0.024984973568
+      }
+    },
+    {
+      "id": "000885",
+      "parameters": {
+        "mean_reversion": 0.116770350356,
+        "volatility": 0.002758787847
+      }
+    },
+    {
+      "id": "000886",
+      "parameters": {
+        "mean_reversion": 0.245702615213,
+        "volatility": 0.023767463102
+      }
+    },
+    {
+      "id": "000887",
+      "parameters": {
+        "mean_reversion": 0.147831170168,
+        "volatility": 0.020144046976
+      }
+    },
+    {
+      "id": "000888",
+      "parameters": {
+        "mean_reversion": 0.289370555338,
+        "volatility": 0.02326538161
+      }
+    },
+    {
+      "id": "000889",
+      "parameters": {
+        "mean_reversion": 0.399310707692,
+        "volatility": 0.008188528732
+      }
+    },
+    {
+      "id": "000890",
+      "parameters": {
+        "mean_reversion": 0.436075771358,
+        "volatility": 0.008008160974
+      }
+    },
+    {
+      "id": "000891",
+      "parameters": {
+        "mean_reversion": 0.179314687569,
+        "volatility": 0.009241362982
+      }
+    },
+    {
+      "id": "000892",
+      "parameters": {
+        "mean_reversion": 0.472893278468,
+        "volatility": 0.017527712119
+      }
+    },
+    {
+      "id": "000893",
+      "parameters": {
+        "mean_reversion": 0.133356811721,
+        "volatility": 0.004916607034
+      }
+    },
+    {
+      "id": "000894",
+      "parameters": {
+        "mean_reversion": 0.115220276397,
+        "volatility": 0.016209435907
+      }
+    },
+    {
+      "id": "000895",
+      "parameters": {
+        "mean_reversion": 0.365475940835,
+        "volatility": 0.016275460501
+      }
+    },
+    {
+      "id": "000896",
+      "parameters": {
+        "mean_reversion": 0.407404436339,
+        "volatility": 0.004654790881
+      }
+    },
+    {
+      "id": "000897",
+      "parameters": {
+        "mean_reversion": 0.433986381274,
+        "volatility": 0.010821454787
+      }
+    },
+    {
+      "id": "000898",
+      "parameters": {
+        "mean_reversion": 0.344156989995,
+        "volatility": 0.024932035354
+      }
+    },
+    {
+      "id": "000899",
+      "parameters": {
+        "mean_reversion": 0.084876273815,
+        "volatility": 0.023060151541
+      }
+    },
+    {
+      "id": "000900",
+      "parameters": {
+        "mean_reversion": 0.279909070414,
+        "volatility": 0.028152200702
+      }
+    },
+    {
+      "id": "000901",
+      "parameters": {
+        "mean_reversion": 0.40081235582,
+        "volatility": 0.011233324161
+      }
+    },
+    {
+      "id": "000902",
+      "parameters": {
+        "mean_reversion": 0.443141218293,
+        "volatility": 0.023156793179
+      }
+    },
+    {
+      "id": "000903",
+      "parameters": {
+        "mean_reversion": 0.29332196923,
+        "volatility": 0.007487942816
+      }
+    },
+    {
+      "id": "000904",
+      "parameters": {
+        "mean_reversion": 0.298713620398,
+        "volatility": 0.02726958025
+      }
+    },
+    {
+      "id": "000905",
+      "parameters": {
+        "mean_reversion": 0.155700309072,
+        "volatility": 0.02836906796
+      }
+    },
+    {
+      "id": "000906",
+      "parameters": {
+        "mean_reversion": 0.391334318761,
+        "volatility": 0.014828239343
+      }
+    },
+    {
+      "id": "000907",
+      "parameters": {
+        "mean_reversion": 0.195931524839,
+        "volatility": 0.008119653742
+      }
+    },
+    {
+      "id": "000908",
+      "parameters": {
+        "mean_reversion": 0.108902290035,
+        "volatility": 0.007588772731
+      }
+    },
+    {
+      "id": "000909",
+      "parameters": {
+        "mean_reversion": 0.450691137668,
+        "volatility": 0.004194719716
+      }
+    },
+    {
+      "id": "000910",
+      "parameters": {
+        "mean_reversion": 0.413447891455,
+        "volatility": 0.019541747415
+      }
+    },
+    {
+      "id": "000911",
+      "parameters": {
+        "mean_reversion": 0.327264320496,
+        "volatility": 0.013803998082
+      }
+    },
+    {
+      "id": "000912",
+      "parameters": {
+        "mean_reversion": 0.460632092264,
+        "volatility": 0.004435881726
+      }
+    },
+    {
+      "id": "000913",
+      "parameters": {
+        "mean_reversion": 0.035654001404,
+        "volatility": 0.014827286286
+      }
+    },
+    {
+      "id": "000914",
+      "parameters": {
+        "mean_reversion": 0.329945096876,
+        "volatility": 0.018735248682
+      }
+    },
+    {
+      "id": "000915",
+      "parameters": {
+        "mean_reversion": 0.165375633221,
+        "volatility": 0.02293495056
+      }
+    },
+    {
+      "id": "000916",
+      "parameters": {
+        "mean_reversion": 0.29609148683,
+        "volatility": 0.010731314265
+      }
+    },
+    {
+      "id": "000917",
+      "parameters": {
+        "mean_reversion": 0.123279850464,
+        "volatility": 0.009877274625
+      }
+    },
+    {
+      "id": "000918",
+      "parameters": {
+        "mean_reversion": 0.161524000634,
+        "volatility": 0.009095563245
+      }
+    },
+    {
+      "id": "000919",
+      "parameters": {
+        "mean_reversion": 0.30887435453,
+        "volatility": 0.023829964643
+      }
+    },
+    {
+      "id": "000920",
+      "parameters": {
+        "mean_reversion": 0.148466718141,
+        "volatility": 0.02662426583
+      }
+    },
+    {
+      "id": "000921",
+      "parameters": {
+        "mean_reversion": 0.456729262453,
+        "volatility": 0.028203607757
+      }
+    },
+    {
+      "id": "000922",
+      "parameters": {
+        "mean_reversion": 0.130612817239,
+        "volatility": 0.012164885179
+      }
+    },
+    {
+      "id": "000923",
+      "parameters": {
+        "mean_reversion": 0.147006921973,
+        "volatility": 0.009128935137
+      }
+    },
+    {
+      "id": "000924",
+      "parameters": {
+        "mean_reversion": 0.395613059606,
+        "volatility": 0.011877625541
+      }
+    },
+    {
+      "id": "000925",
+      "parameters": {
+        "mean_reversion": 0.071786552016,
+        "volatility": 0.010709328543
+      }
+    },
+    {
+      "id": "000926",
+      "parameters": {
+        "mean_reversion": 0.12008236317,
+        "volatility": 0.027108369476
+      }
+    },
+    {
+      "id": "000927",
+      "parameters": {
+        "mean_reversion": 0.442444032487,
+        "volatility": 0.018856685652
+      }
+    },
+    {
+      "id": "000928",
+      "parameters": {
+        "mean_reversion": 0.3800223062,
+        "volatility": 0.006805461995
+      }
+    },
+    {
+      "id": "000929",
+      "parameters": {
+        "mean_reversion": 0.059813419525,
+        "volatility": 0.014501768474
+      }
+    },
+    {
+      "id": "000930",
+      "parameters": {
+        "mean_reversion": 0.378462013137,
+        "volatility": 0.00328680114
+      }
+    },
+    {
+      "id": "000931",
+      "parameters": {
+        "mean_reversion": 0.435049573947,
+        "volatility": 0.020805656047
+      }
+    },
+    {
+      "id": "000932",
+      "parameters": {
+        "mean_reversion": 0.132296063993,
+        "volatility": 0.011104374796
+      }
+    },
+    {
+      "id": "000933",
+      "parameters": {
+        "mean_reversion": 0.344150306042,
+        "volatility": 0.013956751521
+      }
+    },
+    {
+      "id": "000934",
+      "parameters": {
+        "mean_reversion": 0.204618226308,
+        "volatility": 0.02891139038
+      }
+    },
+    {
+      "id": "000935",
+      "parameters": {
+        "mean_reversion": 0.353770426977,
+        "volatility": 0.01374969132
+      }
+    },
+    {
+      "id": "000936",
+      "parameters": {
+        "mean_reversion": 0.444692937788,
+        "volatility": 0.028068662682
+      }
+    },
+    {
+      "id": "000937",
+      "parameters": {
+        "mean_reversion": 0.205788998026,
+        "volatility": 0.006765970416
+      }
+    },
+    {
+      "id": "000938",
+      "parameters": {
+        "mean_reversion": 0.126053421441,
+        "volatility": 0.013698386565
+      }
+    },
+    {
+      "id": "000939",
+      "parameters": {
+        "mean_reversion": 0.279052358214,
+        "volatility": 0.012612724383
+      }
+    },
+    {
+      "id": "000940",
+      "parameters": {
+        "mean_reversion": 0.184087043498,
+        "volatility": 0.026664187751
+      }
+    },
+    {
+      "id": "000941",
+      "parameters": {
+        "mean_reversion": 0.398638801482,
+        "volatility": 0.023434264613
+      }
+    },
+    {
+      "id": "000942",
+      "parameters": {
+        "mean_reversion": 0.060961760934,
+        "volatility": 0.015397602099
+      }
+    },
+    {
+      "id": "000943",
+      "parameters": {
+        "mean_reversion": 0.038928298783,
+        "volatility": 0.00661889512
+      }
+    },
+    {
+      "id": "000944",
+      "parameters": {
+        "mean_reversion": 0.401842354815,
+        "volatility": 0.015832212047
+      }
+    },
+    {
+      "id": "000945",
+      "parameters": {
+        "mean_reversion": 0.020315524731,
+        "volatility": 0.021847360242
+      }
+    },
+    {
+      "id": "000946",
+      "parameters": {
+        "mean_reversion": 0.437652981114,
+        "volatility": 0.022854283086
+      }
+    },
+    {
+      "id": "000947",
+      "parameters": {
+        "mean_reversion": 0.385536386464,
+        "volatility": 0.011667213262
+      }
+    },
+    {
+      "id": "000948",
+      "parameters": {
+        "mean_reversion": 0.324535617288,
+        "volatility": 0.005465507463
+      }
+    },
+    {
+      "id": "000949",
+      "parameters": {
+        "mean_reversion": 0.189125585537,
+        "volatility": 0.01707043477
+      }
+    },
+    {
+      "id": "000950",
+      "parameters": {
+        "mean_reversion": 0.34426526932,
+        "volatility": 0.021654044195
+      }
+    },
+    {
+      "id": "000951",
+      "parameters": {
+        "mean_reversion": 0.192781458665,
+        "volatility": 0.023423685174
+      }
+    },
+    {
+      "id": "000952",
+      "parameters": {
+        "mean_reversion": 0.445952349808,
+        "volatility": 0.006469244249
+      }
+    },
+    {
+      "id": "000953",
+      "parameters": {
+        "mean_reversion": 0.289820964169,
+        "volatility": 0.012596661766
+      }
+    },
+    {
+      "id": "000954",
+      "parameters": {
+        "mean_reversion": 0.330120030548,
+        "volatility": 0.005648572479
+      }
+    },
+    {
+      "id": "000955",
+      "parameters": {
+        "mean_reversion": 0.448161671404,
+        "volatility": 0.028499221426
+      }
+    },
+    {
+      "id": "000956",
+      "parameters": {
+        "mean_reversion": 0.028229839522,
+        "volatility": 0.016691290415
+      }
+    },
+    {
+      "id": "000957",
+      "parameters": {
+        "mean_reversion": 0.248234141637,
+        "volatility": 0.028975260854
+      }
+    },
+    {
+      "id": "000958",
+      "parameters": {
+        "mean_reversion": 0.273467856888,
+        "volatility": 0.008236229784
+      }
+    },
+    {
+      "id": "000959",
+      "parameters": {
+        "mean_reversion": 0.455117844138,
+        "volatility": 0.01031689382
+      }
+    },
+    {
+      "id": "000960",
+      "parameters": {
+        "mean_reversion": 0.237094377633,
+        "volatility": 0.010855701623
+      }
+    },
+    {
+      "id": "000961",
+      "parameters": {
+        "mean_reversion": 0.35478609303,
+        "volatility": 0.003647252696
+      }
+    },
+    {
+      "id": "000962",
+      "parameters": {
+        "mean_reversion": 0.147619047333,
+        "volatility": 0.002378670193
+      }
+    },
+    {
+      "id": "000963",
+      "parameters": {
+        "mean_reversion": 0.433371170703,
+        "volatility": 0.026770078788
+      }
+    },
+    {
+      "id": "000964",
+      "parameters": {
+        "mean_reversion": 0.189540389497,
+        "volatility": 0.00883974458
+      }
+    },
+    {
+      "id": "000965",
+      "parameters": {
+        "mean_reversion": 0.115510026608,
+        "volatility": 0.009472313487
+      }
+    },
+    {
+      "id": "000966",
+      "parameters": {
+        "mean_reversion": 0.082116665971,
+        "volatility": 0.028273645189
+      }
+    },
+    {
+      "id": "000967",
+      "parameters": {
+        "mean_reversion": 0.116231202092,
+        "volatility": 0.014538129707
+      }
+    },
+    {
+      "id": "000968",
+      "parameters": {
+        "mean_reversion": 0.073752289023,
+        "volatility": 0.022992462581
+      }
+    },
+    {
+      "id": "000969",
+      "parameters": {
+        "mean_reversion": 0.032986497488,
+        "volatility": 0.015439287441
+      }
+    },
+    {
+      "id": "000970",
+      "parameters": {
+        "mean_reversion": 0.240384594481,
+        "volatility": 0.015930285757
+      }
+    },
+    {
+      "id": "000971",
+      "parameters": {
+        "mean_reversion": 0.022894243393,
+        "volatility": 0.006643593095
+      }
+    },
+    {
+      "id": "000972",
+      "parameters": {
+        "mean_reversion": 0.139755726922,
+        "volatility": 0.009826250341
+      }
+    },
+    {
+      "id": "000973",
+      "parameters": {
+        "mean_reversion": 0.253650168162,
+        "volatility": 0.020923815356
+      }
+    },
+    {
+      "id": "000974",
+      "parameters": {
+        "mean_reversion": 0.200405847337,
+        "volatility": 0.019285327512
+      }
+    },
+    {
+      "id": "000975",
+      "parameters": {
+        "mean_reversion": 0.339961924683,
+        "volatility": 0.0160172355
+      }
+    },
+    {
+      "id": "000976",
+      "parameters": {
+        "mean_reversion": 0.107421971951,
+        "volatility": 0.014460610996
+      }
+    },
+    {
+      "id": "000977",
+      "parameters": {
+        "mean_reversion": 0.432915986534,
+        "volatility": 0.020378956593
+      }
+    },
+    {
+      "id": "000978",
+      "parameters": {
+        "mean_reversion": 0.343507768568,
+        "volatility": 0.00535067233
+      }
+    },
+    {
+      "id": "000979",
+      "parameters": {
+        "mean_reversion": 0.340238977429,
+        "volatility": 0.004703252307
+      }
+    },
+    {
+      "id": "000980",
+      "parameters": {
+        "mean_reversion": 0.432076125201,
+        "volatility": 0.014413372068
+      }
+    },
+    {
+      "id": "000981",
+      "parameters": {
+        "mean_reversion": 0.272124691103,
+        "volatility": 0.029325376674
+      }
+    },
+    {
+      "id": "000982",
+      "parameters": {
+        "mean_reversion": 0.120094158743,
+        "volatility": 0.006871782661
+      }
+    },
+    {
+      "id": "000983",
+      "parameters": {
+        "mean_reversion": 0.492650336307,
+        "volatility": 0.023215140342
+      }
+    },
+    {
+      "id": "000984",
+      "parameters": {
+        "mean_reversion": 0.23134455679,
+        "volatility": 0.026849909697
+      }
+    },
+    {
+      "id": "000985",
+      "parameters": {
+        "mean_reversion": 0.193726351615,
+        "volatility": 0.018787459333
+      }
+    },
+    {
+      "id": "000986",
+      "parameters": {
+        "mean_reversion": 0.183313670326,
+        "volatility": 0.005001330985
+      }
+    },
+    {
+      "id": "000987",
+      "parameters": {
+        "mean_reversion": 0.186736787502,
+        "volatility": 0.004547157657
+      }
+    },
+    {
+      "id": "000988",
+      "parameters": {
+        "mean_reversion": 0.063165782373,
+        "volatility": 0.016194768984
+      }
+    },
+    {
+      "id": "000989",
+      "parameters": {
+        "mean_reversion": 0.305247369912,
+        "volatility": 0.024373369644
+      }
+    },
+    {
+      "id": "000990",
+      "parameters": {
+        "mean_reversion": 0.198291437607,
+        "volatility": 0.012837410532
+      }
+    },
+    {
+      "id": "000991",
+      "parameters": {
+        "mean_reversion": 0.185727140214,
+        "volatility": 0.019894318016
+      }
+    },
+    {
+      "id": "000992",
+      "parameters": {
+        "mean_reversion": 0.322153196316,
+        "volatility": 0.006163753343
+      }
+    },
+    {
+      "id": "000993",
+      "parameters": {
+        "mean_reversion": 0.27523421837,
+        "volatility": 0.028394022969
+      }
+    },
+    {
+      "id": "000994",
+      "parameters": {
+        "mean_reversion": 0.245139627922,
+        "volatility": 0.025931807688
+      }
+    },
+    {
+      "id": "000995",
+      "parameters": {
+        "mean_reversion": 0.314094926808,
+        "volatility": 0.01594832826
+      }
+    },
+    {
+      "id": "000996",
+      "parameters": {
+        "mean_reversion": 0.048586876672,
+        "volatility": 0.005049727766
+      }
+    },
+    {
+      "id": "000997",
+      "parameters": {
+        "mean_reversion": 0.379087186325,
+        "volatility": 0.013216460527
+      }
+    },
+    {
+      "id": "000998",
+      "parameters": {
+        "mean_reversion": 0.071784562822,
+        "volatility": 0.015838799607
+      }
+    },
+    {
+      "id": "000999",
+      "parameters": {
+        "mean_reversion": 0.240023276564,
+        "volatility": 0.004029514045
+      }
+    },
+    {
+      "id": "001000",
+      "parameters": {
+        "mean_reversion": 0.234895804431,
+        "volatility": 0.02785013435
+      }
+    }
+  ]
+}

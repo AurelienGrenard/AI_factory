@@ -1,0 +1,1210 @@
+{
+  "format": "ai_factory.models.v1",
+  "database_id": "rough_bergomi_01__first_100",
+  "model_family": "Rough Bergomi",
+  "specification": "registry/validation/models/rough_bergomi/specifications/rough_bergomi_01__first_100.yaml",
+  "generation_script": "registry/validation/models/rough_bergomi/generators/rough_bergomi_01__first_100.py",
+  "row_count": 100,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.053701317789,
+        "eta": 1.565185067011,
+        "hurst": 0.288358753064,
+        "correlation": -0.403984499333
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.090307061296,
+        "eta": 1.79548226879,
+        "hurst": 0.011547319348,
+        "correlation": -0.823307583964
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.056460251153,
+        "eta": 1.854024499422,
+        "hurst": 0.240199691466,
+        "correlation": -0.880365098937
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.025919769275,
+        "eta": 2.245861754986,
+        "hurst": 0.231987549668,
+        "correlation": -0.30271983039
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.105747224243,
+        "eta": 1.023868767777,
+        "hurst": 0.238480330004,
+        "correlation": -0.538702376123
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.080353762872,
+        "eta": 1.000461579068,
+        "hurst": 0.170785481642,
+        "correlation": -0.416104035178
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.074034212037,
+        "eta": 2.75291019096,
+        "hurst": 0.332179535042,
+        "correlation": -0.910774662619
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.026828309373,
+        "eta": 1.178246108117,
+        "hurst": 0.346689885465,
+        "correlation": -0.942291194416
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.076213409459,
+        "eta": 1.682934714248,
+        "hurst": 0.201748084911,
+        "correlation": -0.858994508471
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.046284429793,
+        "eta": 2.870009519858,
+        "hurst": 0.310904474327,
+        "correlation": -0.384049628297
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.104121886775,
+        "eta": 2.337646698812,
+        "hurst": 0.092641883203,
+        "correlation": -0.591899121698
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.070885763095,
+        "eta": 1.93721635011,
+        "hurst": 0.254606530288,
+        "correlation": -0.904638494371
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.109339403732,
+        "eta": 1.451708743116,
+        "hurst": 0.074424820881,
+        "correlation": -0.786118909967
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.026948916315,
+        "eta": 2.105768428883,
+        "hurst": 0.349269065271,
+        "correlation": -0.791714822099
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.042150783358,
+        "eta": 1.075718250358,
+        "hurst": 0.218734622122,
+        "correlation": -0.422725830675
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.081309533181,
+        "eta": 1.422541823471,
+        "hurst": 0.27767791635,
+        "correlation": -0.781089712103
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.06895955487,
+        "eta": 2.381132227136,
+        "hurst": 0.097329104609,
+        "correlation": -0.943113340955
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.098347343247,
+        "eta": 1.603863549652,
+        "hurst": 0.090184854051,
+        "correlation": -0.604079401452
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.103943439907,
+        "eta": 2.178404068807,
+        "hurst": 0.276590831698,
+        "correlation": -0.586082367547
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.046050542555,
+        "eta": 1.827710706042,
+        "hurst": 0.171200834442,
+        "correlation": -0.478048489097
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.103699642298,
+        "eta": 2.379620155087,
+        "hurst": 0.332491818093,
+        "correlation": -0.8661997077
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.015057648566,
+        "eta": 2.66735099745,
+        "hurst": 0.020836404994,
+        "correlation": -0.626741127396
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.093565692584,
+        "eta": 2.208887938643,
+        "hurst": 0.351245045055,
+        "correlation": -0.683911453263
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.042405563124,
+        "eta": 2.10470908531,
+        "hurst": 0.03976477825,
+        "correlation": -0.544668354158
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.069157535863,
+        "eta": 2.159625291126,
+        "hurst": 0.304267118484,
+        "correlation": -0.510710513039
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.066600121447,
+        "eta": 1.952151251724,
+        "hurst": 0.083216058338,
+        "correlation": -0.395679328282
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.055805990681,
+        "eta": 2.629983591614,
+        "hurst": 0.138592694594,
+        "correlation": -0.502098190965
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.118411743584,
+        "eta": 2.787820877274,
+        "hurst": 0.309383936379,
+        "correlation": -0.766541714332
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.074708099117,
+        "eta": 1.181024463149,
+        "hurst": 0.160147025493,
+        "correlation": -0.335569155338
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.119187639704,
+        "eta": 2.640545248287,
+        "hurst": 0.290563308912,
+        "correlation": -0.534624415328
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.017723733924,
+        "eta": 1.441598651232,
+        "hurst": 0.01283051856,
+        "correlation": -0.477735286445
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.031632628712,
+        "eta": 1.532961599762,
+        "hurst": 0.04159181086,
+        "correlation": -0.64560677298
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.064163373237,
+        "eta": 2.350426723482,
+        "hurst": 0.358547558364,
+        "correlation": -0.833391281305
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.076677936491,
+        "eta": 1.921202654252,
+        "hurst": 0.253671567769,
+        "correlation": -0.305550323328
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.015171473949,
+        "eta": 2.61597799533,
+        "hurst": 0.223438793811,
+        "correlation": -0.7007357269
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.081568288855,
+        "eta": 1.861666278215,
+        "hurst": 0.270787548827,
+        "correlation": -0.792903596099
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.021904699184,
+        "eta": 2.464581474429,
+        "hurst": 0.143541309066,
+        "correlation": -0.603156241268
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.033249733635,
+        "eta": 1.451781609328,
+        "hurst": 0.14788740954,
+        "correlation": -0.629960283189
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.03642272324,
+        "eta": 1.505941509502,
+        "hurst": 0.338106040781,
+        "correlation": -0.688180135045
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.039444443354,
+        "eta": 1.16090381681,
+        "hurst": 0.296820249775,
+        "correlation": -0.683660028473
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.081909518907,
+        "eta": 1.953188264975,
+        "hurst": 0.211871275312,
+        "correlation": -0.742970651895
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.014941776424,
+        "eta": 2.32511163014,
+        "hurst": 0.310553064308,
+        "correlation": -0.563851892721
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.032628129326,
+        "eta": 2.840376687003,
+        "hurst": 0.223329587077,
+        "correlation": -0.464773946669
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.041749370274,
+        "eta": 2.58622719883,
+        "hurst": 0.279652295987,
+        "correlation": -0.697171443602
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.015750465932,
+        "eta": 1.033241654513,
+        "hurst": 0.013064663721,
+        "correlation": -0.525618454645
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.033903961094,
+        "eta": 2.877495686291,
+        "hurst": 0.136323951612,
+        "correlation": -0.818222636712
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.039363254259,
+        "eta": 2.687632560031,
+        "hurst": 0.037810360318,
+        "correlation": -0.937413769151
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.111531848047,
+        "eta": 1.980817468138,
+        "hurst": 0.183847574516,
+        "correlation": -0.676221467025
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.02560145907,
+        "eta": 1.205465148902,
+        "hurst": 0.33012323653,
+        "correlation": -0.354121688165
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.046985867691,
+        "eta": 1.850580874132,
+        "hurst": 0.39013016756,
+        "correlation": -0.764007496374
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.075175114576,
+        "eta": 2.813569507329,
+        "hurst": 0.260083431705,
+        "correlation": -0.760297553096
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.028804112148,
+        "eta": 2.424090409884,
+        "hurst": 0.189849990451,
+        "correlation": -0.937812617939
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.064249987717,
+        "eta": 2.767206715187,
+        "hurst": 0.201373044526,
+        "correlation": -0.3622880115
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.031130230658,
+        "eta": 1.493434331613,
+        "hurst": 0.117783910624,
+        "correlation": -0.557702186814
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.069107748511,
+        "eta": 2.933493739692,
+        "hurst": 0.103071499254,
+        "correlation": -0.39044454543
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.014865287988,
+        "eta": 2.862961643608,
+        "hurst": 0.181715965931,
+        "correlation": -0.349828859797
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.0894473754,
+        "eta": 2.70124607184,
+        "hurst": 0.020519850344,
+        "correlation": -0.679186031088
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.057667204264,
+        "eta": 1.910145191243,
+        "hurst": 0.264935252253,
+        "correlation": -0.620310050918
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.059706525748,
+        "eta": 2.170139373513,
+        "hurst": 0.172683628366,
+        "correlation": -0.779798698908
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.11438086823,
+        "eta": 1.635742156068,
+        "hurst": 0.265256794583,
+        "correlation": -0.432841638714
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.087568896065,
+        "eta": 1.071889952524,
+        "hurst": 0.062679949553,
+        "correlation": -0.611825494695
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.053413500841,
+        "eta": 1.42041590088,
+        "hurst": 0.042549399271,
+        "correlation": -0.869164896797
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.083430747791,
+        "eta": 2.232505332446,
+        "hurst": 0.353006147732,
+        "correlation": -0.861513591377
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.047807201635,
+        "eta": 1.484382091789,
+        "hurst": 0.290991596734,
+        "correlation": -0.735906123876
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.064176581918,
+        "eta": 2.409385099774,
+        "hurst": 0.366149941551,
+        "correlation": -0.926387733378
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.110006801864,
+        "eta": 2.919488437241,
+        "hurst": 0.188612079438,
+        "correlation": -0.306986927189
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.025911262893,
+        "eta": 1.508399692131,
+        "hurst": 0.081106142999,
+        "correlation": -0.902610833367
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.065632493893,
+        "eta": 1.015128654661,
+        "hurst": 0.331263900235,
+        "correlation": -0.38657737496
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.030136966378,
+        "eta": 1.566017711768,
+        "hurst": 0.394073226344,
+        "correlation": -0.817137845041
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.017427156273,
+        "eta": 2.766841554781,
+        "hurst": 0.38808710554,
+        "correlation": -0.727128220344
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.069058770324,
+        "eta": 2.119294861564,
+        "hurst": 0.290636093001,
+        "correlation": -0.348288252117
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.025235262901,
+        "eta": 2.420756649924,
+        "hurst": 0.375725033128,
+        "correlation": -0.732763587096
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.029726941061,
+        "eta": 2.985635773046,
+        "hurst": 0.081426759219,
+        "correlation": -0.786630793026
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.041425770425,
+        "eta": 1.52267842344,
+        "hurst": 0.069951961905,
+        "correlation": -0.337794711447
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.053591412968,
+        "eta": 2.182052965974,
+        "hurst": 0.207794106085,
+        "correlation": -0.308828057203
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.047936574196,
+        "eta": 1.297249579569,
+        "hurst": 0.125975389256,
+        "correlation": -0.868969303119
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.051107623944,
+        "eta": 2.97704483266,
+        "hurst": 0.047887308352,
+        "correlation": -0.311691693886
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.102716718685,
+        "eta": 1.232884427765,
+        "hurst": 0.056189246903,
+        "correlation": -0.702894603397
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.104199495042,
+        "eta": 1.537168597104,
+        "hurst": 0.262112856243,
+        "correlation": -0.710606016795
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.036977513757,
+        "eta": 2.843103496591,
+        "hurst": 0.332183714929,
+        "correlation": -0.40558825889
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.02387009045,
+        "eta": 2.185168065364,
+        "hurst": 0.106164010867,
+        "correlation": -0.311884590838
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.050884774745,
+        "eta": 1.713792857481,
+        "hurst": 0.27620042465,
+        "correlation": -0.606112446979
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.072759296977,
+        "eta": 1.212117829127,
+        "hurst": 0.051831107551,
+        "correlation": -0.383684770908
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.036686058791,
+        "eta": 1.398266390665,
+        "hurst": 0.139938384359,
+        "correlation": -0.621127725515
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.056575018753,
+        "eta": 2.954453744227,
+        "hurst": 0.111137734266,
+        "correlation": -0.526141126576
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.108617244699,
+        "eta": 1.382459331537,
+        "hurst": 0.094850730718,
+        "correlation": -0.691970572696
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.083709930609,
+        "eta": 1.868746781955,
+        "hurst": 0.335164140415,
+        "correlation": -0.5399660316
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.05133231857,
+        "eta": 1.569399993168,
+        "hurst": 0.085895335063,
+        "correlation": -0.422202922654
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.06388112374,
+        "eta": 1.782406387152,
+        "hurst": 0.222963432948,
+        "correlation": -0.428627002687
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.054658233976,
+        "eta": 2.532161208102,
+        "hurst": 0.255742342974,
+        "correlation": -0.935052796052
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.049226785366,
+        "eta": 1.071297904244,
+        "hurst": 0.056968426254,
+        "correlation": -0.72419854906
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.093113977845,
+        "eta": 2.406211470952,
+        "hurst": 0.115887609037,
+        "correlation": -0.606477224157
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.082342337166,
+        "eta": 1.529268555576,
+        "hurst": 0.093347134698,
+        "correlation": -0.724596075743
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.01921597171,
+        "eta": 1.211216491414,
+        "hurst": 0.03854265659,
+        "correlation": -0.301489767985
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.060656126457,
+        "eta": 1.246300002793,
+        "hurst": 0.079892761764,
+        "correlation": -0.744294815493
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.078388379187,
+        "eta": 1.205992822768,
+        "hurst": 0.282857430832,
+        "correlation": -0.856472234713
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.041360499155,
+        "eta": 2.456804372137,
+        "hurst": 0.077759965645,
+        "correlation": -0.573577399954
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.105642997514,
+        "eta": 1.235696925549,
+        "hurst": 0.347820836961,
+        "correlation": -0.381432822329
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.088752012852,
+        "eta": 2.805129559012,
+        "hurst": 0.236484159416,
+        "correlation": -0.428963120322
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0,
+        "dividend_yield": 0.0,
+        "forward_variance": 0.083538420018,
+        "eta": 2.037167527014,
+        "hurst": 0.017075179851,
+        "correlation": -0.783602138172
+      }
+    }
+  ]
+}

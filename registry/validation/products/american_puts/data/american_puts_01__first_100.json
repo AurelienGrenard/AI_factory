@@ -1,0 +1,910 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "american_puts_01__first_100",
+  "product_family": "American Puts",
+  "specification": "registry/validation/products/american_puts/specifications/american_puts_01__first_100.yaml",
+  "generation_script": "registry/validation/products/american_puts/generators/american_puts_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "strike": 0.9414759271,
+        "maturity": 1.771142697515,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "strike": 0.77260891176,
+        "maturity": 1.438469943115,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "strike": 0.926712754003,
+        "maturity": 1.793005219438,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "strike": 1.266056250253,
+        "maturity": 2.437674739796,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "strike": 1.031498941476,
+        "maturity": 1.520997318701,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "strike": 0.968612411523,
+        "maturity": 1.557841202176,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "strike": 1.679965899185,
+        "maturity": 2.771604696434,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "strike": 1.101419020015,
+        "maturity": 2.356611353239,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "strike": 1.028483033773,
+        "maturity": 0.425380826608,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "strike": 1.228809307269,
+        "maturity": 1.361226593212,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "strike": 0.935657596902,
+        "maturity": 2.646957504398,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "strike": 1.475120256789,
+        "maturity": 2.812487244635,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "strike": 1.001643575145,
+        "maturity": 2.783143102007,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "strike": 1.033999312351,
+        "maturity": 0.464763320701,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "strike": 1.193320489975,
+        "maturity": 1.977881678196,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "strike": 1.300072438215,
+        "maturity": 1.908773402072,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "strike": 0.997487708749,
+        "maturity": 0.160484051031,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "strike": 0.752618923706,
+        "maturity": 2.832954164546,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "strike": 1.415572833713,
+        "maturity": 2.607039576173,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "strike": 0.919218895748,
+        "maturity": 2.249867069157,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "strike": 0.72660860358,
+        "maturity": 2.061625501151,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "strike": 0.587091331838,
+        "maturity": 2.996723562508,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "strike": 0.946010574549,
+        "maturity": 0.281678603273,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "strike": 1.034752564221,
+        "maturity": 0.667932871797,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "strike": 1.076101909831,
+        "maturity": 2.188460725272,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "strike": 1.026432353349,
+        "maturity": 2.017884219599,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "strike": 0.717510433657,
+        "maturity": 2.420087968999,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "strike": 0.766435762926,
+        "maturity": 1.730384091274,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "strike": 1.31761400741,
+        "maturity": 1.949756447352,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "strike": 1.139065937808,
+        "maturity": 0.862884726346,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "strike": 1.261700669545,
+        "maturity": 1.508848765584,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "strike": 0.877609887379,
+        "maturity": 0.672477151161,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "strike": 0.614848016783,
+        "maturity": 2.9026787136,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "strike": 1.112720344381,
+        "maturity": 1.019444901972,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "strike": 0.89025981966,
+        "maturity": 1.511617287343,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "strike": 1.15954944409,
+        "maturity": 1.788791419599,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "strike": 0.934477858564,
+        "maturity": 0.676498242411,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "strike": 0.880565406239,
+        "maturity": 1.046203142197,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "strike": 0.691896321876,
+        "maturity": 2.728324574292,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "strike": 1.502425428956,
+        "maturity": 2.725637535788,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "strike": 1.121902509145,
+        "maturity": 0.581112321689,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "strike": 0.835557372855,
+        "maturity": 1.40286059795,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "strike": 0.996348507901,
+        "maturity": 0.125978454278,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "strike": 1.036750562536,
+        "maturity": 0.863533497099,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "strike": 0.787971421485,
+        "maturity": 2.658004703573,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "strike": 1.031987843671,
+        "maturity": 1.214236937589,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "strike": 0.894880326116,
+        "maturity": 1.766312173151,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "strike": 0.980446152552,
+        "maturity": 0.288093142997,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "strike": 1.078258824015,
+        "maturity": 1.017955169344,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "strike": 0.955561678601,
+        "maturity": 0.910842530206,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "strike": 1.102676116941,
+        "maturity": 1.064973656098,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "strike": 1.077378069603,
+        "maturity": 0.618592366586,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "strike": 0.719209483201,
+        "maturity": 1.98485327222,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "strike": 1.132194995298,
+        "maturity": 1.331809239996,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "strike": 0.781053084758,
+        "maturity": 1.782150286085,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "strike": 0.978826956858,
+        "maturity": 2.724397275471,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "strike": 0.696436354314,
+        "maturity": 1.963546235221,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "strike": 1.022599900132,
+        "maturity": 0.20548144013,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "strike": 1.325414521586,
+        "maturity": 2.725667879538,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "strike": 0.990498161611,
+        "maturity": 0.677175647647,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "strike": 1.060033934689,
+        "maturity": 1.236441963672,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "strike": 0.921477464251,
+        "maturity": 0.537905877349,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "strike": 0.963991457313,
+        "maturity": 0.686860664835,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "strike": 0.971012800046,
+        "maturity": 1.450124544955,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "strike": 1.319539617736,
+        "maturity": 2.955229358505,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "strike": 1.054620958041,
+        "maturity": 2.417681351624,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "strike": 1.008007324792,
+        "maturity": 0.848633331547,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "strike": 1.091026737776,
+        "maturity": 1.465919695979,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "strike": 0.761568908958,
+        "maturity": 1.987584678349,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "strike": 0.858892639137,
+        "maturity": 1.346037431669,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "strike": 0.888357680789,
+        "maturity": 1.39295892952,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "strike": 0.982525551703,
+        "maturity": 0.136941971985,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "strike": 0.815124677861,
+        "maturity": 1.440815123953,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "strike": 0.701442773863,
+        "maturity": 2.618212479545,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "strike": 0.694831835716,
+        "maturity": 2.882292995123,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "strike": 0.768496365479,
+        "maturity": 2.314718123787,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "strike": 0.786829724915,
+        "maturity": 1.248763522958,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "strike": 0.913081781914,
+        "maturity": 2.972159462098,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "strike": 0.710502825847,
+        "maturity": 2.340251684043,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "strike": 1.44322371772,
+        "maturity": 2.826046442273,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "strike": 1.064112462105,
+        "maturity": 0.955453436637,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "strike": 1.415859416026,
+        "maturity": 1.937968340615,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "strike": 0.970992152931,
+        "maturity": 2.867818770047,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "strike": 1.079407860571,
+        "maturity": 0.454953740186,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "strike": 1.023897505057,
+        "maturity": 0.173861099242,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "strike": 0.94876962931,
+        "maturity": 0.768778929846,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "strike": 0.946383017291,
+        "maturity": 0.733974915415,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "strike": 0.803252291018,
+        "maturity": 1.722793328003,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "strike": 1.114768080123,
+        "maturity": 2.040472414393,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "strike": 1.010362730261,
+        "maturity": 0.465373866192,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "strike": 0.773330469741,
+        "maturity": 2.239366935556,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "strike": 1.111511041581,
+        "maturity": 0.684267704656,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "strike": 0.996059529695,
+        "maturity": 1.235040682436,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "strike": 1.216824399313,
+        "maturity": 1.252065305084,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "strike": 0.858567225485,
+        "maturity": 2.244639947089,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "strike": 0.953105678266,
+        "maturity": 1.421957691365,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "strike": 1.159883760831,
+        "maturity": 1.61964593656,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "strike": 0.605387871416,
+        "maturity": 2.640658547723,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "strike": 1.043190942802,
+        "maturity": 1.4483805796,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "strike": 0.820012449876,
+        "maturity": 2.534616167026,
+        "exercise_frequency": "weekly",
+        "exercise_dates_per_year": 52
+      }
+    }
+  ]
+}

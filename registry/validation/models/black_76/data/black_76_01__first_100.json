@@ -1,0 +1,710 @@
+{
+  "format": "ai_factory.models.v1",
+  "database_id": "black_76_01__first_100",
+  "model_family": "Black 76",
+  "specification": "registry/validation/models/black_76/specifications/black_76_01__first_100.yaml",
+  "generation_script": "registry/validation/models/black_76/generators/black_76_01__first_100.py",
+  "row_count": 100,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "volatility": 0.382596988679,
+        "displacement": 0.044495432692
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "volatility": 0.400989734783,
+        "displacement": 0.050786363388
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "volatility": 0.255666874681,
+        "displacement": 0.04120071449
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "volatility": 0.084055227035,
+        "displacement": 0.048454230734
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "volatility": 0.712112166261,
+        "displacement": 0.033271568018
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "volatility": 0.051220793201,
+        "displacement": 0.035960738839
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "volatility": 0.69915230262,
+        "displacement": 0.044189422483
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "volatility": 0.768067851412,
+        "displacement": 0.051134943013
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "volatility": 0.56582618829,
+        "displacement": 0.03274931339
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "volatility": 0.07171656178,
+        "displacement": 0.044061125756
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "volatility": 0.761466905341,
+        "displacement": 0.031692948454
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "volatility": 0.705862818501,
+        "displacement": 0.036745564939
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "volatility": 0.595562589861,
+        "displacement": 0.036471422663
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "volatility": 0.395554446016,
+        "displacement": 0.046807851348
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "volatility": 0.470388090803,
+        "displacement": 0.045248068239
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "volatility": 0.57603726057,
+        "displacement": 0.037875925225
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "volatility": 0.559023614839,
+        "displacement": 0.056973397279
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "volatility": 0.074762996443,
+        "displacement": 0.050100179968
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "volatility": 0.744445531844,
+        "displacement": 0.035044247821
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "volatility": 0.30661569598,
+        "displacement": 0.03743006155
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "volatility": 0.617279283219,
+        "displacement": 0.035881945827
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "volatility": 0.582663610618,
+        "displacement": 0.038994643599
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "volatility": 0.264580699889,
+        "displacement": 0.033072427515
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "volatility": 0.378375266079,
+        "displacement": 0.050137637017
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "volatility": 0.676433305122,
+        "displacement": 0.059196128537
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "volatility": 0.240419844439,
+        "displacement": 0.055044474533
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "volatility": 0.449923287419,
+        "displacement": 0.054462566891
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "volatility": 0.106123106071,
+        "displacement": 0.054528800551
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "volatility": 0.782978785323,
+        "displacement": 0.03945890539
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "volatility": 0.314457550511,
+        "displacement": 0.055194296708
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "volatility": 0.4523427676,
+        "displacement": 0.030484447744
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "volatility": 0.479910520761,
+        "displacement": 0.05548898043
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "volatility": 0.101710094645,
+        "displacement": 0.040488864571
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "volatility": 0.456026290817,
+        "displacement": 0.044086721371
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "volatility": 0.466579780605,
+        "displacement": 0.032016213139
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "volatility": 0.712135656195,
+        "displacement": 0.057386271878
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "volatility": 0.445136423555,
+        "displacement": 0.057799457096
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "volatility": 0.504959292867,
+        "displacement": 0.049652956162
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "volatility": 0.508955754963,
+        "displacement": 0.036015759608
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "volatility": 0.704417145735,
+        "displacement": 0.056836224144
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "volatility": 0.309757672116,
+        "displacement": 0.041736670058
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "volatility": 0.073672139418,
+        "displacement": 0.051874010299
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "volatility": 0.722332874936,
+        "displacement": 0.051307783787
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "volatility": 0.447089305712,
+        "displacement": 0.051709763993
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "volatility": 0.681968738075,
+        "displacement": 0.059083163295
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "volatility": 0.684981155657,
+        "displacement": 0.051427614248
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "volatility": 0.239251805103,
+        "displacement": 0.031807745149
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "volatility": 0.145537940011,
+        "displacement": 0.055803152552
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "volatility": 0.497165663616,
+        "displacement": 0.059594231589
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "volatility": 0.245487231395,
+        "displacement": 0.030880928981
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "volatility": 0.48088057937,
+        "displacement": 0.059595267683
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "volatility": 0.386213561968,
+        "displacement": 0.035501438394
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "volatility": 0.61598329902,
+        "displacement": 0.038714738478
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "volatility": 0.207206511736,
+        "displacement": 0.057203143464
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "volatility": 0.182560576341,
+        "displacement": 0.059750840716
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "volatility": 0.313229820499,
+        "displacement": 0.049000595006
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "volatility": 0.641399906407,
+        "displacement": 0.036642645268
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "volatility": 0.68681827308,
+        "displacement": 0.032996382635
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "volatility": 0.364184544055,
+        "displacement": 0.032409584949
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "volatility": 0.074070911779,
+        "displacement": 0.034223391853
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "volatility": 0.355758116563,
+        "displacement": 0.059734026458
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "volatility": 0.32741961737,
+        "displacement": 0.03642821282
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "volatility": 0.50845403921,
+        "displacement": 0.059642512406
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "volatility": 0.253511773521,
+        "displacement": 0.035708831392
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "volatility": 0.606647852733,
+        "displacement": 0.051957844348
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "volatility": 0.362261297862,
+        "displacement": 0.055348159937
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "volatility": 0.148035291041,
+        "displacement": 0.059299442688
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "volatility": 0.106968327583,
+        "displacement": 0.04200549869
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "volatility": 0.75799332016,
+        "displacement": 0.035354896282
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "volatility": 0.212492687843,
+        "displacement": 0.046824531447
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "volatility": 0.352556777169,
+        "displacement": 0.049166961688
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "volatility": 0.274567770521,
+        "displacement": 0.040595630194
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "volatility": 0.599269166106,
+        "displacement": 0.056101062734
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "volatility": 0.734056202677,
+        "displacement": 0.035775767803
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "volatility": 0.562365649367,
+        "displacement": 0.057955917054
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "volatility": 0.670483206148,
+        "displacement": 0.045553131028
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "volatility": 0.162159843004,
+        "displacement": 0.045498037183
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "volatility": 0.533283832524,
+        "displacement": 0.058082918302
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "volatility": 0.750178434927,
+        "displacement": 0.044215111634
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "volatility": 0.485312331858,
+        "displacement": 0.052962670937
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "volatility": 0.753741733712,
+        "displacement": 0.040083845652
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "volatility": 0.425702460675,
+        "displacement": 0.031661402289
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "volatility": 0.31111712688,
+        "displacement": 0.042543787536
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "volatility": 0.509671464021,
+        "displacement": 0.039188810351
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "volatility": 0.60507539949,
+        "displacement": 0.037622736791
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "volatility": 0.748559902346,
+        "displacement": 0.059161782312
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "volatility": 0.436114780704,
+        "displacement": 0.055059447762
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "volatility": 0.266656233213,
+        "displacement": 0.053751449516
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "volatility": 0.507445833687,
+        "displacement": 0.030387557301
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "volatility": 0.434091085958,
+        "displacement": 0.052817008806
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "volatility": 0.414963580301,
+        "displacement": 0.059487397737
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "volatility": 0.377219315193,
+        "displacement": 0.035442605683
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "volatility": 0.680632794899,
+        "displacement": 0.053252764345
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "volatility": 0.708598598005,
+        "displacement": 0.031991992198
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "volatility": 0.725974816229,
+        "displacement": 0.057346376904
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "volatility": 0.243519681605,
+        "displacement": 0.055992953394
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "volatility": 0.270482830628,
+        "displacement": 0.057275708666
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "volatility": 0.213727301842,
+        "displacement": 0.050586436725
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "volatility": 0.314662333328,
+        "displacement": 0.038486661207
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "volatility": 0.248926821671,
+        "displacement": 0.04430518191
+      }
+    }
+  ]
+}

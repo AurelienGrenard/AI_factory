@@ -1,0 +1,910 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "caplets_01__first_100",
+  "product_family": "Caplets",
+  "specification": "registry/validation/products/caplets/specifications/caplets_01__first_100.yaml",
+  "generation_script": "registry/validation/products/caplets/generators/caplets_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "fixing_time": 0.25,
+        "accrual_period": 0.5,
+        "strike": 0.005790621479973197,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "fixing_time": 2.75,
+        "accrual_period": 0.5,
+        "strike": 0.0024215553421527147,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "fixing_time": 9.0,
+        "accrual_period": 0.5,
+        "strike": 0.05923875442706049,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "fixing_time": 7.5,
+        "accrual_period": 0.5,
+        "strike": 0.04656475360505283,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "fixing_time": 3.25,
+        "accrual_period": 0.5,
+        "strike": 0.01942273451946676,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "fixing_time": 7.75,
+        "accrual_period": 0.5,
+        "strike": 0.007707497468218208,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "fixing_time": 9.75,
+        "accrual_period": 0.5,
+        "strike": 0.054114356180652974,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "fixing_time": 9.25,
+        "accrual_period": 0.5,
+        "strike": 0.023133859010413288,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "fixing_time": 0.75,
+        "accrual_period": 0.5,
+        "strike": 0.06328108136542142,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "fixing_time": 5.75,
+        "accrual_period": 0.5,
+        "strike": 0.07293708845041692,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "fixing_time": 1.0,
+        "accrual_period": 0.5,
+        "strike": 0.018259741561487318,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "fixing_time": 5.75,
+        "accrual_period": 0.5,
+        "strike": 0.06916474864818156,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.04427552009932697,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "fixing_time": 1.0,
+        "accrual_period": 0.5,
+        "strike": 0.015498751616105437,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "fixing_time": 6.0,
+        "accrual_period": 0.5,
+        "strike": 0.01787045187316835,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "fixing_time": 3.0,
+        "accrual_period": 0.5,
+        "strike": 0.04951212654821575,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "fixing_time": 9.5,
+        "accrual_period": 0.5,
+        "strike": 0.06902902853675187,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "fixing_time": 2.5,
+        "accrual_period": 0.5,
+        "strike": 0.0007943912129849196,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.0797455891687423,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "fixing_time": 6.25,
+        "accrual_period": 0.5,
+        "strike": 0.06209824343211949,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "fixing_time": 9.25,
+        "accrual_period": 0.5,
+        "strike": 0.053981606820598244,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "fixing_time": 10.0,
+        "accrual_period": 0.5,
+        "strike": 0.017264222959056497,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "fixing_time": 5.75,
+        "accrual_period": 0.5,
+        "strike": 0.05301318001933396,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "fixing_time": 9.75,
+        "accrual_period": 0.5,
+        "strike": 0.014968604063615203,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "fixing_time": 4.75,
+        "accrual_period": 0.5,
+        "strike": 0.02490617864765227,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "fixing_time": 9.5,
+        "accrual_period": 0.5,
+        "strike": 0.03165835675783456,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "fixing_time": 8.25,
+        "accrual_period": 0.5,
+        "strike": 0.03444241010583937,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "fixing_time": 0.25,
+        "accrual_period": 0.5,
+        "strike": 0.06440862325020134,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.05543122741393745,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "fixing_time": 8.5,
+        "accrual_period": 0.5,
+        "strike": 0.02330850704573095,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.040865353839471937,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.05346445948816836,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "fixing_time": 8.5,
+        "accrual_period": 0.5,
+        "strike": 0.004491370925679803,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "fixing_time": 5.25,
+        "accrual_period": 0.5,
+        "strike": 0.02580178332515061,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.0348382165748626,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "fixing_time": 5.0,
+        "accrual_period": 0.5,
+        "strike": 0.05497095857746899,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "fixing_time": 9.25,
+        "accrual_period": 0.5,
+        "strike": 0.06329650099389256,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "fixing_time": 1.75,
+        "accrual_period": 0.5,
+        "strike": 0.03117896898649633,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.03348501986823976,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "fixing_time": 6.75,
+        "accrual_period": 0.5,
+        "strike": 0.0526855428237468,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "fixing_time": 7.0,
+        "accrual_period": 0.5,
+        "strike": 0.02737710268236697,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "fixing_time": 7.0,
+        "accrual_period": 0.5,
+        "strike": 0.0015172758232802153,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.019406041773036124,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "fixing_time": 8.25,
+        "accrual_period": 0.5,
+        "strike": 0.011389889931306242,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "fixing_time": 6.75,
+        "accrual_period": 0.5,
+        "strike": 0.0020650226343423127,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.014672930045053363,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "fixing_time": 9.75,
+        "accrual_period": 0.5,
+        "strike": 0.0052465722616761926,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "fixing_time": 5.5,
+        "accrual_period": 0.5,
+        "strike": 0.0725211728271097,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "fixing_time": 6.25,
+        "accrual_period": 0.5,
+        "strike": 0.03755018797703087,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "fixing_time": 0.5,
+        "accrual_period": 0.5,
+        "strike": 0.05818887951783836,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "fixing_time": 10.0,
+        "accrual_period": 0.5,
+        "strike": 0.010598261607810855,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.022401993470266463,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "fixing_time": 5.25,
+        "accrual_period": 0.5,
+        "strike": 0.07409789462573826,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "fixing_time": 9.0,
+        "accrual_period": 0.5,
+        "strike": 0.03685403964482248,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "fixing_time": 4.0,
+        "accrual_period": 0.5,
+        "strike": 0.0055447692889720205,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "fixing_time": 0.5,
+        "accrual_period": 0.5,
+        "strike": 0.008121836325153708,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.0038789664488285782,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "fixing_time": 5.5,
+        "accrual_period": 0.5,
+        "strike": 0.011814777487888933,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "fixing_time": 8.0,
+        "accrual_period": 0.5,
+        "strike": 0.04032216501422226,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "fixing_time": 5.75,
+        "accrual_period": 0.5,
+        "strike": 0.058037609038874505,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "fixing_time": 1.75,
+        "accrual_period": 0.5,
+        "strike": 0.07647537703625858,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "fixing_time": 5.75,
+        "accrual_period": 0.5,
+        "strike": 0.06968451623804868,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "fixing_time": 3.0,
+        "accrual_period": 0.5,
+        "strike": 0.05849871567450464,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "fixing_time": 2.0,
+        "accrual_period": 0.5,
+        "strike": 0.02350747142918408,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "fixing_time": 6.25,
+        "accrual_period": 0.5,
+        "strike": 0.041206585625186566,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "fixing_time": 4.0,
+        "accrual_period": 0.5,
+        "strike": 0.0365675421897322,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.04025067177601159,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "fixing_time": 7.25,
+        "accrual_period": 0.5,
+        "strike": 0.04644573996774853,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "fixing_time": 7.0,
+        "accrual_period": 0.5,
+        "strike": 0.039555604541674255,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "fixing_time": 1.0,
+        "accrual_period": 0.5,
+        "strike": 0.07692677413113415,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "fixing_time": 2.25,
+        "accrual_period": 0.5,
+        "strike": 0.02032401707954705,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.07780368731357157,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "fixing_time": 9.75,
+        "accrual_period": 0.5,
+        "strike": 0.02148083913139999,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "fixing_time": 1.25,
+        "accrual_period": 0.5,
+        "strike": 0.04216844373382628,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "fixing_time": 7.25,
+        "accrual_period": 0.5,
+        "strike": 0.022057547373697164,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "fixing_time": 10.0,
+        "accrual_period": 0.5,
+        "strike": 0.0034507467318326233,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "fixing_time": 2.5,
+        "accrual_period": 0.5,
+        "strike": 0.05982041004113853,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "fixing_time": 7.25,
+        "accrual_period": 0.5,
+        "strike": 0.05621895988471806,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "fixing_time": 6.5,
+        "accrual_period": 0.5,
+        "strike": 0.058774380022659896,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "fixing_time": 0.75,
+        "accrual_period": 0.5,
+        "strike": 0.004092668192461133,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "fixing_time": 1.0,
+        "accrual_period": 0.5,
+        "strike": 0.03211500157602131,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "fixing_time": 2.5,
+        "accrual_period": 0.5,
+        "strike": 0.0700452118460089,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "fixing_time": 1.25,
+        "accrual_period": 0.5,
+        "strike": 0.006416739327833057,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "fixing_time": 6.75,
+        "accrual_period": 0.5,
+        "strike": 0.014484179997816682,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "fixing_time": 3.75,
+        "accrual_period": 0.5,
+        "strike": 0.034187520360574125,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "fixing_time": 7.25,
+        "accrual_period": 0.5,
+        "strike": 0.07062717313878239,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "fixing_time": 1.75,
+        "accrual_period": 0.5,
+        "strike": 0.07013907498680055,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "fixing_time": 1.5,
+        "accrual_period": 0.5,
+        "strike": 0.0677437445614487,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "fixing_time": 6.0,
+        "accrual_period": 0.5,
+        "strike": 0.042539349189028144,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "fixing_time": 7.25,
+        "accrual_period": 0.5,
+        "strike": 0.059986392399296165,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "fixing_time": 9.25,
+        "accrual_period": 0.5,
+        "strike": 0.06297998576425017,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "fixing_time": 8.0,
+        "accrual_period": 0.5,
+        "strike": 0.029502792032435537,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "fixing_time": 9.75,
+        "accrual_period": 0.5,
+        "strike": 0.055508836144581436,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "fixing_time": 6.25,
+        "accrual_period": 0.5,
+        "strike": 0.03703318596817553,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "fixing_time": 0.5,
+        "accrual_period": 0.5,
+        "strike": 0.04401544705964625,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "fixing_time": 2.5,
+        "accrual_period": 0.5,
+        "strike": 0.025689413519576192,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "fixing_time": 2.0,
+        "accrual_period": 0.5,
+        "strike": 0.039045231407508256,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "fixing_time": 7.0,
+        "accrual_period": 0.5,
+        "strike": 0.035087430765852336,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "fixing_time": 6.0,
+        "accrual_period": 0.5,
+        "strike": 0.04167777772061527,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "fixing_time": 7.75,
+        "accrual_period": 0.5,
+        "strike": 0.005581521363928914,
+        "notional": 1.0
+      }
+    }
+  ]
+}

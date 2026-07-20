@@ -1,0 +1,1310 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "bermudan_swaptions_01__first_100",
+  "product_family": "Bermudan Swaptions",
+  "specification": "registry/validation/products/bermudan_swaptions/specifications/bermudan_swaptions_01__first_100.yaml",
+  "generation_script": "registry/validation/products/bermudan_swaptions/generators/bermudan_swaptions_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.07649452856741845,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.06843280726112426,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.022655138978734612,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.070854149190709,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.06352088647894562,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.050823990358039736,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.05224235693924129,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.04733740537427366,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.005882452512159944,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.02768470619805157,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.062175198765471576,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.05054244299419224,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.07870039009489119,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.055040443232283,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.06763483225367964,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.06867011900059879,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.02668389051221311,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.045992659023031596,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.01835233827121556,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.07434948305599391,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.015628037257120014,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.0744607034418732,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.06205463252030313,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.06604200477711857,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.05030046601779759,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.028846870874986053,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.004178064512088895,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.053207082180306314,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.05993166747502983,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.07215524195693433,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.00043626709841191767,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.024025576813146474,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.06599175377748907,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.011185734188184143,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.03382807363756001,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.018217488015070556,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.051644835406914356,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.06954772788099944,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.00260029680095613,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.07116514817811549,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.013110342668369412,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.02555824880488217,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.0774367327708751,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.07371329882182182,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.054145393231883644,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.04791302305646241,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.060667693549767136,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.0018187487404793502,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.07590617672540248,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.015644159531220794,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.04936753797344864,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.05408445150591433,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.03130349933169782,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.014691605614498258,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.04299626010470092,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.04037081587128341,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 6,
+        "fixed_rate": 0.049716730611398814,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.06542225341312588,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.005611444441601634,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 7,
+        "fixed_rate": 0.033980557126924396,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.06970904686488211,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.025204372396692633,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.05202225747518242,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.004141176184639335,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.07505542035214603,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.045682795764878395,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.050150323407724504,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.04163519845344126,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.05507683646865189,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.06994412214495242,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.06555445910431444,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.0736269408557564,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.003464854815974832,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 5,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.018703862922266126,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.053262893641367555,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.059785814611241224,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.04357492127455771,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.026127283768728377,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 4,
+        "fixed_rate": 0.04960591432638466,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 16,
+        "fixed_rate": 0.042833273885771635,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 9,
+        "fixed_rate": 0.04143497849814594,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "first_exercise": 1.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.028387268828228118,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 19,
+        "fixed_rate": 0.016147743361070752,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 5,
+        "fixed_rate": 0.013460903810337186,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "first_exercise": 2.0,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.0094748452026397,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 8,
+        "fixed_rate": 0.0172954302188009,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 7,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.0733489875588566,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.012270563086494804,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 10,
+        "fixed_rate": 0.062261350871995094,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "first_exercise": 0.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.06668434740044177,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.05265754566527903,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "first_exercise": 3.0,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 14,
+        "fixed_rate": 0.06344876780174673,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 6,
+        "accrual_period": 0.5,
+        "payment_count": 11,
+        "fixed_rate": 0.07626054634340107,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 17,
+        "fixed_rate": 0.05829565345309675,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "first_exercise": 4.0,
+        "exercise_period": 0.5,
+        "exercise_count": 8,
+        "accrual_period": 0.5,
+        "payment_count": 15,
+        "fixed_rate": 0.0004653285164386034,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "first_exercise": 5.0,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.06901793534867466,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "first_exercise": 1.0,
+        "exercise_period": 0.5,
+        "exercise_count": 4,
+        "accrual_period": 0.5,
+        "payment_count": 20,
+        "fixed_rate": 0.0014647688250988722,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "first_exercise": 2.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 18,
+        "fixed_rate": 0.05185426420532167,
+        "direction": -1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "first_exercise": 4.5,
+        "exercise_period": 0.5,
+        "exercise_count": 3,
+        "accrual_period": 0.5,
+        "payment_count": 12,
+        "fixed_rate": 0.0251116253901273,
+        "direction": 1,
+        "notional": 1.0
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "first_exercise": 3.5,
+        "exercise_period": 0.5,
+        "exercise_count": 2,
+        "accrual_period": 0.5,
+        "payment_count": 13,
+        "fixed_rate": 0.04624149170704186,
+        "direction": 1,
+        "notional": 1.0
+      }
+    }
+  ]
+}

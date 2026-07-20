@@ -1,0 +1,1310 @@
+{
+  "format": "ai_factory.models.v1",
+  "database_id": "heston_03__first_100",
+  "model_family": "Heston",
+  "specification": "registry/validation/models/heston/specifications/heston_03__first_100.yaml",
+  "generation_script": "registry/validation/models/heston/generators/heston_03__first_100.py",
+  "row_count": 100,
+  "models": [
+    {
+      "id": "000001",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.03743718612,
+        "dividend_yield": 0.03084933947,
+        "initial_variance": 0.053506192489,
+        "theta": 0.02477604002,
+        "kappa": 2.275080786378,
+        "volatility_of_variance": 0.447680546253,
+        "rho": -0.534369998879
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.018720604433,
+        "dividend_yield": 0.015981044393,
+        "initial_variance": 0.019237812088,
+        "theta": 0.039010018387,
+        "kappa": 1.186515248322,
+        "volatility_of_variance": 0.682475373584,
+        "rho": -0.439969083935
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.059342221981,
+        "dividend_yield": 0.007888470084,
+        "initial_variance": 0.039326821059,
+        "theta": 0.072076830079,
+        "kappa": 0.521308611671,
+        "volatility_of_variance": 0.393914848428,
+        "rho": -0.350221882819
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.077177691264,
+        "dividend_yield": 0.030818145041,
+        "initial_variance": 0.046532432687,
+        "theta": 0.132621847263,
+        "kappa": 3.997227108979,
+        "volatility_of_variance": 0.364411678001,
+        "rho": -0.399914905906
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.048226603037,
+        "dividend_yield": 0.045356287685,
+        "initial_variance": 0.015385900106,
+        "theta": 0.014075429093,
+        "kappa": 0.67872409249,
+        "volatility_of_variance": 0.199299585966,
+        "rho": -0.494353492383
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.050772760352,
+        "dividend_yield": 0.004812378873,
+        "initial_variance": 0.027207878187,
+        "theta": 0.115346921517,
+        "kappa": 1.520191615738,
+        "volatility_of_variance": 0.202832088339,
+        "rho": -0.66462709062
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.05511223183,
+        "dividend_yield": 0.021933157096,
+        "initial_variance": 0.028934383976,
+        "theta": 0.088319869346,
+        "kappa": 2.959645530151,
+        "volatility_of_variance": 0.496003055378,
+        "rho": -0.792438615218
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.069035967635,
+        "dividend_yield": 0.012750486034,
+        "initial_variance": 0.029582811355,
+        "theta": 0.028008578874,
+        "kappa": 2.099784191756,
+        "volatility_of_variance": 0.585763225514,
+        "rho": -0.332483892317
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.060392461466,
+        "dividend_yield": 0.048200564837,
+        "initial_variance": 0.101239908728,
+        "theta": 0.046264447563,
+        "kappa": 2.622535787348,
+        "volatility_of_variance": 0.784942578389,
+        "rho": -0.536989890493
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.02550067137,
+        "dividend_yield": 0.01388706931,
+        "initial_variance": 0.015321999915,
+        "theta": 0.064460417114,
+        "kappa": 3.2596776188,
+        "volatility_of_variance": 0.377216012572,
+        "rho": -0.432171071984
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.074608058752,
+        "dividend_yield": 0.035189707536,
+        "initial_variance": 0.038742301835,
+        "theta": 0.011852170865,
+        "kappa": 2.749259394302,
+        "volatility_of_variance": 0.200311131807,
+        "rho": -0.623717621306
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.053930292344,
+        "dividend_yield": 0.047943207418,
+        "initial_variance": 0.118405019037,
+        "theta": 0.058500192866,
+        "kappa": 2.436463630933,
+        "volatility_of_variance": 0.71387642847,
+        "rho": -0.721214242594
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.009339413242,
+        "dividend_yield": 0.044382413354,
+        "initial_variance": 0.059923780322,
+        "theta": 0.026433706132,
+        "kappa": 3.627665402659,
+        "volatility_of_variance": 0.521979853318,
+        "rho": -0.545668981632
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.039480950115,
+        "dividend_yield": 0.029337769834,
+        "initial_variance": 0.029089282699,
+        "theta": 0.029673174208,
+        "kappa": 0.594772643119,
+        "volatility_of_variance": 0.203197154096,
+        "rho": -0.57373685952
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007657413026,
+        "dividend_yield": 0.00974568525,
+        "initial_variance": 0.103744379574,
+        "theta": 0.117005476954,
+        "kappa": 3.725239662279,
+        "volatility_of_variance": 0.359296164245,
+        "rho": -0.804120122606
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.039149701362,
+        "dividend_yield": 0.034278205264,
+        "initial_variance": 0.027554220728,
+        "theta": 0.081125233013,
+        "kappa": 3.668740814959,
+        "volatility_of_variance": 0.724264218997,
+        "rho": -0.583133520011
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.002547550099,
+        "dividend_yield": 0.032262892142,
+        "initial_variance": 0.08453395303,
+        "theta": 0.078649187491,
+        "kappa": 3.060198813619,
+        "volatility_of_variance": 0.718515581123,
+        "rho": -0.461111691745
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.073683170462,
+        "dividend_yield": 0.030383501173,
+        "initial_variance": 0.04637329541,
+        "theta": 0.144850406584,
+        "kappa": 2.27048173506,
+        "volatility_of_variance": 0.438893222846,
+        "rho": -0.731708097958
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.050366648594,
+        "dividend_yield": 0.033695348311,
+        "initial_variance": 0.110618029138,
+        "theta": 0.095398932828,
+        "kappa": 1.144203670614,
+        "volatility_of_variance": 0.306232961257,
+        "rho": -0.964139445929
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.004272247078,
+        "dividend_yield": 0.033471824991,
+        "initial_variance": 0.059705113486,
+        "theta": 0.065808192806,
+        "kappa": 1.595444481063,
+        "volatility_of_variance": 0.371560835673,
+        "rho": -0.524075120233
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.04855045029,
+        "dividend_yield": 0.012874953571,
+        "initial_variance": 0.04795295108,
+        "theta": 0.01345916637,
+        "kappa": 2.102333044808,
+        "volatility_of_variance": 0.262419904493,
+        "rho": -0.473151680094
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.050583718,
+        "dividend_yield": 0.033522387809,
+        "initial_variance": 0.097515544676,
+        "theta": 0.057084183751,
+        "kappa": 1.212697322771,
+        "volatility_of_variance": 0.144529581681,
+        "rho": -0.71523711792
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.020701141795,
+        "dividend_yield": 0.034441260045,
+        "initial_variance": 0.074188576661,
+        "theta": 0.043144837089,
+        "kappa": 1.869959417207,
+        "volatility_of_variance": 0.138053165244,
+        "rho": -0.801867313788
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.000769475652,
+        "dividend_yield": 0.01516072136,
+        "initial_variance": 0.108187170826,
+        "theta": 0.084267373977,
+        "kappa": 2.826815852488,
+        "volatility_of_variance": 0.308540910387,
+        "rho": -0.606593858183
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.043782025063,
+        "dividend_yield": 0.001173071092,
+        "initial_variance": 0.056866532626,
+        "theta": 0.120951428155,
+        "kappa": 0.642821874411,
+        "volatility_of_variance": 0.633373482349,
+        "rho": -0.593126495078
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007279256405,
+        "dividend_yield": 0.026749386854,
+        "initial_variance": 0.045903719839,
+        "theta": 0.012431245621,
+        "kappa": 1.34439382382,
+        "volatility_of_variance": 0.442144753165,
+        "rho": -0.478612557927
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07678955921,
+        "dividend_yield": 0.019595743791,
+        "initial_variance": 0.056830863439,
+        "theta": 0.102639716642,
+        "kappa": 2.738375594898,
+        "volatility_of_variance": 0.265268339338,
+        "rho": -0.801131716243
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.008817066001,
+        "dividend_yield": 0.032209025411,
+        "initial_variance": 0.062594341087,
+        "theta": 0.092478883036,
+        "kappa": 3.107130957826,
+        "volatility_of_variance": 0.746955750555,
+        "rho": -0.582648469612
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007407613164,
+        "dividend_yield": 0.017800990486,
+        "initial_variance": 0.09530194373,
+        "theta": 0.115139809221,
+        "kappa": 3.487449378765,
+        "volatility_of_variance": 0.510033458156,
+        "rho": -0.729809403012
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.004735421678,
+        "dividend_yield": 0.015852463135,
+        "initial_variance": 0.060742003868,
+        "theta": 0.052913043394,
+        "kappa": 1.98082274507,
+        "volatility_of_variance": 0.781084178047,
+        "rho": -0.38001913944
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.044402929386,
+        "dividend_yield": 0.015039919614,
+        "initial_variance": 0.078756683326,
+        "theta": 0.047521988999,
+        "kappa": 1.452927057224,
+        "volatility_of_variance": 0.263962520708,
+        "rho": -0.902684518497
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.049334946545,
+        "dividend_yield": 0.021316798817,
+        "initial_variance": 0.10634083056,
+        "theta": 0.107670093577,
+        "kappa": 3.064863078704,
+        "volatility_of_variance": 0.346050351892,
+        "rho": -0.776882041467
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.013005894432,
+        "dividend_yield": 0.004000850668,
+        "initial_variance": 0.043765951217,
+        "theta": 0.013147399707,
+        "kappa": 1.258509030624,
+        "volatility_of_variance": 0.243386528365,
+        "rho": -0.561800942325
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.068718866399,
+        "dividend_yield": 0.030677735183,
+        "initial_variance": 0.110978539224,
+        "theta": 0.106248936236,
+        "kappa": 2.881056775164,
+        "volatility_of_variance": 0.738942832107,
+        "rho": -0.794799894874
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.030672150431,
+        "dividend_yield": 0.034642560902,
+        "initial_variance": 0.025286628759,
+        "theta": 0.042582296638,
+        "kappa": 1.239315341634,
+        "volatility_of_variance": 0.534403918976,
+        "rho": -0.925110866816
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.009764823066,
+        "dividend_yield": 0.02224454332,
+        "initial_variance": 0.10488522482,
+        "theta": 0.054043916136,
+        "kappa": 3.787433070887,
+        "volatility_of_variance": 0.389288199664,
+        "rho": -0.859726073768
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.077160368124,
+        "dividend_yield": 0.049211246375,
+        "initial_variance": 0.113237865713,
+        "theta": 0.126722271901,
+        "kappa": 0.677371264959,
+        "volatility_of_variance": 0.270799937599,
+        "rho": -0.648049419338
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.01478897159,
+        "dividend_yield": 0.047240952827,
+        "initial_variance": 0.119494698859,
+        "theta": 0.011473126763,
+        "kappa": 1.628093354695,
+        "volatility_of_variance": 0.152928359989,
+        "rho": -0.839881388785
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.037246840717,
+        "dividend_yield": 0.00552772716,
+        "initial_variance": 0.01774150276,
+        "theta": 0.114069674157,
+        "kappa": 3.952505996393,
+        "volatility_of_variance": 0.59080238113,
+        "rho": -0.604390242056
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.016751825856,
+        "dividend_yield": 0.015981285757,
+        "initial_variance": 0.109116802785,
+        "theta": 0.101253977551,
+        "kappa": 2.828841635317,
+        "volatility_of_variance": 0.459113426835,
+        "rho": -0.46586291265
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.004297116837,
+        "dividend_yield": 0.008337223082,
+        "initial_variance": 0.09777979504,
+        "theta": 0.119433215719,
+        "kappa": 0.801075761148,
+        "volatility_of_variance": 0.457239462604,
+        "rho": -0.956619079562
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.051982248267,
+        "dividend_yield": 0.044826333754,
+        "initial_variance": 0.024291286884,
+        "theta": 0.018075554643,
+        "kappa": 1.237050292257,
+        "volatility_of_variance": 0.303813741103,
+        "rho": -0.437320881628
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.056495856522,
+        "dividend_yield": 0.011419464712,
+        "initial_variance": 0.012671057101,
+        "theta": 0.036088664385,
+        "kappa": 3.374705887923,
+        "volatility_of_variance": 0.368749510056,
+        "rho": -0.721009829466
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.029909904702,
+        "dividend_yield": 0.039293782989,
+        "initial_variance": 0.035534719107,
+        "theta": 0.108368000814,
+        "kappa": 3.426250965393,
+        "volatility_of_variance": 0.745473040598,
+        "rho": -0.864350658248
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.064476086581,
+        "dividend_yield": 0.032784977456,
+        "initial_variance": 0.108065851888,
+        "theta": 0.066941345755,
+        "kappa": 3.57683662296,
+        "volatility_of_variance": 0.338378546852,
+        "rho": -0.998462451005
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.059336246932,
+        "dividend_yield": 0.04950506044,
+        "initial_variance": 0.072213085218,
+        "theta": 0.056697294407,
+        "kappa": 0.901858647994,
+        "volatility_of_variance": 0.479683705063,
+        "rho": -0.601055535802
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.00442878128,
+        "dividend_yield": 0.032662448665,
+        "initial_variance": 0.082456773765,
+        "theta": 0.145620581948,
+        "kappa": 3.920658245857,
+        "volatility_of_variance": 0.418504317924,
+        "rho": -0.852817308495
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.012204472823,
+        "dividend_yield": 0.030414028937,
+        "initial_variance": 0.063035578214,
+        "theta": 0.146224502639,
+        "kappa": 0.606112060428,
+        "volatility_of_variance": 0.720975267899,
+        "rho": -0.816094664612
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.018583370754,
+        "dividend_yield": 0.025414120808,
+        "initial_variance": 0.055291475606,
+        "theta": 0.080509574625,
+        "kappa": 1.145619412244,
+        "volatility_of_variance": 0.782268765152,
+        "rho": -0.96318578067
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.00502454265,
+        "dividend_yield": 0.023378278496,
+        "initial_variance": 0.098875711103,
+        "theta": 0.024895246413,
+        "kappa": 1.452199678344,
+        "volatility_of_variance": 0.448790405592,
+        "rho": -0.795400551765
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.047867043382,
+        "dividend_yield": 0.017414121173,
+        "initial_variance": 0.022572712809,
+        "theta": 0.123936650415,
+        "kappa": 2.749559492862,
+        "volatility_of_variance": 0.533376116351,
+        "rho": -0.735597068921
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.028233415959,
+        "dividend_yield": 0.029889195325,
+        "initial_variance": 0.081908005249,
+        "theta": 0.064726412098,
+        "kappa": 3.220041494875,
+        "volatility_of_variance": 0.516580680685,
+        "rho": -0.530850981956
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0397308983,
+        "dividend_yield": 0.001299663709,
+        "initial_variance": 0.109455060406,
+        "theta": 0.06775899152,
+        "kappa": 1.445585515408,
+        "volatility_of_variance": 0.262044856474,
+        "rho": -0.534533895308
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07383541069,
+        "dividend_yield": 0.048011572968,
+        "initial_variance": 0.100835499881,
+        "theta": 0.0332100243,
+        "kappa": 2.206022520026,
+        "volatility_of_variance": 0.598034497298,
+        "rho": -0.368853872537
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.02945030163,
+        "dividend_yield": 0.033188161318,
+        "initial_variance": 0.016668668356,
+        "theta": 0.137036090328,
+        "kappa": 3.240544111526,
+        "volatility_of_variance": 0.42757336748,
+        "rho": -0.58859219189
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007456304794,
+        "dividend_yield": 0.00913575702,
+        "initial_variance": 0.028980151854,
+        "theta": 0.022266459956,
+        "kappa": 2.526780092681,
+        "volatility_of_variance": 0.62237770755,
+        "rho": -0.99183423809
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.030414033653,
+        "dividend_yield": 0.004344261001,
+        "initial_variance": 0.089062888793,
+        "theta": 0.123441724482,
+        "kappa": 2.045807241171,
+        "volatility_of_variance": 0.614940638972,
+        "rho": -0.847401089373
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.044057232039,
+        "dividend_yield": 0.01206688658,
+        "initial_variance": 0.069908033545,
+        "theta": 0.027837451512,
+        "kappa": 2.985180444375,
+        "volatility_of_variance": 0.398612429176,
+        "rho": -0.637614954577
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.020632442599,
+        "dividend_yield": 0.014336926391,
+        "initial_variance": 0.035165103077,
+        "theta": 0.107653823725,
+        "kappa": 3.992422878684,
+        "volatility_of_variance": 0.664971981969,
+        "rho": -0.873389385722
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07214663404,
+        "dividend_yield": 0.004586291075,
+        "initial_variance": 0.116562138739,
+        "theta": 0.126070548978,
+        "kappa": 3.067142610613,
+        "volatility_of_variance": 0.315008301116,
+        "rho": -0.335990145674
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.006471328055,
+        "dividend_yield": 0.001165380346,
+        "initial_variance": 0.084763545011,
+        "theta": 0.070912294041,
+        "kappa": 1.618565411016,
+        "volatility_of_variance": 0.547449685044,
+        "rho": -0.767984291806
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.068249890199,
+        "dividend_yield": 0.044366240426,
+        "initial_variance": 0.053480054011,
+        "theta": 0.140843301842,
+        "kappa": 1.805690153793,
+        "volatility_of_variance": 0.615837642072,
+        "rho": -0.904110579297
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.038610140672,
+        "dividend_yield": 0.010343708313,
+        "initial_variance": 0.017784117596,
+        "theta": 0.070014152292,
+        "kappa": 1.3620424291,
+        "volatility_of_variance": 0.199041156587,
+        "rho": -0.676686113083
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.019050356029,
+        "dividend_yield": 0.046224153513,
+        "initial_variance": 0.067920809559,
+        "theta": 0.100868155735,
+        "kappa": 2.954455195984,
+        "volatility_of_variance": 0.615185893072,
+        "rho": -0.846896763321
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.042814163798,
+        "dividend_yield": 0.001205204037,
+        "initial_variance": 0.118017091235,
+        "theta": 0.015782719243,
+        "kappa": 0.93792822113,
+        "volatility_of_variance": 0.281625936359,
+        "rho": -0.840468727157
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.079824900525,
+        "dividend_yield": 0.038157955935,
+        "initial_variance": 0.053671880591,
+        "theta": 0.029100978996,
+        "kappa": 2.26694919361,
+        "volatility_of_variance": 0.628538537808,
+        "rho": -0.450647449947
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.04004815924,
+        "dividend_yield": 0.006554885145,
+        "initial_variance": 0.020875019684,
+        "theta": 0.047440104738,
+        "kappa": 2.267746782454,
+        "volatility_of_variance": 0.434157972617,
+        "rho": -0.557281088422
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07064411574,
+        "dividend_yield": 0.045204304036,
+        "initial_variance": 0.01950202698,
+        "theta": 0.135313214196,
+        "kappa": 0.589304934081,
+        "volatility_of_variance": 0.23732178745,
+        "rho": -0.961696094519
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.039512711996,
+        "dividend_yield": 0.020210306678,
+        "initial_variance": 0.106979768799,
+        "theta": 0.038074218242,
+        "kappa": 2.184140722558,
+        "volatility_of_variance": 0.675400404667,
+        "rho": -0.37446235012
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.040743178623,
+        "dividend_yield": 0.043736581801,
+        "initial_variance": 0.064006648987,
+        "theta": 0.02510465225,
+        "kappa": 0.986762323824,
+        "volatility_of_variance": 0.348642709799,
+        "rho": -0.90681437311
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.06221123579,
+        "dividend_yield": 0.00926352102,
+        "initial_variance": 0.110836668852,
+        "theta": 0.127969643457,
+        "kappa": 3.298855679284,
+        "volatility_of_variance": 0.352196114981,
+        "rho": -0.898922165215
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.053508956907,
+        "dividend_yield": 0.019605359138,
+        "initial_variance": 0.048876766415,
+        "theta": 0.062006571067,
+        "kappa": 1.072281419241,
+        "volatility_of_variance": 0.618961966478,
+        "rho": -0.864688140189
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.054818179356,
+        "dividend_yield": 0.026282821427,
+        "initial_variance": 0.053386162777,
+        "theta": 0.095370709689,
+        "kappa": 3.515047035122,
+        "volatility_of_variance": 0.519738345195,
+        "rho": -0.440991795145
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.053832369102,
+        "dividend_yield": 0.011997104768,
+        "initial_variance": 0.098824201258,
+        "theta": 0.116846050064,
+        "kappa": 0.907347890141,
+        "volatility_of_variance": 0.525550481895,
+        "rho": -0.657445009693
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.056796115236,
+        "dividend_yield": 0.001762618712,
+        "initial_variance": 0.102541616868,
+        "theta": 0.100641700539,
+        "kappa": 1.602566252172,
+        "volatility_of_variance": 0.379792474869,
+        "rho": -0.514026213356
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.026384604769,
+        "dividend_yield": 0.042615929531,
+        "initial_variance": 0.012165827224,
+        "theta": 0.113312864446,
+        "kappa": 2.795388856495,
+        "volatility_of_variance": 0.591592088741,
+        "rho": -0.620450656989
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.057709917286,
+        "dividend_yield": 0.03172922993,
+        "initial_variance": 0.103858495416,
+        "theta": 0.038529757264,
+        "kappa": 3.718650314899,
+        "volatility_of_variance": 0.770136219996,
+        "rho": -0.634790362336
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.021227906244,
+        "dividend_yield": 0.036695241946,
+        "initial_variance": 0.033990620164,
+        "theta": 0.063913993605,
+        "kappa": 3.012520504475,
+        "volatility_of_variance": 0.448826182078,
+        "rho": -0.971485350595
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.016175812269,
+        "dividend_yield": 0.044209531968,
+        "initial_variance": 0.118719882668,
+        "theta": 0.140421086561,
+        "kappa": 1.552149695752,
+        "volatility_of_variance": 0.729425878406,
+        "rho": -0.807455309492
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0421632626,
+        "dividend_yield": 0.034066445561,
+        "initial_variance": 0.077952822124,
+        "theta": 0.063855673007,
+        "kappa": 3.791752695397,
+        "volatility_of_variance": 0.448922251125,
+        "rho": -0.565001210722
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.069695028281,
+        "dividend_yield": 0.018155991816,
+        "initial_variance": 0.112846616578,
+        "theta": 0.111112026696,
+        "kappa": 1.36988998676,
+        "volatility_of_variance": 0.727506010852,
+        "rho": -0.405559089954
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.030198578453,
+        "dividend_yield": 0.018497682951,
+        "initial_variance": 0.116498980125,
+        "theta": 0.063222242307,
+        "kappa": 1.510508787527,
+        "volatility_of_variance": 0.570035906205,
+        "rho": -0.535396505927
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.001806302117,
+        "dividend_yield": 0.03695190085,
+        "initial_variance": 0.061431400989,
+        "theta": 0.112685866624,
+        "kappa": 2.881612317811,
+        "volatility_of_variance": 0.494760806467,
+        "rho": -0.623680344189
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.007239946807,
+        "dividend_yield": 0.015717099706,
+        "initial_variance": 0.063306210804,
+        "theta": 0.069843379741,
+        "kappa": 3.450287947257,
+        "volatility_of_variance": 0.612122532144,
+        "rho": -0.512782595295
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.078699418129,
+        "dividend_yield": 0.002864250442,
+        "initial_variance": 0.057415397594,
+        "theta": 0.0761110447,
+        "kappa": 1.044429404254,
+        "volatility_of_variance": 0.581255072274,
+        "rho": -0.682105907204
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0219301851,
+        "dividend_yield": 0.028902428498,
+        "initial_variance": 0.030531293462,
+        "theta": 0.013622931533,
+        "kappa": 2.563600905996,
+        "volatility_of_variance": 0.507451779764,
+        "rho": -0.808207071701
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.07241736549,
+        "dividend_yield": 0.038785073621,
+        "initial_variance": 0.062979346734,
+        "theta": 0.099763282153,
+        "kappa": 1.45561574999,
+        "volatility_of_variance": 0.368991335545,
+        "rho": -0.935612218839
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.038654228812,
+        "dividend_yield": 0.00329576417,
+        "initial_variance": 0.041160173774,
+        "theta": 0.119957583665,
+        "kappa": 1.99059204798,
+        "volatility_of_variance": 0.467928748832,
+        "rho": -0.482455616852
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.033193570906,
+        "dividend_yield": 0.046079716535,
+        "initial_variance": 0.069831189726,
+        "theta": 0.078593666849,
+        "kappa": 3.627776980575,
+        "volatility_of_variance": 0.73072435403,
+        "rho": -0.98075242209
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.033317084061,
+        "dividend_yield": 0.027953739854,
+        "initial_variance": 0.096127210992,
+        "theta": 0.021530694964,
+        "kappa": 0.917937507213,
+        "volatility_of_variance": 0.190113029321,
+        "rho": -0.679242497508
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.0571168062,
+        "dividend_yield": 0.026565176755,
+        "initial_variance": 0.110172231804,
+        "theta": 0.075121689828,
+        "kappa": 3.973199040571,
+        "volatility_of_variance": 0.303757200826,
+        "rho": -0.775839728641
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.017248016605,
+        "dividend_yield": 0.032437155646,
+        "initial_variance": 0.041763493408,
+        "theta": 0.143667404747,
+        "kappa": 3.158521902107,
+        "volatility_of_variance": 0.394865554466,
+        "rho": -0.422618470353
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.008890968347,
+        "dividend_yield": 0.032908085739,
+        "initial_variance": 0.105874382471,
+        "theta": 0.103233620494,
+        "kappa": 3.177879992931,
+        "volatility_of_variance": 0.790541750899,
+        "rho": -0.851436370576
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.063810191983,
+        "dividend_yield": 0.014403805457,
+        "initial_variance": 0.090456536786,
+        "theta": 0.080852993492,
+        "kappa": 1.961662972521,
+        "volatility_of_variance": 0.675372223732,
+        "rho": -0.940423542575
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.068310552957,
+        "dividend_yield": 0.02106312557,
+        "initial_variance": 0.053742749022,
+        "theta": 0.051635373,
+        "kappa": 3.376016257156,
+        "volatility_of_variance": 0.290223993814,
+        "rho": -0.849843060004
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.05816635902,
+        "dividend_yield": 0.016914211627,
+        "initial_variance": 0.091862876186,
+        "theta": 0.141978087735,
+        "kappa": 1.343333130761,
+        "volatility_of_variance": 0.56300837475,
+        "rho": -0.643237633875
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.059687291002,
+        "dividend_yield": 0.006969612039,
+        "initial_variance": 0.095666181935,
+        "theta": 0.01826792116,
+        "kappa": 1.010906308715,
+        "volatility_of_variance": 0.395857533049,
+        "rho": -0.688904250914
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.035125420084,
+        "dividend_yield": 0.004728429444,
+        "initial_variance": 0.051612396197,
+        "theta": 0.012323056057,
+        "kappa": 1.93888693332,
+        "volatility_of_variance": 0.101493162101,
+        "rho": -0.870117431402
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.037183190854,
+        "dividend_yield": 0.042787398532,
+        "initial_variance": 0.105421708151,
+        "theta": 0.070186364294,
+        "kappa": 3.982920052076,
+        "volatility_of_variance": 0.361735322433,
+        "rho": -0.506582751253
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "spot": 1.0,
+        "risk_free_rate": 0.001173871523,
+        "dividend_yield": 0.004075193423,
+        "initial_variance": 0.112674878096,
+        "theta": 0.095569239513,
+        "kappa": 1.525826379133,
+        "volatility_of_variance": 0.23538325696,
+        "rho": -0.949344609992
+      }
+    }
+  ]
+}

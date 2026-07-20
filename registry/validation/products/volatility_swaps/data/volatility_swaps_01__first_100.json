@@ -1,0 +1,910 @@
+{
+  "format": "ai_factory.products.v1",
+  "database_id": "volatility_swaps_01__first_100",
+  "product_family": "Volatility Swap",
+  "specification": "registry/validation/products/volatility_swaps/specifications/volatility_swaps_01__first_100.yaml",
+  "generation_script": "registry/validation/products/volatility_swaps/generators/volatility_swaps_01__first_100.py",
+  "row_count": 100,
+  "products": [
+    {
+      "id": "000001",
+      "parameters": {
+        "volatility_strike": 0.426413068688,
+        "maturity": 0.169412836326,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000002",
+      "parameters": {
+        "volatility_strike": 0.369857449224,
+        "maturity": 2.398512185095,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000003",
+      "parameters": {
+        "volatility_strike": 0.174673651392,
+        "maturity": 2.246010454711,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000004",
+      "parameters": {
+        "volatility_strike": 0.271702623228,
+        "maturity": 1.733700850717,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000005",
+      "parameters": {
+        "volatility_strike": 0.157743167458,
+        "maturity": 1.262081283271,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000006",
+      "parameters": {
+        "volatility_strike": 0.173924100073,
+        "maturity": 2.624157157329,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000007",
+      "parameters": {
+        "volatility_strike": 0.402432355238,
+        "maturity": 1.347423696881,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000008",
+      "parameters": {
+        "volatility_strike": 0.130570663372,
+        "maturity": 2.276032762476,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000009",
+      "parameters": {
+        "volatility_strike": 0.301910795504,
+        "maturity": 2.684209127396,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000010",
+      "parameters": {
+        "volatility_strike": 0.137350879004,
+        "maturity": 1.787933091371,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000011",
+      "parameters": {
+        "volatility_strike": 0.342374284239,
+        "maturity": 1.133828989085,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000012",
+      "parameters": {
+        "volatility_strike": 0.146471224772,
+        "maturity": 0.777190433068,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000013",
+      "parameters": {
+        "volatility_strike": 0.364270617114,
+        "maturity": 0.37414878177,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000014",
+      "parameters": {
+        "volatility_strike": 0.429657610366,
+        "maturity": 1.829017835718,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000015",
+      "parameters": {
+        "volatility_strike": 0.194878239604,
+        "maturity": 2.731619052133,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000016",
+      "parameters": {
+        "volatility_strike": 0.369837963814,
+        "maturity": 2.015046110192,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000017",
+      "parameters": {
+        "volatility_strike": 0.442146617034,
+        "maturity": 2.496134320652,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000018",
+      "parameters": {
+        "volatility_strike": 0.255941014504,
+        "maturity": 2.699652404864,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000019",
+      "parameters": {
+        "volatility_strike": 0.435518420441,
+        "maturity": 1.301575583998,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000020",
+      "parameters": {
+        "volatility_strike": 0.42475493229,
+        "maturity": 2.984217089223,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000021",
+      "parameters": {
+        "volatility_strike": 0.122656993987,
+        "maturity": 1.193436146782,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000022",
+      "parameters": {
+        "volatility_strike": 0.343944298243,
+        "maturity": 0.551267319407,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000023",
+      "parameters": {
+        "volatility_strike": 0.273468945222,
+        "maturity": 1.13170759604,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000024",
+      "parameters": {
+        "volatility_strike": 0.3161259891,
+        "maturity": 2.741399524161,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000025",
+      "parameters": {
+        "volatility_strike": 0.083570081135,
+        "maturity": 0.769396599663,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000026",
+      "parameters": {
+        "volatility_strike": 0.063723669155,
+        "maturity": 0.265639553904,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000027",
+      "parameters": {
+        "volatility_strike": 0.317406664556,
+        "maturity": 2.894201663313,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000028",
+      "parameters": {
+        "volatility_strike": 0.236937130662,
+        "maturity": 2.618323052952,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000029",
+      "parameters": {
+        "volatility_strike": 0.30425186581,
+        "maturity": 1.543674808995,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000030",
+      "parameters": {
+        "volatility_strike": 0.417822236335,
+        "maturity": 0.819545003925,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000031",
+      "parameters": {
+        "volatility_strike": 0.140425232286,
+        "maturity": 1.376593518624,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000032",
+      "parameters": {
+        "volatility_strike": 0.169371218281,
+        "maturity": 0.805632629558,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000033",
+      "parameters": {
+        "volatility_strike": 0.315175188845,
+        "maturity": 2.050538798668,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000034",
+      "parameters": {
+        "volatility_strike": 0.40610068175,
+        "maturity": 0.786943798565,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000035",
+      "parameters": {
+        "volatility_strike": 0.097452607239,
+        "maturity": 2.111877327329,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000036",
+      "parameters": {
+        "volatility_strike": 0.134449504456,
+        "maturity": 0.490859923467,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000037",
+      "parameters": {
+        "volatility_strike": 0.349982893607,
+        "maturity": 0.622838553555,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000038",
+      "parameters": {
+        "volatility_strike": 0.250679282798,
+        "maturity": 0.456999966186,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000039",
+      "parameters": {
+        "volatility_strike": 0.129168861127,
+        "maturity": 2.966723919351,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000040",
+      "parameters": {
+        "volatility_strike": 0.056783668557,
+        "maturity": 1.250399066261,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000041",
+      "parameters": {
+        "volatility_strike": 0.054202546785,
+        "maturity": 1.090665808171,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000042",
+      "parameters": {
+        "volatility_strike": 0.157787102321,
+        "maturity": 0.279516658406,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000043",
+      "parameters": {
+        "volatility_strike": 0.269581811177,
+        "maturity": 1.077507906176,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000044",
+      "parameters": {
+        "volatility_strike": 0.317824030248,
+        "maturity": 2.896499517054,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000045",
+      "parameters": {
+        "volatility_strike": 0.052373615419,
+        "maturity": 2.178174073604,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000046",
+      "parameters": {
+        "volatility_strike": 0.227650051238,
+        "maturity": 1.018450711049,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000047",
+      "parameters": {
+        "volatility_strike": 0.17917104275,
+        "maturity": 2.846103645153,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000048",
+      "parameters": {
+        "volatility_strike": 0.19438991989,
+        "maturity": 1.90316838578,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000049",
+      "parameters": {
+        "volatility_strike": 0.341286631254,
+        "maturity": 0.953079150029,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000050",
+      "parameters": {
+        "volatility_strike": 0.174231367791,
+        "maturity": 1.117768902885,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000051",
+      "parameters": {
+        "volatility_strike": 0.195005511073,
+        "maturity": 0.990037080453,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000052",
+      "parameters": {
+        "volatility_strike": 0.165246270178,
+        "maturity": 0.254235660318,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000053",
+      "parameters": {
+        "volatility_strike": 0.301887946716,
+        "maturity": 0.800540354947,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000054",
+      "parameters": {
+        "volatility_strike": 0.177273351559,
+        "maturity": 1.47523863374,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000055",
+      "parameters": {
+        "volatility_strike": 0.087021107553,
+        "maturity": 1.911492396486,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000056",
+      "parameters": {
+        "volatility_strike": 0.400723735383,
+        "maturity": 1.292874771723,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000057",
+      "parameters": {
+        "volatility_strike": 0.0958660834,
+        "maturity": 1.45108440791,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000058",
+      "parameters": {
+        "volatility_strike": 0.366155282734,
+        "maturity": 0.441085495084,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000059",
+      "parameters": {
+        "volatility_strike": 0.221815089928,
+        "maturity": 1.84912999051,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000060",
+      "parameters": {
+        "volatility_strike": 0.25150252101,
+        "maturity": 1.976862854664,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000061",
+      "parameters": {
+        "volatility_strike": 0.054223345732,
+        "maturity": 2.295390214005,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000062",
+      "parameters": {
+        "volatility_strike": 0.147640303383,
+        "maturity": 1.155535809395,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000063",
+      "parameters": {
+        "volatility_strike": 0.24131389535,
+        "maturity": 1.486314313244,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000064",
+      "parameters": {
+        "volatility_strike": 0.251304523414,
+        "maturity": 2.288791223419,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000065",
+      "parameters": {
+        "volatility_strike": 0.223910613218,
+        "maturity": 1.426891787046,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000066",
+      "parameters": {
+        "volatility_strike": 0.424763734965,
+        "maturity": 0.491912657327,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000067",
+      "parameters": {
+        "volatility_strike": 0.28858666555,
+        "maturity": 1.237374676634,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000068",
+      "parameters": {
+        "volatility_strike": 0.218797040405,
+        "maturity": 1.367086608244,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000069",
+      "parameters": {
+        "volatility_strike": 0.447913838318,
+        "maturity": 1.622267262981,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000070",
+      "parameters": {
+        "volatility_strike": 0.096963395784,
+        "maturity": 0.405347999641,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000071",
+      "parameters": {
+        "volatility_strike": 0.164957930753,
+        "maturity": 2.935525472926,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000072",
+      "parameters": {
+        "volatility_strike": 0.145652046101,
+        "maturity": 1.999925052485,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000073",
+      "parameters": {
+        "volatility_strike": 0.366126098251,
+        "maturity": 0.435014394626,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000074",
+      "parameters": {
+        "volatility_strike": 0.331143870065,
+        "maturity": 1.158841771995,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000075",
+      "parameters": {
+        "volatility_strike": 0.317404396599,
+        "maturity": 2.826912854381,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000076",
+      "parameters": {
+        "volatility_strike": 0.323338048765,
+        "maturity": 0.184061710286,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000077",
+      "parameters": {
+        "volatility_strike": 0.419750486733,
+        "maturity": 1.165361273811,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000078",
+      "parameters": {
+        "volatility_strike": 0.373720548442,
+        "maturity": 0.612673715582,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000079",
+      "parameters": {
+        "volatility_strike": 0.308318458544,
+        "maturity": 2.211074970614,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000080",
+      "parameters": {
+        "volatility_strike": 0.346785588237,
+        "maturity": 1.348144677245,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000081",
+      "parameters": {
+        "volatility_strike": 0.421028375858,
+        "maturity": 2.604548098432,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000082",
+      "parameters": {
+        "volatility_strike": 0.170311069069,
+        "maturity": 0.22515042391,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000083",
+      "parameters": {
+        "volatility_strike": 0.427931038989,
+        "maturity": 1.837339580981,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000084",
+      "parameters": {
+        "volatility_strike": 0.229066839954,
+        "maturity": 0.39273114581,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000085",
+      "parameters": {
+        "volatility_strike": 0.300825774809,
+        "maturity": 1.308862614358,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000086",
+      "parameters": {
+        "volatility_strike": 0.339212088147,
+        "maturity": 0.563043610668,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000087",
+      "parameters": {
+        "volatility_strike": 0.112067536032,
+        "maturity": 1.926679936364,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000088",
+      "parameters": {
+        "volatility_strike": 0.388983529853,
+        "maturity": 2.329938469115,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000089",
+      "parameters": {
+        "volatility_strike": 0.163277111435,
+        "maturity": 1.531341234581,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000090",
+      "parameters": {
+        "volatility_strike": 0.247359307995,
+        "maturity": 0.906696851181,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000091",
+      "parameters": {
+        "volatility_strike": 0.359390892694,
+        "maturity": 1.34839197579,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000092",
+      "parameters": {
+        "volatility_strike": 0.2354902755,
+        "maturity": 2.748162334193,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000093",
+      "parameters": {
+        "volatility_strike": 0.42101308438,
+        "maturity": 0.853420728303,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000094",
+      "parameters": {
+        "volatility_strike": 0.344787275465,
+        "maturity": 2.464013619242,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000095",
+      "parameters": {
+        "volatility_strike": 0.338889483036,
+        "maturity": 1.99331483112,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000096",
+      "parameters": {
+        "volatility_strike": 0.083535178797,
+        "maturity": 0.998090684559,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000097",
+      "parameters": {
+        "volatility_strike": 0.053237167699,
+        "maturity": 1.744152122478,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000098",
+      "parameters": {
+        "volatility_strike": 0.141124793375,
+        "maturity": 0.243313567063,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000099",
+      "parameters": {
+        "volatility_strike": 0.125842524087,
+        "maturity": 0.349846498837,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    },
+    {
+      "id": "000100",
+      "parameters": {
+        "volatility_strike": 0.135298048472,
+        "maturity": 0.150086020556,
+        "observation_frequency": "weekly",
+        "observations_per_year": 52
+      }
+    }
+  ]
+}
