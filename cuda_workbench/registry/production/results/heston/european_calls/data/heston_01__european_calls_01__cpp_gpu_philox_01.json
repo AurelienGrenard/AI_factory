@@ -12,8 +12,8 @@
     "json_path": "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json"
   },
   "timing": {
-    "wall_seconds": 2.204893417,
-    "kernel_seconds": 0.29583053588867186
+    "wall_seconds": 0.717074298,
+    "kernel_seconds": 0.29217791748046873
   },
   "results": [
     {

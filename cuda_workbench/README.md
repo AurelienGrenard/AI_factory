@@ -26,16 +26,16 @@ cuda_workbench/
       philox.cuh
       reductions.cuh
     heston/
-      common.hpp/.cpp
-      dynamics.cuh
-      european_call.hpp/.cu
+      parameters.hpp/.cpp
+      dynamics.cuh/.cu
+      european_call.cuh/.cu
     products/
       european_call.hpp/.cpp
   tools/
     registry/
-      common.hpp
-      parameter_database.hpp/.cpp
-      result_output.hpp/.cpp
+      io.hpp/.cpp
+      parameters.hpp/.cpp
+      results.hpp/.cpp
   registry/
     production/
       models/<model>/{data,specifications,generators}/
@@ -58,6 +58,18 @@ cuda_workbench/
 appartient au modele Heston. `src/products` decrit les parametres contractuels
 independants du modele. Le fichier `src/heston/european_call.cu` reunit le
 modele et le produit dans un kernel specialise.
+
+Dans chaque dossier modele, les responsabilites suivent la meme convention :
+
+- `parameters.hpp/.cpp` definit les parametres CPU et leur chargement JSON ;
+- `dynamics.cuh/.cu` contient la preparation et la simulation reutilisables par
+  tous les produits du modele ;
+- `<product>.cuh/.cu` contient le payoff, le kernel et le launcher specialises.
+
+Le fichier CUDA de chaque produit inclut l'implementation `dynamics.cu`. NVCC
+voit ainsi la dynamique et le kernel dans la meme unite de compilation et peut
+inliner la boucle de simulation. `dynamics.cu` n'est donc pas compile comme une
+bibliotheque CUDA separee.
 
 Le code de pricing ne depend jamais du registry ni de ses outils d'ecriture.
 

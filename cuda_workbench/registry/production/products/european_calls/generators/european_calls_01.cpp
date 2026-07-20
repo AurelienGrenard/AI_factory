@@ -1,5 +1,5 @@
 // Generate the local European-call database as a 20 x 50 Cartesian grid.
-#include "tools/registry/parameter_database.hpp"
+#include "tools/registry/parameters.hpp"
 
 #include <filesystem>
 

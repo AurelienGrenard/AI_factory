@@ -1,11 +1,14 @@
 // Specialized CUDA implementation of Heston European-call pricing.
 // One block owns one model/product result row; its threads fuse path simulation
 // with payoff evaluation, then cooperatively reduce the Monte Carlo moments.
-#include "heston/european_call.hpp"
+#include "heston/european_call.cuh"
 
 #include "common/check_cuda.cuh"
 #include "common/reductions.cuh"
-#include "heston/dynamics.cuh"
+
+// Include the reusable dynamics implementation so NVCC can inline each path
+// step into this specialized product kernel.
+#include "heston/dynamics.cu"
 
 #include <cuda_runtime.h>
 
@@ -15,8 +18,9 @@
 namespace ai_factory::workbench::heston {
 namespace {
 
-// This product-level structure combines prepared model dynamics with the two
-// quantities used only by the call payoff.
+// -------------------------- European-call payoff ---------------------------
+
+// Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
     HestonQeParameters model;
     float strike;
@@ -25,7 +29,7 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const HestonModelInput& model,
+    const HestonModelParameters& model,
     const products::EuropeanCallInput& product,
     std::size_t num_steps,
     std::uint64_t seed
@@ -52,7 +56,7 @@ __device__ __forceinline__ float evaluate_path(
 
 // Price one result row per block and write its FP32 price and standard error.
 __global__ void heston_european_call_kernel(
-    const HestonModelInput* models,
+    const HestonModelParameters* models,
     const products::EuropeanCallInput* products,
     std::size_t product_count,
     bool cartesian_product,
@@ -123,7 +127,7 @@ __global__ void heston_european_call_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_heston_european_call_launch(
-    const HestonModelInput* device_models,
+    const HestonModelParameters* device_models,
     std::size_t model_count,
     const products::EuropeanCallInput* device_products,
     std::size_t product_count,
@@ -155,7 +159,7 @@ void validate_heston_european_call_launch(
 
 // Validate and launch the pricing kernel on caller-owned device arrays.
 void launch_heston_european_call_cuda(
-    const HestonModelInput* device_models,
+    const HestonModelParameters* device_models,
     std::size_t model_count,
     const products::EuropeanCallInput* device_products,
     std::size_t product_count,

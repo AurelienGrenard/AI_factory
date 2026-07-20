@@ -1,6 +1,6 @@
 // Generate Heston rows by sampling ordinary parameters first, then gamma from
 // row-dependent bounds that control the range of the Feller ratio.
-#include "tools/registry/parameter_database.hpp"
+#include "tools/registry/parameters.hpp"
 
 #include <algorithm>
 #include <cmath>

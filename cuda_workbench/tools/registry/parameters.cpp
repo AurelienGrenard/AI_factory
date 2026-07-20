@@ -1,24 +1,22 @@
-// Implementation of the small model/product parameter database generator.
-// All generated numbers are stored as FP32-compatible JSON values.
-#include "tools/registry/parameter_database.hpp"
+// Parameter generation and model/product database writing implementation.
+#include "tools/registry/parameters.hpp"
 
-#include "tools/registry/common.hpp"
+#include "tools/registry/io.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <random>
 #include <stdexcept>
 
 namespace ai_factory::workbench::registry {
 namespace {
 
-// Round FP32 grid bounds for readable YAML; exact row values remain in JSON.
 double readable_grid_bound(float value) {
     constexpr double scale = 10'000'000.0;
     return std::round(static_cast<double>(value) * scale) / scale;
 }
 
-// Reject empty or duplicate parameter names before generating any output.
 void validate_names(const std::vector<std::string>& names) {
     for (std::size_t index = 0; index < names.size(); ++index) {
         if (names[index].empty()) {
@@ -34,22 +32,20 @@ void validate_names(const std::vector<std::string>& names) {
     }
 }
 
-// Attach stable row identifiers to raw parameter objects.
 nlohmann::ordered_json database_rows(
     const std::vector<ParameterRow>& parameters
 ) {
     nlohmann::ordered_json rows = nlohmann::ordered_json::array();
     for (std::size_t index = 0; index < parameters.size(); ++index) {
         rows.push_back({
-            {"id", row_id(index)},
+            {"id", format_row_id(index)},
             {"parameters", parameters[index]},
         });
     }
     return rows;
 }
 
-// Write either a model or product database; public wrappers fix its vocabulary.
-void write_database(
+void write_parameter_database(
     const std::string& database_id,
     const std::string& family,
     const std::string& family_key,
@@ -68,17 +64,16 @@ void write_database(
         json_path.parent_path().parent_path()
         / "specifications" / (database_id + ".yaml");
 
-    const nlohmann::ordered_json json_document = {
+    write_json_file(json_path, {
         {"database_id", database_id},
         {family_key, family},
         {"specification", specification_path.generic_string()},
         {"generation_script", generation_script.generic_string()},
         {"row_count", generated.rows.size()},
         {row_key, database_rows(generated.rows)},
-    };
-    write_text_file(json_path, json_document.dump(2) + "\n");
+    });
 
-    const nlohmann::ordered_json yaml_document = {
+    write_yaml_file(specification_path, {
         {"title", family + " parameter database " + database_id},
         {"database_id", database_id},
         {family_key, family},
@@ -87,13 +82,11 @@ void write_database(
         {"parameters", parameter_descriptions},
         {definition_key, definition},
         {"construction", generated.construction},
-    };
-    write_yaml_file(specification_path, yaml_document);
+    });
 }
 
 }  // namespace
 
-// Draw one value per parameter and row without retaining an intermediate table.
 GeneratedRows uniform_rows(
     std::size_t row_count,
     std::uint64_t seed,
@@ -137,7 +130,6 @@ GeneratedRows uniform_rows(
     };
 }
 
-// Pair the first value of every parameter, then every second value, and so on.
 GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters) {
     if (parameters.empty() || parameters.front().values.empty()) {
         throw std::invalid_argument("An aligned grid cannot be empty.");
@@ -176,7 +168,6 @@ GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters) {
     };
 }
 
-// Enumerate all combinations without duplicating the input value vectors.
 GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
     if (parameters.empty()) {
         throw std::invalid_argument("A Cartesian grid cannot be empty.");
@@ -188,7 +179,8 @@ GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
         if (parameter.values.empty()) {
             throw std::invalid_argument("Cartesian grid values cannot be empty.");
         }
-        if (row_count > static_cast<std::size_t>(-1) / parameter.values.size()) {
+        if (row_count > std::numeric_limits<std::size_t>::max()
+                / parameter.values.size()) {
             throw std::overflow_error("Cartesian grid row count exceeds size_t.");
         }
         row_count *= parameter.values.size();
@@ -210,14 +202,12 @@ GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
     for (std::size_t row_index = 0; row_index < row_count; ++row_index) {
         std::size_t remaining = row_index;
         ParameterRow row;
-        // Walking backwards makes the final declared parameter change fastest.
         for (std::size_t offset = parameters.size(); offset-- > 0U;) {
             const GridParameter& parameter = parameters[offset];
             const std::size_t value_index = remaining % parameter.values.size();
             remaining /= parameter.values.size();
             row[parameter.name] = parameter.values[value_index];
         }
-        // Restore declaration order after the backwards index calculation.
         ParameterRow ordered_row;
         for (const GridParameter& parameter : parameters) {
             ordered_row[parameter.name] = row.at(parameter.name);
@@ -234,7 +224,6 @@ GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
     };
 }
 
-// Build an inclusive arithmetic progression, including both requested bounds.
 std::vector<float> linear_grid(float minimum, float maximum, std::size_t count) {
     if (count == 0U || !(minimum <= maximum)) {
         throw std::invalid_argument("A linear grid requires valid bounds and count.");
@@ -249,7 +238,6 @@ std::vector<float> linear_grid(float minimum, float maximum, std::size_t count) 
     return values;
 }
 
-// Fix model-specific field names around the generic database writer.
 void write_model_database(
     const std::string& database_id,
     const std::string& model_family,
@@ -259,13 +247,12 @@ void write_model_database(
     const nlohmann::ordered_json& dynamics,
     const GeneratedRows& generated
 ) {
-    write_database(
+    write_parameter_database(
         database_id, model_family, "model_family", "models", "dynamics",
         json_path, generation_script, parameter_descriptions, dynamics, generated
     );
 }
 
-// Fix product-specific field names around the generic database writer.
 void write_product_database(
     const std::string& database_id,
     const std::string& product_family,
@@ -275,7 +262,7 @@ void write_product_database(
     const nlohmann::ordered_json& payoff,
     const GeneratedRows& generated
 ) {
-    write_database(
+    write_parameter_database(
         database_id, product_family, "product_family", "products", "payoff",
         json_path, generation_script, parameter_descriptions, payoff, generated
     );

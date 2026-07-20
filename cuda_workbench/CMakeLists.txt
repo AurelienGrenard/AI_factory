@@ -28,8 +28,9 @@ set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
 
 # Small host-only library used by every model/product registry generator.
 add_library(cuda_workbench_registry STATIC
-    tools/registry/parameter_database.cpp
-    tools/registry/result_output.cpp
+    tools/registry/io.cpp
+    tools/registry/parameters.cpp
+    tools/registry/results.cpp
 )
 target_include_directories(cuda_workbench_registry PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -41,7 +42,7 @@ target_compile_features(cuda_workbench_registry PUBLIC cxx_std_17)
 target_compile_options(cuda_workbench_registry PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
-    src/heston/common.cpp
+    src/heston/parameters.cpp
     src/heston/european_call.cu
     src/products/european_call.cpp
 )

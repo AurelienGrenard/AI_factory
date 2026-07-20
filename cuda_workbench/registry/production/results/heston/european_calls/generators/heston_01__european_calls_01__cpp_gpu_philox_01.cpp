@@ -2,14 +2,15 @@
 // All dataset and execution decisions are declared first; main then performs
 // typed loading, CUDA pricing, timing, and canonical JSON/YAML serialization.
 #include "common/check_cuda.cuh"
-#include "heston/european_call.hpp"
-#include "tools/registry/result_output.hpp"
+#include "heston/european_call.cuh"
+#include "tools/registry/results.hpp"
 
 #include <cuda_runtime.h>
 
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
+#include <string>
 #include <vector>
 
 namespace {
@@ -21,23 +22,24 @@ const std::filesystem::path model_json_path =
 const std::filesystem::path product_json_path =
     "cuda_workbench/registry/production/products/european_calls/data/european_calls_01.json";
 
-constexpr ai_factory::workbench::ConstructionMethod construction =
-    ai_factory::workbench::ConstructionMethod::Aligned;
+constexpr ai_factory::workbench::registry::ResultConstruction construction =
+    ai_factory::workbench::registry::ResultConstruction::Aligned;
 constexpr std::size_t monte_carlo_paths_per_price = 16'384U;
 constexpr float target_dt = 1.0f / 252.0f;
 constexpr unsigned int threads_per_block = 512U;
 constexpr std::uint64_t seed = 900000001ULL;
 
-constexpr const char* engine = "cpp_gpu_philox";
-constexpr const char* result_version = "01";
+const std::string engine = "cpp_gpu_philox";
 const std::filesystem::path output_root =
     "cuda_workbench/registry/production/results/heston/european_calls";
 const std::filesystem::path generation_script =
     "cuda_workbench/registry/production/results/heston/european_calls/generators/"
     "heston_01__european_calls_01__cpp_gpu_philox_01.cpp";
-const std::filesystem::path source_file =
-    "cuda_workbench/src/heston/european_call.cu";
-constexpr const char* numerical_method = "Andersen QE-M";
+const std::vector<std::filesystem::path> source_files = {
+    "cuda_workbench/src/heston/dynamics.cu",
+    "cuda_workbench/src/heston/european_call.cu",
+};
+const std::string numerical_method = "Andersen QE-M";
 
 }  // namespace
 
@@ -46,18 +48,18 @@ int main() {
     using namespace ai_factory::workbench;
 
     // 1. Load both JSON databases directly into contiguous FP32 vectors.
-    const std::vector<heston::HestonModelInput> models =
+    const std::vector<heston::HestonModelParameters> models =
         heston::load_heston(model_json_path);
     const std::vector<products::EuropeanCallInput> products =
         products::load_european_calls(product_json_path);
 
     // 2. Allocate the host outputs and declare the four device arrays.
-    const std::size_t result_count = registry::constructed_row_count(
+    const std::size_t result_count = registry::result_row_count(
         models.size(), products.size(), construction
     );
     std::vector<float> prices(result_count);
     std::vector<float> standard_errors(result_count);
-    heston::HestonModelInput* device_models = nullptr;
+    heston::HestonModelParameters* device_models = nullptr;
     products::EuropeanCallInput* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
@@ -71,28 +73,28 @@ int main() {
     try {
         check_cuda(
             cudaMalloc(
-                reinterpret_cast<void**>(&device_models),
-                models.size() * sizeof(heston::HestonModelInput)
+                &device_models,
+                models.size() * sizeof(heston::HestonModelParameters)
             ),
             "cudaMalloc Heston models"
         );
         check_cuda(
             cudaMalloc(
-                reinterpret_cast<void**>(&device_products),
+                &device_products,
                 products.size() * sizeof(products::EuropeanCallInput)
             ),
             "cudaMalloc European calls"
         );
         check_cuda(
             cudaMalloc(
-                reinterpret_cast<void**>(&device_prices),
+                &device_prices,
                 result_count * sizeof(float)
             ),
             "cudaMalloc Heston call prices"
         );
         check_cuda(
             cudaMalloc(
-                reinterpret_cast<void**>(&device_standard_errors),
+                &device_standard_errors,
                 result_count * sizeof(float)
             ),
             "cudaMalloc Heston call standard errors"
@@ -102,7 +104,7 @@ int main() {
             cudaMemcpy(
                 device_models,
                 models.data(),
-                models.size() * sizeof(heston::HestonModelInput),
+                models.size() * sizeof(heston::HestonModelParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy Heston models"
@@ -126,7 +128,7 @@ int main() {
             models.size(),
             device_products,
             products.size(),
-            construction == ConstructionMethod::CartesianProduct,
+            construction == registry::ResultConstruction::CartesianProduct,
             result_count,
             monte_carlo_paths_per_price,
             target_dt,
@@ -191,17 +193,16 @@ int main() {
     ).count();
 
     // 5. Reconstruct and write the canonical result JSON and YAML.
-    result_output::write_monte_carlo_result(
+    registry::write_monte_carlo_result_database(
         model_json_path,
         product_json_path,
         construction,
         prices,
         standard_errors,
         engine,
-        result_version,
         output_root,
         generation_script,
-        source_file,
+        source_files,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt,

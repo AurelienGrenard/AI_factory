@@ -1,9 +1,7 @@
-// Public launch API for European-call Monte Carlo pricing under Heston.
-// The caller owns all CUDA allocations, transfers, events, and cleanup; this
-// API receives device pointers and launches only the specialized kernel.
+// Public launcher for the Heston European-call CUDA kernel.
 #pragma once
 
-#include "heston/common.hpp"
+#include "heston/parameters.hpp"
 #include "products/european_call.hpp"
 
 #include <cstddef>
@@ -11,9 +9,9 @@
 
 namespace ai_factory::workbench::heston {
 
-// Launch one CUDA block for every already-constructed result row.
+// Launch one specialized CUDA block for every constructed result row.
 void launch_heston_european_call_cuda(
-    const HestonModelInput* device_models,
+    const HestonModelParameters* device_models,
     std::size_t model_count,
     const products::EuropeanCallInput* device_products,
     std::size_t product_count,

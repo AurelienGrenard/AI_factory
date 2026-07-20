@@ -1,7 +1,5 @@
-// Host implementation of the Heston registry loader declared in common.hpp.
-// JSON objects are temporary: only the contiguous FP32 model vector survives
-// after this function returns.
-#include "heston/common.hpp"
+// Host implementation of the Heston registry loader.
+#include "heston/parameters.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -10,8 +8,7 @@
 
 namespace ai_factory::workbench::heston {
 
-// Parse one Heston database and preserve its row order in the returned vector.
-std::vector<HestonModelInput> load_heston(
+std::vector<HestonModelParameters> load_heston(
     const std::filesystem::path& json_path
 ) {
     std::ifstream stream(json_path);
@@ -31,13 +28,11 @@ std::vector<HestonModelInput> load_heston(
     }
 
     const auto& rows = document.at("models");
-    std::vector<HestonModelInput> models;
+    std::vector<HestonModelParameters> models;
     models.reserve(rows.size());
-
-    // Aggregate initialization fixes the in-memory field order explicitly.
     for (const auto& row : rows) {
         const auto& parameters = row.at("parameters");
-        const HestonModelInput model = {
+        const HestonModelParameters model = {
             parameters.at("spot").get<float>(),
             parameters.at("risk_free_rate").get<float>(),
             parameters.at("dividend_yield").get<float>(),
@@ -51,7 +46,7 @@ std::vector<HestonModelInput> load_heston(
             || !(model.kappa > 0.0f) || !(model.theta > 0.0f)
             || !(model.gamma > 0.0f)
             || !(model.rho >= -1.0f && model.rho <= 1.0f)) {
-            throw std::invalid_argument("Invalid Heston model input.");
+            throw std::invalid_argument("Invalid Heston model parameters.");
         }
         models.push_back(model);
     }
