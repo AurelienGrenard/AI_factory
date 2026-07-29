@@ -1,0 +1,43 @@
+title: "heston_01__european_calls_01__01"
+database_id: "heston_01__european_calls_01__01"
+json_path: "registry/production/prices/heston/european_calls/data/heston_01__european_calls_01__01.json"
+generation_script: "registry/production/prices/heston/european_calls/generators/heston_01__european_calls_01__01.cpp"
+summary:
+  row_count: 1000
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 16384
+  model: "Heston"
+  numerical_method: "Andersen QE-M"
+  payoff: "European Calls"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  random_generator: "Philox"
+  source_files:
+    - "src/common/philox.cuh"
+    - "src/heston/dynamics.cu"
+    - "src/heston/european_call.cu"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "1 / 252"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_database:
+  id: "heston_01"
+  json_path: "registry/production/model_parameters/heston/data/heston_01.json"
+product_database:
+  id: "european_calls_01"
+  json_path: "registry/production/product_parameters/european_calls/data/european_calls_01.json"
+result_construction:
+  rule: "aligned row pairing"
+timing:
+  wall_seconds: "2.16186208 s"
+  kernel_seconds: "0.145812485 s"

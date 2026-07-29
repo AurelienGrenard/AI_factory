@@ -1,1 +1,0 @@
-"""CIR registry result orchestration."""
