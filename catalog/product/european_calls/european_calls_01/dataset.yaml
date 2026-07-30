@@ -1,10 +1,8 @@
 title: "European Calls parameter dataset european_calls_01"
 database_id: "european_calls_01"
 product_family: "European Calls"
-dataset: "datasets/product/european_calls/european_calls_01.json"
-preview: "previews/product/european_calls/european_calls_01.json"
+catalog: "catalog/product/european_calls/european_calls_01"
 url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
-generation_script: "catalog/product/european_calls/european_calls_01/generator.cpp"
 parameters:
   strike: "Strike in normalized spot units."
   maturity: "Maturity in years."

@@ -247,10 +247,8 @@ void write_parameter_dataset(
         {"title", family + " parameter dataset " + database_id},
         {"database_id", database_id},
         {family_key, family},
-        {"dataset", dataset_path.generic_string()},
-        {"preview", preview_path.generic_string()},
+        {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
-        {"generation_script", generation_script.generic_string()},
         {"parameters", parameter_descriptions},
         {definition_key, definition},
         {"construction", generated.construction},
@@ -667,7 +665,6 @@ void write_monte_carlo_price_dataset_impl(
     const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
-    const std::vector<std::filesystem::path>& source_files,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,
@@ -741,13 +738,13 @@ void write_monte_carlo_price_dataset_impl(
         rows.push_back(std::move(row));
     }
 
-    const nlohmann::ordered_json model_dataset = {
+    const nlohmann::ordered_json json_model_dataset = {
         {"id", model_database_id},
         {"catalog", model_document.at("catalog")},
         {"preview", model_document.at("preview")},
         {"url", model_document.at("url")},
     };
-    const nlohmann::ordered_json product_dataset = {
+    const nlohmann::ordered_json json_product_dataset = {
         {"id", product_database_id},
         {"catalog", product_document.at("catalog")},
         {"preview", product_document.at("preview")},
@@ -760,8 +757,8 @@ void write_monte_carlo_price_dataset_impl(
         {"url", url},
         {"preview", preview_path.generic_string()},
         {"row_count", row_count},
-        {"model_dataset", model_dataset},
-        {"product_dataset", product_dataset},
+        {"model_dataset", json_model_dataset},
+        {"product_dataset", json_product_dataset},
         {"timing", {
             {"wall_seconds", wall_seconds},
             {"kernel_seconds", kernel_seconds},
@@ -772,15 +769,6 @@ void write_monte_carlo_price_dataset_impl(
     write_preview_file(
         preview_path, json_document, "results", url, preview_row_count
     );
-
-    if (source_files.empty()) {
-        throw std::invalid_argument("A result must reference its source files.");
-    }
-    nlohmann::ordered_json serialized_source_files =
-        nlohmann::ordered_json::array();
-    for (const std::filesystem::path& source_file : source_files) {
-        serialized_source_files.push_back(source_file.generic_string());
-    }
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {
         throw std::invalid_argument(
@@ -801,7 +789,26 @@ void write_monte_carlo_price_dataset_impl(
         summary[name] = value;
     }
     summary["random_generator"] = random_generator;
-    summary["source_files"] = serialized_source_files;
+    const nlohmann::ordered_json yaml_model_dataset = {
+        {"id", model_database_id},
+        {
+            "catalog",
+            std::filesystem::path(
+                model_document.at("catalog").get<std::string>()
+            ).parent_path().generic_string()
+        },
+        {"url", model_document.at("url")},
+    };
+    const nlohmann::ordered_json yaml_product_dataset = {
+        {"id", product_database_id},
+        {
+            "catalog",
+            std::filesystem::path(
+                product_document.at("catalog").get<std::string>()
+            ).parent_path().generic_string()
+        },
+        {"url", product_document.at("url")},
+    };
     const nlohmann::ordered_json yaml_timing = {
         {"wall_seconds", format_duration(wall_seconds)},
         {"kernel_seconds", format_duration(kernel_seconds)},
@@ -809,10 +816,8 @@ void write_monte_carlo_price_dataset_impl(
     nlohmann::ordered_json catalog = {
         {"title", database_id},
         {"database_id", database_id},
-        {"dataset", dataset_path.generic_string()},
-        {"preview", preview_path.generic_string()},
+        {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
-        {"generation_script", generation_script.generic_string()},
         {"summary", summary},
         {"time_grid", {
             {"rule", "nearest integer step count to target dt"},
@@ -827,8 +832,8 @@ void write_monte_carlo_price_dataset_impl(
                 {{"estimator", "Monte Carlo standard error of discounted payoff"}}
             },
         }},
-        {"model_dataset", model_dataset},
-        {"product_dataset", product_dataset},
+        {"model_dataset", yaml_model_dataset},
+        {"product_dataset", yaml_product_dataset},
         {"price_construction", {{"rule", construction_rule}}},
         {"timing", yaml_timing},
     };
@@ -867,7 +872,6 @@ void write_monte_carlo_price_dataset(
     const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
-    const std::vector<std::filesystem::path>& source_files,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,
@@ -890,7 +894,6 @@ void write_monte_carlo_price_dataset(
         preview_path,
         url,
         generation_script,
-        source_files,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt,

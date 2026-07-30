@@ -127,7 +127,6 @@ void write_monte_carlo_price_dataset(
     const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
-    const std::vector<std::filesystem::path>& source_files,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,

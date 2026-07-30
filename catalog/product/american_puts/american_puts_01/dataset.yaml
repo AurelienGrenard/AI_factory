@@ -1,10 +1,8 @@
 title: "American Puts parameter dataset american_puts_01"
 database_id: "american_puts_01"
 product_family: "American Puts"
-dataset: "datasets/product/american_puts/american_puts_01.json"
-preview: "previews/product/american_puts/american_puts_01.json"
+catalog: "catalog/product/american_puts/american_puts_01"
 url: "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json"
-generation_script: "catalog/product/american_puts/american_puts_01/generator.cpp"
 parameters:
   strike: "Strike in normalized spot units."
   maturity: "Maturity in years."

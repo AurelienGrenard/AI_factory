@@ -64,12 +64,12 @@ parameter bounds and grids; price generators load complete input datasets and
 run the CUDA pricer. The adjacent `dataset.yaml` records the resulting
 metadata.
 
-Every `dataset.yaml` contains:
+Every `dataset.yaml` exposes only two locations:
 
-- `dataset`: local path to the complete JSON dataset;
-- `preview`: path to the versioned 100-row JSON preview;
-- `url`: external URL of the complete dataset;
-- `generation_script`: recipe used to reproduce the artifacts.
+- `catalog`: repository directory containing `dataset.yaml` and `generator.cpp`;
+- `url`: external download URL of the complete dataset.
+
+Local JSON and preview paths remain implementation details of `generator.cpp`.
 
 The current URLs use the temporary `datasets.ai-factory.example` domain. They
 must be replaced with the final data server URLs.
@@ -116,10 +116,8 @@ The `heston_01` catalog entry begins as follows:
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-dataset: "datasets/model/heston/heston_01.json"
-preview: "previews/model/heston/heston_01.json"
+catalog: "catalog/model/heston/heston_01"
 url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
-generation_script: "catalog/model/heston/heston_01/generator.cpp"
 ```
 
 The complete JSON dataset contains rows with stable identifiers:
@@ -153,8 +151,7 @@ maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
 then applies `K = exp(x)`.
 
 ```yaml
-dataset: "datasets/product/european_calls/european_calls_01.json"
-preview: "previews/product/european_calls/european_calls_01.json"
+catalog: "catalog/product/european_calls/european_calls_01"
 url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
 construction:
   row_count: 1000
@@ -184,15 +181,16 @@ configuration, sources, timings, and references to both input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
-dataset: "datasets/price/heston/european_calls/heston_01__european_calls_01__01.json"
-preview: "previews/price/heston/european_calls/heston_01__european_calls_01__01.json"
+catalog: "catalog/price/heston/european_calls/heston_01__european_calls_01__01"
 url: "https://datasets.ai-factory.example/v1/price/heston/european_calls/heston_01__european_calls_01__01.json"
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/heston/heston_01/dataset.yaml"
+  catalog: "catalog/model/heston/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
   id: "european_calls_01"
-  catalog: "catalog/product/european_calls/european_calls_01/dataset.yaml"
+  catalog: "catalog/product/european_calls/european_calls_01"
+  url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
 price_construction:
   rule: "aligned row pairing"
 ```
@@ -260,7 +258,7 @@ skipped automatically when no CUDA GPU is available.
 1. Add or reuse the required structures and kernels under `src`.
 2. Create its catalog folder under `catalog/model`, `product`, or `price`.
 3. Add `generator.cpp` and its adjacent `dataset.yaml`.
-4. Declare the `dataset`, `catalog`, and `preview` paths explicitly.
+4. Declare local output paths inside `generator.cpp`.
 5. Declare an external HTTP(S) URL.
 6. Add the CMake target.
 7. Run the generator and validate all three artifacts.

@@ -1,10 +1,8 @@
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-dataset: "datasets/model/heston/heston_01.json"
-preview: "previews/model/heston/heston_01.json"
+catalog: "catalog/model/heston/heston_01"
 url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
-generation_script: "catalog/model/heston/heston_01/generator.cpp"
 parameters:
   spot: "Initial spot."
   risk_free_rate: "Continuously compounded risk-free rate."

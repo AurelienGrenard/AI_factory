@@ -49,11 +49,6 @@ const std::string url =
 const std::filesystem::path generation_script =
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__02/generator.cpp";
-const std::vector<std::filesystem::path> source_files = {
-    "src/common/philox.cuh",
-    "src/heston/dynamics.cu",
-    "src/heston/european_call.cu",
-};
 const std::string numerical_method = "Andersen QE-M";
 
 }  // namespace
@@ -280,7 +275,6 @@ int main() {
         preview_path,
         url,
         generation_script,
-        source_files,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt_description,

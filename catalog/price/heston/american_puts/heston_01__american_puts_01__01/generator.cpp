@@ -48,12 +48,6 @@ const std::string url =
 const std::filesystem::path generation_script =
     "catalog/price/heston/american_puts/"
     "heston_01__american_puts_01__01/generator.cpp";
-const std::vector<std::filesystem::path> source_files = {
-    "src/common/philox.cuh",
-    "src/common/least_squares.cu",
-    "src/heston/dynamics.cu",
-    "src/heston/american_put.cu",
-};
 const std::string numerical_method = "Andersen QE-M + Longstaff-Schwartz";
 const std::string regression_basis = "Two-factor Laguerre degree 2";
 
@@ -220,10 +214,6 @@ int main() {
     const nlohmann::ordered_json cuda_execution = {
         {"threads_per_block", threads_per_block},
         {"blocks_per_price", execution.blocks_per_price},
-        {"batch_count", execution.batch_count},
-        {"kernel_launch_count", execution.kernel_launch_count},
-        {"maximum_prices_per_batch", execution.maximum_prices_per_batch},
-        {"workspace_bytes", execution.workspace_bytes},
     };
     const nlohmann::ordered_json catalog_sections = {
         {"time_grid", {
@@ -298,7 +288,6 @@ int main() {
         preview_path,
         url,
         generation_script,
-        source_files,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt_description,

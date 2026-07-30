@@ -26,6 +26,16 @@ const std::filesystem::path price_preview_path =
 const std::filesystem::path price_catalog_path =
     "catalog/price/heston/american_puts/"
     "heston_01__american_puts_01__01/dataset.yaml";
+const std::vector<std::filesystem::path> catalog_paths = {
+    "catalog/model/heston/heston_01/dataset.yaml",
+    "catalog/product/european_calls/european_calls_01/dataset.yaml",
+    "catalog/product/american_puts/american_puts_01/dataset.yaml",
+    "catalog/price/heston/european_calls/"
+    "heston_01__european_calls_01__01/dataset.yaml",
+    "catalog/price/heston/european_calls/"
+    "heston_01__european_calls_01__02/dataset.yaml",
+    price_catalog_path,
+};
 
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {
@@ -51,6 +61,24 @@ std::string read_text(const std::filesystem::path& path) {
         std::istreambuf_iterator<char>(stream),
         std::istreambuf_iterator<char>()
     };
+}
+
+// Require YAML locations to identify catalog directories, never local files.
+void validate_catalog_locations(const std::filesystem::path& path) {
+    const std::string catalog = read_text(path);
+    require(
+        catalog.find("preview:") == std::string::npos
+            && catalog.find("generation_script:") == std::string::npos
+            && catalog.find("source_files:") == std::string::npos
+            && catalog.find("dataset: \"datasets/") == std::string::npos
+            && catalog.find("catalog: \"catalog/") != std::string::npos,
+        "catalog YAML exposes a local file instead of a catalog directory"
+    );
+    require(
+        catalog.find(".yaml\"") == std::string::npos
+            && catalog.find(".cpp\"") == std::string::npos,
+        "catalog YAML contains a file path"
+    );
 }
 
 // Check one Heston row before it reaches CUDA.
@@ -215,15 +243,23 @@ int main() {
     );
     require(
         catalog.find(
-            "preview: \"previews/price/heston/american_puts/"
-            "heston_01__american_puts_01__01.json\""
+            "catalog: \"catalog/price/heston/american_puts/"
+            "heston_01__american_puts_01__01\""
         ) != std::string::npos,
-        "American-put catalog does not reference its preview"
+        "American-put YAML does not expose its catalog directory"
     );
     require(
         catalog.find(
             "url: \"https://datasets.ai-factory.example/"
         ) != std::string::npos,
         "American-put catalog does not expose a dataset URL"
+    );
+    for (const auto& path : catalog_paths) validate_catalog_locations(path);
+    require(
+        catalog.find("batch_count:") == std::string::npos
+            && catalog.find("kernel_launch_count:") == std::string::npos
+            && catalog.find("maximum_prices_per_batch:") == std::string::npos
+            && catalog.find("workspace_bytes:") == std::string::npos,
+        "American-put YAML exposes internal batching metadata"
     );
 }
