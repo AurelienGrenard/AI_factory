@@ -1,0 +1,23 @@
+title: "Hull-White one-factor parameter dataset hull_white_01"
+database_id: "hull_white_01"
+model_family: "Hull-White one-factor"
+catalog: "catalog/model/hull_white/hull_white_01"
+url: "https://datasets.ai-factory.example/v1/model/hull_white/hull_white_01.json"
+parameters:
+  mean_reversion: "Positive mean-reversion speed a."
+  volatility: "Positive short-rate volatility sigma."
+dynamics:
+  factor: "dx_t = -a x_t dt + sigma dW_t"
+  short_rate: "r_t = x_t + phi(t)"
+  transition: "x and its integral are simulated jointly and exactly; the curve shift is integrated analytically"
+  curve_fit: "phi(t) is determined by the initial instantaneous forward curve f(0,t)"
+construction:
+  row_count: 1000
+  method: "independent uniform sample"
+  bounds:
+    mean_reversion:
+      - 0.01
+      - 1.0
+    volatility:
+      - 0.001
+      - 0.03

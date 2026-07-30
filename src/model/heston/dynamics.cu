@@ -1,5 +1,5 @@
 // Reusable Heston QE-M preparation and path simulation implementation.
-#include "heston/dynamics.cuh"
+#include "model/heston/dynamics.cuh"
 
 #include "common/philox.cuh"
 

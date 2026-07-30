@@ -1,4 +1,4 @@
-// Generate parameter rows and serialize datasets, previews, and catalog YAML.
+// Generate parameter rows and serialize complete datasets and catalog YAML.
 #pragma once
 
 #include <nlohmann/json.hpp>
@@ -84,37 +84,46 @@ std::size_t price_row_count(
     PriceConstruction construction
 );
 
-// Write a full model dataset, its catalog entry, and a compact preview.
+// Write a full model dataset and its catalog entry.
 void write_model_dataset(
     const std::string& database_id,
     const std::string& model_family,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& dynamics,
-    const GeneratedRows& generated,
-    std::size_t preview_row_count = 100U
+    const GeneratedRows& generated
 );
 
-// Write a full product dataset, its catalog entry, and a compact preview.
+// Write a full curve dataset and its catalog entry.
+void write_curve_dataset(
+    const std::string& database_id,
+    const std::string& curve_family,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::filesystem::path& generation_script,
+    const nlohmann::ordered_json& parameter_descriptions,
+    const nlohmann::ordered_json& curve_definition,
+    const GeneratedRows& generated
+);
+
+// Write a full product dataset and its catalog entry.
 void write_product_dataset(
     const std::string& database_id,
     const std::string& product_family,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& payoff,
-    const GeneratedRows& generated,
-    std::size_t preview_row_count = 100U
+    const GeneratedRows& generated
 );
 
-// Write a full price dataset, its catalog entry, and a compact preview.
+// Write a full price dataset and its catalog entry.
 void write_monte_carlo_price_dataset(
     const std::filesystem::path& model_dataset_path,
     const std::filesystem::path& product_dataset_path,
@@ -124,7 +133,6 @@ void write_monte_carlo_price_dataset(
     const std::string& random_generator,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const std::string& numerical_method,
@@ -134,8 +142,7 @@ void write_monte_carlo_price_dataset(
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
     double wall_seconds,
-    double kernel_seconds,
-    std::size_t preview_row_count = 100U
+    double kernel_seconds
 );
 
 }  // namespace ai_factory::workbench::datasets

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "heston/parameters.hpp"
+#include "model/heston/parameters.hpp"
 
 #include <cuda_runtime.h>
 

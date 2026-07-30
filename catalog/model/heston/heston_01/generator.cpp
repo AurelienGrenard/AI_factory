@@ -8,7 +8,7 @@
 #include <random>
 #include <string>
 
-// Generate the Heston dataset, preview, and catalog entry.
+// Generate the Heston dataset and catalog entry.
 int main() {
     using namespace ai_factory::workbench::datasets;
     using nlohmann::ordered_json;
@@ -17,8 +17,6 @@ int main() {
         "datasets/model/heston/heston_01.json";
     const std::filesystem::path catalog_path =
         "catalog/model/heston/heston_01/dataset.yaml";
-    const std::filesystem::path preview_path =
-        "previews/model/heston/heston_01.json";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/heston/heston_01.json";
     const std::filesystem::path generator_path =
@@ -68,7 +66,6 @@ int main() {
         "Heston",
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generator_path,
         {

@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <string>
 
-// Generate the European-call dataset, preview, and catalog entry.
+// Generate the European-call dataset and catalog entry.
 int main() {
     using namespace ai_factory::workbench::datasets;
 
@@ -12,8 +12,6 @@ int main() {
         "datasets/product/european_calls/european_calls_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/european_calls/european_calls_01/dataset.yaml";
-    const std::filesystem::path preview_path =
-        "previews/product/european_calls/european_calls_01.json";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/european_calls/"
         "european_calls_01.json";
@@ -36,7 +34,6 @@ int main() {
         "European Calls",
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generator_path,
         {

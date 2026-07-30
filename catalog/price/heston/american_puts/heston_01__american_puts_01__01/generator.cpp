@@ -1,6 +1,6 @@
 // Build one Heston American-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "heston/american_put.cuh"
+#include "model/heston/american_put.cuh"
 #include "tools/datasets/dataset.hpp"
 
 #include <cuda_runtime.h>
@@ -39,9 +39,6 @@ const std::filesystem::path dataset_path =
 const std::filesystem::path catalog_path =
     "catalog/price/heston/american_puts/"
     "heston_01__american_puts_01__01/dataset.yaml";
-const std::filesystem::path preview_path =
-    "previews/price/heston/american_puts/"
-    "heston_01__american_puts_01__01.json";
 const std::string url =
     "https://datasets.ai-factory.example/v1/price/heston/american_puts/"
     "heston_01__american_puts_01__01.json";
@@ -210,7 +207,7 @@ int main() {
         cudaFree(device_standard_errors),
         "cudaFree Heston American put standard errors"
     );
-    // 5. Write the complete price dataset, preview, and catalog YAML.
+    // 5. Write the complete price dataset and catalog YAML.
     const nlohmann::ordered_json cuda_execution = {
         {"threads_per_block", threads_per_block},
         {"blocks_per_price", execution.blocks_per_price},
@@ -285,7 +282,6 @@ int main() {
         random_generator,
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generation_script,
         numerical_method,

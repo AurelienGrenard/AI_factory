@@ -1,7 +1,7 @@
 title: "heston_01__european_calls_01__01"
 database_id: "heston_01__european_calls_01__01"
 catalog: "catalog/price/heston/european_calls/heston_01__european_calls_01__01"
-url: "https://datasets.ai-factory.example/v1/price/heston/european_calls/heston_01__european_calls_01__01.json"
+url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
 summary:
   row_count: 1000
   pricing_method: "Monte Carlo"

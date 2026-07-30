@@ -1,4 +1,4 @@
-// Parameter generation and dataset, preview, and catalog serialization.
+// Parameter generation and complete dataset and catalog serialization.
 #include "tools/datasets/dataset.hpp"
 
 #include <algorithm>
@@ -145,31 +145,6 @@ void validate_dataset_url(const std::string& url) {
     }
 }
 
-// Write the first rows as a valid, standalone JSON dataset.
-void write_preview_file(
-    const std::filesystem::path& path,
-    const nlohmann::ordered_json& full_document,
-    const std::string& row_key,
-    const std::string& dataset_url,
-    std::size_t requested_row_count
-) {
-    if (requested_row_count == 0U) {
-        throw std::invalid_argument("A preview must contain at least one row.");
-    }
-    const auto& full_rows = full_document.at(row_key);
-    const std::size_t preview_row_count =
-        std::min(requested_row_count, full_rows.size());
-    nlohmann::ordered_json preview = full_document;
-    preview["source_row_count"] = full_rows.size();
-    preview["row_count"] = preview_row_count;
-    preview["preview_of"] = dataset_url;
-    preview[row_key] = nlohmann::ordered_json::array();
-    for (std::size_t index = 0U; index < preview_row_count; ++index) {
-        preview[row_key].push_back(full_rows.at(index));
-    }
-    write_json_file(path, preview);
-}
-
 // Round FP32 grid bounds for readable YAML metadata.
 double readable_grid_bound(float value) {
     constexpr double scale = 10'000'000.0;
@@ -206,7 +181,7 @@ nlohmann::ordered_json database_rows(
     return rows;
 }
 
-// Write the common artifacts shared by model and product datasets.
+// Write the common artifacts shared by curve, model, and product datasets.
 void write_parameter_dataset(
     const std::string& database_id,
     const std::string& family,
@@ -215,13 +190,11 @@ void write_parameter_dataset(
     const std::string& definition_key,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& definition,
-    const GeneratedRows& generated,
-    std::size_t preview_row_count
+    const GeneratedRows& generated
 ) {
     if (generated.rows.empty()) {
         throw std::invalid_argument("A parameter dataset cannot be empty.");
@@ -234,14 +207,10 @@ void write_parameter_dataset(
         {"catalog", catalog_path.generic_string()},
         {"generation_script", generation_script.generic_string()},
         {"url", url},
-        {"preview", preview_path.generic_string()},
         {"row_count", generated.rows.size()},
         {row_key, database_rows(generated.rows)},
     };
     write_json_file(dataset_path, dataset);
-    write_preview_file(
-        preview_path, dataset, row_key, url, preview_row_count
-    );
 
     write_yaml_file(catalog_path, {
         {"title", family + " parameter dataset " + database_id},
@@ -568,18 +537,35 @@ void write_model_dataset(
     const std::string& model_family,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& dynamics,
-    const GeneratedRows& generated,
-    std::size_t preview_row_count
+    const GeneratedRows& generated
 ) {
     write_parameter_dataset(
         database_id, model_family, "model_family", "models", "dynamics",
-        dataset_path, catalog_path, preview_path, url, generation_script,
-        parameter_descriptions, dynamics, generated, preview_row_count
+        dataset_path, catalog_path, url, generation_script,
+        parameter_descriptions, dynamics, generated
+    );
+}
+
+// Write one curve dataset and its versioned metadata artifacts.
+void write_curve_dataset(
+    const std::string& database_id,
+    const std::string& curve_family,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::filesystem::path& generation_script,
+    const nlohmann::ordered_json& parameter_descriptions,
+    const nlohmann::ordered_json& curve_definition,
+    const GeneratedRows& generated
+) {
+    write_parameter_dataset(
+        database_id, curve_family, "curve_family", "curves", "curve",
+        dataset_path, catalog_path, url, generation_script,
+        parameter_descriptions, curve_definition, generated
     );
 }
 
@@ -589,18 +575,16 @@ void write_product_dataset(
     const std::string& product_family,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& payoff,
-    const GeneratedRows& generated,
-    std::size_t preview_row_count
+    const GeneratedRows& generated
 ) {
     write_parameter_dataset(
         database_id, product_family, "product_family", "products", "payoff",
-        dataset_path, catalog_path, preview_path, url, generation_script,
-        parameter_descriptions, payoff, generated, preview_row_count
+        dataset_path, catalog_path, url, generation_script,
+        parameter_descriptions, payoff, generated
     );
 }
 
@@ -662,7 +646,6 @@ void write_monte_carlo_price_dataset_impl(
     const std::string& random_generator,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const std::string& numerical_method,
@@ -672,8 +655,7 @@ void write_monte_carlo_price_dataset_impl(
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
     double wall_seconds,
-    double kernel_seconds,
-    std::size_t preview_row_count
+    double kernel_seconds
 ) {
     validate_dataset_url(url);
     const nlohmann::ordered_json model_document =
@@ -741,13 +723,11 @@ void write_monte_carlo_price_dataset_impl(
     const nlohmann::ordered_json json_model_dataset = {
         {"id", model_database_id},
         {"catalog", model_document.at("catalog")},
-        {"preview", model_document.at("preview")},
         {"url", model_document.at("url")},
     };
     const nlohmann::ordered_json json_product_dataset = {
         {"id", product_database_id},
         {"catalog", product_document.at("catalog")},
-        {"preview", product_document.at("preview")},
         {"url", product_document.at("url")},
     };
     const nlohmann::ordered_json json_document = {
@@ -755,7 +735,6 @@ void write_monte_carlo_price_dataset_impl(
         {"catalog", catalog_path.generic_string()},
         {"generation_script", generation_script.generic_string()},
         {"url", url},
-        {"preview", preview_path.generic_string()},
         {"row_count", row_count},
         {"model_dataset", json_model_dataset},
         {"product_dataset", json_product_dataset},
@@ -766,9 +745,6 @@ void write_monte_carlo_price_dataset_impl(
         {"results", rows},
     };
     write_json_file(dataset_path, json_document);
-    write_preview_file(
-        preview_path, json_document, "results", url, preview_row_count
-    );
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {
         throw std::invalid_argument(
@@ -859,7 +835,7 @@ std::size_t price_row_count(
     return price_row_count_impl(model_count, product_count, construction);
 }
 
-// Write one complete Monte Carlo price dataset, preview, and catalog entry.
+// Write one complete Monte Carlo price dataset and catalog entry.
 void write_monte_carlo_price_dataset(
     const std::filesystem::path& model_dataset_path,
     const std::filesystem::path& product_dataset_path,
@@ -869,7 +845,6 @@ void write_monte_carlo_price_dataset(
     const std::string& random_generator,
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
-    const std::filesystem::path& preview_path,
     const std::string& url,
     const std::filesystem::path& generation_script,
     const std::string& numerical_method,
@@ -879,8 +854,7 @@ void write_monte_carlo_price_dataset(
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
     double wall_seconds,
-    double kernel_seconds,
-    std::size_t preview_row_count
+    double kernel_seconds
 ) {
     write_monte_carlo_price_dataset_impl(
         model_dataset_path,
@@ -891,7 +865,6 @@ void write_monte_carlo_price_dataset(
         random_generator,
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generation_script,
         numerical_method,
@@ -901,8 +874,7 @@ void write_monte_carlo_price_dataset(
         catalog_sections,
         first_seed,
         wall_seconds,
-        kernel_seconds,
-        preview_row_count
+        kernel_seconds
     );
 }
 

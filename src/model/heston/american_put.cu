@@ -1,12 +1,12 @@
 // Multi-block Heston American-put pricing with GPU Longstaff-Schwartz.
-#include "heston/american_put.cuh"
+#include "model/heston/american_put.cuh"
 
 #include "common/check_cuda.cuh"
 #include "common/least_squares.cu"
 #include "common/reductions.cuh"
 
 // Include the dynamics implementation so NVCC can inline each time step.
-#include "heston/dynamics.cu"
+#include "model/heston/dynamics.cu"
 
 #include <cuda_runtime.h>
 

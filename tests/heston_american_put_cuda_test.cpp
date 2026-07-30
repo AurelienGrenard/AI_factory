@@ -1,22 +1,16 @@
 // Exercise the multi-block Heston American-put pipeline on a short CUDA run.
 #include "common/check_cuda.cuh"
-#include "heston/american_put.cuh"
+#include "model/heston/american_put.cuh"
 
 #include <cuda_runtime.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <filesystem>
 #include <stdexcept>
 #include <vector>
 
 namespace {
-
-const std::filesystem::path model_preview_path =
-    "previews/model/heston/heston_01.json";
-const std::filesystem::path product_preview_path =
-    "previews/product/american_puts/american_puts_01.json";
 
 constexpr std::size_t kRowCount = 4U;
 constexpr std::size_t kPathsPerPrice = 4'096U;
@@ -107,12 +101,18 @@ int main() {
     }
     check_cuda(availability, "test cudaGetDeviceCount");
 
-    std::vector<heston::HestonModelParameters> models =
-        heston::load_heston(model_preview_path);
-    std::vector<products::AmericanPutInput> products =
-        products::load_american_puts(product_preview_path);
-    models.resize(kRowCount);
-    products.resize(kRowCount);
+    const std::vector<heston::HestonModelParameters> models = {
+        {1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f},
+        {1.0f, 0.03f, 0.00f, 0.06f, 2.0f, 0.05f, 0.40f, -0.60f},
+        {1.0f, 0.01f, 0.02f, 0.03f, 1.0f, 0.06f, 0.25f, -0.50f},
+        {1.0f, 0.04f, 0.01f, 0.08f, 2.5f, 0.07f, 0.50f, -0.40f},
+    };
+    const std::vector<products::AmericanPutInput> products = {
+        {0.90f, 0.50f, 1.0f / 12.0f},
+        {1.00f, 1.00f, 1.0f / 12.0f},
+        {1.10f, 1.50f, 1.0f / 24.0f},
+        {1.20f, 2.00f, 1.0f / 24.0f},
+    };
 
     DeviceArrays device;
     check_cuda(

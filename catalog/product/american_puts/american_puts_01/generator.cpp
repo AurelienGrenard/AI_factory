@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <string>
 
-// Generate the American-put dataset, preview, and catalog entry.
+// Generate the American-put dataset and catalog entry.
 int main() {
     using namespace ai_factory::workbench::datasets;
 
@@ -12,8 +12,6 @@ int main() {
         "datasets/product/american_puts/american_puts_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/american_puts/american_puts_01/dataset.yaml";
-    const std::filesystem::path preview_path =
-        "previews/product/american_puts/american_puts_01.json";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/american_puts/"
         "american_puts_01.json";
@@ -50,7 +48,6 @@ int main() {
         "American Puts",
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generator_path,
         {

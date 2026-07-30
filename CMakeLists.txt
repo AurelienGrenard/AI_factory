@@ -48,9 +48,12 @@ target_compile_features(ai_factory_dataset_tools PUBLIC cxx_std_17)
 target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
-    src/heston/parameters.cpp
-    src/heston/american_put.cu
-    src/heston/european_call.cu
+    src/curve/nelson_siegel.cpp
+    src/model/heston/parameters.cpp
+    src/model/heston/american_put.cu
+    src/model/heston/european_call.cu
+    src/model/hull_white/parameters.cpp
+    src/model/hull_white/dynamics.cu
     src/products/american_put.cpp
     src/products/european_call.cpp
 )
@@ -101,12 +104,26 @@ target_compile_features(
     generate_heston_european_calls_02 PRIVATE cxx_std_17
 )
 
-# These host executables create datasets, previews, and catalog YAML.
+# These host executables create complete datasets and catalog YAML.
 add_executable(
     generate_heston_01
     catalog/model/heston/heston_01/generator.cpp
 )
 target_link_libraries(generate_heston_01 PRIVATE ai_factory_dataset_tools)
+
+add_executable(
+    generate_nelson_siegel_01
+    catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
+)
+target_link_libraries(
+    generate_nelson_siegel_01 PRIVATE ai_factory_dataset_tools
+)
+
+add_executable(
+    generate_hull_white_01
+    catalog/model/hull_white/hull_white_01/generator.cpp
+)
+target_link_libraries(generate_hull_white_01 PRIVATE ai_factory_dataset_tools)
 
 add_executable(
     generate_european_calls_01
@@ -157,6 +174,33 @@ if(BUILD_TESTING)
     set_tests_properties(dataset_catalog PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         LABELS "workbench;catalog"
+    )
+
+    add_executable(
+        test_hull_white_cuda
+        tests/hull_white_cuda_test.cu
+    )
+    target_include_directories(test_hull_white_cuda PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    target_link_libraries(
+        test_hull_white_cuda PRIVATE cuda_workbench
+    )
+    target_compile_features(test_hull_white_cuda PRIVATE cxx_std_17)
+    set_target_properties(test_hull_white_cuda PROPERTIES
+        CUDA_STANDARD 17
+        CUDA_STANDARD_REQUIRED YES
+    )
+    add_test(
+        NAME hull_white_cuda
+        COMMAND test_hull_white_cuda
+    )
+    set_tests_properties(hull_white_cuda PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        LABELS "workbench;cuda;hull_white"
+        RESOURCE_LOCK cuda_gpu
+        SKIP_RETURN_CODE 77
+        TIMEOUT 30
     )
 
     add_executable(

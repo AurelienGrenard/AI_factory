@@ -1,11 +1,11 @@
 // Heston European-call kernel with fused Philox simulation and payoff reduction.
-#include "heston/european_call.cuh"
+#include "model/heston/european_call.cuh"
 
 #include "common/check_cuda.cuh"
 #include "common/reductions.cuh"
 
 // Include the dynamics implementation so NVCC can inline each time step.
-#include "heston/dynamics.cu"
+#include "model/heston/dynamics.cu"
 
 #include <cuda_runtime.h>
 

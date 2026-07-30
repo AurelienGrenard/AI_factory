@@ -1,5 +1,5 @@
 // Host implementation of the Heston dataset loader.
-#include "heston/parameters.hpp"
+#include "model/heston/parameters.hpp"
 
 #include <nlohmann/json.hpp>
 

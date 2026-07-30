@@ -1,6 +1,6 @@
 // Benchmark 50 stratified Heston American-put rows without writing a dataset.
 #include "common/check_cuda.cuh"
-#include "heston/american_put.cuh"
+#include "model/heston/american_put.cuh"
 
 #include <cuda_runtime.h>
 
@@ -17,16 +17,16 @@
 
 namespace {
 
-constexpr std::size_t kSourceRowCount = 100U;
+constexpr std::size_t kSourceRowCount = 1'000U;
 constexpr std::size_t kBenchmarkRowCount = 50U;
 constexpr std::size_t kPathsPerPrice = 1U << 20U;
 constexpr float kTargetDt = 1.0f / 252.0f;
 constexpr std::uint64_t kSeed = 900000001ULL;
 
-const std::filesystem::path model_preview_path =
-    "previews/model/heston/heston_01.json";
-const std::filesystem::path product_preview_path =
-    "previews/product/american_puts/american_puts_01.json";
+const std::filesystem::path model_dataset_path =
+    "datasets/model/heston/heston_01.json";
+const std::filesystem::path product_dataset_path =
+    "datasets/product/american_puts/american_puts_01.json";
 
 // Own the fixed device arrays used by every benchmark run.
 struct DeviceArrays {
@@ -47,7 +47,7 @@ struct DeviceArrays {
 template <typename Value>
 std::vector<Value> stratified_rows(const std::vector<Value>& source) {
     if (source.size() != kSourceRowCount) {
-        throw std::runtime_error("benchmark expects exactly 100 preview rows");
+        throw std::runtime_error("benchmark expects exactly 1000 dataset rows");
     }
     std::vector<Value> selected;
     selected.reserve(kBenchmarkRowCount);
@@ -90,9 +90,9 @@ int main(int argc, char** argv) {
     const std::size_t blocks_per_price = std::stoull(argv[2]);
 
     const std::vector<heston::HestonModelParameters> models =
-        stratified_rows(heston::load_heston(model_preview_path));
+        stratified_rows(heston::load_heston(model_dataset_path));
     const std::vector<products::AmericanPutInput> products =
-        stratified_rows(products::load_american_puts(product_preview_path));
+        stratified_rows(products::load_american_puts(product_dataset_path));
     std::vector<float> prices(kBenchmarkRowCount);
     std::vector<float> standard_errors(kBenchmarkRowCount);
     DeviceArrays device;

@@ -1,7 +1,7 @@
 // Public launcher for the Heston American-put CUDA implementation.
 #pragma once
 
-#include "heston/parameters.hpp"
+#include "model/heston/parameters.hpp"
 #include "products/american_put.hpp"
 
 #include <cstddef>

@@ -1,6 +1,6 @@
 // Build one Heston European-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "heston/european_call.cuh"
+#include "model/heston/european_call.cuh"
 #include "tools/datasets/dataset.hpp"
 
 #include <cuda_runtime.h>
@@ -40,11 +40,8 @@ const std::filesystem::path dataset_path =
 const std::filesystem::path catalog_path =
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml";
-const std::filesystem::path preview_path =
-    "previews/price/heston/european_calls/"
-    "heston_01__european_calls_01__01.json";
 const std::string url =
-    "https://datasets.ai-factory.example/v1/price/heston/european_calls/"
+    "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/"
     "heston_01__european_calls_01__01.json";
 const std::filesystem::path generation_script =
     "catalog/price/heston/european_calls/"
@@ -262,7 +259,7 @@ int main() {
         std::chrono::system_clock::now() - wall_start
     ).count();
 
-    // 5. Write the complete price dataset, preview, and catalog YAML.
+    // 5. Write the complete price dataset and catalog YAML.
     datasets::write_monte_carlo_price_dataset(
         model_dataset_path,
         product_dataset_path,
@@ -272,7 +269,6 @@ int main() {
         random_generator,
         dataset_path,
         catalog_path,
-        preview_path,
         url,
         generation_script,
         numerical_method,

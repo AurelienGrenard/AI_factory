@@ -1,7 +1,7 @@
 // Public launcher for the Heston European-call CUDA kernel.
 #pragma once
 
-#include "heston/parameters.hpp"
+#include "model/heston/parameters.hpp"
 #include "products/european_call.hpp"
 
 #include <cstddef>

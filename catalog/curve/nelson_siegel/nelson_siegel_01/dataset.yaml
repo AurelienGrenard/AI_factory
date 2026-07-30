@@ -1,0 +1,34 @@
+title: "Nelson-Siegel parameter dataset nelson_siegel_01"
+database_id: "nelson_siegel_01"
+curve_family: "Nelson-Siegel"
+catalog: "catalog/curve/nelson_siegel/nelson_siegel_01"
+url: "https://datasets.ai-factory.example/v1/curve/nelson_siegel/nelson_siegel_01.json"
+parameters:
+  beta0: "Long-maturity continuously compounded rate."
+  beta1: "Short-end slope loading."
+  beta2: "Medium-term curvature loading."
+  tau: "Positive decay time in years."
+curve:
+  zero_rate: "z(0,T) = beta0 + beta1 L(T/tau) + beta2 (L(T/tau) - exp(-T/tau))"
+  loading: "L(x) = (1 - exp(-x)) / x, with L(0) = 1"
+  discount_factor: "P(0,T) = exp(-T z(0,T))"
+  instantaneous_forward: "f(0,T) = beta0 + exp(-T/tau) (beta1 + beta2 T/tau)"
+  forward_derivative: "d_T f(0,T) = exp(-T/tau) (-beta1 + beta2 (1 - T/tau)) / tau"
+  time_unit: "years"
+  rate_convention: "continuously compounded"
+construction:
+  row_count: 1000
+  method: "independent uniform sample"
+  bounds:
+    beta0:
+      - 0.0
+      - 0.08
+    beta1:
+      - -0.06
+      - 0.04
+    beta2:
+      - -0.08
+      - 0.08
+    tau:
+      - 0.25
+      - 8.0
