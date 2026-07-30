@@ -5,6 +5,9 @@ build*/
 # Full generated datasets live locally or on external storage.
 datasets/
 
+# The website is developed locally and published from a separate project.
+AI_factory_website/
+
 # Editor and operating-system noise.
 .vscode/
 .DS_Store
