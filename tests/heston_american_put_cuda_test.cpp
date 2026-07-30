@@ -13,10 +13,10 @@
 
 namespace {
 
-const std::filesystem::path model_json_path =
-    "registry/production/model_parameters/heston/data/heston_01.json";
-const std::filesystem::path product_json_path =
-    "registry/production/product_parameters/american_puts/data/american_puts_01.json";
+const std::filesystem::path model_preview_path =
+    "previews/model/heston/heston_01.json";
+const std::filesystem::path product_preview_path =
+    "previews/product/american_puts/american_puts_01.json";
 
 constexpr std::size_t kRowCount = 4U;
 constexpr std::size_t kPathsPerPrice = 4'096U;
@@ -108,9 +108,9 @@ int main() {
     check_cuda(availability, "test cudaGetDeviceCount");
 
     std::vector<heston::HestonModelParameters> models =
-        heston::load_heston(model_json_path);
+        heston::load_heston(model_preview_path);
     std::vector<products::AmericanPutInput> products =
-        products::load_american_puts(product_json_path);
+        products::load_american_puts(product_preview_path);
     models.resize(kRowCount);
     products.resize(kRowCount);
 

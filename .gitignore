@@ -2,6 +2,9 @@
 build/
 build*/
 
+# Full generated datasets live locally or on external storage.
+datasets/
+
 # Editor and operating-system noise.
 .vscode/
 .DS_Store

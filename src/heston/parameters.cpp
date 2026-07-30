@@ -1,4 +1,4 @@
-// Host implementation of the Heston registry loader.
+// Host implementation of the Heston dataset loader.
 #include "heston/parameters.hpp"
 
 #include <nlohmann/json.hpp>
@@ -9,14 +9,14 @@
 
 namespace ai_factory::workbench::heston {
 
-// Parse and validate Heston rows while preserving their registry order.
+// Parse and validate Heston rows while preserving their dataset order.
 std::vector<HestonModelParameters> load_heston(
-    const std::filesystem::path& json_path
+    const std::filesystem::path& dataset_path
 ) {
-    std::ifstream stream(json_path);
+    std::ifstream stream(dataset_path);
     if (!stream) {
         throw std::runtime_error(
-            "Could not open Heston JSON: " + json_path.string()
+            "Could not open Heston JSON: " + dataset_path.string()
         );
     }
 
@@ -25,7 +25,8 @@ std::vector<HestonModelParameters> load_heston(
         stream >> document;
     } catch (const nlohmann::json::exception& error) {
         throw std::runtime_error(
-            "Invalid Heston JSON '" + json_path.string() + "': " + error.what()
+            "Invalid Heston JSON '" + dataset_path.string()
+            + "': " + error.what()
         );
     }
 

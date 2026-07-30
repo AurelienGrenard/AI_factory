@@ -1,4 +1,4 @@
-// Model-independent European-call parameters and registry loader.
+// Model-independent European-call parameters and dataset loader.
 #pragma once
 
 #include <filesystem>
@@ -15,9 +15,9 @@ struct EuropeanCallInput {
 
 static_assert(std::is_trivially_copyable_v<EuropeanCallInput>);
 
-// Load and convert every row from a European-call registry JSON database.
+// Load every European-call row into one contiguous FP32 vector.
 std::vector<EuropeanCallInput> load_european_calls(
-    const std::filesystem::path& json_path
+    const std::filesystem::path& dataset_path
 );
 
 }  // namespace ai_factory::workbench::products

@@ -1,0 +1,38 @@
+title: "American Puts parameter dataset american_puts_01"
+database_id: "american_puts_01"
+product_family: "American Puts"
+dataset: "datasets/product/american_puts/american_puts_01.json"
+preview: "previews/product/american_puts/american_puts_01.json"
+url: "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json"
+generation_script: "generators/product/american_puts/american_puts_01.cpp"
+parameters:
+  strike: "Strike in normalized spot units."
+  maturity: "Maturity in years."
+  exercise_interval: "Time in years between exercise dates."
+payoff:
+  expression: "max(K - S_t, 0) at each exercise date"
+  interpretation: "Continuous American exercise is approximated on discrete dates."
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  row_count: 1000
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2
+  exercise_interval_sampling:
+    method: "uniform sample among feasible conventions"
+    conventions:
+      - "1 / 12"
+      - "1 / 24"
+    exercise_dates: "maturity - n * exercise_interval, ..., maturity"
+    constraint: "1 * exercise_interval < maturity"
+    minimum_exercise_dates: 2

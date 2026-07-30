@@ -1,4 +1,4 @@
-// Model-independent American-put parameters and registry loader.
+// Model-independent American-put parameters and dataset loader.
 #pragma once
 
 #include <filesystem>
@@ -16,9 +16,9 @@ struct AmericanPutInput {
 
 static_assert(std::is_trivially_copyable_v<AmericanPutInput>);
 
-// Load and convert every row from an American-put registry JSON database.
+// Load every American-put row into one contiguous FP32 vector.
 std::vector<AmericanPutInput> load_american_puts(
-    const std::filesystem::path& json_path
+    const std::filesystem::path& dataset_path
 );
 
 }  // namespace ai_factory::workbench::products

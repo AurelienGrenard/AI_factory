@@ -9,14 +9,14 @@
 
 namespace ai_factory::workbench::products {
 
-// Parse one product database and preserve its row order in the returned vector.
+// Parse one dataset and preserve its row order in the returned vector.
 std::vector<EuropeanCallInput> load_european_calls(
-    const std::filesystem::path& json_path
+    const std::filesystem::path& dataset_path
 ) {
-    std::ifstream stream(json_path);
+    std::ifstream stream(dataset_path);
     if (!stream) {
         throw std::runtime_error(
-            "Could not open European call JSON: " + json_path.string()
+            "Could not open European call JSON: " + dataset_path.string()
         );
     }
 
@@ -25,7 +25,7 @@ std::vector<EuropeanCallInput> load_european_calls(
         stream >> document;
     } catch (const nlohmann::json::exception& error) {
         throw std::runtime_error(
-            "Invalid European call JSON '" + json_path.string()
+            "Invalid European call JSON '" + dataset_path.string()
             + "': " + error.what()
         );
     }

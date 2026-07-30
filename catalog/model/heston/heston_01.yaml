@@ -1,0 +1,54 @@
+title: "Heston parameter dataset heston_01"
+database_id: "heston_01"
+model_family: "Heston"
+dataset: "datasets/model/heston/heston_01.json"
+preview: "previews/model/heston/heston_01.json"
+url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+generation_script: "generators/model/heston/heston_01.cpp"
+parameters:
+  spot: "Initial spot."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_variance: "Initial variance v0."
+  kappa: "Variance mean-reversion speed."
+  theta: "Long-run variance."
+  gamma: "Volatility of variance."
+  rho: "Spot/variance Brownian correlation."
+dynamics:
+  spot: "dS_t / S_t = (r - q) dt + sqrt(V_t) dW_t^S"
+  variance: "dV_t = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V"
+  correlation: "d<W^S, W^V>_t = rho dt"
+construction:
+  row_count: 1000
+  method: "conditional uniform sample"
+  bounds:
+    spot:
+      - 1.0
+      - 1.0
+    risk_free_rate:
+      - 0.0
+      - 0.08
+    dividend_yield:
+      - 0.0
+      - 0.05
+    initial_variance:
+      - 0.01
+      - 0.12
+    kappa:
+      - 0.5
+      - 4.0
+    theta:
+      - 0.01
+      - 0.15
+    rho:
+      - -1.0
+      - -0.3
+  conditional_bounds:
+    gamma:
+      minimum: "max(sqrt(kappa * theta / 5), 0.1)"
+      maximum: "min(sqrt(12 * kappa * theta), 0.8)"
+  feller_ratio:
+    expression: "2 * kappa * theta / gamma^2"
+    controlled_range:
+      - "1 / 6"
+      - 10.0

@@ -1,4 +1,4 @@
-// Public Heston parameters and host-side registry loader.
+// Public Heston parameters and host-side dataset loader.
 #pragma once
 
 #include <filesystem>
@@ -21,9 +21,9 @@ struct HestonModelParameters {
 
 static_assert(std::is_trivially_copyable_v<HestonModelParameters>);
 
-// Load every row from a Heston registry JSON into one contiguous vector.
+// Load every row from a Heston dataset JSON into one contiguous vector.
 std::vector<HestonModelParameters> load_heston(
-    const std::filesystem::path& json_path
+    const std::filesystem::path& dataset_path
 );
 
 }  // namespace ai_factory::workbench::heston

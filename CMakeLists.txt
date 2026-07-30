@@ -34,18 +34,18 @@ option(
     OFF
 )
 
-# Small host-only library used by every model/product registry generator.
-add_library(cuda_workbench_registry STATIC
-    tools/registry/dataset.cpp
+# Host-only generation and serialization helpers shared by all generators.
+add_library(ai_factory_dataset_tools STATIC
+    tools/datasets/dataset.cpp
 )
-target_include_directories(cuda_workbench_registry PUBLIC
+target_include_directories(ai_factory_dataset_tools PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(
-    cuda_workbench_registry PUBLIC nlohmann_json::nlohmann_json
+    ai_factory_dataset_tools PUBLIC nlohmann_json::nlohmann_json
 )
-target_compile_features(cuda_workbench_registry PUBLIC cxx_std_17)
-target_compile_options(cuda_workbench_registry PRIVATE -O3)
+target_compile_features(ai_factory_dataset_tools PUBLIC cxx_std_17)
+target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
     src/heston/parameters.cpp
@@ -75,88 +75,88 @@ endif()
 
 add_executable(
     generate_heston_european_calls_01
-    registry/production/prices/heston/european_calls/generators/heston_01__european_calls_01__01.cpp
+    generators/price/heston/european_calls/heston_01__european_calls_01__01.cpp
 )
 target_include_directories(generate_heston_european_calls_01 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(
     generate_heston_european_calls_01
-    PRIVATE cuda_workbench cuda_workbench_registry
+    PRIVATE cuda_workbench ai_factory_dataset_tools
 )
 target_compile_features(generate_heston_european_calls_01 PRIVATE cxx_std_17)
 
 add_executable(
     generate_heston_european_calls_02
-    registry/production/prices/heston/european_calls/generators/heston_01__european_calls_01__02.cpp
+    generators/price/heston/european_calls/heston_01__european_calls_01__02.cpp
 )
 target_include_directories(generate_heston_european_calls_02 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(
     generate_heston_european_calls_02
-    PRIVATE cuda_workbench cuda_workbench_registry
+    PRIVATE cuda_workbench ai_factory_dataset_tools
 )
 target_compile_features(
     generate_heston_european_calls_02 PRIVATE cxx_std_17
 )
 
-# These two host executables create the local model and product JSON/YAML.
+# These host executables create datasets, previews, and catalog YAML.
 add_executable(
     generate_heston_01
-    registry/production/model_parameters/heston/generators/heston_01.cpp
+    generators/model/heston/heston_01.cpp
 )
-target_link_libraries(generate_heston_01 PRIVATE cuda_workbench_registry)
+target_link_libraries(generate_heston_01 PRIVATE ai_factory_dataset_tools)
 
 add_executable(
     generate_european_calls_01
-    registry/production/product_parameters/european_calls/generators/european_calls_01.cpp
+    generators/product/european_calls/european_calls_01.cpp
 )
 target_link_libraries(
-    generate_european_calls_01 PRIVATE cuda_workbench_registry
+    generate_european_calls_01 PRIVATE ai_factory_dataset_tools
 )
 
 add_executable(
     generate_american_puts_01
-    registry/production/product_parameters/american_puts/generators/american_puts_01.cpp
+    generators/product/american_puts/american_puts_01.cpp
 )
 target_link_libraries(
-    generate_american_puts_01 PRIVATE cuda_workbench_registry
+    generate_american_puts_01 PRIVATE ai_factory_dataset_tools
 )
 
 add_executable(
     generate_heston_american_puts_01
-    registry/production/prices/heston/american_puts/generators/heston_01__american_puts_01__01.cpp
+    generators/price/heston/american_puts/heston_01__american_puts_01__01.cpp
 )
 target_include_directories(generate_heston_american_puts_01 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(
     generate_heston_american_puts_01
-    PRIVATE cuda_workbench cuda_workbench_registry
+    PRIVATE cuda_workbench ai_factory_dataset_tools
 )
 target_compile_features(generate_heston_american_puts_01 PRIVATE cxx_std_17)
 
 if(BUILD_TESTING)
     add_executable(
-        test_cuda_workbench_registry
-        tests/registry_contract_test.cpp
+        test_dataset_catalog
+        tests/catalog_contract_test.cpp
     )
-    target_include_directories(test_cuda_workbench_registry PRIVATE
+    target_include_directories(test_dataset_catalog PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
     target_link_libraries(
-        test_cuda_workbench_registry
-        PRIVATE cuda_workbench cuda_workbench_registry
+        test_dataset_catalog
+        PRIVATE cuda_workbench ai_factory_dataset_tools
     )
-    target_compile_features(test_cuda_workbench_registry PRIVATE cxx_std_17)
+    target_compile_features(test_dataset_catalog PRIVATE cxx_std_17)
     add_test(
-        NAME cuda_workbench_registry
-        COMMAND test_cuda_workbench_registry
+        NAME dataset_catalog
+        COMMAND test_dataset_catalog
     )
-    set_tests_properties(cuda_workbench_registry PROPERTIES
+    set_tests_properties(dataset_catalog PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        LABELS "workbench;registry"
+        LABELS "workbench;catalog"
     )
 
     add_executable(
@@ -168,7 +168,7 @@ if(BUILD_TESTING)
     )
     target_link_libraries(
         test_heston_american_put_cuda
-        PRIVATE cuda_workbench cuda_workbench_registry
+        PRIVATE cuda_workbench ai_factory_dataset_tools
     )
     target_compile_features(test_heston_american_put_cuda PRIVATE cxx_std_17)
     add_test(
