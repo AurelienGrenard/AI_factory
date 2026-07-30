@@ -1,8 +1,8 @@
 {
   "database_id": "american_puts_01",
   "product_family": "American Puts",
-  "catalog": "catalog/product/american_puts/american_puts_01.yaml",
-  "generation_script": "generators/product/american_puts/american_puts_01.cpp",
+  "catalog": "catalog/product/american_puts/american_puts_01/dataset.yaml",
+  "generation_script": "catalog/product/american_puts/american_puts_01/generator.cpp",
   "url": "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json",
   "preview": "previews/product/american_puts/american_puts_01.json",
   "row_count": 100,

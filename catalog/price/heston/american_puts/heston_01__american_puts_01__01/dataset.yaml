@@ -3,7 +3,7 @@ database_id: "heston_01__american_puts_01__01"
 dataset: "datasets/price/heston/american_puts/heston_01__american_puts_01__01.json"
 preview: "previews/price/heston/american_puts/heston_01__american_puts_01__01.json"
 url: "https://datasets.ai-factory.example/v1/price/heston/american_puts/heston_01__american_puts_01__01.json"
-generation_script: "generators/price/heston/american_puts/heston_01__american_puts_01__01.cpp"
+generation_script: "catalog/price/heston/american_puts/heston_01__american_puts_01__01/generator.cpp"
 summary:
   row_count: 1000
   pricing_method: "Monte Carlo"
@@ -40,19 +40,19 @@ outputs:
     estimator: "Conditional standard error of discounted policy cashflows"
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/heston/heston_01.yaml"
+  catalog: "catalog/model/heston/heston_01/dataset.yaml"
   preview: "previews/model/heston/heston_01.json"
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
   id: "american_puts_01"
-  catalog: "catalog/product/american_puts/american_puts_01.yaml"
+  catalog: "catalog/product/american_puts/american_puts_01/dataset.yaml"
   preview: "previews/product/american_puts/american_puts_01.json"
   url: "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json"
 price_construction:
   rule: "aligned row pairing"
 timing:
-  wall_seconds: "59.090024121 s"
-  kernel_seconds: "63.674882446 s (1 min, 4 s)"
+  wall_seconds: "12.083503089 s"
+  kernel_seconds: "12.650331238 s"
 exercise_policy:
   method: "Longstaff-Schwartz"
   regression_basis: "Two-factor Laguerre degree 2"

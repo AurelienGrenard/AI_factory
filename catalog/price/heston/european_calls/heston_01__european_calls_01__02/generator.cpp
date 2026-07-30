@@ -39,7 +39,7 @@ const std::filesystem::path dataset_path =
     "heston_01__european_calls_01__02.json";
 const std::filesystem::path catalog_path =
     "catalog/price/heston/european_calls/"
-    "heston_01__european_calls_01__02.yaml";
+    "heston_01__european_calls_01__02/dataset.yaml";
 const std::filesystem::path preview_path =
     "previews/price/heston/european_calls/"
     "heston_01__european_calls_01__02.json";
@@ -47,8 +47,8 @@ const std::string url =
     "https://datasets.ai-factory.example/v1/price/heston/european_calls/"
     "heston_01__european_calls_01__02.json";
 const std::filesystem::path generation_script =
-    "generators/price/heston/european_calls/"
-    "heston_01__european_calls_01__02.cpp";
+    "catalog/price/heston/european_calls/"
+    "heston_01__european_calls_01__02/generator.cpp";
 const std::vector<std::filesystem::path> source_files = {
     "src/common/philox.cuh",
     "src/heston/dynamics.cu",

@@ -1,8 +1,8 @@
 {
   "database_id": "european_calls_01",
   "product_family": "European Calls",
-  "catalog": "catalog/product/european_calls/european_calls_01.yaml",
-  "generation_script": "generators/product/european_calls/european_calls_01.cpp",
+  "catalog": "catalog/product/european_calls/european_calls_01/dataset.yaml",
+  "generation_script": "catalog/product/european_calls/european_calls_01/generator.cpp",
   "url": "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json",
   "preview": "previews/product/european_calls/european_calls_01.json",
   "row_count": 100,

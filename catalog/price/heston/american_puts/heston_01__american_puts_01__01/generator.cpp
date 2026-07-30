@@ -38,7 +38,7 @@ const std::filesystem::path dataset_path =
     "heston_01__american_puts_01__01.json";
 const std::filesystem::path catalog_path =
     "catalog/price/heston/american_puts/"
-    "heston_01__american_puts_01__01.yaml";
+    "heston_01__american_puts_01__01/dataset.yaml";
 const std::filesystem::path preview_path =
     "previews/price/heston/american_puts/"
     "heston_01__american_puts_01__01.json";
@@ -46,8 +46,8 @@ const std::string url =
     "https://datasets.ai-factory.example/v1/price/heston/american_puts/"
     "heston_01__american_puts_01__01.json";
 const std::filesystem::path generation_script =
-    "generators/price/heston/american_puts/"
-    "heston_01__american_puts_01__01.cpp";
+    "catalog/price/heston/american_puts/"
+    "heston_01__american_puts_01__01/generator.cpp";
 const std::vector<std::filesystem::path> source_files = {
     "src/common/philox.cuh",
     "src/common/least_squares.cu",

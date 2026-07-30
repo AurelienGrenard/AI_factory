@@ -4,7 +4,7 @@ product_family: "European Calls"
 dataset: "datasets/product/european_calls/european_calls_01.json"
 preview: "previews/product/european_calls/european_calls_01.json"
 url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
-generation_script: "generators/product/european_calls/european_calls_01.cpp"
+generation_script: "catalog/product/european_calls/european_calls_01/generator.cpp"
 parameters:
   strike: "Strike in normalized spot units."
   maturity: "Maturity in years."

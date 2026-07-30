@@ -11,14 +11,14 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/american_puts/american_puts_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/american_puts/american_puts_01.yaml";
+        "catalog/product/american_puts/american_puts_01/dataset.yaml";
     const std::filesystem::path preview_path =
         "previews/product/american_puts/american_puts_01.json";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/american_puts/"
         "american_puts_01.json";
     const std::filesystem::path generator_path =
-        "generators/product/american_puts/american_puts_01.cpp";
+        "catalog/product/american_puts/american_puts_01/generator.cpp";
 
     constexpr std::size_t maturity_count = 50U;
     constexpr std::size_t strikes_per_maturity = 20U;

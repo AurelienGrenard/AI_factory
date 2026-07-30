@@ -25,7 +25,7 @@ const std::filesystem::path price_preview_path =
     "heston_01__american_puts_01__01.json";
 const std::filesystem::path price_catalog_path =
     "catalog/price/heston/american_puts/"
-    "heston_01__american_puts_01__01.yaml";
+    "heston_01__american_puts_01__01/dataset.yaml";
 
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {

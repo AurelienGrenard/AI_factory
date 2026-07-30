@@ -4,7 +4,7 @@ product_family: "American Puts"
 dataset: "datasets/product/american_puts/american_puts_01.json"
 preview: "previews/product/american_puts/american_puts_01.json"
 url: "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json"
-generation_script: "generators/product/american_puts/american_puts_01.cpp"
+generation_script: "catalog/product/american_puts/american_puts_01/generator.cpp"
 parameters:
   strike: "Strike in normalized spot units."
   maturity: "Maturity in years."

@@ -11,8 +11,7 @@ kept locally or published to external storage.
 AI_factory/
 |-- src/          C++/CUDA simulation and pricing code
 |-- tools/        parameter generation and dataset-writing utilities
-|-- generators/   executable recipes for every dataset
-|-- catalog/      versioned YAML metadata
+|-- catalog/      one reproducible folder per published dataset
 |-- previews/     versioned JSON previews limited to 100 rows
 |-- datasets/     complete JSON datasets, ignored by Git
 |-- tests/        dataset contracts and CUDA tests
@@ -43,33 +42,29 @@ They do not know output paths, dataset URLs, or catalog formats.
 Every dataset must declare an HTTP(S) URL. A generator fails explicitly when
 the URL is missing or invalid.
 
-### `generators`
-
-Each source file is a complete, reproducible dataset recipe:
-
-```text
-generators/
-|-- model/<model>/<dataset_id>.cpp
-|-- product/<product>/<dataset_id>.cpp
-`-- price/<model>/<product>/<dataset_id>.cpp
-```
-
-A model or product generator defines parameter bounds, grids, and metadata. A
-price generator loads two complete datasets, runs the CUDA pricer, then writes
-the three output artifacts.
-
 ### `catalog`
 
-The catalog is lightweight and fully versioned:
+Each catalog entry is a self-contained, versioned dataset recipe:
 
 ```text
 catalog/
-|-- model/<model>/<dataset_id>.yaml
-|-- product/<product>/<dataset_id>.yaml
-`-- price/<model>/<product>/<dataset_id>.yaml
+|-- model/<model>/<dataset_id>/
+|   |-- dataset.yaml
+|   `-- generator.cpp
+|-- product/<product>/<dataset_id>/
+|   |-- dataset.yaml
+|   `-- generator.cpp
+`-- price/<model>/<product>/<dataset_id>/
+    |-- dataset.yaml
+    `-- generator.cpp
 ```
 
-Every YAML file contains:
+`generator.cpp` is the executable recipe. Model and product generators define
+parameter bounds and grids; price generators load complete input datasets and
+run the CUDA pricer. The adjacent `dataset.yaml` records the resulting
+metadata.
+
+Every `dataset.yaml` contains:
 
 - `dataset`: local path to the complete JSON dataset;
 - `preview`: path to the versioned 100-row JSON preview;
@@ -124,7 +119,7 @@ model_family: "Heston"
 dataset: "datasets/model/heston/heston_01.json"
 preview: "previews/model/heston/heston_01.json"
 url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
-generation_script: "generators/model/heston/heston_01.cpp"
+generation_script: "catalog/model/heston/heston_01/generator.cpp"
 ```
 
 The complete JSON dataset contains rows with stable identifiers:
@@ -194,10 +189,10 @@ preview: "previews/price/heston/european_calls/heston_01__european_calls_01__01.
 url: "https://datasets.ai-factory.example/v1/price/heston/european_calls/heston_01__european_calls_01__01.json"
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/heston/heston_01.yaml"
+  catalog: "catalog/model/heston/heston_01/dataset.yaml"
 product_dataset:
   id: "european_calls_01"
-  catalog: "catalog/product/european_calls/european_calls_01.yaml"
+  catalog: "catalog/product/european_calls/european_calls_01/dataset.yaml"
 price_construction:
   rule: "aligned row pairing"
 ```
@@ -263,12 +258,13 @@ skipped automatically when no CUDA GPU is available.
 ## Add a Dataset
 
 1. Add or reuse the required structures and kernels under `src`.
-2. Create a generator under `generators/model`, `product`, or `price`.
-3. Declare the `dataset`, `catalog`, and `preview` paths explicitly.
-4. Declare an external HTTP(S) URL.
-5. Add the CMake target.
-6. Run the generator and validate all three artifacts.
-7. Add a test based on the preview, never on the ignored complete dataset.
+2. Create its catalog folder under `catalog/model`, `product`, or `price`.
+3. Add `generator.cpp` and its adjacent `dataset.yaml`.
+4. Declare the `dataset`, `catalog`, and `preview` paths explicitly.
+5. Declare an external HTTP(S) URL.
+6. Add the CMake target.
+7. Run the generator and validate all three artifacts.
+8. Add a test based on the preview, never on the ignored complete dataset.
 
 Storage credentials must not appear in YAML files, previews, or the static
 website. Private storage should use signed URLs or server-side authentication.

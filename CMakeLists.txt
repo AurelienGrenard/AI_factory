@@ -75,7 +75,7 @@ endif()
 
 add_executable(
     generate_heston_european_calls_01
-    generators/price/heston/european_calls/heston_01__european_calls_01__01.cpp
+    catalog/price/heston/european_calls/heston_01__european_calls_01__01/generator.cpp
 )
 target_include_directories(generate_heston_european_calls_01 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -88,7 +88,7 @@ target_compile_features(generate_heston_european_calls_01 PRIVATE cxx_std_17)
 
 add_executable(
     generate_heston_european_calls_02
-    generators/price/heston/european_calls/heston_01__european_calls_01__02.cpp
+    catalog/price/heston/european_calls/heston_01__european_calls_01__02/generator.cpp
 )
 target_include_directories(generate_heston_european_calls_02 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -104,13 +104,13 @@ target_compile_features(
 # These host executables create datasets, previews, and catalog YAML.
 add_executable(
     generate_heston_01
-    generators/model/heston/heston_01.cpp
+    catalog/model/heston/heston_01/generator.cpp
 )
 target_link_libraries(generate_heston_01 PRIVATE ai_factory_dataset_tools)
 
 add_executable(
     generate_european_calls_01
-    generators/product/european_calls/european_calls_01.cpp
+    catalog/product/european_calls/european_calls_01/generator.cpp
 )
 target_link_libraries(
     generate_european_calls_01 PRIVATE ai_factory_dataset_tools
@@ -118,7 +118,7 @@ target_link_libraries(
 
 add_executable(
     generate_american_puts_01
-    generators/product/american_puts/american_puts_01.cpp
+    catalog/product/american_puts/american_puts_01/generator.cpp
 )
 target_link_libraries(
     generate_american_puts_01 PRIVATE ai_factory_dataset_tools
@@ -126,7 +126,7 @@ target_link_libraries(
 
 add_executable(
     generate_heston_american_puts_01
-    generators/price/heston/american_puts/heston_01__american_puts_01__01.cpp
+    catalog/price/heston/american_puts/heston_01__american_puts_01__01/generator.cpp
 )
 target_include_directories(generate_heston_american_puts_01 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

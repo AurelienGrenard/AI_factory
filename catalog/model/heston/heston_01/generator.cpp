@@ -16,13 +16,13 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/model/heston/heston_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/model/heston/heston_01.yaml";
+        "catalog/model/heston/heston_01/dataset.yaml";
     const std::filesystem::path preview_path =
         "previews/model/heston/heston_01.json";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/heston/heston_01.json";
     const std::filesystem::path generator_path =
-        "generators/model/heston/heston_01.cpp";
+        "catalog/model/heston/heston_01/generator.cpp";
 
     constexpr std::uint64_t seed = 710000201ULL;
     constexpr std::uint64_t gamma_seed = seed + 1ULL;
