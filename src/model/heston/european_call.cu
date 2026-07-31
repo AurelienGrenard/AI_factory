@@ -30,7 +30,7 @@ struct PreparedRow {
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
     const HestonModelParameters& model,
-    const products::EuropeanCallInput& product,
+    const product::EuropeanCallInput& product,
     std::size_t num_steps,
     std::uint64_t seed
 ) {
@@ -57,7 +57,7 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void heston_european_call_kernel(
     const HestonModelParameters* __restrict__ models,
-    const products::EuropeanCallInput* __restrict__ products,
+    const product::EuropeanCallInput* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
@@ -82,7 +82,7 @@ __global__ void heston_european_call_kernel(
             const std::size_t product_index = cartesian_product
                 ? result_index % product_count
                 : result_index;
-            const products::EuropeanCallInput product =
+            const product::EuropeanCallInput product =
                 products[product_index];
             const std::size_t num_steps = static_cast<std::size_t>(
                 fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
@@ -133,7 +133,7 @@ __global__ void heston_european_call_kernel(
 void validate_heston_european_call_launch(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::EuropeanCallInput* device_products,
+    const product::EuropeanCallInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -187,7 +187,7 @@ void validate_heston_european_call_launch(
 void launch_heston_european_call_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::EuropeanCallInput* device_products,
+    const product::EuropeanCallInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

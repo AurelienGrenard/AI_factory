@@ -1,11 +1,11 @@
-// Model-independent European-call parameters and dataset loader.
+// European-call dataset row and host-side JSON loader.
 #pragma once
 
 #include <filesystem>
 #include <type_traits>
 #include <vector>
 
-namespace ai_factory::workbench::products {
+namespace ai_factory::workbench::product {
 
 // EuropeanCallInput is the compact FP32 product row transferred to CUDA.
 struct EuropeanCallInput {
@@ -20,4 +20,4 @@ std::vector<EuropeanCallInput> load_european_calls(
     const std::filesystem::path& dataset_path
 );
 
-}  // namespace ai_factory::workbench::products
+}  // namespace ai_factory::workbench::product

@@ -42,6 +42,20 @@ std::string read_text(const std::filesystem::path& path) {
     };
 }
 
+// Count one YAML key to reject nested or duplicated dataset metadata.
+std::size_t occurrence_count(
+    const std::string& text,
+    const std::string& value
+) {
+    std::size_t count = 0U;
+    std::size_t offset = 0U;
+    while ((offset = text.find(value, offset)) != std::string::npos) {
+        ++count;
+        offset += value.size();
+    }
+    return count;
+}
+
 // Require catalog URLs and directories without exposing local data files.
 void validate_catalog_locations(const std::filesystem::path& path) {
     const std::string catalog = read_text(path);
@@ -57,6 +71,15 @@ void validate_catalog_locations(const std::filesystem::path& path) {
         catalog.find(".yaml\"") == std::string::npos
             && catalog.find(".cpp\"") == std::string::npos,
         "catalog YAML contains a file path"
+    );
+    const std::size_t url_position = catalog.find("\nurl: ");
+    const std::size_t row_count_position =
+        catalog.find("\nrow_count: ", url_position);
+    require(
+        url_position != std::string::npos
+            && row_count_position == catalog.find('\n', url_position + 1U)
+            && occurrence_count(catalog, "\nrow_count: ") == 1U,
+        "catalog YAML must place one root row_count immediately after url"
     );
 }
 

@@ -2,7 +2,7 @@
 #include "model/hull_white/dynamics.cuh"
 
 // Include curve formulas so NVCC can inline them into pricing kernels.
-#include "curve/nelson_siegel.cu"
+#include "curve/nelson_siegel/term_structure.cu"
 
 #include <cuda_runtime.h>
 

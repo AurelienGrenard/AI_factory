@@ -2,8 +2,8 @@ title: "heston_01__american_puts_01__01"
 database_id: "heston_01__american_puts_01__01"
 catalog: "catalog/price/heston/american_puts/heston_01__american_puts_01__01"
 url: "https://datasets.ai-factory.example/v1/price/heston/american_puts/heston_01__american_puts_01__01.json"
+row_count: 1000
 summary:
-  row_count: 1000
   pricing_method: "Monte Carlo"
   monte_carlo_paths_per_price: 1048576
   model: "Heston"

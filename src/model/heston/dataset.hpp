@@ -1,4 +1,4 @@
-// Public Heston parameters and host-side dataset loader.
+// Heston dataset row and host-side JSON loader.
 #pragma once
 
 #include <filesystem>

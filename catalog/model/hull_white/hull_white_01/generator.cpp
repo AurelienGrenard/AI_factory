@@ -16,8 +16,6 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/"
         "hull_white/hull_white_01.json";
-    const std::filesystem::path generator_path =
-        "catalog/model/hull_white/hull_white_01/generator.cpp";
 
     constexpr std::uint64_t seed = 730000201ULL;
     const GeneratedRows rows = uniform_rows(1'000U, seed, {
@@ -31,7 +29,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generator_path,
         {
             {"mean_reversion", "Positive mean-reversion speed a."},
             {"volatility", "Positive short-rate volatility sigma."},

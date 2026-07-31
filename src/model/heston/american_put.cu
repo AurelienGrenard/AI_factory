@@ -182,7 +182,7 @@ Value* workspace_pointer(
 }
 
 // Match the maturity-anchored exercise schedule used by the device.
-std::uint32_t exercise_count(const products::AmericanPutInput& product) {
+std::uint32_t exercise_count(const product::AmericanPutInput& product) {
     const float raw_count = product.maturity / product.exercise_interval;
     const float adjusted =
         raw_count - 8.0f * FLT_EPSILON * std::max(raw_count, 1.0f);
@@ -198,7 +198,7 @@ std::uint32_t exercise_count(const products::AmericanPutInput& product) {
 
 // Pack consecutive result rows into batches under the memory budget.
 std::vector<BatchPlan> plan_batches(
-    const products::AmericanPutInput* host_products,
+    const product::AmericanPutInput* host_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -303,7 +303,7 @@ std::vector<BatchPlan> plan_batches(
 // Prepare each batch row once before thousands of path blocks consume it.
 __global__ void prepare_rows_kernel(
     const HestonModelParameters* __restrict__ models,
-    const products::AmericanPutInput* __restrict__ products,
+    const product::AmericanPutInput* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t batch_size,
@@ -326,7 +326,7 @@ __global__ void prepare_rows_kernel(
         ? result_index % product_count
         : result_index;
     const HestonModelParameters model = models[model_index];
-    const products::AmericanPutInput product = products[product_index];
+    const product::AmericanPutInput product = products[product_index];
     const std::uint32_t row_exercise_count =
         exercise_counts[batch_price];
     const float first_exercise_time = fmaf(
@@ -742,8 +742,8 @@ __global__ void finalize_prices_kernel(
 void validate_launch(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::AmericanPutInput* host_products,
-    const products::AmericanPutInput* device_products,
+    const product::AmericanPutInput* host_products,
+    const product::AmericanPutInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -791,8 +791,8 @@ void validate_launch(
 AmericanPutExecution launch_heston_american_put_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::AmericanPutInput* host_products,
-    const products::AmericanPutInput* device_products,
+    const product::AmericanPutInput* host_products,
+    const product::AmericanPutInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

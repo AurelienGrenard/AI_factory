@@ -4,6 +4,8 @@ project(ai_factory_cuda_workbench LANGUAGES CXX CUDA)
 
 include(CTest)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -48,14 +50,14 @@ target_compile_features(ai_factory_dataset_tools PUBLIC cxx_std_17)
 target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
-    src/curve/nelson_siegel.cpp
-    src/model/heston/parameters.cpp
+    src/curve/nelson_siegel/dataset.cpp
+    src/model/heston/dataset.cpp
     src/model/heston/american_put.cu
     src/model/heston/european_call.cu
-    src/model/hull_white/parameters.cpp
+    src/model/hull_white/dataset.cpp
     src/model/hull_white/dynamics.cu
-    src/products/american_put.cpp
-    src/products/european_call.cpp
+    src/product/american_put/dataset.cpp
+    src/product/european_call/dataset.cpp
 )
 target_include_directories(cuda_workbench PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -114,6 +116,10 @@ target_link_libraries(generate_heston_01 PRIVATE ai_factory_dataset_tools)
 add_executable(
     generate_nelson_siegel_01
     catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
+    src/curve/nelson_siegel/generation.cpp
+)
+target_include_directories(generate_nelson_siegel_01 PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_link_libraries(
     generate_nelson_siegel_01 PRIVATE ai_factory_dataset_tools

@@ -3,6 +3,7 @@ database_id: "heston_01"
 model_family: "Heston"
 catalog: "catalog/model/heston/heston_01"
 url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+row_count: 1000
 parameters:
   spot: "Initial spot."
   risk_free_rate: "Continuously compounded risk-free rate."
@@ -17,7 +18,6 @@ dynamics:
   variance: "dV_t = kappa (theta - V_t) dt + gamma sqrt(V_t) dW_t^V"
   correlation: "d<W^S, W^V>_t = rho dt"
 construction:
-  row_count: 1000
   method: "conditional uniform sample"
   bounds:
     spot:

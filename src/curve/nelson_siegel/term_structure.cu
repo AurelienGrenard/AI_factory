@@ -1,5 +1,5 @@
 // CUDA implementation of the analytical Nelson-Siegel curve.
-#include "curve/nelson_siegel.cuh"
+#include "curve/nelson_siegel/term_structure.cuh"
 
 #include <cuda_runtime.h>
 

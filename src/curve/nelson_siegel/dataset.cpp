@@ -1,5 +1,5 @@
 // Host implementation of the Nelson-Siegel dataset loader.
-#include "curve/nelson_siegel.hpp"
+#include "curve/nelson_siegel/dataset.hpp"
 
 #include <nlohmann/json.hpp>
 

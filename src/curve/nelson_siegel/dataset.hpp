@@ -1,4 +1,4 @@
-// Nelson-Siegel parameters and host-side dataset loader.
+// Nelson-Siegel dataset row and host-side JSON loader.
 #pragma once
 
 #include <filesystem>

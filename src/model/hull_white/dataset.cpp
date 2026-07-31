@@ -1,5 +1,5 @@
 // Host implementation of the Hull-White one-factor dataset loader.
-#include "model/hull_white/parameters.hpp"
+#include "model/hull_white/dataset.hpp"
 
 #include <nlohmann/json.hpp>
 

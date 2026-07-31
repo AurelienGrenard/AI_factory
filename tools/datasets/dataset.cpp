@@ -191,7 +191,6 @@ void write_parameter_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& definition,
     const GeneratedRows& generated
@@ -204,8 +203,7 @@ void write_parameter_dataset(
     const nlohmann::ordered_json dataset = {
         {"database_id", database_id},
         {family_key, family},
-        {"catalog", catalog_path.generic_string()},
-        {"generation_script", generation_script.generic_string()},
+        {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", generated.rows.size()},
         {row_key, database_rows(generated.rows)},
@@ -218,6 +216,7 @@ void write_parameter_dataset(
         {family_key, family},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
+        {"row_count", generated.rows.size()},
         {"parameters", parameter_descriptions},
         {definition_key, definition},
         {"construction", generated.construction},
@@ -266,7 +265,6 @@ GeneratedRows uniform_rows(
     return {
         std::move(rows),
         {
-            {"row_count", row_count},
             {"method", "independent uniform sample"},
             {"bounds", bounds},
         },
@@ -303,7 +301,6 @@ GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters) {
     return {
         std::move(rows),
         {
-            {"row_count", row_count},
             {"method", "aligned grid"},
             {"rule", "values with the same index form one row"},
             {"parameter_counts", parameter_counts},
@@ -363,7 +360,6 @@ GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
     return {
         std::move(rows),
         {
-            {"row_count", row_count},
             {"method", "Cartesian grid"},
             {"grid", grid},
         },
@@ -424,7 +420,6 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
     return {
         std::move(rows),
         {
-            {"row_count", row_count},
             {"method", "maturity-dependent exponential grid"},
             {
                 "rule",
@@ -538,15 +533,14 @@ void write_model_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& dynamics,
     const GeneratedRows& generated
 ) {
     write_parameter_dataset(
         database_id, model_family, "model_family", "models", "dynamics",
-        dataset_path, catalog_path, url, generation_script,
-        parameter_descriptions, dynamics, generated
+        dataset_path, catalog_path, url, parameter_descriptions, dynamics,
+        generated
     );
 }
 
@@ -557,15 +551,14 @@ void write_curve_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& curve_definition,
     const GeneratedRows& generated
 ) {
     write_parameter_dataset(
         database_id, curve_family, "curve_family", "curves", "curve",
-        dataset_path, catalog_path, url, generation_script,
-        parameter_descriptions, curve_definition, generated
+        dataset_path, catalog_path, url, parameter_descriptions,
+        curve_definition, generated
     );
 }
 
@@ -576,15 +569,14 @@ void write_product_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& payoff,
     const GeneratedRows& generated
 ) {
     write_parameter_dataset(
         database_id, product_family, "product_family", "products", "payoff",
-        dataset_path, catalog_path, url, generation_script,
-        parameter_descriptions, payoff, generated
+        dataset_path, catalog_path, url, parameter_descriptions, payoff,
+        generated
     );
 }
 
@@ -647,7 +639,6 @@ void write_monte_carlo_price_dataset_impl(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,
@@ -732,8 +723,7 @@ void write_monte_carlo_price_dataset_impl(
     };
     const nlohmann::ordered_json json_document = {
         {"database_id", database_id},
-        {"catalog", catalog_path.generic_string()},
-        {"generation_script", generation_script.generic_string()},
+        {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
         {"model_dataset", json_model_dataset},
@@ -752,7 +742,6 @@ void write_monte_carlo_price_dataset_impl(
         );
     }
     nlohmann::ordered_json summary = {
-        {"row_count", row_count},
         {"pricing_method", "Monte Carlo"},
         {"monte_carlo_paths_per_price", monte_carlo_paths_per_price},
         {"model", model_document.at("model_family")},
@@ -767,22 +756,12 @@ void write_monte_carlo_price_dataset_impl(
     summary["random_generator"] = random_generator;
     const nlohmann::ordered_json yaml_model_dataset = {
         {"id", model_database_id},
-        {
-            "catalog",
-            std::filesystem::path(
-                model_document.at("catalog").get<std::string>()
-            ).parent_path().generic_string()
-        },
+        {"catalog", model_document.at("catalog")},
         {"url", model_document.at("url")},
     };
     const nlohmann::ordered_json yaml_product_dataset = {
         {"id", product_database_id},
-        {
-            "catalog",
-            std::filesystem::path(
-                product_document.at("catalog").get<std::string>()
-            ).parent_path().generic_string()
-        },
+        {"catalog", product_document.at("catalog")},
         {"url", product_document.at("url")},
     };
     const nlohmann::ordered_json yaml_timing = {
@@ -794,6 +773,7 @@ void write_monte_carlo_price_dataset_impl(
         {"database_id", database_id},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
+        {"row_count", row_count},
         {"summary", summary},
         {"time_grid", {
             {"rule", "nearest integer step count to target dt"},
@@ -846,7 +826,6 @@ void write_monte_carlo_price_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,
@@ -866,7 +845,6 @@ void write_monte_carlo_price_dataset(
         dataset_path,
         catalog_path,
         url,
-        generation_script,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt,

@@ -43,9 +43,6 @@ const std::filesystem::path catalog_path =
 const std::string url =
     "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/"
     "heston_01__european_calls_01__01.json";
-const std::filesystem::path generation_script =
-    "catalog/price/heston/european_calls/"
-    "heston_01__european_calls_01__01/generator.cpp";
 const std::string numerical_method = "Andersen QE-M";
 
 }  // namespace
@@ -57,8 +54,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_heston(model_dataset_path);
-    const std::vector<products::EuropeanCallInput> products =
-        products::load_european_calls(product_dataset_path);
+    const std::vector<product::EuropeanCallInput> products =
+        product::load_european_calls(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -80,7 +77,7 @@ int main() {
 
     // Declare the device pointers and CUDA events used below.
     heston::HestonModelParameters* device_models = nullptr;
-    products::EuropeanCallInput* device_products = nullptr;
+    product::EuropeanCallInput* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -101,7 +98,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(products::EuropeanCallInput)
+                products.size() * sizeof(product::EuropeanCallInput)
             ),
             "cudaMalloc European calls"
         );
@@ -134,7 +131,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(products::EuropeanCallInput),
+                products.size() * sizeof(product::EuropeanCallInput),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy European calls"
@@ -270,7 +267,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generation_script,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt_description,

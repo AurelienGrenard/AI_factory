@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "curve/nelson_siegel.hpp"
-#include "model/hull_white/parameters.hpp"
+#include "curve/nelson_siegel/dataset.hpp"
+#include "model/hull_white/dataset.hpp"
 
 #include <cuda_runtime.h>
 

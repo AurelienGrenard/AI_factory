@@ -22,10 +22,15 @@ AI_factory/
 `src` contains the numerical code and does not depend on catalog files:
 
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
-- `src/curve`: curve parameters, JSON loaders, and CUDA analytics;
-- `src/model/heston`: parameters, QE-M dynamics, and product-specific kernels;
-- `src/model/hull_white`: parameters and exact CUDA short-rate dynamics;
-- `src/products`: FP32 product structures and JSON loaders.
+- `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
+- `src/model/<model>`: model dataset loaders, dynamics, and pricing kernels;
+- `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
+
+Each model, curve, or product uses `dataset.hpp/.cpp` for its compact row and
+host loader. CUDA declarations and implementations retain descriptive names
+such as `dynamics.cuh/.cu` or `term_structure.cuh/.cu`.
+Reusable sampling rules live in `generation.hpp/.cpp`; catalog generators
+contain only their recipe constants and `main`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
@@ -120,7 +125,7 @@ computed from `f(0,t)` so that the model reproduces the supplied initial
 curve. Nelson-Siegel is therefore one curve provider, not a parameter embedded
 in Hull-White.
 
-As with Heston, `.hpp/.cpp` files contain compact parameters and host JSON
+As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
 
 ## Dataset Artifacts
@@ -135,6 +140,7 @@ database_id: "heston_01"
 model_family: "Heston"
 catalog: "catalog/model/heston/heston_01"
 url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+row_count: 1000
 ```
 
 The complete JSON dataset contains rows with stable identifiers:
@@ -170,8 +176,8 @@ then applies `K = exp(x)`.
 ```yaml
 catalog: "catalog/product/european_calls/european_calls_01"
 url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
+row_count: 1000
 construction:
-  row_count: 1000
   method: "maturity-dependent exponential grid"
 ```
 
@@ -193,13 +199,14 @@ duplicating their parameters:
 }
 ```
 
-The price catalog entry records the construction, numerical method, CUDA
-configuration, sources, timings, and references to both input datasets:
+The price catalog entry records the method, timing, and references to both
+input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
 catalog: "catalog/price/heston/european_calls/heston_01__european_calls_01__01"
 url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
+row_count: 1000
 model_dataset:
   id: "heston_01"
   catalog: "catalog/model/heston/heston_01"

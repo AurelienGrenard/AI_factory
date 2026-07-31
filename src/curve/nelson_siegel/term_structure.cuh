@@ -1,7 +1,7 @@
 // Reusable CUDA interface for the analytical Nelson-Siegel curve.
 #pragma once
 
-#include "curve/nelson_siegel.hpp"
+#include "curve/nelson_siegel/dataset.hpp"
 
 #include <cuda_runtime.h>
 

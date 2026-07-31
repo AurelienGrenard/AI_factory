@@ -1,4 +1,4 @@
-// Hull-White one-factor parameters and host-side dataset loader.
+// Hull-White dataset row and host-side JSON loader.
 #pragma once
 
 #include <filesystem>

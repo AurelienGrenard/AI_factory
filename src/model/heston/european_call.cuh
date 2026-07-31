@@ -1,8 +1,8 @@
 // Public launcher for the Heston European-call CUDA kernel.
 #pragma once
 
-#include "model/heston/parameters.hpp"
-#include "products/european_call.hpp"
+#include "model/heston/dataset.hpp"
+#include "product/european_call/dataset.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -13,7 +13,7 @@ namespace ai_factory::workbench::heston {
 void launch_heston_european_call_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::EuropeanCallInput* device_products,
+    const product::EuropeanCallInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

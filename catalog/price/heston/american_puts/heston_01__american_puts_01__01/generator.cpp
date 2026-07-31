@@ -42,9 +42,6 @@ const std::filesystem::path catalog_path =
 const std::string url =
     "https://datasets.ai-factory.example/v1/price/heston/american_puts/"
     "heston_01__american_puts_01__01.json";
-const std::filesystem::path generation_script =
-    "catalog/price/heston/american_puts/"
-    "heston_01__american_puts_01__01/generator.cpp";
 const std::string numerical_method = "Andersen QE-M + Longstaff-Schwartz";
 const std::string regression_basis = "Two-factor Laguerre degree 2";
 
@@ -57,8 +54,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_heston(model_dataset_path);
-    const std::vector<products::AmericanPutInput> products =
-        products::load_american_puts(product_dataset_path);
+    const std::vector<product::AmericanPutInput> products =
+        product::load_american_puts(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -70,7 +67,7 @@ int main() {
 
     // Declare the persistent device arrays used by every memory-aware batch.
     heston::HestonModelParameters* device_models = nullptr;
-    products::AmericanPutInput* device_products = nullptr;
+    product::AmericanPutInput* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     heston::AmericanPutExecution execution{};
@@ -90,7 +87,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(products::AmericanPutInput)
+                products.size() * sizeof(product::AmericanPutInput)
             ),
             "cudaMalloc American puts"
         );
@@ -123,7 +120,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(products::AmericanPutInput),
+                products.size() * sizeof(product::AmericanPutInput),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy American puts"
@@ -283,7 +280,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generation_script,
         numerical_method,
         monte_carlo_paths_per_price,
         target_dt_description,

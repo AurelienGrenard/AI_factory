@@ -91,7 +91,6 @@ void write_model_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& dynamics,
     const GeneratedRows& generated
@@ -104,7 +103,6 @@ void write_curve_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& curve_definition,
     const GeneratedRows& generated
@@ -117,7 +115,6 @@ void write_product_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& payoff,
     const GeneratedRows& generated
@@ -134,7 +131,6 @@ void write_monte_carlo_price_dataset(
     const std::filesystem::path& dataset_path,
     const std::filesystem::path& catalog_path,
     const std::string& url,
-    const std::filesystem::path& generation_script,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
     const std::string& target_dt,

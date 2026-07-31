@@ -1,9 +1,35 @@
-// Generate reproducible Nelson-Siegel curves and their catalog artifacts.
+// Generate Nelson-Siegel curves from interpretable forward-rate levels.
+#include "curve/nelson_siegel/generation.hpp"
 #include "tools/datasets/dataset.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <string>
+
+namespace {
+
+using ai_factory::workbench::curve::NelsonSiegelSamplingRange;
+
+constexpr std::size_t kRowCount = 1'000U;
+constexpr std::uint64_t kSeed = 720000201ULL;
+constexpr NelsonSiegelSamplingRange kLongForward{
+    0.005f, 0.06f
+};
+constexpr NelsonSiegelSamplingRange kShortForward{
+    0.0f, 0.08f
+};
+constexpr NelsonSiegelSamplingRange kMediumForward{
+    0.0f, 0.08f
+};
+constexpr NelsonSiegelSamplingRange kTau{
+    0.5f, 5.0f
+};
+constexpr NelsonSiegelSamplingRange kAcceptedForward{
+    0.0f, 0.10f
+};
+
+}  // namespace
 
 // Generate the Nelson-Siegel dataset and catalog entry.
 int main() {
@@ -16,16 +42,19 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/curve/"
         "nelson_siegel/nelson_siegel_01.json";
-    const std::filesystem::path generator_path =
-        "catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp";
 
-    constexpr std::uint64_t seed = 720000201ULL;
-    const GeneratedRows rows = uniform_rows(1'000U, seed, {
-        {"beta0", 0.0f, 0.08f},
-        {"beta1", -0.06f, 0.04f},
-        {"beta2", -0.08f, 0.08f},
-        {"tau", 0.25f, 8.0f},
-    });
+    const GeneratedRows rows =
+        ai_factory::workbench::curve::generate_nelson_siegel_rows(
+            kRowCount,
+            kSeed,
+            {
+                kLongForward,
+                kShortForward,
+                kMediumForward,
+                kTau,
+                kAcceptedForward,
+            }
+        );
 
     write_curve_dataset(
         "nelson_siegel_01",
@@ -33,7 +62,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generator_path,
         {
             {"beta0", "Long-maturity continuously compounded rate."},
             {"beta1", "Short-end slope loading."},

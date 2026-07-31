@@ -1,8 +1,8 @@
 // Public launcher for the Heston American-put CUDA implementation.
 #pragma once
 
-#include "model/heston/parameters.hpp"
-#include "products/american_put.hpp"
+#include "model/heston/dataset.hpp"
+#include "product/american_put/dataset.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,8 +23,8 @@ struct AmericanPutExecution {
 AmericanPutExecution launch_heston_american_put_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const products::AmericanPutInput* host_products,
-    const products::AmericanPutInput* device_products,
+    const product::AmericanPutInput* host_products,
+    const product::AmericanPutInput* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

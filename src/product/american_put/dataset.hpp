@@ -1,11 +1,11 @@
-// Model-independent American-put parameters and dataset loader.
+// American-put dataset row and host-side JSON loader.
 #pragma once
 
 #include <filesystem>
 #include <type_traits>
 #include <vector>
 
-namespace ai_factory::workbench::products {
+namespace ai_factory::workbench::product {
 
 // AmericanPutInput is the compact FP32 product row transferred to CUDA.
 struct AmericanPutInput {
@@ -21,4 +21,4 @@ std::vector<AmericanPutInput> load_american_puts(
     const std::filesystem::path& dataset_path
 );
 
-}  // namespace ai_factory::workbench::products
+}  // namespace ai_factory::workbench::product

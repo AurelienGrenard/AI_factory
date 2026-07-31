@@ -15,8 +15,6 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/european_calls/"
         "european_calls_01.json";
-    const std::filesystem::path generator_path =
-        "catalog/product/european_calls/european_calls_01/generator.cpp";
 
     constexpr std::size_t maturity_count = 50U;
     constexpr std::size_t strikes_per_maturity = 20U;
@@ -35,7 +33,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generator_path,
         {
             {"strike", "Strike in normalized spot units."},
             {"maturity", "Maturity in years."},

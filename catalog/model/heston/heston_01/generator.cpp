@@ -19,8 +19,6 @@ int main() {
         "catalog/model/heston/heston_01/dataset.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/heston/heston_01.json";
-    const std::filesystem::path generator_path =
-        "catalog/model/heston/heston_01/generator.cpp";
 
     constexpr std::uint64_t seed = 710000201ULL;
     constexpr std::uint64_t gamma_seed = seed + 1ULL;
@@ -67,7 +65,6 @@ int main() {
         dataset_path,
         catalog_path,
         url,
-        generator_path,
         {
             {"spot", "Initial spot."},
             {"risk_free_rate", "Continuously compounded risk-free rate."},

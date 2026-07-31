@@ -31,7 +31,7 @@ const std::filesystem::path product_dataset_path =
 // Own the fixed device arrays used by every benchmark run.
 struct DeviceArrays {
     ai_factory::workbench::heston::HestonModelParameters* models = nullptr;
-    ai_factory::workbench::products::AmericanPutInput* products = nullptr;
+    ai_factory::workbench::product::AmericanPutInput* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
 
@@ -91,8 +91,8 @@ int main(int argc, char** argv) {
 
     const std::vector<heston::HestonModelParameters> models =
         stratified_rows(heston::load_heston(model_dataset_path));
-    const std::vector<products::AmericanPutInput> products =
-        stratified_rows(products::load_american_puts(product_dataset_path));
+    const std::vector<product::AmericanPutInput> products =
+        stratified_rows(product::load_american_puts(product_dataset_path));
     std::vector<float> prices(kBenchmarkRowCount);
     std::vector<float> standard_errors(kBenchmarkRowCount);
     DeviceArrays device;
