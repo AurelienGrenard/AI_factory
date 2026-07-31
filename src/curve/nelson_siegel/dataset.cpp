@@ -7,7 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::curve {
+namespace ai_factory::workbench::curve::nelson_siegel {
 namespace {
 
 // Reject invalid parameters before evaluating or transferring one curve.
@@ -24,7 +24,7 @@ void validate_parameters(const NelsonSiegelParameters& parameters) {
 }  // namespace
 
 // Parse and validate curve rows while preserving their dataset order.
-std::vector<NelsonSiegelParameters> load_nelson_siegel(
+std::vector<NelsonSiegelParameters> load_curves(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -61,4 +61,4 @@ std::vector<NelsonSiegelParameters> load_nelson_siegel(
     return curves;
 }
 
-}  // namespace ai_factory::workbench::curve
+}  // namespace ai_factory::workbench::curve::nelson_siegel

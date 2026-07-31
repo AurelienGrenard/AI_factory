@@ -10,7 +10,7 @@
 namespace ai_factory::workbench::product {
 
 // Parse one dataset and preserve its row order in the returned vector.
-std::vector<EuropeanCallInput> load_european_calls(
+std::vector<EuropeanCallParameters> load_european_calls(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -31,12 +31,12 @@ std::vector<EuropeanCallInput> load_european_calls(
     }
 
     const auto& rows = document.at("products");
-    std::vector<EuropeanCallInput> products;
+    std::vector<EuropeanCallParameters> products;
     products.reserve(rows.size());
     // Only strike and maturity are retained; JSON metadata stays out of CUDA.
     for (const auto& row : rows) {
         const auto& parameters = row.at("parameters");
-        const EuropeanCallInput product = {
+        const EuropeanCallParameters product = {
             parameters.at("strike").get<float>(),
             parameters.at("maturity").get<float>(),
         };

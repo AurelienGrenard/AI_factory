@@ -11,6 +11,7 @@ published to external storage.
 AI_factory/
 |-- src/          C++/CUDA simulation and pricing code
 |-- tools/        parameter generation and dataset-writing utilities
+|-- docs/         implementation conventions shared across models
 |-- catalog/      one reproducible folder per published dataset
 |-- datasets/     complete JSON datasets, ignored by Git
 |-- tests/        dataset contracts and CUDA tests
@@ -23,17 +24,20 @@ AI_factory/
 
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
-- `src/model/<model>`: model dataset loaders, dynamics, and pricing kernels;
+- `src/model/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 
 Each model, curve, or product uses `dataset.hpp/.cpp` for its compact row and
 host loader. CUDA declarations and implementations retain descriptive names
-such as `dynamics.cuh/.cu` or `term_structure.cuh/.cu`.
-Reusable sampling rules live in `generation.hpp/.cpp`; catalog generators
-contain only their recipe constants and `main`.
+such as `dynamics.cuh/.cu` or `term_structure.cuh/.cu`. Curve-specific dataset
+construction helpers live under `tools/datasets`; catalog generators contain
+only their recipe constants and `main`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
+
+New model dynamics must follow the shared
+[CUDA dynamics conventions](docs/cuda_dynamics_conventions.md).
 
 ### `tools`
 
@@ -43,6 +47,9 @@ They do not know output paths, dataset URLs, or catalog formats.
 - aligned and Cartesian product constructions;
 - complete JSON dataset writing;
 - YAML catalog writing.
+
+It also contains host-only construction rules tied to a dataset family, such
+as the constrained Nelson-Siegel forward-level reconstruction.
 
 Every dataset must declare an HTTP(S) URL. A generator fails explicitly when
 the URL is missing or invalid.
@@ -59,10 +66,11 @@ catalog/
 |-- model/<model>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-|-- product/<product>/<dataset_id>/
+|-- product/equity/<product>/<dataset_id>/
+|-- product/fixed_income/<product>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-`-- price/<model>/<product>/<dataset_id>/
+`-- price/<model>/[<curve>/]<product>/<dataset_id>/
     |-- dataset.yaml
     `-- generator.cpp
 ```
@@ -91,9 +99,13 @@ datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- model/heston/heston_01.json
 |-- model/hull_white/hull_white_01.json
-|-- product/european_calls/european_calls_01.json
-|-- product/american_puts/american_puts_01.json
-`-- price/heston/<product>/<price_dataset_id>.json
+|-- model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
+|-- product/equity/european_calls/european_calls_01.json
+|-- product/equity/american_puts/american_puts_01.json
+|-- product/fixed_income/caplets/caplets_01.json
+|-- price/heston/<product>/<price_dataset_id>.json
+|-- price/ornstein_uhlenbeck/<product>/<price_dataset_id>.json
+`-- price/hull_white/<curve>/<product>/<price_dataset_id>.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
@@ -110,20 +122,26 @@ time `tau`. The source implementation evaluates:
 - the instantaneous forward `f(0,T)`;
 - its analytical maturity derivative.
 
+`ornstein_uhlenbeck_01` is a standalone short-rate model with
+`r(t) = x(t)`. It samples the initial rate and mean reversion directly, then
+reconstructs volatility from a bounded stationary standard deviation. This
+avoids unstable low-reversion/high-volatility combinations.
+
 `hull_white_01` stores only the mean-reversion speed `a` and volatility
-`sigma`. For pricing, one Hull-White row is paired with one curve row. The
-implementation uses
+`sigma`. It uses the same stationary-dispersion reconstruction as OU, without
+an initial factor because the centered Hull-White factor starts from zero. For
+pricing, one Hull-White row is paired with one curve row. The implementation uses
 
 ```text
 r(t) = x(t) + phi(t)
 dx(t) = -a x(t) dt + sigma dW(t)
 ```
 
-The CUDA dynamics jointly simulate the Gaussian factor and its time integral,
-which gives each path an exact accumulated discount factor. `phi(t)` is
-computed from `f(0,t)` so that the model reproduces the supplied initial
-curve. Nelson-Siegel is therefore one curve provider, not a parameter embedded
-in Hull-White.
+The reusable OU layer jointly simulates the Gaussian factor and its time
+integral. `src/model/hull_white/nelson_siegel` composes that process with the
+Nelson-Siegel analytics and computes `phi(t)` from `f(0,t)`, so the full model
+reproduces the supplied initial curve. Nelson-Siegel is therefore one curve
+provider, not a parameter embedded in Hull-White.
 
 As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
@@ -174,7 +192,7 @@ maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
 then applies `K = exp(x)`.
 
 ```yaml
-catalog: "catalog/product/european_calls/european_calls_01"
+catalog: "catalog/product/equity/european_calls/european_calls_01"
 url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
 row_count: 1000
 construction:
@@ -183,8 +201,8 @@ construction:
 
 ### Price
 
-A price row references the model and product identifiers instead of
-duplicating their parameters:
+A price row references its model, optional curve, and product identifiers
+instead of duplicating their parameters:
 
 ```json
 {
@@ -213,14 +231,15 @@ model_dataset:
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
   id: "european_calls_01"
-  catalog: "catalog/product/european_calls/european_calls_01"
+  catalog: "catalog/product/equity/european_calls/european_calls_01"
   url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
 price_construction:
-  rule: "aligned row pairing"
+  method: "Aligned"
 ```
 
 `Aligned` pairs rows with the same index and requires equal dataset sizes.
-`CartesianProduct` generates every pair in model-major order.
+`CartesianProduct` generates every combination in model, optional curve,
+then product order.
 
 ## Build
 
@@ -251,8 +270,10 @@ Parameter datasets are quick to regenerate:
 ./build/generate_heston_01
 ./build/generate_nelson_siegel_01
 ./build/generate_hull_white_01
+./build/generate_ornstein_uhlenbeck_01
 ./build/generate_european_calls_01
 ./build/generate_american_puts_01
+./build/generate_caplets_01
 ```
 
 Each command replaces the local dataset and its YAML catalog entry together.
@@ -261,6 +282,8 @@ Price datasets follow the same workflow:
 ```bash
 ./build/generate_heston_european_calls_01
 ./build/generate_heston_american_puts_01
+./build/generate_ornstein_uhlenbeck_caplets_01
+./build/generate_hull_white_nelson_siegel_caplets_01
 ```
 
 The Cartesian product containing one million prices is intentionally separate:
@@ -275,9 +298,10 @@ The Cartesian product containing one million prices is intentionally separate:
 ctest --test-dir build --output-on-failure
 ```
 
-`dataset_catalog` validates construction rules and mandatory catalog fields.
-The CUDA tests use small in-memory fixtures and are skipped automatically when
-no CUDA GPU is available.
+`dataset_catalog` validates two- and three-input constructions and mandatory
+catalog fields. CUDA tests cover reusable Hull-White analytics, analytical
+caplets, the three uniform Heston path products, and the American-put pipeline.
+They use small in-memory fixtures and skip automatically without a CUDA GPU.
 
 ## Add a Dataset
 

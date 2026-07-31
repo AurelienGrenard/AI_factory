@@ -10,7 +10,7 @@
 namespace ai_factory::workbench::product {
 
 // Parse one dataset and preserve its row order in the returned vector.
-std::vector<AmericanPutInput> load_american_puts(
+std::vector<AmericanPutParameters> load_american_puts(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -31,12 +31,12 @@ std::vector<AmericanPutInput> load_american_puts(
     }
 
     const auto& rows = document.at("products");
-    std::vector<AmericanPutInput> products;
+    std::vector<AmericanPutParameters> products;
     products.reserve(rows.size());
     // Retain only the three FP32 fields required by pricing.
     for (const auto& row : rows) {
         const auto& parameters = row.at("parameters");
-        const AmericanPutInput product = {
+        const AmericanPutParameters product = {
             parameters.at("strike").get<float>(),
             parameters.at("maturity").get<float>(),
             parameters.at("exercise_interval").get<float>(),

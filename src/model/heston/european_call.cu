@@ -30,7 +30,7 @@ struct PreparedRow {
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
     const HestonModelParameters& model,
-    const product::EuropeanCallInput& product,
+    const product::EuropeanCallParameters& product,
     std::size_t num_steps,
     std::uint64_t seed
 ) {
@@ -49,15 +49,16 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    const float terminal =
-        simulate_terminal_spot(row.model, row.key, path, row.num_steps);
-    return row.discount * fmaxf(terminal - row.strike, 0.0f);
+    const HestonState terminal =
+        simulate_terminal_state(row.model, row.key, path, row.num_steps);
+    const float terminal_spot = expf(terminal.log_spot);
+    return row.discount * fmaxf(terminal_spot - row.strike, 0.0f);
 }
 
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void heston_european_call_kernel(
     const HestonModelParameters* __restrict__ models,
-    const product::EuropeanCallInput* __restrict__ products,
+    const product::EuropeanCallParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
@@ -82,7 +83,7 @@ __global__ void heston_european_call_kernel(
             const std::size_t product_index = cartesian_product
                 ? result_index % product_count
                 : result_index;
-            const product::EuropeanCallInput product =
+            const product::EuropeanCallParameters product =
                 products[product_index];
             const std::size_t num_steps = static_cast<std::size_t>(
                 fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
@@ -133,7 +134,7 @@ __global__ void heston_european_call_kernel(
 void validate_heston_european_call_launch(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::EuropeanCallInput* device_products,
+    const product::EuropeanCallParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -171,11 +172,11 @@ void validate_heston_european_call_launch(
     );
 
     // The block must fit the GPU and contain a whole number of warps.
-    validate_warp_aligned_block_size(threads_per_block);
+    validate_reduction_block_size(threads_per_block);
 
     // The persistent grid must contain valid blocks and fit gridDim.x.
     validate_block_count(launch_result_count, block_count);
-    validate_one_block_per_result_grid(block_count);
+    validate_grid_x_size(block_count);
 
     // Every result row must receive a distinct uint64_t seed without overflow.
     validate_row_seed_range(result_count, base_seed);
@@ -187,7 +188,7 @@ void validate_heston_european_call_launch(
 void launch_heston_european_call_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::EuropeanCallInput* device_products,
+    const product::EuropeanCallParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

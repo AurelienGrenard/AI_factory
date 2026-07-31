@@ -18,7 +18,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/european_calls/european_calls_01.json";
+    "datasets/product/equity/european_calls/european_calls_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -53,8 +53,8 @@ int main() {
 
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
-        heston::load_heston(model_dataset_path);
-    const std::vector<product::EuropeanCallInput> products =
+        heston::load_models(model_dataset_path);
+    const std::vector<product::EuropeanCallParameters> products =
         product::load_european_calls(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
@@ -77,7 +77,7 @@ int main() {
 
     // Declare the device pointers and CUDA events used below.
     heston::HestonModelParameters* device_models = nullptr;
-    product::EuropeanCallInput* device_products = nullptr;
+    product::EuropeanCallParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -98,7 +98,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::EuropeanCallInput)
+                products.size() * sizeof(product::EuropeanCallParameters)
             ),
             "cudaMalloc European calls"
         );
@@ -131,7 +131,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::EuropeanCallInput),
+                products.size() * sizeof(product::EuropeanCallParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy European calls"

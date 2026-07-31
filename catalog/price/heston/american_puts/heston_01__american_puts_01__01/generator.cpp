@@ -18,7 +18,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/american_puts/american_puts_01.json";
+    "datasets/product/equity/american_puts/american_puts_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -53,8 +53,8 @@ int main() {
 
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
-        heston::load_heston(model_dataset_path);
-    const std::vector<product::AmericanPutInput> products =
+        heston::load_models(model_dataset_path);
+    const std::vector<product::AmericanPutParameters> products =
         product::load_american_puts(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
@@ -67,10 +67,10 @@ int main() {
 
     // Declare the persistent device arrays used by every memory-aware batch.
     heston::HestonModelParameters* device_models = nullptr;
-    product::AmericanPutInput* device_products = nullptr;
+    product::AmericanPutParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
-    heston::AmericanPutExecution execution{};
+    heston::AmericanPutLaunchResult execution{};
     double wall_seconds = 0.0;
 
     // 3. Allocate and load the persistent input and output arrays.
@@ -87,7 +87,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::AmericanPutInput)
+                products.size() * sizeof(product::AmericanPutParameters)
             ),
             "cudaMalloc American puts"
         );
@@ -120,7 +120,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::AmericanPutInput),
+                products.size() * sizeof(product::AmericanPutParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy American puts"

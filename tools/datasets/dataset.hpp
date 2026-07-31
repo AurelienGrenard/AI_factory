@@ -84,6 +84,14 @@ std::size_t price_row_count(
     PriceConstruction construction
 );
 
+// Return the price count for one model, curve, and product construction.
+std::size_t price_row_count(
+    std::size_t model_count,
+    std::size_t curve_count,
+    std::size_t product_count,
+    PriceConstruction construction
+);
+
 // Write a full model dataset and its catalog entry.
 void write_model_dataset(
     const std::string& database_id,
@@ -137,6 +145,37 @@ void write_monte_carlo_price_dataset(
     const nlohmann::ordered_json& cuda_execution,
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
+    double wall_seconds,
+    double kernel_seconds
+);
+
+// Write closed-form prices built from model, curve, and product datasets.
+void write_analytical_price_dataset(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
+    double wall_seconds,
+    double kernel_seconds
+);
+
+// Write closed-form prices built from model, curve, and product datasets.
+void write_analytical_price_dataset(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& curve_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
     double wall_seconds,
     double kernel_seconds
 );

@@ -32,10 +32,10 @@ model_dataset:
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
   id: "european_calls_01"
-  catalog: "catalog/product/european_calls/european_calls_01"
+  catalog: "catalog/product/equity/european_calls/european_calls_01"
   url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
 price_construction:
-  rule: "aligned row pairing"
+  method: "Aligned"
 timing:
-  wall_seconds: "0.494000699 s"
-  kernel_seconds: "0.149250015 s"
+  wall_seconds: "2.100395592 s"
+  kernel_seconds: "0.152979462 s"

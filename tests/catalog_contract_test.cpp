@@ -16,12 +16,24 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml",
     "catalog/model/heston/heston_01/dataset.yaml",
     "catalog/model/hull_white/hull_white_01/dataset.yaml",
-    "catalog/product/european_calls/european_calls_01/dataset.yaml",
-    "catalog/product/american_puts/american_puts_01/dataset.yaml",
+    "catalog/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01/dataset.yaml",
+    "catalog/product/equity/european_calls/european_calls_01/dataset.yaml",
+    "catalog/product/equity/asian_calls/asian_calls_01/dataset.yaml",
+    "catalog/product/equity/lookback_options/lookback_options_01/dataset.yaml",
+    "catalog/product/equity/american_puts/american_puts_01/dataset.yaml",
+    "catalog/product/fixed_income/caplets/caplets_01/dataset.yaml",
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__02/dataset.yaml",
+    "catalog/price/heston/asian_calls/"
+    "heston_01__asian_calls_01__01/dataset.yaml",
+    "catalog/price/heston/lookback_options/"
+    "heston_01__lookback_options_01__01/dataset.yaml",
+    "catalog/price/hull_white/nelson_siegel/caplets/"
+    "hull_white_01__nelson_siegel_01__caplets_01__01/dataset.yaml",
+    "catalog/price/ornstein_uhlenbeck/caplets/"
+    "ornstein_uhlenbeck_01__caplets_01__01/dataset.yaml",
     price_catalog_path,
 };
 
@@ -100,6 +112,21 @@ int main() {
             100U, 100U, datasets::PriceConstruction::CartesianProduct
         ) == 10'000U,
         "Cartesian construction count is not 10000"
+    );
+    require(
+        datasets::price_row_count(
+            100U, 100U, 100U, datasets::PriceConstruction::Aligned
+        ) == 100U,
+        "three-input aligned construction count is not 100"
+    );
+    require(
+        datasets::price_row_count(
+            100U,
+            100U,
+            100U,
+            datasets::PriceConstruction::CartesianProduct
+        ) == 1'000'000U,
+        "three-input Cartesian construction count is not 1000000"
     );
 
     const std::string catalog = read_text(price_catalog_path);

@@ -10,7 +10,7 @@
 namespace ai_factory::workbench::heston {
 
 // Parse and validate Heston rows while preserving their dataset order.
-std::vector<HestonModelParameters> load_heston(
+std::vector<HestonModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);

@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace ai_factory::workbench::curve {
+namespace ai_factory::workbench::curve::nelson_siegel {
 
 // One compact FP32 Nelson-Siegel curve parameterization.
 struct NelsonSiegelParameters {
@@ -18,8 +18,8 @@ struct NelsonSiegelParameters {
 static_assert(std::is_trivially_copyable_v<NelsonSiegelParameters>);
 
 // Load every curve row from JSON into one contiguous FP32 vector.
-std::vector<NelsonSiegelParameters> load_nelson_siegel(
+std::vector<NelsonSiegelParameters> load_curves(
     const std::filesystem::path& dataset_path
 );
 
-}  // namespace ai_factory::workbench::curve
+}  // namespace ai_factory::workbench::curve::nelson_siegel

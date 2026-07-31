@@ -628,6 +628,303 @@ std::size_t price_row_count_impl(
     return model_count * product_count;
 }
 
+// Validate a model/curve/product construction and return its row count.
+std::size_t price_row_count_impl(
+    std::size_t model_count,
+    std::size_t curve_count,
+    std::size_t product_count,
+    PriceConstruction construction
+) {
+    if (model_count == 0U || curve_count == 0U || product_count == 0U) {
+        throw std::invalid_argument(
+            "Price construction requires non-empty input datasets."
+        );
+    }
+    if (construction == PriceConstruction::Aligned) {
+        if (model_count != curve_count || model_count != product_count) {
+            throw std::invalid_argument(
+                "Aligned construction requires equal input row counts."
+            );
+        }
+        return model_count;
+    }
+    const std::size_t maximum = std::numeric_limits<std::size_t>::max();
+    if (model_count > maximum / curve_count
+        || model_count * curve_count > maximum / product_count) {
+        throw std::overflow_error("Cartesian result count exceeds size_t.");
+    }
+    return model_count * curve_count * product_count;
+}
+
+// Write analytical prices without Monte Carlo-only fields.
+void write_analytical_price_dataset_impl(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& curve_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
+    double wall_seconds,
+    double kernel_seconds
+) {
+    validate_dataset_url(url);
+    const nlohmann::ordered_json model_document =
+        read_json_file(model_dataset_path);
+    const nlohmann::ordered_json curve_document =
+        read_json_file(curve_dataset_path);
+    const nlohmann::ordered_json product_document =
+        read_json_file(product_dataset_path);
+    const auto& model_rows = model_document.at("models");
+    const auto& curve_rows = curve_document.at("curves");
+    const auto& product_rows = product_document.at("products");
+    const std::size_t row_count = price_row_count_impl(
+        model_rows.size(),
+        curve_rows.size(),
+        product_rows.size(),
+        construction
+    );
+    if (prices.size() != row_count) {
+        throw std::invalid_argument(
+            "Prices must match the constructed input row count."
+        );
+    }
+    for (std::size_t index = 0U; index < row_count; ++index) {
+        if (!std::isfinite(prices[index]) || prices[index] < 0.0f) {
+            throw std::runtime_error(
+                "Price row " + std::to_string(index) + " is invalid."
+            );
+        }
+    }
+
+    const std::string database_id = dataset_path.stem().string();
+    if (database_id.empty()) {
+        throw std::invalid_argument(
+            "The price dataset must have a non-empty basename."
+        );
+    }
+
+    // Reference source identifiers without duplicating their parameters.
+    nlohmann::ordered_json rows = nlohmann::ordered_json::array();
+    for (std::size_t index = 0U; index < row_count; ++index) {
+        std::size_t model_index = index;
+        std::size_t curve_index = index;
+        std::size_t product_index = index;
+        if (construction == PriceConstruction::CartesianProduct) {
+            const std::size_t curve_product_count =
+                curve_rows.size() * product_rows.size();
+            model_index = index / curve_product_count;
+            const std::size_t remainder = index % curve_product_count;
+            curve_index = remainder / product_rows.size();
+            product_index = remainder % product_rows.size();
+        }
+        rows.push_back({
+            {"id", format_row_id(index)},
+            {"model_id", model_rows.at(model_index).at("id")},
+            {"curve_id", curve_rows.at(curve_index).at("id")},
+            {"product_id", product_rows.at(product_index).at("id")},
+            {"outputs", {{"price", prices[index]}}},
+        });
+    }
+
+    const auto dataset_reference = [](
+        const nlohmann::ordered_json& document
+    ) {
+        return nlohmann::ordered_json{
+            {"id", document.at("database_id")},
+            {"catalog", document.at("catalog")},
+            {"url", document.at("url")},
+        };
+    };
+    const nlohmann::ordered_json json_document = {
+        {"database_id", database_id},
+        {"catalog", catalog_path.parent_path().generic_string()},
+        {"url", url},
+        {"row_count", row_count},
+        {"model_dataset", dataset_reference(model_document)},
+        {"curve_dataset", dataset_reference(curve_document)},
+        {"product_dataset", dataset_reference(product_document)},
+        {"timing", {
+            {"wall_seconds", wall_seconds},
+            {"kernel_seconds", kernel_seconds},
+        }},
+        {"results", rows},
+    };
+    write_json_file(dataset_path, json_document);
+
+    if (!cuda_execution.is_object() || cuda_execution.empty()) {
+        throw std::invalid_argument(
+            "An analytical CUDA result requires execution metadata."
+        );
+    }
+    nlohmann::ordered_json summary = {
+        {"pricing_method", "Closed-form"},
+        {"model", model_document.at("model_family")},
+        {"curve", curve_document.at("curve_family")},
+        {"numerical_method", numerical_method},
+        {"payoff", product_document.at("product_family")},
+        {"implementation", "CUDA"},
+        {"device", "gpu"},
+    };
+    for (const auto& [name, value] : cuda_execution.items()) {
+        summary[name] = value;
+    }
+    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
+    if (construction == PriceConstruction::CartesianProduct) {
+        price_construction = {
+            {"method", "Cartesian product"},
+            {"order", "model, curve, product"},
+        };
+    }
+    const nlohmann::ordered_json catalog = {
+        {"title", database_id},
+        {"database_id", database_id},
+        {"catalog", catalog_path.parent_path().generic_string()},
+        {"url", url},
+        {"row_count", row_count},
+        {"summary", summary},
+        {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
+        {"model_dataset", dataset_reference(model_document)},
+        {"curve_dataset", dataset_reference(curve_document)},
+        {"product_dataset", dataset_reference(product_document)},
+        {"price_construction", price_construction},
+        {"timing", {
+            {"wall_seconds", format_duration(wall_seconds)},
+            {"kernel_seconds", format_duration(kernel_seconds)},
+        }},
+    };
+    write_yaml_file(catalog_path, catalog);
+}
+
+// Write analytical prices from one model and one product dataset.
+void write_analytical_price_dataset_impl(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
+    double wall_seconds,
+    double kernel_seconds
+) {
+    validate_dataset_url(url);
+    const nlohmann::ordered_json model_document =
+        read_json_file(model_dataset_path);
+    const nlohmann::ordered_json product_document =
+        read_json_file(product_dataset_path);
+    const auto& model_rows = model_document.at("models");
+    const auto& product_rows = product_document.at("products");
+    const std::size_t row_count = price_row_count_impl(
+        model_rows.size(), product_rows.size(), construction
+    );
+    if (prices.size() != row_count) {
+        throw std::invalid_argument(
+            "Prices must match the constructed input row count."
+        );
+    }
+    for (std::size_t index = 0U; index < row_count; ++index) {
+        if (!std::isfinite(prices[index]) || prices[index] < 0.0f) {
+            throw std::runtime_error(
+                "Price row " + std::to_string(index) + " is invalid."
+            );
+        }
+    }
+
+    const std::string database_id = dataset_path.stem().string();
+    if (database_id.empty()) {
+        throw std::invalid_argument(
+            "The price dataset must have a non-empty basename."
+        );
+    }
+    const auto dataset_reference = [](
+        const nlohmann::ordered_json& document
+    ) {
+        return nlohmann::ordered_json{
+            {"id", document.at("database_id")},
+            {"catalog", document.at("catalog")},
+            {"url", document.at("url")},
+        };
+    };
+
+    nlohmann::ordered_json rows = nlohmann::ordered_json::array();
+    for (std::size_t index = 0U; index < row_count; ++index) {
+        const std::size_t model_index =
+            construction == PriceConstruction::CartesianProduct
+            ? index / product_rows.size()
+            : index;
+        const std::size_t product_index =
+            construction == PriceConstruction::CartesianProduct
+            ? index % product_rows.size()
+            : index;
+        rows.push_back({
+            {"id", format_row_id(index)},
+            {"model_id", model_rows.at(model_index).at("id")},
+            {"product_id", product_rows.at(product_index).at("id")},
+            {"outputs", {{"price", prices[index]}}},
+        });
+    }
+
+    write_json_file(dataset_path, {
+        {"database_id", database_id},
+        {"catalog", catalog_path.parent_path().generic_string()},
+        {"url", url},
+        {"row_count", row_count},
+        {"model_dataset", dataset_reference(model_document)},
+        {"product_dataset", dataset_reference(product_document)},
+        {"timing", {
+            {"wall_seconds", wall_seconds},
+            {"kernel_seconds", kernel_seconds},
+        }},
+        {"results", rows},
+    });
+
+    if (!cuda_execution.is_object() || cuda_execution.empty()) {
+        throw std::invalid_argument(
+            "An analytical CUDA result requires execution metadata."
+        );
+    }
+    nlohmann::ordered_json summary = {
+        {"pricing_method", "Closed-form"},
+        {"model", model_document.at("model_family")},
+        {"numerical_method", numerical_method},
+        {"payoff", product_document.at("product_family")},
+        {"implementation", "CUDA"},
+        {"device", "gpu"},
+    };
+    for (const auto& [name, value] : cuda_execution.items()) {
+        summary[name] = value;
+    }
+    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
+    if (construction == PriceConstruction::CartesianProduct) {
+        price_construction = {
+            {"method", "Cartesian product"},
+            {"order", "model, product"},
+        };
+    }
+    write_yaml_file(catalog_path, {
+        {"title", database_id},
+        {"database_id", database_id},
+        {"catalog", catalog_path.parent_path().generic_string()},
+        {"url", url},
+        {"row_count", row_count},
+        {"summary", summary},
+        {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
+        {"model_dataset", dataset_reference(model_document)},
+        {"product_dataset", dataset_reference(product_document)},
+        {"price_construction", price_construction},
+        {"timing", {
+            {"wall_seconds", format_duration(wall_seconds)},
+            {"kernel_seconds", format_duration(kernel_seconds)},
+        }},
+    });
+}
+
 // Serialize one complete Monte Carlo price dataset and its metadata.
 void write_monte_carlo_price_dataset_impl(
     const std::filesystem::path& model_dataset_path,
@@ -684,10 +981,13 @@ void write_monte_carlo_price_dataset_impl(
             "The price dataset must have a non-empty basename."
         );
     }
-    const std::string construction_rule =
-        construction == PriceConstruction::Aligned
-        ? "aligned row pairing"
-        : "Cartesian product in model-major order";
+    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
+    if (construction == PriceConstruction::CartesianProduct) {
+        price_construction = {
+            {"method", "Cartesian product"},
+            {"order", "model, product"},
+        };
+    }
 
     // Reference source rows instead of duplicating their parameters.
     nlohmann::ordered_json rows = nlohmann::ordered_json::array();
@@ -790,7 +1090,7 @@ void write_monte_carlo_price_dataset_impl(
         }},
         {"model_dataset", yaml_model_dataset},
         {"product_dataset", yaml_product_dataset},
-        {"price_construction", {{"rule", construction_rule}}},
+        {"price_construction", price_construction},
         {"timing", yaml_timing},
     };
     if (!catalog_sections.is_object()) {
@@ -813,6 +1113,18 @@ std::size_t price_row_count(
     PriceConstruction construction
 ) {
     return price_row_count_impl(model_count, product_count, construction);
+}
+
+// Return the rows implied by one model, curve, and product construction.
+std::size_t price_row_count(
+    std::size_t model_count,
+    std::size_t curve_count,
+    std::size_t product_count,
+    PriceConstruction construction
+) {
+    return price_row_count_impl(
+        model_count, curve_count, product_count, construction
+    );
 }
 
 // Write one complete Monte Carlo price dataset and catalog entry.
@@ -851,6 +1163,66 @@ void write_monte_carlo_price_dataset(
         cuda_execution,
         catalog_sections,
         first_seed,
+        wall_seconds,
+        kernel_seconds
+    );
+}
+
+// Write one complete closed-form price dataset and catalog entry.
+void write_analytical_price_dataset(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
+    double wall_seconds,
+    double kernel_seconds
+) {
+    write_analytical_price_dataset_impl(
+        model_dataset_path,
+        product_dataset_path,
+        construction,
+        prices,
+        dataset_path,
+        catalog_path,
+        url,
+        numerical_method,
+        cuda_execution,
+        wall_seconds,
+        kernel_seconds
+    );
+}
+
+// Write one complete closed-form price dataset and catalog entry.
+void write_analytical_price_dataset(
+    const std::filesystem::path& model_dataset_path,
+    const std::filesystem::path& curve_dataset_path,
+    const std::filesystem::path& product_dataset_path,
+    PriceConstruction construction,
+    const std::vector<float>& prices,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const std::string& numerical_method,
+    const nlohmann::ordered_json& cuda_execution,
+    double wall_seconds,
+    double kernel_seconds
+) {
+    write_analytical_price_dataset_impl(
+        model_dataset_path,
+        curve_dataset_path,
+        product_dataset_path,
+        construction,
+        prices,
+        dataset_path,
+        catalog_path,
+        url,
+        numerical_method,
+        cuda_execution,
         wall_seconds,
         kernel_seconds
     );

@@ -10,7 +10,7 @@
 namespace ai_factory::workbench::heston {
 
 // Summarize the device-dependent batching selected for one complete run.
-struct AmericanPutExecution {
+struct AmericanPutLaunchResult {
     double kernel_seconds;
     std::size_t batch_count;
     std::size_t kernel_launch_count;
@@ -20,11 +20,11 @@ struct AmericanPutExecution {
 };
 
 // Price every row with multi-block Longstaff-Schwartz batches.
-AmericanPutExecution launch_heston_american_put_cuda(
+AmericanPutLaunchResult launch_heston_american_put_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::AmericanPutInput* host_products,
-    const product::AmericanPutInput* device_products,
+    const product::AmericanPutParameters* host_products,
+    const product::AmericanPutParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

@@ -10,7 +10,7 @@
 namespace ai_factory::workbench::hull_white {
 
 // Parse and validate model rows while preserving their dataset order.
-std::vector<HullWhiteOneFactorParameters> load_hull_white_one_factor(
+std::vector<HullWhiteModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -31,11 +31,11 @@ std::vector<HullWhiteOneFactorParameters> load_hull_white_one_factor(
     }
 
     const auto& rows = document.at("models");
-    std::vector<HullWhiteOneFactorParameters> models;
+    std::vector<HullWhiteModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
         const auto& values = row.at("parameters");
-        const HullWhiteOneFactorParameters parameters = {
+        const HullWhiteModelParameters parameters = {
             values.at("mean_reversion").get<float>(),
             values.at("volatility").get<float>(),
         };

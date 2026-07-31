@@ -21,8 +21,8 @@ struct HestonModelParameters {
 
 static_assert(std::is_trivially_copyable_v<HestonModelParameters>);
 
-// Load every row from a Heston dataset JSON into one contiguous vector.
-std::vector<HestonModelParameters> load_heston(
+// Load every model row from JSON into one contiguous FP32 vector.
+std::vector<HestonModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

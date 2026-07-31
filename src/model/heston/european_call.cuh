@@ -13,7 +13,7 @@ namespace ai_factory::workbench::heston {
 void launch_heston_european_call_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::EuropeanCallInput* device_products,
+    const product::EuropeanCallParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,

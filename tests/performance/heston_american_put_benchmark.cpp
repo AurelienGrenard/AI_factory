@@ -26,12 +26,12 @@ constexpr std::uint64_t kSeed = 900000001ULL;
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/american_puts/american_puts_01.json";
+    "datasets/product/equity/american_puts/american_puts_01.json";
 
 // Own the fixed device arrays used by every benchmark run.
 struct DeviceArrays {
     ai_factory::workbench::heston::HestonModelParameters* models = nullptr;
-    ai_factory::workbench::product::AmericanPutInput* products = nullptr;
+    ai_factory::workbench::product::AmericanPutParameters* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
 
@@ -90,8 +90,8 @@ int main(int argc, char** argv) {
     const std::size_t blocks_per_price = std::stoull(argv[2]);
 
     const std::vector<heston::HestonModelParameters> models =
-        stratified_rows(heston::load_heston(model_dataset_path));
-    const std::vector<product::AmericanPutInput> products =
+        stratified_rows(heston::load_models(model_dataset_path));
+    const std::vector<product::AmericanPutParameters> products =
         stratified_rows(product::load_american_puts(product_dataset_path));
     std::vector<float> prices(kBenchmarkRowCount);
     std::vector<float> standard_errors(kBenchmarkRowCount);
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     );
 
     const auto wall_start = std::chrono::steady_clock::now();
-    const heston::AmericanPutExecution execution =
+    const heston::AmericanPutLaunchResult execution =
         heston::launch_heston_american_put_cuda(
             device.models,
             models.size(),

@@ -34,6 +34,18 @@ struct HestonState {
     float variance;
 };
 
+// Terminal state and arithmetic mean observed from time zero to maturity.
+struct HestonMeanPathResult {
+    HestonState terminal_state;
+    float arithmetic_mean;
+};
+
+// Terminal state and maximum spot observed from time zero to maturity.
+struct HestonMaximumPathResult {
+    HestonState terminal_state;
+    float maximum_spot;
+};
+
 // Precompute row- and time-step-dependent QE-M coefficients once per block.
 __device__ __forceinline__ HestonQeParameters prepare_model(
     const HestonModelParameters& parameters,
@@ -41,8 +53,13 @@ __device__ __forceinline__ HestonQeParameters prepare_model(
     std::size_t num_steps
 );
 
+// Construct the time-zero log-spot and variance state.
+__device__ __forceinline__ HestonState initial_state(
+    const HestonQeParameters& model
+);
+
 // Advance one path state by one Andersen QE-M time step.
-__device__ __forceinline__ void one_step_qe_martingale_transition(
+__device__ __forceinline__ void one_step_transition(
     const HestonQeParameters& model,
     float variance_normal,
     float variance_uniform,
@@ -50,16 +67,32 @@ __device__ __forceinline__ void one_step_qe_martingale_transition(
     HestonState& state
 );
 
-// Simulate one complete path and return only its terminal spot.
-__device__ __forceinline__ float simulate_terminal_spot(
+// Simulate one complete path and return its terminal state.
+__device__ __forceinline__ HestonState simulate_terminal_state(
     const HestonQeParameters& model,
     philox::PhiloxKey key,
     std::size_t path,
     std::size_t num_steps
 );
 
-// Store pre-maturity exercise states and return the terminal spot.
-__device__ __forceinline__ float simulate_spot_variance_on_regular_grid(
+// Simulate one path and average its spots from time zero to maturity in FP64.
+__device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+);
+
+// Simulate one path and return its maximum monitored spot.
+__device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+);
+
+// Store pre-maturity exercise states and return the terminal state.
+__device__ __forceinline__ HestonState simulate_on_regular_grid(
     const HestonQeParameters& initial_stub_model,
     const HestonQeParameters& regular_model,
     philox::PhiloxKey key,

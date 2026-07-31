@@ -1,5 +1,6 @@
 // Generate reproducible Hull-White one-factor model parameters.
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -18,10 +19,15 @@ int main() {
         "hull_white/hull_white_01.json";
 
     constexpr std::uint64_t seed = 730000201ULL;
-    const GeneratedRows rows = uniform_rows(1'000U, seed, {
-        {"mean_reversion", 0.01f, 1.0f},
-        {"volatility", 0.001f, 0.03f},
-    });
+    const GeneratedRows rows =
+        ornstein_uhlenbeck::generate_dynamics_rows(
+            1'000U,
+            seed,
+            {
+                {0.03f, 1.0f},
+                {0.0025f, 0.025f},
+            }
+        );
 
     write_model_dataset(
         "hull_white_01",

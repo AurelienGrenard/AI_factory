@@ -7,17 +7,17 @@
 
 namespace ai_factory::workbench::product {
 
-// AmericanPutInput is the compact FP32 product row transferred to CUDA.
-struct AmericanPutInput {
+// AmericanPutParameters is the compact FP32 product row transferred to CUDA.
+struct AmericanPutParameters {
     float strike;
     float maturity;
     float exercise_interval;
 };
 
-static_assert(std::is_trivially_copyable_v<AmericanPutInput>);
+static_assert(std::is_trivially_copyable_v<AmericanPutParameters>);
 
 // Load every American-put row into one contiguous FP32 vector.
-std::vector<AmericanPutInput> load_american_puts(
+std::vector<AmericanPutParameters> load_american_puts(
     const std::filesystem::path& dataset_path
 );
 

@@ -1,6 +1,6 @@
 // Generate Nelson-Siegel curves from interpretable forward-rate levels.
-#include "curve/nelson_siegel/generation.hpp"
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/nelson_siegel_generation.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -9,23 +9,23 @@
 
 namespace {
 
-using ai_factory::workbench::curve::NelsonSiegelSamplingRange;
+using ai_factory::workbench::datasets::nelson_siegel::SamplingRange;
 
 constexpr std::size_t kRowCount = 1'000U;
 constexpr std::uint64_t kSeed = 720000201ULL;
-constexpr NelsonSiegelSamplingRange kLongForward{
+constexpr SamplingRange kLongForward{
     0.005f, 0.06f
 };
-constexpr NelsonSiegelSamplingRange kShortForward{
+constexpr SamplingRange kShortForward{
     0.0f, 0.08f
 };
-constexpr NelsonSiegelSamplingRange kMediumForward{
+constexpr SamplingRange kMediumForward{
     0.0f, 0.08f
 };
-constexpr NelsonSiegelSamplingRange kTau{
+constexpr SamplingRange kTau{
     0.5f, 5.0f
 };
-constexpr NelsonSiegelSamplingRange kAcceptedForward{
+constexpr SamplingRange kAcceptedForward{
     0.0f, 0.10f
 };
 
@@ -44,7 +44,7 @@ int main() {
         "nelson_siegel/nelson_siegel_01.json";
 
     const GeneratedRows rows =
-        ai_factory::workbench::curve::generate_nelson_siegel_rows(
+        nelson_siegel::generate_rows(
             kRowCount,
             kSeed,
             {

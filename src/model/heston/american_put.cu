@@ -182,7 +182,7 @@ Value* workspace_pointer(
 }
 
 // Match the maturity-anchored exercise schedule used by the device.
-std::uint32_t exercise_count(const product::AmericanPutInput& product) {
+std::uint32_t exercise_count(const product::AmericanPutParameters& product) {
     const float raw_count = product.maturity / product.exercise_interval;
     const float adjusted =
         raw_count - 8.0f * FLT_EPSILON * std::max(raw_count, 1.0f);
@@ -198,7 +198,7 @@ std::uint32_t exercise_count(const product::AmericanPutInput& product) {
 
 // Pack consecutive result rows into batches under the memory budget.
 std::vector<BatchPlan> plan_batches(
-    const product::AmericanPutInput* host_products,
+    const product::AmericanPutParameters* host_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -303,7 +303,7 @@ std::vector<BatchPlan> plan_batches(
 // Prepare each batch row once before thousands of path blocks consume it.
 __global__ void prepare_rows_kernel(
     const HestonModelParameters* __restrict__ models,
-    const product::AmericanPutInput* __restrict__ products,
+    const product::AmericanPutParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t batch_size,
@@ -326,7 +326,7 @@ __global__ void prepare_rows_kernel(
         ? result_index % product_count
         : result_index;
     const HestonModelParameters model = models[model_index];
-    const product::AmericanPutInput product = products[product_index];
+    const product::AmericanPutParameters product = products[product_index];
     const std::uint32_t row_exercise_count =
         exercise_counts[batch_price];
     const float first_exercise_time = fmaf(
@@ -384,7 +384,7 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        const float terminal_spot = simulate_spot_variance_on_regular_grid(
+        const HestonState terminal = simulate_on_regular_grid(
             row.initial_stub_model,
             row.regular_model,
             row.key,
@@ -396,6 +396,7 @@ __global__ void simulate_paths_kernel(
             row_spots,
             row_variances
         );
+        const float terminal_spot = expf(terminal.log_spot);
         row_cashflows[path] = fmaxf(row.strike - terminal_spot, 0.0f);
     }
 }
@@ -739,11 +740,11 @@ __global__ void finalize_prices_kernel(
 }
 
 // Validate pointers, construction, Monte Carlo dimensions, and the 2D grid.
-void validate_launch(
+void validate_heston_american_put_launch(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::AmericanPutInput* host_products,
-    const product::AmericanPutInput* device_products,
+    const product::AmericanPutParameters* host_products,
+    const product::AmericanPutParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -766,7 +767,7 @@ void validate_launch(
         model_count, product_count, cartesian_product, result_count
     );
     validate_monte_carlo_parameters(paths_per_price, target_dt);
-    validate_warp_aligned_block_size(threads_per_block);
+    validate_reduction_block_size(threads_per_block);
     validate_row_seed_range(result_count, base_seed);
 
     int device = 0;
@@ -788,11 +789,11 @@ void validate_launch(
 }  // namespace
 
 // Price every row with one persistent workspace and memory-aware batches.
-AmericanPutExecution launch_heston_american_put_cuda(
+AmericanPutLaunchResult launch_heston_american_put_cuda(
     const HestonModelParameters* device_models,
     std::size_t model_count,
-    const product::AmericanPutInput* host_products,
-    const product::AmericanPutInput* device_products,
+    const product::AmericanPutParameters* host_products,
+    const product::AmericanPutParameters* device_products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_count,
@@ -804,7 +805,7 @@ AmericanPutExecution launch_heston_american_put_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {
-    validate_launch(
+    validate_heston_american_put_launch(
         device_models,
         model_count,
         host_products,

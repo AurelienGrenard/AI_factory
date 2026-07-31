@@ -1,7 +1,7 @@
 title: "American Puts parameter dataset american_puts_01"
 database_id: "american_puts_01"
 product_family: "American Puts"
-catalog: "catalog/product/american_puts/american_puts_01"
+catalog: "catalog/product/equity/american_puts/american_puts_01"
 url: "https://datasets.ai-factory.example/v1/product/american_puts/american_puts_01.json"
 row_count: 1000
 parameters:

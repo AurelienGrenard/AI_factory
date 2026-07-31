@@ -1,0 +1,62 @@
+// Convert caplet JSON rows into compact CUDA parameters.
+#include "product/caplet/dataset.hpp"
+
+#include <nlohmann/json.hpp>
+
+#include <cmath>
+#include <fstream>
+#include <stdexcept>
+
+namespace ai_factory::workbench::product {
+
+// Parse one dataset and preserve its row order in the returned vector.
+std::vector<CapletParameters> load_caplets(
+    const std::filesystem::path& dataset_path
+) {
+    std::ifstream stream(dataset_path);
+    if (!stream) {
+        throw std::runtime_error(
+            "Could not open caplet JSON: " + dataset_path.string()
+        );
+    }
+
+    nlohmann::json document;
+    try {
+        stream >> document;
+    } catch (const nlohmann::json::exception& error) {
+        throw std::runtime_error(
+            "Invalid caplet JSON '" + dataset_path.string()
+            + "': " + error.what()
+        );
+    }
+
+    const auto& rows = document.at("products");
+    std::vector<CapletParameters> products;
+    products.reserve(rows.size());
+    for (const auto& row : rows) {
+        const auto& parameters = row.at("parameters");
+        const CapletParameters product = {
+            parameters.at("notional").get<float>(),
+            parameters.at("strike").get<float>(),
+            parameters.at("fixing_time").get<float>(),
+            parameters.at("payment_time").get<float>(),
+            parameters.at("accrual_period").get<float>(),
+        };
+        if (!std::isfinite(product.notional)
+            || !std::isfinite(product.strike)
+            || !std::isfinite(product.fixing_time)
+            || !std::isfinite(product.payment_time)
+            || !std::isfinite(product.accrual_period)
+            || !(product.notional > 0.0f)
+            || !(product.strike >= 0.0f)
+            || !(product.fixing_time > 0.0f)
+            || !(product.payment_time > product.fixing_time)
+            || !(product.accrual_period > 0.0f)) {
+            throw std::invalid_argument("Invalid caplet input.");
+        }
+        products.push_back(product);
+    }
+    return products;
+}
+
+}  // namespace ai_factory::workbench::product

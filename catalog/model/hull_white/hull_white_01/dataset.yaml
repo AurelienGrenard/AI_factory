@@ -13,11 +13,16 @@ dynamics:
   transition: "x and its integral are simulated jointly and exactly; the curve shift is integrated analytically"
   curve_fit: "phi(t) is determined by the initial instantaneous forward curve f(0,t)"
 construction:
-  method: "independent uniform sample"
-  bounds:
+  method: "stationary-dispersion reconstruction"
+  sampled_factors:
     mean_reversion:
-      - 0.01
-      - 1.0
-    volatility:
-      - 0.001
-      - 0.03
+      uniform_bounds:
+        - 0.03
+        - 1.0
+    stationary_standard_deviation:
+      definition: "sigma / sqrt(2 * mean_reversion)"
+      uniform_bounds:
+        - 0.0025
+        - 0.025
+  reconstruction:
+    volatility: "stationary_standard_deviation * sqrt(2 * mean_reversion)"

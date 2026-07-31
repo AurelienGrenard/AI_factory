@@ -1,14 +1,15 @@
-title: "European Calls parameter dataset european_calls_01"
-database_id: "european_calls_01"
-product_family: "European Calls"
-catalog: "catalog/product/european_calls/european_calls_01"
-url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
+title: "Fixed-Strike Lookback Calls parameter dataset lookback_options_01"
+database_id: "lookback_options_01"
+product_family: "Fixed-Strike Lookback Calls"
+catalog: "catalog/product/equity/lookback_options/lookback_options_01"
+url: "https://datasets.ai-factory.example/v1/product/lookback_options/lookback_options_01.json"
 row_count: 1000
 parameters:
   strike: "Strike in normalized spot units."
   maturity: "Maturity in years."
 payoff:
-  expression: "max(S_T - K, 0)"
+  expression: "max(maximum(S_[0,T]) - K, 0)"
+  monitoring: "Simulation-grid endpoints including 0 and T."
   scaling_rule: "V(s, K) = s * V(1, K / s)"
 construction:
   method: "maturity-dependent exponential grid"
@@ -23,4 +24,4 @@ construction:
       count_per_maturity: 20
       spacing: "linear in log-strike"
       conditional_bounds: "[exp(-aT), exp(aT)]"
-      a: 0.2
+      a: 0.25

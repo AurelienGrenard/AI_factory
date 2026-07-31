@@ -57,8 +57,15 @@ __device__ __forceinline__ HestonQeParameters prepare_model(
     };
 }
 
+// Construct the time-zero state stored in the prepared QE parameters.
+__device__ __forceinline__ HestonState initial_state(
+    const HestonQeParameters& model
+) {
+    return {model.initial_log_spot, model.initial_variance};
+}
+
 // Apply one variance and log-spot update with the QE-M martingale correction.
-__device__ __forceinline__ void one_step_qe_martingale_transition(
+__device__ __forceinline__ void one_step_transition(
     const HestonQeParameters& model,
     float variance_normal,
     float variance_uniform,
@@ -145,14 +152,14 @@ __device__ __forceinline__ void one_step_qe_martingale_transition(
     state.variance = next_variance;
 }
 
-// Generate all random variates for one path and return its terminal spot.
-__device__ __forceinline__ float simulate_terminal_spot(
+// Generate all random variates for one path and return its terminal state.
+__device__ __forceinline__ HestonState simulate_terminal_state(
     const HestonQeParameters& model,
     philox::PhiloxKey key,
     std::size_t path,
     std::size_t num_steps
 ) {
-    HestonState state{model.initial_log_spot, model.initial_variance};
+    HestonState state = initial_state(model);
     const std::uint64_t uniform_count =
         kUniformsPerStep * static_cast<std::uint64_t>(num_steps);
     const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
@@ -160,14 +167,16 @@ __device__ __forceinline__ float simulate_terminal_spot(
         static_cast<std::uint64_t>(path) * groups_per_path;
     philox::UniformSequence uniforms(key, first_group);
 
-    for (std::size_t step = 0; step < num_steps; ++step) {
+    for (std::size_t step_index = 0U;
+         step_index < num_steps;
+         ++step_index) {
         const float angle_uniform = uniforms.next();
         const float radius_uniform = uniforms.next();
         const philox::NormalPair normals =
             philox::box_muller(angle_uniform, radius_uniform);
         const float variance_uniform = uniforms.next();
 
-        one_step_qe_martingale_transition(
+        one_step_transition(
             model,
             normals.first,
             variance_uniform,
@@ -175,11 +184,94 @@ __device__ __forceinline__ float simulate_terminal_spot(
             state
         );
     }
-    return expf(state.log_spot);
+    return state;
 }
 
-// Write pre-maturity states in a date-major grid and return terminal spot.
-__device__ __forceinline__ float simulate_spot_variance_on_regular_grid(
+// Accumulate spots from time zero to maturity and return their arithmetic mean.
+__device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+) {
+    HestonState state = initial_state(model);
+    const std::uint64_t uniform_count =
+        kUniformsPerStep * static_cast<std::uint64_t>(num_steps);
+    const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
+    const std::uint64_t first_group =
+        static_cast<std::uint64_t>(path) * groups_per_path;
+    philox::UniformSequence uniforms(key, first_group);
+    double spot_sum = static_cast<double>(expf(state.log_spot));
+
+    for (std::size_t step_index = 0U;
+         step_index < num_steps;
+         ++step_index) {
+        const float angle_uniform = uniforms.next();
+        const float radius_uniform = uniforms.next();
+        const philox::NormalPair normals =
+            philox::box_muller(angle_uniform, radius_uniform);
+        const float variance_uniform = uniforms.next();
+
+        one_step_transition(
+            model,
+            normals.first,
+            variance_uniform,
+            normals.second,
+            state
+        );
+        spot_sum += static_cast<double>(expf(state.log_spot));
+    }
+
+    return {
+        state,
+        static_cast<float>(
+            spot_sum / (static_cast<double>(num_steps) + 1.0)
+        ),
+    };
+}
+
+// Track the maximum spot at time zero and after every simulated transition.
+__device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+) {
+    HestonState state = initial_state(model);
+    const std::uint64_t uniform_count =
+        kUniformsPerStep * static_cast<std::uint64_t>(num_steps);
+    const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
+    const std::uint64_t first_group =
+        static_cast<std::uint64_t>(path) * groups_per_path;
+    philox::UniformSequence uniforms(key, first_group);
+    const float initial_spot = expf(state.log_spot);
+    float maximum_spot = initial_spot;
+
+    for (std::size_t step_index = 0U;
+         step_index < num_steps;
+         ++step_index) {
+        const float angle_uniform = uniforms.next();
+        const float radius_uniform = uniforms.next();
+        const philox::NormalPair normals =
+            philox::box_muller(angle_uniform, radius_uniform);
+        const float variance_uniform = uniforms.next();
+
+        one_step_transition(
+            model,
+            normals.first,
+            variance_uniform,
+            normals.second,
+            state
+        );
+        const float spot = expf(state.log_spot);
+        maximum_spot = fmaxf(maximum_spot, spot);
+    }
+
+    return {state, maximum_spot};
+}
+
+// Write pre-maturity states in a date-major grid and return terminal state.
+__device__ __forceinline__ HestonState simulate_on_regular_grid(
     const HestonQeParameters& initial_stub_model,
     const HestonQeParameters& regular_model,
     philox::PhiloxKey key,
@@ -191,30 +283,28 @@ __device__ __forceinline__ float simulate_spot_variance_on_regular_grid(
     float* __restrict__ observed_spots,
     float* __restrict__ observed_variances
 ) {
-    HestonState state{
-        initial_stub_model.initial_log_spot,
-        initial_stub_model.initial_variance
-    };
+    HestonState state = initial_state(initial_stub_model);
     const std::uint64_t total_steps =
         static_cast<std::uint64_t>(initial_stub_steps)
         + static_cast<std::uint64_t>(exercise_count - 1U)
-              * static_cast<std::uint64_t>(steps_per_exercise);
-    const std::uint64_t uniform_count =
-        kUniformsPerStep * total_steps;
+            * static_cast<std::uint64_t>(steps_per_exercise);
+    const std::uint64_t uniform_count = kUniformsPerStep * total_steps;
     const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
     const std::uint64_t first_group =
         static_cast<std::uint64_t>(path) * groups_per_path;
     philox::UniformSequence uniforms(key, first_group);
 
     // Reach the first exercise date through its possibly shorter stub.
-    for (std::uint32_t step = 0U; step < initial_stub_steps; ++step) {
+    for (std::uint32_t step_index = 0U;
+         step_index < initial_stub_steps;
+         ++step_index) {
         const float angle_uniform = uniforms.next();
         const float radius_uniform = uniforms.next();
         const philox::NormalPair normals =
             philox::box_muller(angle_uniform, radius_uniform);
         const float variance_uniform = uniforms.next();
 
-        one_step_qe_martingale_transition(
+        one_step_transition(
             initial_stub_model,
             normals.first,
             variance_uniform,
@@ -231,16 +321,16 @@ __device__ __forceinline__ float simulate_spot_variance_on_regular_grid(
     for (std::uint32_t exercise = 1U;
          exercise < exercise_count;
          ++exercise) {
-        for (std::uint32_t step = 0U;
-             step < steps_per_exercise;
-             ++step) {
+        for (std::uint32_t step_index = 0U;
+             step_index < steps_per_exercise;
+             ++step_index) {
             const float angle_uniform = uniforms.next();
             const float radius_uniform = uniforms.next();
             const philox::NormalPair normals =
                 philox::box_muller(angle_uniform, radius_uniform);
             const float variance_uniform = uniforms.next();
 
-            one_step_qe_martingale_transition(
+            one_step_transition(
                 regular_model,
                 normals.first,
                 variance_uniform,
@@ -256,7 +346,7 @@ __device__ __forceinline__ float simulate_spot_variance_on_regular_grid(
             observed_variances[output_index] = state.variance;
         }
     }
-    return expf(state.log_spot);
+    return state;
 }
 
 }  // namespace ai_factory::workbench::heston

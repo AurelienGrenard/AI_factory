@@ -9,9 +9,9 @@ int main() {
     using namespace ai_factory::workbench::datasets;
 
     const std::filesystem::path dataset_path =
-        "datasets/product/american_puts/american_puts_01.json";
+        "datasets/product/equity/american_puts/american_puts_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/american_puts/american_puts_01/dataset.yaml";
+        "catalog/product/equity/american_puts/american_puts_01/dataset.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/american_puts/"
         "american_puts_01.json";

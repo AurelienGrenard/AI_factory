@@ -39,6 +39,8 @@ option(
 # Host-only generation and serialization helpers shared by all generators.
 add_library(ai_factory_dataset_tools STATIC
     tools/datasets/dataset.cpp
+    tools/datasets/nelson_siegel_generation.cpp
+    tools/datasets/ornstein_uhlenbeck_generation.cpp
 )
 target_include_directories(ai_factory_dataset_tools PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -53,11 +55,18 @@ add_library(cuda_workbench STATIC
     src/curve/nelson_siegel/dataset.cpp
     src/model/heston/dataset.cpp
     src/model/heston/american_put.cu
+    src/model/heston/asian_call.cu
     src/model/heston/european_call.cu
+    src/model/heston/lookback_option.cu
     src/model/hull_white/dataset.cpp
-    src/model/hull_white/dynamics.cu
+    src/model/hull_white/nelson_siegel/caplet.cu
+    src/model/ornstein_uhlenbeck/caplet.cu
+    src/model/ornstein_uhlenbeck/dataset.cpp
     src/product/american_put/dataset.cpp
+    src/product/asian_call/dataset.cpp
+    src/product/caplet/dataset.cpp
     src/product/european_call/dataset.cpp
+    src/product/lookback_option/dataset.cpp
 )
 target_include_directories(cuda_workbench PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -78,87 +87,86 @@ if(CUDA_WORKBENCH_FAST_MATH)
     )
 endif()
 
-add_executable(
+# Register one host-only parameter generator with shared build settings.
+function(add_parameter_generator target source)
+    add_executable(${target} ${source})
+    target_link_libraries(${target} PRIVATE ai_factory_dataset_tools)
+    target_compile_features(${target} PRIVATE cxx_std_17)
+endfunction()
+
+# Register one CUDA price generator with shared build settings.
+function(add_price_generator target source)
+    add_executable(${target} ${source})
+    target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(
+        ${target} PRIVATE cuda_workbench ai_factory_dataset_tools
+    )
+    target_compile_features(${target} PRIVATE cxx_std_17)
+endfunction()
+
+add_price_generator(
     generate_heston_european_calls_01
     catalog/price/heston/european_calls/heston_01__european_calls_01__01/generator.cpp
 )
-target_include_directories(generate_heston_european_calls_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
-target_link_libraries(
-    generate_heston_european_calls_01
-    PRIVATE cuda_workbench ai_factory_dataset_tools
-)
-target_compile_features(generate_heston_european_calls_01 PRIVATE cxx_std_17)
-
-add_executable(
+add_price_generator(
     generate_heston_european_calls_02
     catalog/price/heston/european_calls/heston_01__european_calls_01__02/generator.cpp
 )
-target_include_directories(generate_heston_european_calls_02 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+add_price_generator(
+    generate_heston_asian_calls_01
+    catalog/price/heston/asian_calls/heston_01__asian_calls_01__01/generator.cpp
 )
-target_link_libraries(
-    generate_heston_european_calls_02
-    PRIVATE cuda_workbench ai_factory_dataset_tools
+add_price_generator(
+    generate_heston_lookback_options_01
+    catalog/price/heston/lookback_options/heston_01__lookback_options_01__01/generator.cpp
 )
-target_compile_features(
-    generate_heston_european_calls_02 PRIVATE cxx_std_17
-)
-
-# These host executables create complete datasets and catalog YAML.
-add_executable(
-    generate_heston_01
-    catalog/model/heston/heston_01/generator.cpp
-)
-target_link_libraries(generate_heston_01 PRIVATE ai_factory_dataset_tools)
-
-add_executable(
-    generate_nelson_siegel_01
-    catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
-    src/curve/nelson_siegel/generation.cpp
-)
-target_include_directories(generate_nelson_siegel_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-target_link_libraries(
-    generate_nelson_siegel_01 PRIVATE ai_factory_dataset_tools
-)
-
-add_executable(
-    generate_hull_white_01
-    catalog/model/hull_white/hull_white_01/generator.cpp
-)
-target_link_libraries(generate_hull_white_01 PRIVATE ai_factory_dataset_tools)
-
-add_executable(
-    generate_european_calls_01
-    catalog/product/european_calls/european_calls_01/generator.cpp
-)
-target_link_libraries(
-    generate_european_calls_01 PRIVATE ai_factory_dataset_tools
-)
-
-add_executable(
-    generate_american_puts_01
-    catalog/product/american_puts/american_puts_01/generator.cpp
-)
-target_link_libraries(
-    generate_american_puts_01 PRIVATE ai_factory_dataset_tools
-)
-
-add_executable(
+add_price_generator(
     generate_heston_american_puts_01
     catalog/price/heston/american_puts/heston_01__american_puts_01__01/generator.cpp
 )
-target_include_directories(generate_heston_american_puts_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+add_price_generator(
+    generate_hull_white_nelson_siegel_caplets_01
+    catalog/price/hull_white/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
 )
-target_link_libraries(
-    generate_heston_american_puts_01
-    PRIVATE cuda_workbench ai_factory_dataset_tools
+add_price_generator(
+    generate_ornstein_uhlenbeck_caplets_01
+    catalog/price/ornstein_uhlenbeck/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
 )
-target_compile_features(generate_heston_american_puts_01 PRIVATE cxx_std_17)
+
+add_parameter_generator(
+    generate_heston_01 catalog/model/heston/heston_01/generator.cpp
+)
+add_parameter_generator(
+    generate_hull_white_01 catalog/model/hull_white/hull_white_01/generator.cpp
+)
+add_parameter_generator(
+    generate_ornstein_uhlenbeck_01
+    catalog/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01/generator.cpp
+)
+add_parameter_generator(
+    generate_nelson_siegel_01
+    catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
+)
+add_parameter_generator(
+    generate_european_calls_01
+    catalog/product/equity/european_calls/european_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_asian_calls_01
+    catalog/product/equity/asian_calls/asian_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_lookback_options_01
+    catalog/product/equity/lookback_options/lookback_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_american_puts_01
+    catalog/product/equity/american_puts/american_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_caplets_01
+    catalog/product/fixed_income/caplets/caplets_01/generator.cpp
+)
 
 if(BUILD_TESTING)
     add_executable(
@@ -182,55 +190,55 @@ if(BUILD_TESTING)
         LABELS "workbench;catalog"
     )
 
-    add_executable(
-        test_hull_white_cuda
-        tests/hull_white_cuda_test.cu
-    )
-    target_include_directories(test_hull_white_cuda PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    target_link_libraries(
-        test_hull_white_cuda PRIVATE cuda_workbench
-    )
-    target_compile_features(test_hull_white_cuda PRIVATE cxx_std_17)
-    set_target_properties(test_hull_white_cuda PROPERTIES
-        CUDA_STANDARD 17
-        CUDA_STANDARD_REQUIRED YES
-    )
-    add_test(
-        NAME hull_white_cuda
-        COMMAND test_hull_white_cuda
-    )
-    set_tests_properties(hull_white_cuda PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        LABELS "workbench;cuda;hull_white"
-        RESOURCE_LOCK cuda_gpu
-        SKIP_RETURN_CODE 77
-        TIMEOUT 30
-    )
+    # Register one GPU integration test with shared execution rules.
+    function(add_cuda_workbench_test name source label timeout)
+        set(target test_${name})
+        add_executable(${target} ${source})
+        target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(
+            ${target} PRIVATE cuda_workbench ai_factory_dataset_tools
+        )
+        target_compile_features(${target} PRIVATE cxx_std_17)
+        set_target_properties(${target} PROPERTIES
+            CUDA_STANDARD 17
+            CUDA_STANDARD_REQUIRED YES
+        )
+        add_test(NAME ${name} COMMAND ${target})
+        set_tests_properties(${name} PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;cuda;${label}"
+            RESOURCE_LOCK cuda_gpu
+            SKIP_RETURN_CODE 77
+            TIMEOUT ${timeout}
+        )
+    endfunction()
 
-    add_executable(
-        test_heston_american_put_cuda
+    add_cuda_workbench_test(
+        hull_white_cuda tests/hull_white_cuda_test.cu hull_white 30
+    )
+    add_cuda_workbench_test(
+        hull_white_caplet_cuda
+        tests/hull_white_caplet_cuda_test.cpp
+        caplet
+        30
+    )
+    add_cuda_workbench_test(
+        ornstein_uhlenbeck_caplet_cuda
+        tests/ornstein_uhlenbeck_caplet_cuda_test.cu
+        caplet
+        30
+    )
+    add_cuda_workbench_test(
+        heston_path_products_cuda
+        tests/heston_path_products_cuda_test.cpp
+        heston_products
+        60
+    )
+    add_cuda_workbench_test(
+        heston_american_put_cuda
         tests/heston_american_put_cuda_test.cpp
-    )
-    target_include_directories(test_heston_american_put_cuda PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    target_link_libraries(
-        test_heston_american_put_cuda
-        PRIVATE cuda_workbench ai_factory_dataset_tools
-    )
-    target_compile_features(test_heston_american_put_cuda PRIVATE cxx_std_17)
-    add_test(
-        NAME heston_american_put_cuda
-        COMMAND test_heston_american_put_cuda
-    )
-    set_tests_properties(heston_american_put_cuda PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        LABELS "workbench;cuda;american_put"
-        RESOURCE_LOCK cuda_gpu
-        SKIP_RETURN_CODE 77
-        TIMEOUT 120
+        american_put
+        120
     )
 
     # Build explicitly when comparing American-put launch configurations.

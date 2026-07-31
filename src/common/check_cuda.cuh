@@ -160,8 +160,8 @@ inline void validate_monte_carlo_parameters(
     }
 }
 
-// Validate a block size used by warp-based reductions such as reduce_block().
-inline void validate_warp_aligned_block_size(unsigned int threads_per_block) {
+// Validate a positive block size against the current CUDA device limit.
+inline void validate_cuda_block_size(unsigned int threads_per_block) {
     int device = 0;
     check_cuda(cudaGetDevice(&device), "cudaGetDevice");
     cudaDeviceProp properties{};
@@ -171,17 +171,25 @@ inline void validate_warp_aligned_block_size(unsigned int threads_per_block) {
     );
     if (threads_per_block == 0U
         || threads_per_block
-            > static_cast<unsigned int>(properties.maxThreadsPerBlock)
-        || threads_per_block % 32U != 0U) {
+            > static_cast<unsigned int>(properties.maxThreadsPerBlock)) {
         throw std::invalid_argument(
-            "threads_per_block must be a positive multiple of 32 within the "
-            "current device limit."
+            "threads_per_block must be positive and within the device limit."
         );
     }
 }
 
-// Validate a kernel mapping exactly one CUDA block to each result row.
-inline void validate_one_block_per_result_grid(std::size_t result_count) {
+// Require whole warps for kernels using warp-based block reductions.
+inline void validate_reduction_block_size(unsigned int threads_per_block) {
+    validate_cuda_block_size(threads_per_block);
+    if (threads_per_block % 32U != 0U) {
+        throw std::invalid_argument(
+            "A reduction block must contain a whole number of warps."
+        );
+    }
+}
+
+// Validate one requested gridDim.x against the current device limit.
+inline void validate_grid_x_size(std::size_t block_count) {
     int device = 0;
     check_cuda(cudaGetDevice(&device), "cudaGetDevice");
     cudaDeviceProp properties{};
@@ -189,10 +197,10 @@ inline void validate_one_block_per_result_grid(std::size_t result_count) {
         cudaGetDeviceProperties(&properties, device),
         "cudaGetDeviceProperties"
     );
-    if (result_count
+    if (block_count
         > static_cast<std::size_t>(properties.maxGridSize[0])) {
         throw std::overflow_error(
-            "Result count exceeds the current device gridDim.x limit."
+            "Block count exceeds the current device gridDim.x limit."
         );
     }
 }

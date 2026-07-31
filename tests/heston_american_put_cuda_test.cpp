@@ -27,7 +27,7 @@ void require(bool condition, const char* message) {
 // Own the four fixed device arrays used by this integration test.
 struct DeviceArrays {
     ai_factory::workbench::heston::HestonModelParameters* models = nullptr;
-    ai_factory::workbench::product::AmericanPutInput* products = nullptr;
+    ai_factory::workbench::product::AmericanPutParameters* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
 
@@ -40,15 +40,15 @@ struct DeviceArrays {
 };
 
 // Price the same rows once and copy both FP32 outputs to the host.
-ai_factory::workbench::heston::AmericanPutExecution price_once(
+ai_factory::workbench::heston::AmericanPutLaunchResult price_once(
     const DeviceArrays& device,
-    const std::vector<ai_factory::workbench::product::AmericanPutInput>& products,
+    const std::vector<ai_factory::workbench::product::AmericanPutParameters>& products,
     std::vector<float>& prices,
     std::vector<float>& standard_errors
 ) {
     using namespace ai_factory::workbench;
 
-    const heston::AmericanPutExecution execution =
+    const heston::AmericanPutLaunchResult execution =
         heston::launch_heston_american_put_cuda(
             device.models,
             kRowCount,
@@ -107,7 +107,7 @@ int main() {
         {1.0f, 0.01f, 0.02f, 0.03f, 1.0f, 0.06f, 0.25f, -0.50f},
         {1.0f, 0.04f, 0.01f, 0.08f, 2.5f, 0.07f, 0.50f, -0.40f},
     };
-    const std::vector<product::AmericanPutInput> products = {
+    const std::vector<product::AmericanPutParameters> products = {
         {0.90f, 0.50f, 1.0f / 12.0f},
         {1.00f, 1.00f, 1.0f / 12.0f},
         {1.10f, 1.50f, 1.0f / 24.0f},
@@ -154,10 +154,10 @@ int main() {
     std::vector<float> first_errors(kRowCount);
     std::vector<float> second_prices(kRowCount);
     std::vector<float> second_errors(kRowCount);
-    const heston::AmericanPutExecution first = price_once(
+    const heston::AmericanPutLaunchResult first = price_once(
         device, products, first_prices, first_errors
     );
-    const heston::AmericanPutExecution second = price_once(
+    const heston::AmericanPutLaunchResult second = price_once(
         device, products, second_prices, second_errors
     );
 
