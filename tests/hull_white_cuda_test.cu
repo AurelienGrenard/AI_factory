@@ -3,7 +3,6 @@
 
 // Include the implementation exactly as future product kernels will.
 #include "model/hull_white/nelson_siegel/analytics.cu"
-#include "model/ornstein_uhlenbeck/dynamics.cu"
 
 #include <cuda_runtime.h>
 
@@ -14,11 +13,11 @@
 namespace {
 
 namespace fitted =
-    ai_factory::workbench::hull_white::nelson_siegel;
+    ai_factory::workbench::model::hull_white::nelson_siegel;
 namespace ou =
     ai_factory::workbench::model::ornstein_uhlenbeck;
 
-constexpr std::size_t kOutputCount = 23U;
+constexpr std::size_t kOutputCount = 30U;
 
 // Evaluate curve limits, one exact transition, and one model zero-coupon.
 __global__ void hull_white_test_kernel(float* outputs) {
@@ -31,17 +30,25 @@ __global__ void hull_white_test_kernel(float* outputs) {
         0.02f,
         2.0f,
     };
-    const ai_factory::workbench::hull_white::HullWhiteModelParameters
+    const ai_factory::workbench::model::hull_white::HullWhiteModelParameters
         model = {0.15f, 0.01f};
     constexpr float dt = 1.0f / 12.0f;
     constexpr float maturity = 5.0f;
 
     using namespace ai_factory::workbench;
-    const fitted::HullWhiteParameters prepared =
-        fitted::prepare_model(model, initial_curve);
-    const ou::OrnsteinUhlenbeckExactParameters step =
-        ou::prepare_model(prepared.process, dt, 1U);
-    ou::OrnsteinUhlenbeckState state{0.0f, 0.0f};
+    const fitted::HullWhiteFittedParameters prepared =
+        fitted::compose_model(model, initial_curve);
+    const ou::OrnsteinUhlenbeckExactTransition step =
+        ou::prepare_model(prepared.process, dt);
+    const ou::joint::OrnsteinUhlenbeckJointExactTransition joint_step =
+        ou::joint::prepare_model(prepared.process, dt);
+    const ou::OrnsteinUhlenbeckExactTransition terminal_step =
+        ou::prepare_model(prepared.process, 12.0f * dt);
+    const ou::joint::OrnsteinUhlenbeckJointExactTransition
+        joint_terminal_step =
+            ou::joint::prepare_model(prepared.process, 12.0f * dt);
+    float state = 0.0f;
+    ou::joint::OrnsteinUhlenbeckJointState joint_state{0.0f, 0.0f};
 
     outputs[0] = curve::nelson_siegel::zero_rate(initial_curve, 0.0f);
     outputs[1] = initial_curve.beta0 + initial_curve.beta1;
@@ -51,46 +58,43 @@ __global__ void hull_white_test_kernel(float* outputs) {
     outputs[3] =
         curve::nelson_siegel::discount_factor(initial_curve, maturity);
     outputs[4] = step.decay;
-    outputs[5] = step.factor_standard_deviation;
+    outputs[5] = step.state_standard_deviation;
 
-    ou::one_step_transition(
-        step, 0.0f, 0.0f, state
-    );
-    outputs[6] = state.factor;
-    outputs[7] = fitted::log_discount(prepared, state, dt);
+    ou::one_step_transition(step, 0.0f, state);
+    ou::joint::one_step_transition(joint_step, 0.0f, 0.0f, joint_state);
+    outputs[6] = state;
+    outputs[7] = fitted::log_discount_factor(prepared, joint_state, dt);
     outputs[8] = fitted::zero_coupon_bond(
         prepared, state, dt, maturity
     );
     outputs[9] = fitted::short_rate(prepared, state, dt);
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
-    const ou::OrnsteinUhlenbeckState terminal =
-        ou::simulate_terminal_state(
-            step, 0.0f, key, 0U, 12U
+    const ou::joint::OrnsteinUhlenbeckJointState terminal =
+        ou::joint::simulate_terminal_state(
+            joint_terminal_step, 0.0f, 0.25f, -0.75f
         );
-    outputs[10] = terminal.factor;
-    outputs[11] = terminal.integrated_factor;
+    outputs[10] = terminal.state;
+    outputs[11] = terminal.state_integral;
 
-    float observed_factors[2] = {};
-    float observed_integrated_factors[2] = {};
-    const ou::OrnsteinUhlenbeckState grid_terminal =
-        ou::simulate_on_regular_grid(
-            step,
-            step,
+    float observed_states[2] = {};
+    float observed_integrated_states[2] = {};
+    const ou::joint::OrnsteinUhlenbeckJointState grid_terminal =
+        ou::joint::simulate_on_regular_grid(
+            joint_step,
+            joint_step,
             0.0f,
             key,
             0U,
-            1U,
-            1U,
             3U,
             1U,
-            observed_factors,
-            observed_integrated_factors
+            observed_states,
+            observed_integrated_states
         );
-    outputs[12] = observed_factors[0];
-    outputs[13] = observed_integrated_factors[0];
-    outputs[14] = grid_terminal.factor;
-    outputs[15] = grid_terminal.integrated_factor;
+    outputs[12] = observed_states[0];
+    outputs[13] = observed_integrated_states[0];
+    outputs[14] = grid_terminal.state;
+    outputs[15] = grid_terminal.state_integral;
 
     constexpr float payment_times[] = {2.0f, 3.0f, 4.0f};
     constexpr float accrual_periods[] = {1.0f, 1.0f, 1.0f};
@@ -127,10 +131,9 @@ __global__ void hull_white_test_kernel(float* outputs) {
     ) / swap_annuity;
 
     constexpr float bond_option_strike = 0.98f;
-    const ou::OrnsteinUhlenbeckState option_state{0.0f, 0.0f};
     outputs[20] = fitted::zero_coupon_bond_call_price(
         prepared,
-        option_state,
+        0.0f,
         0.0f,
         1.0f,
         1.5f,
@@ -138,7 +141,7 @@ __global__ void hull_white_test_kernel(float* outputs) {
     );
     outputs[21] = fitted::zero_coupon_bond_put_price(
         prepared,
-        option_state,
+        0.0f,
         0.0f,
         1.0f,
         1.5f,
@@ -153,6 +156,35 @@ __global__ void hull_white_test_kernel(float* outputs) {
                     initial_curve, 1.0f
                 )
         );
+
+    const float simple_terminal =
+        ou::simulate_terminal_state(terminal_step, 0.0f, 0.5f);
+    float simple_observed_states[2] = {};
+    const float simple_grid_terminal =
+        ou::simulate_on_regular_grid(
+            step,
+            step,
+            0.0f,
+            key,
+            1U,
+            3U,
+            1U,
+            simple_observed_states
+        );
+    outputs[23] = simple_terminal;
+    outputs[24] = simple_observed_states[0];
+    outputs[25] = simple_observed_states[1];
+    outputs[26] = simple_grid_terminal;
+
+    const ou::OrnsteinUhlenbeckProcessParameters deterministic = {
+        0.15f,
+        0.0f,
+    };
+    const ou::joint::OrnsteinUhlenbeckJointExactTransition deterministic_step =
+        ou::joint::prepare_model(deterministic, dt);
+    outputs[27] = deterministic_step.integral_state_normal_loading;
+    outputs[28] = deterministic_step.integral_independent_standard_deviation;
+    outputs[29] = ou::integral_state_loading(0.15f, 1.0f / 252.0f);
 }
 
 // Stop immediately with a readable invariant name.
@@ -243,5 +275,18 @@ int main() {
             && outputs[21] > 0.0f
             && std::fabs(outputs[22]) < 2.0e-6f,
         "Hull-White zero-coupon option parity is incorrect"
+    );
+    require(
+        outputs[27] == 0.0f && outputs[28] == 0.0f,
+        "Zero-volatility OU transition contains random loadings"
+    );
+    require(
+        std::fabs(
+            outputs[29]
+            - static_cast<float>(
+                -std::expm1(-0.15 / 252.0) / 0.15
+            )
+        ) < 1.0e-7f,
+        "Small-time OU integral loading is inaccurate"
     );
 }

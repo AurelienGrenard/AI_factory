@@ -7,11 +7,11 @@ row_count: 1000
 parameters:
   mean_reversion: "Positive mean-reversion speed a."
   volatility: "Instantaneous short-rate volatility sigma."
-  initial_factor: "Initial short rate x(0)."
+  initial_state: "Initial short rate x(0)."
 dynamics:
-  factor: "dx_t = -a x_t dt + sigma dW_t"
+  state: "dx_t = -a x_t dt + sigma dW_t"
   short_rate: "r_t = x_t"
-  transition: "x and its integral are simulated jointly and exactly"
+  transition: "exact Gaussian state and optional joint state-integral transitions"
 construction:
   method: "stationary-dispersion reconstruction"
   sampled_factors:
@@ -19,7 +19,7 @@ construction:
       uniform_bounds:
         - 0.03
         - 1.0
-    initial_factor:
+    initial_state:
       uniform_bounds:
         - 0.0
         - 0.08

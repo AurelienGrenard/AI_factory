@@ -1,0 +1,187 @@
+// Closed-form Hull-White bond calls fitted to Nelson-Siegel curves.
+#include "model/hull_white/nelson_siegel/zero_coupon_bond_call.cuh"
+
+#include "common/check_cuda.cuh"
+
+// Include analytics so NVCC can inline the complete pricing formula.
+#include "model/hull_white/nelson_siegel/analytics.cu"
+
+#include <cuda_runtime.h>
+
+#include <cstddef>
+#include <stdexcept>
+
+namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+namespace {
+
+// Model, curve, and contract constants consumed by one pricing thread.
+struct PreparedRow {
+    HullWhiteFittedParameters model;
+    float notional;
+    float strike;
+    float option_expiry;
+    float bond_maturity;
+};
+
+// Prepare one call on a zero-coupon bond.
+__device__ __forceinline__ PreparedRow prepare_row(
+    const HullWhiteModelParameters& model,
+    const curve::nelson_siegel::NelsonSiegelParameters& initial_curve,
+    const product::ZeroCouponBondCallParameters& product
+) {
+    return {
+        compose_model(model, initial_curve),
+        product.notional,
+        product.strike,
+        product.option_expiry,
+        product.bond_maturity,
+    };
+}
+
+// Apply the zero-coupon bond call formula at time zero.
+__device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
+    return row.notional * zero_coupon_bond_call_price(
+        row.model,
+        0.0f,
+        0.0f,
+        row.option_expiry,
+        row.bond_maturity,
+        row.strike
+    );
+}
+
+// Price one independent row per CUDA thread with coalesced array access.
+__global__ void hull_white_nelson_siegel_zero_coupon_bond_call_kernel(
+    const HullWhiteModelParameters* __restrict__ models,
+    const curve::nelson_siegel::NelsonSiegelParameters* __restrict__ curves,
+    const product::ZeroCouponBondCallParameters* __restrict__ products,
+    std::size_t curve_count,
+    std::size_t product_count,
+    bool cartesian_product,
+    std::size_t result_offset,
+    std::size_t launch_result_count,
+    float* __restrict__ prices
+) {
+    const std::size_t launch_index =
+        static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (launch_index >= launch_result_count) return;
+
+    const std::size_t result_index = result_offset + launch_index;
+    std::size_t model_index = result_index;
+    std::size_t curve_index = result_index;
+    std::size_t product_index = result_index;
+    if (cartesian_product) {
+        const std::size_t curve_product_count = curve_count * product_count;
+        model_index = result_index / curve_product_count;
+        const std::size_t remainder = result_index % curve_product_count;
+        curve_index = remainder / product_count;
+        product_index = remainder % product_count;
+    }
+
+    const PreparedRow row = prepare_row(
+        models[model_index], curves[curve_index], products[product_index]
+    );
+    prices[result_index] = evaluate_price(row);
+}
+
+// Compose the common checks required by this analytical launcher.
+void validate_hull_white_nelson_siegel_zero_coupon_bond_call_launch(
+    const HullWhiteModelParameters* device_models,
+    std::size_t model_count,
+    const curve::nelson_siegel::NelsonSiegelParameters* device_curves,
+    std::size_t curve_count,
+    const product::ZeroCouponBondCallParameters* device_products,
+    std::size_t product_count,
+    bool cartesian_product,
+    std::size_t result_count,
+    std::size_t result_offset,
+    std::size_t launch_result_count,
+    unsigned int threads_per_block,
+    std::size_t block_count,
+    const float* device_prices
+) {
+    validate_device_pointer(device_models, "device_models");
+    validate_device_pointer(device_curves, "device_curves");
+    validate_device_pointer(device_products, "device_products");
+    validate_device_pointer(device_prices, "device_prices");
+    validate_model_curve_product_construction(
+        model_count,
+        curve_count,
+        product_count,
+        cartesian_product,
+        result_count
+    );
+    if (result_offset >= result_count
+        || launch_result_count == 0U
+        || launch_result_count > result_count - result_offset) {
+        throw std::invalid_argument(
+            "The Hull-White bond call launch batch exceeds the result array."
+        );
+    }
+    validate_cuda_block_size(threads_per_block);
+    validate_block_count(launch_result_count, block_count);
+    validate_grid_x_size(block_count);
+    const std::size_t thread_count = checked_workspace_product(
+        block_count,
+        static_cast<std::size_t>(threads_per_block),
+        "The Hull-White bond call thread count exceeds size_t."
+    );
+    if (thread_count < launch_result_count) {
+        throw std::invalid_argument(
+            "The Hull-White bond call launch requires one thread per price."
+        );
+    }
+}
+
+}  // namespace
+
+// Validate and launch the analytical kernel on caller-owned device arrays.
+void launch_hull_white_nelson_siegel_zero_coupon_bond_call_cuda(
+    const HullWhiteModelParameters* device_models,
+    std::size_t model_count,
+    const curve::nelson_siegel::NelsonSiegelParameters* device_curves,
+    std::size_t curve_count,
+    const product::ZeroCouponBondCallParameters* device_products,
+    std::size_t product_count,
+    bool cartesian_product,
+    std::size_t result_count,
+    std::size_t result_offset,
+    std::size_t launch_result_count,
+    unsigned int threads_per_block,
+    std::size_t block_count,
+    float* device_prices
+) {
+    validate_hull_white_nelson_siegel_zero_coupon_bond_call_launch(
+        device_models,
+        model_count,
+        device_curves,
+        curve_count,
+        device_products,
+        product_count,
+        cartesian_product,
+        result_count,
+        result_offset,
+        launch_result_count,
+        threads_per_block,
+        block_count,
+        device_prices
+    );
+
+    // Launch one analytical zero-coupon bond call per CUDA thread.
+    hull_white_nelson_siegel_zero_coupon_bond_call_kernel<<<
+        static_cast<unsigned int>(block_count), threads_per_block
+    >>>(
+        device_models,
+        device_curves,
+        device_products,
+        curve_count,
+        product_count,
+        cartesian_product,
+        result_offset,
+        launch_result_count,
+        device_prices
+    );
+    check_cuda(cudaGetLastError(), "Hull-White zero-coupon bond call kernel");
+}
+
+}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel

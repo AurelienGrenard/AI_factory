@@ -1,0 +1,37 @@
+title: "Zero-Coupon Bond Calls parameter dataset zero_coupon_bond_calls_01"
+database_id: "zero_coupon_bond_calls_01"
+product_family: "Zero-Coupon Bond Calls"
+catalog: "catalog/product/fixed_income/zero_coupon_bond_calls/zero_coupon_bond_calls_01"
+url: "https://datasets.ai-factory.example/v1/product/zero_coupon_bond_calls/zero_coupon_bond_calls_01.json"
+row_count: 1000
+parameters:
+  notional: "Normalized contract notional."
+  strike: "Strike expressed as a zero-coupon bond price."
+  option_expiry: "Option expiry S in years."
+  bond_maturity: "Underlying bond maturity T > S in years."
+payoff:
+  expression: "N * max(P(S,T) - K, 0)"
+  payment_time: "S"
+  normalization: "N = 1"
+construction:
+  method: "Cartesian grid"
+  rule: "Every option expiry, bond tenor, and strike combination."
+  grid:
+    option_expiry:
+      minimum: "1 / 4"
+      maximum: 5.0
+      count: 20
+      spacing: "linear"
+    bond_tenor:
+      values:
+        - "1 / 2"
+        - "1"
+      count: 2
+    strike:
+      minimum: "0.80"
+      central_value: "0.97"
+      maximum: "1.10"
+      count: 25
+      spacing: "cubic concentration around 0.97"
+    notional:
+      value: 1.0

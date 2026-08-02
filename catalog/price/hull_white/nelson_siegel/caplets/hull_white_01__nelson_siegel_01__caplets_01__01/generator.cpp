@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/hull_white/nelson_siegel/caplet.cuh"
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <cuda_runtime.h>
 
@@ -26,8 +27,6 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
 
 // CUDA configuration for the one-thread-per-price analytical kernel.
 constexpr unsigned int threads_per_block = 256U;
-constexpr std::size_t results_per_kernel_launch = 1'000'000U;
-constexpr std::size_t maximum_block_count = 4'096U;
 
 // Artifact locations and descriptive metadata used after pricing.
 const std::filesystem::path dataset_path =
@@ -48,10 +47,12 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
+    namespace hw = model::hull_white;
+    namespace fitted = hw::nelson_siegel;
 
     // 1. Load model, curve, and product rows into contiguous FP32 vectors.
-    const std::vector<hull_white::HullWhiteModelParameters> models =
-        hull_white::load_models(model_dataset_path);
+    const std::vector<hw::HullWhiteModelParameters> models =
+        hw::load_models(model_dataset_path);
     const std::vector<curve::nelson_siegel::NelsonSiegelParameters> curves =
         curve::nelson_siegel::load_curves(curve_dataset_path);
     const std::vector<product::CapletParameters> products =
@@ -61,24 +62,16 @@ int main() {
     const std::size_t result_count = datasets::price_row_count(
         models.size(), curves.size(), products.size(), construction
     );
-    const std::size_t kernel_launch_count =
-        (result_count - 1U) / results_per_kernel_launch + 1U;
     const auto block_count_for = [](std::size_t row_count) {
-        const std::size_t required_blocks =
-            (row_count - 1U) / threads_per_block + 1U;
-        return std::min(required_blocks, maximum_block_count);
+        return (row_count - 1U) / threads_per_block + 1U;
     };
-    const std::size_t largest_launch_result_count = std::min(
-        result_count, results_per_kernel_launch
-    );
-    const std::size_t launched_block_count =
-        block_count_for(largest_launch_result_count);
+    const std::size_t block_count = block_count_for(result_count);
 
     // Allocate the analytical price output in host memory.
     std::vector<float> prices(result_count);
 
     // Declare the four device arrays and CUDA timing events.
-    hull_white::HullWhiteModelParameters* device_models = nullptr;
+    hw::HullWhiteModelParameters* device_models = nullptr;
     curve::nelson_siegel::NelsonSiegelParameters* device_curves = nullptr;
     product::CapletParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -89,26 +82,21 @@ int main() {
     // 3. Execute the complete GPU pipeline.
     const auto wall_start = std::chrono::system_clock::now();
     try {
-        // Allocate model, curve, product, and price arrays on the GPU.
         check_cuda(
-            cudaMalloc(
-                &device_models,
-                models.size() * sizeof(hull_white::HullWhiteModelParameters)
-            ),
+            cudaMalloc(&device_models, models.size() * sizeof(models.front())),
             "cudaMalloc Hull-White models"
         );
         check_cuda(
             cudaMalloc(
                 &device_curves,
-                curves.size()
-                    * sizeof(curve::nelson_siegel::NelsonSiegelParameters)
+                curves.size() * sizeof(curves.front())
             ),
             "cudaMalloc Nelson-Siegel curves"
         );
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::CapletParameters)
+                products.size() * sizeof(products.front())
             ),
             "cudaMalloc caplets"
         );
@@ -117,12 +105,11 @@ int main() {
             "cudaMalloc caplet prices"
         );
 
-        // Copy all three input datasets from host memory to the GPU.
         check_cuda(
             cudaMemcpy(
                 device_models,
                 models.data(),
-                models.size() * sizeof(hull_white::HullWhiteModelParameters),
+                models.size() * sizeof(models.front()),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy Hull-White models"
@@ -131,8 +118,7 @@ int main() {
             cudaMemcpy(
                 device_curves,
                 curves.data(),
-                curves.size()
-                    * sizeof(curve::nelson_siegel::NelsonSiegelParameters),
+                curves.size() * sizeof(curves.front()),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy Nelson-Siegel curves"
@@ -141,64 +127,53 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::CapletParameters),
+                products.size() * sizeof(products.front()),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy caplets"
         );
 
         // Warm up the specialized analytical kernel.
-        const std::size_t warmup_row_count = std::min<std::size_t>(
+        const std::size_t warmup_count = std::min<std::size_t>(
             64U,
             std::min(models.size(), std::min(curves.size(), products.size()))
         );
-        hull_white::nelson_siegel::
-            launch_hull_white_nelson_siegel_caplet_cuda(
-                device_models,
-                warmup_row_count,
-                device_curves,
-                warmup_row_count,
-                device_products,
-                warmup_row_count,
-                false,
-                warmup_row_count,
-                0U,
-                warmup_row_count,
-                threads_per_block,
-                block_count_for(warmup_row_count),
-                device_prices
-            );
+        fitted::launch_hull_white_nelson_siegel_caplet_cuda(
+            device_models,
+            warmup_count,
+            device_curves,
+            warmup_count,
+            device_products,
+            warmup_count,
+            false,
+            warmup_count,
+            0U,
+            warmup_count,
+            threads_per_block,
+            block_count_for(warmup_count),
+            device_prices
+        );
         check_cuda(cudaDeviceSynchronize(), "Hull-White caplet warmup");
 
-        // Launch and time the complete production pricing kernel.
         check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
 
-        for (std::size_t result_offset = 0U;
-             result_offset < result_count;
-             result_offset += results_per_kernel_launch) {
-            const std::size_t launch_result_count = std::min(
-                results_per_kernel_launch, result_count - result_offset
-            );
-            hull_white::nelson_siegel::
-                launch_hull_white_nelson_siegel_caplet_cuda(
-                    device_models,
-                    models.size(),
-                    device_curves,
-                    curves.size(),
-                    device_products,
-                    products.size(),
-                    construction
-                        == datasets::PriceConstruction::CartesianProduct,
-                    result_count,
-                    result_offset,
-                    launch_result_count,
-                    threads_per_block,
-                    block_count_for(launch_result_count),
-                    device_prices
-                );
-        }
+        fitted::launch_hull_white_nelson_siegel_caplet_cuda(
+            device_models,
+            models.size(),
+            device_curves,
+            curves.size(),
+            device_products,
+            products.size(),
+            construction == datasets::PriceConstruction::CartesianProduct,
+            result_count,
+            0U,
+            result_count,
+            threads_per_block,
+            block_count,
+            device_prices
+        );
 
         check_cuda(cudaEventRecord(stop_event), "cudaEventRecord stop");
         check_cuda(cudaEventSynchronize(stop_event), "cudaEventSynchronize stop");
@@ -209,8 +184,7 @@ int main() {
             ),
             "cudaEventElapsedTime"
         );
-        kernel_seconds =
-            static_cast<double>(kernel_milliseconds) * 1.0e-3;
+        kernel_seconds = static_cast<double>(kernel_milliseconds) * 1.0e-3;
 
         // Copy the analytical prices back to host memory.
         check_cuda(
@@ -256,12 +230,13 @@ int main() {
         url,
         numerical_method,
         nlohmann::ordered_json{
-            {"block_count", launched_block_count},
+            {"block_count", block_count},
             {"threads_per_block", threads_per_block},
-            {"kernel_launch_count", kernel_launch_count},
-            {"work_distribution", "one price per thread, grid-stride loop"},
+            {"kernel_launch_count", 1U},
+            {"work_distribution", "one price per thread"},
         },
         wall_seconds,
         kernel_seconds
     );
+    datasets::validate_price_dataset_file(dataset_path);
 }

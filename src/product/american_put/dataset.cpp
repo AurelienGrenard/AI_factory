@@ -1,5 +1,6 @@
 // Convert American-put JSON rows into compact CUDA parameters.
 #include "product/american_put/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -30,25 +31,32 @@ std::vector<AmericanPutParameters> load_american_puts(
         );
     }
 
+    datasets::validate_product_dataset(document);
     const auto& rows = document.at("products");
     std::vector<AmericanPutParameters> products;
     products.reserve(rows.size());
     // Retain only the three FP32 fields required by pricing.
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const AmericanPutParameters product = {
             parameters.at("strike").get<float>(),
             parameters.at("maturity").get<float>(),
             parameters.at("exercise_interval").get<float>(),
         };
-        if (!std::isfinite(product.strike)
-            || !std::isfinite(product.maturity)
-            || !std::isfinite(product.exercise_interval)
-            || !(product.strike > 0.0f)
-            || !(product.maturity > 0.0f)
+        const std::string prefix =
+            "American put row id '" + row_id + "': ";
+        if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
+            throw std::invalid_argument(prefix + "strike must be finite and positive.");
+        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
+            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (!std::isfinite(product.exercise_interval)
             || !(product.exercise_interval > 0.0f)
             || !(product.exercise_interval < product.maturity)) {
-            throw std::invalid_argument("Invalid American put input.");
+            throw std::invalid_argument(
+                prefix
+                + "exercise_interval must be finite, positive, and below maturity."
+            );
         }
         products.push_back(product);
     }

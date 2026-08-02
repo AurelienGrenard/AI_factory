@@ -1,5 +1,6 @@
 // Generate reproducible Ornstein-Uhlenbeck short-rate parameters.
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 #include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
 
 #include <cstdint>
@@ -40,16 +41,17 @@ int main() {
         {
             {"mean_reversion", "Positive mean-reversion speed a."},
             {"volatility", "Instantaneous short-rate volatility sigma."},
-            {"initial_factor", "Initial short rate x(0)."},
+            {"initial_state", "Initial short rate x(0)."},
         },
         {
-            {"factor", "dx_t = -a x_t dt + sigma dW_t"},
+            {"state", "dx_t = -a x_t dt + sigma dW_t"},
             {"short_rate", "r_t = x_t"},
             {
                 "transition",
-                "x and its integral are simulated jointly and exactly"
+                "exact Gaussian state and optional joint state-integral transitions"
             },
         },
         rows
     );
+    validate_model_dataset_file(dataset_path);
 }

@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/heston/american_put.cuh"
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <cuda_runtime.h>
 
@@ -289,4 +290,5 @@ int main() {
         wall_seconds,
         execution.kernel_seconds
     );
+    datasets::validate_price_dataset_file(dataset_path);
 }

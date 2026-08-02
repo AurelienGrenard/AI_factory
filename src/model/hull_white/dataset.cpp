@@ -1,5 +1,6 @@
 // Host implementation of the Hull-White one-factor dataset loader.
 #include "model/hull_white/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -7,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::hull_white {
+namespace ai_factory::workbench::model::hull_white {
 
 // Parse and validate model rows while preserving their dataset order.
 std::vector<HullWhiteModelParameters> load_models(
@@ -30,21 +31,29 @@ std::vector<HullWhiteModelParameters> load_models(
         );
     }
 
+    datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
     std::vector<HullWhiteModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& values = row.at("parameters");
         const HullWhiteModelParameters parameters = {
             values.at("mean_reversion").get<float>(),
             values.at("volatility").get<float>(),
         };
+        const std::string prefix =
+            "Hull-White model row id '" + row_id + "': ";
         if (!std::isfinite(parameters.mean_reversion)
-            || !std::isfinite(parameters.volatility)
-            || !(parameters.mean_reversion > 0.0f)
-            || !(parameters.volatility > 0.0f)) {
+            || !(parameters.mean_reversion > 0.0f)) {
             throw std::invalid_argument(
-                "Invalid Hull-White one-factor parameters."
+                prefix + "mean_reversion must be finite and positive."
+            );
+        }
+        if (!std::isfinite(parameters.volatility)
+            || !(parameters.volatility >= 0.0f)) {
+            throw std::invalid_argument(
+                prefix + "volatility must be finite and non-negative."
             );
         }
         models.push_back(parameters);
@@ -52,4 +61,4 @@ std::vector<HullWhiteModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::hull_white
+}  // namespace ai_factory::workbench::model::hull_white

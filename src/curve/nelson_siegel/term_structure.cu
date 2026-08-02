@@ -31,7 +31,7 @@ __device__ __forceinline__ float zero_rate(
 }
 
 // Evaluate log P(0,T) directly for stable discount-ratio calculations.
-__device__ __forceinline__ float log_discount(
+__device__ __forceinline__ float log_discount_factor(
     const NelsonSiegelParameters& parameters,
     float maturity
 ) {
@@ -43,7 +43,7 @@ __device__ __forceinline__ float discount_factor(
     const NelsonSiegelParameters& parameters,
     float maturity
 ) {
-    return expf(log_discount(parameters, maturity));
+    return expf(log_discount_factor(parameters, maturity));
 }
 
 // Evaluate the analytical instantaneous forward implied by Nelson-Siegel.
@@ -74,8 +74,8 @@ __device__ __forceinline__ float forward_rate(
     float end
 ) {
     return (
-        log_discount(parameters, start)
-        - log_discount(parameters, end)
+        log_discount_factor(parameters, start)
+        - log_discount_factor(parameters, end)
     ) / (end - start);
 }
 

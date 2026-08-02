@@ -693,9 +693,10 @@ void write_analytical_price_dataset_impl(
         );
     }
     for (std::size_t index = 0U; index < row_count; ++index) {
-        if (!std::isfinite(prices[index]) || prices[index] < 0.0f) {
+        if (!std::isfinite(prices[index])) {
             throw std::runtime_error(
-                "Price row " + std::to_string(index) + " is invalid."
+                "Price row id '" + format_row_id(index)
+                + "': price must be finite."
             );
         }
     }
@@ -829,9 +830,10 @@ void write_analytical_price_dataset_impl(
         );
     }
     for (std::size_t index = 0U; index < row_count; ++index) {
-        if (!std::isfinite(prices[index]) || prices[index] < 0.0f) {
+        if (!std::isfinite(prices[index])) {
             throw std::runtime_error(
-                "Price row " + std::to_string(index) + " is invalid."
+                "Price row id '" + format_row_id(index)
+                + "': price must be finite."
             );
         }
     }
@@ -965,8 +967,9 @@ void write_monte_carlo_price_dataset_impl(
             || !std::isfinite(standard_errors[index])
             || standard_errors[index] < 0.0f) {
             throw std::runtime_error(
-                "Price row " + std::to_string(index)
-                + " contains an invalid price or standard error."
+                "Price row id '" + format_row_id(index)
+                + "': price must be finite and standard_error must be "
+                "finite and non-negative."
             );
         }
     }

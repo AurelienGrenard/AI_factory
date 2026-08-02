@@ -29,15 +29,21 @@ __device__ __forceinline__ HestonQeParameters prepare_model(
     const float gamma = parameters.gamma;
     const float rho = parameters.rho;
     const float dt = maturity / static_cast<float>(num_steps);
-    const float exp_kdt = expf(-kappa * dt);
-    const float one_minus_exp = 1.0f - exp_kdt;
+    const float one_minus_exp = -expm1f(-kappa * dt);
+    const float exp_kdt = 1.0f - one_minus_exp;
     const float gamma2 = gamma * gamma;
-    const float drift_dt =
-        (parameters.risk_free_rate - parameters.dividend_yield) * dt;
+    const float drift_dt = fmaf(
+        parameters.risk_free_rate - parameters.dividend_yield,
+        dt,
+        0.0f
+    );
     const float kappa_rho_over_gamma = kappa * rho / gamma;
     const float rho_over_gamma = rho / gamma;
-    const float k2 =
-        kGamma2 * dt * (kappa_rho_over_gamma - 0.5f) + rho_over_gamma;
+    const float k2 = fmaf(
+        kGamma2 * dt,
+        kappa_rho_over_gamma - 0.5f,
+        rho_over_gamma
+    );
     const float k4 = kGamma2 * dt * (1.0f - rho * rho);
 
     return {
@@ -73,12 +79,16 @@ __device__ __forceinline__ void one_step_transition(
     HestonState& state
 ) {
     const float previous_variance = fmaxf(state.variance, 0.0f);
-    const float conditional_mean =
+    const float conditional_mean = fmaf(
+        previous_variance - model.theta,
+        model.exp_kdt,
         model.theta
-        + (previous_variance - model.theta) * model.exp_kdt;
-    const float conditional_variance =
-        previous_variance * model.variance_linear_scale
-        + model.variance_constant_scale;
+    );
+    const float conditional_variance = fmaf(
+        previous_variance,
+        model.variance_linear_scale,
+        model.variance_constant_scale
+    );
 
     float next_variance = 0.0f;
     float log_moment = 0.0f;
@@ -93,15 +103,15 @@ __device__ __forceinline__ void one_step_transition(
             const float root_term =
                 fmaxf(2.0f * inverse_psi - 1.0f, 0.0f);
             const float b2 =
-                root_term
-                + sqrtf(2.0f * inverse_psi) * sqrtf(root_term);
-            const float b = sqrtf(fmaxf(b2, 0.0f));
+                root_term + sqrtf(2.0f * inverse_psi * root_term);
+            const float b = sqrtf(b2);
             const float a = conditional_mean / (1.0f + b2);
             const float shifted = b + variance_normal;
             next_variance = a * shifted * shifted;
 
-            const float denominator =
-                1.0f - 2.0f * model.martingale_a * a;
+            const float denominator = fmaf(
+                -2.0f * model.martingale_a, a, 1.0f
+            );
             if (denominator > 0.0f) {
                 log_moment = model.martingale_a * b2 * a / denominator
                              - 0.5f * logf(denominator);
@@ -132,25 +142,53 @@ __device__ __forceinline__ void one_step_transition(
     }
 
     const float variance_integral_proxy = fmaxf(
-        model.k3 * previous_variance + model.k4 * next_variance,
+        fmaf(model.k3, previous_variance, model.k4 * next_variance),
         0.0f
     );
+    const float stock_diffusion =
+        sqrtf(variance_integral_proxy) * stock_normal;
     // Apply QE-M when valid, otherwise use the stable QE fallback.
     if (martingale_valid) {
-        state.log_spot +=
+        float increment = fmaf(
+            -0.5f * model.k3,
+            previous_variance,
             model.drift_dt - log_moment
-            - 0.5f * model.k3 * previous_variance
-            + model.k2 * next_variance
-            + sqrtf(variance_integral_proxy) * stock_normal;
+        );
+        increment = fmaf(model.k2, next_variance, increment);
+        state.log_spot += increment + stock_diffusion;
     } else {
-        state.log_spot +=
-            model.k0
-            + model.k1 * previous_variance
-            + model.k2 * next_variance
-            + sqrtf(variance_integral_proxy) * stock_normal;
+        float increment = fmaf(
+            model.k1, previous_variance, model.k0
+        );
+        increment = fmaf(model.k2, next_variance, increment);
+        state.log_spot += increment + stock_diffusion;
     }
     state.variance = next_variance;
 }
+
+namespace {
+
+// Draw the three variates consumed by one fused QE-M transition.
+__device__ __forceinline__ void simulate_one_step(
+    const HestonQeParameters& model,
+    philox::UniformSequence& uniforms,
+    HestonState& state
+) {
+    const float angle_uniform = uniforms.next();
+    const float radius_uniform = uniforms.next();
+    const philox::NormalPair normals =
+        philox::box_muller(angle_uniform, radius_uniform);
+    const float variance_uniform = uniforms.next();
+    one_step_transition(
+        model,
+        normals.first,
+        variance_uniform,
+        normals.second,
+        state
+    );
+}
+
+}  // namespace
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ HestonState simulate_terminal_state(
@@ -170,19 +208,7 @@ __device__ __forceinline__ HestonState simulate_terminal_state(
     for (std::size_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        const float angle_uniform = uniforms.next();
-        const float radius_uniform = uniforms.next();
-        const philox::NormalPair normals =
-            philox::box_muller(angle_uniform, radius_uniform);
-        const float variance_uniform = uniforms.next();
-
-        one_step_transition(
-            model,
-            normals.first,
-            variance_uniform,
-            normals.second,
-            state
-        );
+        simulate_one_step(model, uniforms, state);
     }
     return state;
 }
@@ -206,19 +232,7 @@ __device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
     for (std::size_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        const float angle_uniform = uniforms.next();
-        const float radius_uniform = uniforms.next();
-        const philox::NormalPair normals =
-            philox::box_muller(angle_uniform, radius_uniform);
-        const float variance_uniform = uniforms.next();
-
-        one_step_transition(
-            model,
-            normals.first,
-            variance_uniform,
-            normals.second,
-            state
-        );
+        simulate_one_step(model, uniforms, state);
         spot_sum += static_cast<double>(expf(state.log_spot));
     }
 
@@ -250,19 +264,7 @@ __device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
     for (std::size_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        const float angle_uniform = uniforms.next();
-        const float radius_uniform = uniforms.next();
-        const philox::NormalPair normals =
-            philox::box_muller(angle_uniform, radius_uniform);
-        const float variance_uniform = uniforms.next();
-
-        one_step_transition(
-            model,
-            normals.first,
-            variance_uniform,
-            normals.second,
-            state
-        );
+        simulate_one_step(model, uniforms, state);
         const float spot = expf(state.log_spot);
         maximum_spot = fmaxf(maximum_spot, spot);
     }
@@ -298,53 +300,32 @@ __device__ __forceinline__ HestonState simulate_on_regular_grid(
     for (std::uint32_t step_index = 0U;
          step_index < initial_stub_steps;
          ++step_index) {
-        const float angle_uniform = uniforms.next();
-        const float radius_uniform = uniforms.next();
-        const philox::NormalPair normals =
-            philox::box_muller(angle_uniform, radius_uniform);
-        const float variance_uniform = uniforms.next();
-
-        one_step_transition(
-            initial_stub_model,
-            normals.first,
-            variance_uniform,
-            normals.second,
-            state
-        );
+        simulate_one_step(initial_stub_model, uniforms, state);
     }
-    if (exercise_count > 1U) {
-        observed_spots[path] = expf(state.log_spot);
-        observed_variances[path] = state.variance;
-    }
+    if (exercise_count == 1U) return state;
+    std::size_t output_index = path;
+    observed_spots[output_index] = expf(state.log_spot);
+    observed_variances[output_index] = state.variance;
 
-    // Every remaining exercise interval uses the same numerical grid.
+    // Store only pre-terminal states with one running date-major offset.
     for (std::uint32_t exercise = 1U;
-         exercise < exercise_count;
+         exercise + 1U < exercise_count;
          ++exercise) {
         for (std::uint32_t step_index = 0U;
              step_index < steps_per_exercise;
              ++step_index) {
-            const float angle_uniform = uniforms.next();
-            const float radius_uniform = uniforms.next();
-            const philox::NormalPair normals =
-                philox::box_muller(angle_uniform, radius_uniform);
-            const float variance_uniform = uniforms.next();
-
-            one_step_transition(
-                regular_model,
-                normals.first,
-                variance_uniform,
-                normals.second,
-                state
-            );
+            simulate_one_step(regular_model, uniforms, state);
         }
+        output_index += path_count;
+        observed_spots[output_index] = expf(state.log_spot);
+        observed_variances[output_index] = state.variance;
+    }
 
-        if (exercise + 1U < exercise_count) {
-            const std::size_t output_index =
-                static_cast<std::size_t>(exercise) * path_count + path;
-            observed_spots[output_index] = expf(state.log_spot);
-            observed_variances[output_index] = state.variance;
-        }
+    // Simulate the maturity interval without a global-memory write.
+    for (std::uint32_t step_index = 0U;
+         step_index < steps_per_exercise;
+         ++step_index) {
+        simulate_one_step(regular_model, uniforms, state);
     }
     return state;
 }

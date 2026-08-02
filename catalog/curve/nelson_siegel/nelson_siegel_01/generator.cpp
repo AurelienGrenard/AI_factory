@@ -1,5 +1,6 @@
 // Generate Nelson-Siegel curves from interpretable forward-rate levels.
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 #include "tools/datasets/nelson_siegel_generation.hpp"
 
 #include <cstddef>
@@ -91,4 +92,5 @@ int main() {
         },
         rows
     );
+    validate_curve_dataset_file(dataset_path);
 }

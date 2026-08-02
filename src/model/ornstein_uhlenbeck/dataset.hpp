@@ -7,16 +7,16 @@
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
-// Curve-independent coefficients shared with models built from OU dynamics.
-struct OrnsteinUhlenbeckDynamicsParameters {
+// Coefficients in dX_t = -mean_reversion * X_t dt + volatility * dW_t.
+struct OrnsteinUhlenbeckProcessParameters {
     float mean_reversion;
     float volatility;
 };
 
-// Standalone OU short-rate row with its initial factor value.
+// Standalone short-rate model combining the OU process with X_0.
 struct OrnsteinUhlenbeckModelParameters {
-    OrnsteinUhlenbeckDynamicsParameters dynamics;
-    float initial_factor;
+    OrnsteinUhlenbeckProcessParameters process;
+    float initial_state;
 };
 
 static_assert(std::is_trivially_copyable_v<OrnsteinUhlenbeckModelParameters>);

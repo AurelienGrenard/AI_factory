@@ -11,10 +11,10 @@ published to external storage.
 AI_factory/
 |-- src/          C++/CUDA simulation and pricing code
 |-- tools/        parameter generation and dataset-writing utilities
-|-- docs/         implementation conventions shared across models
 |-- catalog/      one reproducible folder per published dataset
 |-- datasets/     complete JSON datasets, ignored by Git
 |-- tests/        dataset contracts and CUDA tests
+|-- validation/   independent QuantLib price references
 `-- CMakeLists.txt
 ```
 
@@ -36,8 +36,8 @@ only their recipe constants and `main`.
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
 
-New model dynamics must follow the shared
-[CUDA dynamics conventions](docs/cuda_dynamics_conventions.md).
+Models retain matching type, function, and kernel layouts whenever their
+mathematics and data dependencies permit it.
 
 ### `tools`
 
@@ -98,13 +98,19 @@ must be replaced with the final data server URLs.
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- model/heston/heston_01.json
+|-- model/g2/g2_01.json
+|-- model/g2_plus_plus/g2_plus_plus_01.json
 |-- model/hull_white/hull_white_01.json
 |-- model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
+|-- model/vasicek/vasicek_01.json
 |-- product/equity/european_calls/european_calls_01.json
 |-- product/equity/american_puts/american_puts_01.json
 |-- product/fixed_income/caplets/caplets_01.json
 |-- price/heston/<product>/<price_dataset_id>.json
+|-- price/g2/<product>/<price_dataset_id>.json
+|-- price/g2_plus_plus/<curve>/<product>/<price_dataset_id>.json
 |-- price/ornstein_uhlenbeck/<product>/<price_dataset_id>.json
+|-- price/vasicek/<product>/<price_dataset_id>.json
 `-- price/hull_white/<curve>/<product>/<price_dataset_id>.json
 ```
 
@@ -127,9 +133,20 @@ time `tau`. The source implementation evaluates:
 reconstructs volatility from a bounded stationary standard deviation. This
 avoids unstable low-reversion/high-volatility combinations.
 
+`vasicek_01` extends the same Gaussian process with a long-term mean:
+
+```text
+dr(t) = a (b - r(t)) dt + sigma dW(t)
+```
+
+It samples `a`, `b`, and `r(0)`, then reconstructs `sigma` from a bounded
+stationary standard deviation. Its dynamics, analytics, pricing launchers,
+and tests deliberately mirror the OU layout; only the deterministic mean
+increments and Vasicek bond levels differ.
+
 `hull_white_01` stores only the mean-reversion speed `a` and volatility
 `sigma`. It uses the same stationary-dispersion reconstruction as OU, without
-an initial factor because the centered Hull-White factor starts from zero. For
+an initial state because the centered Hull-White state starts from zero. For
 pricing, one Hull-White row is paired with one curve row. The implementation uses
 
 ```text
@@ -137,11 +154,32 @@ r(t) = x(t) + phi(t)
 dx(t) = -a x(t) dt + sigma dW(t)
 ```
 
-The reusable OU layer jointly simulates the Gaussian factor and its time
+The reusable OU layer jointly simulates the Gaussian state and its time
 integral. `src/model/hull_white/nelson_siegel` composes that process with the
 Nelson-Siegel analytics and computes `phi(t)` from `f(0,t)`, so the full model
 reproduces the supplied initial curve. Nelson-Siegel is therefore one curve
 provider, not a parameter embedded in Hull-White.
+
+`g2_01` is the standalone correlated two-factor Gaussian model:
+
+```text
+r(t) = x(t) + y(t)
+dx(t) = -a x(t) dt + sigma dW_x(t)
+dy(t) = -b y(t) dt + eta dW_y(t)
+d<W_x,W_y>(t) = rho dt
+```
+
+Both initial factor states are stored because `r(0)` alone does not determine
+future bond prices when the two mean-reversion speeds differ. The generator
+orders `b` above `a` and samples stationary factor dispersions before
+reconstructing `sigma` and `eta`, avoiding redundant factors and unstable
+parameter combinations.
+
+`g2_plus_plus_01` stores the same curve-independent process without initial
+states. `src/model/g2_plus_plus/nelson_siegel` adds a deterministic shift
+`phi(t)` to the centered factors, exactly reproducing the supplied initial
+Nelson-Siegel curve. Its public analytical interface mirrors G2 just as the
+Hull-White interface mirrors OU.
 
 As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
@@ -268,12 +306,18 @@ Parameter datasets are quick to regenerate:
 
 ```bash
 ./build/generate_heston_01
+./build/generate_g2_01
+./build/generate_g2_plus_plus_01
 ./build/generate_nelson_siegel_01
 ./build/generate_hull_white_01
 ./build/generate_ornstein_uhlenbeck_01
+./build/generate_vasicek_01
 ./build/generate_european_calls_01
 ./build/generate_american_puts_01
 ./build/generate_caplets_01
+./build/generate_floorlets_01
+./build/generate_zero_coupon_bond_calls_01
+./build/generate_zero_coupon_bond_puts_01
 ```
 
 Each command replaces the local dataset and its YAML catalog entry together.
@@ -282,8 +326,26 @@ Price datasets follow the same workflow:
 ```bash
 ./build/generate_heston_european_calls_01
 ./build/generate_heston_american_puts_01
+./build/generate_g2_caplets_01
+./build/generate_g2_floorlets_01
+./build/generate_g2_zero_coupon_bond_calls_01
+./build/generate_g2_zero_coupon_bond_puts_01
+./build/generate_g2_plus_plus_nelson_siegel_caplets_01
+./build/generate_g2_plus_plus_nelson_siegel_floorlets_01
+./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
+./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
 ./build/generate_ornstein_uhlenbeck_caplets_01
+./build/generate_ornstein_uhlenbeck_floorlets_01
+./build/generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
+./build/generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
+./build/generate_vasicek_caplets_01
+./build/generate_vasicek_floorlets_01
+./build/generate_vasicek_zero_coupon_bond_calls_01
+./build/generate_vasicek_zero_coupon_bond_puts_01
 ./build/generate_hull_white_nelson_siegel_caplets_01
+./build/generate_hull_white_nelson_siegel_floorlets_01
+./build/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
+./build/generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
 ```
 
 The Cartesian product containing one million prices is intentionally separate:
@@ -299,9 +361,23 @@ ctest --test-dir build --output-on-failure
 ```
 
 `dataset_catalog` validates two- and three-input constructions and mandatory
-catalog fields. CUDA tests cover reusable Hull-White analytics, analytical
-caplets, the three uniform Heston path products, and the American-put pipeline.
-They use small in-memory fixtures and skip automatically without a CUDA GPU.
+catalog fields. CUDA tests cover reusable OU, Vasicek, G2, Hull-White, and G2++
+analytics; caplets, floorlets, and zero-coupon options; the uniform Heston path
+products; and the American-put pipeline. They use small in-memory fixtures and
+skip automatically without a CUDA GPU.
+
+When the QuantLib Python binding is installed, CTest also validates every
+analytical fixed-income dataset and the Heston European-call dataset against an
+independent implementation. The shared validator reports row errors, combined
+Monte-Carlo uncertainty, directional counts, and systematic bias. Slow Asian
+and American references are available with:
+
+```bash
+cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON
+```
+
+See [`validation/quantlib`](validation/quantlib/README.md) for the supported
+products and direct command-line usage.
 
 ## Add a Dataset
 

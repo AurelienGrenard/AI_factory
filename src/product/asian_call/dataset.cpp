@@ -1,5 +1,6 @@
 // Convert Asian-call JSON rows into compact CUDA parameters.
 #include "product/asian_call/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -30,21 +31,23 @@ std::vector<AsianCallParameters> load_asian_calls(
         );
     }
 
+    datasets::validate_product_dataset(document);
     const auto& rows = document.at("products");
     std::vector<AsianCallParameters> products;
     products.reserve(rows.size());
     // Only strike and maturity are retained; JSON metadata stays out of CUDA.
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const AsianCallParameters product = {
             parameters.at("strike").get<float>(),
             parameters.at("maturity").get<float>(),
         };
-        if (!std::isfinite(product.strike)
-            || !std::isfinite(product.maturity)
-            || !(product.strike > 0.0f) || !(product.maturity > 0.0f)) {
-            throw std::invalid_argument("Invalid Asian call input.");
-        }
+        const std::string prefix = "Asian call row id '" + row_id + "': ";
+        if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
+            throw std::invalid_argument(prefix + "strike must be finite and positive.");
+        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
+            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
         products.push_back(product);
     }
     return products;

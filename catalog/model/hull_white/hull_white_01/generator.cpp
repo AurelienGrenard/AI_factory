@@ -1,5 +1,6 @@
 // Generate reproducible Hull-White one-factor model parameters.
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 #include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
 
 #include <cstdint>
@@ -37,10 +38,10 @@ int main() {
         url,
         {
             {"mean_reversion", "Positive mean-reversion speed a."},
-            {"volatility", "Positive short-rate volatility sigma."},
+            {"volatility", "Non-negative short-rate volatility sigma."},
         },
         {
-            {"factor", "dx_t = -a x_t dt + sigma dW_t"},
+            {"state", "dx_t = -a x_t dt + sigma dW_t"},
             {"short_rate", "r_t = x_t + phi(t)"},
             {
                 "transition",
@@ -55,4 +56,5 @@ int main() {
         },
         rows
     );
+    validate_model_dataset_file(dataset_path);
 }

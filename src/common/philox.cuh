@@ -162,4 +162,32 @@ private:
     std::uint32_t component_index_ = 0U;
 };
 
+// Convert the uniform stream into cached pairs of standard normals.
+class NormalSequence {
+public:
+    // Begin at the first complete Philox group reserved for one path.
+    __device__ __forceinline__ NormalSequence(
+        PhiloxKey key,
+        std::uint64_t first_group
+    ) : uniforms_(key, first_group) {}
+
+    // Return one normal and reuse the second value from each Box-Muller pair.
+    __device__ __forceinline__ float next() {
+        if (has_second_) {
+            has_second_ = false;
+            return normals_.second;
+        }
+        const float angle_uniform = uniforms_.next();
+        const float radius_uniform = uniforms_.next();
+        normals_ = box_muller(angle_uniform, radius_uniform);
+        has_second_ = true;
+        return normals_.first;
+    }
+
+private:
+    UniformSequence uniforms_;
+    NormalPair normals_{};
+    bool has_second_ = false;
+};
+
 }  // namespace ai_factory::workbench::philox

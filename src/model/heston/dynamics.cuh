@@ -91,7 +91,8 @@ __device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
     std::size_t num_steps
 );
 
-// Store pre-maturity exercise states and return the terminal state.
+// Store exercise_count - 1 states; the maturity state is only returned.
+// Each date-major output needs (exercise_count - 1) * path_count values.
 __device__ __forceinline__ HestonState simulate_on_regular_grid(
     const HestonQeParameters& initial_stub_model,
     const HestonQeParameters& regular_model,

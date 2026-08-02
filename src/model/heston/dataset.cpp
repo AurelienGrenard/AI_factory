@@ -1,5 +1,6 @@
 // Host implementation of the Heston dataset loader.
 #include "model/heston/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -30,11 +31,13 @@ std::vector<HestonModelParameters> load_models(
         );
     }
 
+    datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
     std::vector<HestonModelParameters> models;
     models.reserve(rows.size());
     // Keep only the compact FP32 parameters needed by CUDA.
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const HestonModelParameters model = {
             parameters.at("spot").get<float>(),
@@ -46,19 +49,31 @@ std::vector<HestonModelParameters> load_models(
             parameters.at("gamma").get<float>(),
             parameters.at("rho").get<float>(),
         };
-        if (!std::isfinite(model.spot)
-            || !std::isfinite(model.risk_free_rate)
-            || !std::isfinite(model.dividend_yield)
-            || !std::isfinite(model.initial_variance)
-            || !std::isfinite(model.kappa)
-            || !std::isfinite(model.theta)
-            || !std::isfinite(model.gamma)
-            || !std::isfinite(model.rho)
-            || !(model.spot > 0.0f) || !(model.initial_variance >= 0.0f)
-            || !(model.kappa > 0.0f) || !(model.theta > 0.0f)
-            || !(model.gamma > 0.0f)
+        const std::string prefix =
+            "Heston model row id '" + row_id + "': ";
+        if (!std::isfinite(model.spot) || !(model.spot > 0.0f))
+            throw std::invalid_argument(prefix + "spot must be finite and positive.");
+        if (!std::isfinite(model.risk_free_rate))
+            throw std::invalid_argument(prefix + "risk_free_rate must be finite.");
+        if (!std::isfinite(model.dividend_yield))
+            throw std::invalid_argument(prefix + "dividend_yield must be finite.");
+        if (!std::isfinite(model.initial_variance)
+            || !(model.initial_variance >= 0.0f)) {
+            throw std::invalid_argument(
+                prefix + "initial_variance must be finite and non-negative."
+            );
+        }
+        if (!std::isfinite(model.kappa) || !(model.kappa > 0.0f))
+            throw std::invalid_argument(prefix + "kappa must be finite and positive.");
+        if (!std::isfinite(model.theta) || !(model.theta > 0.0f))
+            throw std::invalid_argument(prefix + "theta must be finite and positive.");
+        if (!std::isfinite(model.gamma) || !(model.gamma > 0.0f))
+            throw std::invalid_argument(prefix + "gamma must be finite and positive.");
+        if (!std::isfinite(model.rho)
             || !(model.rho >= -1.0f && model.rho <= 1.0f)) {
-            throw std::invalid_argument("Invalid Heston model parameters.");
+            throw std::invalid_argument(
+                prefix + "rho must be finite and lie in [-1, 1]."
+            );
         }
         models.push_back(model);
     }

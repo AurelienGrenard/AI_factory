@@ -1,5 +1,6 @@
 // Host implementation of the Ornstein-Uhlenbeck dataset loader.
 #include "model/ornstein_uhlenbeck/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -31,27 +32,36 @@ std::vector<OrnsteinUhlenbeckModelParameters> load_models(
         );
     }
 
+    datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
     std::vector<OrnsteinUhlenbeckModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const OrnsteinUhlenbeckModelParameters model = {
             {
                 parameters.at("mean_reversion").get<float>(),
                 parameters.at("volatility").get<float>(),
             },
-            parameters.at("initial_factor").get<float>(),
+            parameters.at("initial_state").get<float>(),
         };
-        if (!std::isfinite(model.dynamics.mean_reversion)
-            || !std::isfinite(model.dynamics.volatility)
-            || !std::isfinite(model.initial_factor)
-            || !(model.dynamics.mean_reversion > 0.0f)
-            || !(model.dynamics.volatility >= 0.0f)) {
+        const std::string prefix =
+            "Ornstein-Uhlenbeck model row id '" + row_id + "': ";
+        if (!std::isfinite(model.process.mean_reversion)
+            || !(model.process.mean_reversion > 0.0f)) {
             throw std::invalid_argument(
-                "Invalid Ornstein-Uhlenbeck model parameters."
+                prefix + "mean_reversion must be finite and positive."
             );
         }
+        if (!std::isfinite(model.process.volatility)
+            || !(model.process.volatility >= 0.0f)) {
+            throw std::invalid_argument(
+                prefix + "volatility must be finite and non-negative."
+            );
+        }
+        if (!std::isfinite(model.initial_state))
+            throw std::invalid_argument(prefix + "initial_state must be finite.");
         models.push_back(model);
     }
     return models;

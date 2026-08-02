@@ -3,6 +3,7 @@
 #include "model/ornstein_uhlenbeck/caplet.cuh"
 #include "model/ornstein_uhlenbeck/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <cuda_runtime.h>
 
@@ -24,8 +25,6 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
 
 // CUDA configuration for the one-thread-per-price analytical kernel.
 constexpr unsigned int threads_per_block = 256U;
-constexpr std::size_t results_per_kernel_launch = 1'000'000U;
-constexpr std::size_t maximum_block_count = 4'096U;
 
 // Artifact locations and descriptive metadata used after pricing.
 const std::filesystem::path dataset_path =
@@ -58,17 +57,10 @@ int main() {
     const std::size_t result_count = datasets::price_row_count(
         models.size(), products.size(), construction
     );
-    const std::size_t kernel_launch_count =
-        (result_count - 1U) / results_per_kernel_launch + 1U;
     const auto block_count_for = [](std::size_t row_count) {
-        return std::min(
-            (row_count - 1U) / threads_per_block + 1U,
-            maximum_block_count
-        );
+        return (row_count - 1U) / threads_per_block + 1U;
     };
-    const std::size_t launched_block_count = block_count_for(
-        std::min(result_count, results_per_kernel_launch)
-    );
+    const std::size_t block_count = block_count_for(result_count);
     std::vector<float> prices(result_count);
 
     // Declare model, product, and output arrays with CUDA timing events.
@@ -137,26 +129,19 @@ int main() {
         check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
-        for (std::size_t result_offset = 0U;
-             result_offset < result_count;
-             result_offset += results_per_kernel_launch) {
-            const std::size_t launch_count = std::min(
-                results_per_kernel_launch, result_count - result_offset
-            );
-            ou::launch_ornstein_uhlenbeck_caplet_cuda(
-                device_models,
-                models.size(),
-                device_products,
-                products.size(),
-                construction == datasets::PriceConstruction::CartesianProduct,
-                result_count,
-                result_offset,
-                launch_count,
-                threads_per_block,
-                block_count_for(launch_count),
-                device_prices
-            );
-        }
+        ou::launch_ornstein_uhlenbeck_caplet_cuda(
+            device_models,
+            models.size(),
+            device_products,
+            products.size(),
+            construction == datasets::PriceConstruction::CartesianProduct,
+            result_count,
+            0U,
+            result_count,
+            threads_per_block,
+            block_count,
+            device_prices
+        );
         check_cuda(cudaEventRecord(stop_event), "cudaEventRecord stop");
         check_cuda(cudaEventSynchronize(stop_event), "cudaEventSynchronize stop");
         float kernel_milliseconds = 0.0f;
@@ -205,12 +190,13 @@ int main() {
         url,
         numerical_method,
         nlohmann::ordered_json{
-            {"block_count", launched_block_count},
+            {"block_count", block_count},
             {"threads_per_block", threads_per_block},
-            {"kernel_launch_count", kernel_launch_count},
-            {"work_distribution", "one price per thread, grid-stride loop"},
+            {"kernel_launch_count", 1U},
+            {"work_distribution", "one price per thread"},
         },
         wall_seconds,
         kernel_seconds
     );
+    datasets::validate_price_dataset_file(dataset_path);
 }

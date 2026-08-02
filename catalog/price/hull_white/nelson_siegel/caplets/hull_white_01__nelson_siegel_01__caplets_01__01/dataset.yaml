@@ -14,7 +14,7 @@ summary:
   block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
-  work_distribution: "one price per thread, grid-stride loop"
+  work_distribution: "one price per thread"
 outputs:
   price:
     estimator: "closed-form price"
@@ -33,5 +33,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "2.407696721 s"
-  kernel_seconds: "0.000009216 s"
+  wall_seconds: "0.278196058 s"
+  kernel_seconds: "0.000083968 s"

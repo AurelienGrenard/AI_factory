@@ -4,6 +4,7 @@
 
 #include <cuda_runtime.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
@@ -36,13 +37,13 @@ double caplet_price(
         OrnsteinUhlenbeckModelParameters& model,
     const ai_factory::workbench::product::CapletParameters& product
 ) {
-    const double a = model.dynamics.mean_reversion;
-    const double sigma = model.dynamics.volatility;
+    const double a = model.process.mean_reversion;
+    const double sigma = model.process.volatility;
     const double t1 = product.fixing_time;
     const double t2 = product.payment_time;
     const auto zero_coupon = [&](double maturity) {
         return std::exp(
-            -integral_loading(a, maturity) * model.initial_factor
+            -integral_loading(a, maturity) * model.initial_state
             + 0.5 * integral_variance(a, sigma, maturity)
         );
     };
@@ -53,6 +54,10 @@ double caplet_price(
     const double strike_factor =
         1.0 + product.accrual_period * product.strike;
     const double bond_strike = 1.0 / strike_factor;
+    if (volatility <= 1.0e-14) {
+        const double put = std::max(bond_strike * p01 - p02, 0.0);
+        return product.notional * strike_factor * put;
+    }
     const double d1 =
         std::log(p02 / (bond_strike * p01)) / volatility
         + 0.5 * volatility;
@@ -85,14 +90,15 @@ int main() {
     const std::vector<ou::OrnsteinUhlenbeckModelParameters> models = {
         {{0.10f, 0.01f}, 0.03f},
         {{0.25f, 0.015f}, 0.04f},
-        {{0.50f, 0.02f}, 0.025f},
+        {{0.50f, 0.0f}, 0.025f},
     };
     const std::vector<product::CapletParameters> products = {
-        {1.0f, 0.02f, 0.5f, 1.0f, 0.5f},
+        {1.0f, 0.0f, 0.5f, 1.0f, 0.5f},
         {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
         {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
     };
     constexpr std::size_t row_count = 3U;
+    constexpr std::size_t cartesian_count = 6U;
 
     ou::OrnsteinUhlenbeckModelParameters* device_models = nullptr;
     product::CapletParameters* device_products = nullptr;
@@ -107,7 +113,7 @@ int main() {
             "OU caplet test cudaMalloc products"
         );
         check_cuda(
-            cudaMalloc(&device_prices, row_count * sizeof(float)),
+            cudaMalloc(&device_prices, cartesian_count * sizeof(float)),
             "OU caplet test cudaMalloc prices"
         );
         check_cuda(
@@ -163,6 +169,57 @@ int main() {
                 std::fabs(static_cast<double>(prices[row]) - expected)
                     < 5.0e-6,
                 "OU caplet CUDA price differs from the FP64 formula"
+            );
+        }
+
+        // Exercise model-major Cartesian indexing across two launch batches.
+        ou::launch_ornstein_uhlenbeck_caplet_cuda(
+            device_models,
+            2U,
+            device_products,
+            products.size(),
+            true,
+            cartesian_count,
+            0U,
+            2U,
+            32U,
+            1U,
+            device_prices
+        );
+        ou::launch_ornstein_uhlenbeck_caplet_cuda(
+            device_models,
+            2U,
+            device_products,
+            products.size(),
+            true,
+            cartesian_count,
+            2U,
+            cartesian_count - 2U,
+            32U,
+            1U,
+            device_prices
+        );
+        prices.resize(cartesian_count);
+        check_cuda(
+            cudaMemcpy(
+                prices.data(),
+                device_prices,
+                cartesian_count * sizeof(float),
+                cudaMemcpyDeviceToHost
+            ),
+            "OU caplet test cudaMemcpy Cartesian prices"
+        );
+        for (std::size_t row = 0U; row < cartesian_count; ++row) {
+            const std::size_t model_index = row / products.size();
+            const std::size_t product_index = row % products.size();
+            const double expected = caplet_price(
+                models[model_index], products[product_index]
+            );
+            require(
+                std::isfinite(prices[row])
+                    && std::fabs(static_cast<double>(prices[row]) - expected)
+                        < 5.0e-6,
+                "OU Cartesian caplet price differs from the FP64 formula"
             );
         }
     } catch (...) {

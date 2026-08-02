@@ -1,15 +1,21 @@
 # Local CMake and CUDA build trees.
-build/
-build*/
+/build/
+/build*/
+/CMakeFiles/
 
 # Full generated datasets live locally or on external storage.
-datasets/
+/datasets/
 
 # The website is developed locally and published from a separate project.
-AI_factory_website/
+/AI_factory_website/
+
+# Personal derivations and research notes are not published with the library.
+/research_notes/
 
 # Editor and operating-system noise.
 .vscode/
 .DS_Store
 *.swp
 *.swo
+__pycache__/
+*.py[cod]

@@ -1,5 +1,6 @@
 // Convert caplet JSON rows into compact CUDA parameters.
 #include "product/caplet/dataset.hpp"
+#include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -30,10 +31,12 @@ std::vector<CapletParameters> load_caplets(
         );
     }
 
+    datasets::validate_product_dataset(document);
     const auto& rows = document.at("products");
     std::vector<CapletParameters> products;
     products.reserve(rows.size());
     for (const auto& row : rows) {
+        const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const CapletParameters product = {
             parameters.at("notional").get<float>(),
@@ -42,17 +45,24 @@ std::vector<CapletParameters> load_caplets(
             parameters.at("payment_time").get<float>(),
             parameters.at("accrual_period").get<float>(),
         };
-        if (!std::isfinite(product.notional)
-            || !std::isfinite(product.strike)
-            || !std::isfinite(product.fixing_time)
-            || !std::isfinite(product.payment_time)
-            || !std::isfinite(product.accrual_period)
-            || !(product.notional > 0.0f)
-            || !(product.strike >= 0.0f)
-            || !(product.fixing_time > 0.0f)
-            || !(product.payment_time > product.fixing_time)
+        const std::string prefix = "Caplet row id '" + row_id + "': ";
+        if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
+            throw std::invalid_argument(prefix + "notional must be finite and positive.");
+        if (!std::isfinite(product.strike) || !(product.strike >= 0.0f))
+            throw std::invalid_argument(prefix + "strike must be finite and non-negative.");
+        if (!std::isfinite(product.fixing_time) || !(product.fixing_time > 0.0f))
+            throw std::invalid_argument(prefix + "fixing_time must be finite and positive.");
+        if (!std::isfinite(product.payment_time)
+            || !(product.payment_time > product.fixing_time)) {
+            throw std::invalid_argument(
+                prefix + "payment_time must be finite and above fixing_time."
+            );
+        }
+        if (!std::isfinite(product.accrual_period)
             || !(product.accrual_period > 0.0f)) {
-            throw std::invalid_argument("Invalid caplet input.");
+            throw std::invalid_argument(
+                prefix + "accrual_period must be finite and positive."
+            );
         }
         products.push_back(product);
     }

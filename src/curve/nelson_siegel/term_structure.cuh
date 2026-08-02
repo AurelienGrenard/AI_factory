@@ -14,7 +14,7 @@ __device__ __forceinline__ float zero_rate(
 );
 
 // Return log P(0, maturity) without exponentiating the discount factor.
-__device__ __forceinline__ float log_discount(
+__device__ __forceinline__ float log_discount_factor(
     const NelsonSiegelParameters& parameters,
     float maturity
 );

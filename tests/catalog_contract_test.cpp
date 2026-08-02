@@ -15,13 +15,21 @@ const std::filesystem::path price_catalog_path =
 const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml",
     "catalog/model/heston/heston_01/dataset.yaml",
+    "catalog/model/g2/g2_01/dataset.yaml",
+    "catalog/model/g2_plus_plus/g2_plus_plus_01/dataset.yaml",
     "catalog/model/hull_white/hull_white_01/dataset.yaml",
     "catalog/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01/dataset.yaml",
+    "catalog/model/vasicek/vasicek_01/dataset.yaml",
     "catalog/product/equity/european_calls/european_calls_01/dataset.yaml",
     "catalog/product/equity/asian_calls/asian_calls_01/dataset.yaml",
     "catalog/product/equity/lookback_options/lookback_options_01/dataset.yaml",
     "catalog/product/equity/american_puts/american_puts_01/dataset.yaml",
     "catalog/product/fixed_income/caplets/caplets_01/dataset.yaml",
+    "catalog/product/fixed_income/floorlets/floorlets_01/dataset.yaml",
+    "catalog/product/fixed_income/zero_coupon_bond_calls/"
+    "zero_coupon_bond_calls_01/dataset.yaml",
+    "catalog/product/fixed_income/zero_coupon_bond_puts/"
+    "zero_coupon_bond_puts_01/dataset.yaml",
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/price/heston/european_calls/"
@@ -30,10 +38,48 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "heston_01__asian_calls_01__01/dataset.yaml",
     "catalog/price/heston/lookback_options/"
     "heston_01__lookback_options_01__01/dataset.yaml",
+    "catalog/price/g2/caplets/"
+    "g2_01__caplets_01__01/dataset.yaml",
+    "catalog/price/g2/floorlets/"
+    "g2_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/g2/zero_coupon_bond_calls/"
+    "g2_01__zero_coupon_bond_calls_01__01/dataset.yaml",
+    "catalog/price/g2/zero_coupon_bond_puts/"
+    "g2_01__zero_coupon_bond_puts_01__01/dataset.yaml",
+    "catalog/price/g2_plus_plus/nelson_siegel/caplets/"
+    "g2_plus_plus_01__nelson_siegel_01__caplets_01__01/dataset.yaml",
+    "catalog/price/g2_plus_plus/nelson_siegel/floorlets/"
+    "g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/g2_plus_plus/nelson_siegel/zero_coupon_bond_calls/"
+    "g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/"
+    "dataset.yaml",
+    "catalog/price/g2_plus_plus/nelson_siegel/zero_coupon_bond_puts/"
+    "g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/"
+    "dataset.yaml",
     "catalog/price/hull_white/nelson_siegel/caplets/"
     "hull_white_01__nelson_siegel_01__caplets_01__01/dataset.yaml",
+    "catalog/price/hull_white/nelson_siegel/floorlets/"
+    "hull_white_01__nelson_siegel_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/hull_white/nelson_siegel/zero_coupon_bond_calls/"
+    "hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/dataset.yaml",
+    "catalog/price/hull_white/nelson_siegel/zero_coupon_bond_puts/"
+    "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/dataset.yaml",
     "catalog/price/ornstein_uhlenbeck/caplets/"
     "ornstein_uhlenbeck_01__caplets_01__01/dataset.yaml",
+    "catalog/price/ornstein_uhlenbeck/floorlets/"
+    "ornstein_uhlenbeck_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/ornstein_uhlenbeck/zero_coupon_bond_calls/"
+    "ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/dataset.yaml",
+    "catalog/price/ornstein_uhlenbeck/zero_coupon_bond_puts/"
+    "ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/dataset.yaml",
+    "catalog/price/vasicek/caplets/"
+    "vasicek_01__caplets_01__01/dataset.yaml",
+    "catalog/price/vasicek/floorlets/"
+    "vasicek_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/vasicek/zero_coupon_bond_calls/"
+    "vasicek_01__zero_coupon_bond_calls_01__01/dataset.yaml",
+    "catalog/price/vasicek/zero_coupon_bond_puts/"
+    "vasicek_01__zero_coupon_bond_puts_01__01/dataset.yaml",
     price_catalog_path,
 };
 

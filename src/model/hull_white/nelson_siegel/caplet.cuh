@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-namespace ai_factory::workbench::hull_white::nelson_siegel {
+namespace ai_factory::workbench::model::hull_white::nelson_siegel {
 
 // Launch one closed-form caplet price per CUDA thread.
 void launch_hull_white_nelson_siegel_caplet_cuda(
@@ -26,4 +26,4 @@ void launch_hull_white_nelson_siegel_caplet_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel

@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace ai_factory::workbench::hull_white {
+namespace ai_factory::workbench::model::hull_white {
 
 // Model parameters independent of the initial discount curve.
 struct HullWhiteModelParameters {
@@ -20,4 +20,4 @@ std::vector<HullWhiteModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 
-}  // namespace ai_factory::workbench::hull_white
+}  // namespace ai_factory::workbench::model::hull_white

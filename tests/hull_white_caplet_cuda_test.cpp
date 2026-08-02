@@ -30,7 +30,7 @@ double zero_rate(
 
 // Price one caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::hull_white::HullWhiteModelParameters& model,
+    const ai_factory::workbench::model::hull_white::HullWhiteModelParameters& model,
     const ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters& curve,
     const ai_factory::workbench::product::CapletParameters& product
 ) {
@@ -74,7 +74,7 @@ int main() {
     }
     check_cuda(availability, "caplet test cudaGetDeviceCount");
 
-    const std::vector<hull_white::HullWhiteModelParameters> models = {
+    const std::vector<model::hull_white::HullWhiteModelParameters> models = {
         {0.10f, 0.01f}, {0.25f, 0.015f}, {0.50f, 0.02f},
     };
     const std::vector<curve::nelson_siegel::NelsonSiegelParameters> curves = {
@@ -89,7 +89,7 @@ int main() {
     };
     constexpr std::size_t row_count = 3U;
 
-    hull_white::HullWhiteModelParameters* device_models = nullptr;
+    model::hull_white::HullWhiteModelParameters* device_models = nullptr;
     curve::nelson_siegel::NelsonSiegelParameters* device_curves = nullptr;
     product::CapletParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -138,7 +138,7 @@ int main() {
             "caplet test cudaMemcpy products"
         );
 
-        hull_white::nelson_siegel::
+        model::hull_white::nelson_siegel::
             launch_hull_white_nelson_siegel_caplet_cuda(
                 device_models,
                 row_count,

@@ -11,13 +11,13 @@
 #include <cstddef>
 #include <stdexcept>
 
-namespace ai_factory::workbench::hull_white::nelson_siegel {
+namespace ai_factory::workbench::model::hull_white::nelson_siegel {
 namespace {
 
-// Model, curve, and contract constants consumed by one pricing thread.
+// Prepared identity: caplet price = bond_option_scale * ZCB put price.
 struct PreparedRow {
-    HullWhiteParameters model;
-    float notional_times_strike_factor;
+    HullWhiteFittedParameters model;
+    float bond_option_scale;
     float bond_strike;
     float fixing_time;
     float payment_time;
@@ -33,7 +33,7 @@ __device__ __forceinline__ PreparedRow prepare_row(
         product.accrual_period, product.strike, 1.0f
     );
     return {
-        prepare_model(model, initial_curve),
+        compose_model(model, initial_curve),
         product.notional * strike_factor,
         1.0f / strike_factor,
         product.fixing_time,
@@ -43,12 +43,9 @@ __device__ __forceinline__ PreparedRow prepare_row(
 
 // Apply the caplet-to-zero-coupon-put identity at time zero.
 __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
-    const model::ornstein_uhlenbeck::OrnsteinUhlenbeckState initial_state{
-        0.0f, 0.0f
-    };
-    return row.notional_times_strike_factor * zero_coupon_bond_put_price(
+    return row.bond_option_scale * zero_coupon_bond_put_price(
         row.model,
-        initial_state,
+        0.0f,
         0.0f,
         row.fixing_time,
         row.payment_time,
@@ -56,7 +53,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
     );
 }
 
-// Price independent rows with a coalesced grid-stride traversal.
+// Price one independent row per CUDA thread with coalesced array access.
 __global__ void hull_white_nelson_siegel_caplet_kernel(
     const HullWhiteModelParameters* __restrict__ models,
     const curve::nelson_siegel::NelsonSiegelParameters* __restrict__ curves,
@@ -68,33 +65,26 @@ __global__ void hull_white_nelson_siegel_caplet_kernel(
     std::size_t launch_result_count,
     float* __restrict__ prices
 ) {
-    const std::size_t first_launch_index =
+    const std::size_t launch_index =
         static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    const std::size_t launch_stride =
-        static_cast<std::size_t>(gridDim.x) * blockDim.x;
+    if (launch_index >= launch_result_count) return;
 
-    for (std::size_t launch_index = first_launch_index;
-         launch_index < launch_result_count;
-         launch_index += launch_stride) {
-        const std::size_t result_index = result_offset + launch_index;
-        std::size_t model_index = result_index;
-        std::size_t curve_index = result_index;
-        std::size_t product_index = result_index;
-        if (cartesian_product) {
-            const std::size_t curve_product_count =
-                curve_count * product_count;
-            model_index = result_index / curve_product_count;
-            const std::size_t remainder =
-                result_index % curve_product_count;
-            curve_index = remainder / product_count;
-            product_index = remainder % product_count;
-        }
-
-        const PreparedRow row = prepare_row(
-            models[model_index], curves[curve_index], products[product_index]
-        );
-        prices[result_index] = evaluate_price(row);
+    const std::size_t result_index = result_offset + launch_index;
+    std::size_t model_index = result_index;
+    std::size_t curve_index = result_index;
+    std::size_t product_index = result_index;
+    if (cartesian_product) {
+        const std::size_t curve_product_count = curve_count * product_count;
+        model_index = result_index / curve_product_count;
+        const std::size_t remainder = result_index % curve_product_count;
+        curve_index = remainder / product_count;
+        product_index = remainder % product_count;
     }
+
+    const PreparedRow row = prepare_row(
+        models[model_index], curves[curve_index], products[product_index]
+    );
+    prices[result_index] = evaluate_price(row);
 }
 
 // Compose the common checks required by this analytical launcher.
@@ -134,6 +124,16 @@ void validate_hull_white_nelson_siegel_caplet_launch(
     validate_cuda_block_size(threads_per_block);
     validate_block_count(launch_result_count, block_count);
     validate_grid_x_size(block_count);
+    const std::size_t thread_count = checked_workspace_product(
+        block_count,
+        static_cast<std::size_t>(threads_per_block),
+        "The Hull-White caplet thread count exceeds size_t."
+    );
+    if (thread_count < launch_result_count) {
+        throw std::invalid_argument(
+            "The Hull-White caplet launch requires one thread per price."
+        );
+    }
 }
 
 }  // namespace
@@ -187,4 +187,4 @@ void launch_hull_white_nelson_siegel_caplet_cuda(
     check_cuda(cudaGetLastError(), "Hull-White caplet kernel");
 }
 
-}  // namespace ai_factory::workbench::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel

@@ -14,11 +14,10 @@
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 namespace {
 
-// Model and contract constants consumed by one pricing thread.
+// Prepared identity: caplet price = bond_option_scale * ZCB put price.
 struct PreparedRow {
     OrnsteinUhlenbeckModelParameters model;
-    OrnsteinUhlenbeckState initial_state;
-    float notional_times_strike_factor;
+    float bond_option_scale;
     float bond_strike;
     float fixing_time;
     float payment_time;
@@ -34,7 +33,6 @@ __device__ __forceinline__ PreparedRow prepare_row(
     );
     return {
         model,
-        {model.initial_factor, 0.0f},
         product.notional * strike_factor,
         1.0f / strike_factor,
         product.fixing_time,
@@ -44,9 +42,9 @@ __device__ __forceinline__ PreparedRow prepare_row(
 
 // Apply the caplet-to-zero-coupon-put identity at time zero.
 __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
-    return row.notional_times_strike_factor * zero_coupon_bond_put_price(
+    return row.bond_option_scale * zero_coupon_bond_put_price(
         row.model,
-        row.initial_state,
+        row.model.initial_state,
         0.0f,
         row.fixing_time,
         row.payment_time,
@@ -54,7 +52,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
     );
 }
 
-// Price independent rows with a coalesced grid-stride traversal.
+// Price one independent row per CUDA thread with coalesced array access.
 __global__ void ornstein_uhlenbeck_caplet_kernel(
     const OrnsteinUhlenbeckModelParameters* __restrict__ models,
     const product::CapletParameters* __restrict__ products,
@@ -64,26 +62,21 @@ __global__ void ornstein_uhlenbeck_caplet_kernel(
     std::size_t launch_result_count,
     float* __restrict__ prices
 ) {
-    const std::size_t first_launch_index =
+    const std::size_t launch_index =
         static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    const std::size_t launch_stride =
-        static_cast<std::size_t>(gridDim.x) * blockDim.x;
+    if (launch_index >= launch_result_count) return;
 
-    for (std::size_t launch_index = first_launch_index;
-         launch_index < launch_result_count;
-         launch_index += launch_stride) {
-        const std::size_t result_index = result_offset + launch_index;
-        const std::size_t model_index = cartesian_product
-            ? result_index / product_count
-            : result_index;
-        const std::size_t product_index = cartesian_product
-            ? result_index % product_count
-            : result_index;
-        const PreparedRow row = prepare_row(
-            models[model_index], products[product_index]
-        );
-        prices[result_index] = evaluate_price(row);
-    }
+    const std::size_t result_index = result_offset + launch_index;
+    const std::size_t model_index = cartesian_product
+        ? result_index / product_count
+        : result_index;
+    const std::size_t product_index = cartesian_product
+        ? result_index % product_count
+        : result_index;
+    const PreparedRow row = prepare_row(
+        models[model_index], products[product_index]
+    );
+    prices[result_index] = evaluate_price(row);
 }
 
 // Compose the common checks required by this analytical launcher.
@@ -116,6 +109,16 @@ void validate_ornstein_uhlenbeck_caplet_launch(
     validate_cuda_block_size(threads_per_block);
     validate_block_count(launch_result_count, block_count);
     validate_grid_x_size(block_count);
+    const std::size_t thread_count = checked_workspace_product(
+        block_count,
+        static_cast<std::size_t>(threads_per_block),
+        "The Ornstein-Uhlenbeck caplet thread count exceeds size_t."
+    );
+    if (thread_count < launch_result_count) {
+        throw std::invalid_argument(
+            "The Ornstein-Uhlenbeck caplet launch requires one thread per price."
+        );
+    }
 }
 
 }  // namespace
