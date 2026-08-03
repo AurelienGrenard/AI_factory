@@ -40,6 +40,18 @@ struct HestonMeanPathResult {
     float arithmetic_mean;
 };
 
+// Terminal state and geometric mean observed from time zero to maturity.
+struct HestonGeometricMeanPathResult {
+    HestonState terminal_state;
+    float geometric_mean;
+};
+
+// Path states observed at two requested times without global-memory storage.
+struct HestonTwoTimePathResult {
+    HestonState first_state;
+    HestonState terminal_state;
+};
+
 // Terminal state and maximum spot observed from time zero to maturity.
 struct HestonMaximumPathResult {
     HestonState terminal_state;
@@ -81,6 +93,25 @@ __device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
     philox::PhiloxKey key,
     std::size_t path,
     std::size_t num_steps
+);
+
+// Simulate one path and average its log-spots before one final exponential.
+__device__ __forceinline__ HestonGeometricMeanPathResult
+simulate_geometric_mean_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+);
+
+// Simulate two consecutive intervals and return both boundary states.
+__device__ __forceinline__ HestonTwoTimePathResult simulate_at_two_times(
+    const HestonQeParameters& first_model,
+    const HestonQeParameters& second_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t first_num_steps,
+    std::size_t second_num_steps
 );
 
 // Simulate one path and return its maximum monitored spot.

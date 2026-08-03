@@ -76,3 +76,29 @@ def nelson_siegel_discount(
         loading - math.exp(-scaled_time)
     )
     return math.exp(-maturity * zero_rate)
+
+
+def svensson_discount(
+    parameters: Mapping[str, Any], maturity: float
+) -> float:
+    """Evaluate the workbench Svensson discount factor in FP64."""
+
+    context = "Svensson curve"
+    beta0 = finite_number(parameters, "beta0", context)
+    beta1 = finite_number(parameters, "beta1", context)
+    beta2 = finite_number(parameters, "beta2", context)
+    beta3 = finite_number(parameters, "beta3", context)
+    tau1 = positive_number(parameters, "tau1", context)
+    tau2 = positive_number(parameters, "tau2", context)
+    if tau2 <= tau1:
+        raise ValueError(f"{context}: tau2 must exceed tau1.")
+    if maturity == 0.0:
+        return 1.0
+    scaled_time1 = maturity / tau1
+    scaled_time2 = maturity / tau2
+    loading1 = -math.expm1(-scaled_time1) / scaled_time1
+    loading2 = -math.expm1(-scaled_time2) / scaled_time2
+    zero_rate = beta0 + beta1 * loading1 + beta2 * (
+        loading1 - math.exp(-scaled_time1)
+    ) + beta3 * (loading2 - math.exp(-scaled_time2))
+    return math.exp(-maturity * zero_rate)

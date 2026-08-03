@@ -1,0 +1,28 @@
+title: "Gap Calls parameter dataset gap_calls_01"
+database_id: "gap_calls_01"
+product_family: "Gap Calls"
+catalog: "catalog/product/equity/gap_calls/gap_calls_01"
+url: "https://datasets.ai-factory.example/v1/product/gap_calls/gap_calls_01.json"
+row_count: 1000
+parameters:
+  trigger_strike: "Strike that activates the terminal payoff."
+  payoff_strike: "Strike subtracted from the terminal spot."
+  maturity: "Maturity in years."
+payoff:
+  expression: "(S_T - payoff_strike) * 1{S_T > trigger_strike}"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    trigger_strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2
+  payoff_strike:
+    rule: "trigger_strike * exp(-0.05 * sqrt(T / 3))"

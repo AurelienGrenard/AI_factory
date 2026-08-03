@@ -1,0 +1,27 @@
+title: "Up No-Touches parameter dataset up_no_touches_01"
+database_id: "up_no_touches_01"
+product_family: "Up No-Touches"
+catalog: "catalog/product/equity/up_no_touches/up_no_touches_01"
+url: "https://datasets.ai-factory.example/v1/product/up_no_touches/up_no_touches_01.json"
+row_count: 1000
+parameters:
+  barrier: "Upper no-touch level in normalized spot units."
+  cash_payoff: "Cash amount paid at maturity without a touch."
+  maturity: "Maturity in years."
+payoff:
+  expression: "cash_payoff if max(S_[0,T]) < barrier; otherwise 0"
+  payment_time: "maturity"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, the upper barrier is linearly spaced in log-space."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    barrier:
+      count_per_maturity: 20
+      spacing: "linear in log-barrier"
+      conditional_bounds: "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"
+  cash_payoff: 1.0

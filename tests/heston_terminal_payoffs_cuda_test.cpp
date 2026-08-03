@@ -1,0 +1,348 @@
+// Exercise Heston terminal-payoff launchers and exact pathwise identities.
+#include "common/check_cuda.cuh"
+#include "model/heston/asian_put.cuh"
+#include "model/heston/asset_or_nothing_call.cuh"
+#include "model/heston/asset_or_nothing_put.cuh"
+#include "model/heston/digital_call.cuh"
+#include "model/heston/digital_put.cuh"
+#include "model/heston/double_knock_out_call.cuh"
+#include "model/heston/double_knock_out_put.cuh"
+#include "model/heston/down_and_in_put.cuh"
+#include "model/heston/down_and_out_put.cuh"
+#include "model/heston/european_call.cuh"
+#include "model/heston/european_put.cuh"
+#include "model/heston/gap_call.cuh"
+#include "model/heston/gap_put.cuh"
+#include "model/heston/forward_start_call.cuh"
+#include "model/heston/forward_start_put.cuh"
+#include "model/heston/geometric_asian_call.cuh"
+#include "model/heston/geometric_asian_put.cuh"
+#include "model/heston/straddle.cuh"
+#include "model/heston/up_and_in_call.cuh"
+#include "model/heston/up_no_touch.cuh"
+#include "model/heston/up_one_touch.cuh"
+#include "model/heston/up_and_out_call.cuh"
+
+#include <cuda_runtime.h>
+
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <stdexcept>
+
+namespace {
+
+constexpr std::size_t kPathsPerPrice = 16'384U;
+constexpr float kTargetDt = 1.0f / 252.0f;
+constexpr unsigned int kThreadsPerBlock = 256U;
+constexpr std::uint64_t kSeed = 900000001ULL;
+
+// Stop immediately with a readable invariant name.
+void require(bool condition, const char* message) {
+    if (!condition) throw std::runtime_error(message);
+}
+
+// Launch one product row and return its price and standard error.
+template <typename Product, typename Launcher>
+void price_one(
+    const ai_factory::workbench::heston::HestonModelParameters& model,
+    const Product& product,
+    Launcher launch,
+    float& price,
+    float& standard_error
+) {
+    using namespace ai_factory::workbench;
+
+    heston::HestonModelParameters* device_model = nullptr;
+    Product* device_product = nullptr;
+    float* device_price = nullptr;
+    float* device_standard_error = nullptr;
+    check_cuda(cudaMalloc(&device_model, sizeof(model)), "test cudaMalloc model");
+    check_cuda(cudaMalloc(&device_product, sizeof(product)), "test cudaMalloc product");
+    check_cuda(cudaMalloc(&device_price, sizeof(float)), "test cudaMalloc price");
+    check_cuda(
+        cudaMalloc(&device_standard_error, sizeof(float)),
+        "test cudaMalloc standard error"
+    );
+    check_cuda(
+        cudaMemcpy(device_model, &model, sizeof(model), cudaMemcpyHostToDevice),
+        "test cudaMemcpy model"
+    );
+    check_cuda(
+        cudaMemcpy(
+            device_product, &product, sizeof(product), cudaMemcpyHostToDevice
+        ),
+        "test cudaMemcpy product"
+    );
+
+    launch(
+        device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+        kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
+        device_price, device_standard_error
+    );
+    check_cuda(cudaDeviceSynchronize(), "test payoff kernel synchronize");
+    check_cuda(
+        cudaMemcpy(&price, device_price, sizeof(float), cudaMemcpyDeviceToHost),
+        "test cudaMemcpy price"
+    );
+    check_cuda(
+        cudaMemcpy(
+            &standard_error,
+            device_standard_error,
+            sizeof(float),
+            cudaMemcpyDeviceToHost
+        ),
+        "test cudaMemcpy standard error"
+    );
+
+    check_cuda(cudaFree(device_model), "test cudaFree model");
+    check_cuda(cudaFree(device_product), "test cudaFree product");
+    check_cuda(cudaFree(device_price), "test cudaFree price");
+    check_cuda(cudaFree(device_standard_error), "test cudaFree standard error");
+}
+
+}  // namespace
+
+// Verify all new launchers and identities using common random numbers.
+int main() {
+    using namespace ai_factory::workbench;
+
+    int device_count = 0;
+    const cudaError_t availability = cudaGetDeviceCount(&device_count);
+    if (availability == cudaErrorNoDevice
+        || availability == cudaErrorInsufficientDriver
+        || device_count == 0) {
+        return 77;
+    }
+    check_cuda(availability, "terminal-payoff test cudaGetDeviceCount");
+
+    const heston::HestonModelParameters model = {
+        1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
+    };
+    float call = 0.0f;
+    float put = 0.0f;
+    float error = 0.0f;
+    price_one(
+        model,
+        product::EuropeanCallParameters{1.0f, 1.0f},
+        heston::launch_heston_european_call_cuda,
+        call,
+        error
+    );
+    price_one(
+        model,
+        product::EuropeanPutParameters{1.0f, 1.0f},
+        heston::launch_heston_european_put_cuda,
+        put,
+        error
+    );
+
+    float straddle = 0.0f;
+    price_one(
+        model,
+        product::StraddleParameters{1.0f, 1.0f},
+        heston::launch_heston_straddle_cuda,
+        straddle,
+        error
+    );
+    require(
+        std::fabs(straddle - call - put) < 2.0e-6f,
+        "Heston straddle does not equal call plus put"
+    );
+
+    float gap_call = 0.0f;
+    float gap_put = 0.0f;
+    price_one(
+        model,
+        product::GapCallParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_gap_call_cuda,
+        gap_call,
+        error
+    );
+    price_one(
+        model,
+        product::GapPutParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_gap_put_cuda,
+        gap_put,
+        error
+    );
+    require(
+        std::fabs(gap_call - call) < 2.0e-6f
+            && std::fabs(gap_put - put) < 2.0e-6f,
+        "Zero-gap Heston options do not match vanilla prices"
+    );
+
+    float digital_call = 0.0f;
+    float digital_put = 0.0f;
+    price_one(
+        model,
+        product::DigitalCallParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_digital_call_cuda,
+        digital_call,
+        error
+    );
+    price_one(
+        model,
+        product::DigitalPutParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_digital_put_cuda,
+        digital_put,
+        error
+    );
+    require(
+        std::fabs(digital_call + digital_put - std::exp(-0.02f)) < 2.0e-6f,
+        "Digital call and put do not sum to discounted cash"
+    );
+
+    float asset_call = 0.0f;
+    float asset_put = 0.0f;
+    price_one(
+        model,
+        product::AssetOrNothingCallParameters{1.0f, 1.0f},
+        heston::launch_heston_asset_or_nothing_call_cuda,
+        asset_call,
+        error
+    );
+    price_one(
+        model,
+        product::AssetOrNothingPutParameters{1.0f, 1.0f},
+        heston::launch_heston_asset_or_nothing_put_cuda,
+        asset_put,
+        error
+    );
+
+    float asian_put = 0.0f;
+    price_one(
+        model,
+        product::AsianPutParameters{1.0f, 1.0f},
+        heston::launch_heston_asian_put_cuda,
+        asian_put,
+        error
+    );
+
+    float geometric_call = 0.0f;
+    float geometric_put = 0.0f;
+    price_one(
+        model,
+        product::GeometricAsianCallParameters{1.0f, 1.0f},
+        heston::launch_heston_geometric_asian_call_cuda,
+        geometric_call,
+        error
+    );
+    price_one(
+        model,
+        product::GeometricAsianPutParameters{1.0f, 1.0f},
+        heston::launch_heston_geometric_asian_put_cuda,
+        geometric_put,
+        error
+    );
+
+    float forward_call = 0.0f;
+    float forward_put = 0.0f;
+    price_one(
+        model,
+        product::ForwardStartCallParameters{1.0f, 0.5f, 1.0f},
+        heston::launch_heston_forward_start_call_cuda,
+        forward_call,
+        error
+    );
+    price_one(
+        model,
+        product::ForwardStartPutParameters{1.0f, 0.5f, 1.0f},
+        heston::launch_heston_forward_start_put_cuda,
+        forward_put,
+        error
+    );
+
+    float up_and_out_call = 0.0f;
+    float up_and_in_call = 0.0f;
+    float down_and_out_put = 0.0f;
+    float down_and_in_put = 0.0f;
+    float double_knock_out_call = 0.0f;
+    float double_knock_out_put = 0.0f;
+    price_one(
+        model,
+        product::UpAndOutCallParameters{1.0f, 1.2f, 1.0f},
+        heston::launch_heston_up_and_out_call_cuda,
+        up_and_out_call,
+        error
+    );
+    price_one(
+        model,
+        product::DownAndOutPutParameters{1.0f, 0.8f, 1.0f},
+        heston::launch_heston_down_and_out_put_cuda,
+        down_and_out_put,
+        error
+    );
+    price_one(
+        model,
+        product::UpAndInCallParameters{1.0f, 1.2f, 1.0f},
+        heston::launch_heston_up_and_in_call_cuda,
+        up_and_in_call,
+        error
+    );
+    price_one(
+        model,
+        product::DownAndInPutParameters{1.0f, 0.8f, 1.0f},
+        heston::launch_heston_down_and_in_put_cuda,
+        down_and_in_put,
+        error
+    );
+    price_one(
+        model,
+        product::DoubleKnockOutCallParameters{1.0f, 0.8f, 1.2f, 1.0f},
+        heston::launch_heston_double_knock_out_call_cuda,
+        double_knock_out_call,
+        error
+    );
+    price_one(
+        model,
+        product::DoubleKnockOutPutParameters{1.0f, 0.8f, 1.2f, 1.0f},
+        heston::launch_heston_double_knock_out_put_cuda,
+        double_knock_out_put,
+        error
+    );
+    require(
+        std::isfinite(asset_call) && std::isfinite(asset_put)
+            && std::isfinite(asian_put)
+            && std::isfinite(geometric_call)
+            && std::isfinite(geometric_put)
+            && std::isfinite(forward_call)
+            && std::isfinite(forward_put)
+            && error > 0.0f,
+        "Heston terminal-payoff launcher returned invalid statistics"
+    );
+    require(
+        up_and_out_call <= call && double_knock_out_call <= call
+            && down_and_out_put <= put && double_knock_out_put <= put,
+        "Heston knock-out price exceeds its vanilla price"
+    );
+    require(
+        std::fabs(up_and_in_call + up_and_out_call - call) < 3.0e-6f,
+        "Heston up-in plus up-out does not equal the vanilla call"
+    );
+    require(
+        std::fabs(down_and_in_put + down_and_out_put - put) < 3.0e-6f,
+        "Heston down-in plus down-out does not equal the vanilla put"
+    );
+
+    float up_one_touch = 0.0f;
+    float up_no_touch = 0.0f;
+    price_one(
+        model,
+        product::UpOneTouchParameters{1.2f, 1.0f, 1.0f},
+        heston::launch_heston_up_one_touch_cuda,
+        up_one_touch,
+        error
+    );
+    price_one(
+        model,
+        product::UpNoTouchParameters{1.2f, 1.0f, 1.0f},
+        heston::launch_heston_up_no_touch_cuda,
+        up_no_touch,
+        error
+    );
+    require(
+        std::fabs(up_one_touch + up_no_touch - std::exp(-0.02f)) < 3.0e-6f,
+        "Heston one-touch plus no-touch does not equal discounted cash"
+    );
+}

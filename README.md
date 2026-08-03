@@ -49,7 +49,7 @@ mathematics and data dependencies permit it.
 - YAML catalog writing.
 
 It also contains host-only construction rules tied to a dataset family, such
-as the constrained Nelson-Siegel forward-level reconstruction.
+as the constrained Nelson-Siegel and Svensson forward-level reconstructions.
 
 Every dataset must declare an HTTP(S) URL. A generator fails explicitly when
 the URL is missing or invalid.
@@ -97,6 +97,7 @@ must be replaced with the final data server URLs.
 ```text
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
+|-- curve/svensson/svensson_01.json
 |-- model/heston/heston_01.json
 |-- model/g2/g2_01.json
 |-- model/g2_plus_plus/g2_plus_plus_01.json
@@ -128,6 +129,10 @@ time `tau`. The source implementation evaluates:
 - the instantaneous forward `f(0,T)`;
 - its analytical maturity derivative.
 
+`svensson_01` exposes the same curve functions while adding `beta3` and a
+second decay scale. Its generator reconstructs four forward-rate anchors and
+rejects curves whose instantaneous forwards leave the configured range.
+
 `ornstein_uhlenbeck_01` is a standalone short-rate model with
 `r(t) = x(t)`. It samples the initial rate and mean reversion directly, then
 reconstructs volatility from a bounded stationary standard deviation. This
@@ -155,10 +160,10 @@ dx(t) = -a x(t) dt + sigma dW(t)
 ```
 
 The reusable OU layer jointly simulates the Gaussian state and its time
-integral. `src/model/hull_white/nelson_siegel` composes that process with the
-Nelson-Siegel analytics and computes `phi(t)` from `f(0,t)`, so the full model
-reproduces the supplied initial curve. Nelson-Siegel is therefore one curve
-provider, not a parameter embedded in Hull-White.
+integral. `src/model/hull_white/<curve>` composes that process with the
+selected curve analytics and computes `phi(t)` from `f(0,t)`, so the full
+model reproduces the supplied initial curve. Nelson-Siegel and Svensson are
+curve providers, not parameters embedded in Hull-White.
 
 `g2_01` is the standalone correlated two-factor Gaussian model:
 
@@ -176,10 +181,10 @@ reconstructing `sigma` and `eta`, avoiding redundant factors and unstable
 parameter combinations.
 
 `g2_plus_plus_01` stores the same curve-independent process without initial
-states. `src/model/g2_plus_plus/nelson_siegel` adds a deterministic shift
-`phi(t)` to the centered factors, exactly reproducing the supplied initial
-Nelson-Siegel curve. Its public analytical interface mirrors G2 just as the
-Hull-White interface mirrors OU.
+states. `src/model/g2_plus_plus/<curve>` adds a deterministic shift `phi(t)`
+to the centered factors, exactly reproducing the supplied initial curve. Its
+public analytical interface mirrors G2 just as the Hull-White interface
+mirrors OU.
 
 As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
@@ -309,6 +314,7 @@ Parameter datasets are quick to regenerate:
 ./build/generate_g2_01
 ./build/generate_g2_plus_plus_01
 ./build/generate_nelson_siegel_01
+./build/generate_svensson_01
 ./build/generate_hull_white_01
 ./build/generate_ornstein_uhlenbeck_01
 ./build/generate_vasicek_01
@@ -334,6 +340,10 @@ Price datasets follow the same workflow:
 ./build/generate_g2_plus_plus_nelson_siegel_floorlets_01
 ./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
 ./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
+./build/generate_g2_plus_plus_svensson_caplets_01
+./build/generate_g2_plus_plus_svensson_floorlets_01
+./build/generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
+./build/generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
 ./build/generate_ornstein_uhlenbeck_caplets_01
 ./build/generate_ornstein_uhlenbeck_floorlets_01
 ./build/generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
@@ -346,6 +356,10 @@ Price datasets follow the same workflow:
 ./build/generate_hull_white_nelson_siegel_floorlets_01
 ./build/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
 ./build/generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
+./build/generate_hull_white_svensson_caplets_01
+./build/generate_hull_white_svensson_floorlets_01
+./build/generate_hull_white_svensson_zero_coupon_bond_calls_01
+./build/generate_hull_white_svensson_zero_coupon_bond_puts_01
 ```
 
 The Cartesian product containing one million prices is intentionally separate:
@@ -363,14 +377,15 @@ ctest --test-dir build --output-on-failure
 `dataset_catalog` validates two- and three-input constructions and mandatory
 catalog fields. CUDA tests cover reusable OU, Vasicek, G2, Hull-White, and G2++
 analytics; caplets, floorlets, and zero-coupon options; the uniform Heston path
-products; and the American-put pipeline. They use small in-memory fixtures and
-skip automatically without a CUDA GPU.
+products, including path averages, forward starts, and barriers; and both
+American-option pipelines. They use small in-memory fixtures and skip
+automatically without a CUDA GPU.
 
 When the QuantLib Python binding is installed, CTest also validates every
 analytical fixed-income dataset and the Heston European-call dataset against an
 independent implementation. The shared validator reports row errors, combined
-Monte-Carlo uncertainty, directional counts, and systematic bias. Slow Asian
-and American references are available with:
+Monte-Carlo uncertainty, directional counts, and systematic bias. Slower
+Asian, forward-start, barrier, and American references are available with:
 
 ```bash
 cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON

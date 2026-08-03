@@ -244,6 +244,71 @@ __device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
     };
 }
 
+// Average log-spots in FP64 and exponentiate only the completed mean.
+__device__ __forceinline__ HestonGeometricMeanPathResult
+simulate_geometric_mean_state(
+    const HestonQeParameters& model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t num_steps
+) {
+    HestonState state = initial_state(model);
+    const std::uint64_t uniform_count =
+        kUniformsPerStep * static_cast<std::uint64_t>(num_steps);
+    const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
+    const std::uint64_t first_group =
+        static_cast<std::uint64_t>(path) * groups_per_path;
+    philox::UniformSequence uniforms(key, first_group);
+    double log_spot_sum = static_cast<double>(state.log_spot);
+
+    for (std::size_t step_index = 0U;
+         step_index < num_steps;
+         ++step_index) {
+        simulate_one_step(model, uniforms, state);
+        log_spot_sum += static_cast<double>(state.log_spot);
+    }
+
+    const double observation_count = static_cast<double>(num_steps) + 1.0;
+    return {
+        state,
+        expf(static_cast<float>(log_spot_sum / observation_count)),
+    };
+}
+
+// Reuse one Philox sequence across two exact QE-M interval preparations.
+__device__ __forceinline__ HestonTwoTimePathResult simulate_at_two_times(
+    const HestonQeParameters& first_model,
+    const HestonQeParameters& second_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t first_num_steps,
+    std::size_t second_num_steps
+) {
+    HestonState state = initial_state(first_model);
+    const std::uint64_t total_steps =
+        static_cast<std::uint64_t>(first_num_steps)
+        + static_cast<std::uint64_t>(second_num_steps);
+    const std::uint64_t uniform_count = kUniformsPerStep * total_steps;
+    const std::uint64_t groups_per_path = (uniform_count + 3ULL) >> 2U;
+    const std::uint64_t first_group =
+        static_cast<std::uint64_t>(path) * groups_per_path;
+    philox::UniformSequence uniforms(key, first_group);
+
+    for (std::size_t step_index = 0U;
+         step_index < first_num_steps;
+         ++step_index) {
+        simulate_one_step(first_model, uniforms, state);
+    }
+    const HestonState first_state = state;
+
+    for (std::size_t step_index = 0U;
+         step_index < second_num_steps;
+         ++step_index) {
+        simulate_one_step(second_model, uniforms, state);
+    }
+    return {first_state, state};
+}
+
 // Track the maximum spot at time zero and after every simulated transition.
 __device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
     const HestonQeParameters& model,

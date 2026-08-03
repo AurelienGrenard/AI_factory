@@ -42,6 +42,7 @@ add_library(ai_factory_dataset_tools STATIC
     tools/datasets/g2_generation.cpp
     tools/datasets/nelson_siegel_generation.cpp
     tools/datasets/ornstein_uhlenbeck_generation.cpp
+    tools/datasets/svensson_generation.cpp
     tools/datasets/vasicek_generation.cpp
     tools/datasets/dataset_validation.cpp
 )
@@ -56,6 +57,7 @@ target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
     src/curve/nelson_siegel/dataset.cpp
+    src/curve/svensson/dataset.cpp
     src/model/g2/dataset.cpp
     src/model/g2/caplet.cu
     src/model/g2/floorlet.cu
@@ -66,16 +68,46 @@ add_library(cuda_workbench STATIC
     src/model/g2_plus_plus/nelson_siegel/floorlet.cu
     src/model/g2_plus_plus/nelson_siegel/zero_coupon_bond_call.cu
     src/model/g2_plus_plus/nelson_siegel/zero_coupon_bond_put.cu
+    src/model/g2_plus_plus/svensson/caplet.cu
+    src/model/g2_plus_plus/svensson/floorlet.cu
+    src/model/g2_plus_plus/svensson/zero_coupon_bond_call.cu
+    src/model/g2_plus_plus/svensson/zero_coupon_bond_put.cu
     src/model/heston/dataset.cpp
+    src/model/heston/american_call.cu
     src/model/heston/american_put.cu
     src/model/heston/asian_call.cu
+    src/model/heston/asian_put.cu
+    src/model/heston/asset_or_nothing_call.cu
+    src/model/heston/asset_or_nothing_put.cu
+    src/model/heston/digital_call.cu
+    src/model/heston/digital_put.cu
+    src/model/heston/double_knock_out_call.cu
+    src/model/heston/double_knock_out_put.cu
+    src/model/heston/down_and_in_put.cu
+    src/model/heston/down_and_out_put.cu
     src/model/heston/european_call.cu
+    src/model/heston/european_put.cu
+    src/model/heston/gap_call.cu
+    src/model/heston/gap_put.cu
+    src/model/heston/forward_start_call.cu
+    src/model/heston/forward_start_put.cu
+    src/model/heston/geometric_asian_call.cu
+    src/model/heston/geometric_asian_put.cu
     src/model/heston/lookback_option.cu
+    src/model/heston/straddle.cu
+    src/model/heston/up_and_in_call.cu
+    src/model/heston/up_no_touch.cu
+    src/model/heston/up_one_touch.cu
+    src/model/heston/up_and_out_call.cu
     src/model/hull_white/dataset.cpp
     src/model/hull_white/nelson_siegel/caplet.cu
     src/model/hull_white/nelson_siegel/floorlet.cu
     src/model/hull_white/nelson_siegel/zero_coupon_bond_call.cu
     src/model/hull_white/nelson_siegel/zero_coupon_bond_put.cu
+    src/model/hull_white/svensson/caplet.cu
+    src/model/hull_white/svensson/floorlet.cu
+    src/model/hull_white/svensson/zero_coupon_bond_call.cu
+    src/model/hull_white/svensson/zero_coupon_bond_put.cu
     src/model/ornstein_uhlenbeck/caplet.cu
     src/model/ornstein_uhlenbeck/floorlet.cu
     src/model/ornstein_uhlenbeck/zero_coupon_bond_call.cu
@@ -86,12 +118,34 @@ add_library(cuda_workbench STATIC
     src/model/vasicek/zero_coupon_bond_call.cu
     src/model/vasicek/zero_coupon_bond_put.cu
     src/model/vasicek/dataset.cpp
+    src/product/american_call/dataset.cpp
     src/product/american_put/dataset.cpp
     src/product/asian_call/dataset.cpp
+    src/product/asian_put/dataset.cpp
+    src/product/asset_or_nothing_call/dataset.cpp
+    src/product/asset_or_nothing_put/dataset.cpp
     src/product/caplet/dataset.cpp
+    src/product/digital_call/dataset.cpp
+    src/product/digital_put/dataset.cpp
+    src/product/double_knock_out_call/dataset.cpp
+    src/product/double_knock_out_put/dataset.cpp
+    src/product/down_and_in_put/dataset.cpp
+    src/product/down_and_out_put/dataset.cpp
     src/product/european_call/dataset.cpp
+    src/product/european_put/dataset.cpp
     src/product/floorlet/dataset.cpp
+    src/product/gap_call/dataset.cpp
+    src/product/gap_put/dataset.cpp
+    src/product/forward_start_call/dataset.cpp
+    src/product/forward_start_put/dataset.cpp
+    src/product/geometric_asian_call/dataset.cpp
+    src/product/geometric_asian_put/dataset.cpp
     src/product/lookback_option/dataset.cpp
+    src/product/straddle/dataset.cpp
+    src/product/up_and_in_call/dataset.cpp
+    src/product/up_no_touch/dataset.cpp
+    src/product/up_one_touch/dataset.cpp
+    src/product/up_and_out_call/dataset.cpp
     src/product/zero_coupon_bond_call/dataset.cpp
     src/product/zero_coupon_bond_put/dataset.cpp
 )
@@ -138,6 +192,42 @@ add_price_generator(
     catalog/price/heston/european_calls/heston_01__european_calls_01__01/generator.cpp
 )
 add_price_generator(
+    generate_heston_european_puts_01
+    catalog/price/heston/european_puts/heston_01__european_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_asian_puts_01
+    catalog/price/heston/asian_puts/heston_01__asian_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_digital_calls_01
+    catalog/price/heston/digital_calls/heston_01__digital_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_digital_puts_01
+    catalog/price/heston/digital_puts/heston_01__digital_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_asset_or_nothing_calls_01
+    catalog/price/heston/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_asset_or_nothing_puts_01
+    catalog/price/heston/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_gap_calls_01
+    catalog/price/heston/gap_calls/heston_01__gap_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_gap_puts_01
+    catalog/price/heston/gap_puts/heston_01__gap_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_straddles_01
+    catalog/price/heston/straddles/heston_01__straddles_01__01/generator.cpp
+)
+add_price_generator(
     generate_g2_caplets_01
     catalog/price/g2/caplets/g2_01__caplets_01__01/generator.cpp
 )
@@ -170,6 +260,22 @@ add_price_generator(
     catalog/price/g2_plus_plus/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
+    generate_g2_plus_plus_svensson_caplets_01
+    catalog/price/g2_plus_plus/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_g2_plus_plus_svensson_floorlets_01
+    catalog/price/g2_plus_plus/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
+    catalog/price/g2_plus_plus/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
+    catalog/price/g2_plus_plus/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+)
+add_price_generator(
     generate_heston_european_calls_02
     catalog/price/heston/european_calls/heston_01__european_calls_01__02/generator.cpp
 )
@@ -186,6 +292,58 @@ add_price_generator(
     catalog/price/heston/american_puts/heston_01__american_puts_01__01/generator.cpp
 )
 add_price_generator(
+    generate_heston_geometric_asian_calls_01
+    catalog/price/heston/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_geometric_asian_puts_01
+    catalog/price/heston/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_forward_start_calls_01
+    catalog/price/heston/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_forward_start_puts_01
+    catalog/price/heston/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_up_and_out_calls_01
+    catalog/price/heston/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_down_and_out_puts_01
+    catalog/price/heston/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_up_and_in_calls_01
+    catalog/price/heston/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_down_and_in_puts_01
+    catalog/price/heston/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_up_one_touches_01
+    catalog/price/heston/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_up_no_touches_01
+    catalog/price/heston/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_double_knock_out_calls_01
+    catalog/price/heston/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_double_knock_out_puts_01
+    catalog/price/heston/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_american_calls_01
+    catalog/price/heston/american_calls/heston_01__american_calls_01__01/generator.cpp
+)
+add_price_generator(
     generate_hull_white_nelson_siegel_caplets_01
     catalog/price/hull_white/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
 )
@@ -200,6 +358,22 @@ add_price_generator(
 add_price_generator(
     generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
     catalog/price/hull_white/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_caplets_01
+    catalog/price/hull_white/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_floorlets_01
+    catalog/price/hull_white/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_zero_coupon_bond_calls_01
+    catalog/price/hull_white/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_zero_coupon_bond_puts_01
+    catalog/price/hull_white/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_ornstein_uhlenbeck_caplets_01
@@ -260,12 +434,52 @@ add_parameter_generator(
     catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
 )
 add_parameter_generator(
+    generate_svensson_01
+    catalog/curve/svensson/svensson_01/generator.cpp
+)
+add_parameter_generator(
     generate_european_calls_01
     catalog/product/equity/european_calls/european_calls_01/generator.cpp
 )
 add_parameter_generator(
+    generate_european_puts_01
+    catalog/product/equity/european_puts/european_puts_01/generator.cpp
+)
+add_parameter_generator(
     generate_asian_calls_01
     catalog/product/equity/asian_calls/asian_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_asian_puts_01
+    catalog/product/equity/asian_puts/asian_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_digital_calls_01
+    catalog/product/equity/digital_calls/digital_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_digital_puts_01
+    catalog/product/equity/digital_puts/digital_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_asset_or_nothing_calls_01
+    catalog/product/equity/asset_or_nothing_calls/asset_or_nothing_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_asset_or_nothing_puts_01
+    catalog/product/equity/asset_or_nothing_puts/asset_or_nothing_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_gap_calls_01
+    catalog/product/equity/gap_calls/gap_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_gap_puts_01
+    catalog/product/equity/gap_puts/gap_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_straddles_01
+    catalog/product/equity/straddles/straddles_01/generator.cpp
 )
 add_parameter_generator(
     generate_lookback_options_01
@@ -274,6 +488,58 @@ add_parameter_generator(
 add_parameter_generator(
     generate_american_puts_01
     catalog/product/equity/american_puts/american_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_geometric_asian_calls_01
+    catalog/product/equity/geometric_asian_calls/geometric_asian_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_geometric_asian_puts_01
+    catalog/product/equity/geometric_asian_puts/geometric_asian_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_forward_start_calls_01
+    catalog/product/equity/forward_start_calls/forward_start_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_forward_start_puts_01
+    catalog/product/equity/forward_start_puts/forward_start_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_and_out_calls_01
+    catalog/product/equity/up_and_out_calls/up_and_out_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_down_and_out_puts_01
+    catalog/product/equity/down_and_out_puts/down_and_out_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_and_in_calls_01
+    catalog/product/equity/up_and_in_calls/up_and_in_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_down_and_in_puts_01
+    catalog/product/equity/down_and_in_puts/down_and_in_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_one_touches_01
+    catalog/product/equity/up_one_touches/up_one_touches_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_no_touches_01
+    catalog/product/equity/up_no_touches/up_no_touches_01/generator.cpp
+)
+add_parameter_generator(
+    generate_double_knock_out_calls_01
+    catalog/product/equity/double_knock_out_calls/double_knock_out_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_double_knock_out_puts_01
+    catalog/product/equity/double_knock_out_puts/double_knock_out_puts_01/generator.cpp
+)
+add_parameter_generator(
+    generate_american_calls_01
+    catalog/product/equity/american_calls/american_calls_01/generator.cpp
 )
 add_parameter_generator(
     generate_caplets_01
@@ -405,6 +671,12 @@ if(BUILD_TESTING)
                         hull_white
                     )
                     add_quantlib_validation_test(
+                        hull_white_svensson_${product}
+                        validation.quantlib.model.hull_white.svensson.${product}
+                        datasets/price/hull_white/svensson/${product_folder}/hull_white_01__svensson_01__${product_folder}_01__01.json
+                        hull_white
+                    )
+                    add_quantlib_validation_test(
                         g2_${product}
                         validation.quantlib.model.g2.${product}
                         datasets/price/g2/${product_folder}/g2_01__${product_folder}_01__01.json
@@ -416,6 +688,12 @@ if(BUILD_TESTING)
                         datasets/price/g2_plus_plus/nelson_siegel/${product_folder}/g2_plus_plus_01__nelson_siegel_01__${product_folder}_01__01.json
                         g2_plus_plus
                     )
+                    add_quantlib_validation_test(
+                        g2_plus_plus_svensson_${product}
+                        validation.quantlib.model.g2_plus_plus.svensson.${product}
+                        datasets/price/g2_plus_plus/svensson/${product_folder}/g2_plus_plus_01__svensson_01__${product_folder}_01__01.json
+                        g2_plus_plus
+                    )
                 endforeach()
 
                 add_quantlib_validation_test(
@@ -424,7 +702,67 @@ if(BUILD_TESTING)
                     datasets/price/heston/european_calls/heston_01__european_calls_01__01.json
                     heston
                 )
+                add_quantlib_validation_test(
+                    heston_european_put
+                    validation.quantlib.model.heston.european_put
+                    datasets/price/heston/european_puts/heston_01__european_puts_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_straddle
+                    validation.quantlib.model.heston.straddle
+                    datasets/price/heston/straddles/heston_01__straddles_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_digital_call
+                    validation.quantlib.model.heston.digital_call
+                    datasets/price/heston/digital_calls/heston_01__digital_calls_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_digital_put
+                    validation.quantlib.model.heston.digital_put
+                    datasets/price/heston/digital_puts/heston_01__digital_puts_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_asset_or_nothing_call
+                    validation.quantlib.model.heston.asset_or_nothing_call
+                    datasets/price/heston/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_asset_or_nothing_put
+                    validation.quantlib.model.heston.asset_or_nothing_put
+                    datasets/price/heston/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_gap_call
+                    validation.quantlib.model.heston.gap_call
+                    datasets/price/heston/gap_calls/heston_01__gap_calls_01__01.json
+                    heston
+                )
+                add_quantlib_validation_test(
+                    heston_gap_put
+                    validation.quantlib.model.heston.gap_put
+                    datasets/price/heston/gap_puts/heston_01__gap_puts_01__01.json
+                    heston
+                )
                 if(AI_FACTORY_QUANTLIB_EXOTIC_VALIDATION)
+                    add_quantlib_validation_test(
+                        heston_geometric_asian_call
+                        validation.quantlib.model.heston.geometric_asian_call
+                        datasets/price/heston/geometric_asian_calls/heston_01__geometric_asian_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_geometric_asian_put
+                        validation.quantlib.model.heston.geometric_asian_put
+                        datasets/price/heston/geometric_asian_puts/heston_01__geometric_asian_puts_01__01.json
+                        heston
+                    )
                     add_quantlib_validation_test(
                         heston_asian_call
                         validation.quantlib.model.heston.asian_call
@@ -435,6 +773,78 @@ if(BUILD_TESTING)
                         heston_american_put
                         validation.quantlib.model.heston.american_put
                         datasets/price/heston/american_puts/heston_01__american_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_asian_put
+                        validation.quantlib.model.heston.asian_put
+                        datasets/price/heston/asian_puts/heston_01__asian_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_up_and_out_call
+                        validation.quantlib.model.heston.up_and_out_call
+                        datasets/price/heston/up_and_out_calls/heston_01__up_and_out_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_down_and_out_put
+                        validation.quantlib.model.heston.down_and_out_put
+                        datasets/price/heston/down_and_out_puts/heston_01__down_and_out_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_up_and_in_call
+                        validation.quantlib.model.heston.up_and_in_call
+                        datasets/price/heston/up_and_in_calls/heston_01__up_and_in_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_down_and_in_put
+                        validation.quantlib.model.heston.down_and_in_put
+                        datasets/price/heston/down_and_in_puts/heston_01__down_and_in_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_up_one_touch
+                        validation.quantlib.model.heston.up_one_touch
+                        datasets/price/heston/up_one_touches/heston_01__up_one_touches_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_up_no_touch
+                        validation.quantlib.model.heston.up_no_touch
+                        datasets/price/heston/up_no_touches/heston_01__up_no_touches_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_double_knock_out_call
+                        validation.quantlib.model.heston.double_knock_out_call
+                        datasets/price/heston/double_knock_out_calls/heston_01__double_knock_out_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_double_knock_out_put
+                        validation.quantlib.model.heston.double_knock_out_put
+                        datasets/price/heston/double_knock_out_puts/heston_01__double_knock_out_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_american_call
+                        validation.quantlib.model.heston.american_call
+                        datasets/price/heston/american_calls/heston_01__american_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_forward_start_call
+                        validation.quantlib.model.heston.forward_start_call
+                        datasets/price/heston/forward_start_calls/heston_01__forward_start_calls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_forward_start_put
+                        validation.quantlib.model.heston.forward_start_put
+                        datasets/price/heston/forward_start_puts/heston_01__forward_start_puts_01__01.json
                         heston
                     )
                 endif()
@@ -497,6 +907,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        g2_plus_plus_svensson_caplet_cuda
+        tests/g2_plus_plus_svensson_caplet_cuda_test.cpp
+        caplet
+        30
+    )
+    add_cuda_workbench_test(
         g2_plus_plus_rate_options_cuda
         tests/g2_plus_plus_rate_options_cuda_test.cu
         rate_options
@@ -505,6 +921,12 @@ if(BUILD_TESTING)
     add_cuda_workbench_test(
         hull_white_caplet_cuda
         tests/hull_white_caplet_cuda_test.cpp
+        caplet
+        30
+    )
+    add_cuda_workbench_test(
+        hull_white_svensson_caplet_cuda
+        tests/hull_white_svensson_caplet_cuda_test.cpp
         caplet
         30
     )
@@ -551,9 +973,21 @@ if(BUILD_TESTING)
         60
     )
     add_cuda_workbench_test(
+        heston_terminal_payoffs_cuda
+        tests/heston_terminal_payoffs_cuda_test.cpp
+        heston_products
+        60
+    )
+    add_cuda_workbench_test(
         heston_american_put_cuda
         tests/heston_american_put_cuda_test.cpp
         american_put
+        120
+    )
+    add_cuda_workbench_test(
+        heston_american_call_cuda
+        tests/heston_american_call_cuda_test.cpp
+        american_call
         120
     )
 

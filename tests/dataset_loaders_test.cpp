@@ -1,5 +1,6 @@
 // Exercise JSON loader invariants and generated-artifact validation.
 #include "curve/nelson_siegel/dataset.hpp"
+#include "curve/svensson/dataset.hpp"
 #include "model/g2/dataset.hpp"
 #include "model/g2_plus_plus/dataset.hpp"
 #include "model/heston/dataset.hpp"
@@ -7,11 +8,33 @@
 #include "model/ornstein_uhlenbeck/dataset.hpp"
 #include "model/vasicek/dataset.hpp"
 #include "product/american_put/dataset.hpp"
+#include "product/american_call/dataset.hpp"
 #include "product/asian_call/dataset.hpp"
+#include "product/asian_put/dataset.hpp"
+#include "product/asset_or_nothing_call/dataset.hpp"
+#include "product/asset_or_nothing_put/dataset.hpp"
 #include "product/caplet/dataset.hpp"
+#include "product/digital_call/dataset.hpp"
+#include "product/digital_put/dataset.hpp"
 #include "product/european_call/dataset.hpp"
+#include "product/european_put/dataset.hpp"
 #include "product/floorlet/dataset.hpp"
+#include "product/forward_start_call/dataset.hpp"
+#include "product/forward_start_put/dataset.hpp"
+#include "product/gap_call/dataset.hpp"
+#include "product/gap_put/dataset.hpp"
+#include "product/geometric_asian_call/dataset.hpp"
+#include "product/geometric_asian_put/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
+#include "product/double_knock_out_call/dataset.hpp"
+#include "product/double_knock_out_put/dataset.hpp"
+#include "product/down_and_in_put/dataset.hpp"
+#include "product/down_and_out_put/dataset.hpp"
+#include "product/straddle/dataset.hpp"
+#include "product/up_and_in_call/dataset.hpp"
+#include "product/up_no_touch/dataset.hpp"
+#include "product/up_one_touch/dataset.hpp"
+#include "product/up_and_out_call/dataset.hpp"
 #include "product/zero_coupon_bond_call/dataset.hpp"
 #include "product/zero_coupon_bond_put/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
@@ -128,6 +151,7 @@ nlohmann::json one_row(
 // Validate every model, curve, and product loader without generating datasets.
 int main() {
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
+    namespace svensson = ai_factory::workbench::curve::svensson;
     namespace g2 = ai_factory::workbench::model::g2;
     namespace g2_plus_plus = ai_factory::workbench::model::g2_plus_plus;
     namespace heston = ai_factory::workbench::heston;
@@ -238,14 +262,180 @@ int main() {
         curve::load_curves
     );
     check_loader(
+        "Svensson", "curves", "tau2", 1.0f, "tau2",
+        one_row("curves", {
+            {"beta0", 0.03f},
+            {"beta1", -0.01f},
+            {"beta2", 0.02f},
+            {"beta3", -0.01f},
+            {"tau1", 2.0f},
+            {"tau2", 7.0f},
+        }),
+        svensson::load_curves
+    );
+    check_loader(
         "European call", "products", "strike", 0.0f, "strike",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
         product::load_european_calls
     );
     check_loader(
+        "European put", "products", "strike", 0.0f, "strike",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        product::load_european_puts
+    );
+    check_loader(
         "Asian call", "products", "maturity", 0.0f, "maturity",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
         product::load_asian_calls
+    );
+    check_loader(
+        "Asian put", "products", "maturity", 0.0f, "maturity",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        product::load_asian_puts
+    );
+    check_loader(
+        "Geometric Asian call", "products", "strike", 0.0f, "strike",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        product::load_geometric_asian_calls
+    );
+    check_loader(
+        "Geometric Asian put", "products", "maturity", 0.0f, "maturity",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        product::load_geometric_asian_puts
+    );
+    check_loader(
+        "Forward-start call", "products", "reset_time", 1.0f,
+        "must precede",
+        one_row("products", {
+            {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
+        }),
+        product::load_forward_start_calls
+    );
+    check_loader(
+        "Forward-start put", "products", "moneyness", 0.0f, "moneyness",
+        one_row("products", {
+            {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
+        }),
+        product::load_forward_start_puts
+    );
+    check_loader(
+        "Up-and-out call", "products", "barrier", 0.9f, "exceed strike",
+        one_row("products", {
+            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
+        }),
+        product::load_up_and_out_calls
+    );
+    check_loader(
+        "Down-and-out put", "products", "barrier", 1.1f, "below strike",
+        one_row("products", {
+            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
+        }),
+        product::load_down_and_out_puts
+    );
+    check_loader(
+        "Up-and-in call", "products", "barrier", 0.9f, "exceed strike",
+        one_row("products", {
+            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
+        }),
+        product::load_up_and_in_calls
+    );
+    check_loader(
+        "Down-and-in put", "products", "barrier", 1.1f, "below strike",
+        one_row("products", {
+            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
+        }),
+        product::load_down_and_in_puts
+    );
+    check_loader(
+        "Up one-touch", "products", "cash_payoff", 0.0f, "cash_payoff",
+        one_row("products", {
+            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 1.0f},
+        }),
+        product::load_up_one_touches
+    );
+    check_loader(
+        "Up no-touch", "products", "barrier", 0.0f, "barrier",
+        one_row("products", {
+            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 1.0f},
+        }),
+        product::load_up_no_touches
+    );
+    check_loader(
+        "Double-knock-out call", "products", "lower_barrier", 1.0f,
+        "lie between",
+        one_row("products", {
+            {"strike", 1.0f}, {"lower_barrier", 0.8f},
+            {"upper_barrier", 1.2f}, {"maturity", 1.0f},
+        }),
+        product::load_double_knock_out_calls
+    );
+    check_loader(
+        "Double-knock-out put", "products", "upper_barrier", 1.0f,
+        "lie between",
+        one_row("products", {
+            {"strike", 1.0f}, {"lower_barrier", 0.8f},
+            {"upper_barrier", 1.2f}, {"maturity", 1.0f},
+        }),
+        product::load_double_knock_out_puts
+    );
+    check_loader(
+        "Digital call", "products", "cash_payoff", 0.0f, "cash_payoff",
+        one_row("products", {
+            {"strike", 1.0f},
+            {"maturity", 1.0f},
+            {"cash_payoff", 1.0f},
+        }),
+        product::load_digital_calls
+    );
+    check_loader(
+        "Digital put", "products", "cash_payoff", 0.0f, "cash_payoff",
+        one_row("products", {
+            {"strike", 1.0f},
+            {"maturity", 1.0f},
+            {"cash_payoff", 1.0f},
+        }),
+        product::load_digital_puts
+    );
+    check_loader(
+        "Asset-or-nothing call", "products", "strike", 0.0f, "strike",
+        one_row("products", {
+            {"strike", 1.0f},
+            {"maturity", 1.0f},
+        }),
+        product::load_asset_or_nothing_calls
+    );
+    check_loader(
+        "Asset-or-nothing put", "products", "strike", 0.0f, "strike",
+        one_row("products", {
+            {"strike", 1.0f},
+            {"maturity", 1.0f},
+        }),
+        product::load_asset_or_nothing_puts
+    );
+    check_loader(
+        "Gap call", "products", "payoff_strike", 1.1f,
+        "must not exceed",
+        one_row("products", {
+            {"trigger_strike", 1.0f},
+            {"payoff_strike", 0.95f},
+            {"maturity", 1.0f},
+        }),
+        product::load_gap_calls
+    );
+    check_loader(
+        "Gap put", "products", "payoff_strike", 0.9f,
+        "must not be below",
+        one_row("products", {
+            {"trigger_strike", 1.0f},
+            {"payoff_strike", 1.05f},
+            {"maturity", 1.0f},
+        }),
+        product::load_gap_puts
+    );
+    check_loader(
+        "Straddle", "products", "strike", 0.0f, "strike",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        product::load_straddles
     );
     check_loader(
         "Lookback option", "products", "strike", -1.0f, "strike",
@@ -261,6 +451,16 @@ int main() {
             {"exercise_interval", 1.0f / 12.0f},
         }),
         product::load_american_puts
+    );
+    check_loader(
+        "American call", "products", "exercise_interval", 1.0f,
+        "exercise_interval",
+        one_row("products", {
+            {"strike", 1.0f},
+            {"maturity", 1.0f},
+            {"exercise_interval", 1.0f / 12.0f},
+        }),
+        product::load_american_calls
     );
     check_loader(
         "Caplet", "products", "fixing_time", 0.0f, "fixing_time",

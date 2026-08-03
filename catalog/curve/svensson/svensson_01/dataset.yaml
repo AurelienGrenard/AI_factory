@@ -1,0 +1,61 @@
+title: "Svensson parameter dataset svensson_01"
+database_id: "svensson_01"
+curve_family: "Svensson"
+catalog: "catalog/curve/svensson/svensson_01"
+url: "https://datasets.ai-factory.example/v1/curve/svensson/svensson_01.json"
+row_count: 1000
+parameters:
+  beta0: "Long-maturity continuously compounded rate."
+  beta1: "Short-end slope loading."
+  beta2: "First medium-term curvature loading."
+  beta3: "Second medium-term curvature loading."
+  tau1: "Positive first decay time in years."
+  tau2: "Positive second decay time in years."
+curve:
+  zero_rate: "z(0,T) = beta0 + beta1 L(T/tau1) + beta2 C(T/tau1) + beta3 C(T/tau2)"
+  loading: "L(x) = (1 - exp(-x)) / x, C(x) = L(x) - exp(-x)"
+  discount_factor: "P(0,T) = exp(-T z(0,T))"
+  instantaneous_forward: "f(0,T) = beta0 + exp(-x1)(beta1 + beta2 x1) + beta3 x2 exp(-x2)"
+  time_unit: "years"
+  rate_convention: "continuously compounded"
+construction:
+  method: "forward-level reconstruction with rejection"
+  sampled_factors:
+    long_forward:
+      definition: "f(0, infinity)"
+      uniform_bounds:
+        - 0.005
+        - 0.06
+    short_forward:
+      definition: "f(0, 0)"
+      uniform_bounds:
+        - 0.0
+        - 0.08
+    first_medium_forward:
+      definition: "f(0, tau1)"
+      uniform_bounds:
+        - 0.0
+        - 0.08
+    second_medium_forward:
+      definition: "f(0, tau2)"
+      uniform_bounds:
+        - 0.0
+        - 0.08
+    tau1:
+      definition: "first decay time in years"
+      uniform_bounds:
+        - 0.5
+        - 3.0
+    tau2:
+      definition: "second decay time in years"
+      uniform_bounds:
+        - 4.0
+        - 12.0
+  acceptance_rule:
+    forward_bounds:
+      - 0.0
+      - 0.1
+    curvature_bounds:
+      - -0.2
+      - 0.2
+    condition: "bounds checked from zero to the converged tail"

@@ -1,0 +1,27 @@
+title: "Up-and-Out Calls parameter dataset up_and_out_calls_01"
+database_id: "up_and_out_calls_01"
+product_family: "Up-and-Out Calls"
+catalog: "catalog/product/equity/up_and_out_calls/up_and_out_calls_01"
+url: "https://datasets.ai-factory.example/v1/product/up_and_out_calls/up_and_out_calls_01.json"
+row_count: 1000
+parameters:
+  strike: "Strike in normalized spot units."
+  barrier: "Upper knock-out level monitored on the simulation grid."
+  maturity: "Maturity in years."
+payoff:
+  expression: "max(S_T - K, 0) if max(S_[0,T]) < barrier; otherwise 0"
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2

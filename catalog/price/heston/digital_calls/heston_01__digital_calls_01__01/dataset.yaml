@@ -1,0 +1,41 @@
+title: "heston_01__digital_calls_01__01"
+database_id: "heston_01__digital_calls_01__01"
+catalog: "catalog/price/heston/digital_calls/heston_01__digital_calls_01__01"
+url: "https://datasets.ai-factory.example/v1/price/heston/digital_calls/heston_01__digital_calls_01__01.json"
+row_count: 1000
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 16384
+  model: "Heston"
+  numerical_method: "Andersen QE-M"
+  payoff: "Digital Calls"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  random_generator: "Philox"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "1 / 252"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "heston_01"
+  catalog: "catalog/model/heston/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+product_dataset:
+  id: "digital_calls_01"
+  catalog: "catalog/product/equity/digital_calls/digital_calls_01"
+  url: "https://datasets.ai-factory.example/v1/product/digital_calls/digital_calls_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "2.955518834 s"
+  kernel_seconds: "0.14511792 s"

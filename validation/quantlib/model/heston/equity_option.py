@@ -36,15 +36,17 @@ def _vanilla_payoff(option_type: int, product: Mapping[str, Any]) -> ql.Payoff:
     )
 
 
-def _european_call_price(
-    model: Mapping[str, Any], product: Mapping[str, Any]
+def _european_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
 ) -> float:
-    """Price one European call with QuantLib's analytic Heston engine."""
+    """Price one European vanilla with QuantLib's analytic Heston engine."""
 
     reference = quantlib_reference(model)
-    maturity = positive_number(product, "maturity", "European call")
+    maturity = positive_number(product, "maturity", "European option")
     option = ql.VanillaOption(
-        _vanilla_payoff(ql.Option.Call, product),
+        _vanilla_payoff(option_type, product),
         ql.EuropeanExercise(nearest_date_from_time(maturity)),
     )
     option.setPricingEngine(ql.AnalyticHestonEngine(reference.model))
@@ -65,15 +67,16 @@ def _asian_fixing_dates(maturity: float, step_count: int) -> list[ql.Date]:
     return dates
 
 
-def _asian_call_price(
+def _asian_price(
     model: Mapping[str, Any],
     product: Mapping[str, Any],
     row: PriceResultRow,
+    option_type: int,
 ) -> tuple[float, float]:
-    """Price one arithmetic Asian call with an independent QuantLib MC run."""
+    """Price one arithmetic Asian option with independent QuantLib MC."""
 
     reference = quantlib_reference(model)
-    maturity = positive_number(product, "maturity", "Asian call")
+    maturity = positive_number(product, "maturity", "Asian option")
     step_count = max(1, math.floor(maturity / _TARGET_DT + 0.5))
     fixing_dates = _asian_fixing_dates(maturity, step_count)
     option = ql.DiscreteAveragingAsianOption(
@@ -81,7 +84,7 @@ def _asian_call_price(
         reference.spot,
         1,
         fixing_dates,
-        _vanilla_payoff(ql.Option.Call, product),
+        _vanilla_payoff(option_type, product),
         ql.EuropeanExercise(fixing_dates[-1]),
     )
     option.setPricingEngine(
@@ -96,6 +99,221 @@ def _asian_call_price(
         )
     )
     return option.NPV(), option.errorEstimate()
+
+
+def _geometric_asian_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+    option_type: int,
+) -> tuple[float, float]:
+    """Price one geometric Asian option with independent QuantLib MC."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Geometric Asian option")
+    step_count = max(1, math.floor(maturity / _TARGET_DT + 0.5))
+    fixing_dates = _asian_fixing_dates(maturity, step_count)
+    option = ql.DiscreteAveragingAsianOption(
+        ql.Average.Geometric,
+        reference.spot,
+        1,
+        fixing_dates,
+        _vanilla_payoff(option_type, product),
+        ql.EuropeanExercise(fixing_dates[-1]),
+    )
+    option.setPricingEngine(
+        ql.MCDiscreteGeometricAPHestonEngine(
+            reference.process,
+            "pseudorandom",
+            timeSteps=step_count,
+            antitheticVariate=True,
+            requiredSamples=_ASIAN_REFERENCE_SAMPLES,
+            seed=730000000 + int(row.row_id),
+        )
+    )
+    return option.NPV(), option.errorEstimate()
+
+
+def _forward_start_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+    option_type: int,
+) -> float | tuple[float, float]:
+    """Price one forward-start option with independent QuantLib MC."""
+
+    reference = quantlib_reference(model)
+    reset_time = positive_number(product, "reset_time", "Forward-start option")
+    maturity = positive_number(product, "maturity", "Forward-start option")
+    moneyness = positive_number(product, "moneyness", "Forward-start option")
+    if reset_time >= maturity:
+        raise ValueError("Forward-start option: reset_time must precede maturity.")
+    option = ql.ForwardVanillaOption(
+        moneyness,
+        nearest_date_from_time(reset_time),
+        ql.PlainVanillaPayoff(option_type, 0.0),
+        ql.EuropeanExercise(nearest_date_from_time(maturity)),
+    )
+    step_count = max(1, math.floor(maturity / _TARGET_DT + 0.5))
+    option.setPricingEngine(
+        ql.MCForwardEuropeanHestonEngine(
+            reference.process,
+            "pseudorandom",
+            timeSteps=step_count,
+            antitheticVariate=True,
+            requiredSamples=4096,
+            seed=720000000 + int(row.row_id),
+        )
+    )
+    return option.NPV(), option.errorEstimate()
+
+
+def _barrier_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+    barrier_type: int,
+) -> float:
+    """Price one continuously monitored barrier with QuantLib's Heston PDE."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Barrier option")
+    barrier = positive_number(product, "barrier", "Barrier option")
+    option = ql.BarrierOption(
+        barrier_type,
+        barrier,
+        0.0,
+        _vanilla_payoff(option_type, product),
+        ql.EuropeanExercise(nearest_date_from_time(maturity)),
+    )
+    option.setPricingEngine(ql.FdHestonBarrierEngine(reference.model, 100, 100, 50))
+    return option.NPV()
+
+
+def _cash_barrier_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    barrier_type: int,
+) -> float:
+    """Price one maturity-paid touch binary with QuantLib's Heston PDE."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Touch option")
+    barrier = positive_number(product, "barrier", "Touch option")
+    cash_payoff = positive_number(product, "cash_payoff", "Touch option")
+    option = ql.BarrierOption(
+        barrier_type,
+        barrier,
+        0.0,
+        ql.CashOrNothingPayoff(ql.Option.Call, 1.0e-12, cash_payoff),
+        ql.EuropeanExercise(nearest_date_from_time(maturity)),
+    )
+    option.setPricingEngine(ql.FdHestonBarrierEngine(reference.model, 100, 100, 50))
+    return option.NPV()
+
+
+def _double_barrier_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+) -> float:
+    """Price one continuously monitored double knock-out with Heston PDE."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Double-barrier option")
+    lower = positive_number(product, "lower_barrier", "Double-barrier option")
+    upper = positive_number(product, "upper_barrier", "Double-barrier option")
+    if lower >= upper:
+        raise ValueError("Double-barrier option: lower barrier must be below upper.")
+    option = ql.DoubleBarrierOption(
+        ql.DoubleBarrier.KnockOut,
+        lower,
+        upper,
+        0.0,
+        _vanilla_payoff(option_type, product),
+        ql.EuropeanExercise(nearest_date_from_time(maturity)),
+    )
+    option.setPricingEngine(
+        ql.FdHestonDoubleBarrierEngine(reference.model, 100, 100, 50)
+    )
+    return option.NPV()
+
+
+def _unit_cash_digitals(
+    reference: HestonReference, strike: float, maturity: float
+) -> tuple[float, float]:
+    """Return unit call and put digitals from QuantLib's Heston CDF."""
+
+    distribution = ql.HestonRNDCalculator(reference.process)
+    probability_below = distribution.cdf(math.log(strike), maturity)
+    discount = reference.process.riskFreeRate().discount(maturity)
+    return (
+        discount * (1.0 - probability_below),
+        discount * probability_below,
+    )
+
+
+def _digital_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+) -> float:
+    """Price one cash-or-nothing option from QuantLib's Heston CDF."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Digital option")
+    strike = positive_number(product, "strike", "Digital option")
+    call, put = _unit_cash_digitals(reference, strike, maturity)
+    unit_price = call if option_type == ql.Option.Call else put
+    return positive_number(product, "cash_payoff", "Digital option") * unit_price
+
+
+def _asset_or_nothing_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+) -> float:
+    """Price one asset-or-nothing option from vanilla and digital prices."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Asset-or-nothing option")
+    strike = positive_number(product, "strike", "Asset-or-nothing option")
+    cash_call, cash_put = _unit_cash_digitals(reference, strike, maturity)
+    if option_type == ql.Option.Call:
+        return _european_price(
+            model, product, ql.Option.Call
+        ) + strike * cash_call
+    return strike * cash_put - _european_price(
+        model, product, ql.Option.Put
+    )
+
+
+def _gap_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+) -> float:
+    """Price one gap option from asset and cash digital components."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Gap option")
+    trigger_strike = positive_number(
+        product, "trigger_strike", "Gap option"
+    )
+    payoff_strike = positive_number(product, "payoff_strike", "Gap option")
+    vanilla_product = {"strike": trigger_strike, "maturity": maturity}
+    cash_call, cash_put = _unit_cash_digitals(
+        reference, trigger_strike, maturity
+    )
+    if option_type == ql.Option.Call:
+        asset_call = _european_price(
+            model, vanilla_product, ql.Option.Call
+        ) + trigger_strike * cash_call
+        return asset_call - payoff_strike * cash_call
+    asset_put = trigger_strike * cash_put - _european_price(
+        model, vanilla_product, ql.Option.Put
+    )
+    return payoff_strike * cash_put - asset_put
 
 
 def _maturity_anchored_exercise_dates(
@@ -118,14 +336,14 @@ def _maturity_anchored_exercise_dates(
     return dates
 
 
-def _american_put_fallback_price(
+def _heston_finite_difference_fallback_price(
     reference: HestonReference,
     model: Mapping[str, Any],
-    product: Mapping[str, Any],
     payoff: ql.Payoff,
     exercise: ql.Exercise,
+    mesher_strike: float,
 ) -> float:
-    """Solve rare high-v0 rows on an explicitly widened variance mesh."""
+    """Solve rare high-v0 rows on an explicitly widened Heston mesh."""
 
     maturity = DAY_COUNTER.yearFraction(
         REFERENCE_DATE, exercise.lastDate()
@@ -140,7 +358,7 @@ def _american_put_fallback_price(
         100,
         black_scholes_process,
         maturity,
-        positive_number(product, "strike", "American put"),
+        mesher_strike,
     )
     variance_mesher = ql.FdmHestonVarianceMesher(
         100, reference.process, maturity, 10, 1.0e-8
@@ -171,20 +389,22 @@ def _american_put_fallback_price(
     return solver.valueAt(reference.spot, initial_variance)
 
 
-def _american_put_price(
-    model: Mapping[str, Any], product: Mapping[str, Any]
+def _american_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
 ) -> float:
-    """Price the maturity-anchored Bermudan put with QuantLib's Heston PDE."""
+    """Price one maturity-anchored early-exercise option with Heston PDE."""
 
     reference = quantlib_reference(model)
-    maturity = positive_number(product, "maturity", "American put")
+    maturity = positive_number(product, "maturity", "American option")
     exercise_interval = positive_number(
-        product, "exercise_interval", "American put"
+        product, "exercise_interval", "American option"
     )
     exercise_dates = _maturity_anchored_exercise_dates(
         maturity, exercise_interval
     )
-    payoff = _vanilla_payoff(ql.Option.Put, product)
+    payoff = _vanilla_payoff(option_type, product)
     exercise = ql.BermudanExercise(exercise_dates)
     option = ql.VanillaOption(payoff, exercise)
     option.setPricingEngine(ql.FdHestonVanillaEngine(reference.model, 100, 100, 50))
@@ -194,8 +414,12 @@ def _american_put_price(
         if "interpolation range" not in str(error):
             raise
         # Enlarge only the rare variance meshes that do not contain v0.
-        pde_price = _american_put_fallback_price(
-            reference, model, product, payoff, exercise
+        pde_price = _heston_finite_difference_fallback_price(
+            reference,
+            model,
+            payoff,
+            exercise,
+            positive_number(product, "strike", "American option"),
         )
     return max(payoff(reference.spot), pde_price)
 
@@ -216,11 +440,65 @@ def validation_from_quantlib_heston_option(
         if curve is not None:
             raise ValueError("Heston equity prices must not reference a curve dataset.")
         if product_kind == "european_call":
-            return _european_call_price(model, product)
+            return _european_price(model, product, ql.Option.Call)
+        if product_kind == "european_put":
+            return _european_price(model, product, ql.Option.Put)
         if product_kind == "asian_call":
-            return _asian_call_price(model, product, row)
+            return _asian_price(model, product, row, ql.Option.Call)
+        if product_kind == "asian_put":
+            return _asian_price(model, product, row, ql.Option.Put)
+        if product_kind == "geometric_asian_call":
+            return _geometric_asian_price(model, product, row, ql.Option.Call)
+        if product_kind == "geometric_asian_put":
+            return _geometric_asian_price(model, product, row, ql.Option.Put)
+        if product_kind == "forward_start_call":
+            return _forward_start_price(model, product, row, ql.Option.Call)
+        if product_kind == "forward_start_put":
+            return _forward_start_price(model, product, row, ql.Option.Put)
+        if product_kind == "up_and_out_call":
+            return _barrier_price(
+                model, product, ql.Option.Call, ql.Barrier.UpOut
+            )
+        if product_kind == "up_and_in_call":
+            return _barrier_price(
+                model, product, ql.Option.Call, ql.Barrier.UpIn
+            )
+        if product_kind == "down_and_out_put":
+            return _barrier_price(
+                model, product, ql.Option.Put, ql.Barrier.DownOut
+            )
+        if product_kind == "down_and_in_put":
+            return _barrier_price(
+                model, product, ql.Option.Put, ql.Barrier.DownIn
+            )
+        if product_kind == "up_one_touch":
+            return _cash_barrier_price(model, product, ql.Barrier.UpIn)
+        if product_kind == "up_no_touch":
+            return _cash_barrier_price(model, product, ql.Barrier.UpOut)
+        if product_kind == "double_knock_out_call":
+            return _double_barrier_price(model, product, ql.Option.Call)
+        if product_kind == "double_knock_out_put":
+            return _double_barrier_price(model, product, ql.Option.Put)
+        if product_kind == "digital_call":
+            return _digital_price(model, product, ql.Option.Call)
+        if product_kind == "digital_put":
+            return _digital_price(model, product, ql.Option.Put)
+        if product_kind == "asset_or_nothing_call":
+            return _asset_or_nothing_price(model, product, ql.Option.Call)
+        if product_kind == "asset_or_nothing_put":
+            return _asset_or_nothing_price(model, product, ql.Option.Put)
+        if product_kind == "gap_call":
+            return _gap_price(model, product, ql.Option.Call)
+        if product_kind == "gap_put":
+            return _gap_price(model, product, ql.Option.Put)
+        if product_kind == "straddle":
+            return _european_price(
+                model, product, ql.Option.Call
+            ) + _european_price(model, product, ql.Option.Put)
         if product_kind == "american_put":
-            return _american_put_price(model, product)
+            return _american_price(model, product, ql.Option.Put)
+        if product_kind == "american_call":
+            return _american_price(model, product, ql.Option.Call)
         raise ValueError(f"Unknown Heston product kind '{product_kind}'.")
 
     return validation_from_reference(
