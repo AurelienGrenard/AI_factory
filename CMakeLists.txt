@@ -38,6 +38,9 @@ option(
 
 # Host-only generation and serialization helpers shared by all generators.
 add_library(ai_factory_dataset_tools STATIC
+    tools/datasets/autocall_generation.cpp
+    tools/datasets/cliquet_generation.cpp
+    tools/datasets/range_accrual_generation.cpp
     tools/datasets/dataset.cpp
     tools/datasets/g2_generation.cpp
     tools/datasets/nelson_siegel_generation.cpp
@@ -75,10 +78,13 @@ add_library(cuda_workbench STATIC
     src/model/heston/dataset.cpp
     src/model/heston/american_call.cu
     src/model/heston/american_put.cu
+    src/model/heston/athena_autocall.cu
     src/model/heston/asian_call.cu
     src/model/heston/asian_put.cu
     src/model/heston/asset_or_nothing_call.cu
     src/model/heston/asset_or_nothing_put.cu
+    src/model/heston/cliquet.cu
+    src/model/heston/range_accrual.cu
     src/model/heston/digital_call.cu
     src/model/heston/digital_put.cu
     src/model/heston/double_knock_out_call.cu
@@ -94,6 +100,8 @@ add_library(cuda_workbench STATIC
     src/model/heston/geometric_asian_call.cu
     src/model/heston/geometric_asian_put.cu
     src/model/heston/lookback_option.cu
+    src/model/heston/phoenix_autocall.cu
+    src/model/heston/phoenix_memory_autocall.cu
     src/model/heston/straddle.cu
     src/model/heston/up_and_in_call.cu
     src/model/heston/up_no_touch.cu
@@ -120,11 +128,14 @@ add_library(cuda_workbench STATIC
     src/model/vasicek/dataset.cpp
     src/product/american_call/dataset.cpp
     src/product/american_put/dataset.cpp
+    src/product/athena_autocall/dataset.cpp
     src/product/asian_call/dataset.cpp
     src/product/asian_put/dataset.cpp
     src/product/asset_or_nothing_call/dataset.cpp
     src/product/asset_or_nothing_put/dataset.cpp
     src/product/caplet/dataset.cpp
+    src/product/cliquet/dataset.cpp
+    src/product/range_accrual/dataset.cpp
     src/product/digital_call/dataset.cpp
     src/product/digital_put/dataset.cpp
     src/product/double_knock_out_call/dataset.cpp
@@ -141,6 +152,8 @@ add_library(cuda_workbench STATIC
     src/product/geometric_asian_call/dataset.cpp
     src/product/geometric_asian_put/dataset.cpp
     src/product/lookback_option/dataset.cpp
+    src/product/phoenix_autocall/dataset.cpp
+    src/product/phoenix_memory_autocall/dataset.cpp
     src/product/straddle/dataset.cpp
     src/product/up_and_in_call/dataset.cpp
     src/product/up_no_touch/dataset.cpp
@@ -282,6 +295,26 @@ add_price_generator(
 add_price_generator(
     generate_heston_asian_calls_01
     catalog/price/heston/asian_calls/heston_01__asian_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_athena_autocalls_01
+    catalog/price/heston/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_phoenix_autocalls_01
+    catalog/price/heston/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_phoenix_memory_autocalls_01
+    catalog/price/heston/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_cliquets_01
+    catalog/price/heston/cliquets/heston_01__cliquets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_heston_range_accruals_01
+    catalog/price/heston/range_accruals/heston_01__range_accruals_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_lookback_options_01
@@ -540,6 +573,26 @@ add_parameter_generator(
 add_parameter_generator(
     generate_american_calls_01
     catalog/product/equity/american_calls/american_calls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_phoenix_autocalls_01
+    catalog/product/equity/phoenix_autocalls/phoenix_autocalls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_phoenix_memory_autocalls_01
+    catalog/product/equity/phoenix_memory_autocalls/phoenix_memory_autocalls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_athena_autocalls_01
+    catalog/product/equity/athena_autocalls/athena_autocalls_01/generator.cpp
+)
+add_parameter_generator(
+    generate_cliquets_01
+    catalog/product/equity/cliquets/cliquets_01/generator.cpp
+)
+add_parameter_generator(
+    generate_range_accruals_01
+    catalog/product/equity/range_accruals/range_accruals_01/generator.cpp
 )
 add_parameter_generator(
     generate_caplets_01
@@ -845,6 +898,36 @@ if(BUILD_TESTING)
                         heston_forward_start_put
                         validation.quantlib.model.heston.forward_start_put
                         datasets/price/heston/forward_start_puts/heston_01__forward_start_puts_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_athena_autocall
+                        validation.quantlib.model.heston.athena_autocall
+                        datasets/price/heston/athena_autocalls/heston_01__athena_autocalls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_phoenix_autocall
+                        validation.quantlib.model.heston.phoenix_autocall
+                        datasets/price/heston/phoenix_autocalls/heston_01__phoenix_autocalls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_phoenix_memory_autocall
+                        validation.quantlib.model.heston.phoenix_memory_autocall
+                        datasets/price/heston/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_cliquet
+                        validation.quantlib.model.heston.cliquet
+                        datasets/price/heston/cliquets/heston_01__cliquets_01__01.json
+                        heston
+                    )
+                    add_quantlib_validation_test(
+                        heston_range_accrual
+                        validation.quantlib.model.heston.range_accrual
+                        datasets/price/heston/range_accruals/heston_01__range_accruals_01__01.json
                         heston
                     )
                 endif()

@@ -30,6 +30,7 @@ Supported datasets are:
   bond puts, caplets, and floorlets;
 - Heston European calls through the analytic Heston engine;
 - Heston arithmetic Asian calls through independent Monte Carlo;
+- Heston Athena, Phoenix, Cliquet, and Range Accrual products through antithetic paths;
 - Heston maturity-anchored American puts through a finite-difference engine.
 
 The standard CTest suite runs all analytical references. Slow Heston path and

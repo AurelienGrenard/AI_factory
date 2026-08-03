@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 import QuantLib as ql
 
@@ -26,6 +26,9 @@ from validation.quantlib.term_structure import (
 _TARGET_DT = 1.0 / 252.0
 _FLOAT32_EPSILON = 1.1920928955078125e-7
 _ASIAN_REFERENCE_SAMPLES = 4096
+_AUTOCALL_REFERENCE_PAIRS = 1024
+_CLIQUET_REFERENCE_PAIRS = 1024
+_RANGE_ACCRUAL_REFERENCE_PAIRS = 1024
 
 
 def _vanilla_payoff(option_type: int, product: Mapping[str, Any]) -> ql.Payoff:
@@ -166,6 +169,242 @@ def _forward_start_price(
         )
     )
     return option.NPV(), option.errorEstimate()
+
+
+def _regular_observation_grid(
+    product: Mapping[str, Any],
+    context: str,
+) -> tuple[float, float, int, int, list[float]]:
+    """Construct the regular observation and simulation grid of one product."""
+
+    maturity = positive_number(product, "maturity", context)
+    interval = positive_number(product, "observation_interval", context)
+    raw_observation_count = maturity / interval
+    observation_count = round(raw_observation_count)
+    tolerance = 32.0 * _FLOAT32_EPSILON * max(raw_observation_count, 1.0)
+    if observation_count < 1 or abs(
+        raw_observation_count - observation_count
+    ) > tolerance:
+        raise ValueError(
+            f"{context}: maturity must be an integer multiple of "
+            "observation_interval."
+        )
+    steps_per_observation = max(1, math.floor(interval / _TARGET_DT + 0.5))
+    total_step_count = observation_count * steps_per_observation
+    effective_dt = interval / steps_per_observation
+    times = [effective_dt * step for step in range(1, total_step_count + 1)]
+    return (
+        maturity,
+        interval,
+        observation_count,
+        steps_per_observation,
+        times,
+    )
+
+
+def _antithetic_heston_path_price(
+    reference: HestonReference,
+    times: list[float],
+    seed: int,
+    pair_count: int,
+    discounted_payoff: Callable[[ql.Path], float],
+) -> tuple[float, float]:
+    """Estimate one payoff and error from independent antithetic paths."""
+
+    total_step_count = len(times)
+    dimension = reference.process.factors() * total_step_count
+    uniform_sequence = ql.UniformRandomSequenceGenerator(
+        dimension,
+        ql.UniformRandomGenerator(seed),
+    )
+    path_generator = ql.GaussianMultiPathGenerator(
+        reference.process,
+        times,
+        ql.GaussianRandomSequenceGenerator(uniform_sequence),
+        False,
+    )
+
+    mean = 0.0
+    sum_squared_deviations = 0.0
+    for pair_index in range(pair_count):
+        direct = discounted_payoff(path_generator.next().value()[0])
+        antithetic = discounted_payoff(path_generator.antithetic().value()[0])
+        pair_value = 0.5 * (direct + antithetic)
+        delta = pair_value - mean
+        mean += delta / (pair_index + 1)
+        sum_squared_deviations += delta * (pair_value - mean)
+    variance = sum_squared_deviations / (pair_count - 1)
+    return mean, math.sqrt(variance / pair_count)
+
+
+def _autocall_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+    product_kind: str,
+) -> tuple[float, float]:
+    """Price one autocall from independent antithetic QuantLib paths."""
+
+    context = "Autocall"
+    reference = quantlib_reference(model)
+    _, interval, observation_count, steps_per_observation, times = (
+        _regular_observation_grid(product, context)
+    )
+    autocall_barrier = positive_number(product, "autocall_barrier", context)
+    protection_barrier = positive_number(
+        product, "protection_barrier", context
+    )
+    annual_coupon_rate = positive_number(
+        product, "annual_coupon_rate", context
+    )
+    coupon_barrier = None
+    if product_kind != "athena_autocall":
+        coupon_barrier = positive_number(product, "coupon_barrier", context)
+    if not protection_barrier <= autocall_barrier:
+        raise ValueError("Autocall: protection barrier exceeds autocall barrier.")
+    if coupon_barrier is not None and not (
+        protection_barrier <= coupon_barrier <= autocall_barrier
+    ):
+        raise ValueError("Autocall: coupon barrier ordering is invalid.")
+
+    risk_free_rate = finite_number(model, "risk_free_rate", "Heston model")
+    discounts = [
+        math.exp(-risk_free_rate * interval * (observation + 1))
+        for observation in range(observation_count)
+    ]
+    coupon_per_observation = annual_coupon_rate * interval
+
+    def discounted_payoff(spot_path: ql.Path) -> float:
+        present_value = 0.0
+        remembered_coupon = 0.0
+        accumulated_gain = 0.0
+        for observation in range(observation_count):
+            spot = spot_path[(observation + 1) * steps_per_observation]
+            discount = discounts[observation]
+            maturity_observation = observation + 1 == observation_count
+            if product_kind == "athena_autocall":
+                accumulated_gain += coupon_per_observation
+                if not maturity_observation and spot >= autocall_barrier:
+                    return discount * (1.0 + accumulated_gain)
+                if maturity_observation:
+                    if spot >= autocall_barrier:
+                        return discount * (1.0 + accumulated_gain)
+                    capital = 1.0 if spot >= protection_barrier else spot
+                    return discount * capital
+                continue
+
+            if product_kind == "phoenix_memory_autocall":
+                remembered_coupon += coupon_per_observation
+                coupon = remembered_coupon if spot >= coupon_barrier else 0.0
+                if coupon > 0.0:
+                    remembered_coupon = 0.0
+            else:
+                coupon = (
+                    coupon_per_observation if spot >= coupon_barrier else 0.0
+                )
+            if not maturity_observation and spot >= autocall_barrier:
+                return present_value + discount * (1.0 + coupon)
+            if maturity_observation:
+                capital = 1.0 if spot >= protection_barrier else spot
+                return present_value + discount * (capital + coupon)
+            present_value += discount * coupon
+        raise RuntimeError("Autocall path reached no redemption date.")
+
+    return _antithetic_heston_path_price(
+        reference,
+        times,
+        740000000 + int(row.row_id),
+        _AUTOCALL_REFERENCE_PAIRS,
+        discounted_payoff,
+    )
+
+
+def _cliquet_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+) -> tuple[float, float]:
+    """Price one periodic-return Cliquet from independent QuantLib paths."""
+
+    context = "Cliquet"
+    reference = quantlib_reference(model)
+    maturity, _, observation_count, steps_per_observation, times = (
+        _regular_observation_grid(product, context)
+    )
+    participation = positive_number(product, "participation_rate", context)
+    local_floor = finite_number(product, "local_floor", context)
+    local_cap = finite_number(product, "local_cap", context)
+    global_floor = finite_number(product, "global_floor", context)
+    global_cap = finite_number(product, "global_cap", context)
+    if not local_floor < local_cap:
+        raise ValueError("Cliquet: local_floor must be below local_cap.")
+    if not -1.0 < global_floor < global_cap:
+        raise ValueError("Cliquet: global bounds are invalid.")
+    risk_free_rate = finite_number(model, "risk_free_rate", "Heston model")
+    discount = math.exp(-risk_free_rate * maturity)
+
+    def discounted_payoff(spot_path: ql.Path) -> float:
+        previous_spot = spot_path[0]
+        accumulated_return = 0.0
+        for observation in range(observation_count):
+            spot = spot_path[(observation + 1) * steps_per_observation]
+            participated_return = participation * (spot / previous_spot - 1.0)
+            accumulated_return += min(
+                local_cap, max(local_floor, participated_return)
+            )
+            previous_spot = spot
+        final_return = min(
+            global_cap, max(global_floor, accumulated_return)
+        )
+        return discount * (1.0 + final_return)
+
+    return _antithetic_heston_path_price(
+        reference,
+        times,
+        750000000 + int(row.row_id),
+        _CLIQUET_REFERENCE_PAIRS,
+        discounted_payoff,
+    )
+
+
+def _range_accrual_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+) -> tuple[float, float]:
+    """Price one equity Range Accrual from independent QuantLib paths."""
+
+    context = "Range Accrual"
+    reference = quantlib_reference(model)
+    maturity, interval, observation_count, steps_per_observation, times = (
+        _regular_observation_grid(product, context)
+    )
+    lower_barrier = positive_number(product, "lower_barrier", context)
+    upper_barrier = positive_number(product, "upper_barrier", context)
+    coupon_rate = positive_number(product, "coupon_rate", context)
+    if not lower_barrier < 1.0 < upper_barrier:
+        raise ValueError("Range Accrual: normalized barriers are invalid.")
+    risk_free_rate = finite_number(model, "risk_free_rate", "Heston model")
+    discount = math.exp(-risk_free_rate * maturity)
+
+    def discounted_payoff(spot_path: ql.Path) -> float:
+        initial_spot = spot_path[0]
+        lower_spot = initial_spot * lower_barrier
+        upper_spot = initial_spot * upper_barrier
+        in_range_count = 0
+        for observation in range(observation_count):
+            spot = spot_path[(observation + 1) * steps_per_observation]
+            in_range_count += lower_spot <= spot <= upper_spot
+        accrued_coupon = coupon_rate * interval * in_range_count
+        return discount * (1.0 + accrued_coupon)
+
+    return _antithetic_heston_path_price(
+        reference,
+        times,
+        760000000 + int(row.row_id),
+        _RANGE_ACCRUAL_REFERENCE_PAIRS,
+        discounted_payoff,
+    )
 
 
 def _barrier_price(
@@ -455,6 +694,16 @@ def validation_from_quantlib_heston_option(
             return _forward_start_price(model, product, row, ql.Option.Call)
         if product_kind == "forward_start_put":
             return _forward_start_price(model, product, row, ql.Option.Put)
+        if product_kind in {
+            "athena_autocall",
+            "phoenix_autocall",
+            "phoenix_memory_autocall",
+        }:
+            return _autocall_price(model, product, row, product_kind)
+        if product_kind == "cliquet":
+            return _cliquet_price(model, product, row)
+        if product_kind == "range_accrual":
+            return _range_accrual_price(model, product, row)
         if product_kind == "up_and_out_call":
             return _barrier_price(
                 model, product, ql.Option.Call, ql.Barrier.UpOut

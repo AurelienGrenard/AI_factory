@@ -37,6 +37,15 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/product/equity/lookback_options/lookback_options_01/dataset.yaml",
     "catalog/product/equity/american_puts/american_puts_01/dataset.yaml",
     "catalog/product/equity/american_calls/american_calls_01/dataset.yaml",
+    "catalog/product/equity/phoenix_autocalls/"
+    "phoenix_autocalls_01/dataset.yaml",
+    "catalog/product/equity/phoenix_memory_autocalls/"
+    "phoenix_memory_autocalls_01/dataset.yaml",
+    "catalog/product/equity/athena_autocalls/"
+    "athena_autocalls_01/dataset.yaml",
+    "catalog/product/equity/cliquets/cliquets_01/dataset.yaml",
+    "catalog/product/equity/range_accruals/"
+    "range_accruals_01/dataset.yaml",
     "catalog/product/equity/geometric_asian_calls/"
     "geometric_asian_calls_01/dataset.yaml",
     "catalog/product/equity/geometric_asian_puts/"
@@ -75,6 +84,16 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "heston_01__european_puts_01__01/dataset.yaml",
     "catalog/price/heston/asian_calls/"
     "heston_01__asian_calls_01__01/dataset.yaml",
+    "catalog/price/heston/athena_autocalls/"
+    "heston_01__athena_autocalls_01__01/dataset.yaml",
+    "catalog/price/heston/phoenix_autocalls/"
+    "heston_01__phoenix_autocalls_01__01/dataset.yaml",
+    "catalog/price/heston/phoenix_memory_autocalls/"
+    "heston_01__phoenix_memory_autocalls_01__01/dataset.yaml",
+    "catalog/price/heston/cliquets/"
+    "heston_01__cliquets_01__01/dataset.yaml",
+    "catalog/price/heston/range_accruals/"
+    "heston_01__range_accruals_01__01/dataset.yaml",
     "catalog/price/heston/asian_puts/"
     "heston_01__asian_puts_01__01/dataset.yaml",
     "catalog/price/heston/digital_calls/"

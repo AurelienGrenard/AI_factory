@@ -11,9 +11,12 @@
 #include "product/american_call/dataset.hpp"
 #include "product/asian_call/dataset.hpp"
 #include "product/asian_put/dataset.hpp"
+#include "product/athena_autocall/dataset.hpp"
 #include "product/asset_or_nothing_call/dataset.hpp"
 #include "product/asset_or_nothing_put/dataset.hpp"
 #include "product/caplet/dataset.hpp"
+#include "product/cliquet/dataset.hpp"
+#include "product/range_accrual/dataset.hpp"
 #include "product/digital_call/dataset.hpp"
 #include "product/digital_put/dataset.hpp"
 #include "product/european_call/dataset.hpp"
@@ -26,6 +29,8 @@
 #include "product/geometric_asian_call/dataset.hpp"
 #include "product/geometric_asian_put/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
+#include "product/phoenix_autocall/dataset.hpp"
+#include "product/phoenix_memory_autocall/dataset.hpp"
 #include "product/double_knock_out_call/dataset.hpp"
 #include "product/double_knock_out_put/dataset.hpp"
 #include "product/down_and_in_put/dataset.hpp"
@@ -461,6 +466,70 @@ int main() {
             {"exercise_interval", 1.0f / 12.0f},
         }),
         product::load_american_calls
+    );
+    check_loader(
+        "Phoenix autocall", "products", "coupon_barrier", 0.50f,
+        "barriers",
+        one_row("products", {
+            {"maturity", 2.0f},
+            {"observation_interval", 0.25f},
+            {"autocall_barrier", 1.0f},
+            {"coupon_barrier", 0.70f},
+            {"protection_barrier", 0.60f},
+            {"annual_coupon_rate", 0.08f},
+        }),
+        product::load_phoenix_autocalls
+    );
+    check_loader(
+        "Phoenix Memory autocall", "products", "coupon_barrier", 0.50f,
+        "barriers",
+        one_row("products", {
+            {"maturity", 2.0f},
+            {"observation_interval", 0.25f},
+            {"autocall_barrier", 1.0f},
+            {"coupon_barrier", 0.70f},
+            {"protection_barrier", 0.60f},
+            {"annual_coupon_rate", 0.08f},
+        }),
+        product::load_phoenix_memory_autocalls
+    );
+    check_loader(
+        "Athena autocall", "products", "protection_barrier", 1.10f,
+        "barriers",
+        one_row("products", {
+            {"maturity", 2.0f},
+            {"observation_interval", 0.25f},
+            {"autocall_barrier", 1.0f},
+            {"protection_barrier", 0.60f},
+            {"annual_coupon_rate", 0.08f},
+        }),
+        product::load_athena_autocalls
+    );
+    check_loader(
+        "Cliquet", "products", "global_floor", 0.40f,
+        "global bounds",
+        one_row("products", {
+            {"maturity", 2.0f},
+            {"observation_interval", 0.25f},
+            {"participation_rate", 1.0f},
+            {"local_floor", -0.05f},
+            {"local_cap", 0.05f},
+            {"global_floor", 0.0f},
+            {"global_cap", 0.30f},
+        }),
+        product::load_cliquets
+    );
+    check_loader(
+        "Range Accrual", "products", "lower_barrier", 1.10f,
+        "barriers",
+        one_row("products", {
+            {"maturity", 2.0f},
+            {"observation_interval", 0.25f},
+            {"lower_barrier", 0.80f},
+            {"upper_barrier", 1.20f},
+            {"coupon_rate", 0.08f},
+        }),
+        product::load_range_accruals
     );
     check_loader(
         "Caplet", "products", "fixing_time", 0.0f, "fixing_time",

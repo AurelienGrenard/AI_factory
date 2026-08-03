@@ -1,0 +1,84 @@
+title: "Cliquets parameter dataset cliquets_01"
+database_id: "cliquets_01"
+product_family: "Cliquets"
+catalog: "catalog/product/equity/cliquets/cliquets_01"
+url: "https://datasets.ai-factory.example/v1/product/cliquets/cliquets_01.json"
+row_count: 1000
+parameters:
+  maturity: "Time from issuance to final payment in years."
+  observation_interval: "Time in years between consecutive return observations."
+  participation_rate: "Multiplier applied to every periodic spot return."
+  local_floor: "Lower bound applied to each periodic return."
+  local_cap: "Upper bound applied to each periodic return."
+  global_floor: "Lower bound applied to the accumulated return."
+  global_cap: "Upper bound applied to the accumulated return."
+payoff:
+  periodic_return: "R_i = S(t_i) / S(t_{i-1}) - 1, with S(t_0) at issuance."
+  local_return: "clamp(participation_rate * R_i, local_floor, local_cap)"
+  accumulated_return: "clamp(sum of local returns, global_floor, global_cap)"
+  maturity_payment: "Normalized nominal 1 plus the accumulated return."
+  intermediate_payments: "None."
+construction:
+  method: "constrained core-tail random sample"
+  valuation_time: "issuance"
+  reference_spot: 1.0
+  nominal: 1.0
+  sampling:
+    regime_counts: "900 core rows and 100 tail rows"
+    observation_interval: "uniform categorical draw within the selected regime"
+    observation_count: "uniform integer draw compatible with maturity bounds"
+    continuous_parameters: "uniform draws within the selected regime bounds"
+    global_bounds: "conditional draws from the theoretical sum of local bounds"
+  calendar_rules:
+    - "maturity is an integer multiple of observation_interval"
+    - "observation dates are i * observation_interval from issuance"
+    - "the first return compares S at issuance with the first observation"
+    - "rows are shuffled after both regimes are generated"
+  regimes:
+    core:
+      row_count: 900
+      maturity:
+        - "1 year"
+        - "5 years"
+      observation_interval:
+        - "1 / 12"
+        - "1 / 4"
+      participation_rate:
+        - 0.8
+        - 1.2
+      local_floor:
+        - -0.05
+        - 0.0
+      local_cap:
+        - 0.01
+        - 0.08
+      global_floor:
+        - 0.0
+        - 0.03
+      global_cap: "25% to 85% of the bounded theoretical local-cap sum"
+    tail:
+      row_count: 100
+      maturity:
+        - "0.5 year"
+        - "7 years"
+      observation_interval:
+        - "1 / 52"
+        - "1 / 2"
+        - "1"
+      participation_rate:
+        - 0.25
+        - 2.0
+      local_floor:
+        - -0.25
+        - 0.0
+      local_cap:
+        - 0.005
+        - 0.3
+      global_floor:
+        - -0.5
+        - 0.0
+      global_cap: "10% to 95% of the bounded theoretical local-cap sum"
+  constraints:
+    - "local_floor < local_cap"
+    - "-1 < global_floor < global_cap"
+    - "global_cap is bounded by 0.75 in core and 1.50 in tail"
