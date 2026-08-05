@@ -2,6 +2,7 @@
 #include "model/heston/up_one_touch.cuh"
 
 #include "common/check_cuda.cuh"
+#include "common/cuda_kernel_diagnostics.cuh"
 #include "common/reductions.cuh"
 
 // Include the dynamics implementation so NVCC can inline each time step.
@@ -256,6 +257,14 @@ void launch_heston_up_one_touch_cuda(
     }
 
     // Launch the Heston Up-one-touch kernel.
+    report_cuda_kernel_launch_if_enabled(
+        "heston.up_one_touch",
+        "default",
+        heston_up_one_touch_kernel,
+        dim3(static_cast<unsigned int>(block_count)),
+        dim3(threads_per_block),
+        shared_bytes
+    );
     heston_up_one_touch_kernel<<<
         static_cast<unsigned int>(block_count),
         threads_per_block,

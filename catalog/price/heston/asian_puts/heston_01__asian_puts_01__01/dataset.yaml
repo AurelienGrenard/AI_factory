@@ -8,7 +8,7 @@ summary:
   monte_carlo_paths_per_price: 16384
   model: "Heston"
   numerical_method: "Andersen QE-M"
-  payoff: "Asian Puts"
+  payoff: "Asian Options"
   implementation: "CUDA"
   device: "gpu"
   block_count: 1000
@@ -31,11 +31,11 @@ model_dataset:
   catalog: "catalog/model/heston/heston_01"
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
-  id: "asian_puts_01"
-  catalog: "catalog/product/equity/asian_puts/asian_puts_01"
-  url: "https://datasets.ai-factory.example/v1/product/asian_puts/asian_puts_01.json"
+  id: "asian_options_01"
+  catalog: "catalog/product/equity/asian_options/asian_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/asian_options/asian_options_01.json"
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.481072513 s"
-  kernel_seconds: "0.141118469 s"
+  wall_seconds: "0.299924392 s"
+  kernel_seconds: "0.136647614 s"

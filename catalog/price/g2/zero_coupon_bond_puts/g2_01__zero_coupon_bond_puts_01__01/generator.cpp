@@ -1,7 +1,7 @@
 // Build one G2 zero-coupon bond put price dataset.
 #include "common/check_cuda.cuh"
 #include "model/g2/dataset.hpp"
-#include "model/g2/zero_coupon_bond_put.cuh"
+#include "model/g2/zero_coupon_bond_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,8 +19,8 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/g2/g2_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/zero_coupon_bond_puts/"
-    "zero_coupon_bond_puts_01.json";
+    "datasets/product/fixed_income/zero_coupon_bond_options/"
+    "zero_coupon_bond_options_01.json";
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
 
@@ -51,8 +51,8 @@ int main() {
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<g2::G2ModelParameters> models =
         g2::load_models(model_dataset_path);
-    const std::vector<product::ZeroCouponBondPutParameters> products =
-        product::load_zero_coupon_bond_puts(product_dataset_path);
+    const std::vector<product::ZeroCouponBondOptionParameters> products =
+        product::load_zero_coupon_bond_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -66,7 +66,7 @@ int main() {
 
     // Declare model, product, and output arrays with CUDA timing events.
     g2::G2ModelParameters* device_models = nullptr;
-    product::ZeroCouponBondPutParameters* device_products = nullptr;
+    product::ZeroCouponBondOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     cudaEvent_t start_event = nullptr;
     cudaEvent_t stop_event = nullptr;
@@ -112,7 +112,7 @@ int main() {
         const std::size_t warmup_count = std::min<std::size_t>(
             64U, std::min(models.size(), products.size())
         );
-        g2::launch_g2_zero_coupon_bond_put_cuda(
+        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::put>(
             device_models,
             warmup_count,
             device_products,
@@ -130,7 +130,7 @@ int main() {
         check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
-        g2::launch_g2_zero_coupon_bond_put_cuda(
+        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::put>(
             device_models,
             models.size(),
             device_products,

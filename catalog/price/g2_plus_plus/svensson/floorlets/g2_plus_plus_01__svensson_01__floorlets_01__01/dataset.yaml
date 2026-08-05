@@ -8,7 +8,7 @@ summary:
   model: "G2++ Gaussian two-factor"
   curve: "Svensson"
   numerical_method: "G2++ closed-form zero-coupon bond call"
-  payoff: "Floorlets"
+  payoff: "Forward Rate Options"
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
@@ -27,11 +27,11 @@ curve_dataset:
   catalog: "catalog/curve/svensson/svensson_01"
   url: "https://datasets.ai-factory.example/v1/curve/svensson/svensson_01.json"
 product_dataset:
-  id: "floorlets_01"
-  catalog: "catalog/product/fixed_income/floorlets/floorlets_01"
-  url: "https://datasets.ai-factory.example/v1/product/floorlets/floorlets_01.json"
+  id: "rate_options_01"
+  catalog: "catalog/product/fixed_income/rate_options/rate_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/rate_options/rate_options_01.json"
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.866837037 s"
-  kernel_seconds: "0.000050176 s"
+  wall_seconds: "0.324901534 s"
+  kernel_seconds: "0.000108544 s"

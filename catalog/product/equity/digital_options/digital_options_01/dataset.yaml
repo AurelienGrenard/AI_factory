@@ -1,0 +1,29 @@
+title: "Digital Options parameter dataset digital_options_01"
+database_id: "digital_options_01"
+product_family: "Digital Options"
+catalog: "catalog/product/equity/digital_options/digital_options_01"
+url: "https://datasets.ai-factory.example/v1/product/digital_options/digital_options_01.json"
+row_count: 1000
+parameters:
+  strike: "Trigger strike in normalized spot units."
+  maturity: "Maturity in years."
+  cash_payoff: "Cash amount paid when the side-oriented trigger is met."
+payoff:
+  expression: "cash_payoff * 1{side * (S_T - K) > 0}, side = +1 call / -1 put"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2
+  cash_payoff:
+    value: 1.0
+    rule: "constant normalized cash amount"

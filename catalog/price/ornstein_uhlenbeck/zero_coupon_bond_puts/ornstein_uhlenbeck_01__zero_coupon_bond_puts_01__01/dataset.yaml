@@ -7,7 +7,7 @@ summary:
   pricing_method: "Closed-form"
   model: "Ornstein-Uhlenbeck short rate"
   numerical_method: "Ornstein-Uhlenbeck closed-form zero-coupon bond put"
-  payoff: "Zero-Coupon Bond Puts"
+  payoff: "Zero-Coupon Bond Options"
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
@@ -22,11 +22,11 @@ model_dataset:
   catalog: "catalog/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01"
   url: "https://datasets.ai-factory.example/v1/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json"
 product_dataset:
-  id: "zero_coupon_bond_puts_01"
-  catalog: "catalog/product/fixed_income/zero_coupon_bond_puts/zero_coupon_bond_puts_01"
-  url: "https://datasets.ai-factory.example/v1/product/zero_coupon_bond_puts/zero_coupon_bond_puts_01.json"
+  id: "zero_coupon_bond_options_01"
+  catalog: "catalog/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/zero_coupon_bond_options/zero_coupon_bond_options_01.json"
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.426012723 s"
-  kernel_seconds: "0.000016576 s"
+  wall_seconds: "0.202989119 s"
+  kernel_seconds: "0.000006112 s"

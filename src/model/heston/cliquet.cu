@@ -2,6 +2,7 @@
 #include "model/heston/cliquet.cuh"
 
 #include "common/check_cuda.cuh"
+#include "common/cuda_kernel_diagnostics.cuh"
 #include "common/reductions.cuh"
 
 // Include the dynamics implementation so NVCC can inline each time step.
@@ -292,6 +293,14 @@ void launch_heston_cliquet_cuda(
     }
 
     // Launch the Heston Cliquet kernel.
+    report_cuda_kernel_launch_if_enabled(
+        "heston.cliquet",
+        "default",
+        heston_cliquet_kernel,
+        dim3(static_cast<unsigned int>(block_count)),
+        dim3(threads_per_block),
+        shared_bytes
+    );
     heston_cliquet_kernel<<<
         static_cast<unsigned int>(block_count),
         threads_per_block,

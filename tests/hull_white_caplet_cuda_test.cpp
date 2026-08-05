@@ -1,6 +1,6 @@
 // Compare the Hull-White caplet CUDA launcher with one FP64 CPU formula.
 #include "common/check_cuda.cuh"
-#include "model/hull_white/nelson_siegel/caplet.cuh"
+#include "model/hull_white/nelson_siegel/rate_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -32,7 +32,7 @@ double zero_rate(
 double caplet_price(
     const ai_factory::workbench::model::hull_white::HullWhiteModelParameters& model,
     const ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters& curve,
-    const ai_factory::workbench::product::CapletParameters& product
+    const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.mean_reversion;
     const double sigma = model.volatility;
@@ -82,7 +82,7 @@ int main() {
         {0.04f, -0.02f, 0.01f, 1.5f},
         {0.025f, 0.005f, -0.01f, 3.0f},
     };
-    const std::vector<product::CapletParameters> products = {
+    const std::vector<product::RateOptionParameters> products = {
         {1.0f, 0.02f, 0.5f, 1.0f, 0.5f},
         {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
         {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
@@ -91,7 +91,7 @@ int main() {
 
     model::hull_white::HullWhiteModelParameters* device_models = nullptr;
     curve::nelson_siegel::NelsonSiegelParameters* device_curves = nullptr;
-    product::CapletParameters* device_products = nullptr;
+    product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
         check_cuda(
@@ -139,7 +139,7 @@ int main() {
         );
 
         model::hull_white::nelson_siegel::
-            launch_hull_white_nelson_siegel_caplet_cuda(
+            launch_hull_white_nelson_siegel_rate_option_cuda<OptionSide::call>(
                 device_models,
                 row_count,
                 device_curves,

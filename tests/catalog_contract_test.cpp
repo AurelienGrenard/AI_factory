@@ -21,22 +21,17 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/model/hull_white/hull_white_01/dataset.yaml",
     "catalog/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01/dataset.yaml",
     "catalog/model/vasicek/vasicek_01/dataset.yaml",
-    "catalog/product/equity/european_calls/european_calls_01/dataset.yaml",
-    "catalog/product/equity/european_puts/european_puts_01/dataset.yaml",
-    "catalog/product/equity/asian_calls/asian_calls_01/dataset.yaml",
-    "catalog/product/equity/asian_puts/asian_puts_01/dataset.yaml",
-    "catalog/product/equity/digital_calls/digital_calls_01/dataset.yaml",
-    "catalog/product/equity/digital_puts/digital_puts_01/dataset.yaml",
-    "catalog/product/equity/asset_or_nothing_calls/"
-    "asset_or_nothing_calls_01/dataset.yaml",
-    "catalog/product/equity/asset_or_nothing_puts/"
-    "asset_or_nothing_puts_01/dataset.yaml",
-    "catalog/product/equity/gap_calls/gap_calls_01/dataset.yaml",
-    "catalog/product/equity/gap_puts/gap_puts_01/dataset.yaml",
+    "catalog/product/equity/european_options/"
+    "european_options_01/dataset.yaml",
+    "catalog/product/equity/asian_options/asian_options_01/dataset.yaml",
+    "catalog/product/equity/digital_options/digital_options_01/dataset.yaml",
+    "catalog/product/equity/asset_or_nothing_options/"
+    "asset_or_nothing_options_01/dataset.yaml",
+    "catalog/product/equity/gap_options/gap_call_options_01/dataset.yaml",
+    "catalog/product/equity/gap_options/gap_put_options_01/dataset.yaml",
     "catalog/product/equity/straddles/straddles_01/dataset.yaml",
     "catalog/product/equity/lookback_options/lookback_options_01/dataset.yaml",
-    "catalog/product/equity/american_puts/american_puts_01/dataset.yaml",
-    "catalog/product/equity/american_calls/american_calls_01/dataset.yaml",
+    "catalog/product/equity/american_options/american_options_01/dataset.yaml",
     "catalog/product/equity/phoenix_autocalls/"
     "phoenix_autocalls_01/dataset.yaml",
     "catalog/product/equity/phoenix_memory_autocalls/"
@@ -46,36 +41,27 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/product/equity/cliquets/cliquets_01/dataset.yaml",
     "catalog/product/equity/range_accruals/"
     "range_accruals_01/dataset.yaml",
-    "catalog/product/equity/geometric_asian_calls/"
-    "geometric_asian_calls_01/dataset.yaml",
-    "catalog/product/equity/geometric_asian_puts/"
-    "geometric_asian_puts_01/dataset.yaml",
-    "catalog/product/equity/forward_start_calls/"
-    "forward_start_calls_01/dataset.yaml",
-    "catalog/product/equity/forward_start_puts/"
-    "forward_start_puts_01/dataset.yaml",
-    "catalog/product/equity/up_and_out_calls/"
-    "up_and_out_calls_01/dataset.yaml",
-    "catalog/product/equity/down_and_out_puts/"
-    "down_and_out_puts_01/dataset.yaml",
-    "catalog/product/equity/up_and_in_calls/"
-    "up_and_in_calls_01/dataset.yaml",
-    "catalog/product/equity/down_and_in_puts/"
-    "down_and_in_puts_01/dataset.yaml",
+    "catalog/product/equity/geometric_asian_options/"
+    "geometric_asian_options_01/dataset.yaml",
+    "catalog/product/equity/forward_start_options/"
+    "forward_start_options_01/dataset.yaml",
+    "catalog/product/equity/up_and_out_options/"
+    "up_and_out_options_01/dataset.yaml",
+    "catalog/product/equity/down_and_out_options/"
+    "down_and_out_options_01/dataset.yaml",
+    "catalog/product/equity/up_and_in_options/"
+    "up_and_in_options_01/dataset.yaml",
+    "catalog/product/equity/down_and_in_options/"
+    "down_and_in_options_01/dataset.yaml",
     "catalog/product/equity/up_one_touches/"
     "up_one_touches_01/dataset.yaml",
     "catalog/product/equity/up_no_touches/"
     "up_no_touches_01/dataset.yaml",
-    "catalog/product/equity/double_knock_out_calls/"
-    "double_knock_out_calls_01/dataset.yaml",
-    "catalog/product/equity/double_knock_out_puts/"
-    "double_knock_out_puts_01/dataset.yaml",
-    "catalog/product/fixed_income/caplets/caplets_01/dataset.yaml",
-    "catalog/product/fixed_income/floorlets/floorlets_01/dataset.yaml",
-    "catalog/product/fixed_income/zero_coupon_bond_calls/"
-    "zero_coupon_bond_calls_01/dataset.yaml",
-    "catalog/product/fixed_income/zero_coupon_bond_puts/"
-    "zero_coupon_bond_puts_01/dataset.yaml",
+    "catalog/product/equity/double_knock_out_options/"
+    "double_knock_out_options_01/dataset.yaml",
+    "catalog/product/fixed_income/rate_options/rate_options_01/dataset.yaml",
+    "catalog/product/fixed_income/zero_coupon_bond_options/"
+    "zero_coupon_bond_options_01/dataset.yaml",
     "catalog/price/heston/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/price/heston/european_calls/"

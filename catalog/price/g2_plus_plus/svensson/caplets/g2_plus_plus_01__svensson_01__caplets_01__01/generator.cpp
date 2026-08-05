@@ -1,6 +1,6 @@
 // Build one G2++ Svensson caplet price dataset.
 #include "common/check_cuda.cuh"
-#include "model/g2_plus_plus/svensson/caplet.cuh"
+#include "model/g2_plus_plus/svensson/rate_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -20,7 +20,7 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path curve_dataset_path =
     "datasets/curve/svensson/svensson_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/caplets/caplets_01.json";
+    "datasets/product/fixed_income/rate_options/rate_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
         g2pp::load_models(model_dataset_path);
     const std::vector<curve::svensson::SvenssonParameters> curves =
         curve::svensson::load_curves(curve_dataset_path);
-    const std::vector<product::CapletParameters> products =
-        product::load_caplets(product_dataset_path);
+    const std::vector<product::RateOptionParameters> products =
+        product::load_rate_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -73,7 +73,7 @@ int main() {
     // Declare the four device arrays and CUDA timing events.
     g2pp::G2PlusPlusModelParameters* device_models = nullptr;
     curve::svensson::SvenssonParameters* device_curves = nullptr;
-    product::CapletParameters* device_products = nullptr;
+    product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     cudaEvent_t start_event = nullptr;
     cudaEvent_t stop_event = nullptr;
@@ -138,7 +138,7 @@ int main() {
             64U,
             std::min(models.size(), std::min(curves.size(), products.size()))
         );
-        fitted::launch_g2_plus_plus_svensson_caplet_cuda(
+        fitted::launch_g2_plus_plus_svensson_rate_option_cuda<OptionSide::call>(
             device_models,
             warmup_count,
             device_curves,
@@ -159,7 +159,7 @@ int main() {
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
 
-        fitted::launch_g2_plus_plus_svensson_caplet_cuda(
+        fitted::launch_g2_plus_plus_svensson_rate_option_cuda<OptionSide::call>(
             device_models,
             models.size(),
             device_curves,

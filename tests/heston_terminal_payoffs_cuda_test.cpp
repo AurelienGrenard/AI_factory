@@ -1,27 +1,20 @@
 // Exercise Heston terminal-payoff launchers and exact pathwise identities.
 #include "common/check_cuda.cuh"
-#include "model/heston/asian_put.cuh"
-#include "model/heston/asset_or_nothing_call.cuh"
-#include "model/heston/asset_or_nothing_put.cuh"
-#include "model/heston/digital_call.cuh"
-#include "model/heston/digital_put.cuh"
-#include "model/heston/double_knock_out_call.cuh"
-#include "model/heston/double_knock_out_put.cuh"
-#include "model/heston/down_and_in_put.cuh"
-#include "model/heston/down_and_out_put.cuh"
-#include "model/heston/european_call.cuh"
-#include "model/heston/european_put.cuh"
-#include "model/heston/gap_call.cuh"
-#include "model/heston/gap_put.cuh"
-#include "model/heston/forward_start_call.cuh"
-#include "model/heston/forward_start_put.cuh"
-#include "model/heston/geometric_asian_call.cuh"
-#include "model/heston/geometric_asian_put.cuh"
+#include "model/heston/asian_option.cuh"
+#include "model/heston/asset_or_nothing_option.cuh"
+#include "model/heston/digital_option.cuh"
+#include "model/heston/double_knock_out_option.cuh"
+#include "model/heston/down_and_in_option.cuh"
+#include "model/heston/down_and_out_option.cuh"
+#include "model/heston/european_option.cuh"
+#include "model/heston/gap_option.cuh"
+#include "model/heston/forward_start_option.cuh"
+#include "model/heston/geometric_asian_option.cuh"
 #include "model/heston/straddle.cuh"
-#include "model/heston/up_and_in_call.cuh"
+#include "model/heston/up_and_in_option.cuh"
 #include "model/heston/up_no_touch.cuh"
 #include "model/heston/up_one_touch.cuh"
-#include "model/heston/up_and_out_call.cuh"
+#include "model/heston/up_and_out_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -124,15 +117,15 @@ int main() {
     float error = 0.0f;
     price_one(
         model,
-        product::EuropeanCallParameters{1.0f, 1.0f},
-        heston::launch_heston_european_call_cuda,
+        product::EuropeanOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_european_option_cuda<OptionSide::call>,
         call,
         error
     );
     price_one(
         model,
-        product::EuropeanPutParameters{1.0f, 1.0f},
-        heston::launch_heston_european_put_cuda,
+        product::EuropeanOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_european_option_cuda<OptionSide::put>,
         put,
         error
     );
@@ -154,15 +147,15 @@ int main() {
     float gap_put = 0.0f;
     price_one(
         model,
-        product::GapCallParameters{1.0f, 1.0f, 1.0f},
-        heston::launch_heston_gap_call_cuda,
+        product::GapOptionParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_gap_option_cuda<OptionSide::call>,
         gap_call,
         error
     );
     price_one(
         model,
-        product::GapPutParameters{1.0f, 1.0f, 1.0f},
-        heston::launch_heston_gap_put_cuda,
+        product::GapOptionParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_gap_option_cuda<OptionSide::put>,
         gap_put,
         error
     );
@@ -176,15 +169,15 @@ int main() {
     float digital_put = 0.0f;
     price_one(
         model,
-        product::DigitalCallParameters{1.0f, 1.0f, 1.0f},
-        heston::launch_heston_digital_call_cuda,
+        product::DigitalOptionParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_digital_option_cuda<OptionSide::call>,
         digital_call,
         error
     );
     price_one(
         model,
-        product::DigitalPutParameters{1.0f, 1.0f, 1.0f},
-        heston::launch_heston_digital_put_cuda,
+        product::DigitalOptionParameters{1.0f, 1.0f, 1.0f},
+        heston::launch_heston_digital_option_cuda<OptionSide::put>,
         digital_put,
         error
     );
@@ -197,15 +190,15 @@ int main() {
     float asset_put = 0.0f;
     price_one(
         model,
-        product::AssetOrNothingCallParameters{1.0f, 1.0f},
-        heston::launch_heston_asset_or_nothing_call_cuda,
+        product::AssetOrNothingOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::call>,
         asset_call,
         error
     );
     price_one(
         model,
-        product::AssetOrNothingPutParameters{1.0f, 1.0f},
-        heston::launch_heston_asset_or_nothing_put_cuda,
+        product::AssetOrNothingOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::put>,
         asset_put,
         error
     );
@@ -213,8 +206,8 @@ int main() {
     float asian_put = 0.0f;
     price_one(
         model,
-        product::AsianPutParameters{1.0f, 1.0f},
-        heston::launch_heston_asian_put_cuda,
+        product::AsianOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_asian_option_cuda<OptionSide::put>,
         asian_put,
         error
     );
@@ -223,15 +216,15 @@ int main() {
     float geometric_put = 0.0f;
     price_one(
         model,
-        product::GeometricAsianCallParameters{1.0f, 1.0f},
-        heston::launch_heston_geometric_asian_call_cuda,
+        product::GeometricAsianOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_geometric_asian_option_cuda<OptionSide::call>,
         geometric_call,
         error
     );
     price_one(
         model,
-        product::GeometricAsianPutParameters{1.0f, 1.0f},
-        heston::launch_heston_geometric_asian_put_cuda,
+        product::GeometricAsianOptionParameters{1.0f, 1.0f},
+        heston::launch_heston_geometric_asian_option_cuda<OptionSide::put>,
         geometric_put,
         error
     );
@@ -240,15 +233,15 @@ int main() {
     float forward_put = 0.0f;
     price_one(
         model,
-        product::ForwardStartCallParameters{1.0f, 0.5f, 1.0f},
-        heston::launch_heston_forward_start_call_cuda,
+        product::ForwardStartOptionParameters{1.0f, 0.5f, 1.0f},
+        heston::launch_heston_forward_start_option_cuda<OptionSide::call>,
         forward_call,
         error
     );
     price_one(
         model,
-        product::ForwardStartPutParameters{1.0f, 0.5f, 1.0f},
-        heston::launch_heston_forward_start_put_cuda,
+        product::ForwardStartOptionParameters{1.0f, 0.5f, 1.0f},
+        heston::launch_heston_forward_start_option_cuda<OptionSide::put>,
         forward_put,
         error
     );
@@ -261,43 +254,43 @@ int main() {
     float double_knock_out_put = 0.0f;
     price_one(
         model,
-        product::UpAndOutCallParameters{1.0f, 1.2f, 1.0f},
-        heston::launch_heston_up_and_out_call_cuda,
+        product::UpAndOutOptionParameters{1.0f, 1.2f, 1.0f},
+        heston::launch_heston_up_and_out_option_cuda<OptionSide::call>,
         up_and_out_call,
         error
     );
     price_one(
         model,
-        product::DownAndOutPutParameters{1.0f, 0.8f, 1.0f},
-        heston::launch_heston_down_and_out_put_cuda,
+        product::DownAndOutOptionParameters{1.0f, 0.8f, 1.0f},
+        heston::launch_heston_down_and_out_option_cuda<OptionSide::put>,
         down_and_out_put,
         error
     );
     price_one(
         model,
-        product::UpAndInCallParameters{1.0f, 1.2f, 1.0f},
-        heston::launch_heston_up_and_in_call_cuda,
+        product::UpAndInOptionParameters{1.0f, 1.2f, 1.0f},
+        heston::launch_heston_up_and_in_option_cuda<OptionSide::call>,
         up_and_in_call,
         error
     );
     price_one(
         model,
-        product::DownAndInPutParameters{1.0f, 0.8f, 1.0f},
-        heston::launch_heston_down_and_in_put_cuda,
+        product::DownAndInOptionParameters{1.0f, 0.8f, 1.0f},
+        heston::launch_heston_down_and_in_option_cuda<OptionSide::put>,
         down_and_in_put,
         error
     );
     price_one(
         model,
-        product::DoubleKnockOutCallParameters{1.0f, 0.8f, 1.2f, 1.0f},
-        heston::launch_heston_double_knock_out_call_cuda,
+        product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 1.0f},
+        heston::launch_heston_double_knock_out_option_cuda<OptionSide::call>,
         double_knock_out_call,
         error
     );
     price_one(
         model,
-        product::DoubleKnockOutPutParameters{1.0f, 0.8f, 1.2f, 1.0f},
-        heston::launch_heston_double_knock_out_put_cuda,
+        product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 1.0f},
+        heston::launch_heston_double_knock_out_option_cuda<OptionSide::put>,
         double_knock_out_put,
         error
     );

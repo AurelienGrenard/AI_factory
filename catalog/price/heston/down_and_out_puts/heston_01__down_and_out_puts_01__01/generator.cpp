@@ -1,6 +1,6 @@
 // Build one Heston Down-and-out-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/heston/down_and_out_put.cuh"
+#include "model/heston/down_and_out_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,7 +19,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/equity/down_and_out_puts/down_and_out_puts_01.json";
+    "datasets/product/equity/down_and_out_options/down_and_out_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_models(model_dataset_path);
-    const std::vector<product::DownAndOutPutParameters> products =
-        product::load_down_and_out_puts(product_dataset_path);
+    const std::vector<product::DownAndOutOptionParameters> products =
+        product::load_down_and_out_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -78,7 +78,7 @@ int main() {
 
     // Declare the device pointers and CUDA events used below.
     heston::HestonModelParameters* device_models = nullptr;
-    product::DownAndOutPutParameters* device_products = nullptr;
+    product::DownAndOutOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -99,7 +99,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::DownAndOutPutParameters)
+                products.size() * sizeof(product::DownAndOutOptionParameters)
             ),
             "cudaMalloc Down-and-out puts"
         );
@@ -132,7 +132,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::DownAndOutPutParameters),
+                products.size() * sizeof(product::DownAndOutOptionParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy Down-and-out puts"
@@ -147,7 +147,7 @@ int main() {
             ai_factory::workbench::bounded_block_count(
                 warmup_row_count, block_count
             );
-        heston::launch_heston_down_and_out_put_cuda(
+        heston::launch_heston_down_and_out_option_cuda<OptionSide::put>(
             device_models,
             warmup_row_count,
             device_products,
@@ -182,7 +182,7 @@ int main() {
                 ai_factory::workbench::bounded_block_count(
                     launch_result_count, block_count
                 );
-            heston::launch_heston_down_and_out_put_cuda(
+            heston::launch_heston_down_and_out_option_cuda<OptionSide::put>(
                 device_models,
                 models.size(),
                 device_products,

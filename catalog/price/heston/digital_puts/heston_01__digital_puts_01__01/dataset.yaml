@@ -8,7 +8,7 @@ summary:
   monte_carlo_paths_per_price: 16384
   model: "Heston"
   numerical_method: "Andersen QE-M"
-  payoff: "Digital Puts"
+  payoff: "Digital Options"
   implementation: "CUDA"
   device: "gpu"
   block_count: 1000
@@ -31,11 +31,11 @@ model_dataset:
   catalog: "catalog/model/heston/heston_01"
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
-  id: "digital_puts_01"
-  catalog: "catalog/product/equity/digital_puts/digital_puts_01"
-  url: "https://datasets.ai-factory.example/v1/product/digital_puts/digital_puts_01.json"
+  id: "digital_options_01"
+  catalog: "catalog/product/equity/digital_options/digital_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/digital_options/digital_options_01.json"
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.565514552 s"
-  kernel_seconds: "0.135532547 s"
+  wall_seconds: "0.338951284 s"
+  kernel_seconds: "0.127068993 s"

@@ -1,6 +1,6 @@
 // Compare the G2 caplet CUDA launcher with an FP64 formula.
 #include "common/check_cuda.cuh"
-#include "model/g2/caplet.cuh"
+#include "model/g2/rate_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -55,7 +55,7 @@ double g2_integral_variance(
 double caplet_price(
     const ai_factory::workbench::model::g2::
         G2ModelParameters& model,
-    const ai_factory::workbench::product::CapletParameters& product
+    const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion_x;
     const double b = model.process.mean_reversion_y;
@@ -127,7 +127,7 @@ int main() {
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}, {0.03f, 0.01f}},
         {{0.50f, 0.0f, 1.10f, 0.0f, 0.00f}, {0.02f, 0.005f}},
     };
-    const std::vector<product::CapletParameters> products = {
+    const std::vector<product::RateOptionParameters> products = {
         {1.0f, 0.0f, 0.5f, 1.0f, 0.5f},
         {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
         {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
@@ -136,7 +136,7 @@ int main() {
     constexpr std::size_t cartesian_count = 6U;
 
     g2::G2ModelParameters* device_models = nullptr;
-    product::CapletParameters* device_products = nullptr;
+    product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
         check_cuda(
@@ -170,7 +170,7 @@ int main() {
             "G2 caplet test cudaMemcpy products"
         );
 
-        g2::launch_g2_caplet_cuda(
+        g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
@@ -208,7 +208,7 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        g2::launch_g2_caplet_cuda(
+        g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
@@ -221,7 +221,7 @@ int main() {
             1U,
             device_prices
         );
-        g2::launch_g2_caplet_cuda(
+        g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
