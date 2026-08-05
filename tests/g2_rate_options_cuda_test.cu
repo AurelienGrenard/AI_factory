@@ -1,8 +1,7 @@
 // Compare three G2 rate-option launchers with independent FP64 formulas.
 #include "common/check_cuda.cuh"
-#include "model/g2/floorlet.cuh"
-#include "model/g2/zero_coupon_bond_call.cuh"
-#include "model/g2/zero_coupon_bond_put.cuh"
+#include "model/g2/rate_option.cuh"
+#include "model/g2/zero_coupon_bond_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -281,17 +280,17 @@ int main() {
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}, {0.03f, 0.01f}},
         {{0.50f, 0.0f, 1.10f, 0.0f, 0.00f}, {0.02f, 0.005f}},
     };
-    const std::vector<product::FloorletParameters> floorlets = {
+    const std::vector<product::RateOptionParameters> floorlets = {
         {1.0f, 0.00f, 0.5f, 1.0f, 0.5f},
         {2.0f, 0.04f, 1.0f, 1.5f, 0.5f},
         {1.5f, 0.08f, 2.0f, 2.25f, 0.25f},
     };
-    const std::vector<product::ZeroCouponBondCallParameters> calls = {
+    const std::vector<product::ZeroCouponBondOptionParameters> calls = {
         {1.0f, 0.90f, 0.5f, 1.0f},
         {2.0f, 0.97f, 1.0f, 1.5f},
         {1.5f, 1.05f, 2.0f, 3.0f},
     };
-    const std::vector<product::ZeroCouponBondPutParameters> puts = {
+    const std::vector<product::ZeroCouponBondOptionParameters> puts = {
         {1.0f, 0.90f, 0.5f, 1.0f},
         {2.0f, 0.97f, 1.0f, 1.5f},
         {1.5f, 1.05f, 2.0f, 3.0f},
@@ -300,8 +299,8 @@ int main() {
     check_launcher(
         models,
         floorlets,
-        g2::launch_g2_floorlet_cuda,
-        [](const Model& model, const product::FloorletParameters& product) {
+        g2::launch_g2_rate_option_cuda<OptionSide::put>,
+        [](const Model& model, const product::RateOptionParameters& product) {
             const double strike_factor =
                 1.0 + product.accrual_period * product.strike;
             return product.notional * strike_factor * bond_option_price(
@@ -317,9 +316,9 @@ int main() {
     check_launcher(
         models,
         calls,
-        g2::launch_g2_zero_coupon_bond_call_cuda,
+        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::call>,
         [](const Model& model,
-           const product::ZeroCouponBondCallParameters& product) {
+           const product::ZeroCouponBondOptionParameters& product) {
             return product.notional * bond_option_price(
                 model,
                 1.0,
@@ -333,9 +332,9 @@ int main() {
     check_launcher(
         models,
         puts,
-        g2::launch_g2_zero_coupon_bond_put_cuda,
+        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::put>,
         [](const Model& model,
-           const product::ZeroCouponBondPutParameters& product) {
+           const product::ZeroCouponBondOptionParameters& product) {
             return product.notional * bond_option_price(
                 model,
                 -1.0,

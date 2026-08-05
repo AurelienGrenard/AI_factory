@@ -30,12 +30,6 @@ set(
 )
 set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
 
-option(
-    CUDA_WORKBENCH_FAST_MATH
-    "Use CUDA fast FP32 transcendental functions in pricing kernels"
-    OFF
-)
-
 # Host-only generation and serialization helpers shared by all generators.
 add_library(ai_factory_dataset_tools STATIC
     tools/datasets/autocall_generation.cpp
@@ -59,108 +53,78 @@ target_compile_features(ai_factory_dataset_tools PUBLIC cxx_std_17)
 target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
 
 add_library(cuda_workbench STATIC
+    src/common/cuda_kernel_diagnostics.cpp
+    src/common/longstaff_schwartz/exercise_schedule.cu
+    src/common/longstaff_schwartz/launch.cu
+    src/common/longstaff_schwartz/workspace.cu
     src/curve/nelson_siegel/dataset.cpp
     src/curve/svensson/dataset.cpp
     src/model/g2/dataset.cpp
-    src/model/g2/caplet.cu
-    src/model/g2/floorlet.cu
-    src/model/g2/zero_coupon_bond_call.cu
-    src/model/g2/zero_coupon_bond_put.cu
+    src/model/g2/rate_option.cu
+    src/model/g2/zero_coupon_bond_option.cu
     src/model/g2_plus_plus/dataset.cpp
-    src/model/g2_plus_plus/nelson_siegel/caplet.cu
-    src/model/g2_plus_plus/nelson_siegel/floorlet.cu
-    src/model/g2_plus_plus/nelson_siegel/zero_coupon_bond_call.cu
-    src/model/g2_plus_plus/nelson_siegel/zero_coupon_bond_put.cu
-    src/model/g2_plus_plus/svensson/caplet.cu
-    src/model/g2_plus_plus/svensson/floorlet.cu
-    src/model/g2_plus_plus/svensson/zero_coupon_bond_call.cu
-    src/model/g2_plus_plus/svensson/zero_coupon_bond_put.cu
+    src/model/g2_plus_plus/nelson_siegel/rate_option.cu
+    src/model/g2_plus_plus/nelson_siegel/zero_coupon_bond_option.cu
+    src/model/g2_plus_plus/svensson/rate_option.cu
+    src/model/g2_plus_plus/svensson/zero_coupon_bond_option.cu
     src/model/heston/dataset.cpp
-    src/model/heston/american_call.cu
-    src/model/heston/american_put.cu
+    src/model/heston/american_option.cu
     src/model/heston/athena_autocall.cu
-    src/model/heston/asian_call.cu
-    src/model/heston/asian_put.cu
-    src/model/heston/asset_or_nothing_call.cu
-    src/model/heston/asset_or_nothing_put.cu
+    src/model/heston/asian_option.cu
+    src/model/heston/asset_or_nothing_option.cu
     src/model/heston/cliquet.cu
     src/model/heston/range_accrual.cu
-    src/model/heston/digital_call.cu
-    src/model/heston/digital_put.cu
-    src/model/heston/double_knock_out_call.cu
-    src/model/heston/double_knock_out_put.cu
-    src/model/heston/down_and_in_put.cu
-    src/model/heston/down_and_out_put.cu
-    src/model/heston/european_call.cu
-    src/model/heston/european_put.cu
-    src/model/heston/gap_call.cu
-    src/model/heston/gap_put.cu
-    src/model/heston/forward_start_call.cu
-    src/model/heston/forward_start_put.cu
-    src/model/heston/geometric_asian_call.cu
-    src/model/heston/geometric_asian_put.cu
+    src/model/heston/digital_option.cu
+    src/model/heston/double_knock_out_option.cu
+    src/model/heston/down_and_in_option.cu
+    src/model/heston/down_and_out_option.cu
+    src/model/heston/european_option.cu
+    src/model/heston/gap_option.cu
+    src/model/heston/forward_start_option.cu
+    src/model/heston/geometric_asian_option.cu
     src/model/heston/lookback_option.cu
     src/model/heston/phoenix_autocall.cu
     src/model/heston/phoenix_memory_autocall.cu
     src/model/heston/straddle.cu
-    src/model/heston/up_and_in_call.cu
+    src/model/heston/up_and_in_option.cu
     src/model/heston/up_no_touch.cu
     src/model/heston/up_one_touch.cu
-    src/model/heston/up_and_out_call.cu
+    src/model/heston/up_and_out_option.cu
     src/model/hull_white/dataset.cpp
-    src/model/hull_white/nelson_siegel/caplet.cu
-    src/model/hull_white/nelson_siegel/floorlet.cu
-    src/model/hull_white/nelson_siegel/zero_coupon_bond_call.cu
-    src/model/hull_white/nelson_siegel/zero_coupon_bond_put.cu
-    src/model/hull_white/svensson/caplet.cu
-    src/model/hull_white/svensson/floorlet.cu
-    src/model/hull_white/svensson/zero_coupon_bond_call.cu
-    src/model/hull_white/svensson/zero_coupon_bond_put.cu
-    src/model/ornstein_uhlenbeck/caplet.cu
-    src/model/ornstein_uhlenbeck/floorlet.cu
-    src/model/ornstein_uhlenbeck/zero_coupon_bond_call.cu
-    src/model/ornstein_uhlenbeck/zero_coupon_bond_put.cu
+    src/model/hull_white/nelson_siegel/rate_option.cu
+    src/model/hull_white/nelson_siegel/zero_coupon_bond_option.cu
+    src/model/hull_white/svensson/rate_option.cu
+    src/model/hull_white/svensson/zero_coupon_bond_option.cu
+    src/model/ornstein_uhlenbeck/rate_option.cu
+    src/model/ornstein_uhlenbeck/zero_coupon_bond_option.cu
     src/model/ornstein_uhlenbeck/dataset.cpp
-    src/model/vasicek/caplet.cu
-    src/model/vasicek/floorlet.cu
-    src/model/vasicek/zero_coupon_bond_call.cu
-    src/model/vasicek/zero_coupon_bond_put.cu
+    src/model/vasicek/rate_option.cu
+    src/model/vasicek/zero_coupon_bond_option.cu
     src/model/vasicek/dataset.cpp
-    src/product/american_call/dataset.cpp
-    src/product/american_put/dataset.cpp
+    src/product/american_option/dataset.cpp
     src/product/athena_autocall/dataset.cpp
-    src/product/asian_call/dataset.cpp
-    src/product/asian_put/dataset.cpp
-    src/product/asset_or_nothing_call/dataset.cpp
-    src/product/asset_or_nothing_put/dataset.cpp
-    src/product/caplet/dataset.cpp
+    src/product/asian_option/dataset.cpp
+    src/product/asset_or_nothing_option/dataset.cpp
     src/product/cliquet/dataset.cpp
     src/product/range_accrual/dataset.cpp
-    src/product/digital_call/dataset.cpp
-    src/product/digital_put/dataset.cpp
-    src/product/double_knock_out_call/dataset.cpp
-    src/product/double_knock_out_put/dataset.cpp
-    src/product/down_and_in_put/dataset.cpp
-    src/product/down_and_out_put/dataset.cpp
-    src/product/european_call/dataset.cpp
-    src/product/european_put/dataset.cpp
-    src/product/floorlet/dataset.cpp
-    src/product/gap_call/dataset.cpp
-    src/product/gap_put/dataset.cpp
-    src/product/forward_start_call/dataset.cpp
-    src/product/forward_start_put/dataset.cpp
-    src/product/geometric_asian_call/dataset.cpp
-    src/product/geometric_asian_put/dataset.cpp
+    src/product/digital_option/dataset.cpp
+    src/product/double_knock_out_option/dataset.cpp
+    src/product/down_and_in_option/dataset.cpp
+    src/product/down_and_out_option/dataset.cpp
+    src/product/european_option/dataset.cpp
+    src/product/rate_option/dataset.cpp
+    src/product/gap_option/dataset.cpp
+    src/product/forward_start_option/dataset.cpp
+    src/product/geometric_asian_option/dataset.cpp
     src/product/lookback_option/dataset.cpp
     src/product/phoenix_autocall/dataset.cpp
     src/product/phoenix_memory_autocall/dataset.cpp
     src/product/straddle/dataset.cpp
-    src/product/up_and_in_call/dataset.cpp
+    src/product/up_and_in_option/dataset.cpp
     src/product/up_no_touch/dataset.cpp
     src/product/up_one_touch/dataset.cpp
-    src/product/up_and_out_call/dataset.cpp
-    src/product/zero_coupon_bond_call/dataset.cpp
-    src/product/zero_coupon_bond_put/dataset.cpp
+    src/product/up_and_out_option/dataset.cpp
+    src/product/zero_coupon_bond_option/dataset.cpp
 )
 target_include_directories(cuda_workbench PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -177,12 +141,6 @@ target_compile_options(cuda_workbench PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-O3>
     $<$<COMPILE_LANGUAGE:CXX>:-O3>
 )
-if(CUDA_WORKBENCH_FAST_MATH)
-    target_compile_options(cuda_workbench PRIVATE
-        $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>
-    )
-endif()
-
 # Register one host-only parameter generator with shared build settings.
 function(add_parameter_generator target source)
     add_executable(${target} ${source})
@@ -471,46 +429,6 @@ add_parameter_generator(
     catalog/curve/svensson/svensson_01/generator.cpp
 )
 add_parameter_generator(
-    generate_european_calls_01
-    catalog/product/equity/european_calls/european_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_european_puts_01
-    catalog/product/equity/european_puts/european_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asian_calls_01
-    catalog/product/equity/asian_calls/asian_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asian_puts_01
-    catalog/product/equity/asian_puts/asian_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_digital_calls_01
-    catalog/product/equity/digital_calls/digital_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_digital_puts_01
-    catalog/product/equity/digital_puts/digital_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asset_or_nothing_calls_01
-    catalog/product/equity/asset_or_nothing_calls/asset_or_nothing_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asset_or_nothing_puts_01
-    catalog/product/equity/asset_or_nothing_puts/asset_or_nothing_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_gap_calls_01
-    catalog/product/equity/gap_calls/gap_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_gap_puts_01
-    catalog/product/equity/gap_puts/gap_puts_01/generator.cpp
-)
-add_parameter_generator(
     generate_straddles_01
     catalog/product/equity/straddles/straddles_01/generator.cpp
 )
@@ -519,60 +437,12 @@ add_parameter_generator(
     catalog/product/equity/lookback_options/lookback_options_01/generator.cpp
 )
 add_parameter_generator(
-    generate_american_puts_01
-    catalog/product/equity/american_puts/american_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_geometric_asian_calls_01
-    catalog/product/equity/geometric_asian_calls/geometric_asian_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_geometric_asian_puts_01
-    catalog/product/equity/geometric_asian_puts/geometric_asian_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_forward_start_calls_01
-    catalog/product/equity/forward_start_calls/forward_start_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_forward_start_puts_01
-    catalog/product/equity/forward_start_puts/forward_start_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_and_out_calls_01
-    catalog/product/equity/up_and_out_calls/up_and_out_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_down_and_out_puts_01
-    catalog/product/equity/down_and_out_puts/down_and_out_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_and_in_calls_01
-    catalog/product/equity/up_and_in_calls/up_and_in_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_down_and_in_puts_01
-    catalog/product/equity/down_and_in_puts/down_and_in_puts_01/generator.cpp
-)
-add_parameter_generator(
     generate_up_one_touches_01
     catalog/product/equity/up_one_touches/up_one_touches_01/generator.cpp
 )
 add_parameter_generator(
     generate_up_no_touches_01
     catalog/product/equity/up_no_touches/up_no_touches_01/generator.cpp
-)
-add_parameter_generator(
-    generate_double_knock_out_calls_01
-    catalog/product/equity/double_knock_out_calls/double_knock_out_calls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_double_knock_out_puts_01
-    catalog/product/equity/double_knock_out_puts/double_knock_out_puts_01/generator.cpp
-)
-add_parameter_generator(
-    generate_american_calls_01
-    catalog/product/equity/american_calls/american_calls_01/generator.cpp
 )
 add_parameter_generator(
     generate_phoenix_autocalls_01
@@ -594,21 +464,71 @@ add_parameter_generator(
     generate_range_accruals_01
     catalog/product/equity/range_accruals/range_accruals_01/generator.cpp
 )
+# Call/put orientation is selected by price generators; product grids are
+# shared whenever their construction is identical.
 add_parameter_generator(
-    generate_caplets_01
-    catalog/product/fixed_income/caplets/caplets_01/generator.cpp
+    generate_european_options_01
+    catalog/product/equity/european_options/european_options_01/generator.cpp
 )
 add_parameter_generator(
-    generate_floorlets_01
-    catalog/product/fixed_income/floorlets/floorlets_01/generator.cpp
+    generate_asian_options_01
+    catalog/product/equity/asian_options/asian_options_01/generator.cpp
 )
 add_parameter_generator(
-    generate_zero_coupon_bond_calls_01
-    catalog/product/fixed_income/zero_coupon_bond_calls/zero_coupon_bond_calls_01/generator.cpp
+    generate_digital_options_01
+    catalog/product/equity/digital_options/digital_options_01/generator.cpp
 )
 add_parameter_generator(
-    generate_zero_coupon_bond_puts_01
-    catalog/product/fixed_income/zero_coupon_bond_puts/zero_coupon_bond_puts_01/generator.cpp
+    generate_asset_or_nothing_options_01
+    catalog/product/equity/asset_or_nothing_options/asset_or_nothing_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_gap_call_options_01
+    catalog/product/equity/gap_options/gap_call_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_gap_put_options_01
+    catalog/product/equity/gap_options/gap_put_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_american_options_01
+    catalog/product/equity/american_options/american_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_geometric_asian_options_01
+    catalog/product/equity/geometric_asian_options/geometric_asian_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_forward_start_options_01
+    catalog/product/equity/forward_start_options/forward_start_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_and_out_options_01
+    catalog/product/equity/up_and_out_options/up_and_out_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_down_and_out_options_01
+    catalog/product/equity/down_and_out_options/down_and_out_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_up_and_in_options_01
+    catalog/product/equity/up_and_in_options/up_and_in_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_down_and_in_options_01
+    catalog/product/equity/down_and_in_options/down_and_in_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_double_knock_out_options_01
+    catalog/product/equity/double_knock_out_options/double_knock_out_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_rate_options_01
+    catalog/product/fixed_income/rate_options/rate_options_01/generator.cpp
+)
+add_parameter_generator(
+    generate_zero_coupon_bond_options_01
+    catalog/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01/generator.cpp
 )
 
 if(BUILD_TESTING)
@@ -1062,31 +982,16 @@ if(BUILD_TESTING)
         60
     )
     add_cuda_workbench_test(
-        heston_american_put_cuda
-        tests/heston_american_put_cuda_test.cpp
-        american_put
+        heston_american_option_cuda
+        tests/heston_american_option_cuda_test.cpp
+        american_option
         120
     )
     add_cuda_workbench_test(
-        heston_american_call_cuda
-        tests/heston_american_call_cuda_test.cpp
-        american_call
-        120
+        cuda_kernel_diagnostics
+        tests/cuda_kernel_diagnostics_test.cu
+        kernel_diagnostics
+        30
     )
 
-    # Build explicitly when comparing American-put launch configurations.
-    add_executable(
-        heston_american_put_benchmark EXCLUDE_FROM_ALL
-        tests/performance/heston_american_put_benchmark.cpp
-    )
-    target_include_directories(heston_american_put_benchmark PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    target_link_libraries(
-        heston_american_put_benchmark
-        PRIVATE cuda_workbench
-    )
-    target_compile_features(
-        heston_american_put_benchmark PRIVATE cxx_std_17
-    )
 endif()

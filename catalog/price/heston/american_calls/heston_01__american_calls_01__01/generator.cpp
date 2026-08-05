@@ -1,6 +1,6 @@
 // Build one Heston American-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/heston/american_call.cuh"
+#include "model/heston/american_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,7 +19,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/equity/american_calls/american_calls_01.json";
+    "datasets/product/equity/american_options/american_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_models(model_dataset_path);
-    const std::vector<product::AmericanCallParameters> products =
-        product::load_american_calls(product_dataset_path);
+    const std::vector<product::AmericanOptionParameters> products =
+        product::load_american_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -68,10 +68,10 @@ int main() {
 
     // Declare the persistent device arrays used by every memory-aware batch.
     heston::HestonModelParameters* device_models = nullptr;
-    product::AmericanCallParameters* device_products = nullptr;
+    product::AmericanOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
-    heston::AmericanCallLaunchResult execution{};
+    longstaff_schwartz::LaunchResult execution{};
     double wall_seconds = 0.0;
 
     // 3. Allocate and load the persistent input and output arrays.
@@ -88,7 +88,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::AmericanCallParameters)
+                products.size() * sizeof(product::AmericanOptionParameters)
             ),
             "cudaMalloc American calls"
         );
@@ -121,7 +121,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::AmericanCallParameters),
+                products.size() * sizeof(product::AmericanOptionParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy American calls"
@@ -129,7 +129,7 @@ int main() {
 
         // Warm one small row so JIT loading and GPU clocks stay out of timing.
         constexpr std::size_t warmup_paths = 4'096U;
-        heston::launch_heston_american_call_cuda(
+        heston::launch_heston_american_option_cuda<OptionSide::call>(
             device_models,
             1U,
             products.data(),
@@ -149,7 +149,7 @@ int main() {
 
         // Plan the reusable workspace and time every production batch.
         wall_start = std::chrono::steady_clock::now();
-        execution = heston::launch_heston_american_call_cuda(
+        execution = heston::launch_heston_american_option_cuda<OptionSide::call>(
             device_models,
             models.size(),
             products.data(),

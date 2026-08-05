@@ -1,6 +1,6 @@
 // Compare the Vasicek caplet CUDA launcher with an FP64 formula.
 #include "common/check_cuda.cuh"
-#include "model/vasicek/caplet.cuh"
+#include "model/vasicek/rate_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -35,7 +35,7 @@ double integral_variance(double a, double sigma, double delta) {
 double caplet_price(
     const ai_factory::workbench::model::vasicek::
         VasicekModelParameters& model,
-    const ai_factory::workbench::product::CapletParameters& product
+    const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion;
     const double b = model.process.long_term_mean;
@@ -94,7 +94,7 @@ int main() {
         {{0.25f, 0.05f, 0.015f}, 0.04f},
         {{0.50f, 0.01f, 0.0f}, 0.025f},
     };
-    const std::vector<product::CapletParameters> products = {
+    const std::vector<product::RateOptionParameters> products = {
         {1.0f, 0.0f, 0.5f, 1.0f, 0.5f},
         {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
         {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
@@ -103,7 +103,7 @@ int main() {
     constexpr std::size_t cartesian_count = 6U;
 
     vasicek::VasicekModelParameters* device_models = nullptr;
-    product::CapletParameters* device_products = nullptr;
+    product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
         check_cuda(
@@ -137,7 +137,7 @@ int main() {
             "Vasicek caplet test cudaMemcpy products"
         );
 
-        vasicek::launch_vasicek_caplet_cuda(
+        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
@@ -175,7 +175,7 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        vasicek::launch_vasicek_caplet_cuda(
+        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
@@ -188,7 +188,7 @@ int main() {
             1U,
             device_prices
         );
-        vasicek::launch_vasicek_caplet_cuda(
+        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,

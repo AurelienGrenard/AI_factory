@@ -1,6 +1,6 @@
 // Build one Hull-White Svensson zero-coupon bond call dataset.
 #include "common/check_cuda.cuh"
-#include "model/hull_white/svensson/zero_coupon_bond_call.cuh"
+#include "model/hull_white/svensson/zero_coupon_bond_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -20,7 +20,7 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path curve_dataset_path =
     "datasets/curve/svensson/svensson_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/zero_coupon_bond_calls/zero_coupon_bond_calls_01.json";
+    "datasets/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
         hw::load_models(model_dataset_path);
     const std::vector<curve::svensson::SvenssonParameters> curves =
         curve::svensson::load_curves(curve_dataset_path);
-    const std::vector<product::ZeroCouponBondCallParameters> products =
-        product::load_zero_coupon_bond_calls(product_dataset_path);
+    const std::vector<product::ZeroCouponBondOptionParameters> products =
+        product::load_zero_coupon_bond_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -73,7 +73,7 @@ int main() {
     // Declare the four device arrays and CUDA timing events.
     hw::HullWhiteModelParameters* device_models = nullptr;
     curve::svensson::SvenssonParameters* device_curves = nullptr;
-    product::ZeroCouponBondCallParameters* device_products = nullptr;
+    product::ZeroCouponBondOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     cudaEvent_t start_event = nullptr;
     cudaEvent_t stop_event = nullptr;
@@ -138,7 +138,7 @@ int main() {
             64U,
             std::min(models.size(), std::min(curves.size(), products.size()))
         );
-        fitted::launch_hull_white_svensson_zero_coupon_bond_call_cuda(
+        fitted::launch_hull_white_svensson_zero_coupon_bond_option_cuda<OptionSide::call>(
             device_models,
             warmup_count,
             device_curves,
@@ -159,7 +159,7 @@ int main() {
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
 
-        fitted::launch_hull_white_svensson_zero_coupon_bond_call_cuda(
+        fitted::launch_hull_white_svensson_zero_coupon_bond_option_cuda<OptionSide::call>(
             device_models,
             models.size(),
             device_curves,

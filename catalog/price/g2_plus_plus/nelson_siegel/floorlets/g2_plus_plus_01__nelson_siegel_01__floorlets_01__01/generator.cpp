@@ -1,6 +1,6 @@
 // Build one G2++ Nelson-Siegel floorlet price dataset.
 #include "common/check_cuda.cuh"
-#include "model/g2_plus_plus/nelson_siegel/floorlet.cuh"
+#include "model/g2_plus_plus/nelson_siegel/rate_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -20,7 +20,7 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path curve_dataset_path =
     "datasets/curve/nelson_siegel/nelson_siegel_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/floorlets/floorlets_01.json";
+    "datasets/product/fixed_income/rate_options/rate_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
         g2pp::load_models(model_dataset_path);
     const std::vector<curve::nelson_siegel::NelsonSiegelParameters> curves =
         curve::nelson_siegel::load_curves(curve_dataset_path);
-    const std::vector<product::FloorletParameters> products =
-        product::load_floorlets(product_dataset_path);
+    const std::vector<product::RateOptionParameters> products =
+        product::load_rate_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -73,7 +73,7 @@ int main() {
     // Declare the four device arrays and CUDA timing events.
     g2pp::G2PlusPlusModelParameters* device_models = nullptr;
     curve::nelson_siegel::NelsonSiegelParameters* device_curves = nullptr;
-    product::FloorletParameters* device_products = nullptr;
+    product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     cudaEvent_t start_event = nullptr;
     cudaEvent_t stop_event = nullptr;
@@ -138,7 +138,7 @@ int main() {
             64U,
             std::min(models.size(), std::min(curves.size(), products.size()))
         );
-        fitted::launch_g2_plus_plus_nelson_siegel_floorlet_cuda(
+        fitted::launch_g2_plus_plus_nelson_siegel_rate_option_cuda<OptionSide::put>(
             device_models,
             warmup_count,
             device_curves,
@@ -159,7 +159,7 @@ int main() {
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
 
-        fitted::launch_g2_plus_plus_nelson_siegel_floorlet_cuda(
+        fitted::launch_g2_plus_plus_nelson_siegel_rate_option_cuda<OptionSide::put>(
             device_models,
             models.size(),
             device_curves,

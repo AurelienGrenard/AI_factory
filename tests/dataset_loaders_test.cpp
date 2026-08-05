@@ -7,41 +7,30 @@
 #include "model/hull_white/dataset.hpp"
 #include "model/ornstein_uhlenbeck/dataset.hpp"
 #include "model/vasicek/dataset.hpp"
-#include "product/american_put/dataset.hpp"
-#include "product/american_call/dataset.hpp"
-#include "product/asian_call/dataset.hpp"
-#include "product/asian_put/dataset.hpp"
+#include "product/american_option/dataset.hpp"
+#include "product/asian_option/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
-#include "product/asset_or_nothing_call/dataset.hpp"
-#include "product/asset_or_nothing_put/dataset.hpp"
-#include "product/caplet/dataset.hpp"
+#include "product/asset_or_nothing_option/dataset.hpp"
+#include "product/rate_option/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
-#include "product/digital_call/dataset.hpp"
-#include "product/digital_put/dataset.hpp"
-#include "product/european_call/dataset.hpp"
-#include "product/european_put/dataset.hpp"
-#include "product/floorlet/dataset.hpp"
-#include "product/forward_start_call/dataset.hpp"
-#include "product/forward_start_put/dataset.hpp"
-#include "product/gap_call/dataset.hpp"
-#include "product/gap_put/dataset.hpp"
-#include "product/geometric_asian_call/dataset.hpp"
-#include "product/geometric_asian_put/dataset.hpp"
+#include "product/digital_option/dataset.hpp"
+#include "product/european_option/dataset.hpp"
+#include "product/forward_start_option/dataset.hpp"
+#include "product/gap_option/dataset.hpp"
+#include "product/geometric_asian_option/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "product/phoenix_memory_autocall/dataset.hpp"
-#include "product/double_knock_out_call/dataset.hpp"
-#include "product/double_knock_out_put/dataset.hpp"
-#include "product/down_and_in_put/dataset.hpp"
-#include "product/down_and_out_put/dataset.hpp"
+#include "product/double_knock_out_option/dataset.hpp"
+#include "product/down_and_in_option/dataset.hpp"
+#include "product/down_and_out_option/dataset.hpp"
 #include "product/straddle/dataset.hpp"
-#include "product/up_and_in_call/dataset.hpp"
+#include "product/up_and_in_option/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
-#include "product/up_and_out_call/dataset.hpp"
-#include "product/zero_coupon_bond_call/dataset.hpp"
-#include "product/zero_coupon_bond_put/dataset.hpp"
+#include "product/up_and_out_option/dataset.hpp"
+#include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
@@ -165,6 +154,7 @@ int main() {
     namespace vasicek = ai_factory::workbench::model::vasicek;
     namespace product = ai_factory::workbench::product;
     namespace datasets = ai_factory::workbench::datasets;
+    using ai_factory::workbench::OptionSide;
 
     check_missing_field(
         "Model", "model_family",
@@ -281,32 +271,32 @@ int main() {
     check_loader(
         "European call", "products", "strike", 0.0f, "strike",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_european_calls
+        product::load_european_options
     );
     check_loader(
         "European put", "products", "strike", 0.0f, "strike",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_european_puts
+        product::load_european_options
     );
     check_loader(
         "Asian call", "products", "maturity", 0.0f, "maturity",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_asian_calls
+        product::load_asian_options
     );
     check_loader(
         "Asian put", "products", "maturity", 0.0f, "maturity",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_asian_puts
+        product::load_asian_options
     );
     check_loader(
         "Geometric Asian call", "products", "strike", 0.0f, "strike",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_geometric_asian_calls
+        product::load_geometric_asian_options
     );
     check_loader(
         "Geometric Asian put", "products", "maturity", 0.0f, "maturity",
         one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
-        product::load_geometric_asian_puts
+        product::load_geometric_asian_options
     );
     check_loader(
         "Forward-start call", "products", "reset_time", 1.0f,
@@ -314,42 +304,42 @@ int main() {
         one_row("products", {
             {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
         }),
-        product::load_forward_start_calls
+        product::load_forward_start_options
     );
     check_loader(
         "Forward-start put", "products", "moneyness", 0.0f, "moneyness",
         one_row("products", {
             {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
         }),
-        product::load_forward_start_puts
+        product::load_forward_start_options
     );
     check_loader(
         "Up-and-out call", "products", "barrier", 0.9f, "exceed strike",
         one_row("products", {
             {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
         }),
-        product::load_up_and_out_calls
+        product::load_up_and_out_options
     );
     check_loader(
         "Down-and-out put", "products", "barrier", 1.1f, "below strike",
         one_row("products", {
             {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
         }),
-        product::load_down_and_out_puts
+        product::load_down_and_out_options
     );
     check_loader(
         "Up-and-in call", "products", "barrier", 0.9f, "exceed strike",
         one_row("products", {
             {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
         }),
-        product::load_up_and_in_calls
+        product::load_up_and_in_options
     );
     check_loader(
         "Down-and-in put", "products", "barrier", 1.1f, "below strike",
         one_row("products", {
             {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
         }),
-        product::load_down_and_in_puts
+        product::load_down_and_in_options
     );
     check_loader(
         "Up one-touch", "products", "cash_payoff", 0.0f, "cash_payoff",
@@ -372,7 +362,7 @@ int main() {
             {"strike", 1.0f}, {"lower_barrier", 0.8f},
             {"upper_barrier", 1.2f}, {"maturity", 1.0f},
         }),
-        product::load_double_knock_out_calls
+        product::load_double_knock_out_options
     );
     check_loader(
         "Double-knock-out put", "products", "upper_barrier", 1.0f,
@@ -381,7 +371,7 @@ int main() {
             {"strike", 1.0f}, {"lower_barrier", 0.8f},
             {"upper_barrier", 1.2f}, {"maturity", 1.0f},
         }),
-        product::load_double_knock_out_puts
+        product::load_double_knock_out_options
     );
     check_loader(
         "Digital call", "products", "cash_payoff", 0.0f, "cash_payoff",
@@ -390,7 +380,7 @@ int main() {
             {"maturity", 1.0f},
             {"cash_payoff", 1.0f},
         }),
-        product::load_digital_calls
+        product::load_digital_options
     );
     check_loader(
         "Digital put", "products", "cash_payoff", 0.0f, "cash_payoff",
@@ -399,7 +389,7 @@ int main() {
             {"maturity", 1.0f},
             {"cash_payoff", 1.0f},
         }),
-        product::load_digital_puts
+        product::load_digital_options
     );
     check_loader(
         "Asset-or-nothing call", "products", "strike", 0.0f, "strike",
@@ -407,7 +397,7 @@ int main() {
             {"strike", 1.0f},
             {"maturity", 1.0f},
         }),
-        product::load_asset_or_nothing_calls
+        product::load_asset_or_nothing_options
     );
     check_loader(
         "Asset-or-nothing put", "products", "strike", 0.0f, "strike",
@@ -415,7 +405,7 @@ int main() {
             {"strike", 1.0f},
             {"maturity", 1.0f},
         }),
-        product::load_asset_or_nothing_puts
+        product::load_asset_or_nothing_options
     );
     check_loader(
         "Gap call", "products", "payoff_strike", 1.1f,
@@ -425,7 +415,9 @@ int main() {
             {"payoff_strike", 0.95f},
             {"maturity", 1.0f},
         }),
-        product::load_gap_calls
+        [](const std::filesystem::path& path) {
+            return product::load_gap_options(path, OptionSide::call);
+        }
     );
     check_loader(
         "Gap put", "products", "payoff_strike", 0.9f,
@@ -435,7 +427,9 @@ int main() {
             {"payoff_strike", 1.05f},
             {"maturity", 1.0f},
         }),
-        product::load_gap_puts
+        [](const std::filesystem::path& path) {
+            return product::load_gap_options(path, OptionSide::put);
+        }
     );
     check_loader(
         "Straddle", "products", "strike", 0.0f, "strike",
@@ -455,7 +449,7 @@ int main() {
             {"maturity", 1.0f},
             {"exercise_interval", 1.0f / 12.0f},
         }),
-        product::load_american_puts
+        product::load_american_options
     );
     check_loader(
         "American call", "products", "exercise_interval", 1.0f,
@@ -465,7 +459,7 @@ int main() {
             {"maturity", 1.0f},
             {"exercise_interval", 1.0f / 12.0f},
         }),
-        product::load_american_calls
+        product::load_american_options
     );
     check_loader(
         "Phoenix autocall", "products", "coupon_barrier", 0.50f,
@@ -540,7 +534,7 @@ int main() {
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},
         }),
-        product::load_caplets
+        product::load_rate_options
     );
     check_loader(
         "Floorlet", "products", "payment_time", 1.0f, "payment_time",
@@ -551,7 +545,7 @@ int main() {
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},
         }),
-        product::load_floorlets
+        product::load_rate_options
     );
     check_loader(
         "Zero-coupon bond call", "products", "strike", 0.0f, "strike",
@@ -561,7 +555,7 @@ int main() {
             {"option_expiry", 1.0f},
             {"bond_maturity", 1.5f},
         }),
-        product::load_zero_coupon_bond_calls
+        product::load_zero_coupon_bond_options
     );
     check_loader(
         "Zero-coupon bond put", "products", "bond_maturity", 1.0f,
@@ -572,7 +566,7 @@ int main() {
             {"option_expiry", 1.0f},
             {"bond_maturity", 1.5f},
         }),
-        product::load_zero_coupon_bond_puts
+        product::load_zero_coupon_bond_options
     );
     // Price datasets may omit the curve or require it consistently per row.
     nlohmann::json price_document = {

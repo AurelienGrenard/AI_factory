@@ -13,10 +13,18 @@ AI_factory/
 |-- tools/        parameter generation and dataset-writing utilities
 |-- catalog/      one reproducible folder per published dataset
 |-- datasets/     complete JSON datasets, ignored by Git
+|-- docs/         implementation contracts and operational documentation
 |-- tests/        dataset contracts and CUDA tests
 |-- validation/   independent QuantLib price references
 `-- CMakeLists.txt
 ```
+
+The implementation contracts for CUDA pricers are documented in:
+
+- `docs/cuda-pricing-kernel-api.md` for closed-form and Monte Carlo pricers;
+- `docs/early-exercise-pricing-api.md` for American and Bermudan pricers;
+- `docs/cuda-validation-and-diagnostics.md` for launch guards, kernel resource
+  diagnostics, and their test coverage.
 
 ### `src`
 
@@ -38,6 +46,26 @@ They do not know output paths, dataset URLs, or catalog formats.
 
 Models retain matching type, function, and kernel layouts whenever their
 mathematics and data dependencies permit it.
+
+### CUDA kernel diagnostics
+
+Every pricing launcher can report the resources and theoretical occupancy of
+the exact kernel specialization and launch geometry it uses. Diagnostics are
+disabled by default and do not alter dataset files. Enable them for any test or
+generator with:
+
+```bash
+AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 \
+    ./build/test_heston_terminal_payoffs_cuda \
+    2> build/heston-kernel-diagnostics.jsonl
+```
+
+Each JSON line identifies the kernel and variant, CUDA device, grid and block
+geometry, registers, local and shared memory, active blocks and warps per SM,
+and theoretical occupancy. Repeated batches with the same geometry are emitted
+only once. A generator can be inspected in exactly the same way; it continues
+to write its normal dataset while the diagnostic is written separately to
+standard error.
 
 ### `tools`
 
@@ -104,9 +132,9 @@ datasets/
 |-- model/hull_white/hull_white_01.json
 |-- model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
 |-- model/vasicek/vasicek_01.json
-|-- product/equity/european_calls/european_calls_01.json
-|-- product/equity/american_puts/american_puts_01.json
-|-- product/fixed_income/caplets/caplets_01.json
+|-- product/equity/european_options/european_options_01.json
+|-- product/equity/american_options/american_options_01.json
+|-- product/fixed_income/rate_options/rate_options_01.json
 |-- price/heston/<product>/<price_dataset_id>.json
 |-- price/g2/<product>/<price_dataset_id>.json
 |-- price/g2_plus_plus/<curve>/<product>/<price_dataset_id>.json
@@ -230,13 +258,13 @@ The complete JSON dataset contains rows with stable identifiers:
 
 ### Product
 
-The `european_calls_01` dataset contains `strike` and `maturity`. For each
+The `european_options_01` dataset contains `strike` and `maturity`. For each
 maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
 then applies `K = exp(x)`.
 
 ```yaml
-catalog: "catalog/product/equity/european_calls/european_calls_01"
-url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
+catalog: "catalog/product/equity/european_options/european_options_01"
+url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 row_count: 1000
 construction:
   method: "maturity-dependent exponential grid"
@@ -273,9 +301,9 @@ model_dataset:
   catalog: "catalog/model/heston/heston_01"
   url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
 product_dataset:
-  id: "european_calls_01"
-  catalog: "catalog/product/equity/european_calls/european_calls_01"
-  url: "https://datasets.ai-factory.example/v1/product/european_calls/european_calls_01.json"
+  id: "european_options_01"
+  catalog: "catalog/product/equity/european_options/european_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 price_construction:
   method: "Aligned"
 ```
@@ -283,6 +311,20 @@ price_construction:
 `Aligned` pairs rows with the same index and requires equal dataset sizes.
 `CartesianProduct` generates every combination in model, optional curve,
 then product order.
+
+Call and put prices remain distinct price datasets, but share one product
+parameter dataset whenever the row construction is identical. Their pricing
+generators select `OptionSide::call` or `OptionSide::put`, which instantiates a
+small compile-time payoff specialization; no side flag is stored per row or
+branched on per simulated path. Gap options retain separate call-oriented and
+put-oriented parameter datasets inside `gap_options/` because their payoff
+strike grids differ.
+
+Side-aware CUDA launchers expose this choice directly in their public API, for
+example `launch_heston_european_option_cuda<OptionSide::call>(...)`. Their
+`.cu` file explicitly instantiates the call and put versions, so ordinary C++
+generators can link either specialization without including CUDA
+implementations or keeping a runtime dispatch wrapper.
 
 ## Build
 
@@ -318,12 +360,12 @@ Parameter datasets are quick to regenerate:
 ./build/generate_hull_white_01
 ./build/generate_ornstein_uhlenbeck_01
 ./build/generate_vasicek_01
-./build/generate_european_calls_01
-./build/generate_american_puts_01
-./build/generate_caplets_01
-./build/generate_floorlets_01
-./build/generate_zero_coupon_bond_calls_01
-./build/generate_zero_coupon_bond_puts_01
+./build/generate_european_options_01
+./build/generate_american_options_01
+./build/generate_gap_call_options_01
+./build/generate_gap_put_options_01
+./build/generate_rate_options_01
+./build/generate_zero_coupon_bond_options_01
 ```
 
 Each command replaces the local dataset and its YAML catalog entry together.

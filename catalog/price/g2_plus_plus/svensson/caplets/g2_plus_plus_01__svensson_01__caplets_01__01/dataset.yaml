@@ -8,7 +8,7 @@ summary:
   model: "G2++ Gaussian two-factor"
   curve: "Svensson"
   numerical_method: "G2++ closed-form zero-coupon bond put"
-  payoff: "Caplets"
+  payoff: "Forward Rate Options"
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
@@ -27,11 +27,11 @@ curve_dataset:
   catalog: "catalog/curve/svensson/svensson_01"
   url: "https://datasets.ai-factory.example/v1/curve/svensson/svensson_01.json"
 product_dataset:
-  id: "caplets_01"
-  catalog: "catalog/product/fixed_income/caplets/caplets_01"
-  url: "https://datasets.ai-factory.example/v1/product/caplets/caplets_01.json"
+  id: "rate_options_01"
+  catalog: "catalog/product/fixed_income/rate_options/rate_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/rate_options/rate_options_01.json"
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.409572874 s"
-  kernel_seconds: "0.000049152 s"
+  wall_seconds: "0.188655055 s"
+  kernel_seconds: "0.000006144 s"

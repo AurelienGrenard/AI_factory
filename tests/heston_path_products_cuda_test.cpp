@@ -1,7 +1,7 @@
 // Compare the three uniform one-block Heston product launchers on CUDA.
 #include "common/check_cuda.cuh"
-#include "model/heston/asian_call.cuh"
-#include "model/heston/european_call.cuh"
+#include "model/heston/asian_option.cuh"
+#include "model/heston/european_option.cuh"
 #include "model/heston/lookback_option.cuh"
 
 #include <cuda_runtime.h>
@@ -26,8 +26,8 @@ void require(bool condition, const char* message) {
 // Own every device allocation shared by the three launcher checks.
 struct DeviceArrays {
     ai_factory::workbench::heston::HestonModelParameters* model = nullptr;
-    ai_factory::workbench::product::EuropeanCallParameters* european = nullptr;
-    ai_factory::workbench::product::AsianCallParameters* asian = nullptr;
+    ai_factory::workbench::product::EuropeanOptionParameters* european = nullptr;
+    ai_factory::workbench::product::AsianOptionParameters* asian = nullptr;
     ai_factory::workbench::product::LookbackOptionParameters* lookback = nullptr;
     float* price = nullptr;
     float* standard_error = nullptr;
@@ -84,8 +84,8 @@ int main() {
     const heston::HestonModelParameters model = {
         1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
     };
-    const product::EuropeanCallParameters european = {1.0f, 1.0f};
-    const product::AsianCallParameters asian = {1.0f, 1.0f};
+    const product::EuropeanOptionParameters european = {1.0f, 1.0f};
+    const product::AsianOptionParameters asian = {1.0f, 1.0f};
     const product::LookbackOptionParameters lookback = {1.0f, 1.0f};
 
     DeviceArrays device;
@@ -136,7 +136,7 @@ int main() {
 
     float european_price = 0.0f;
     float european_error = 0.0f;
-    heston::launch_heston_european_call_cuda(
+    heston::launch_heston_european_option_cuda<OptionSide::call>(
         device.model, 1U, device.european, 1U, false, 1U, 0U, 1U,
         kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
@@ -145,7 +145,7 @@ int main() {
 
     float asian_price = 0.0f;
     float asian_error = 0.0f;
-    heston::launch_heston_asian_call_cuda(
+    heston::launch_heston_asian_option_cuda<OptionSide::call>(
         device.model, 1U, device.asian, 1U, false, 1U, 0U, 1U,
         kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error

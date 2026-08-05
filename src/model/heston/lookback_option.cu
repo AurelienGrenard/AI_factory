@@ -2,6 +2,7 @@
 #include "model/heston/lookback_option.cuh"
 
 #include "common/check_cuda.cuh"
+#include "common/cuda_kernel_diagnostics.cuh"
 #include "common/reductions.cuh"
 
 // Include the dynamics implementation so NVCC can inline each time step.
@@ -242,6 +243,14 @@ void launch_heston_lookback_option_cuda(
     }
 
     // Launch the Heston lookback kernel.
+    report_cuda_kernel_launch_if_enabled(
+        "heston.lookback_option",
+        "default",
+        heston_lookback_option_kernel,
+        dim3(static_cast<unsigned int>(block_count)),
+        dim3(threads_per_block),
+        shared_bytes
+    );
     heston_lookback_option_kernel<<<
         static_cast<unsigned int>(block_count),
         threads_per_block,

@@ -1,0 +1,28 @@
+title: "Double-Knock-Out Calls parameter dataset double_knock_out_options_01"
+database_id: "double_knock_out_options_01"
+product_family: "Double-Knock-Out Calls"
+catalog: "catalog/product/equity/double_knock_out_options/double_knock_out_options_01"
+url: "https://datasets.ai-factory.example/v1/product/double_knock_out_options/double_knock_out_options_01.json"
+row_count: 1000
+parameters:
+  strike: "Strike in normalized spot units."
+  lower_barrier: "Lower knock-out level."
+  upper_barrier: "Upper knock-out level."
+  maturity: "Maturity in years."
+payoff:
+  expression: "max(side * (S_T - K), 0) while S remains between both barriers; side = +1 call / -1 put"
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2

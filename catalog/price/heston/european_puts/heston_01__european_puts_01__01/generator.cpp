@@ -1,6 +1,6 @@
 // Build one Heston European-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/heston/european_put.cuh"
+#include "model/heston/european_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,7 +19,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/equity/european_puts/european_puts_01.json";
+    "datasets/product/equity/european_options/european_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -55,8 +55,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_models(model_dataset_path);
-    const std::vector<product::EuropeanPutParameters> products =
-        product::load_european_puts(product_dataset_path);
+    const std::vector<product::EuropeanOptionParameters> products =
+        product::load_european_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -78,7 +78,7 @@ int main() {
 
     // Declare the device pointers and CUDA events used below.
     heston::HestonModelParameters* device_models = nullptr;
-    product::EuropeanPutParameters* device_products = nullptr;
+    product::EuropeanOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -99,7 +99,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::EuropeanPutParameters)
+                products.size() * sizeof(product::EuropeanOptionParameters)
             ),
             "cudaMalloc European puts"
         );
@@ -132,7 +132,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::EuropeanPutParameters),
+                products.size() * sizeof(product::EuropeanOptionParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy European puts"
@@ -147,7 +147,7 @@ int main() {
             ai_factory::workbench::bounded_block_count(
                 warmup_row_count, block_count
             );
-        heston::launch_heston_european_put_cuda(
+        heston::launch_heston_european_option_cuda<OptionSide::put>(
             device_models,
             warmup_row_count,
             device_products,
@@ -182,7 +182,7 @@ int main() {
                 ai_factory::workbench::bounded_block_count(
                     launch_result_count, block_count
                 );
-            heston::launch_heston_european_put_cuda(
+            heston::launch_heston_european_option_cuda<OptionSide::put>(
                 device_models,
                 models.size(),
                 device_products,

@@ -1,7 +1,7 @@
 // Build one Ornstein-Uhlenbeck zero-coupon bond call price dataset.
 #include "common/check_cuda.cuh"
 #include "model/ornstein_uhlenbeck/dataset.hpp"
-#include "model/ornstein_uhlenbeck/zero_coupon_bond_call.cuh"
+#include "model/ornstein_uhlenbeck/zero_coupon_bond_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,8 +19,8 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/zero_coupon_bond_calls/"
-    "zero_coupon_bond_calls_01.json";
+    "datasets/product/fixed_income/zero_coupon_bond_options/"
+    "zero_coupon_bond_options_01.json";
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
 
@@ -51,8 +51,8 @@ int main() {
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<ou::OrnsteinUhlenbeckModelParameters> models =
         ou::load_models(model_dataset_path);
-    const std::vector<product::ZeroCouponBondCallParameters> products =
-        product::load_zero_coupon_bond_calls(product_dataset_path);
+    const std::vector<product::ZeroCouponBondOptionParameters> products =
+        product::load_zero_coupon_bond_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -66,7 +66,7 @@ int main() {
 
     // Declare model, product, and output arrays with CUDA timing events.
     ou::OrnsteinUhlenbeckModelParameters* device_models = nullptr;
-    product::ZeroCouponBondCallParameters* device_products = nullptr;
+    product::ZeroCouponBondOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     cudaEvent_t start_event = nullptr;
     cudaEvent_t stop_event = nullptr;
@@ -112,7 +112,7 @@ int main() {
         const std::size_t warmup_count = std::min<std::size_t>(
             64U, std::min(models.size(), products.size())
         );
-        ou::launch_ornstein_uhlenbeck_zero_coupon_bond_call_cuda(
+        ou::launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<OptionSide::call>(
             device_models,
             warmup_count,
             device_products,
@@ -130,7 +130,7 @@ int main() {
         check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
-        ou::launch_ornstein_uhlenbeck_zero_coupon_bond_call_cuda(
+        ou::launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<OptionSide::call>(
             device_models,
             models.size(),
             device_products,

@@ -1,6 +1,6 @@
 // Build one Heston asset-or-nothing price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/heston/asset_or_nothing_call.cuh"
+#include "model/heston/asset_or_nothing_option.cuh"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 
@@ -19,7 +19,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/heston/heston_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/equity/asset_or_nothing_calls/asset_or_nothing_calls_01.json";
+    "datasets/product/equity/asset_or_nothing_options/asset_or_nothing_options_01.json";
 
 constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
@@ -56,8 +56,8 @@ int main() {
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<heston::HestonModelParameters> models =
         heston::load_models(model_dataset_path);
-    const std::vector<product::AssetOrNothingCallParameters> products =
-        product::load_asset_or_nothing_calls(product_dataset_path);
+    const std::vector<product::AssetOrNothingOptionParameters> products =
+        product::load_asset_or_nothing_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
     const std::size_t result_count = datasets::price_row_count(
@@ -79,7 +79,7 @@ int main() {
 
     // Declare the device pointers and CUDA events used below.
     heston::HestonModelParameters* device_models = nullptr;
-    product::AssetOrNothingCallParameters* device_products = nullptr;
+    product::AssetOrNothingOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -100,7 +100,7 @@ int main() {
         check_cuda(
             cudaMalloc(
                 &device_products,
-                products.size() * sizeof(product::AssetOrNothingCallParameters)
+                products.size() * sizeof(product::AssetOrNothingOptionParameters)
             ),
             "cudaMalloc Asset-or-nothing calls"
         );
@@ -133,7 +133,7 @@ int main() {
             cudaMemcpy(
                 device_products,
                 products.data(),
-                products.size() * sizeof(product::AssetOrNothingCallParameters),
+                products.size() * sizeof(product::AssetOrNothingOptionParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy Asset-or-nothing calls"
@@ -148,7 +148,7 @@ int main() {
             ai_factory::workbench::bounded_block_count(
                 warmup_row_count, block_count
             );
-        heston::launch_heston_asset_or_nothing_call_cuda(
+        heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::call>(
             device_models,
             warmup_row_count,
             device_products,
@@ -183,7 +183,7 @@ int main() {
                 ai_factory::workbench::bounded_block_count(
                     launch_result_count, block_count
                 );
-            heston::launch_heston_asset_or_nothing_call_cuda(
+            heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::call>(
                 device_models,
                 models.size(),
                 device_products,
