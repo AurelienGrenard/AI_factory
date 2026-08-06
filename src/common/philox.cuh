@@ -55,8 +55,8 @@ struct NormalPair {
 
 // Apply the ten integer-only mixing rounds of Philox-4x32-10.
 __device__ __forceinline__ PhiloxCounter philox4x32_10(
-    PhiloxCounter counter,
-    PhiloxKey key
+    PhiloxKey key,
+    PhiloxCounter counter
 ) {
     #pragma unroll
     for (int round = 0; round < 10; ++round) {
@@ -79,19 +79,20 @@ __device__ __forceinline__ PhiloxCounter philox4x32_10(
     return counter;
 }
 
-// Build one counter group from a pre-split key and group index.
+// Address one random group by an independent path and its local group index.
 __device__ __forceinline__ PhiloxCounter random_bits(
     PhiloxKey key,
-    std::uint64_t group_index
+    std::uint64_t path_index,
+    std::uint64_t local_group_index
 ) {
     return philox4x32_10(
+        key,
         {
-            static_cast<std::uint32_t>(group_index),
-            static_cast<std::uint32_t>(group_index >> 32U),
-            0U,
-            0U,
-        },
-        key
+            static_cast<std::uint32_t>(path_index),
+            static_cast<std::uint32_t>(path_index >> 32U),
+            static_cast<std::uint32_t>(local_group_index),
+            static_cast<std::uint32_t>(local_group_index >> 32U),
+        }
     );
 }
 
@@ -106,15 +107,75 @@ __device__ __forceinline__ float uint32_to_uniform(std::uint32_t value) {
 // Generate four uniforms without rebuilding the Philox key.
 __device__ __forceinline__ RandomQuad uniform_quad(
     PhiloxKey key,
-    std::uint64_t group_index
+    std::uint64_t path_index,
+    std::uint64_t local_group_index
 ) {
-    const PhiloxCounter bits = random_bits(key, group_index);
+    const PhiloxCounter bits = random_bits(
+        key, path_index, local_group_index
+    );
     return {
         uint32_to_uniform(bits.v0),
         uint32_to_uniform(bits.v1),
         uint32_to_uniform(bits.v2),
         uint32_to_uniform(bits.v3),
     };
+}
+
+// Expose one continuous scalar stream while keeping Philox groups internal.
+class UniformSequence {
+public:
+    // Reuse the row key and begin at local group zero for this path.
+    __device__ __forceinline__ UniformSequence(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) : key_(key),
+        path_index_(path_index),
+        values_(uniform_quad(key_, path_index_, local_group_index_++)) {}
+
+    // Return the next uniform, refreshing the cached group when necessary.
+    __device__ __forceinline__ float next() {
+        if (component_index_ == 4U) {
+            values_ = uniform_quad(
+                key_, path_index_, local_group_index_++
+            );
+            component_index_ = 0U;
+        }
+        const std::uint32_t component_index = component_index_++;
+        if (component_index == 0U) return values_.first;
+        if (component_index == 1U) return values_.second;
+        if (component_index == 2U) return values_.third;
+        return values_.fourth;
+    }
+
+private:
+    PhiloxKey key_;
+    std::uint64_t path_index_;
+    std::uint64_t local_group_index_ = 0ULL;
+    RandomQuad values_;
+    std::uint32_t component_index_ = 0U;
+};
+
+// Invert a Poisson CDF from one uniform without consuming a variable stream.
+// Pass exp(-poisson_mean) prepared outside the hot path as zero_probability.
+__device__ __forceinline__ std::uint32_t poisson_from_uniform(
+    float uniform,
+    float poisson_mean,
+    float zero_probability
+) {
+    std::uint32_t count = 0U;
+    float probability = zero_probability;
+    float cumulative = probability;
+    while (uniform > cumulative) {
+        ++count;
+        probability *= poisson_mean / static_cast<float>(count);
+        const float next_cumulative = cumulative + probability;
+        // The remaining tail can fall below one FP32 ulp while the largest
+        // representable uniform is still above the rounded CDF. Return the
+        // last representable quantile instead of looping on a stagnant sum.
+        if (!(next_cumulative > cumulative)) return count;
+        cumulative = next_cumulative;
+    }
+    return count;
 }
 
 // Convert two uniforms into two independent standard normals.
@@ -130,64 +191,104 @@ __device__ __forceinline__ NormalPair box_muller(
     return {radius * cosine, radius * sine};
 }
 
-// Cache four uniforms at a time for one path aligned on a Philox group.
-class UniformSequence {
-public:
-    // Reuse the row key and begin at the path's first complete group.
-    __device__ __forceinline__ UniformSequence(
-        PhiloxKey key,
-        std::uint64_t first_group
-    ) : key_(key),
-        group_index_(first_group),
-        values_(uniform_quad(key, first_group)) {}
-
-    // Return the next uniform, refreshing the cached group when necessary.
-    __device__ __forceinline__ float next() {
-        if (component_index_ == 4U) {
-            ++group_index_;
-            values_ = uniform_quad(key_, group_index_);
-            component_index_ = 0U;
-        }
-        const std::uint32_t component_index = component_index_++;
-        if (component_index == 0U) return values_.first;
-        if (component_index == 1U) return values_.second;
-        if (component_index == 2U) return values_.third;
-        return values_.fourth;
-    }
-
-private:
-    PhiloxKey key_;
-    std::uint64_t group_index_;
-    RandomQuad values_;
-    std::uint32_t component_index_ = 0U;
+// Cache the second Box-Muller result without owning a separate random stream.
+struct NormalPairCache {
+    NormalPair normals{};
+    bool has_second = false;
 };
 
-// Convert the uniform stream into cached pairs of standard normals.
-class NormalSequence {
-public:
-    // Begin at the first complete Philox group reserved for one path.
-    __device__ __forceinline__ NormalSequence(
-        PhiloxKey key,
-        std::uint64_t first_group
-    ) : uniforms_(key, first_group) {}
+// Consume scalar uniforms in order and return one cached standard normal.
+__device__ __forceinline__ float next_normal(
+    UniformSequence& uniforms,
+    NormalPairCache& cache
+) {
+    if (cache.has_second) {
+        cache.has_second = false;
+        return cache.normals.second;
+    }
+    const float angle_uniform = uniforms.next();
+    const float radius_uniform = uniforms.next();
+    cache.normals = box_muller(angle_uniform, radius_uniform);
+    cache.has_second = true;
+    return cache.normals.first;
+}
 
-    // Return one normal and reuse the second value from each Box-Muller pair.
-    __device__ __forceinline__ float next() {
-        if (has_second_) {
-            has_second_ = false;
-            return normals_.second;
+namespace detail {
+
+// Marsaglia-Tsang core for a unit-scale Gamma shape greater than or equal to 1.
+__device__ __forceinline__ float marsaglia_tsang_gamma_shape_at_least_one(
+    UniformSequence& uniforms,
+    NormalPairCache& normal_cache,
+    float shape
+) {
+    const float d = shape - 1.0f / 3.0f;
+    const float c = 1.0f / sqrtf(9.0f * d);
+
+    while (true) {
+        const float normal = next_normal(uniforms, normal_cache);
+        const float one_plus_cx = fmaf(c, normal, 1.0f);
+        if (one_plus_cx <= 0.0f) continue;
+
+        const float candidate = one_plus_cx * one_plus_cx * one_plus_cx;
+        const float uniform = uniforms.next();
+        const float normal2 = normal * normal;
+        const float normal4 = normal2 * normal2;
+        if (uniform < 1.0f - 0.0331f * normal4) {
+            return d * candidate;
         }
-        const float angle_uniform = uniforms_.next();
-        const float radius_uniform = uniforms_.next();
-        normals_ = box_muller(angle_uniform, radius_uniform);
-        has_second_ = true;
-        return normals_.first;
+        if (logf(uniform)
+            < 0.5f * normal2
+                + d * (1.0f - candidate + logf(candidate))) {
+            return d * candidate;
+        }
+    }
+}
+
+}  // namespace detail
+
+// Draw Gamma(shape, scale) with the Marsaglia-Tsang rejection method.
+// Positive shape and scale are preconditions validated by the caller.
+__device__ __forceinline__ float marsaglia_tsang_gamma(
+    UniformSequence& uniforms,
+    NormalPairCache& normal_cache,
+    float shape,
+    float scale
+) {
+    if (shape >= 1.0f) {
+        return scale * detail::marsaglia_tsang_gamma_shape_at_least_one(
+            uniforms, normal_cache, shape
+        );
     }
 
-private:
-    UniformSequence uniforms_;
-    NormalPair normals_{};
-    bool has_second_ = false;
-};
+    // Boost a sub-unit shape, then apply the exact power transformation.
+    const float boost_uniform = uniforms.next();
+    const float boosted_gamma =
+        detail::marsaglia_tsang_gamma_shape_at_least_one(
+            uniforms, normal_cache, shape + 1.0f
+        );
+    return scale * boosted_gamma
+        * expf(logf(boost_uniform) / shape);
+}
+
+// Draw IG(mean, shape) with the Michael-Schucany-Haas exact construction.
+// The reciprocal-root form avoids cancellation in the smaller candidate.
+__device__ __forceinline__ float michael_schucany_haas_inverse_gaussian(
+    UniformSequence& uniforms,
+    NormalPairCache& normal_cache,
+    float mean,
+    float shape
+) {
+    const float normal = next_normal(uniforms, normal_cache);
+    const float selection_uniform = uniforms.next();
+    const float squared_normal = normal * normal;
+    const float w = mean * squared_normal / (2.0f * shape);
+    const float root = sqrtf(w * (2.0f + w));
+    const float ratio = 1.0f + w + root;
+    const float lower_candidate = mean / ratio;
+    const float lower_probability = 1.0f - 1.0f / (ratio + 1.0f);
+    return selection_uniform <= lower_probability
+        ? lower_candidate
+        : mean * ratio;
+}
 
 }  // namespace ai_factory::workbench::philox

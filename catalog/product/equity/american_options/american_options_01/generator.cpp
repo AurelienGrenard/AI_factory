@@ -17,19 +17,19 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/american_options/"
         "american_options_01.json";
 
-    constexpr std::size_t maturity_count = 50U;
-    constexpr std::size_t strikes_per_maturity = 20U;
     constexpr float log_moneyness_slope = 0.2f;
     constexpr std::size_t minimum_exercise_dates = 2U;
     constexpr std::uint64_t exercise_interval_seed = 731000101ULL;
 
     // Reuse exactly the European-call strike and maturity construction.
-    GeneratedRows rows = maturity_dependent_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, maturity_count),
-        strikes_per_maturity,
+    GeneratedRows rows = core_stress_exponential_strike_grid(
+        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        20U,
+        log_moneyness_slope,
+        linear_grid(1.0f / 26.0f, 7.0f, 10U),
+        10U,
         log_moneyness_slope
     );
-    rows.construction["grid"]["maturity"]["minimum"] = "1 / 12";
 
     // Select monthly or semi-monthly exercise when maturity permits it.
     assign_uniform_exercise_intervals(
@@ -37,6 +37,7 @@ int main() {
         {
             {1.0f / 12.0f, "1 / 12"},
             {1.0f / 24.0f, "1 / 24"},
+            {1.0f / 52.0f, "1 / 52"},
         },
         minimum_exercise_dates,
         exercise_interval_seed

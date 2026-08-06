@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
 #include <limits>
 #include <ostream>
 #include <random>
@@ -271,6 +272,58 @@ GeneratedRows uniform_rows(
     };
 }
 
+// Preserve regime order and expose both generation recipes in catalog YAML.
+GeneratedRows core_stress_rows(
+    GeneratedRows core,
+    GeneratedRows stress
+) {
+    if (core.rows.empty() || stress.rows.empty()) {
+        throw std::invalid_argument(
+            "Core/stress generation requires two non-empty regimes."
+        );
+    }
+    const std::size_t core_count = core.rows.size();
+    const std::size_t stress_count = stress.rows.size();
+    const std::size_t total_count = core_count + stress_count;
+    if (core_count * 10U != total_count * 9U
+        || stress_count * 10U != total_count) {
+        throw std::invalid_argument(
+            "Core/stress generation requires an exact 90/10 split."
+        );
+    }
+
+    nlohmann::ordered_json core_generation = std::move(core.construction);
+    nlohmann::ordered_json stress_generation = std::move(stress.construction);
+    core.rows.reserve(total_count);
+    core.rows.insert(
+        core.rows.end(),
+        std::make_move_iterator(stress.rows.begin()),
+        std::make_move_iterator(stress.rows.end())
+    );
+    core.construction = {
+        {"method", "ordered 90/10 core-stress construction"},
+        {"row_order", {
+            {"core", "rows 1-" + std::to_string(core_count)},
+            {
+                "stress",
+                "rows " + std::to_string(core_count + 1U)
+                    + "-" + std::to_string(total_count)
+            },
+        }},
+        {"core_share", 0.9},
+        {"stress_share", 0.1},
+        {"core", {
+            {"row_count", core_count},
+            {"generation", std::move(core_generation)},
+        }},
+        {"stress", {
+            {"row_count", stress_count},
+            {"generation", std::move(stress_generation)},
+        }},
+    };
+    return core;
+}
+
 // Combine parameter values that share the same vector index.
 GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters) {
     if (parameters.empty() || parameters.front().values.empty()) {
@@ -441,6 +494,66 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
             }},
         },
     };
+}
+
+// Combine a representative strike/maturity grid with a wider stress grid.
+GeneratedRows core_stress_exponential_strike_grid(
+    const std::vector<float>& core_maturities,
+    std::size_t core_strikes_per_maturity,
+    float core_log_moneyness_slope,
+    const std::vector<float>& stress_maturities,
+    std::size_t stress_strikes_per_maturity,
+    float stress_log_moneyness_slope
+) {
+    GeneratedRows core = maturity_dependent_exponential_strike_grid(
+        core_maturities,
+        core_strikes_per_maturity,
+        core_log_moneyness_slope
+    );
+    GeneratedRows stress = maturity_dependent_exponential_strike_grid(
+        stress_maturities,
+        stress_strikes_per_maturity,
+        stress_log_moneyness_slope
+    );
+    GeneratedRows combined = core_stress_rows(
+        std::move(core), std::move(stress)
+    );
+    const auto [core_minimum, core_maximum] = std::minmax_element(
+        core_maturities.begin(), core_maturities.end()
+    );
+    const auto [stress_minimum, stress_maximum] = std::minmax_element(
+        stress_maturities.begin(), stress_maturities.end()
+    );
+    combined.construction["grid"] = {
+        {"maturity", {
+            {"core", {
+                {"minimum", readable_grid_bound(*core_minimum)},
+                {"maximum", readable_grid_bound(*core_maximum)},
+                {"count", core_maturities.size()},
+                {"spacing", "linear"},
+            }},
+            {"stress", {
+                {"minimum", readable_grid_bound(*stress_minimum)},
+                {"maximum", readable_grid_bound(*stress_maximum)},
+                {"count", stress_maturities.size()},
+                {"spacing", "linear"},
+            }},
+        }},
+        {"strike", {
+            {"core", {
+                {"count_per_maturity", core_strikes_per_maturity},
+                {"conditional_bounds", "[exp(-aT), exp(aT)]"},
+                {"a", readable_grid_bound(core_log_moneyness_slope)},
+            }},
+            {"stress", {
+                {"count_per_maturity", stress_strikes_per_maturity},
+                {"conditional_bounds", "[exp(-aT), exp(aT)]"},
+                {"a", readable_grid_bound(stress_log_moneyness_slope)},
+            }},
+            {"spacing", "linear in log-strike"},
+        }},
+    };
+    return combined;
 }
 
 // Sample a convention with enough exercise dates including maturity.

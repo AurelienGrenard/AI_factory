@@ -1,7 +1,7 @@
 // Compare three Vasicek rate-option launchers with independent FP64 formulas.
 #include "common/check_cuda.cuh"
-#include "model/vasicek/rate_option.cuh"
-#include "model/vasicek/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/vasicek/rate_option.cuh"
+#include "model/fixed_income/vasicek/zero_coupon_bond_option.cuh"
 
 #include <cuda_runtime.h>
 

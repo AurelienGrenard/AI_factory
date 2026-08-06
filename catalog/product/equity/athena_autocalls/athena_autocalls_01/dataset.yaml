@@ -18,12 +18,17 @@ payoff:
   unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T because S_0 = 1."
   protection_monitoring: "European: protection_barrier is observed only at maturity."
 construction:
-  method: "constrained core-tail random sample"
+  method: "ordered 90/10 constrained core-stress sample"
+  row_order:
+    core: "rows 1-900"
+    stress: "remaining rows"
+  core_share: 0.9
+  stress_share: 0.1
   valuation_time: "issuance"
   reference_spot: 1.0
   nominal: 1.0
   sampling:
-    regime_counts: "900 core rows and 100 tail rows"
+    regime_counts: "900 core rows and 100 stress rows"
     observation_interval: "uniform categorical draw within the selected regime"
     observation_count: "uniform integer draw among counts compatible with the regime maturity bounds"
     continuous_parameters: "uniform draws within the selected regime bounds"
@@ -31,7 +36,7 @@ construction:
   calendar_rules:
     - "maturity is an integer multiple of observation_interval"
     - "observation dates are i * observation_interval from issuance"
-    - "rows are shuffled after both regimes are generated"
+    - "core rows precede stress rows"
   regimes:
     core:
       row_count: 900
@@ -50,7 +55,7 @@ construction:
       annual_coupon_rate:
         - 0.03
         - 0.15
-    tail:
+    stress:
       row_count: 100
       maturity:
         - "0.5 year"

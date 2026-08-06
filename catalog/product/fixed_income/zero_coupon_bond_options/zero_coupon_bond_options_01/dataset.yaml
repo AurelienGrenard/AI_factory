@@ -14,24 +14,91 @@ payoff:
   payment_time: "S"
   normalization: "N = 1"
 construction:
-  method: "Cartesian grid"
-  rule: "Every option expiry, bond tenor, and strike combination."
-  grid:
-    option_expiry:
-      minimum: "1 / 4"
-      maximum: 5.0
-      count: 20
-      spacing: "linear"
-    bond_tenor:
-      values:
-        - "1 / 2"
-        - "1"
-      count: 2
-    strike:
-      minimum: "0.80"
-      central_value: "0.97"
-      maximum: "1.10"
-      count: 25
-      spacing: "cubic concentration around 0.97"
-    notional:
-      value: 1.0
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "Cartesian grid"
+      rule: "Every option expiry, bond tenor, and strike combination."
+      description: "Representative expiries and strikes concentrated around 0.97."
+      option_expiries:
+        - 0.25
+        - 0.5305555462837219
+        - 0.8083333373069763
+        - 1.0888888835906982
+        - 1.3666666746139526
+        - 1.6472222805023193
+        - 1.9277777671813965
+        - 2.2055554389953613
+        - 2.4861111640930176
+        - 2.7638888359069824
+        - 3.0444445610046387
+        - 3.3222222328186035
+        - 3.6027777194976807
+        - 3.883333444595337
+        - 4.161110877990723
+        - 4.441666603088379
+        - 4.719444274902344
+        - 5.0
+      bond_tenors:
+        - 0.5
+        - 1.0
+      strikes:
+        - 0.800000011920929
+        - 0.8390567302703857
+        - 0.8716204166412354
+        - 0.8982812762260437
+        - 0.919629693031311
+        - 0.9362558126449585
+        - 0.9487500190734863
+        - 0.9577025771141052
+        - 0.9637037515640259
+        - 0.967343807220459
+        - 0.9692130088806152
+        - 0.9699016213417053
+        - 0.9700000286102295
+        - 0.970075249671936
+        - 0.9706018567085266
+        - 0.97203129529953
+        - 0.9748148322105408
+        - 0.9794039726257324
+        - 0.9862500429153442
+        - 0.9958044290542603
+        - 1.0085185766220093
+        - 1.0248438119888306
+        - 1.045231580734253
+        - 1.070133090019226
+        - 1.100000023841858
+      notional: 1.0
+  stress:
+    row_count: 100
+    generation:
+      method: "Cartesian grid"
+      rule: "Every option expiry, bond tenor, and strike combination."
+      description: "Very short/long expiries and tenors with unusually wide bond strikes."
+      option_expiries:
+        - 0.01944444514811039
+        - 1.6833332777023315
+        - 3.347222328186035
+        - 5.013888835906982
+        - 6.6777777671813965
+        - 8.341666221618652
+        - 10.005555152893066
+        - 11.672222137451172
+        - 13.336111068725586
+        - 15.0
+      bond_tenors:
+        - 0.0833333358168602
+        - 10.0
+      strikes:
+        - 0.20000000298023224
+        - 0.6000000238418579
+        - 0.9700000286102295
+        - 1.25
+        - 1.75
+      notional: 1.0

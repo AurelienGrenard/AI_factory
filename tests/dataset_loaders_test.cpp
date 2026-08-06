@@ -1,12 +1,15 @@
 // Exercise JSON loader invariants and generated-artifact validation.
 #include "curve/nelson_siegel/dataset.hpp"
 #include "curve/svensson/dataset.hpp"
-#include "model/g2/dataset.hpp"
-#include "model/g2_plus_plus/dataset.hpp"
-#include "model/heston/dataset.hpp"
-#include "model/hull_white/dataset.hpp"
-#include "model/ornstein_uhlenbeck/dataset.hpp"
-#include "model/vasicek/dataset.hpp"
+#include "model/fixed_income/g2/dataset.hpp"
+#include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "model/equity/bates/dataset.hpp"
+#include "model/equity/heston/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/fixed_income/hull_white/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/american_option/dataset.hpp"
 #include "product/asian_option/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
@@ -148,7 +151,10 @@ int main() {
     namespace svensson = ai_factory::workbench::curve::svensson;
     namespace g2 = ai_factory::workbench::model::g2;
     namespace g2_plus_plus = ai_factory::workbench::model::g2_plus_plus;
+    namespace bates = ai_factory::workbench::bates;
     namespace heston = ai_factory::workbench::heston;
+    namespace nig = ai_factory::workbench::normal_inverse_gaussian;
+    namespace vg = ai_factory::workbench::variance_gamma;
     namespace hull_white = ai_factory::workbench::model::hull_white;
     namespace ou = ai_factory::workbench::model::ornstein_uhlenbeck;
     namespace vasicek = ai_factory::workbench::model::vasicek;
@@ -217,6 +223,48 @@ int main() {
             {"rho", -0.5f},
         }),
         heston::load_models
+    );
+    check_loader(
+        "Bates", "models", "jump_intensity", -0.1f, "jump_intensity",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_variance", 0.04f},
+            {"kappa", 1.5f},
+            {"theta", 0.04f},
+            {"gamma", 0.3f},
+            {"rho", -0.5f},
+            {"jump_intensity", 0.4f},
+            {"jump_log_mean", -0.1f},
+            {"jump_log_volatility", 0.2f},
+        }),
+        bates::load_models
+    );
+    check_loader(
+        "Variance-Gamma", "models", "nu", 0.0f, "nu",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"sigma", 0.2f},
+            {"nu", 0.2f},
+            {"theta", -0.1f},
+        }),
+        vg::load_models
+    );
+    check_loader(
+        "Normal-Inverse-Gaussian", "models", "alpha", 0.5f,
+        "alpha must exceed",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"alpha", 8.0f},
+            {"beta", -2.0f},
+            {"delta", 0.5f},
+        }),
+        nig::load_models
     );
     check_loader(
         "Ornstein-Uhlenbeck", "models", "volatility", -0.01f,
@@ -529,7 +577,7 @@ int main() {
         "Caplet", "products", "fixing_time", 0.0f, "fixing_time",
         one_row("products", {
             {"notional", 1.0f},
-            {"strike", 0.04f},
+            {"strike", -0.01f},
             {"fixing_time", 1.0f},
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},
@@ -540,7 +588,7 @@ int main() {
         "Floorlet", "products", "payment_time", 1.0f, "payment_time",
         one_row("products", {
             {"notional", 1.0f},
-            {"strike", 0.04f},
+            {"strike", -0.01f},
             {"fixing_time", 1.0f},
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},

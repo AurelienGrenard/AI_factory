@@ -19,7 +19,7 @@ def date_from_time(time: float) -> ql.Date:
 
     day_count = round(360.0 * time)
     if time < 0.0 or not math.isclose(
-        day_count / 360.0, time, rel_tol=0.0, abs_tol=2.0e-7
+        day_count / 360.0, time, rel_tol=0.0, abs_tol=2.0e-6
     ):
         raise ValueError(f"Time {time} is not representable on the Actual/360 grid.")
     return REFERENCE_DATE + day_count

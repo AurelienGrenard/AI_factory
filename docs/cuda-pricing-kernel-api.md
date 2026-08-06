@@ -3,7 +3,7 @@
 ## Objet
 
 Ce document fixe l'ossature des pricers sans exercice anticipé placés dans
-`src/model/<model>/[<curve>/]<product>.cuh/.cu`. Un nouveau pricer doit reprendre
+`src/model/<asset_class>/<model>/[<curve>/]<product>.cuh/.cu`. Un nouveau pricer doit reprendre
 les mêmes couches, les mêmes responsabilités et la même convention de nommage.
 
 Les implémentations Monte Carlo et en formule fermée partagent l'architecture
@@ -172,13 +172,15 @@ Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
 | `target_dt` | pas cible utilisé pour construire la grille régulière |
 | `threads_per_block` | nombre de threads CUDA par bloc |
 | `block_count` | nombre de blocs de la grille persistante ou analytique |
-| `base_seed` | origine du mapping déterministe `seed = base_seed + result_index` |
+| `base_seed` | origine de la clé déterministe `key = make_key(base_seed + result_index)` |
 | `device_prices` | prix FP32 écrits sur le device |
 | `device_standard_errors` | erreurs standards FP32, uniquement en Monte Carlo |
 
 ## Invariants d'implémentation
 
 - Conserver l'ordre des lignes, le mapping des seeds et l'ordre des réductions.
+- Adresser chaque groupe Philox par `(path_index, local_group_index)` sans
+  réservation `groups_per_path`.
 - Ne jamais activer `--use_fast_math`.
 - Conserver l'accumulation FP64 des moments Monte Carlo.
 - Ne pas introduire de dispatch runtime call/put dans le kernel.

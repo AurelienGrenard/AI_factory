@@ -15,12 +15,12 @@ using ai_factory::workbench::datasets::svensson::SamplingRange;
 constexpr std::size_t kRowCount = 1'000U;
 constexpr std::uint64_t kSeed = 720000301ULL;
 constexpr SamplingRange kLongForward{0.005f, 0.06f};
-constexpr SamplingRange kShortForward{0.0f, 0.08f};
-constexpr SamplingRange kFirstMediumForward{0.0f, 0.08f};
-constexpr SamplingRange kSecondMediumForward{0.0f, 0.08f};
+constexpr SamplingRange kShortForward{0.001f, 0.08f};
+constexpr SamplingRange kFirstMediumForward{0.001f, 0.08f};
+constexpr SamplingRange kSecondMediumForward{0.001f, 0.08f};
 constexpr SamplingRange kTau1{0.5f, 3.0f};
 constexpr SamplingRange kTau2{4.0f, 12.0f};
-constexpr SamplingRange kAcceptedForward{0.0f, 0.10f};
+constexpr SamplingRange kAcceptedForward{0.001f, 0.10f};
 constexpr SamplingRange kAcceptedCurvature{-0.20f, 0.20f};
 
 }  // namespace

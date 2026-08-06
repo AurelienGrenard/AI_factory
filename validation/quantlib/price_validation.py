@@ -17,7 +17,9 @@ class ValidationTolerances:
     absolute: float = 5.0e-7
     relative: float = 5.0e-5
     relative_floor: float = 1.0e-8
-    standard_error_multiplier: float = 4.0
+    # A five-sigma row gate avoids predictable family-wise false alarms when
+    # thousands of independent Monte Carlo estimates are checked together.
+    standard_error_multiplier: float = 5.0
     bias_standard_errors: float = 4.0
 
     def __post_init__(self) -> None:

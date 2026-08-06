@@ -4,7 +4,7 @@
 
 Ce document fixe l'ossature Longstaff–Schwartz commune aux produits à exercice
 anticipé, indépendamment du modèle, de la courbe et du payoff. Chaque nouveau
-fichier `src/model/<model>/[<curve>/]<product>.cu` conserve les mêmes étapes et
+fichier `src/model/<asset_class>/<model>/[<curve>/]<product>.cu` conserve les mêmes étapes et
 les mêmes noms de fonctions. Les structures préparées et les champs d'état
 restent spécifiques au modèle-produit.
 
@@ -162,7 +162,7 @@ Paramètres publics communs :
 | `target_dt` | pas cible du stub et des intervalles réguliers |
 | `threads_per_block` | taille commune des blocs CUDA |
 | `blocks_per_price` | parallélisme demandé pour les chemins d'un prix |
-| `base_seed` | origine du mapping déterministe des seeds |
+| `base_seed` | origine de la clé `make_key(base_seed + result_index)` |
 | `device_prices`, `device_standard_errors` | sorties FP32 sur le device |
 
 ## API commune `longstaff_schwartz`
@@ -231,6 +231,8 @@ Paramètres publics communs :
 - Stocker uniquement les états utiles au payoff et à la régression.
 - Conserver le stub initial et la grille régulière entre exercices.
 - Conserver le mapping déterministe des seeds et l'ordre des réductions.
+- Faire commencer chaque chemin à `local_group_index = 0` dans son propre
+  sous-espace Philox `(path_index, local_group_index)`.
 - Ne pas activer `--use_fast_math`.
 - Ne pas généraliser les kernels par templates modèle-produit tant que ce
   chantier n'est pas décidé séparément ; reproduire le squelette lisible dans

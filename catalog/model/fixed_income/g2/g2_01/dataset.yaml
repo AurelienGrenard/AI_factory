@@ -1,0 +1,108 @@
+title: "G2 Gaussian two-factor short rate parameter dataset g2_01"
+database_id: "g2_01"
+model_family: "G2 Gaussian two-factor short rate"
+catalog: "catalog/model/fixed_income/g2/g2_01"
+url: "https://datasets.ai-factory.example/v1/model/fixed_income/g2/g2_01.json"
+row_count: 1000
+parameters:
+  mean_reversion_x: "Positive mean-reversion speed a."
+  volatility_x: "Non-negative first-factor volatility sigma."
+  mean_reversion_y: "Positive mean-reversion speed b above a."
+  volatility_y: "Non-negative second-factor volatility eta."
+  correlation: "Brownian correlation rho in [-1, 1]."
+  initial_state_x: "Initial first Gaussian factor x(0)."
+  initial_state_y: "Initial second Gaussian factor y(0)."
+dynamics:
+  state_x: "dx_t = -a x_t dt + sigma dW_t^x"
+  state_y: "dy_t = -b y_t dt + eta dW_t^y"
+  correlation: "d<W^x,W^y>_t = rho dt"
+  short_rate: "r_t = x_t + y_t"
+  initial_short_rate: "r(0) = x(0) + y(0)"
+  transition: "exact correlated Gaussian transitions"
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "ordered mean reversions and stationary dispersions"
+      sampled_factors:
+        mean_reversion_x:
+          uniform_bounds:
+            - 0.03
+            - 0.35
+        mean_reversion_gap:
+          definition: "mean_reversion_y - mean_reversion_x"
+          uniform_bounds:
+            - 0.1
+            - 1.0
+        stationary_standard_deviation_x:
+          definition: "volatility_x / sqrt(2 * mean_reversion_x)"
+          uniform_bounds:
+            - 0.0025
+            - 0.018
+        stationary_standard_deviation_y:
+          definition: "volatility_y / sqrt(2 * mean_reversion_y)"
+          uniform_bounds:
+            - 0.0015
+            - 0.012
+        correlation:
+          uniform_bounds:
+            - -0.75
+            - 0.25
+        initial_state_x:
+          uniform_bounds:
+            - 0.001
+            - 0.05
+        initial_state_y:
+          uniform_bounds:
+            - 0.001
+            - 0.03
+      reconstruction:
+        mean_reversion_y: "mean_reversion_x + mean_reversion_gap"
+        volatility_x: "stationary_standard_deviation_x * sqrt(2 * mean_reversion_x)"
+        volatility_y: "stationary_standard_deviation_y * sqrt(2 * mean_reversion_y)"
+  stress:
+    row_count: 100
+    generation:
+      method: "ordered mean reversions and stationary dispersions"
+      sampled_factors:
+        mean_reversion_x:
+          uniform_bounds:
+            - 0.005
+            - 0.7
+        mean_reversion_gap:
+          definition: "mean_reversion_y - mean_reversion_x"
+          uniform_bounds:
+            - 0.02
+            - 1.8
+        stationary_standard_deviation_x:
+          definition: "volatility_x / sqrt(2 * mean_reversion_x)"
+          uniform_bounds:
+            - 0.001
+            - 0.035
+        stationary_standard_deviation_y:
+          definition: "volatility_y / sqrt(2 * mean_reversion_y)"
+          uniform_bounds:
+            - 0.001
+            - 0.025
+        correlation:
+          uniform_bounds:
+            - -0.98
+            - 0.75
+        initial_state_x:
+          uniform_bounds:
+            - -0.03
+            - 0.1
+        initial_state_y:
+          uniform_bounds:
+            - -0.03
+            - 0.08
+      reconstruction:
+        mean_reversion_y: "mean_reversion_x + mean_reversion_gap"
+        volatility_x: "stationary_standard_deviation_x * sqrt(2 * mean_reversion_x)"
+        volatility_y: "stationary_standard_deviation_y * sqrt(2 * mean_reversion_y)"

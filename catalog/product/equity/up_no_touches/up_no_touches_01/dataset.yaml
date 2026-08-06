@@ -12,16 +12,63 @@ payoff:
   expression: "cash_payoff if max(S_[0,T]) < barrier; otherwise 0"
   payment_time: "maturity"
 construction:
-  method: "maturity-dependent exponential grid"
-  rule: "For each T, the upper barrier is linearly spaced in log-space."
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "maturity-dependent exponential grid"
+      rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+      grid:
+        maturity:
+          minimum: 0.0833333
+          maximum: 3.0
+          count: 45
+          spacing: "linear"
+        strike:
+          count_per_maturity: 20
+          spacing: "linear in log-strike"
+          conditional_bounds: "[exp(-aT), exp(aT)]"
+          a: 0.2
+  stress:
+    row_count: 100
+    generation:
+      method: "maturity-dependent exponential grid"
+      rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+      grid:
+        maturity:
+          minimum: 0.0192308
+          maximum: 7.0
+          count: 10
+          spacing: "linear"
+        strike:
+          count_per_maturity: 10
+          spacing: "linear in log-strike"
+          conditional_bounds: "[exp(-aT), exp(aT)]"
+          a: 0.2
   grid:
     maturity:
-      minimum: "1 / 12"
-      maximum: 3.0
-      count: 50
-      spacing: "linear"
+      core:
+        minimum: 0.0833333
+        maximum: 3.0
+        count: 45
+        spacing: "linear"
+      stress:
+        minimum: 0.0192308
+        maximum: 7.0
+        count: 10
+        spacing: "linear"
     barrier:
-      count_per_maturity: 20
       spacing: "linear in log-barrier"
-      conditional_bounds: "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"
+      core:
+        count_per_maturity: 20
+        conditional_bounds: "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"
+      stress:
+        count_per_maturity: 10
+        conditional_bounds: "[exp(0.01), exp(0.81 + 0.40 sqrt(T / 7))]"
+  rule: "For each T, the upper barrier is linearly spaced in log-space."
   cash_payoff: 1.0

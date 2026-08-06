@@ -8,6 +8,11 @@
   exercise work, also read `docs/early-exercise-pricing-api.md`; for launcher
   guards or resource inspection, read
   `docs/cuda-validation-and-diagnostics.md`.
+- For model simulation work, read `docs/model-dynamics-api.md` before changing
+  a `dynamics.cuh/.cu` interface or its Philox consumption.
+- For model or product generation work, read
+  `docs/parameter-dataset-generation.md` and preserve its ordered 90/10 policy
+  and complete adjacent YAML recipe.
 - Inspect the Git status first and preserve unrelated or pre-existing changes.
 - Keep CUDA interfaces and implementations in focused `.cuh/.cu` pairs. Public
   headers should expose only declarations needed by callers.
@@ -19,7 +24,7 @@
 
 - `src/common`: reusable CUDA/runtime, reduction, random-number, and numerical
   primitives.
-- `src/model/<model>`: model dynamics, analytics, datasets, and pricing kernels.
+- `src/model/<asset_class>/<model>`: model dynamics, analytics, datasets, and pricing kernels (`asset_class` is `equity` or `fixed_income`).
 - `src/curve/<curve>`: curve datasets and term-structure analytics.
 - `src/product/<product>`: product parameter rows and JSON loaders.
 - `catalog`: product, model, curve, and price dataset recipes and generators.
@@ -33,6 +38,8 @@
   exposes no fast-math option.
 - Preserve deterministic row-to-seed mappings, reduction order, launch geometry,
   and FP64 accumulation/linear algebra where currently used.
+- Map Philox counters as `(path_index: uint64, local_group_index: uint64)` under
+  the row key. Never restore flattened `groups_per_path` counter reservations.
 - Do not add runtime branches, virtual calls, or indirect calls inside hot
   per-path kernels. Prefer compile-time specialization when it has a measured
   benefit and does not obscure the implementation.

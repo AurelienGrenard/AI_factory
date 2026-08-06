@@ -1,0 +1,41 @@
+title: "bates_01__digital_calls_01__01"
+database_id: "bates_01__digital_calls_01__01"
+catalog: "catalog/price/equity/bates/digital_calls/bates_01__digital_calls_01__01"
+url: "https://datasets.ai-factory.example/v1/price/equity/bates/digital_calls/bates_01__digital_calls_01__01.json"
+row_count: 1000
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 16384
+  model: "Bates"
+  numerical_method: "Andersen QE-M with compound-Poisson lognormal jumps"
+  payoff: "Digital Options"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  random_generator: "Philox"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "1 / 252"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "bates_01"
+  catalog: "catalog/model/equity/bates/bates_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/bates/bates_01.json"
+product_dataset:
+  id: "digital_options_01"
+  catalog: "catalog/product/equity/digital_options/digital_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/digital_options/digital_options_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "0.881080352 s"
+  kernel_seconds: "0.373315582 s"

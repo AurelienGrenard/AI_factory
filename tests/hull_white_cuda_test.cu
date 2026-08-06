@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 
 // Include the implementation exactly as future product kernels will.
-#include "model/hull_white/nelson_siegel/analytics.cu"
+#include "model/fixed_income/hull_white/nelson_siegel/analytics.cu"
 
 #include <cuda_runtime.h>
 

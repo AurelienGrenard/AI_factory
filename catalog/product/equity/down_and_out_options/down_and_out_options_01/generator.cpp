@@ -18,12 +18,13 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/down_and_out_options/"
         "down_and_out_options_01.json";
 
-    constexpr std::size_t maturity_count = 50U;
-    constexpr std::size_t strikes_per_maturity = 20U;
     constexpr float log_moneyness_slope = 0.2f;
-    GeneratedRows rows = maturity_dependent_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, maturity_count),
-        strikes_per_maturity,
+    GeneratedRows rows = core_stress_exponential_strike_grid(
+        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        20U,
+        log_moneyness_slope,
+        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        10U,
         log_moneyness_slope
     );
     for (auto& row : rows.rows) {
@@ -33,7 +34,6 @@ int main() {
             0.95f, strike * expf(-0.15f * sqrtf(maturity / 3.0f))
         );
     }
-    rows.construction["grid"]["maturity"]["minimum"] = "1 / 12";
 
     write_product_dataset(
         "down_and_out_options_01",

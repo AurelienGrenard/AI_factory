@@ -28,12 +28,12 @@ construction:
     short_forward:
       definition: "f(0, 0)"
       uniform_bounds:
-        - 0.0
+        - 0.001
         - 0.08
     medium_forward:
       definition: "f(0, tau)"
       uniform_bounds:
-        - 0.0
+        - 0.001
         - 0.08
     tau:
       definition: "decay time in years"
@@ -46,7 +46,7 @@ construction:
     beta2: "e * (medium_forward - long_forward) - beta1"
   acceptance_rule:
     forward_bounds:
-      - 0.0
+      - 0.001
       - 0.1
     condition: "bounds apply to f(0,T) for every T >= 0"
     extremum: "T / tau = 1 - beta1 / beta2 when positive"
