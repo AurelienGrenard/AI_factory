@@ -67,14 +67,14 @@ void validate_counts(
 ) {
     if (core_row_count == 0U || tail_row_count == 0U) {
         throw std::invalid_argument(
-            "Range Accrual generation requires non-empty core and tail regimes."
+            "Range Accrual generation requires non-empty core and stress regimes."
         );
     }
 }
 
 }  // namespace
 
-// Generate valid observation bands and shuffle both regimes.
+// Generate valid observation bands in traceable regime order.
 GeneratedRows generate_rows(
     std::size_t core_row_count,
     std::size_t tail_row_count,
@@ -123,10 +123,14 @@ GeneratedRows generate_rows(
             {"coupon_rate", uniform(generator, 0.005f, 0.25f)},
         });
     }
-    std::shuffle(generated.rows.begin(), generated.rows.end(), generator);
-
     generated.construction = {
-        {"method", "constrained core-tail random sample"},
+        {"method", "ordered 90/10 constrained core-stress sample"},
+        {"row_order", {
+            {"core", "rows 1-" + std::to_string(core_row_count)},
+            {"stress", "remaining rows"},
+        }},
+        {"core_share", 0.9},
+        {"stress_share", 0.1},
         {"valuation_time", "issuance"},
         {"reference_spot", 1.0},
         {"nominal", 1.0},
@@ -134,7 +138,7 @@ GeneratedRows generate_rows(
             {
                 "regime_counts",
                 std::to_string(core_row_count) + " core rows and "
-                    + std::to_string(tail_row_count) + " tail rows"
+                    + std::to_string(tail_row_count) + " stress rows"
             },
             {
                 "observation_interval",
@@ -151,7 +155,7 @@ GeneratedRows generate_rows(
             "observation dates are i * observation_interval from issuance",
             "the issuance spot is normalized to one and is not observed",
             "maturity is included as the final observation date",
-            "rows are shuffled after both regimes are generated",
+            "core rows precede stress rows",
         }},
         {"regimes", {
             {"core", {
@@ -162,7 +166,7 @@ GeneratedRows generate_rows(
                 {"upper_barrier", {1.05, 1.40}},
                 {"coupon_rate", {0.02, 0.12}},
             }},
-            {"tail", {
+            {"stress", {
                 {"row_count", tail_row_count},
                 {"maturity", {"0.5 year", "7 years"}},
                 {"observation_interval", {

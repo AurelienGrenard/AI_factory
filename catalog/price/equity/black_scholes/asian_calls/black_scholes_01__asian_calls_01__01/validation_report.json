@@ -1,0 +1,144 @@
+{
+  "schema_version": 4,
+  "validation_fingerprint": "c04251cada845615627fdadaa26b0ba1a61ddbf037ccc3cc9876d4ff6633a3d7",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__asian_calls_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "exact Black-Scholes L2 discretization bound + 1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.00019024265094379764,
+    "mean_absolute_price_gap": 0.00042904103926531584,
+    "maximum_absolute_price_gap": 0.0035346491765237964,
+    "maximum_absolute_price_gap_row_id": "000767",
+    "higher_price_count": 303,
+    "lower_price_count": 597,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; CUDA averages the daily grid while Premia integrates continuously",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__asian_calls_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "exact Black-Scholes L2 discretization bound + 1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 98,
+    "special_row_count": 2,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.0073588932858452295,
+    "mean_absolute_price_gap": 0.007869249339133012,
+    "maximum_absolute_price_gap": 0.24468326782572736,
+    "maximum_absolute_price_gap_row_id": "000979",
+    "higher_price_count": 11,
+    "lower_price_count": 88,
+    "equal_price_count": 1,
+    "systematic_bias": true,
+    "bias_explanation": "expected; CUDA averages the daily grid while Premia integrates continuously",
+    "special_rows": [
+      {
+        "row_id": "000967",
+        "diagnostic": "Premia, Premia row '000967' failed with status 14: Asian price violates analytic no-arbitrage bounds",
+        "resolution": "quasi-zero generated price independently accepted by QuantLib (Monte Carlo)"
+      },
+      {
+        "row_id": "000989",
+        "diagnostic": "Premia, Premia row '000989' failed with status 14: Asian price violates analytic no-arbitrage bounds",
+        "resolution": "generated price independently accepted by QuantLib (Monte Carlo)"
+      }
+    ],
+    "fallbacks": [
+      {
+        "row_id": "000967",
+        "reference": "QuantLib (Monte Carlo)",
+        "passed": true
+      },
+      {
+        "row_id": "000989",
+        "reference": "QuantLib (Monte Carlo)",
+        "passed": true
+      }
+    ],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 100,
+        "completed_rows": 98,
+        "failed_rows": 0,
+        "exceptions": [
+          {
+            "row_id": "000967",
+            "status": null,
+            "reason": "Premia row '000967' failed with status 14: Asian price violates analytic no-arbitrage bounds"
+          },
+          {
+            "row_id": "000989",
+            "status": null,
+            "reason": "Premia row '000989' failed with status 14: Asian price violates analytic no-arbitrage bounds"
+          }
+        ]
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "requested_rows": 2,
+        "completed_rows": 2,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

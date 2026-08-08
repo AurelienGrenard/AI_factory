@@ -3,7 +3,31 @@
 #include "tools/datasets/dataset_validation.hpp"
 
 #include <filesystem>
+#include <cmath>
 #include <string>
+#include <utility>
+
+namespace {
+
+std::vector<float> actual_360_grid(
+    int first_day,
+    int last_day,
+    std::size_t point_count
+) {
+    std::vector<float> times;
+    times.reserve(point_count);
+    for (std::size_t index = 0U; index < point_count; ++index) {
+        const double weight = static_cast<double>(index)
+            / static_cast<double>(point_count - 1U);
+        const int day = static_cast<int>(std::lround(
+            first_day + weight * (last_day - first_day)
+        ));
+        times.push_back(static_cast<float>(day) / 360.0f);
+    }
+    return times;
+}
+
+}  // namespace
 
 // Generate the forward rate option dataset and catalog entry.
 int main() {
@@ -17,60 +41,59 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/rate_options/"
         "rate_options_01.json";
 
-    constexpr std::size_t fixing_count = 20U;
-    constexpr std::size_t strike_count = 25U;
-    const std::vector<float> fixing_times =
-        linear_grid(0.25f, 5.0f, fixing_count);
-    const std::vector<float> accrual_periods = {0.25f, 0.5f};
-
-    // A cubic map concentrates strikes near 4% and keeps 0%/10% in the tails.
-    std::vector<float> strikes;
-    strikes.reserve(strike_count);
-    for (const float coordinate : linear_grid(-1.0f, 1.0f, strike_count)) {
+    std::vector<float> core_strikes;
+    core_strikes.reserve(25U);
+    for (const float coordinate : linear_grid(-1.0f, 1.0f, 25U)) {
         const float cube = coordinate * coordinate * coordinate;
-        strikes.push_back(
+        core_strikes.push_back(
             coordinate < 0.0f ? 0.04f + 0.04f * cube
                               : 0.04f + 0.06f * cube
         );
     }
-
-    GeneratedRows rows;
-    rows.rows.reserve(
-        fixing_times.size() * accrual_periods.size() * strikes.size()
-    );
-    for (const float fixing_time : fixing_times) {
-        for (const float accrual_period : accrual_periods) {
-            for (const float strike : strikes) {
-                rows.rows.push_back({
+    const auto regime = [](const std::vector<float>& fixing_times,
+                           const std::vector<float>& accrual_periods,
+                           const std::vector<float>& strikes,
+                           const std::string& description) {
+        GeneratedRows generated;
+        for (const float fixing_time : fixing_times) {
+            for (const float accrual_period : accrual_periods) {
+                for (const float strike : strikes) {
+                    generated.rows.push_back({
                     {"notional", 1.0f},
                     {"strike", strike},
                     {"fixing_time", fixing_time},
                     {"payment_time", fixing_time + accrual_period},
                     {"accrual_period", accrual_period},
-                });
+                    });
+                }
             }
         }
-    }
-    rows.construction = {
-        {"method", "Cartesian grid"},
-        {"rule", "Every fixing, accrual period, and strike combination."},
-        {"grid", {
-            {"fixing_time", {
-                {"minimum", "1 / 4"}, {"maximum", 5.0f},
-                {"count", fixing_count}, {"spacing", "linear"},
-            }},
-            {"accrual_period", {
-                {"values", {"1 / 4", "1 / 2"}},
-                {"count", accrual_periods.size()},
-            }},
-            {"strike", {
-                {"minimum", "0 %"}, {"central_value", "4 %"},
-                {"maximum", "10 %"}, {"count", strike_count},
-                {"spacing", "cubic concentration around 4 %"},
-            }},
-            {"notional", {{"value", 1.0f}}},
-        }},
+        generated.construction = {
+            {"method", "Cartesian grid"},
+            {"rule", "Every fixing, accrual period, and strike combination."},
+            {"description", description},
+            {"fixing_times", fixing_times},
+            {"accrual_periods", accrual_periods},
+            {"strikes", strikes},
+            {"notional", 1.0},
+        };
+        return generated;
     };
+    GeneratedRows core = regime(
+        actual_360_grid(90, 1800, 18U),
+        {0.25f, 0.5f},
+        core_strikes,
+        "Representative fixing dates and strikes concentrated around 4%."
+    );
+    GeneratedRows stress = regime(
+        actual_360_grid(7, 5400, 10U),
+        {7.0f / 360.0f, 2.0f},
+        {-0.10f, -0.02f, 0.04f, 0.15f, 0.35f},
+        "Very short/long dates, short/long accruals, and negative/high strikes."
+    );
+    const GeneratedRows rows = core_stress_rows(
+        std::move(core), std::move(stress)
+    );
 
     write_product_dataset(
         "rate_options_01",

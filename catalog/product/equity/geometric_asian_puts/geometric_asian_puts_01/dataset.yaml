@@ -1,0 +1,27 @@
+title: "Geometric Asian Puts parameter dataset geometric_asian_puts_01"
+database_id: "geometric_asian_puts_01"
+product_family: "Geometric Asian Puts"
+catalog: "catalog/product/equity/geometric_asian_puts/geometric_asian_puts_01"
+url: "https://datasets.ai-factory.example/v1/product/geometric_asian_puts/geometric_asian_puts_01.json"
+row_count: 1000
+parameters:
+  strike: "Strike in normalized spot units."
+  maturity: "Maturity in years."
+payoff:
+  expression: "max(K - geometric_mean(S_[0,T]), 0)"
+  monitoring: "Simulation-grid endpoints including 0 and T."
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.15

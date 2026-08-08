@@ -1,0 +1,188 @@
+\documentclass[10pt]{beamer}
+%\usepackage{pgf}
+\usepackage{pgfpages}
+\usepackage[english,french]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{pstricks,pst-node,pst-text,pst-3d,psfrag,epsfig,graphicx,subfigure}
+\usepackage{amsmath,amsfonts,mathrsfs}
+\usepackage{palatino}
+\usepackage[T1]{fontenc}
+\usepackage{exscale}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amsthm,bbm}
+\usepackage{bm}
+%\usepackage{ulem}
+%\usepackage{refcheck}
+%\usepackage[usenames]{color} % load color package
+
+
+
+\def\bbar#1{\overline{#1}}
+\def\cF{\mathcal{F}}
+\def\cC{\mathcal{C}}
+\def\<{\langle}
+\def\>{\rangle}
+\newcommand{\midprice}{M}
+\newcommand{\regwin}{\Delta_\textup{RW}}
+\newcommand{\dd}{\textup{d}}
+\newcommand{\phis}{\varphi_\textup{s}}
+\newcommand{\phic}{\varphi_\textup{c}}
+\newcommand{\ios}{\iota_\textup{s}}
+\newcommand{\ioc}{\iota_\textup{c}}
+\newcommand{\phicos}{\phi_\textup{s}}
+\newcommand{\phicoc}{\phi_\textup{c}}
+\newcommand{\e}{a^*}
+\newcommand{\ee}{(a^*)^2}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\indi}[1]{\mathbbm{1}_{\{#1\}}}
+\newcommand{\resfact}{\gamma}
+\newcommand{\adjlag}{L_\text{adj}}
+
+
+
+\newcommand{\veep}{\vee_{\rm icx}}
+\newcommand{\veem}{\vee_{\rm dcx}}
+\newcommand{\wedgep}{\wedge_{\rm icx}}
+\newcommand{\wedgem}{\wedge_{\rm dcx}}
+
+
+\newcommand{\lecx}{\le_{\textup{cx}}}
+\newcommand{\leicx}{\le_{\textup{icx}}}
+\newcommand{\ledcx}{\le_{\textup{dcx}}}
+\newcommand{\gecx}{\ge_{\textup{cx}}}
+\newcommand{\geicx}{\ge_{\textup{icx}}}
+\newcommand{\gedcx}{\ge_{\textup{dcx}}}
+\newcommand{\tmu}{\tilde{\mu}}
+\newcommand{\tnu}{\tilde{\nu}}
+
+\usetheme{JLTree}
+\selectlanguage{english}
+\input{macro_pres_these}
+\setbeamerfont{title in head/foot}{family=\rmfamily}
+
+
+%\pgfpagesuselayout{4 on 1}[a4paper,border shrink=5mm,landscape] %impression
+%\pgfpagesuselayout{2 on 1}[a4paper, border shrink=5mm] %impression
+%pdfnup --nup 1x2 --no-landscape  --suffix '1x2' Pres_Hawkes2_SIAM.pdf 
+
+%\hypersetup{colorlinks=false}
+
+
+\title{Sampling of probability measures in the convex order }
+
+\author{Approximation of Martingale Optimal Transport problems}
+
+
+\date{PREMIA 21}
+
+%\logo{\includegraphics[height=0.7cm]{enpc.eps}} % -> latex
+\logo{\includegraphics[height=0.7cm]{enpc.pdf}} % -> pdflatex
+
+
+\begin{document}
+%selectlanguage{french}
+\frame{\titlepage}
+
+
+
+%% %------------------------------------------------
+\begin{frame}{A quick reminder on convex order.}
+
+ 
+Let $\mu,\nu \in \mathcal{P}_1(\R^d)$ two prob. measures with finite first moments and $\Pi^M(\mu,\nu)=\{ \pi(dx,dy)=\mu(dx)Q(x,dy): \mu Q=\nu,   \forall x\in\R^d,\;\int_{\R^d}|y|Q(x,dy)<\infty\mbox{ and }\int_{\R^d}yQ(x,dy)=x\}$ (set of martingale couplings). 
+
+{\bf Strassen's theorem (1965):}  $\Pi^M(\mu,\nu) \not = \emptyset$  iff $\mu\lecx \nu$, i.e. 
+  $$\forall \phi :\R^d \rightarrow \R\text{ convex},\  \E[\phi(X)]\le \E[\phi(Y)].$$
+
+\end{frame}
+
+%% %------------------------------------------------
+\begin{frame}{Martingale Optimal Transport in Finance}
+
+  We assume $r=0$. $(S_t)_{t\ge 0}$: price process of $d$ assets. Suppose that we know for $0<T_1<T_2$ the law of $S_{T_1}$ and $S_{T_2}$ (denoted $\mu_1$ and $\mu_2$), and that we want to price an option that pays $c(S_{T_1},S_{T_2})$ at time $T_2$, with $c:\R^d \times \R^d \rightarrow \R$.
+
+  {\bf Price bounds for the option:}
+$$\int_{\R^d\times \R^d} c(x,y)\pi(dx,dy), \pi \in \Pi^M(\mu_1,\mu_2) \rightarrow minimize/maximize.$$
+% {\bf Multi-marginal case:} payoff $c(S_{T_1},\dots,S_{T_n})$ with $c:(\R^d)^n\rightarrow \R$.
+
+  Beiglb\"ock, Henry-Labord\`ere, Penkner (2013): Duality and connection with super/subhedging strategies. 
+
+
+\end{frame}
+%% %------------------------------------------------
+
+\begin{frame}{Sampling in the Convex order}
+  
+  When approximating $\mu \lecx \nu$ by discrete measures  ${\mu}_I=\sum_{i=1}^I p_i \delta_{x_i}$ and ${\nu}_J=\sum_{j=1}^J q_j \delta_{y_j}$ (typically with i.i.d. samples, $p_i=\frac 1 I$) we may not have ${\mu}_I \lecx {\nu}_J$. \\
+  
+{\bf Our goal:} to construct $\tmu_I$   ``close'' to $\mu_I$   such that $\tmu_I \lecx \nu_J$.\\
+{\bf Motivation:} Numerical methods for Martingale Optimal Transport (MOT) problems. We can use linear programming solvers to solve:
+\begin{equation*}\label{MOT_discrete}\sum_{i=1}^I\sum_{j=1}^J r_{ij} c(x_i,y_j)
+ \end{equation*}
+ under the constraints $$r_{ij}\ge 0,\ \sum_{i=1}^I r_{ij}=q_j, \ \sum_{j=1}^J r_{ij}=p_i \text{ and }\sum_{j=1}^J r_{ij}y_j=p_ix_i.$$
+ {\bf Monte-Carlo:}
+ calculate together option prices and their bounds. 
+
+
+\end{frame}
+
+%% %------------------------------------------------
+\begin{frame}{How to construct $\tmu_I$?}
+
+  \begin{itemize}
+  \item In dimension $d=1$, thanks to the lattice structure we take $\tmu_I:=\mu_I \wedge  \nu_J$. Easy to compute.
+  \item In dimension $d$, we calculate the $W_2$ projection, i.e. $\eta$ that minimizes $W_2(\mu_I,\eta)$ on $\{ \eta : \eta \lecx \nu \}$. For $\mu_I=\frac 1I \sum_{i=1}^I\delta_{X_i}$, $\nu_J=\frac 1J \sum_{j=1}^J\delta_{Y_j}$, it amounts to \begin{equation*}
+   \begin{cases}\text{minimize } \frac{1}{I}\sum_{i=1}^I \left|X_i-\sum_{j=1}^Jq_{ij} Y_j\right|^2\\
+ \mbox{\scriptsize under the constraints $\forall i,j, \ q_{ij}\ge 0$, $\forall i, \  \sum_{j=1}^J q_{ij}=1$  and $\forall j, \  \sum_{i=1}^I q_{ij}=\frac{I}{J}$},
+   \end{cases}%\label{miniquad}.
+  \end{equation*}
+    and to take $\tmu_I=\frac 1I \sum_{i=1}^I\delta_{\sum_{j=1}^Jq_{ij} Y_j}$.\\
+   This is a {\bf linear quadratic problem: efficient solvers exist}. 
+
+  \end{itemize}
+
+
+\end{frame}
+%% %------------------------------------------------
+\begin{frame}{An financial example in dimension~2}  
+  
+    \begin{itemize}
+  \item $(G^1,G^2)$ : centered Gaussian vector with covariance matrix $\Sigma=\left[ \begin{matrix} 0.5 & 0.1 \\ 0.1 & 0.1 \end{matrix} \right]$.
+  \item $\mu$: law of $(X^1,X^2)$ with $X^\ell=\exp(G^\ell-\Sigma_{\ell \ell}/2)$, $\ell\in \{1,2\}$.
+  \item $\nu$: law of  $(Y^1,Y^2)$ with $Y^\ell=\exp(\sqrt{2}G^\ell-\Sigma_{\ell \ell})$, $\ell\in \{1,2\}$.
+  \item Payoff/cost function: $\max(Y^1-X^1,Y^2-X^2,0)$ (best performance if positive).
+  \item $\tmu_I= \frac 1I \sum_{i=1}^I \delta_{(X^1_i +1-\bar{X}_I^1,X^2_i +1-\bar{X}_I^2)}$, $\tnu_I=\frac 1I \sum_{i=1}^I \delta_{(Y^1_i+1-\bar{Y}_I^1,Y^2_i+1-\bar{Y}_I^2)}$
+  \item BS price$\approx0.345$, lower bound (on 100 indep runs): mean $0.2293$ (std. dev $0.0848$), upper bound mean $0.4111$ (std. dev $0.1422$), obtained with   $((\tilde{\mu}_I)^2_{\underline{\mathcal P}(\tilde{\nu}_I)},\tnu_I)$, $I=100$.     
+   \end{itemize}
+    
+\end{frame}
+%------------------------------------------------
+\begin{frame}{Martingale Optimal transport for $((\tilde{\mu}_I)^2_{\underline{\mathcal P}(\tilde{\nu}_I)},\tnu_I)$ (min)}  
+ \begin{figure}
+\begin{centering}
+  \includegraphics[width=0.8\textwidth]{LN_2d_min_eg.pdf}
+\end{centering}
+ \end{figure}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Comments on the implementation in PREMIA}
+  \begin{itemize}
+  \item Running the code solve MOT problems in a financia context with lognormal marginal laws, both in dimension 1 and 2. 
+  \item It is recommended to use recentered empirical measures to have better bounds: for example $\mu_I=\sum_{i=1}\delta_{X_i-\bar{X}+m}$ and $\nu_I=\sum_{i=1}\delta_{Y_i-\bar{Y}+m}$ with $\bar{X}=\frac 1 I \sum_{i=1}^I X_i$ and $\bar{Y}=\frac 1 I \sum_{i=1}^I Y_i$, or   $\mu_I=\sum_{i=1}\delta_{X_i-\bar{X}+\bar{Y}}$ and $\nu_I=\sum_{i=1}\delta_{Y_i}$ when the mean $m$ is unkown.
+  \item Python (2.7)  code, use of GLPK. For dimension $d\ge 2$, to solve the linear quadratic problem we have got a more efficient implementation with COIN-OR (interfaced with NSP) using also sparse matrices. Change the boolean ``useGLPK'' to False to load precomputed points calculated with COIN-OR.
+   \item{\bf Reference:} A. Alfonsi, J. Corbetta, B. Jourdain : Sampling of probability measures in the convex order and approximation of Martingale Optimal Transport problems. Septembre 2017. {\tt https://arxiv.org/pdf/1709.05287}
+  \end{itemize}
+\end{frame}
+
+\end{document}
+
+
+%Hyperliens:\label{Seuil}
+%\hyperlink{Seuil}{\beamergotobutton{\tiny{Déf seuil
+%          }}}
+
+
+

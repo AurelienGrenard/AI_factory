@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 import QuantLib as ql
 
@@ -11,6 +11,7 @@ from validation.quantlib.parameters import finite_number, positive_number
 from validation.quantlib.price_validation import (
     PriceResultRow,
     PriceValidationReport,
+    ValidationRegime,
     ValidationTolerances,
     validation_from_reference,
 )
@@ -86,6 +87,8 @@ def validation_from_quantlib_rate_option(
     product_kind: str,
     require_curve: bool,
     tolerances: ValidationTolerances = ValidationTolerances(),
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
 ) -> PriceValidationReport:
     """Validate one complete analytical rate-option dataset."""
 
@@ -113,4 +116,6 @@ def validation_from_quantlib_rate_option(
         reference_price,
         tolerances,
         require_curve=require_curve,
+        regime=regime,
+        row_ids=row_ids,
     )

@@ -1,8 +1,8 @@
 // Compare the three uniform one-block Heston product launchers on CUDA.
 #include "common/check_cuda.cuh"
-#include "model/heston/asian_option.cuh"
-#include "model/heston/european_option.cuh"
-#include "model/heston/lookback_option.cuh"
+#include "model/equity/heston/asian_option.cuh"
+#include "model/equity/heston/european_option.cuh"
+#include "model/equity/heston/lookback_option.cuh"
 
 #include <cuda_runtime.h>
 

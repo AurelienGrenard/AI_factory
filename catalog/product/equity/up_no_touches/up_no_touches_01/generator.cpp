@@ -18,38 +18,47 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/up_no_touches/"
         "up_no_touches_01.json";
 
-    constexpr std::size_t maturity_count = 50U;
-    constexpr std::size_t barriers_per_maturity = 20U;
     constexpr float log_moneyness_slope = 0.2f;
-    GeneratedRows rows = maturity_dependent_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, maturity_count),
-        barriers_per_maturity,
+    GeneratedRows rows = core_stress_exponential_strike_grid(
+        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        20U,
+        log_moneyness_slope,
+        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        10U,
         log_moneyness_slope
     );
-    for (auto& row : rows.rows) {
+    for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
+        auto& row = rows.rows[index];
+        const bool stress = index >= 900U;
         const float maturity = row.at("maturity").get<float>();
         const float log_strike = logf(row.at("strike").get<float>());
+        const float regime_slope = stress
+            ? log_moneyness_slope
+            : log_moneyness_slope;
         const float grid_position = (
-            log_strike + log_moneyness_slope * maturity
-        ) / (2.0f * log_moneyness_slope * maturity);
+            log_strike + regime_slope * maturity
+        ) / (2.0f * regime_slope * maturity);
         row.erase("strike");
-        row["barrier"] = expf(
-            0.05f + grid_position
-                * (0.10f + 0.20f * sqrtf(maturity / 3.0f))
-        );
+        row["barrier"] = stress
+            ? expf(0.01f + grid_position
+                * (0.80f + 0.40f * sqrtf(maturity / 7.0f)))
+            : expf(0.05f + grid_position
+                * (0.10f + 0.20f * sqrtf(maturity / 3.0f)));
         row["cash_payoff"] = 1.0f;
     }
-    rows.construction["grid"]["maturity"]["minimum"] = "1 / 12";
     rows.construction["rule"] =
         "For each T, the upper barrier is linearly spaced in log-space.";
     rows.construction["grid"].erase("strike");
     rows.construction["grid"]["barrier"] = {
-        {"count_per_maturity", barriers_per_maturity},
         {"spacing", "linear in log-barrier"},
-        {
-            "conditional_bounds",
-            "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"
-        },
+        {"core", {
+            {"count_per_maturity", 20},
+            {"conditional_bounds", "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"},
+        }},
+        {"stress", {
+            {"count_per_maturity", 10},
+            {"conditional_bounds", "[exp(0.01), exp(0.81 + 0.40 sqrt(T / 7))]"},
+        }},
     };
     rows.construction["cash_payoff"] = 1.0f;
 

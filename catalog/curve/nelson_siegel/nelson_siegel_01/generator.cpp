@@ -18,16 +18,16 @@ constexpr SamplingRange kLongForward{
     0.005f, 0.06f
 };
 constexpr SamplingRange kShortForward{
-    0.0f, 0.08f
+    0.001f, 0.08f
 };
 constexpr SamplingRange kMediumForward{
-    0.0f, 0.08f
+    0.001f, 0.08f
 };
 constexpr SamplingRange kTau{
     0.5f, 5.0f
 };
 constexpr SamplingRange kAcceptedForward{
-    0.0f, 0.10f
+    0.001f, 0.10f
 };
 
 }  // namespace

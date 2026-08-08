@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 
 // Include the implementation exactly as future product kernels will.
-#include "model/ornstein_uhlenbeck/analytics.cu"
+#include "model/fixed_income/ornstein_uhlenbeck/analytics.cu"
 
 #include <cuda_runtime.h>
 

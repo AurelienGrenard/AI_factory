@@ -1,12 +1,20 @@
 // Exercise JSON loader invariants and generated-artifact validation.
 #include "curve/nelson_siegel/dataset.hpp"
 #include "curve/svensson/dataset.hpp"
-#include "model/g2/dataset.hpp"
-#include "model/g2_plus_plus/dataset.hpp"
-#include "model/heston/dataset.hpp"
-#include "model/hull_white/dataset.hpp"
-#include "model/ornstein_uhlenbeck/dataset.hpp"
-#include "model/vasicek/dataset.hpp"
+#include "model/fixed_income/g2/dataset.hpp"
+#include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "model/equity/bates/dataset.hpp"
+#include "model/equity/black_scholes/dataset.hpp"
+#include "model/equity/cev/dataset.hpp"
+#include "model/equity/heston/dataset.hpp"
+#include "model/equity/kou/dataset.hpp"
+#include "model/equity/merton/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "model/equity/schobel_zhu/dataset.hpp"
+#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/fixed_income/hull_white/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/american_option/dataset.hpp"
 #include "product/asian_option/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
@@ -148,7 +156,15 @@ int main() {
     namespace svensson = ai_factory::workbench::curve::svensson;
     namespace g2 = ai_factory::workbench::model::g2;
     namespace g2_plus_plus = ai_factory::workbench::model::g2_plus_plus;
+    namespace bates = ai_factory::workbench::bates;
+    namespace black_scholes = ai_factory::workbench::black_scholes;
+    namespace cev = ai_factory::workbench::cev;
     namespace heston = ai_factory::workbench::heston;
+    namespace kou = ai_factory::workbench::kou;
+    namespace merton = ai_factory::workbench::merton;
+    namespace nig = ai_factory::workbench::normal_inverse_gaussian;
+    namespace schobel_zhu = ai_factory::workbench::schobel_zhu;
+    namespace vg = ai_factory::workbench::variance_gamma;
     namespace hull_white = ai_factory::workbench::model::hull_white;
     namespace ou = ai_factory::workbench::model::ornstein_uhlenbeck;
     namespace vasicek = ai_factory::workbench::model::vasicek;
@@ -205,6 +221,16 @@ int main() {
         g2_plus_plus::load_models
     );
     check_loader(
+        "Black-Scholes", "models", "volatility", 0.0f, "volatility",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"volatility", 0.2f},
+        }),
+        black_scholes::load_models
+    );
+    check_loader(
         "Heston", "models", "spot", 0.0f, "spot",
         one_row("models", {
             {"spot", 1.0f},
@@ -217,6 +243,103 @@ int main() {
             {"rho", -0.5f},
         }),
         heston::load_models
+    );
+    check_loader(
+        "Bates", "models", "jump_intensity", -0.1f, "jump_intensity",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_variance", 0.04f},
+            {"kappa", 1.5f},
+            {"theta", 0.04f},
+            {"gamma", 0.3f},
+            {"rho", -0.5f},
+            {"jump_intensity", 0.4f},
+            {"jump_log_mean", -0.1f},
+            {"jump_log_volatility", 0.2f},
+        }),
+        bates::load_models
+    );
+    check_loader(
+        "Merton", "models", "jump_intensity", -0.1f,
+        "jump_intensity",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"volatility", 0.2f},
+            {"jump_intensity", 0.4f},
+            {"jump_log_mean", -0.1f},
+            {"jump_log_volatility", 0.2f},
+        }),
+        merton::load_models
+    );
+    check_loader(
+        "Kou", "models", "positive_jump_rate", 2.0f,
+        "positive_jump_rate",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"volatility", 0.2f},
+            {"jump_intensity", 0.4f},
+            {"up_probability", 0.35f},
+            {"positive_jump_rate", 8.0f},
+            {"negative_jump_rate", 10.0f},
+        }),
+        kou::load_models
+    );
+    check_loader(
+        "CEV", "models", "beta", 1.0f, "beta",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"sigma", 0.2f},
+            {"beta", 0.75f},
+        }),
+        cev::load_models
+    );
+    check_loader(
+        "Schobel-Zhu", "models", "correlation", 1.0f,
+        "correlation",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_volatility", 0.2f},
+            {"mean_reversion", 1.5f},
+            {"long_run_volatility", 0.2f},
+            {"volatility_of_volatility", 0.3f},
+            {"correlation", -0.5f},
+        }),
+        schobel_zhu::load_models
+    );
+    check_loader(
+        "Variance-Gamma", "models", "nu", 0.0f, "nu",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"sigma", 0.2f},
+            {"nu", 0.2f},
+            {"theta", -0.1f},
+        }),
+        vg::load_models
+    );
+    check_loader(
+        "Normal-Inverse-Gaussian", "models", "alpha", 0.5f,
+        "alpha must exceed",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"alpha", 8.0f},
+            {"beta", -2.0f},
+            {"delta", 0.5f},
+        }),
+        nig::load_models
     );
     check_loader(
         "Ornstein-Uhlenbeck", "models", "volatility", -0.01f,
@@ -529,7 +652,7 @@ int main() {
         "Caplet", "products", "fixing_time", 0.0f, "fixing_time",
         one_row("products", {
             {"notional", 1.0f},
-            {"strike", 0.04f},
+            {"strike", -0.01f},
             {"fixing_time", 1.0f},
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},
@@ -540,7 +663,7 @@ int main() {
         "Floorlet", "products", "payment_time", 1.0f, "payment_time",
         one_row("products", {
             {"notional", 1.0f},
-            {"strike", 0.04f},
+            {"strike", -0.01f},
             {"fixing_time", 1.0f},
             {"payment_time", 1.5f},
             {"accrual_period", 0.5f},

@@ -1,0 +1,129 @@
+{
+  "schema_version": 4,
+  "validation_fingerprint": "cc1baf73ca720fc8155cecb0e77ec45a19f60eddb024a17fb05dbbfc2ce19a83",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__up_no_touches_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": 0.016892741235012297,
+    "mean_absolute_price_gap": 0.016892741235012297,
+    "maximum_absolute_price_gap": 0.07178566839243944,
+    "maximum_absolute_price_gap_row_id": "000001",
+    "higher_price_count": 900,
+    "lower_price_count": 0,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; discrete monitoring misses some barrier hits and raises a no-touch price",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__up_no_touches_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 99,
+    "special_row_count": 1,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": 0.009702343318721628,
+    "mean_absolute_price_gap": 0.009714487274072293,
+    "maximum_absolute_price_gap": 0.1329685743278899,
+    "maximum_absolute_price_gap_row_id": "000901",
+    "higher_price_count": 86,
+    "lower_price_count": 13,
+    "equal_price_count": 1,
+    "systematic_bias": true,
+    "bias_explanation": "expected; discrete monitoring misses some barrier hits and raises a no-touch price",
+    "special_rows": [
+      {
+        "row_id": "000951",
+        "diagnostic": "Premia, Premia comparison for row '000951' is inconclusive: zero positive payoffs in 65536 CUDA paths remain compatible with the continuous reference",
+        "resolution": "quasi-zero generated price independently accepted by QuantLib (Monte Carlo)"
+      }
+    ],
+    "fallbacks": [
+      {
+        "row_id": "000951",
+        "reference": "QuantLib (Monte Carlo)",
+        "passed": true
+      }
+    ],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 100,
+        "completed_rows": 99,
+        "failed_rows": 0,
+        "exceptions": [
+          {
+            "row_id": "000951",
+            "status": null,
+            "reason": "Premia comparison for row '000951' is inconclusive: zero positive payoffs in 65536 CUDA paths remain compatible with the continuous reference"
+          }
+        ]
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "requested_rows": 1,
+        "completed_rows": 1,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

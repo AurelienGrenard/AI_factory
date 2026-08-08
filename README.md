@@ -15,16 +15,21 @@ AI_factory/
 |-- datasets/     complete JSON datasets, ignored by Git
 |-- docs/         implementation contracts and operational documentation
 |-- tests/        dataset contracts and CUDA tests
-|-- validation/   independent QuantLib price references
+|-- validation/   unified model/product validation and backend adapters
 `-- CMakeLists.txt
 ```
 
-The implementation contracts for CUDA pricers are documented in:
+All implementation contracts, workflows, derivations, and work-tracking notes
+live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
-- `docs/cuda-pricing-kernel-api.md` for closed-form and Monte Carlo pricers;
-- `docs/early-exercise-pricing-api.md` for American and Bermudan pricers;
-- `docs/cuda-validation-and-diagnostics.md` for launch guards, kernel resource
-  diagnostics, and their test coverage.
+- [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda-closed-form-and-monte-carlo-pricing-contract.md)
+  for closed-form and Monte Carlo pricers;
+- [`cuda-american-and-bermudan-pricing-contract.md`](docs/cuda-american-and-bermudan-pricing-contract.md)
+  for American and Bermudan pricers;
+- [`cuda-model-dynamics-contract.md`](docs/cuda-model-dynamics-contract.md) for
+  reusable model-state simulation interfaces;
+- [`cuda-launch-validation-and-kernel-diagnostics.md`](docs/cuda-launch-validation-and-kernel-diagnostics.md)
+  for launch guards, kernel resource diagnostics, and their test coverage.
 
 ### `src`
 
@@ -32,7 +37,7 @@ The implementation contracts for CUDA pricers are documented in:
 
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
-- `src/model/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels;
+- `src/model/<asset_class>/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels, split between `equity` and `fixed_income`;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 
 Each model, curve, or product uses `dataset.hpp/.cpp` for its compact row and
@@ -91,14 +96,14 @@ catalog/
 |-- curve/<curve>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-|-- model/<model>/<dataset_id>/
+|-- model/<asset_class>/<model>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
 |-- product/equity/<product>/<dataset_id>/
 |-- product/fixed_income/<product>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-`-- price/<model>/[<curve>/]<product>/<dataset_id>/
+`-- price/<asset_class>/<model>/[<curve>/]<product>/<dataset_id>/
     |-- dataset.yaml
     `-- generator.cpp
 ```
@@ -126,21 +131,21 @@ must be replaced with the final data server URLs.
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- curve/svensson/svensson_01.json
-|-- model/heston/heston_01.json
-|-- model/g2/g2_01.json
-|-- model/g2_plus_plus/g2_plus_plus_01.json
-|-- model/hull_white/hull_white_01.json
-|-- model/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
-|-- model/vasicek/vasicek_01.json
+|-- model/equity/heston/heston_01.json
+|-- model/fixed_income/g2/g2_01.json
+|-- model/fixed_income/g2_plus_plus/g2_plus_plus_01.json
+|-- model/fixed_income/hull_white/hull_white_01.json
+|-- model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
+|-- model/fixed_income/vasicek/vasicek_01.json
 |-- product/equity/european_options/european_options_01.json
 |-- product/equity/american_options/american_options_01.json
 |-- product/fixed_income/rate_options/rate_options_01.json
-|-- price/heston/<product>/<price_dataset_id>.json
-|-- price/g2/<product>/<price_dataset_id>.json
-|-- price/g2_plus_plus/<curve>/<product>/<price_dataset_id>.json
-|-- price/ornstein_uhlenbeck/<product>/<price_dataset_id>.json
-|-- price/vasicek/<product>/<price_dataset_id>.json
-`-- price/hull_white/<curve>/<product>/<price_dataset_id>.json
+|-- price/equity/heston/<product>/<price_dataset_id>.json
+|-- price/fixed_income/g2/<product>/<price_dataset_id>.json
+|-- price/fixed_income/g2_plus_plus/<curve>/<product>/<price_dataset_id>.json
+|-- price/fixed_income/ornstein_uhlenbeck/<product>/<price_dataset_id>.json
+|-- price/fixed_income/vasicek/<product>/<price_dataset_id>.json
+`-- price/fixed_income/hull_white/<curve>/<product>/<price_dataset_id>.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
@@ -188,7 +193,7 @@ dx(t) = -a x(t) dt + sigma dW(t)
 ```
 
 The reusable OU layer jointly simulates the Gaussian state and its time
-integral. `src/model/hull_white/<curve>` composes that process with the
+integral. `src/model/fixed_income/hull_white/<curve>` composes that process with the
 selected curve analytics and computes `phi(t)` from `f(0,t)`, so the full
 model reproduces the supplied initial curve. Nelson-Siegel and Svensson are
 curve providers, not parameters embedded in Hull-White.
@@ -209,13 +214,61 @@ reconstructing `sigma` and `eta`, avoiding redundant factors and unstable
 parameter combinations.
 
 `g2_plus_plus_01` stores the same curve-independent process without initial
-states. `src/model/g2_plus_plus/<curve>` adds a deterministic shift `phi(t)`
+states. `src/model/fixed_income/g2_plus_plus/<curve>` adds a deterministic shift `phi(t)`
 to the centered factors, exactly reproducing the supplied initial curve. Its
 public analytical interface mirrors G2 just as the Hull-White interface
 mirrors OU.
 
+The fitted Hull-White and G2++ price datasets are independently checked first
+with Premia's HW1D/HW2D closed forms. The validation runner supplies the exact
+Nelson-Siegel or Svensson discounts at the contract dates through Premia's
+external-curve interface; specialized QuantLib formulas provide row-local
+fallback only when the Premia backend fails technically.
+
 As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
+
+Bates composes the Heston QE-M transition with an independent compound-Poisson
+lognormal jump process. Each path owns one scalar uniform sequence and one
+normal-pair cache. A jump normal is requested only when the Poisson count is
+non-zero; an already cached normal is reused before another Box-Muller pair is
+drawn. Unused values from the current Philox group remain cached for the next
+step. The compensator
+`lambda * (exp(nu + delta^2 / 2) - 1)` preserves the risk-neutral drift.
+Terminal and scheduled-observation simulations keep all required Heston QE-M
+steps but draw one exact compound-Poisson sum per observed interval. Products
+that inspect every numerical step retain the pathwise one-jump-draw-per-step
+transition.
+
+Variance-Gamma and Normal-Inverse-Gaussian use exact Lévy increments. Terminal,
+two-time, scheduled-observation, and exercise-grid simulations draw directly
+over their requested intervals without an artificial daily `target_dt`.
+Products that truly monitor a path still use exact increments on each monitored
+step. VG samples its Gamma clock with Marsaglia-Tsang; NIG samples its
+inverse-Gaussian clock with Michael-Schucany-Haas. Both use the same single
+`UniformSequence` and `NormalPairCache` contract as Heston and Bates.
+
+## Philox Random Mapping
+
+Every Monte Carlo result row builds one key from
+`base_seed + result_index`. Philox then addresses each four-value random group
+with the complete 128-bit counter
+
+```text
+(path_index_low, path_index_high,
+ local_group_index_low, local_group_index_high)
+```
+
+Every path starts at local group zero and advances its own local group as
+needed. Paths therefore never reserve ranges based on a predicted number of
+draws. Fixed-consumption simulations and algorithms with conditional draws or
+rejection use the same mapping.
+
+`UniformSequence` caches each group and exposes one continuous scalar stream.
+Purely Gaussian simulations use a non-owning `NormalPairCache` to reuse the
+second Box-Muller result without creating another random sequence. These
+helpers are device-only, force-inlined, and deterministic for a fixed key,
+path, algorithm, toolchain, and launch geometry.
 
 ## Dataset Artifacts
 
@@ -227,8 +280,8 @@ The `heston_01` catalog entry begins as follows:
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-catalog: "catalog/model/heston/heston_01"
-url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+catalog: "catalog/model/equity/heston/heston_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/heston/heston_01.json"
 row_count: 1000
 ```
 
@@ -293,13 +346,13 @@ input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
-catalog: "catalog/price/heston/european_calls/heston_01__european_calls_01__01"
+catalog: "catalog/price/equity/heston/european_calls/heston_01__european_calls_01__01"
 url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
 row_count: 1000
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/heston/heston_01"
-  url: "https://datasets.ai-factory.example/v1/model/heston/heston_01.json"
+  catalog: "catalog/model/equity/heston/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/heston/heston_01.json"
 product_dataset:
   id: "european_options_01"
   catalog: "catalog/product/equity/european_options/european_options_01"
@@ -353,6 +406,9 @@ Parameter datasets are quick to regenerate:
 
 ```bash
 ./build/generate_heston_01
+./build/generate_bates_01
+./build/generate_variance_gamma_01
+./build/generate_normal_inverse_gaussian_01
 ./build/generate_g2_01
 ./build/generate_g2_plus_plus_01
 ./build/generate_nelson_siegel_01
@@ -369,11 +425,18 @@ Parameter datasets are quick to regenerate:
 ```
 
 Each command replaces the local dataset and its YAML catalog entry together.
+Every model and product generator follows the ordered 900-row core plus 100-row
+stress policy documented in
+[`docs/model-and-product-parameter-dataset-generation.md`](docs/model-and-product-parameter-dataset-generation.md).
 Price datasets follow the same workflow:
 
 ```bash
 ./build/generate_heston_european_calls_01
 ./build/generate_heston_american_puts_01
+./build/generate_bates_european_calls_01
+./build/generate_bates_american_puts_01
+./build/generate_variance_gamma_european_calls_01
+./build/generate_normal_inverse_gaussian_european_calls_01
 ./build/generate_g2_caplets_01
 ./build/generate_g2_floorlets_01
 ./build/generate_g2_zero_coupon_bond_calls_01
@@ -404,12 +467,6 @@ Price datasets follow the same workflow:
 ./build/generate_hull_white_svensson_zero_coupon_bond_puts_01
 ```
 
-The Cartesian product containing one million prices is intentionally separate:
-
-```bash
-./build/generate_heston_european_calls_02
-```
-
 ## Test
 
 ```bash
@@ -418,13 +475,14 @@ ctest --test-dir build --output-on-failure
 
 `dataset_catalog` validates two- and three-input constructions and mandatory
 catalog fields. CUDA tests cover reusable OU, Vasicek, G2, Hull-White, and G2++
-analytics; caplets, floorlets, and zero-coupon options; the uniform Heston path
-products, including path averages, forward starts, and barriers; and both
-American-option pipelines. They use small in-memory fixtures and skip
+analytics; caplets, floorlets, and zero-coupon options; the uniform Heston,
+Bates, VG, NIG, Merton, Kou, CEV, and Schöbel-Zhu dynamics and product
+launchers, including path averages, forward starts, jumps, and barriers; and
+the early-exercise pipelines. They use small in-memory fixtures and skip
 automatically without a CUDA GPU.
 
 When the QuantLib Python binding is installed, CTest also validates every
-analytical fixed-income dataset and the Heston European-call dataset against an
+analytical fixed-income dataset and the Heston and Bates European datasets against an
 independent implementation. The shared validator reports row errors, combined
 Monte-Carlo uncertainty, directional counts, and systematic bias. Slower
 Asian, forward-start, barrier, and American references are available with:
@@ -433,19 +491,44 @@ Asian, forward-start, barrier, and American references are available with:
 cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON
 ```
 
-See [`validation/quantlib`](validation/quantlib/README.md) for the supported
-products and direct command-line usage.
+Every price YAML records the primary independent reference selected in this
+order: specialized Premia pricer, specialized QuantLib pricer, independent
+QuantLib Monte Carlo, or explicitly `none`. Premia eligibility is determined
+by the actual model-product pair and a compatible Premia engine, regardless of
+whether the CUDA implementation uses the same discretization. A
+continuous/discrete difference changes the documented bias explanation or
+mathematical bound; it does not make Premia unavailable. A unified validator
+under `validation/model/<asset_class>/<model>/[<curve>/]<product>.py` persists the core
+and stress results in an adjacent `validation_report.json`. The catalog
+notebook only loads this report, verifies its canonical price-and-configuration
+fingerprint, and renders
+the common diagnostics; it never reruns a reference pricer. See
+[`validation/premia`](validation/premia/README.md),
+[`validation/quantlib`](validation/quantlib/README.md), and the
+[catalog extension workflow](docs/catalog-extension-and-validation-workflow.md)
+for supported products and direct command-line usage.
 
 ## Add a Dataset
 
-1. Add or reuse the required structures and kernels under `src`.
-2. Create its catalog folder under `catalog/model`, `product`, or `price`.
-3. Add `generator.cpp` and its adjacent `dataset.yaml`.
-4. Declare local output paths inside `generator.cpp`.
-5. Declare an external HTTP(S) URL.
-6. Add the CMake target.
-7. Run the generator and validate the dataset and catalog artifacts.
-8. Add a self-contained test that does not require a published dataset.
+1. Identify whether the extension adds a model, curve, product family, pricing
+   pair, or only a new price dataset; reuse every unaffected layer.
+2. Add the compact loader and numerical implementation under `src`, following
+   the closest CUDA contract and its public function order.
+3. Add the reproducible `generator.cpp` and generated `dataset.yaml` under the
+   matching `catalog/` hierarchy, then register their CMake target and tests.
+4. For a price dataset, add the unified model-product validator, apply Premia,
+   QuantLib specialized, QuantLib Monte Carlo, then `none`, and generate the
+   adjacent `validation_report.json` and compiled `validation.ipynb`.
+5. Run the generator, loader checks, isolated validation, relevant CUDA tests,
+   and the complete CTest suite before publication.
+6. Update the separately maintained website project with the new public entry.
+
+Call and put contracts share one product family and one templated pricer when
+only the payoff orientation changes, while their price datasets remain
+distinct. The complete, authoritative checklist is
+[`docs/catalog-extension-and-validation-workflow.md`](docs/catalog-extension-and-validation-workflow.md);
+the report and fallback contract is
+[`docs/independent-price-validation-pipeline.md`](docs/independent-price-validation-pipeline.md).
 
 Storage credentials must not appear in YAML files or the static website.
 Private storage should use signed URLs or server-side authentication.

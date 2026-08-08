@@ -15,24 +15,91 @@ payoff:
   payment_time: "T2"
   normalization: "N = 1"
 construction:
-  method: "Cartesian grid"
-  rule: "Every fixing, accrual period, and strike combination."
-  grid:
-    fixing_time:
-      minimum: "1 / 4"
-      maximum: 5.0
-      count: 20
-      spacing: "linear"
-    accrual_period:
-      values:
-        - "1 / 4"
-        - "1 / 2"
-      count: 2
-    strike:
-      minimum: "0 %"
-      central_value: "4 %"
-      maximum: "10 %"
-      count: 25
-      spacing: "cubic concentration around 4 %"
-    notional:
-      value: 1.0
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "Cartesian grid"
+      rule: "Every fixing, accrual period, and strike combination."
+      description: "Representative fixing dates and strikes concentrated around 4%."
+      fixing_times:
+        - 0.25
+        - 0.5305555462837219
+        - 0.8083333373069763
+        - 1.0888888835906982
+        - 1.3666666746139526
+        - 1.6472222805023193
+        - 1.9277777671813965
+        - 2.2055554389953613
+        - 2.4861111640930176
+        - 2.7638888359069824
+        - 3.0444445610046387
+        - 3.3222222328186035
+        - 3.6027777194976807
+        - 3.883333444595337
+        - 4.161110877990723
+        - 4.441666603088379
+        - 4.719444274902344
+        - 5.0
+      accrual_periods:
+        - 0.25
+        - 0.5
+      strikes:
+        - 0.0
+        - 0.00918981246650219
+        - 0.01685185357928276
+        - 0.023125000298023224
+        - 0.028148150071501732
+        - 0.032060183584690094
+        - 0.03500000014901161
+        - 0.037106480449438095
+        - 0.0385185182094574
+        - 0.039374999701976776
+        - 0.03981481492519379
+        - 0.039976850152015686
+        - 0.03999999910593033
+        - 0.04003472253680229
+        - 0.04027777537703514
+        - 0.04093749821186066
+        - 0.042222220450639725
+        - 0.04434027522802353
+        - 0.04749999940395355
+        - 0.05190972238779068
+        - 0.0577777735888958
+        - 0.06531249731779099
+        - 0.07472223043441772
+        - 0.08621527254581451
+        - 0.09999999403953552
+      notional: 1.0
+  stress:
+    row_count: 100
+    generation:
+      method: "Cartesian grid"
+      rule: "Every fixing, accrual period, and strike combination."
+      description: "Very short/long dates, short/long accruals, and negative/high strikes."
+      fixing_times:
+        - 0.01944444514811039
+        - 1.6833332777023315
+        - 3.347222328186035
+        - 5.013888835906982
+        - 6.6777777671813965
+        - 8.341666221618652
+        - 10.005555152893066
+        - 11.672222137451172
+        - 13.336111068725586
+        - 15.0
+      accrual_periods:
+        - 0.01944444514811039
+        - 2.0
+      strikes:
+        - -0.10000000149011612
+        - -0.019999999552965164
+        - 0.03999999910593033
+        - 0.15000000596046448
+        - 0.3499999940395355
+      notional: 1.0

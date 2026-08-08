@@ -1,0 +1,11 @@
+"""Validate one Ornstein-Uhlenbeck zero-coupon bond put price dataset."""
+
+from validation.model.fixed_income.gaussian_rate import run_product_validation_cli
+
+
+if __name__ == "__main__":
+    raise SystemExit(
+        run_product_validation_cli(
+            "ornstein_uhlenbeck", "zero_coupon_bond_put"
+        )
+    )
