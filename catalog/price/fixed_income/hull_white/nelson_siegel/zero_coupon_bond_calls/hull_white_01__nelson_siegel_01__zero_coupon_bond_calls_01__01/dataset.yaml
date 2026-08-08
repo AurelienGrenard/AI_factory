@@ -15,6 +15,19 @@ summary:
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
+validation:
+  status: "passed"
+  verified: true
+  reference: "Premia (specialized pricer)"
+  notebook: "catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/validation.ipynb"
+  core:
+    status: "passed"
+    row_count: 900
+    reference: "Premia (specialized pricer)"
+  stress:
+    status: "passed"
+    row_count: 100
+    reference: "Premia (specialized pricer)"
 outputs:
   price:
     estimator: "closed-form price"
@@ -33,5 +46,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.168032143 s"
-  kernel_seconds: "0.000038944 s"
+  wall_seconds: "0.423162538 s"
+  kernel_seconds: "0.00015872 s"

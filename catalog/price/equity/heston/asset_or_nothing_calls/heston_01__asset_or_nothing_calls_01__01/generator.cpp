@@ -87,7 +87,7 @@ int main() {
     double kernel_seconds = 0.0;
 
     // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::system_clock::now();
+    const auto wall_start = std::chrono::steady_clock::now();
     try {
         // Allocate the model, product, price, and error arrays on the GPU.
         check_cuda(
@@ -255,7 +255,7 @@ int main() {
         "cudaFree Heston asset-or-nothing call standard errors"
     );
     const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::system_clock::now() - wall_start
+        std::chrono::steady_clock::now() - wall_start
     ).count();
 
     // 5. Write the complete price dataset and catalog YAML.

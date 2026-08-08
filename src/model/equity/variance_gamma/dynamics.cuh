@@ -50,7 +50,13 @@ struct VarianceGammaMaximumPathResult {
     float maximum_spot;
 };
 
-// Precompute one exact increment law and its risk-neutral drift correction.
+// Precompute one exact increment law over the requested time interval.
+__device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
+    const VarianceGammaModelParameters& parameters,
+    float time_interval
+);
+
+// Precompute one monitored sub-step and its risk-neutral drift correction.
 __device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
     const VarianceGammaModelParameters& parameters,
     float maturity,
@@ -74,8 +80,7 @@ __device__ __forceinline__ void one_step_transition(
 __device__ __forceinline__ VarianceGammaState simulate_terminal_state(
     const VarianceGammaPreparedParameters& model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t num_steps
+    std::size_t path
 );
 
 // Simulate one path and average its spots from time zero to maturity in FP64.
@@ -101,9 +106,7 @@ simulate_at_two_times(
     const VarianceGammaPreparedParameters& first_model,
     const VarianceGammaPreparedParameters& second_model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::size_t path
 );
 
 // Simulate one path and return its maximum monitored spot.
@@ -121,8 +124,6 @@ __device__ __forceinline__ VarianceGammaState simulate_on_regular_grid(
     const VarianceGammaPreparedParameters& regular_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
     std::uint32_t exercise_count,
     std::size_t path_count,
     float* __restrict__ observed_spots

@@ -20,6 +20,8 @@ struct DynamicsResults {
     ai_factory::workbench::heston::HestonState heston_before_jumps;
     ai_factory::workbench::bates::BatesState terminal_first;
     ai_factory::workbench::bates::BatesState terminal_second;
+    ai_factory::workbench::bates::BatesState no_jump_terminal;
+    ai_factory::workbench::heston::HestonState heston_terminal;
     std::uint32_t poisson_zero;
     std::uint32_t poisson_one;
     std::uint32_t poisson_two;
@@ -89,6 +91,14 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         bates::simulate_terminal_state(prepared, key, 17U, step_count);
     const bates::BatesState terminal_second =
         bates::simulate_terminal_state(prepared, key, 17U, step_count);
+    const bates::BatesState no_jump_terminal =
+        bates::simulate_terminal_state(
+            no_jump_prepared, key, 19U, step_count
+        );
+    const heston::HestonState heston_terminal =
+        heston::simulate_terminal_state(
+            no_jump_prepared.heston, key, 19U, step_count
+        );
     const std::uint32_t poisson_zero = philox::poisson_from_uniform(
         0.5f, prepared.poisson_mean, prepared.poisson_zero_probability
     );
@@ -107,6 +117,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         heston_before_jumps,
         terminal_first,
         terminal_second,
+        no_jump_terminal,
+        heston_terminal,
         poisson_zero,
         poisson_one,
         poisson_two,
@@ -187,6 +199,12 @@ int main() {
                 && results.terminal_first.variance
                     == results.terminal_second.variance,
             "Bates terminal simulation is not deterministic");
+    require(
+        results.no_jump_terminal.log_spot == results.heston_terminal.log_spot
+            && results.no_jump_terminal.variance
+                == results.heston_terminal.variance,
+        "Aggregated zero-intensity Bates terminal path differs from Heston"
+    );
     require(results.poisson_zero == 0U
                 && results.poisson_one == 1U
                 && results.poisson_two == 2U,

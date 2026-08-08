@@ -7,7 +7,14 @@ import argparse
 import json
 import math
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Literal, Mapping, Sequence
+
+import yaml
+
+
+ValidationRegime = Literal["all", "core", "stress"]
+CORE_ROW_COUNT = 900
+STRESS_ROW_COUNT = 100
 
 
 @dataclass(frozen=True)
@@ -66,6 +73,7 @@ class PriceValidationInput:
     product_dataset_path: Path
     rows: tuple[PriceResultRow, ...]
     curve_dataset_path: Path | None = None
+    monte_carlo_paths_per_price: int | None = None
 
 
 @dataclass(frozen=True)
@@ -76,6 +84,7 @@ class PriceValidationReport:
     row_count: int
     passed_row_count: int
     failed_row_count: int
+    failed_row_ids: tuple[str, ...]
     higher_price_count: int
     lower_price_count: int
     equal_price_count: int
@@ -146,6 +155,39 @@ def _resolve_dataset(root: Path, family: str, database_id: str) -> Path:
             f"found {len(matches)} below '{search_root}'."
         )
     return matches[0]
+
+
+def _catalog_monte_carlo_path_count(
+    document: Mapping[str, Any], root: Path, database_id: str
+) -> int | None:
+    """Read the estimator sample count when the catalogue declares one."""
+
+    catalog = document.get("catalog")
+    if not isinstance(catalog, str) or not catalog:
+        return None
+    yaml_path = root / catalog / "dataset.yaml"
+    if not yaml_path.is_file():
+        return None
+    try:
+        yaml_document = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as error:
+        raise ValueError(
+            f"Cannot read catalogue YAML '{yaml_path}': {error}"
+        ) from error
+    summary = yaml_document.get("summary") if isinstance(yaml_document, dict) else None
+    value = (
+        summary.get("monte_carlo_paths_per_price")
+        if isinstance(summary, dict)
+        else None
+    )
+    if value is None:
+        return None
+    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+        raise ValueError(
+            f"Price dataset '{database_id}': monte_carlo_paths_per_price "
+            "must be a positive integer."
+        )
+    return value
 
 
 def load_price_validation_input(
@@ -229,6 +271,70 @@ def load_price_validation_input(
         product_dataset_path=product_path,
         rows=tuple(rows),
         curve_dataset_path=curve_path,
+        monte_carlo_paths_per_price=_catalog_monte_carlo_path_count(
+            document, root, database_id
+        ),
+    )
+
+
+def select_validation_regime(
+    validation_input: PriceValidationInput,
+    regime: ValidationRegime,
+) -> PriceValidationInput:
+    """Select the ordered 900-row core or 100-row stress catalogue regime."""
+
+    if regime == "all":
+        return validation_input
+    if regime not in {"core", "stress"}:
+        raise ValueError(f"Unknown validation regime '{regime}'.")
+    expected_count = CORE_ROW_COUNT + STRESS_ROW_COUNT
+    if len(validation_input.rows) != expected_count:
+        raise ValueError(
+            f"Dataset '{validation_input.database_id}' must contain "
+            f"{expected_count} ordered rows for a core/stress validation."
+        )
+    rows = (
+        validation_input.rows[:CORE_ROW_COUNT]
+        if regime == "core"
+        else validation_input.rows[CORE_ROW_COUNT:]
+    )
+    return PriceValidationInput(
+        database_id=validation_input.database_id,
+        model_dataset_path=validation_input.model_dataset_path,
+        product_dataset_path=validation_input.product_dataset_path,
+        rows=rows,
+        curve_dataset_path=validation_input.curve_dataset_path,
+        monte_carlo_paths_per_price=(
+            validation_input.monte_carlo_paths_per_price
+        ),
+    )
+
+
+def select_validation_row_ids(
+    validation_input: PriceValidationInput,
+    row_ids: Sequence[str] | None,
+) -> PriceValidationInput:
+    """Select explicit fallback rows while preserving catalogue order."""
+
+    if row_ids is None:
+        return validation_input
+    requested = set(row_ids)
+    rows = tuple(row for row in validation_input.rows if row.row_id in requested)
+    found = {row.row_id for row in rows}
+    missing = requested.difference(found)
+    if missing:
+        raise ValueError(
+            f"Dataset '{validation_input.database_id}' has no rows {sorted(missing)}."
+        )
+    if not rows:
+        raise ValueError("An explicit fallback validation requires at least one row.")
+    return PriceValidationInput(
+        validation_input.database_id,
+        validation_input.model_dataset_path,
+        validation_input.product_dataset_path,
+        rows,
+        validation_input.curve_dataset_path,
+        validation_input.monte_carlo_paths_per_price,
     )
 
 
@@ -281,7 +387,7 @@ def summarize_price_comparisons(
         absolute_error / max(abs(row.quantlib_price), tolerances.relative_floor)
         for row, absolute_error in zip(comparisons, absolute_errors)
     ]
-    passed_rows = sum(
+    row_passed = tuple(
         absolute_error
         <= tolerances.absolute
             + tolerances.relative * abs(row.quantlib_price)
@@ -290,6 +396,7 @@ def summarize_price_comparisons(
             comparisons, absolute_errors, combined_standard_errors
         )
     )
+    passed_rows = sum(row_passed)
     row_count = len(comparisons)
     mean_error = sum(errors) / row_count
     mean_absolute_error = sum(absolute_errors) / row_count
@@ -325,6 +432,11 @@ def summarize_price_comparisons(
         row_count=row_count,
         passed_row_count=passed_rows,
         failed_row_count=row_count - passed_rows,
+        failed_row_ids=tuple(
+            comparison.row_id
+            for comparison, passed in zip(comparisons, row_passed)
+            if not passed
+        ),
         higher_price_count=sum(error > 0.0 for error in errors),
         lower_price_count=sum(error < 0.0 for error in errors),
         equal_price_count=sum(error == 0.0 for error in errors),
@@ -393,10 +505,17 @@ def validation_from_reference(
     reference_pricer: ReferencePricer,
     tolerances: ValidationTolerances = ValidationTolerances(),
     require_curve: bool = False,
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
 ) -> PriceValidationReport:
     """Apply one model/product reference function to every price JSON row."""
 
-    validation_input = load_price_validation_input(price_dataset_path)
+    validation_input = select_validation_row_ids(
+        select_validation_regime(
+            load_price_validation_input(price_dataset_path), regime
+        ),
+        row_ids,
+    )
     if require_curve != (validation_input.curve_dataset_path is not None):
         expected = "with" if require_curve else "without"
         raise ValueError(f"Expected a price dataset {expected} a curve reference.")

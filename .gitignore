@@ -15,6 +15,7 @@
 # Editor and operating-system noise.
 .vscode/
 .DS_Store
+*:Zone.Identifier
 *.swp
 *.swo
 __pycache__/

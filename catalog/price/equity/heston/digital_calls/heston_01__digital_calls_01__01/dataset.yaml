@@ -16,6 +16,9 @@ summary:
   kernel_launch_count: 1
   maximum_prices_per_block: 1
   random_generator: "Philox"
+validation:
+  verified: true
+  reference: "QuantLib (specialized pricer)"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -37,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.196007498 s"
-  kernel_seconds: "0.208244736 s"
+  wall_seconds: "0.516941953 s"
+  kernel_seconds: "0.244302689 s"

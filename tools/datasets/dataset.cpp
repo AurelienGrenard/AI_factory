@@ -75,7 +75,8 @@ std::string format_row_id(std::size_t index) {
 std::string format_duration(double seconds) {
     if (!std::isfinite(seconds) || seconds < 0.0) {
         throw std::invalid_argument(
-            "A formatted duration must be finite and non-negative."
+            "A formatted duration must be finite and non-negative; received "
+            + std::to_string(seconds) + "."
         );
     }
     const auto decimal = [](double value) {
@@ -116,6 +117,21 @@ nlohmann::ordered_json read_json_file(const std::filesystem::path& path) {
     nlohmann::ordered_json document;
     input >> document;
     return document;
+}
+// A generated dataset starts pending. The independent validator is the only
+// component allowed to turn this block into a verified result.
+nlohmann::ordered_json price_validation_metadata(
+    const std::filesystem::path& catalog_directory
+) {
+    return {
+        {"status", "pending"},
+        {"verified", false},
+        {"reference", "none"},
+        {
+            "notebook",
+            (catalog_directory / "validation.ipynb").generic_string()
+        },
+    };
 }
 
 // Write stable, two-space-indented JSON.
@@ -900,6 +916,7 @@ void write_analytical_price_dataset_impl(
         {"url", url},
         {"row_count", row_count},
         {"summary", summary},
+        {"validation", price_validation_metadata(catalog_path.parent_path())},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
         {"model_dataset", dataset_reference(model_document)},
         {"curve_dataset", dataset_reference(curve_document)},
@@ -1029,6 +1046,7 @@ void write_analytical_price_dataset_impl(
         {"url", url},
         {"row_count", row_count},
         {"summary", summary},
+        {"validation", price_validation_metadata(catalog_path.parent_path())},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
         {"model_dataset", dataset_reference(model_document)},
         {"product_dataset", dataset_reference(product_document)},
@@ -1184,6 +1202,20 @@ void write_monte_carlo_price_dataset_impl(
         {"wall_seconds", format_duration(wall_seconds)},
         {"kernel_seconds", format_duration(kernel_seconds)},
     };
+    const nlohmann::ordered_json time_grid = target_dt.empty()
+        ? nlohmann::ordered_json{
+            {
+                "rule",
+                "exact independent increments at payoff observation times"
+            },
+            {"numerical_substeps", 0U},
+        }
+        : nlohmann::ordered_json{
+            {"rule", "nearest integer step count to target dt"},
+            {"target_dt", target_dt},
+            {"step_count", "round(maturity / target_dt)"},
+            {"effective_dt", "maturity / step_count"},
+        };
     nlohmann::ordered_json catalog = {
         {"title", database_id},
         {"database_id", database_id},
@@ -1191,12 +1223,8 @@ void write_monte_carlo_price_dataset_impl(
         {"url", url},
         {"row_count", row_count},
         {"summary", summary},
-        {"time_grid", {
-            {"rule", "nearest integer step count to target dt"},
-            {"target_dt", target_dt},
-            {"step_count", "round(maturity / target_dt)"},
-            {"effective_dt", "maturity / step_count"},
-        }},
+        {"validation", price_validation_metadata(catalog_path.parent_path())},
+        {"time_grid", time_grid},
         {"outputs", {
             {"price", {{"estimator", "Monte Carlo discounted payoff mean"}}},
             {

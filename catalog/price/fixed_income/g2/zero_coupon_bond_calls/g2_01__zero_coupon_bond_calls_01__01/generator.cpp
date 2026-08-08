@@ -73,7 +73,7 @@ int main() {
     double kernel_seconds = 0.0;
 
     // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::system_clock::now();
+    const auto wall_start = std::chrono::steady_clock::now();
     try {
         check_cuda(
             cudaMalloc(&device_models, models.size() * sizeof(models.front())),
@@ -177,7 +177,7 @@ int main() {
     check_cuda(cudaFree(device_products), "cudaFree zero-coupon bond calls");
     check_cuda(cudaFree(device_prices), "cudaFree G2 ZCB call prices");
     const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::system_clock::now() - wall_start
+        std::chrono::steady_clock::now() - wall_start
     ).count();
 
     // 4. Write and structurally validate the analytical price dataset.

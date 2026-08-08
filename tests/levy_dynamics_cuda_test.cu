@@ -14,8 +14,12 @@ namespace {
 
 struct LevyDynamicsResults {
     ai_factory::workbench::variance_gamma::VarianceGammaPreparedParameters vg;
+    ai_factory::workbench::variance_gamma::VarianceGammaPreparedParameters
+        vg_exact;
     ai_factory::workbench::normal_inverse_gaussian::
         NormalInverseGaussianPreparedParameters nig;
+    ai_factory::workbench::normal_inverse_gaussian::
+        NormalInverseGaussianPreparedParameters nig_exact;
     ai_factory::workbench::variance_gamma::VarianceGammaState vg_transition;
     ai_factory::workbench::normal_inverse_gaussian::
         NormalInverseGaussianState nig_transition;
@@ -48,8 +52,14 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     const auto vg = variance_gamma::prepare_model(
         vg_parameters, maturity, step_count
     );
+    const auto vg_exact = variance_gamma::prepare_model(
+        vg_parameters, maturity
+    );
     const auto nig = normal_inverse_gaussian::prepare_model(
         nig_parameters, maturity, step_count
+    );
+    const auto nig_exact = normal_inverse_gaussian::prepare_model(
+        nig_parameters, maturity
     );
 
     auto vg_transition = variance_gamma::initial_state(vg);
@@ -89,27 +99,24 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         );
 
     const float vg_terminal_first = variance_gamma::simulate_terminal_state(
-        vg, key, 23U, step_count
+        vg_exact, key, 23U
     ).log_spot;
     const float vg_terminal_replay = variance_gamma::simulate_terminal_state(
-        vg, key, 23U, step_count
+        vg_exact, key, 23U
     ).log_spot;
 
-    auto vg_terminal_manual = variance_gamma::initial_state(vg);
-    auto vg_aggregate = vg;
-    vg_aggregate.gamma_shape *= static_cast<float>(step_count);
-    vg_aggregate.drift_dt *= static_cast<float>(step_count);
+    auto vg_terminal_manual = variance_gamma::initial_state(vg_exact);
     philox::UniformSequence vg_uniforms(key, 23ULL);
     philox::NormalPairCache vg_cache;
     const float vg_gamma = philox::marsaglia_tsang_gamma(
         vg_uniforms,
         vg_cache,
-        vg_aggregate.gamma_shape,
-        vg_aggregate.gamma_scale
+        vg_exact.gamma_shape,
+        vg_exact.gamma_scale
     );
     const float vg_normal = philox::next_normal(vg_uniforms, vg_cache);
     variance_gamma::one_step_transition(
-        vg_aggregate,
+        vg_exact,
         vg_gamma,
         vg_normal,
         vg_terminal_manual
@@ -117,31 +124,28 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
 
     const float nig_terminal_first =
         normal_inverse_gaussian::simulate_terminal_state(
-            nig, key, 29U, step_count
+            nig_exact, key, 29U
         ).log_spot;
     const float nig_terminal_replay =
         normal_inverse_gaussian::simulate_terminal_state(
-            nig, key, 29U, step_count
+            nig_exact, key, 29U
         ).log_spot;
 
-    auto nig_terminal_manual = normal_inverse_gaussian::initial_state(nig);
-    auto nig_aggregate = nig;
-    nig_aggregate.inverse_gaussian_mean *= static_cast<float>(step_count);
-    nig_aggregate.inverse_gaussian_shape *=
-        static_cast<float>(step_count * step_count);
-    nig_aggregate.drift_dt *= static_cast<float>(step_count);
+    auto nig_terminal_manual = normal_inverse_gaussian::initial_state(
+        nig_exact
+    );
     philox::UniformSequence nig_uniforms(key, 29ULL);
     philox::NormalPairCache nig_cache;
     const float nig_clock =
         philox::michael_schucany_haas_inverse_gaussian(
             nig_uniforms,
             nig_cache,
-            nig_aggregate.inverse_gaussian_mean,
-            nig_aggregate.inverse_gaussian_shape
+            nig_exact.inverse_gaussian_mean,
+            nig_exact.inverse_gaussian_shape
         );
     const float nig_normal = philox::next_normal(nig_uniforms, nig_cache);
     normal_inverse_gaussian::one_step_transition(
-        nig_aggregate,
+        nig_exact,
         nig_clock,
         nig_normal,
         nig_terminal_manual
@@ -149,7 +153,9 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
 
     *output = {
         vg,
+        vg_exact,
         nig,
+        nig_exact,
         vg_transition,
         nig_transition,
         gamma_small_shape_first,
@@ -180,6 +186,8 @@ bool close(float lhs, float rhs, float tolerance = 3.0e-6f) {
 int main() {
     using namespace ai_factory::workbench;
 
+    constexpr float maturity = 0.5f;
+    constexpr std::size_t step_count = 10U;
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
     if (availability == cudaErrorNoDevice
@@ -208,7 +216,7 @@ int main() {
     );
     check_cuda(cudaFree(device_results), "Levy dynamics test cudaFree");
 
-    constexpr float dt = 0.5f / 10.0f;
+    constexpr float dt = maturity / static_cast<float>(step_count);
     const float vg_argument =
         1.0f - (-0.1f) * 0.25f - 0.5f * 0.2f * 0.2f * 0.25f;
     const float vg_drift = (
@@ -219,6 +227,9 @@ int main() {
             "VG Gamma clock preparation is incorrect");
     require(close(results.vg.drift_dt, vg_drift),
             "VG martingale correction is incorrect");
+    require(close(results.vg_exact.gamma_shape, maturity / 0.25f)
+                && close(results.vg_exact.drift_dt, vg_drift * step_count),
+            "VG exact-interval preparation is incorrect");
     const float expected_vg_transition = std::log(100.0f) + vg_drift
         + (-0.1f) * 0.08f + 0.2f * std::sqrt(0.08f) * -0.4f;
     require(close(results.vg_transition.log_spot, expected_vg_transition),
@@ -236,6 +247,14 @@ int main() {
             "NIG inverse-Gaussian clock preparation is incorrect");
     require(close(results.nig.drift_dt, nig_drift),
             "NIG martingale correction is incorrect");
+    require(
+        close(results.nig_exact.inverse_gaussian_mean,
+              0.4f * maturity / gamma)
+            && close(results.nig_exact.inverse_gaussian_shape,
+                     0.4f * maturity * 0.4f * maturity)
+            && close(results.nig_exact.drift_dt, nig_drift * step_count),
+        "NIG exact-interval preparation is incorrect"
+    );
     const float expected_nig_transition = std::log(100.0f) + nig_drift
         + (-2.0f) * 0.03f + std::sqrt(0.03f) * 0.5f;
     require(close(results.nig_transition.log_spot, expected_nig_transition),
@@ -259,7 +278,7 @@ int main() {
         results.vg_terminal_first == results.vg_terminal_manual_aggregate
             && results.nig_terminal_first
                 == results.nig_terminal_manual_aggregate,
-        "Levy terminal simulations did not aggregate exact increments"
+        "Levy terminal simulations did not use exact interval increments"
     );
     return 0;
 }

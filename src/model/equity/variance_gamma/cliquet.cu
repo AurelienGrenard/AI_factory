@@ -31,7 +31,6 @@ struct PreparedRow {
     float global_cap;
     float maturity_discount;
     std::uint32_t observation_count;
-    std::uint32_t steps_per_observation;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
@@ -39,15 +38,10 @@ __device__ __forceinline__ PreparedRow prepare_row(
     const VarianceGammaModelParameters& model,
     const product::CliquetParameters& product,
     std::uint32_t observation_count,
-    std::uint32_t steps_per_observation,
     std::uint64_t seed
 ) {
     return {
-        prepare_model(
-            model,
-            product.observation_interval,
-            steps_per_observation
-        ),
+        prepare_model(model, product.observation_interval),
         philox::make_key(seed),
         product.participation_rate,
         product.local_floor,
@@ -56,7 +50,6 @@ __device__ __forceinline__ PreparedRow prepare_row(
         product.global_cap,
         expf(-model.risk_free_rate * product.maturity),
         observation_count,
-        steps_per_observation,
     };
 }
 
@@ -76,11 +69,7 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        for (std::uint32_t step = 0U;
-             step < row.steps_per_observation;
-             ++step) {
-            simulate_one_step(row.model, uniforms, normal_cache, state);
-        }
+        simulate_one_step(row.model, uniforms, normal_cache, state);
         const float spot = expf(state.log_spot);
         const float participated_return = row.participation_rate
             * (spot / previous_spot - 1.0f);
@@ -105,7 +94,6 @@ __global__ void variance_gamma_cliquet_kernel(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -130,16 +118,10 @@ __global__ void variance_gamma_cliquet_kernel(
                 static_cast<std::uint32_t>(floorf(
                     product.maturity / product.observation_interval + 0.5f
                 ));
-            const std::uint32_t steps_per_observation =
-                static_cast<std::uint32_t>(fmaxf(
-                    1.0f,
-                    floorf(product.observation_interval / target_dt + 0.5f)
-                ));
             prepared = prepare_row(
                 models[model_index],
                 product,
                 observation_count,
-                steps_per_observation,
                 base_seed + result_index
             );
         }
@@ -189,7 +171,6 @@ void validate_variance_gamma_cliquet_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -214,10 +195,8 @@ void validate_variance_gamma_cliquet_launch(
         );
     }
 
-    // Monte Carlo paths and the requested simulation step must be valid.
-    validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
-    );
+    // The Monte Carlo path count must be valid.
+    validate_monte_carlo_path_count(monte_carlo_paths_per_price);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -243,7 +222,6 @@ void launch_variance_gamma_cliquet_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -260,7 +238,6 @@ void launch_variance_gamma_cliquet_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         threads_per_block,
         block_count,
         base_seed,
@@ -310,7 +287,6 @@ void launch_variance_gamma_cliquet_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         base_seed,
         device_prices,
         device_standard_errors

@@ -120,9 +120,13 @@ __device__ __forceinline__ float bond_option_total_volatility(
         * parameters.volatility_x * parameters.volatility_y
         * (-expm1f(-(a + b) * time_to_expiry)) / (a + b);
     const float loading_x =
-        model::ornstein_uhlenbeck::integral_state_loading(a, bond_tenor);
+        model::mean_reverting_gaussian::integral_state_loading(
+            a, bond_tenor
+        );
     const float loading_y =
-        model::ornstein_uhlenbeck::integral_state_loading(b, bond_tenor);
+        model::mean_reverting_gaussian::integral_state_loading(
+            b, bond_tenor
+        );
     const float variance = fmaf(
         loading_x * loading_x,
         variance_x,

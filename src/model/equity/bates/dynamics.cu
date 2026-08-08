@@ -57,6 +57,31 @@ __device__ __forceinline__ BatesState initial_state(
     return heston::initial_state(model.heston);
 }
 
+namespace {
+
+// Add one already-sampled compound-Poisson increment to the log spot.
+__device__ __forceinline__ void apply_jump_transition(
+    const BatesQeParameters& model,
+    float jump_compensator,
+    std::uint32_t jump_count,
+    float jump_normal,
+    BatesState& state
+) {
+    float jump_increment = -jump_compensator;
+    if (jump_count != 0U) {
+        const float count = static_cast<float>(jump_count);
+        jump_increment = fmaf(count, model.jump_log_mean, jump_increment);
+        jump_increment = fmaf(
+            model.jump_log_volatility * sqrtf(count),
+            jump_normal,
+            jump_increment
+        );
+    }
+    state.log_spot += jump_increment;
+}
+
+}  // namespace
+
 // Apply one variance and log-spot update with the QE-M martingale correction.
 // Conditional on jump_count = n, the sum of n independent log jump sizes
 // N(nu, delta^2) is represented exactly in law by
@@ -80,25 +105,15 @@ __device__ __forceinline__ void one_step_transition(
         stock_normal,
         state
     );
-
-    float jump_increment = -model.jump_compensator;
-    if (jump_count != 0U) {
-        const float count = static_cast<float>(jump_count);
-        jump_increment = fmaf(count, model.jump_log_mean, jump_increment);
-        jump_increment = fmaf(
-            model.jump_log_volatility * sqrtf(count),
-            jump_normal,
-            jump_increment
-        );
-    }
-    state.log_spot += jump_increment;
+    apply_jump_transition(
+        model, model.jump_compensator, jump_count, jump_normal, state
+    );
 }
 
 namespace {
 
-// Draw one Bates transition from the continuous path-local uniform sequence.
-// Conditional jump draws advance the same scalar stream without reservations.
-__device__ __forceinline__ void simulate_one_step(
+// Advance only the Heston component by one QE-M numerical step.
+__device__ __forceinline__ void simulate_heston_one_step(
     const BatesQeParameters& model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
@@ -111,26 +126,76 @@ __device__ __forceinline__ void simulate_one_step(
         uniforms, normal_cache
     );
     const float variance_uniform = uniforms.next();
+    heston::one_step_transition(
+        model.heston,
+        variance_normal,
+        variance_uniform,
+        stock_normal,
+        state
+    );
+}
+
+// Draw and add the compound-Poisson increment over several equal QE steps.
+// Heston is independent of the jump process and its variance does not depend
+// on spot, so the jump sum may be applied after the Heston interval whenever
+// the payoff observes only the interval boundary.
+__device__ __forceinline__ void simulate_jump_interval(
+    const BatesQeParameters& model,
+    std::size_t step_count,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    BatesState& state
+) {
+    const float count = static_cast<float>(step_count);
+    const float poisson_mean = model.poisson_mean * count;
+    const float poisson_zero_probability = step_count == 1U
+        ? model.poisson_zero_probability
+        : expf(-poisson_mean);
+    const float jump_compensator = model.jump_compensator * count;
+
     const float poisson_uniform = uniforms.next();
     const std::uint32_t jump_count = philox::poisson_from_uniform(
         poisson_uniform,
-        model.poisson_mean,
-        model.poisson_zero_probability
+        poisson_mean,
+        poisson_zero_probability
     );
-
     float jump_normal = 0.0f;
     if (jump_count != 0U) {
         jump_normal = philox::next_normal(uniforms, normal_cache);
     }
-    one_step_transition(
-        model,
-        variance_normal,
-        variance_uniform,
-        stock_normal,
-        jump_count,
-        jump_normal,
-        state
+    apply_jump_transition(
+        model, jump_compensator, jump_count, jump_normal, state
     );
+}
+
+// Simulate a boundary-only interval: daily Heston QE-M, then one exact jump sum.
+__device__ __forceinline__ void simulate_interval(
+    const BatesQeParameters& model,
+    std::size_t step_count,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    BatesState& state
+) {
+    for (std::size_t step_index = 0U;
+         step_index < step_count;
+         ++step_index) {
+        simulate_heston_one_step(model, uniforms, normal_cache, state);
+    }
+    simulate_jump_interval(
+        model, step_count, uniforms, normal_cache, state
+    );
+}
+
+// Draw one Bates transition from the continuous path-local uniform sequence.
+// Conditional jump draws advance the same scalar stream without reservations.
+__device__ __forceinline__ void simulate_one_step(
+    const BatesQeParameters& model,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    BatesState& state
+) {
+    simulate_heston_one_step(model, uniforms, normal_cache, state);
+    simulate_jump_interval(model, 1U, uniforms, normal_cache, state);
 }
 
 }  // namespace
@@ -147,11 +212,7 @@ __device__ __forceinline__ BatesState simulate_terminal_state(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    for (std::size_t step_index = 0U;
-         step_index < num_steps;
-         ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
-    }
+    simulate_interval(model, num_steps, uniforms, normal_cache, state);
     return state;
 }
 
@@ -228,18 +289,14 @@ __device__ __forceinline__ BatesTwoTimePathResult simulate_at_two_times(
     );
     philox::NormalPairCache normal_cache;
 
-    for (std::size_t step_index = 0U;
-         step_index < first_num_steps;
-         ++step_index) {
-        simulate_one_step(first_model, uniforms, normal_cache, state);
-    }
+    simulate_interval(
+        first_model, first_num_steps, uniforms, normal_cache, state
+    );
     const BatesState first_state = state;
 
-    for (std::size_t step_index = 0U;
-         step_index < second_num_steps;
-         ++step_index) {
-        simulate_one_step(second_model, uniforms, normal_cache, state);
-    }
+    simulate_interval(
+        second_model, second_num_steps, uniforms, normal_cache, state
+    );
     return {first_state, state};
 }
 
@@ -289,11 +346,13 @@ __device__ __forceinline__ BatesState simulate_on_regular_grid(
     philox::NormalPairCache normal_cache;
 
     // Reach the first exercise date through its possibly shorter stub.
-    for (std::uint32_t step_index = 0U;
-         step_index < initial_stub_steps;
-         ++step_index) {
-        simulate_one_step(initial_stub_model, uniforms, normal_cache, state);
-    }
+    simulate_interval(
+        initial_stub_model,
+        initial_stub_steps,
+        uniforms,
+        normal_cache,
+        state
+    );
     if (exercise_count == 1U) return state;
     std::size_t output_index = path;
     observed_spots[output_index] = expf(state.log_spot);
@@ -303,22 +362,26 @@ __device__ __forceinline__ BatesState simulate_on_regular_grid(
     for (std::uint32_t exercise = 1U;
          exercise + 1U < exercise_count;
          ++exercise) {
-        for (std::uint32_t step_index = 0U;
-             step_index < steps_per_exercise;
-             ++step_index) {
-            simulate_one_step(regular_model, uniforms, normal_cache, state);
-        }
+        simulate_interval(
+            regular_model,
+            steps_per_exercise,
+            uniforms,
+            normal_cache,
+            state
+        );
         output_index += path_count;
         observed_spots[output_index] = expf(state.log_spot);
         observed_variances[output_index] = state.variance;
     }
 
     // Simulate the maturity interval without a global-memory write.
-    for (std::uint32_t step_index = 0U;
-         step_index < steps_per_exercise;
-         ++step_index) {
-        simulate_one_step(regular_model, uniforms, normal_cache, state);
-    }
+    simulate_interval(
+        regular_model,
+        steps_per_exercise,
+        uniforms,
+        normal_cache,
+        state
+    );
     return state;
 }
 

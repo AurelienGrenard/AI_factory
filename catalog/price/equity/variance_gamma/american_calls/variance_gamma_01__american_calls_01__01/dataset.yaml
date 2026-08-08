@@ -14,14 +14,17 @@ summary:
   threads_per_block: 128
   blocks_per_price: 128
   random_generator: "Philox"
+validation:
+  verified: false
+  reference: "none"
 time_grid:
-  target_dt: "1 / 252"
+  rule: "exact independent increments on exercise dates"
   initial_stub:
-    step_count: "ceil(first_exercise_time / target_dt)"
-    effective_dt: "first_exercise_time / step_count"
+    increments: 1
+    interval: "first_exercise_time"
   regular_exercise_interval:
-    step_count: "ceil(exercise_interval / target_dt)"
-    effective_dt: "exercise_interval / step_count"
+    increments: 1
+    interval: "exercise_interval"
 outputs:
   price:
     estimator: "Longstaff-Schwartz discounted cashflow mean"
@@ -38,8 +41,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "10.123417731 s"
-  kernel_seconds: "10.327218567 s"
+  wall_seconds: "13.246018469 s"
+  kernel_seconds: "11.688245544 s"
 exercise_policy:
   method: "Longstaff-Schwartz"
   regression_basis: "Spot and log-moneyness six-term basis"

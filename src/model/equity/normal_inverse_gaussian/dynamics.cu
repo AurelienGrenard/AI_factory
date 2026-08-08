@@ -10,14 +10,12 @@
 
 namespace ai_factory::workbench::normal_inverse_gaussian {
 
-// Prepare the exact inverse-Gaussian clock and martingale correction per step.
+// Prepare the exact inverse-Gaussian clock over one requested interval.
 __device__ __forceinline__ NormalInverseGaussianPreparedParameters
 prepare_model(
     const NormalInverseGaussianModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+    float time_interval
 ) {
-    const float dt = maturity / static_cast<float>(num_steps);
     const float alpha2 = parameters.alpha * parameters.alpha;
     const float beta2 = parameters.beta * parameters.beta;
     const float gamma = sqrtf(alpha2 - beta2);
@@ -31,8 +29,8 @@ prepare_model(
         parameters.risk_free_rate
         - parameters.dividend_yield
         + martingale_correction
-    ) * dt;
-    const float delta_dt = parameters.delta * dt;
+    ) * time_interval;
+    const float delta_dt = parameters.delta * time_interval;
 
     return {
         logf(parameters.spot),
@@ -41,6 +39,18 @@ prepare_model(
         parameters.beta,
         drift_dt,
     };
+}
+
+// Prepare the exact law of one sub-step for a genuinely monitored grid.
+__device__ __forceinline__ NormalInverseGaussianPreparedParameters
+prepare_model(
+    const NormalInverseGaussianModelParameters& parameters,
+    float maturity,
+    std::size_t num_steps
+) {
+    return prepare_model(
+        parameters, maturity / static_cast<float>(num_steps)
+    );
 }
 
 // Construct the time-zero state stored in the prepared parameters.
@@ -89,37 +99,20 @@ __device__ __forceinline__ void simulate_one_step(
     );
 }
 
-// Sum equal NIG increments analytically when only an interval boundary matters.
-__device__ __forceinline__ NormalInverseGaussianPreparedParameters
-aggregate_increment(
-    const NormalInverseGaussianPreparedParameters& model,
-    std::size_t step_count
-) {
-    const float count = static_cast<float>(step_count);
-    NormalInverseGaussianPreparedParameters aggregate = model;
-    aggregate.inverse_gaussian_mean *= count;
-    aggregate.inverse_gaussian_shape *= count * count;
-    aggregate.drift_dt *= count;
-    return aggregate;
-}
-
 }  // namespace
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ NormalInverseGaussianState simulate_terminal_state(
     const NormalInverseGaussianPreparedParameters& model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t num_steps
+    std::size_t path
 ) {
     NormalInverseGaussianState state = initial_state(model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    const NormalInverseGaussianPreparedParameters terminal_model =
-        aggregate_increment(model, num_steps);
-    simulate_one_step(terminal_model, uniforms, normal_cache, state);
+    simulate_one_step(model, uniforms, normal_cache, state);
     return state;
 }
 
@@ -188,9 +181,7 @@ simulate_at_two_times(
     const NormalInverseGaussianPreparedParameters& first_model,
     const NormalInverseGaussianPreparedParameters& second_model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::size_t path
 ) {
     NormalInverseGaussianState state = initial_state(first_model);
     philox::UniformSequence uniforms(
@@ -198,14 +189,10 @@ simulate_at_two_times(
     );
     philox::NormalPairCache normal_cache;
 
-    const NormalInverseGaussianPreparedParameters first_interval =
-        aggregate_increment(first_model, first_num_steps);
-    simulate_one_step(first_interval, uniforms, normal_cache, state);
+    simulate_one_step(first_model, uniforms, normal_cache, state);
     const NormalInverseGaussianState first_state = state;
 
-    const NormalInverseGaussianPreparedParameters second_interval =
-        aggregate_increment(second_model, second_num_steps);
-    simulate_one_step(second_interval, uniforms, normal_cache, state);
+    simulate_one_step(second_model, uniforms, normal_cache, state);
     return {first_state, state};
 }
 
@@ -241,8 +228,6 @@ simulate_on_regular_grid(
     const NormalInverseGaussianPreparedParameters& regular_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
     std::uint32_t exercise_count,
     std::size_t path_count,
     float* __restrict__ observed_spots
@@ -252,27 +237,20 @@ simulate_on_regular_grid(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    const NormalInverseGaussianPreparedParameters initial_interval =
-        aggregate_increment(initial_stub_model, initial_stub_steps);
-    simulate_one_step(initial_interval, uniforms, normal_cache, state);
+    simulate_one_step(initial_stub_model, uniforms, normal_cache, state);
     if (exercise_count == 1U) return state;
     std::size_t output_index = path;
     observed_spots[output_index] = expf(state.log_spot);
 
-    const NormalInverseGaussianPreparedParameters regular_interval =
-        aggregate_increment(regular_model, steps_per_exercise);
-
     for (std::uint32_t exercise = 1U;
          exercise + 1U < exercise_count;
          ++exercise) {
-        simulate_one_step(
-            regular_interval, uniforms, normal_cache, state
-        );
+        simulate_one_step(regular_model, uniforms, normal_cache, state);
         output_index += path_count;
         observed_spots[output_index] = expf(state.log_spot);
     }
 
-    simulate_one_step(regular_interval, uniforms, normal_cache, state);
+    simulate_one_step(regular_model, uniforms, normal_cache, state);
     return state;
 }
 

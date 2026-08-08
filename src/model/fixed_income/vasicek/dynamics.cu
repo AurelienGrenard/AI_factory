@@ -2,6 +2,7 @@
 #pragma once
 
 #include "model/fixed_income/vasicek/dynamics.cuh"
+#include "model/fixed_income/common/mean_reverting_gaussian.cuh"
 
 #include <cuda_runtime.h>
 
@@ -9,71 +10,15 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::model::vasicek {
-namespace {
-
-// Evaluate B(delta) by series when mean_reversion * delta is small.
-__device__ __forceinline__ float small_time_integral_state_loading(
-    float delta,
-    float scaled_time
-) {
-    float normalized = fmaf(scaled_time, 1.0f / 120.0f, -1.0f / 24.0f);
-    normalized = fmaf(scaled_time, normalized, 1.0f / 6.0f);
-    normalized = fmaf(scaled_time, normalized, -0.5f);
-    normalized = fmaf(scaled_time, normalized, 1.0f);
-    return delta * normalized;
-}
-
-// Evaluate the small-time integral variance without transcendental functions.
-__device__ __forceinline__ float small_time_integral_variance(
-    const VasicekProcessParameters& parameters,
-    float delta,
-    float scaled_time
-) {
-    const float scaled_time2 = scaled_time * scaled_time;
-    const float normalized =
-        1.0f / 3.0f
-        - scaled_time / 4.0f
-        + 7.0f * scaled_time2 / 60.0f
-        - scaled_time2 * scaled_time / 24.0f;
-    return parameters.volatility * parameters.volatility
-        * delta * delta * delta * normalized;
-}
-
-// Reuse precomputed decay terms in the exact integral variance.
-__device__ __forceinline__ float integral_variance_from_decay(
-    const VasicekProcessParameters& parameters,
-    float delta,
-    float decay,
-    float one_minus_decay
-) {
-    const float a = parameters.mean_reversion;
-    const float scaled_time = a * delta;
-    if (fabsf(scaled_time) < 0.02f) {
-        return small_time_integral_variance(
-            parameters, delta, scaled_time
-        );
-    }
-
-    const float bracket =
-        delta
-        - 2.0f * one_minus_decay / a
-        + one_minus_decay * (1.0f + decay) / (2.0f * a);
-    return parameters.volatility * parameters.volatility
-        * bracket / (a * a);
-}
-
-}  // namespace
 
 // Evaluate the exact loading of the current state in its future integral.
 __device__ __forceinline__ float integral_state_loading(
     float mean_reversion,
     float delta
 ) {
-    const float scaled_time = mean_reversion * delta;
-    if (fabsf(scaled_time) < 0.02f) {
-        return small_time_integral_state_loading(delta, scaled_time);
-    }
-    return -expm1f(-scaled_time) / mean_reversion;
+    return mean_reverting_gaussian::integral_state_loading(
+        mean_reversion, delta
+    );
 }
 
 // Evaluate the integral variance stably near zero mean reversion.
@@ -81,17 +26,8 @@ __device__ __forceinline__ float integral_variance(
     const VasicekProcessParameters& parameters,
     float delta
 ) {
-    const float a = parameters.mean_reversion;
-    const float scaled_time = a * delta;
-    if (fabsf(scaled_time) < 0.02f) {
-        return small_time_integral_variance(
-            parameters, delta, scaled_time
-        );
-    }
-    const float one_minus_decay = -expm1f(-a * delta);
-    const float decay = 1.0f - one_minus_decay;
-    return integral_variance_from_decay(
-        parameters, delta, decay, one_minus_decay
+    return mean_reverting_gaussian::integral_variance(
+        parameters.mean_reversion, parameters.volatility, delta
     );
 }
 
@@ -100,26 +36,14 @@ __device__ __forceinline__ VasicekIntegralMoments integral_moments(
     const VasicekProcessParameters& parameters,
     float delta
 ) {
-    const float a = parameters.mean_reversion;
-    const float scaled_time = a * delta;
-    if (fabsf(scaled_time) < 0.02f) {
-        const float state_loading =
-            small_time_integral_state_loading(delta, scaled_time);
-        return {
-            state_loading,
-            parameters.long_term_mean * (delta - state_loading),
-            small_time_integral_variance(parameters, delta, scaled_time),
-        };
-    }
-    const float one_minus_decay = -expm1f(-scaled_time);
-    const float decay = 1.0f - one_minus_decay;
-    const float state_loading = one_minus_decay / a;
+    const mean_reverting_gaussian::IntegralMoments moments =
+        mean_reverting_gaussian::integral_moments(
+            parameters.mean_reversion, parameters.volatility, delta
+        );
     return {
-        state_loading,
-        parameters.long_term_mean * (delta - state_loading),
-        integral_variance_from_decay(
-            parameters, delta, decay, one_minus_decay
-        ),
+        moments.state_loading,
+        parameters.long_term_mean * (delta - moments.state_loading),
+        moments.variance,
     };
 }
 
@@ -129,11 +53,14 @@ __device__ __forceinline__ VasicekExactTransition prepare_model(
     float time_interval
 ) {
     const float a = parameters.mean_reversion;
+    const float volatility_squared =
+        parameters.volatility * parameters.volatility;
     const float one_minus_decay = -expm1f(-a * time_interval);
     const float decay = 1.0f - one_minus_decay;
     const float state_variance =
-        parameters.volatility * parameters.volatility
-        * one_minus_decay * (1.0f + decay) / (2.0f * a);
+        mean_reverting_gaussian::state_variance_from_decay(
+            a, volatility_squared, decay, one_minus_decay
+        );
     return {
         decay,
         parameters.long_term_mean * one_minus_decay,
@@ -217,18 +144,26 @@ __device__ __forceinline__ VasicekJointExactTransition prepare_model(
     const float one_minus_decay = -expm1f(-a * time_interval);
     const float decay = 1.0f - one_minus_decay;
     const float state_variance =
-        sigma2 * one_minus_decay * (1.0f + decay) / (2.0f * a);
+        mean_reverting_gaussian::state_variance_from_decay(
+            a, sigma2, decay, one_minus_decay
+        );
     const float state_standard_deviation = sqrtf(state_variance);
     const float covariance =
-        sigma2 * one_minus_decay * one_minus_decay / (2.0f * a * a);
+        mean_reverting_gaussian::state_integral_covariance_from_decay(
+            a, sigma2, one_minus_decay
+        );
     const float integral_state_loading = one_minus_decay / a;
     const float integral_state_normal_loading =
         state_standard_deviation > 0.0f
         ? covariance / state_standard_deviation
         : 0.0f;
     const float independent_variance = fmaxf(
-        integral_variance_from_decay(
-            parameters, time_interval, decay, one_minus_decay
+        mean_reverting_gaussian::integral_variance_from_decay(
+            a,
+            sigma2,
+            time_interval,
+            decay,
+            one_minus_decay
         )
             - integral_state_normal_loading
                 * integral_state_normal_loading,

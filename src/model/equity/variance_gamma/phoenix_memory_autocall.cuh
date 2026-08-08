@@ -20,7 +20,6 @@ void launch_variance_gamma_phoenix_memory_autocall_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,

@@ -72,11 +72,13 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        for (std::uint32_t step = 0U;
-             step < row.steps_per_observation;
-             ++step) {
-            simulate_one_step(row.model, uniforms, normal_cache, state);
-        }
+        simulate_interval(
+            row.model,
+            row.steps_per_observation,
+            uniforms,
+            normal_cache,
+            state
+        );
         discount *= row.discount_per_observation;
         accumulated_gain += row.gain_per_observation;
         const float spot = expf(state.log_spot);

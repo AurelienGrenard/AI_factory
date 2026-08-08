@@ -67,6 +67,28 @@ add_library(cuda_workbench STATIC
     src/model/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_option.cu
     src/model/fixed_income/g2_plus_plus/svensson/rate_option.cu
     src/model/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_option.cu
+    src/model/equity/black_scholes/dataset.cpp
+    src/model/equity/black_scholes/asian_option.cu
+    src/model/equity/black_scholes/asset_or_nothing_option.cu
+    src/model/equity/black_scholes/athena_autocall.cu
+    src/model/equity/black_scholes/cliquet.cu
+    src/model/equity/black_scholes/digital_option.cu
+    src/model/equity/black_scholes/double_knock_out_option.cu
+    src/model/equity/black_scholes/down_and_in_option.cu
+    src/model/equity/black_scholes/down_and_out_option.cu
+    src/model/equity/black_scholes/european_option.cu
+    src/model/equity/black_scholes/forward_start_option.cu
+    src/model/equity/black_scholes/gap_option.cu
+    src/model/equity/black_scholes/geometric_asian_option.cu
+    src/model/equity/black_scholes/lookback_option.cu
+    src/model/equity/black_scholes/phoenix_autocall.cu
+    src/model/equity/black_scholes/phoenix_memory_autocall.cu
+    src/model/equity/black_scholes/range_accrual.cu
+    src/model/equity/black_scholes/straddle.cu
+    src/model/equity/black_scholes/up_and_in_option.cu
+    src/model/equity/black_scholes/up_and_out_option.cu
+    src/model/equity/black_scholes/up_no_touch.cu
+    src/model/equity/black_scholes/up_one_touch.cu
     src/model/equity/heston/dataset.cpp
     src/model/equity/heston/american_option.cu
     src/model/equity/heston/athena_autocall.cu
@@ -195,6 +217,28 @@ add_library(cuda_workbench STATIC
     src/product/up_and_out_option/dataset.cpp
     src/product/zero_coupon_bond_option/dataset.cpp
 )
+
+# New equity models deliberately reuse the explicit product-specialized Monte
+# Carlo surface. Keeping the source list data-driven here avoids obscuring the
+# CUDA implementation behind a generic payoff kernel.
+set(_new_equity_monte_carlo_products
+    asian_option asset_or_nothing_option athena_autocall cliquet
+    digital_option double_knock_out_option down_and_in_option
+    down_and_out_option european_option forward_start_option gap_option
+    geometric_asian_option lookback_option phoenix_autocall
+    phoenix_memory_autocall range_accrual straddle up_and_in_option
+    up_and_out_option up_no_touch up_one_touch
+)
+foreach(_equity_model IN ITEMS merton kou cev schobel_zhu)
+    target_sources(cuda_workbench PRIVATE
+        src/model/equity/${_equity_model}/dataset.cpp
+    )
+    foreach(_product IN LISTS _new_equity_monte_carlo_products)
+        target_sources(cuda_workbench PRIVATE
+            src/model/equity/${_equity_model}/${_product}.cu
+        )
+    endforeach()
+endforeach()
 target_include_directories(cuda_workbench PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -543,6 +587,55 @@ foreach(_levy_model IN ITEMS variance_gamma normal_inverse_gaussian)
         )
     endforeach()
 endforeach()
+
+# Black-Scholes path-dependent products retain the one-block-per-price Monte
+# Carlo surface; deterministic products are registered separately below.
+set(_black_scholes_monte_carlo_price_families
+    asian_calls asian_puts athena_autocalls cliquets
+    double_knock_out_calls double_knock_out_puts
+    down_and_in_puts down_and_out_puts lookback_options
+    phoenix_autocalls phoenix_memory_autocalls
+    up_and_in_calls up_and_out_calls up_no_touches up_one_touches
+)
+foreach(_price_family IN LISTS _black_scholes_monte_carlo_price_families)
+    add_price_generator(
+        generate_black_scholes_${_price_family}_01
+        catalog/price/equity/black_scholes/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
+    )
+endforeach()
+set(_black_scholes_analytical_price_families
+    asset_or_nothing_calls asset_or_nothing_puts
+    digital_calls digital_puts european_calls european_puts
+    forward_start_calls forward_start_puts gap_calls gap_puts
+    geometric_asian_calls geometric_asian_puts range_accruals straddles
+)
+foreach(_price_family IN LISTS _black_scholes_analytical_price_families)
+    add_price_generator(
+        generate_black_scholes_${_price_family}_01
+        catalog/price/equity/black_scholes/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
+    )
+endforeach()
+
+# The V1 equity surface is Monte Carlo only for these four models. Calls and
+# puts remain separate datasets while sharing their option-side CUDA template.
+set(_new_equity_monte_carlo_price_families
+    asian_calls asian_puts asset_or_nothing_calls asset_or_nothing_puts
+    athena_autocalls cliquets digital_calls digital_puts
+    double_knock_out_calls double_knock_out_puts down_and_in_puts
+    down_and_out_puts european_calls european_puts forward_start_calls
+    forward_start_puts gap_calls gap_puts geometric_asian_calls
+    geometric_asian_puts lookback_options phoenix_autocalls
+    phoenix_memory_autocalls range_accruals straddles up_and_in_calls
+    up_and_out_calls up_no_touches up_one_touches
+)
+foreach(_equity_model IN ITEMS merton kou cev schobel_zhu)
+    foreach(_price_family IN LISTS _new_equity_monte_carlo_price_families)
+        add_price_generator(
+            generate_${_equity_model}_${_price_family}_01
+            catalog/price/equity/${_equity_model}/${_price_family}/${_equity_model}_01__${_price_family}_01__01/generator.cpp
+        )
+    endforeach()
+endforeach()
 add_price_generator(
     generate_hull_white_nelson_siegel_caplets_01
     catalog/price/fixed_income/hull_white/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
@@ -612,6 +705,10 @@ add_parameter_generator(
     generate_heston_01 catalog/model/equity/heston/heston_01/generator.cpp
 )
 add_parameter_generator(
+    generate_black_scholes_01
+    catalog/model/equity/black_scholes/black_scholes_01/generator.cpp
+)
+add_parameter_generator(
     generate_bates_01 catalog/model/equity/bates/bates_01/generator.cpp
 )
 add_parameter_generator(
@@ -621,6 +718,19 @@ add_parameter_generator(
 add_parameter_generator(
     generate_normal_inverse_gaussian_01
     catalog/model/equity/normal_inverse_gaussian/normal_inverse_gaussian_01/generator.cpp
+)
+add_parameter_generator(
+    generate_merton_01 catalog/model/equity/merton/merton_01/generator.cpp
+)
+add_parameter_generator(
+    generate_kou_01 catalog/model/equity/kou/kou_01/generator.cpp
+)
+add_parameter_generator(
+    generate_cev_01 catalog/model/equity/cev/cev_01/generator.cpp
+)
+add_parameter_generator(
+    generate_schobel_zhu_01
+    catalog/model/equity/schobel_zhu/schobel_zhu_01/generator.cpp
 )
 add_parameter_generator(
     generate_g2_01 catalog/model/fixed_income/g2/g2_01/generator.cpp
@@ -819,7 +929,8 @@ if(BUILD_TESTING)
                 function(add_quantlib_validation_test name module dataset label)
                     add_test(
                         NAME quantlib_${name}
-                        COMMAND ${Python3_EXECUTABLE} -m ${module} ${dataset}
+                        COMMAND
+                            ${Python3_EXECUTABLE} -m ${module} ${dataset} ${ARGN}
                     )
                     set_tests_properties(
                         quantlib_${name}
@@ -871,9 +982,10 @@ if(BUILD_TESTING)
                     )
                     add_quantlib_validation_test(
                         g2_${product}
-                        validation.quantlib.model.fixed_income.g2.${product}
+                        validation.model.fixed_income.g2.${product}
                         datasets/price/fixed_income/g2/${product_folder}/g2_01__${product_folder}_01__01.json
                         g2
+                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/g2_${product}.json
                     )
                     add_quantlib_validation_test(
                         g2_plus_plus_nelson_siegel_${product}
@@ -942,6 +1054,18 @@ if(BUILD_TESTING)
                     validation.quantlib.model.equity.heston.gap_put
                     datasets/price/equity/heston/gap_puts/heston_01__gap_puts_01__01.json
                     heston
+                )
+                add_quantlib_validation_test(
+                    cev_european_call
+                    validation.quantlib.model.equity.cev.european_call
+                    datasets/price/equity/cev/european_calls/cev_01__european_calls_01__01.json
+                    cev
+                )
+                add_quantlib_validation_test(
+                    cev_european_put
+                    validation.quantlib.model.equity.cev.european_put
+                    datasets/price/equity/cev/european_puts/cev_01__european_puts_01__01.json
+                    cev
                 )
 
                 function(add_bates_validation_test product folder)
@@ -1029,12 +1153,6 @@ if(BUILD_TESTING)
                         heston
                     )
                     add_quantlib_validation_test(
-                        heston_american_put
-                        validation.quantlib.model.equity.heston.american_put
-                        datasets/price/equity/heston/american_puts/heston_01__american_puts_01__01.json
-                        heston
-                    )
-                    add_quantlib_validation_test(
                         heston_asian_put
                         validation.quantlib.model.equity.heston.asian_put
                         datasets/price/equity/heston/asian_puts/heston_01__asian_puts_01__01.json
@@ -1089,24 +1207,6 @@ if(BUILD_TESTING)
                         heston
                     )
                     add_quantlib_validation_test(
-                        heston_american_call
-                        validation.quantlib.model.equity.heston.american_call
-                        datasets/price/equity/heston/american_calls/heston_01__american_calls_01__01.json
-                        heston
-                    )
-                    add_quantlib_validation_test(
-                        heston_forward_start_call
-                        validation.quantlib.model.equity.heston.forward_start_call
-                        datasets/price/equity/heston/forward_start_calls/heston_01__forward_start_calls_01__01.json
-                        heston
-                    )
-                    add_quantlib_validation_test(
-                        heston_forward_start_put
-                        validation.quantlib.model.equity.heston.forward_start_put
-                        datasets/price/equity/heston/forward_start_puts/heston_01__forward_start_puts_01__01.json
-                        heston
-                    )
-                    add_quantlib_validation_test(
                         heston_athena_autocall
                         validation.quantlib.model.equity.heston.athena_autocall
                         datasets/price/equity/heston/athena_autocalls/heston_01__athena_autocalls_01__01.json
@@ -1144,8 +1244,6 @@ if(BUILD_TESTING)
                     )
                     add_bates_validation_test(asian_call asian_calls)
                     add_bates_validation_test(asian_put asian_puts)
-                    add_bates_validation_test(american_call american_calls)
-                    add_bates_validation_test(american_put american_puts)
                     add_bates_validation_test(
                         forward_start_call forward_start_calls
                     )
@@ -1183,6 +1281,191 @@ if(BUILD_TESTING)
                     "QuantLib Python is unavailable: reference tests disabled"
                 )
             endif()
+        endif()
+    endif()
+
+    # Premia is the preferred specialized reference when its bundled runtime,
+    # Wine, and the MinGW cross-compiler are all available. Every registered
+    # test uses the same one-module-per-payoff CLI as the QuantLib validators.
+    option(
+        AI_FACTORY_PREMIA_VALIDATION
+        "Run independent price-dataset checks through bundled Premia"
+        ON
+    )
+    if(AI_FACTORY_PREMIA_VALIDATION)
+        find_package(Python3 COMPONENTS Interpreter QUIET)
+    endif()
+    if(AI_FACTORY_PREMIA_VALIDATION AND Python3_Interpreter_FOUND)
+        find_program(AI_FACTORY_WINE_EXECUTABLE wine)
+        find_program(
+            AI_FACTORY_MINGW_EXECUTABLE
+            x86_64-w64-mingw32-gcc-posix
+        )
+        if(
+            AI_FACTORY_WINE_EXECUTABLE
+            AND AI_FACTORY_MINGW_EXECUTABLE
+            AND EXISTS
+                "${CMAKE_SOURCE_DIR}/validation/premia/premia-19-win64"
+        )
+            function(add_premia_validation_test name module dataset label)
+                add_test(
+                    NAME premia_${name}
+                    COMMAND ${Python3_EXECUTABLE} -m ${module} ${dataset}
+                        ${ARGN}
+                )
+                set_tests_properties(
+                    premia_${name}
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;premia;${label}"
+                        TIMEOUT 120
+                )
+            endfunction()
+
+            function(add_premia_equity_terminal model product folder)
+                add_premia_validation_test(
+                    ${model}_${product}
+                    validation.premia.model.equity.validate
+                    datasets/price/equity/${model}/${folder}/${model}_01__${folder}_01__01.json
+                    ${model}
+                    ${model}
+                    ${product}
+                )
+            endfunction()
+
+            function(add_black_scholes_unified_validation product)
+                if(product STREQUAL "up_no_touch")
+                    set(folder up_no_touches)
+                elseif(product STREQUAL "up_one_touch")
+                    set(folder up_one_touches)
+                else()
+                    set(folder ${product}s)
+                endif()
+                add_test(
+                    NAME validation_black_scholes_${product}
+                    COMMAND
+                        ${Python3_EXECUTABLE} -m
+                        validation.model.equity.black_scholes.${product}
+                        ${CMAKE_SOURCE_DIR}/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
+                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/black_scholes_${product}.json
+                )
+                set_tests_properties(
+                    validation_black_scholes_${product}
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;premia;quantlib;black_scholes"
+                        TIMEOUT 900
+                )
+            endfunction()
+            foreach(product IN ITEMS
+                asian_call asian_put
+                asset_or_nothing_call asset_or_nothing_put
+                athena_autocall cliquet digital_call digital_put
+                double_knock_out_call double_knock_out_put
+                down_and_in_put down_and_out_put
+                european_call european_put
+                forward_start_call forward_start_put
+                gap_call gap_put
+                geometric_asian_call geometric_asian_put
+                lookback_option phoenix_autocall phoenix_memory_autocall
+                range_accrual straddle up_and_in_call up_and_out_call
+                up_no_touch up_one_touch
+            )
+                add_black_scholes_unified_validation(${product})
+            endforeach()
+            foreach(model IN ITEMS heston kou)
+                add_premia_equity_terminal(${model} european_call european_calls)
+                add_premia_equity_terminal(${model} european_put european_puts)
+                add_premia_equity_terminal(${model} straddle straddles)
+            endforeach()
+            add_premia_equity_terminal(bates european_call european_calls)
+            add_premia_equity_terminal(bates straddle straddles)
+            foreach(product IN ITEMS
+                european_call european_put digital_call digital_put
+                asset_or_nothing_put gap_put
+            )
+                add_premia_equity_terminal(merton ${product} ${product}s)
+            endforeach()
+
+            function(add_gaussian_rate_validation model product folder)
+                add_test(
+                    NAME validation_${model}_${product}
+                    COMMAND
+                        ${Python3_EXECUTABLE} -m
+                        validation.model.fixed_income.${model}.${product}
+                        ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
+                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${product}.json
+                )
+                set_tests_properties(
+                    validation_${model}_${product}
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;premia;quantlib;${model}"
+                        TIMEOUT 180
+                )
+            endfunction()
+            foreach(model IN ITEMS vasicek ornstein_uhlenbeck)
+                foreach(product IN ITEMS
+                    zero_coupon_bond_call zero_coupon_bond_put caplet floorlet
+                )
+                    if(product STREQUAL "zero_coupon_bond_call")
+                        set(product_folder zero_coupon_bond_calls)
+                    elseif(product STREQUAL "zero_coupon_bond_put")
+                        set(product_folder zero_coupon_bond_puts)
+                    elseif(product STREQUAL "caplet")
+                        set(product_folder caplets)
+                    else()
+                        set(product_folder floorlets)
+                    endif()
+                    add_gaussian_rate_validation(
+                        ${model} ${product} ${product_folder}
+                    )
+                endforeach()
+            endforeach()
+
+            function(add_fitted_gaussian_rate_validation
+                model curve product folder
+            )
+                add_test(
+                    NAME validation_${model}_${curve}_${product}
+                    COMMAND
+                        ${Python3_EXECUTABLE} -m
+                        validation.model.fixed_income.${model}.${curve}.${product}
+                        ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
+                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${curve}_${product}.json
+                )
+                set_tests_properties(
+                    validation_${model}_${curve}_${product}
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;premia;quantlib;${model}"
+                        TIMEOUT 180
+                )
+            endfunction()
+            foreach(model IN ITEMS hull_white g2_plus_plus)
+                foreach(curve IN ITEMS nelson_siegel svensson)
+                    foreach(product IN ITEMS
+                        zero_coupon_bond_call zero_coupon_bond_put caplet floorlet
+                    )
+                        if(product STREQUAL "zero_coupon_bond_call")
+                            set(product_folder zero_coupon_bond_calls)
+                        elseif(product STREQUAL "zero_coupon_bond_put")
+                            set(product_folder zero_coupon_bond_puts)
+                        elseif(product STREQUAL "caplet")
+                            set(product_folder caplets)
+                        else()
+                            set(product_folder floorlets)
+                        endif()
+                        add_fitted_gaussian_rate_validation(
+                            ${model} ${curve} ${product} ${product_folder}
+                        )
+                    endforeach()
+                endforeach()
+            endforeach()
+        else()
+            message(STATUS
+                "Premia runtime prerequisites unavailable: reference tests disabled"
+            )
         endif()
     endif()
 
@@ -1327,6 +1610,18 @@ if(BUILD_TESTING)
         levy_dynamics_cuda
         tests/levy_dynamics_cuda_test.cu
         levy_dynamics
+        30
+    )
+    add_cuda_workbench_test(
+        new_equity_dynamics_cuda
+        tests/new_equity_dynamics_cuda_test.cu
+        equity_dynamics
+        30
+    )
+    add_cuda_workbench_test(
+        black_scholes_cuda
+        tests/black_scholes_cuda_test.cu
+        black_scholes
         30
     )
     add_cuda_workbench_test(

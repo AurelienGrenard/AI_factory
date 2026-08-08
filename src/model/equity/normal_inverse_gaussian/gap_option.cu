@@ -27,24 +27,21 @@ struct PreparedRow {
     float trigger_strike;
     float payoff_strike;
     float discount;
-    std::size_t num_steps;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
     const NormalInverseGaussianModelParameters& model,
     const product::GapOptionParameters& product,
-    std::size_t num_steps,
     std::uint64_t seed
 ) {
     const float maturity = product.maturity;
     return {
-        prepare_model(model, maturity, num_steps),
+        prepare_model(model, maturity),
         philox::make_key(seed),
         product.trigger_strike,
         product.payoff_strike,
         expf(-model.risk_free_rate * maturity),
-        num_steps,
     };
 }
 
@@ -55,7 +52,7 @@ __device__ __forceinline__ float evaluate_path(
     std::size_t path
 ) {
     const NormalInverseGaussianState terminal =
-        simulate_terminal_state(row.model, row.key, path, row.num_steps);
+        simulate_terminal_state(row.model, row.key, path);
     const float terminal_spot = expf(terminal.log_spot);
     if constexpr (Side == OptionSide::call) {
         const bool pays = terminal_spot > row.trigger_strike;
@@ -78,7 +75,6 @@ __global__ void normal_inverse_gaussian_gap_option_kernel(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -99,13 +95,9 @@ __global__ void normal_inverse_gaussian_gap_option_kernel(
             const std::size_t product_index = indices.product_index;
             const product::GapOptionParameters product =
                 products[product_index];
-            const std::size_t num_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
-            );
             prepared = prepare_row(
                 models[model_index],
                 product,
-                num_steps,
                 base_seed + result_index
             );
         }
@@ -155,7 +147,6 @@ void validate_normal_inverse_gaussian_gap_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -180,10 +171,8 @@ void validate_normal_inverse_gaussian_gap_option_launch(
         );
     }
 
-    // Monte Carlo paths and the requested simulation step must be valid.
-    validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
-    );
+    // The Monte Carlo path count must be valid.
+    validate_monte_carlo_path_count(monte_carlo_paths_per_price);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -210,7 +199,6 @@ void launch_normal_inverse_gaussian_gap_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -227,7 +215,6 @@ void launch_normal_inverse_gaussian_gap_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         threads_per_block,
         block_count,
         base_seed,
@@ -277,7 +264,6 @@ void launch_normal_inverse_gaussian_gap_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         base_seed,
         device_prices,
         device_standard_errors

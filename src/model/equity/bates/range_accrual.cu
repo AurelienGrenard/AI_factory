@@ -77,11 +77,13 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        for (std::uint32_t step = 0U;
-             step < row.steps_per_observation;
-             ++step) {
-            simulate_one_step(row.model, uniforms, normal_cache, state);
-        }
+        simulate_interval(
+            row.model,
+            row.steps_per_observation,
+            uniforms,
+            normal_cache,
+            state
+        );
         in_range_count += static_cast<std::uint32_t>(
             state.log_spot >= row.lower_log_spot
             && state.log_spot <= row.upper_log_spot

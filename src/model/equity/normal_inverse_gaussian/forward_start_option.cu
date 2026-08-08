@@ -27,27 +27,21 @@ struct PreparedRow {
     philox::PhiloxKey key;
     float moneyness;
     float discount;
-    std::size_t reset_steps;
-    std::size_t remaining_steps;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
     const NormalInverseGaussianModelParameters& model,
     const product::ForwardStartOptionParameters& product,
-    std::size_t reset_steps,
-    std::size_t remaining_steps,
     std::uint64_t seed
 ) {
     const float remaining_time = product.maturity - product.reset_time;
     return {
-        prepare_model(model, product.reset_time, reset_steps),
-        prepare_model(model, remaining_time, remaining_steps),
+        prepare_model(model, product.reset_time),
+        prepare_model(model, remaining_time),
         philox::make_key(seed),
         product.moneyness,
         expf(-model.risk_free_rate * product.maturity),
-        reset_steps,
-        remaining_steps,
     };
 }
 
@@ -61,9 +55,7 @@ __device__ __forceinline__ float evaluate_path(
         row.reset_model,
         row.remaining_model,
         row.key,
-        path,
-        row.reset_steps,
-        row.remaining_steps
+        path
     );
     const float reset_spot = expf(simulated.first_state.log_spot);
     const float terminal_spot = expf(simulated.terminal_state.log_spot);
@@ -85,7 +77,6 @@ __global__ void normal_inverse_gaussian_forward_start_option_kernel(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -106,19 +97,9 @@ __global__ void normal_inverse_gaussian_forward_start_option_kernel(
             const std::size_t product_index = indices.product_index;
             const product::ForwardStartOptionParameters product =
                 products[product_index];
-            const std::size_t reset_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.reset_time / target_dt + 0.5f))
-            );
-            const float remaining_time =
-                product.maturity - product.reset_time;
-            const std::size_t remaining_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(remaining_time / target_dt + 0.5f))
-            );
             prepared = prepare_row(
                 models[model_index],
                 product,
-                reset_steps,
-                remaining_steps,
                 base_seed + result_index
             );
         }
@@ -168,7 +149,6 @@ void validate_normal_inverse_gaussian_forward_start_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -193,10 +173,8 @@ void validate_normal_inverse_gaussian_forward_start_option_launch(
         );
     }
 
-    // Monte Carlo paths and the requested simulation step must be valid.
-    validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
-    );
+    // The Monte Carlo path count must be valid.
+    validate_monte_carlo_path_count(monte_carlo_paths_per_price);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -223,7 +201,6 @@ void launch_normal_inverse_gaussian_forward_start_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -240,7 +217,6 @@ void launch_normal_inverse_gaussian_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         threads_per_block,
         block_count,
         base_seed,
@@ -290,7 +266,6 @@ void launch_normal_inverse_gaussian_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         base_seed,
         device_prices,
         device_standard_errors

@@ -247,6 +247,74 @@ void validate_catalog_locations(const std::filesystem::path& path) {
     );
 }
 
+// Every price catalog must disclose whether an independent reference passed.
+void validate_price_validation_metadata(const std::filesystem::path& path) {
+    const std::string catalog = read_text(path);
+    require(
+        occurrence_count(catalog, "\nvalidation:\n") == 1U,
+        "price YAML must contain exactly one root validation block"
+    );
+    const std::size_t validation_start = catalog.find("\nvalidation:\n") + 1U;
+    std::size_t validation_end = catalog.size();
+    for (std::size_t position = validation_start + 12U;
+         position + 1U < catalog.size();
+         ++position) {
+        if (catalog[position] == '\n'
+            && catalog[position + 1U] != ' '
+            && catalog[position + 1U] != '\n') {
+            validation_end = position + 1U;
+            break;
+        }
+    }
+    const std::string validation = catalog.substr(
+        validation_start, validation_end - validation_start
+    );
+    require(
+        validation.find("\n  method:") == std::string::npos
+            && validation.find("\n    method:") == std::string::npos
+            && validation.find("relationship:") == std::string::npos,
+        "price YAML must fuse the reference and method and omit relationship"
+    );
+
+    const bool split_regimes = validation.find("  core:\n") != std::string::npos;
+    if (split_regimes) {
+        require(
+            validation.find("  stress:\n") != std::string::npos
+                && validation.find("    row_count: 900") != std::string::npos
+                && validation.find("    row_count: 100") != std::string::npos,
+            "split validation metadata must declare core and stress row counts"
+        );
+        require(
+            occurrence_count(validation, "\n    reference: \"") >= 2U
+                && (
+                    occurrence_count(validation, "\n    verified: true") == 2U
+                    || validation.find("\n  verified: true")
+                        != std::string::npos
+                ),
+            "split validation metadata must document both selected backends"
+        );
+        return;
+    }
+    const bool premia = validation.find("  reference: \"Premia (")
+        != std::string::npos;
+    const bool quantlib = validation.find("  reference: \"QuantLib (")
+        != std::string::npos;
+    const bool none = validation.find("  reference: \"none\"")
+        != std::string::npos;
+    require(
+        static_cast<unsigned int>(premia)
+            + static_cast<unsigned int>(quantlib)
+            + static_cast<unsigned int>(none) == 1U,
+        "price YAML validation reference is missing or unsupported"
+    );
+    require(
+        none
+            ? validation.find("  verified: false") != std::string::npos
+            : validation.find("  verified: true") != std::string::npos,
+        "price YAML validation status contradicts its reference"
+    );
+}
+
 }  // namespace
 
 // Verify construction counts and the stable public catalog contract.
@@ -313,10 +381,11 @@ int main() {
         }
     }
     for (const auto& entry : std::filesystem::recursive_directory_iterator(
-             "catalog/price/equity/bates")) {
+             "catalog/price")) {
         if (entry.is_regular_file()
             && entry.path().filename() == "dataset.yaml") {
             validate_catalog_locations(entry.path());
+            validate_price_validation_metadata(entry.path());
         }
     }
     require(

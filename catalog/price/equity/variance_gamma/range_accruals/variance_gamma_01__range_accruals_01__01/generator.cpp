@@ -26,14 +26,12 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
 
 // Numerical and CUDA configuration used by the pricing algorithm.
 constexpr std::size_t monte_carlo_paths_per_price = 16'384U;
-constexpr float target_dt = 1.0f / 252.0f;
 constexpr unsigned int threads_per_block = 512U;
 constexpr std::size_t results_per_kernel_launch = 4'096U;
 constexpr std::size_t block_count = 1'000U;
 constexpr std::uint64_t seed = 900000001ULL;
 
 // Artifact locations and descriptive metadata used after pricing.
-const std::string target_dt_description = "1 / 252";
 const std::string random_generator = "Philox";
 const std::filesystem::path dataset_path =
     "datasets/price/equity/variance_gamma/range_accruals/"
@@ -86,7 +84,7 @@ int main() {
     double kernel_seconds = 0.0;
 
     // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::system_clock::now();
+    const auto wall_start = std::chrono::steady_clock::now();
     try {
         // Allocate the model, product, price, and error arrays on the GPU.
         check_cuda(
@@ -157,7 +155,6 @@ int main() {
             0U,
             warmup_row_count,
             monte_carlo_paths_per_price,
-            target_dt,
             threads_per_block,
             warmup_block_count,
             seed,
@@ -192,7 +189,6 @@ int main() {
                 result_offset,
                 launch_result_count,
                 monte_carlo_paths_per_price,
-                target_dt,
                 threads_per_block,
                 launched_block_count,
                 seed,
@@ -254,7 +250,7 @@ int main() {
         "cudaFree VarianceGamma Range Accrual standard errors"
     );
     const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::system_clock::now() - wall_start
+        std::chrono::steady_clock::now() - wall_start
     ).count();
 
     // 5. Write the complete price dataset and catalog YAML.
@@ -270,7 +266,7 @@ int main() {
         url,
         numerical_method,
         monte_carlo_paths_per_price,
-        target_dt_description,
+        "",
         nlohmann::ordered_json{
             {"block_count", maximum_block_count},
             {"threads_per_block", threads_per_block},
@@ -280,23 +276,12 @@ int main() {
         nlohmann::ordered_json{{
             "time_grid",
             {
-                {
-                    "rule",
-                    "nearest integer step count per observation interval"
-                },
-                {"target_dt", target_dt_description},
+                {"rule", "exact independent increments at product observation times"},
                 {
                     "observation_count",
                     "round(maturity / observation_interval)"
                 },
-                {
-                    "step_count",
-                    "round(observation_interval / target_dt)"
-                },
-                {
-                    "effective_dt",
-                    "observation_interval / step_count"
-                },
+                {"increments_per_observation", 1U},
             }
         }},
         seed,

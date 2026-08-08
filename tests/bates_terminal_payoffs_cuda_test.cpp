@@ -1,4 +1,4 @@
-// Exercise Bates terminal-payoff launchers and exact pathwise identities.
+// Exercise Bates terminal-payoff launchers and payoff identities.
 #include "common/check_cuda.cuh"
 #include "model/equity/bates/asian_option.cuh"
 #include "model/equity/bates/asset_or_nothing_option.cuh"
@@ -33,6 +33,13 @@ constexpr std::uint64_t kSeed = 900000001ULL;
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
+}
+
+// Bound differences between estimators that no longer share every random draw.
+float six_sigma(float first, float second, float third = 0.0f) {
+    return 6.0f * std::sqrt(
+        first * first + second * second + third * third
+    );
 }
 
 // Launch one product row and return its price and standard error.
@@ -96,7 +103,7 @@ void price_one(
 
 }  // namespace
 
-// Verify all new launchers and identities using common random numbers.
+// Verify all launchers and identities with deterministic Monte Carlo streams.
 int main() {
     using namespace ai_factory::workbench;
 
@@ -116,19 +123,21 @@ int main() {
     float call = 0.0f;
     float put = 0.0f;
     float error = 0.0f;
+    float call_error = 0.0f;
+    float put_error = 0.0f;
     price_one(
         model,
         product::EuropeanOptionParameters{1.0f, 1.0f},
         bates::launch_bates_european_option_cuda<OptionSide::call>,
         call,
-        error
+        call_error
     );
     price_one(
         model,
         product::EuropeanOptionParameters{1.0f, 1.0f},
         bates::launch_bates_european_option_cuda<OptionSide::put>,
         put,
-        error
+        put_error
     );
 
     float straddle = 0.0f;
@@ -253,47 +262,53 @@ int main() {
     float down_and_in_put = 0.0f;
     float double_knock_out_call = 0.0f;
     float double_knock_out_put = 0.0f;
+    float up_and_out_call_error = 0.0f;
+    float up_and_in_call_error = 0.0f;
+    float down_and_out_put_error = 0.0f;
+    float down_and_in_put_error = 0.0f;
+    float double_knock_out_call_error = 0.0f;
+    float double_knock_out_put_error = 0.0f;
     price_one(
         model,
         product::UpAndOutOptionParameters{1.0f, 1.2f, 1.0f},
         bates::launch_bates_up_and_out_option_cuda<OptionSide::call>,
         up_and_out_call,
-        error
+        up_and_out_call_error
     );
     price_one(
         model,
         product::DownAndOutOptionParameters{1.0f, 0.8f, 1.0f},
         bates::launch_bates_down_and_out_option_cuda<OptionSide::put>,
         down_and_out_put,
-        error
+        down_and_out_put_error
     );
     price_one(
         model,
         product::UpAndInOptionParameters{1.0f, 1.2f, 1.0f},
         bates::launch_bates_up_and_in_option_cuda<OptionSide::call>,
         up_and_in_call,
-        error
+        up_and_in_call_error
     );
     price_one(
         model,
         product::DownAndInOptionParameters{1.0f, 0.8f, 1.0f},
         bates::launch_bates_down_and_in_option_cuda<OptionSide::put>,
         down_and_in_put,
-        error
+        down_and_in_put_error
     );
     price_one(
         model,
         product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 1.0f},
         bates::launch_bates_double_knock_out_option_cuda<OptionSide::call>,
         double_knock_out_call,
-        error
+        double_knock_out_call_error
     );
     price_one(
         model,
         product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 1.0f},
         bates::launch_bates_double_knock_out_option_cuda<OptionSide::put>,
         double_knock_out_put,
-        error
+        double_knock_out_put_error
     );
     require(
         std::isfinite(asset_call) && std::isfinite(asset_put)
@@ -302,20 +317,38 @@ int main() {
             && std::isfinite(geometric_put)
             && std::isfinite(forward_call)
             && std::isfinite(forward_put)
-            && error > 0.0f,
+            && error > 0.0f && call_error > 0.0f && put_error > 0.0f
+            && up_and_out_call_error > 0.0f
+            && up_and_in_call_error > 0.0f
+            && down_and_out_put_error > 0.0f
+            && down_and_in_put_error > 0.0f
+            && double_knock_out_call_error > 0.0f
+            && double_knock_out_put_error > 0.0f,
         "Bates terminal-payoff launcher returned invalid statistics"
     );
     require(
-        up_and_out_call <= call && double_knock_out_call <= call
-            && down_and_out_put <= put && double_knock_out_put <= put,
+        up_and_out_call <= call
+                + six_sigma(up_and_out_call_error, call_error)
+            && double_knock_out_call <= call
+                + six_sigma(double_knock_out_call_error, call_error)
+            && down_and_out_put <= put
+                + six_sigma(down_and_out_put_error, put_error)
+            && double_knock_out_put <= put
+                + six_sigma(double_knock_out_put_error, put_error),
         "Bates knock-out price exceeds its vanilla price"
     );
     require(
-        std::fabs(up_and_in_call + up_and_out_call - call) < 3.0e-6f,
+        std::fabs(up_and_in_call + up_and_out_call - call)
+            < six_sigma(
+                up_and_in_call_error, up_and_out_call_error, call_error
+            ),
         "Bates up-in plus up-out does not equal the vanilla call"
     );
     require(
-        std::fabs(down_and_in_put + down_and_out_put - put) < 3.0e-6f,
+        std::fabs(down_and_in_put + down_and_out_put - put)
+            < six_sigma(
+                down_and_in_put_error, down_and_out_put_error, put_error
+            ),
         "Bates down-in plus down-out does not equal the vanilla put"
     );
 

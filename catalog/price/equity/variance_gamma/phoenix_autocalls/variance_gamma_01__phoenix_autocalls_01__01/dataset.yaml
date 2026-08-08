@@ -16,12 +16,13 @@ summary:
   kernel_launch_count: 1
   maximum_prices_per_block: 1
   random_generator: "Philox"
+validation:
+  verified: false
+  reference: "none"
 time_grid:
-  rule: "nearest integer step count per observation interval"
-  target_dt: "1 / 252"
+  rule: "exact independent increments at product observation times"
   observation_count: "round(maturity / observation_interval)"
-  step_count: "round(observation_interval / target_dt)"
-  effective_dt: "observation_interval / step_count"
+  increments_per_observation: 1
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -38,5 +39,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.847977802 s"
-  kernel_seconds: "0.764650513 s"
+  wall_seconds: "0.247227711 s"
+  kernel_seconds: "0.038405121 s"

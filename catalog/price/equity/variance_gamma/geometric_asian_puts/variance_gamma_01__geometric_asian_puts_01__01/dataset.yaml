@@ -16,6 +16,9 @@ summary:
   kernel_launch_count: 1
   maximum_prices_per_block: 1
   random_generator: "Philox"
+validation:
+  verified: false
+  reference: "none"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -37,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.178480024 s"
-  kernel_seconds: "0.654756836 s"
+  wall_seconds: "1.102226605 s"
+  kernel_seconds: "0.84468927 s"

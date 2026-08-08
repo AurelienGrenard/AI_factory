@@ -21,7 +21,6 @@ longstaff_schwartz::LaunchResult launch_normal_inverse_gaussian_american_option_
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,

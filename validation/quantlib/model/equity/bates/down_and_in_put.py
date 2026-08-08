@@ -1,4 +1,4 @@
-"""Compare discrete Bates down-and-in puts with QuantLib's continuous PDE."""
+"""Validate discrete Bates down-and-in puts with independent QuantLib paths."""
 
 from validation.quantlib.model.equity.bates.equity_option import (
     validation_from_quantlib_bates_option,

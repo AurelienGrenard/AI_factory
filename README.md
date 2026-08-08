@@ -15,17 +15,21 @@ AI_factory/
 |-- datasets/     complete JSON datasets, ignored by Git
 |-- docs/         implementation contracts and operational documentation
 |-- tests/        dataset contracts and CUDA tests
-|-- validation/   independent QuantLib price references
+|-- validation/   unified model/product validation and backend adapters
 `-- CMakeLists.txt
 ```
 
-The implementation contracts for CUDA pricers are documented in:
+All implementation contracts, workflows, derivations, and work-tracking notes
+live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
-- `docs/cuda-pricing-kernel-api.md` for closed-form and Monte Carlo pricers;
-- `docs/early-exercise-pricing-api.md` for American and Bermudan pricers;
-- `docs/model-dynamics-api.md` for reusable model-state simulation interfaces;
-- `docs/cuda-validation-and-diagnostics.md` for launch guards, kernel resource
-  diagnostics, and their test coverage.
+- [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda-closed-form-and-monte-carlo-pricing-contract.md)
+  for closed-form and Monte Carlo pricers;
+- [`cuda-american-and-bermudan-pricing-contract.md`](docs/cuda-american-and-bermudan-pricing-contract.md)
+  for American and Bermudan pricers;
+- [`cuda-model-dynamics-contract.md`](docs/cuda-model-dynamics-contract.md) for
+  reusable model-state simulation interfaces;
+- [`cuda-launch-validation-and-kernel-diagnostics.md`](docs/cuda-launch-validation-and-kernel-diagnostics.md)
+  for launch guards, kernel resource diagnostics, and their test coverage.
 
 ### `src`
 
@@ -215,6 +219,12 @@ to the centered factors, exactly reproducing the supplied initial curve. Its
 public analytical interface mirrors G2 just as the Hull-White interface
 mirrors OU.
 
+The fitted Hull-White and G2++ price datasets are independently checked first
+with Premia's HW1D/HW2D closed forms. The validation runner supplies the exact
+Nelson-Siegel or Svensson discounts at the contract dates through Premia's
+external-curve interface; specialized QuantLib formulas provide row-local
+fallback only when the Premia backend fails technically.
+
 As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
 loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
 
@@ -225,10 +235,17 @@ non-zero; an already cached normal is reused before another Box-Muller pair is
 drawn. Unused values from the current Philox group remain cached for the next
 step. The compensator
 `lambda * (exp(nu + delta^2 / 2) - 1)` preserves the risk-neutral drift.
+Terminal and scheduled-observation simulations keep all required Heston QE-M
+steps but draw one exact compound-Poisson sum per observed interval. Products
+that inspect every numerical step retain the pathwise one-jump-draw-per-step
+transition.
 
-Variance-Gamma and Normal-Inverse-Gaussian use exact Lévy increments on every
-simulation step. VG samples its Gamma clock with Marsaglia-Tsang; NIG samples
-its inverse-Gaussian clock with Michael-Schucany-Haas. Both use the same single
+Variance-Gamma and Normal-Inverse-Gaussian use exact Lévy increments. Terminal,
+two-time, scheduled-observation, and exercise-grid simulations draw directly
+over their requested intervals without an artificial daily `target_dt`.
+Products that truly monitor a path still use exact increments on each monitored
+step. VG samples its Gamma clock with Marsaglia-Tsang; NIG samples its
+inverse-Gaussian clock with Michael-Schucany-Haas. Both use the same single
 `UniformSequence` and `NormalPairCache` contract as Heston and Bates.
 
 ## Philox Random Mapping
@@ -410,7 +427,7 @@ Parameter datasets are quick to regenerate:
 Each command replaces the local dataset and its YAML catalog entry together.
 Every model and product generator follows the ordered 900-row core plus 100-row
 stress policy documented in
-[`docs/parameter-dataset-generation.md`](docs/parameter-dataset-generation.md).
+[`docs/model-and-product-parameter-dataset-generation.md`](docs/model-and-product-parameter-dataset-generation.md).
 Price datasets follow the same workflow:
 
 ```bash
@@ -459,9 +476,9 @@ ctest --test-dir build --output-on-failure
 `dataset_catalog` validates two- and three-input constructions and mandatory
 catalog fields. CUDA tests cover reusable OU, Vasicek, G2, Hull-White, and G2++
 analytics; caplets, floorlets, and zero-coupon options; the uniform Heston,
-Bates, VG, and NIG dynamics and product launchers, including path averages,
-forward starts, jumps, and barriers; and the early-exercise pipelines. They use
-small in-memory fixtures and skip
+Bates, VG, NIG, Merton, Kou, CEV, and Schöbel-Zhu dynamics and product
+launchers, including path averages, forward starts, jumps, and barriers; and
+the early-exercise pipelines. They use small in-memory fixtures and skip
 automatically without a CUDA GPU.
 
 When the QuantLib Python binding is installed, CTest also validates every
@@ -474,20 +491,44 @@ Asian, forward-start, barrier, and American references are available with:
 cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON
 ```
 
-See [`validation/quantlib`](validation/quantlib/README.md) for the supported
-products and direct command-line usage.
+Every price YAML records the primary independent reference selected in this
+order: specialized Premia pricer, specialized QuantLib pricer, independent
+QuantLib Monte Carlo, or explicitly `none`. Premia eligibility is determined
+by the actual model-product pair and a compatible Premia engine, regardless of
+whether the CUDA implementation uses the same discretization. A
+continuous/discrete difference changes the documented bias explanation or
+mathematical bound; it does not make Premia unavailable. A unified validator
+under `validation/model/<asset_class>/<model>/[<curve>/]<product>.py` persists the core
+and stress results in an adjacent `validation_report.json`. The catalog
+notebook only loads this report, verifies its canonical price-and-configuration
+fingerprint, and renders
+the common diagnostics; it never reruns a reference pricer. See
+[`validation/premia`](validation/premia/README.md),
+[`validation/quantlib`](validation/quantlib/README.md), and the
+[catalog extension workflow](docs/catalog-extension-and-validation-workflow.md)
+for supported products and direct command-line usage.
 
 ## Add a Dataset
 
-1. Add or reuse the required structures and kernels under `src`.
-2. Create its catalog folder under `catalog/model/<asset_class>`,
-   `catalog/product/<asset_class>`, or `catalog/price/<asset_class>`.
-3. Add `generator.cpp` and its adjacent `dataset.yaml`.
-4. Declare local output paths inside `generator.cpp`.
-5. Declare an external HTTP(S) URL.
-6. Add the CMake target.
-7. Run the generator and validate the dataset and catalog artifacts.
-8. Add a self-contained test that does not require a published dataset.
+1. Identify whether the extension adds a model, curve, product family, pricing
+   pair, or only a new price dataset; reuse every unaffected layer.
+2. Add the compact loader and numerical implementation under `src`, following
+   the closest CUDA contract and its public function order.
+3. Add the reproducible `generator.cpp` and generated `dataset.yaml` under the
+   matching `catalog/` hierarchy, then register their CMake target and tests.
+4. For a price dataset, add the unified model-product validator, apply Premia,
+   QuantLib specialized, QuantLib Monte Carlo, then `none`, and generate the
+   adjacent `validation_report.json` and compiled `validation.ipynb`.
+5. Run the generator, loader checks, isolated validation, relevant CUDA tests,
+   and the complete CTest suite before publication.
+6. Update the separately maintained website project with the new public entry.
+
+Call and put contracts share one product family and one templated pricer when
+only the payoff orientation changes, while their price datasets remain
+distinct. The complete, authoritative checklist is
+[`docs/catalog-extension-and-validation-workflow.md`](docs/catalog-extension-and-validation-workflow.md);
+the report and fallback contract is
+[`docs/independent-price-validation-pipeline.md`](docs/independent-price-validation-pipeline.md).
 
 Storage credentials must not appear in YAML files or the static website.
 Private storage should use signed URLs or server-side authentication.

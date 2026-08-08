@@ -1,0 +1,25 @@
+title: "Asset-or-Nothing Puts parameter dataset asset_or_nothing_puts_01"
+database_id: "asset_or_nothing_puts_01"
+product_family: "Asset-or-Nothing Puts"
+catalog: "catalog/product/equity/asset_or_nothing_puts/asset_or_nothing_puts_01"
+url: "https://datasets.ai-factory.example/v1/product/asset_or_nothing_puts/asset_or_nothing_puts_01.json"
+row_count: 1000
+parameters:
+  strike: "Trigger strike in normalized spot units."
+  maturity: "Maturity in years."
+payoff:
+  expression: "S_T * 1{S_T < K}"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2

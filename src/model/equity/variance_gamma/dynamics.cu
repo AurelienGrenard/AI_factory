@@ -10,13 +10,11 @@
 
 namespace ai_factory::workbench::variance_gamma {
 
-// Prepare the exact Gamma clock increment and martingale correction per step.
+// Prepare the exact Gamma clock increment over one requested interval.
 __device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
     const VarianceGammaModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+    float time_interval
 ) {
-    const float dt = maturity / static_cast<float>(num_steps);
     const float sigma2 = parameters.sigma * parameters.sigma;
     const float martingale_argument = 1.0f
         - parameters.theta * parameters.nu
@@ -27,16 +25,27 @@ __device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
         parameters.risk_free_rate
         - parameters.dividend_yield
         + martingale_correction
-    ) * dt;
+    ) * time_interval;
 
     return {
         logf(parameters.spot),
-        dt / parameters.nu,
+        time_interval / parameters.nu,
         parameters.nu,
         parameters.theta,
         parameters.sigma,
         drift_dt,
     };
+}
+
+// Prepare the exact law of one sub-step for a genuinely monitored grid.
+__device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
+    const VarianceGammaModelParameters& parameters,
+    float maturity,
+    std::size_t num_steps
+) {
+    return prepare_model(
+        parameters, maturity / static_cast<float>(num_steps)
+    );
 }
 
 // Construct the time-zero state stored in the prepared parameters.
@@ -84,35 +93,20 @@ __device__ __forceinline__ void simulate_one_step(
     );
 }
 
-// Sum equal VG increments analytically when only an interval boundary matters.
-__device__ __forceinline__ VarianceGammaPreparedParameters aggregate_increment(
-    const VarianceGammaPreparedParameters& model,
-    std::size_t step_count
-) {
-    const float count = static_cast<float>(step_count);
-    VarianceGammaPreparedParameters aggregate = model;
-    aggregate.gamma_shape *= count;
-    aggregate.drift_dt *= count;
-    return aggregate;
-}
-
 }  // namespace
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ VarianceGammaState simulate_terminal_state(
     const VarianceGammaPreparedParameters& model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t num_steps
+    std::size_t path
 ) {
     VarianceGammaState state = initial_state(model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    const VarianceGammaPreparedParameters terminal_model =
-        aggregate_increment(model, num_steps);
-    simulate_one_step(terminal_model, uniforms, normal_cache, state);
+    simulate_one_step(model, uniforms, normal_cache, state);
     return state;
 }
 
@@ -180,9 +174,7 @@ simulate_at_two_times(
     const VarianceGammaPreparedParameters& first_model,
     const VarianceGammaPreparedParameters& second_model,
     philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::size_t path
 ) {
     VarianceGammaState state = initial_state(first_model);
     philox::UniformSequence uniforms(
@@ -190,14 +182,10 @@ simulate_at_two_times(
     );
     philox::NormalPairCache normal_cache;
 
-    const VarianceGammaPreparedParameters first_interval =
-        aggregate_increment(first_model, first_num_steps);
-    simulate_one_step(first_interval, uniforms, normal_cache, state);
+    simulate_one_step(first_model, uniforms, normal_cache, state);
     const VarianceGammaState first_state = state;
 
-    const VarianceGammaPreparedParameters second_interval =
-        aggregate_increment(second_model, second_num_steps);
-    simulate_one_step(second_interval, uniforms, normal_cache, state);
+    simulate_one_step(second_model, uniforms, normal_cache, state);
     return {first_state, state};
 }
 
@@ -232,8 +220,6 @@ __device__ __forceinline__ VarianceGammaState simulate_on_regular_grid(
     const VarianceGammaPreparedParameters& regular_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
     std::uint32_t exercise_count,
     std::size_t path_count,
     float* __restrict__ observed_spots
@@ -243,27 +229,20 @@ __device__ __forceinline__ VarianceGammaState simulate_on_regular_grid(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    const VarianceGammaPreparedParameters initial_interval =
-        aggregate_increment(initial_stub_model, initial_stub_steps);
-    simulate_one_step(initial_interval, uniforms, normal_cache, state);
+    simulate_one_step(initial_stub_model, uniforms, normal_cache, state);
     if (exercise_count == 1U) return state;
     std::size_t output_index = path;
     observed_spots[output_index] = expf(state.log_spot);
 
-    const VarianceGammaPreparedParameters regular_interval =
-        aggregate_increment(regular_model, steps_per_exercise);
-
     for (std::uint32_t exercise = 1U;
          exercise + 1U < exercise_count;
          ++exercise) {
-        simulate_one_step(
-            regular_interval, uniforms, normal_cache, state
-        );
+        simulate_one_step(regular_model, uniforms, normal_cache, state);
         output_index += path_count;
         observed_spots[output_index] = expf(state.log_spot);
     }
 
-    simulate_one_step(regular_interval, uniforms, normal_cache, state);
+    simulate_one_step(regular_model, uniforms, normal_cache, state);
     return state;
 }
 

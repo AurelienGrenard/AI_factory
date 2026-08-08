@@ -1,4 +1,4 @@
-"""Compare discrete Heston down-and-in puts with QuantLib's continuous PDE."""
+"""Validate discrete Heston down-and-in puts with independent QuantLib paths."""
 
 from validation.quantlib.model.equity.heston.equity_option import (
     validation_from_quantlib_heston_option,

@@ -1,0 +1,78 @@
+title: "Kou double-exponential jump diffusion parameter dataset kou_01"
+database_id: "kou_01"
+model_family: "Kou double-exponential jump diffusion"
+catalog: "catalog/model/equity/kou/kou_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/kou/kou_01.json"
+row_count: 1000
+parameters:
+  spot: "Initial spot."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  volatility: "Diffusion volatility."
+  jump_intensity: "Poisson jump intensity."
+  up_probability: "Probability of an upward jump."
+  positive_jump_rate: "Exponential rate of positive log jumps; greater than two for finite payoff variance."
+  negative_jump_rate: "Exponential rate of negative log-jump magnitudes."
+dynamics:
+  log_spot: "Brownian diffusion plus compound-Poisson double-exponential jumps."
+  martingale_correction: "Uses the first exponential moment of the asymmetric jump multiplier."
+  simulation: "Exact independent increments with a path-local variable-length uniform stream."
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - 0.001
+          - 0.08
+        dividend_yield:
+          - 0.0
+          - 0.06
+        volatility:
+          - 0.08
+          - 0.45
+        jump_intensity:
+          - 0.02
+          - 1.0
+        up_probability:
+          - 0.2
+          - 0.7
+        positive_jump_rate:
+          - 3.0
+          - 20.0
+        negative_jump_rate:
+          - 2.0
+          - 20.0
+  stress:
+    row_count: 100
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - -0.03
+          - 0.12
+        dividend_yield:
+          - 0.0
+          - 0.1
+        volatility:
+          - 0.03
+          - 0.8
+        jump_intensity:
+          - 0.001
+          - 3.0
+        up_probability:
+          - 0.03
+          - 0.97
+        positive_jump_rate:
+          - 2.0999999
+          - 35.0
+        negative_jump_rate:
+          - 0.5
+          - 35.0

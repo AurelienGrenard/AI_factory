@@ -1,4 +1,4 @@
-"""Compare discrete double-knock-out puts with QuantLib's continuous PDE."""
+"""Validate discrete Bates double-knock-out puts with QuantLib paths."""
 
 from validation.quantlib.model.equity.bates.equity_option import (
     validation_from_quantlib_bates_option,

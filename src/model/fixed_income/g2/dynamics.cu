@@ -3,8 +3,8 @@
 
 #include "model/fixed_income/g2/dynamics.cuh"
 
-// Reuse the stable one-factor OU integral formulas.
-#include "model/fixed_income/ornstein_uhlenbeck/dynamics.cu"
+// Reuse stable moments of each Gaussian mean-reverting factor.
+#include "model/fixed_income/common/mean_reverting_gaussian.cuh"
 
 #include <cuda_runtime.h>
 
@@ -45,11 +45,11 @@ __device__ __forceinline__ float cross_integral_covariance(
         );
     } else {
         const float loading_a =
-            model::ornstein_uhlenbeck::integral_state_loading(a, delta);
+            mean_reverting_gaussian::integral_state_loading(a, delta);
         const float loading_b =
-            model::ornstein_uhlenbeck::integral_state_loading(b, delta);
+            mean_reverting_gaussian::integral_state_loading(b, delta);
         const float loading_sum =
-            model::ornstein_uhlenbeck::integral_state_loading(a + b, delta);
+            mean_reverting_gaussian::integral_state_loading(a + b, delta);
         integral = (
             delta - loading_a - loading_b + loading_sum
         ) / (a * b);
@@ -75,21 +75,10 @@ __device__ __forceinline__ float state_cross_integral_kernel(
         );
     }
     const float loading_a =
-        model::ornstein_uhlenbeck::integral_state_loading(a, delta);
+        mean_reverting_gaussian::integral_state_loading(a, delta);
     const float loading_sum =
-        model::ornstein_uhlenbeck::integral_state_loading(a + b, delta);
+        mean_reverting_gaussian::integral_state_loading(a + b, delta);
     return (loading_a - loading_sum) / b;
-}
-
-// Compute one factor's exact state variance.
-__device__ __forceinline__ float state_variance(
-    float mean_reversion,
-    float volatility,
-    float delta
-) {
-    return volatility * volatility
-        * (-expm1f(-2.0f * mean_reversion * delta))
-        / (2.0f * mean_reversion);
 }
 
 }  // namespace
@@ -99,16 +88,14 @@ __device__ __forceinline__ G2IntegralMoments integral_moments(
     const G2ProcessParameters& parameters,
     float delta
 ) {
-    const model::ornstein_uhlenbeck::OrnsteinUhlenbeckProcessParameters x = {
-        parameters.mean_reversion_x, parameters.volatility_x
-    };
-    const model::ornstein_uhlenbeck::OrnsteinUhlenbeckProcessParameters y = {
-        parameters.mean_reversion_y, parameters.volatility_y
-    };
     const auto moments_x =
-        model::ornstein_uhlenbeck::integral_moments(x, delta);
+        mean_reverting_gaussian::integral_moments(
+            parameters.mean_reversion_x, parameters.volatility_x, delta
+        );
     const auto moments_y =
-        model::ornstein_uhlenbeck::integral_moments(y, delta);
+        mean_reverting_gaussian::integral_moments(
+            parameters.mean_reversion_y, parameters.volatility_y, delta
+        );
     return {
         moments_x.state_loading,
         moments_y.state_loading,
@@ -122,10 +109,10 @@ __device__ __forceinline__ G2ExactTransition prepare_model(
     const G2ProcessParameters& parameters,
     float time_interval
 ) {
-    const float variance_x = state_variance(
+    const float variance_x = mean_reverting_gaussian::state_variance(
         parameters.mean_reversion_x, parameters.volatility_x, time_interval
     );
-    const float variance_y = state_variance(
+    const float variance_y = mean_reverting_gaussian::state_variance(
         parameters.mean_reversion_y, parameters.volatility_y, time_interval
     );
     const float standard_deviation_x = sqrtf(fmaxf(variance_x, 0.0f));

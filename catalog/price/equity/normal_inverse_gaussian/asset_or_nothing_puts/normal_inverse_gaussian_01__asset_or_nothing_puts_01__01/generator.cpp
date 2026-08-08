@@ -26,14 +26,12 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
 
 // Numerical and CUDA configuration used by the pricing algorithm.
 constexpr std::size_t monte_carlo_paths_per_price = 16'384U;
-constexpr float target_dt = 1.0f / 252.0f;
 constexpr unsigned int threads_per_block = 512U;
 constexpr std::size_t results_per_kernel_launch = 4'096U;
 constexpr std::size_t block_count = 4'096U;
 constexpr std::uint64_t seed = 900000001ULL;
 
 // Artifact locations and descriptive metadata used after pricing.
-const std::string target_dt_description = "1 / 252";
 const std::string random_generator = "Philox";
 const std::filesystem::path dataset_path =
     "datasets/price/equity/normal_inverse_gaussian/asset_or_nothing_puts/"
@@ -87,7 +85,7 @@ int main() {
     double kernel_seconds = 0.0;
 
     // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::system_clock::now();
+    const auto wall_start = std::chrono::steady_clock::now();
     try {
         // Allocate the model, product, price, and error arrays on the GPU.
         check_cuda(
@@ -158,7 +156,6 @@ int main() {
             0U,
             warmup_row_count,
             monte_carlo_paths_per_price,
-            target_dt,
             threads_per_block,
             warmup_block_count,
             seed,
@@ -193,7 +190,6 @@ int main() {
                 result_offset,
                 launch_result_count,
                 monte_carlo_paths_per_price,
-                target_dt,
                 threads_per_block,
                 launched_block_count,
                 seed,
@@ -255,7 +251,7 @@ int main() {
         "cudaFree NormalInverseGaussian asset-or-nothing put standard errors"
     );
     const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::system_clock::now() - wall_start
+        std::chrono::steady_clock::now() - wall_start
     ).count();
 
     // 5. Write the complete price dataset and catalog YAML.
@@ -271,7 +267,7 @@ int main() {
         url,
         numerical_method,
         monte_carlo_paths_per_price,
-        target_dt_description,
+        "",
         nlohmann::ordered_json{
             {"block_count", maximum_block_count},
             {"threads_per_block", threads_per_block},

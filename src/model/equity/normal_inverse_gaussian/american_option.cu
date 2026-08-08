@@ -61,8 +61,6 @@ struct PreparedRow {
     float exercise_discount;
     float initial_discount;
     std::uint32_t exercise_count;
-    std::uint32_t initial_stub_steps;
-    std::uint32_t steps_per_exercise;
 };
 
 // Name the single model state region returned by the generic layout.
@@ -131,7 +129,6 @@ __global__ void prepare_rows_kernel(
     std::size_t product_count,
     bool cartesian_product,
     std::size_t batch_size,
-    float target_dt,
     std::uint64_t base_seed,
     std::size_t result_offset,
     const std::uint32_t* __restrict__ exercise_counts,
@@ -158,16 +155,9 @@ __global__ void prepare_rows_kernel(
         product.exercise_interval,
         product.maturity
     );
-    const std::uint32_t initial_stub_steps = static_cast<std::uint32_t>(
-        fmaxf(1.0f, ceilf(first_exercise_time / target_dt))
-    );
-    const std::uint32_t steps_per_exercise = static_cast<std::uint32_t>(
-        fmaxf(1.0f, ceilf(product.exercise_interval / target_dt))
-    );
-
     prepared_rows[batch_price] = {
-        prepare_model(model, first_exercise_time, initial_stub_steps),
-        prepare_model(model, product.exercise_interval, steps_per_exercise),
+        prepare_model(model, first_exercise_time),
+        prepare_model(model, product.exercise_interval),
         philox::make_key(base_seed + result_index),
         result_index,
         state_offsets[batch_price],
@@ -177,8 +167,6 @@ __global__ void prepare_rows_kernel(
         expf(-model.risk_free_rate * product.exercise_interval),
         expf(-model.risk_free_rate * first_exercise_time),
         row_exercise_count,
-        initial_stub_steps,
-        steps_per_exercise,
     };
 }
 
@@ -211,8 +199,6 @@ __global__ void simulate_paths_kernel(
             row.regular_model,
             row.key,
             path,
-            row.initial_stub_steps,
-            row.steps_per_exercise,
             row.exercise_count,
             paths_per_price,
             row_spots
@@ -474,7 +460,6 @@ void validate_normal_inverse_gaussian_american_option_launch(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -491,7 +476,7 @@ void validate_normal_inverse_gaussian_american_option_launch(
     validate_model_product_construction(
         model_count, product_count, cartesian_product, result_count
     );
-    validate_monte_carlo_parameters(paths_per_price, target_dt);
+    validate_monte_carlo_path_count(paths_per_price);
     validate_reduction_block_size(threads_per_block);
     validate_row_seed_range(result_count, base_seed);
 
@@ -524,7 +509,6 @@ lsm::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -540,7 +524,6 @@ lsm::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
         cartesian_product,
         result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         threads_per_block,
         blocks_per_price,
         base_seed,
@@ -704,7 +687,6 @@ lsm::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
                 product_count,
                 cartesian_product,
                 batch.result_count,
-                target_dt,
                 base_seed,
                 batch.result_offset,
                 device_exercise_counts,

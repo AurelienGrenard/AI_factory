@@ -1,0 +1,27 @@
+title: "Down-and-Out Puts parameter dataset down_and_out_puts_01"
+database_id: "down_and_out_puts_01"
+product_family: "Down-and-Out Puts"
+catalog: "catalog/product/equity/down_and_out_puts/down_and_out_puts_01"
+url: "https://datasets.ai-factory.example/v1/product/down_and_out_puts/down_and_out_puts_01.json"
+row_count: 1000
+parameters:
+  strike: "Strike in normalized spot units."
+  barrier: "Lower knock-out level monitored on the simulation grid."
+  maturity: "Maturity in years."
+payoff:
+  expression: "max(K - S_T, 0) if min(S_[0,T]) > barrier; otherwise 0"
+  scaling_rule: "V(s, K) = s * V(1, K / s)"
+construction:
+  method: "maturity-dependent exponential grid"
+  rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+  grid:
+    maturity:
+      minimum: "1 / 12"
+      maximum: 3.0
+      count: 50
+      spacing: "linear"
+    strike:
+      count_per_maturity: 20
+      spacing: "linear in log-strike"
+      conditional_bounds: "[exp(-aT), exp(aT)]"
+      a: 0.2

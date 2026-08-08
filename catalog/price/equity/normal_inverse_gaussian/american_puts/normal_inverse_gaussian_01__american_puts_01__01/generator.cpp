@@ -26,13 +26,11 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
 
 // Numerical and CUDA configuration used by the pricing algorithm.
 constexpr std::size_t monte_carlo_paths_per_price = 1U << 20U;
-constexpr float target_dt = 1.0f / 252.0f;
 constexpr unsigned int threads_per_block = 128U;
 constexpr std::size_t blocks_per_price = 128U;
 constexpr std::uint64_t seed = 900000001ULL;
 
 // Artifact locations and descriptive metadata used after pricing.
-const std::string target_dt_description = "1 / 252";
 const std::string random_generator = "Philox";
 const std::filesystem::path dataset_path =
     "datasets/price/equity/normal_inverse_gaussian/american_puts/"
@@ -138,7 +136,6 @@ int main() {
             false,
             1U,
             std::min(monte_carlo_paths_per_price, warmup_paths),
-            target_dt,
             threads_per_block,
             blocks_per_price,
             seed,
@@ -158,7 +155,6 @@ int main() {
             construction == datasets::PriceConstruction::CartesianProduct,
             result_count,
             monte_carlo_paths_per_price,
-            target_dt,
             threads_per_block,
             blocks_per_price,
             seed,
@@ -212,19 +208,19 @@ int main() {
     };
     const nlohmann::ordered_json catalog_sections = {
         {"time_grid", {
-            {"target_dt", target_dt_description},
+            {"rule", "exact independent increments on exercise dates"},
             {
                 "initial_stub",
                 {
-                    {"step_count", "ceil(first_exercise_time / target_dt)"},
-                    {"effective_dt", "first_exercise_time / step_count"},
+                    {"increments", 1U},
+                    {"interval", "first_exercise_time"},
                 }
             },
             {
                 "regular_exercise_interval",
                 {
-                    {"step_count", "ceil(exercise_interval / target_dt)"},
-                    {"effective_dt", "exercise_interval / step_count"},
+                    {"increments", 1U},
+                    {"interval", "exercise_interval"},
                 }
             },
         }},
@@ -283,7 +279,7 @@ int main() {
         url,
         numerical_method,
         monte_carlo_paths_per_price,
-        target_dt_description,
+        "",
         cuda_execution,
         catalog_sections,
         seed,

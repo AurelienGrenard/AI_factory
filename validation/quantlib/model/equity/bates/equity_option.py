@@ -621,10 +621,16 @@ def _maturity_anchored_exercise_dates(
         nearest_date_from_time(first_exercise + index * exercise_interval)
         for index in range(exercise_count)
     ]
-    if dates[0] <= REFERENCE_DATE or any(
+    # QuantLib dates have a one-day resolution.  Preserve the CUDA contract's
+    # positive sub-day first stub by placing only that date on the next day.
+    dates[0] = max(dates[0], REFERENCE_DATE + 1)
+    if any(
         current <= previous for previous, current in zip(dates, dates[1:])
     ):
-        raise ValueError("American-put exercise dates must be strictly increasing.")
+        raise ValueError(
+            "American exercise dates cannot be represented on QuantLib's "
+            "daily calendar."
+        )
     return dates
 
 

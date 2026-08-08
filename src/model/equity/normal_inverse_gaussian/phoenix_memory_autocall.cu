@@ -30,7 +30,6 @@ struct PreparedRow {
     float coupon_per_observation;
     float discount_per_observation;
     std::uint32_t observation_count;
-    std::uint32_t steps_per_observation;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
@@ -38,15 +37,10 @@ __device__ __forceinline__ PreparedRow prepare_row(
     const NormalInverseGaussianModelParameters& model,
     const product::PhoenixMemoryAutocallParameters& product,
     std::uint32_t observation_count,
-    std::uint32_t steps_per_observation,
     std::uint64_t seed
 ) {
     return {
-        prepare_model(
-            model,
-            product.observation_interval,
-            steps_per_observation
-        ),
+        prepare_model(model, product.observation_interval),
         philox::make_key(seed),
         product.autocall_barrier,
         product.coupon_barrier,
@@ -54,7 +48,6 @@ __device__ __forceinline__ PreparedRow prepare_row(
         product.annual_coupon_rate * product.observation_interval,
         expf(-model.risk_free_rate * product.observation_interval),
         observation_count,
-        steps_per_observation,
     };
 }
 
@@ -75,11 +68,7 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        for (std::uint32_t step = 0U;
-             step < row.steps_per_observation;
-             ++step) {
-            simulate_one_step(row.model, uniforms, normal_cache, state);
-        }
+        simulate_one_step(row.model, uniforms, normal_cache, state);
         discount *= row.discount_per_observation;
         remembered_coupon += row.coupon_per_observation;
         const float spot = expf(state.log_spot);
@@ -109,7 +98,6 @@ __global__ void normal_inverse_gaussian_phoenix_memory_autocall_kernel(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -134,16 +122,10 @@ __global__ void normal_inverse_gaussian_phoenix_memory_autocall_kernel(
                 static_cast<std::uint32_t>(floorf(
                     product.maturity / product.observation_interval + 0.5f
                 ));
-            const std::uint32_t steps_per_observation =
-                static_cast<std::uint32_t>(fmaxf(
-                    1.0f,
-                    floorf(product.observation_interval / target_dt + 0.5f)
-                ));
             prepared = prepare_row(
                 models[model_index],
                 product,
                 observation_count,
-                steps_per_observation,
                 base_seed + result_index
             );
         }
@@ -193,7 +175,6 @@ void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -218,10 +199,8 @@ void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
         );
     }
 
-    // Monte Carlo paths and the requested simulation step must be valid.
-    validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
-    );
+    // The Monte Carlo path count must be valid.
+    validate_monte_carlo_path_count(monte_carlo_paths_per_price);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -247,7 +226,6 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -264,7 +242,6 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         threads_per_block,
         block_count,
         base_seed,
@@ -314,7 +291,6 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
         base_seed,
         device_prices,
         device_standard_errors

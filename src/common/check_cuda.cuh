@@ -145,16 +145,21 @@ inline void validate_model_curve_product_construction(
     }
 }
 
-// Validate parameters shared by discretized Monte Carlo pricing kernels.
-inline void validate_monte_carlo_parameters(
-    std::size_t paths_per_result,
-    float target_dt
-) {
+// Validate the path count shared by every Monte Carlo pricing kernel.
+inline void validate_monte_carlo_path_count(std::size_t paths_per_result) {
     if (paths_per_result < 2U) {
         throw std::invalid_argument(
             "Monte Carlo pricing requires at least two paths per result."
         );
     }
+}
+
+// Validate the path count and step requested by a discretized simulation.
+inline void validate_monte_carlo_parameters(
+    std::size_t paths_per_result,
+    float target_dt
+) {
+    validate_monte_carlo_path_count(paths_per_result);
     if (!(target_dt > 0.0f) || !std::isfinite(target_dt)) {
         throw std::invalid_argument("target_dt must be positive and finite.");
     }

@@ -1,4 +1,4 @@
-"""Compare discrete up one-touches with QuantLib's continuous Heston PDE."""
+"""Validate discrete Heston up one-touches with independent QuantLib paths."""
 
 from validation.quantlib.model.equity.heston.equity_option import (
     validation_from_quantlib_heston_option,

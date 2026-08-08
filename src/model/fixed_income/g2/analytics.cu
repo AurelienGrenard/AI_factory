@@ -68,11 +68,11 @@ __device__ __forceinline__ float bond_option_total_volatility(
         covariance_xy
     );
     const float loading_x =
-        model::ornstein_uhlenbeck::integral_state_loading(
+        mean_reverting_gaussian::integral_state_loading(
             parameters.mean_reversion_x, bond_tenor
         );
     const float loading_y =
-        model::ornstein_uhlenbeck::integral_state_loading(
+        mean_reverting_gaussian::integral_state_loading(
             parameters.mean_reversion_y, bond_tenor
         );
     const float variance = fmaf(
