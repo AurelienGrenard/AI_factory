@@ -91,14 +91,14 @@ void validate_counts(
 ) {
     if (core_row_count == 0U || tail_row_count == 0U) {
         throw std::invalid_argument(
-            "Cliquet generation requires non-empty core and tail regimes."
+            "Cliquet generation requires non-empty core and stress regimes."
         );
     }
 }
 
 }  // namespace
 
-// Generate constrained periodic-return terms and shuffle both regimes.
+// Generate constrained periodic-return terms in traceable regime order.
 GeneratedRows generate_rows(
     std::size_t core_row_count,
     std::size_t tail_row_count,
@@ -174,10 +174,14 @@ GeneratedRows generate_rows(
             },
         });
     }
-    std::shuffle(generated.rows.begin(), generated.rows.end(), generator);
-
     generated.construction = {
-        {"method", "constrained core-tail random sample"},
+        {"method", "ordered 90/10 constrained core-stress sample"},
+        {"row_order", {
+            {"core", "rows 1-" + std::to_string(core_row_count)},
+            {"stress", "remaining rows"},
+        }},
+        {"core_share", 0.9},
+        {"stress_share", 0.1},
         {"valuation_time", "issuance"},
         {"reference_spot", 1.0},
         {"nominal", 1.0},
@@ -185,7 +189,7 @@ GeneratedRows generate_rows(
             {
                 "regime_counts",
                 std::to_string(core_row_count) + " core rows and "
-                    + std::to_string(tail_row_count) + " tail rows"
+                    + std::to_string(tail_row_count) + " stress rows"
             },
             {
                 "observation_interval",
@@ -208,7 +212,7 @@ GeneratedRows generate_rows(
             "maturity is an integer multiple of observation_interval",
             "observation dates are i * observation_interval from issuance",
             "the first return compares S at issuance with the first observation",
-            "rows are shuffled after both regimes are generated",
+            "core rows precede stress rows",
         }},
         {"regimes", {
             {"core", {
@@ -224,7 +228,7 @@ GeneratedRows generate_rows(
                     "25% to 85% of the bounded theoretical local-cap sum"
                 },
             }},
-            {"tail", {
+            {"stress", {
                 {"row_count", tail_row_count},
                 {"maturity", {"0.5 year", "7 years"}},
                 {"observation_interval", {"1 / 52", "1 / 2", "1"}},
@@ -241,7 +245,7 @@ GeneratedRows generate_rows(
         {"constraints", {
             "local_floor < local_cap",
             "-1 < global_floor < global_cap",
-            "global_cap is bounded by 0.75 in core and 1.50 in tail",
+                    "global_cap is bounded by 0.75 in core and 1.50 in stress",
         }},
     };
     return generated;

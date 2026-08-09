@@ -1,0 +1,45 @@
+title: "schobel_zhu_01__phoenix_memory_autocalls_01__01"
+database_id: "schobel_zhu_01__phoenix_memory_autocalls_01__01"
+catalog: "catalog/price/equity/schobel_zhu/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01"
+url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/SchobelZhu/PhoenixMemoryAutocall/schobel_zhu_01__phoenix_memory_autocalls_01__01.json"
+row_count: 1000
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 16384
+  model: "Schobel-Zhu"
+  numerical_method: "exact OU factor with log-spot Euler"
+  payoff: "Phoenix Memory Autocalls"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  random_generator: "Philox"
+validation:
+  verified: false
+  reference: "none"
+time_grid:
+  rule: "nearest integer step count per observation interval"
+  target_dt: "1 / 252"
+  observation_count: "round(maturity / observation_interval)"
+  step_count: "round(observation_interval / target_dt)"
+  effective_dt: "observation_interval / step_count"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "schobel_zhu_01"
+  catalog: "catalog/model/equity/schobel_zhu/schobel_zhu_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/schobel_zhu/schobel_zhu_01.json"
+product_dataset:
+  id: "phoenix_memory_autocalls_01"
+  catalog: "catalog/product/equity/phoenix_memory_autocalls/phoenix_memory_autocalls_01"
+  url: "https://datasets.ai-factory.example/v1/product/phoenix_memory_autocalls/phoenix_memory_autocalls_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "0.450910661 s"
+  kernel_seconds: "0.233072647 s"

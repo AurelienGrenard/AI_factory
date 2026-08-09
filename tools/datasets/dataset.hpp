@@ -53,6 +53,13 @@ GeneratedRows uniform_rows(
     const std::vector<UniformParameter>& parameters
 );
 
+// Concatenate a 90% core regime and a 10% stress regime with explicit YAML
+// metadata. The caller remains responsible for choosing the regime sizes.
+GeneratedRows core_stress_rows(
+    GeneratedRows core,
+    GeneratedRows stress
+);
+
 // Align equally sized parameter vectors by their row index.
 GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters);
 
@@ -64,6 +71,17 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
     const std::vector<float>& maturities,
     std::size_t strikes_per_maturity,
     float log_moneyness_slope
+);
+
+// Build traceable core and stress strike grids and concatenate them in that
+// order. This is the common 90/10 construction for normalized equity terms.
+GeneratedRows core_stress_exponential_strike_grid(
+    const std::vector<float>& core_maturities,
+    std::size_t core_strikes_per_maturity,
+    float core_log_moneyness_slope,
+    const std::vector<float>& stress_maturities,
+    std::size_t stress_strikes_per_maturity,
+    float stress_log_moneyness_slope
 );
 
 // Assign a feasible interval with a minimum number of dates including maturity.

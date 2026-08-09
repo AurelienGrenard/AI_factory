@@ -3,8 +3,12 @@
 import unittest
 
 from validation.quantlib.price_validation import (
+    PriceResultRow,
+    PriceValidationInput,
     PriceComparison,
     ValidationTolerances,
+    select_validation_regime,
+    select_validation_row_ids,
     summarize_price_comparisons,
 )
 
@@ -52,6 +56,35 @@ class PriceValidationTest(unittest.TestCase):
             ValidationTolerances(absolute=0.0, relative=0.0),
         )
         self.assertTrue(report.passed)
+
+    def test_core_and_stress_regimes_preserve_order(self) -> None:
+        rows = tuple(
+            PriceResultRow(str(index), str(index), str(index), float(index))
+            for index in range(1000)
+        )
+        validation_input = PriceValidationInput(
+            "ordered", __file__, __file__, rows
+        )
+        core = select_validation_regime(validation_input, "core")
+        stress = select_validation_regime(validation_input, "stress")
+        self.assertEqual(len(core.rows), 900)
+        self.assertEqual(core.rows[-1].row_id, "899")
+        self.assertEqual(len(stress.rows), 100)
+        self.assertEqual(stress.rows[0].row_id, "900")
+
+    def test_explicit_fallback_rows_preserve_catalogue_order(self) -> None:
+        rows = tuple(
+            PriceResultRow(str(index), str(index), str(index), float(index))
+            for index in range(5)
+        )
+        validation_input = PriceValidationInput(
+            "fallback", __file__, __file__, rows
+        )
+        selected = select_validation_row_ids(validation_input, ("4", "1"))
+        self.assertEqual([row.row_id for row in selected.rows], ["1", "4"])
+
+        with self.assertRaisesRegex(ValueError, "no rows"):
+            select_validation_row_ids(validation_input, ("missing",))
 
 
 if __name__ == "__main__":

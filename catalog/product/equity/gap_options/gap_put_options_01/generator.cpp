@@ -18,11 +18,12 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/gap_options/"
         "gap_put_options_01.json";
 
-    constexpr std::size_t maturity_count = 50U;
-    constexpr std::size_t strikes_per_maturity = 20U;
-    GeneratedRows rows = maturity_dependent_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, maturity_count),
-        strikes_per_maturity,
+    GeneratedRows rows = core_stress_exponential_strike_grid(
+        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        20U,
+        0.2f,
+        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        10U,
         0.2f
     );
     for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
@@ -36,7 +37,6 @@ int main() {
             {"maturity", maturity},
         };
     }
-    rows.construction["grid"]["maturity"]["minimum"] = "1 / 12";
     rows.construction["grid"]["trigger_strike"] =
         rows.construction["grid"].at("strike");
     rows.construction["grid"].erase("strike");

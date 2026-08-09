@@ -1,0 +1,104 @@
+{
+  "schema_version": 4,
+  "validation_fingerprint": "9700f7e96ef96f6890cb6cfd76391b9a071c9ce8cbef62eeef8702a12ed73a02",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__lookback_options_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.008293788332629084,
+    "mean_absolute_price_gap": 0.008293804455139789,
+    "maximum_absolute_price_gap": 0.023525870463093845,
+    "maximum_absolute_price_gap_row_id": "000710",
+    "higher_price_count": 2,
+    "lower_price_count": 898,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; a discrete maximum cannot exceed the continuous maximum",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__lookback_options_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 100,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.01688700569172279,
+    "mean_absolute_price_gap": 0.016891965774433543,
+    "maximum_absolute_price_gap": 0.08834399059378306,
+    "maximum_absolute_price_gap_row_id": "000971",
+    "higher_price_count": 2,
+    "lower_price_count": 98,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; a discrete maximum cannot exceed the continuous maximum",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 100,
+        "completed_rows": 100,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

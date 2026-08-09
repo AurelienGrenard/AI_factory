@@ -1,0 +1,104 @@
+{
+  "schema_version": 4,
+  "validation_fingerprint": "a548fbbf197f65c8ac84220c4fe047f7ae568e874263cbcfe3049e96b377317b",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "g2_01__zero_coupon_bond_calls_01__01",
+    "reference": "QuantLib (specialized pricer)",
+    "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": 1.8404097382920738e-09,
+    "mean_absolute_price_gap": 2.9828917128862264e-08,
+    "maximum_absolute_price_gap": 1.64808338531941e-07,
+    "maximum_absolute_price_gap_row_id": "000786",
+    "higher_price_count": 433,
+    "lower_price_count": 451,
+    "equal_price_count": 16,
+    "systematic_bias": false,
+    "bias_explanation": null,
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "Premia Hull-White 2D requires an external fitted curve and does not expose both standalone G2 initial factors"
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": false,
+        "unavailable_reason": "an exact specialized QuantLib engine is available"
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "passed",
+    "dataset": "g2_01__zero_coupon_bond_calls_01__01",
+    "reference": "QuantLib (specialized pricer)",
+    "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 100,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": 4.602654167778628e-09,
+    "mean_absolute_price_gap": 1.929873203143936e-08,
+    "maximum_absolute_price_gap": 1.274236325343736e-07,
+    "maximum_absolute_price_gap_row_id": "000941",
+    "higher_price_count": 41,
+    "lower_price_count": 36,
+    "equal_price_count": 23,
+    "systematic_bias": false,
+    "bias_explanation": null,
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "requested_rows": 100,
+        "completed_rows": 100,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "Premia Hull-White 2D requires an external fitted curve and does not expose both standalone G2 initial factors"
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": false,
+        "unavailable_reason": "an exact specialized QuantLib engine is available"
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

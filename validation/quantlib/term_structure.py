@@ -19,18 +19,20 @@ def date_from_time(time: float) -> ql.Date:
 
     day_count = round(360.0 * time)
     if time < 0.0 or not math.isclose(
-        day_count / 360.0, time, rel_tol=0.0, abs_tol=2.0e-7
+        day_count / 360.0, time, rel_tol=0.0, abs_tol=2.0e-6
     ):
         raise ValueError(f"Time {time} is not representable on the Actual/360 grid.")
     return REFERENCE_DATE + day_count
 
 
 def nearest_date_from_time(time: float) -> ql.Date:
-    """Map a positive synthetic maturity to its nearest Actual/360 date."""
+    """Map a maturity to its nearest Actual/360 date, with half-days up."""
 
     if not math.isfinite(time) or time <= 0.0:
         raise ValueError("A QuantLib maturity must be finite and positive.")
-    return REFERENCE_DATE + round(360.0 * time)
+    # Match the CUDA grid convention floor(T / target_dt + 0.5).  Python's
+    # round() uses ties-to-even and would disagree for exact half-day inputs.
+    return REFERENCE_DATE + math.floor(360.0 * time + 0.5)
 
 
 def flat_curve(rate: float) -> ql.YieldTermStructureHandle:

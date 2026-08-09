@@ -17,16 +17,16 @@ int main() {
         "https://datasets.ai-factory.example/v1/product/asian_options/"
         "asian_options_01.json";
 
-    constexpr std::size_t maturity_count = 50U;
-    constexpr std::size_t strikes_per_maturity = 20U;
     constexpr float log_moneyness_slope = 0.15f;
-    GeneratedRows rows = maturity_dependent_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, maturity_count),
-        strikes_per_maturity,
+    GeneratedRows rows = core_stress_exponential_strike_grid(
+        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        20U,
+        log_moneyness_slope,
+        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        10U,
         log_moneyness_slope
     );
     // Preserve the exact lower maturity bound in human-readable metadata.
-    rows.construction["grid"]["maturity"]["minimum"] = "1 / 12";
 
     write_product_dataset(
         "asian_options_01",

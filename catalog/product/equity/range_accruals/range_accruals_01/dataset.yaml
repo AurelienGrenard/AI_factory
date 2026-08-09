@@ -16,12 +16,17 @@ payoff:
   maturity_payment: "Normalized nominal 1 plus the accrued coupon."
   intermediate_payments: "None."
 construction:
-  method: "constrained core-tail random sample"
+  method: "ordered 90/10 constrained core-stress sample"
+  row_order:
+    core: "rows 1-900"
+    stress: "remaining rows"
+  core_share: 0.9
+  stress_share: 0.1
   valuation_time: "issuance"
   reference_spot: 1.0
   nominal: 1.0
   sampling:
-    regime_counts: "900 core rows and 100 tail rows"
+    regime_counts: "900 core rows and 100 stress rows"
     observation_interval: "uniform categorical draw within the selected regime"
     observation_count: "uniform integer draw compatible with maturity bounds"
     continuous_parameters: "uniform draws within each regime"
@@ -30,7 +35,7 @@ construction:
     - "observation dates are i * observation_interval from issuance"
     - "the issuance spot is normalized to one and is not observed"
     - "maturity is included as the final observation date"
-    - "rows are shuffled after both regimes are generated"
+    - "core rows precede stress rows"
   regimes:
     core:
       row_count: 900
@@ -50,7 +55,7 @@ construction:
       coupon_rate:
         - 0.02
         - 0.12
-    tail:
+    stress:
       row_count: 100
       maturity:
         - "0.5 year"

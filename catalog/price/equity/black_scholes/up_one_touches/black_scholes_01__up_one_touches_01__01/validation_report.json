@@ -1,0 +1,104 @@
+{
+  "schema_version": 4,
+  "validation_fingerprint": "e605c29c979d991a08d324bbd6454b09d5c1e6e7ab247ce1501fccc52c059dbe",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__up_one_touches_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.01689273816926852,
+    "mean_absolute_price_gap": 0.01689273816926852,
+    "maximum_absolute_price_gap": 0.07178568052580481,
+    "maximum_absolute_price_gap_row_id": "000001",
+    "higher_price_count": 0,
+    "lower_price_count": 900,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; discrete monitoring misses some barrier hits and lowers a one-touch price",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "passed",
+    "dataset": "black_scholes_01__up_one_touches_01__01",
+    "reference": "Premia (specialized pricer)",
+    "tolerance": "1e-5 absolute + 5e-5 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 100,
+    "special_row_count": 0,
+    "failed": 0,
+    "unvalidated": 0,
+    "mean_signed_price_gap": -0.009702044729766955,
+    "mean_absolute_price_gap": 0.009714782054900643,
+    "maximum_absolute_price_gap": 0.13296849088243756,
+    "maximum_absolute_price_gap_row_id": "000901",
+    "higher_price_count": 7,
+    "lower_price_count": 87,
+    "equal_price_count": 6,
+    "systematic_bias": true,
+    "bias_explanation": "expected; discrete monitoring misses some barrier hits and lowers a one-touch price",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "requested_rows": 100,
+        "completed_rows": 100,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "available": false,
+        "unavailable_reason": "no specialized engine matches the catalogue contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

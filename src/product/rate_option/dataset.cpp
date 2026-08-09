@@ -48,8 +48,9 @@ std::vector<RateOptionParameters> load_rate_options(
         const std::string prefix = "Rate option row id '" + row_id + "': ";
         if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
             throw std::invalid_argument(prefix + "notional must be finite and positive.");
-        if (!std::isfinite(product.strike) || !(product.strike >= 0.0f))
-            throw std::invalid_argument(prefix + "strike must be finite and non-negative.");
+        // Negative strikes are valid for rate options in negative-rate regimes.
+        if (!std::isfinite(product.strike))
+            throw std::invalid_argument(prefix + "strike must be finite.");
         if (!std::isfinite(product.fixing_time) || !(product.fixing_time > 0.0f))
             throw std::invalid_argument(prefix + "fixing_time must be finite and positive.");
         if (!std::isfinite(product.payment_time)
@@ -62,6 +63,13 @@ std::vector<RateOptionParameters> load_rate_options(
             || !(product.accrual_period > 0.0f)) {
             throw std::invalid_argument(
                 prefix + "accrual_period must be finite and positive."
+            );
+        }
+        if (!(std::fma(
+                product.accrual_period, product.strike, 1.0f
+            ) > 0.0f)) {
+            throw std::invalid_argument(
+                prefix + "1 + accrual_period * strike must be positive."
             );
         }
         products.push_back(product);
