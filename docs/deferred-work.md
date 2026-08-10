@@ -5,6 +5,60 @@ of the intended development roadmap. It contains planned work only. Ideas that
 were tested and rejected belong in `abandoned-work.md`; permanent engineering
 rules belong in the relevant implementation contract or extension workflow.
 
+## Core-only independent price validation migration
+
+Migrate every price validator to the certification policy documented in
+`independent-price-validation-pipeline.md`. This work is intentionally paused:
+do not resume the long Premia runs while implementing unrelated numerical or
+CUDA features.
+
+The target policy is unambiguous:
+
+- certify only rows 1--900 (`core`) with external reference engines;
+- retain rows 901--1,000 (`stress`) in every dataset, but run only internal
+  robustness checks on them; stress never changes the public validation status;
+- publish a successful result as `900/900 core`, never as `1000/1000`, and use
+  the standard conclusion: "Dataset valide independamment sur son domaine
+  core. Les lignes stress testent la robustesse numerique et ne sont pas
+  couvertes par la certification externe.";
+- make the YAML status and `verified` flag depend exclusively on the core and
+  add the explicit scope `core (900 rows)`;
+- give the JSON report separate external-core and internal-stress sections, and
+  adapt the common notebook renderer, report fingerprinting, schema tests and
+  YAML synchronization together.
+
+For every `(model, product)` pair, first rebuild the exhaustive Premia method
+inventory. Rank compatible methods globally on a fixed core pilot by contract
+fidelity, robustness and then runtime. Validate each core row through this
+strict hierarchy:
+
+1. preferred Premia method;
+2. every other compatible Premia method, in declared order, but only after a
+   technical failure of the preceding method;
+3. specialized QuantLib pricer;
+4. independent QuantLib Monte Carlo when QuantLib exposes a simulable process;
+5. `none` when no independent engine produces a comparable price.
+
+A backend error, non-finite result, invalid standard error, documented domain
+violation or finite price violating a no-arbitrage bound is a technical engine
+failure. It must retain its row-level diagnostic and fall through; it never
+invalidates the CUDA price. A finite, financially admissible price outside the
+tolerance is a comparison failure. Other methods may diagnose it, but the
+pipeline must not cherry-pick the closest reference. A core row left without an
+independent reference is `unvalidated`, not `failed pricing`; nevertheless the
+dataset cannot be marked independently verified until all 900 core rows are
+objectively resolved.
+
+Resume the work model by model and product by product, with bounded per-engine
+timeouts and persisted progress so an interrupted slow Premia run does not
+discard completed reports. Regenerate stale reports after any repricing before
+publishing YAML or notebooks. In particular, the interrupted Kou experiment
+left a mixture of fresh and stale reports after its move to 1,048,576 paths;
+none of those partial artifacts should be treated as the completed migration.
+Kou has no generic QuantLib process, so products not covered by a reliable
+Premia method will remain explicitly unvalidated unless a genuinely independent
+reference is added.
+
 ## CIR and CIR++ models
 
 Implement the Cox-Ingersoll-Ross short-rate model and its shifted CIR++ form.

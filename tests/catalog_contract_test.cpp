@@ -20,6 +20,7 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/model/equity/variance_gamma/variance_gamma_01/dataset.yaml",
     "catalog/model/equity/normal_inverse_gaussian/"
     "normal_inverse_gaussian_01/dataset.yaml",
+    "catalog/model/equity/rough_bergomi/rough_bergomi_01/dataset.yaml",
     "catalog/model/fixed_income/g2/g2_01/dataset.yaml",
     "catalog/model/fixed_income/g2_plus_plus/g2_plus_plus_01/dataset.yaml",
     "catalog/model/fixed_income/hull_white/hull_white_01/dataset.yaml",
@@ -70,6 +71,10 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/price/equity/heston/european_puts/"
     "heston_01__european_puts_01__01/dataset.yaml",
+    "catalog/price/equity/rough_bergomi/european_calls/"
+    "rough_bergomi_01__european_calls_01__01/dataset.yaml",
+    "catalog/price/equity/rough_bergomi/european_puts/"
+    "rough_bergomi_01__european_puts_01__01/dataset.yaml",
     "catalog/price/equity/heston/asian_calls/"
     "heston_01__asian_calls_01__01/dataset.yaml",
     "catalog/price/equity/heston/athena_autocalls/"

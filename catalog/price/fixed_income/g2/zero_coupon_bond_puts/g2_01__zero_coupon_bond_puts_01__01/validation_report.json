@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "a2a85a95e50c9c287bc0e941ded71e433b482a16d154d761d06541c83ce4298f",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "g2_01__zero_coupon_bond_puts_01__01",
     "reference": "QuantLib (specialized pricer)",
+    "pricing_method": "G2.discountBondOption",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "Premia Hull-White 2D requires an external fitted curve and does not expose both standalone G2 initial factors"
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "an exact specialized QuantLib engine is available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "g2_01__zero_coupon_bond_puts_01__01",
     "reference": "QuantLib (specialized pricer)",
+    "pricing_method": "G2.discountBondOption",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "Premia Hull-White 2D requires an external fitted curve and does not expose both standalone G2 initial factors"
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "an exact specialized QuantLib engine is available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }

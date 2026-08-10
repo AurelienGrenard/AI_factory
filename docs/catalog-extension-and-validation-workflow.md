@@ -18,12 +18,15 @@ validation indépendante et le site ont tous été mis à jour.
 - [ ] Faire preceder les validations metier de chaque `load_*` par la validation
       de l'ossature JSON commune a sa famille de dataset.
 - [ ] Ajouter chaque nouveau modele, courbe, produit et prix au site.
-- [ ] Appliquer, dans cet ordre, la meilleure validation disponible: pricer
-      specialise Premia, pricer specialise QuantLib, Monte-Carlo QuantLib,
-      puis `none` si aucune reference independante fiable n'existe.
-- [ ] Decider la disponibilite de Premia sur le couple `(modele, produit)` et
-      son moteur compatible, jamais sur la methode numerique employee par le
-      generateur AI_factory.
+- [ ] Inventorier d'abord toutes les methodes Premia du couple `(modele,
+      produit)` dans tous les menus Premia; ne selectionner un moteur qu'apres
+      cet inventaire exhaustif.
+- [ ] Ordonner les moteurs Premia compatibles par robustesse et performance
+      mesuree, puis appliquer: liste Premia complete, pricer specialise
+      QuantLib, Monte-Carlo QuantLib, enfin `none`.
+- [ ] Decider la disponibilite de Premia sur l'existence d'au moins un moteur
+      compatible, jamais sur la methode numerique employee par le generateur
+      AI_factory.
 - [ ] Inscrire obligatoirement le resultat et le backend dans le bloc YAML
       racine `validation`.
 - [ ] Ne jamais activer CUDA fast math (`--use_fast_math`). Le projet exige des
@@ -37,12 +40,14 @@ validation indépendante et le site ont tous été mis à jour.
 
 `validation.reference: "none"` est un etat explicite, pas une validation. Il
 permet de publier une V1 clairement etiquetee lorsque Premia et QuantLib ne
-fournissent aucune reference comparable. La selection s'effectue par regime et
-par ligne selon
+fournissent aucune reference comparable. La selection s'effectue ligne par
+ligne sur le core selon
 [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md).
 Un echec technique Premia autorise un repli documente pour les seules lignes
-concernees; une divergence apres un calcul Premia reussi reste un echec et ne
-doit jamais etre masquee par QuantLib.
+concernees, d'abord vers les autres moteurs Premia compatibles et seulement
+ensuite vers QuantLib. Une divergence apres un calcul Premia reussi reste un
+echec et ne doit jamais etre masquee par le choix retrospectif d'une reference
+plus proche.
 
 ## Identifier la nature de l'extension
 
@@ -75,11 +80,16 @@ qu'un nouveau payoff l'utilise.
       `target_dt = 1 / 360` seulement lorsqu'une grille quotidienne ou un schema
       numerique est effectivement necessaire.
 - [ ] Choisir la methode: formule exacte, Monte-Carlo, Longstaff-Schwartz, etc.
-- [ ] Identifier immediatement le pricer Premia ou QuantLib de reference et son
-      domaine de validite.
-- [ ] Chercher le produit financier dans tout le catalogue Premia, meme si son
-      moteur est continu, PDE ou Monte Carlo alors que le prix CUDA utilise une
-      approximation discrete; documenter ensuite l'ecart de contrat.
+- [ ] Enumerer toutes les methodes Premia du couple, dans tous les menus/classes
+      d'actifs, et relever pour chacune le nom natif exact (`CF_*`, `AP_*`,
+      `FD_*`, `TR_*`, `MC_*`), son domaine et ses conventions.
+- [ ] Chercher le contrat direct et les reductions exactes composees de moteurs
+      Premia, meme si le moteur est continu, PDE ou Monte Carlo alors que le
+      prix CUDA utilise une approximation discrete; documenter ensuite l'ecart
+      de contrat.
+- [ ] Sonder les candidats sur des lignes representatives du `core`,
+      puis choisir le moteur principal le plus rapide parmi ceux qui sont
+      compatibles et robustes; conserver les autres comme replis Premia.
 
 ## Ajouter un modele
 
@@ -205,14 +215,21 @@ ou, pour l'exercice anticipe,
 - [ ] Valider la structure du JSON de prix juste apres son ecriture.
 - [ ] Verifier que tous les prix et erreurs standards attendus sont finis.
 
-### Hiérarchie de validation obligatoire
+### Hierarchie de validation obligatoire
 
-- [ ] Separer explicitement les 900 lignes `core` des 100 lignes `stress`.
-- [ ] Chercher d'abord un pricer specialise Premia compatible avec le modele,
-      le produit et chaque ligne du domaine de parametres.
-- [ ] Ne declarer Premia indisponible que si aucun moteur n'existe pour ce
-      couple modele-produit, ou si le moteur rejette techniquement la ligne;
-      une difference discret/continu n'est pas une absence de moteur.
+- [ ] Separer explicitement les 900 lignes `core`, seules certifiees par une
+      reference externe, des 100 lignes `stress`, reservees aux diagnostics
+      internes de robustesse.
+- [ ] Inventorier exhaustivement tous les moteurs Premia compatibles avec le
+      modele et le produit, dans tous les menus Premia, avant d'en choisir un.
+- [ ] Inclure les contrats directs et les reductions exactes fondees sur des
+      moteurs Premia; une difference discret/continu n'est pas une absence de
+      moteur.
+- [ ] Mesurer les candidats sur un echantillon representatif du `core`,
+      puis les ordonner par compatibilite, robustesse et vitesse.
+- [ ] Ne declarer Premia indisponible que si aucun moteur compatible n'existe;
+      pour une ligne, n'autoriser la sortie de Premia qu'apres l'echec technique
+      de tous les moteurs Premia declares.
 - [ ] A defaut, chercher un pricer specialise QuantLib.
 - [ ] A defaut, construire une simulation Monte-Carlo QuantLib independante.
 - [ ] Si aucun backend fiable n'existe, conserver `status: "not_available"`,
@@ -222,19 +239,28 @@ ou, pour l'exercice anticipe,
       meme ossature que les produits voisins; omettre la courbe en equity.
 - [ ] Exposer la commande canonique `python -m <module> DATASET REPORT`; elle
       seule orchestre les backends, ecrit le rapport et synchronise le YAML.
-- [ ] Declarer les emplacements Premia specialise, QuantLib specialise et
-      QuantLib Monte Carlo dans cet ordre, avec un adaptateur ou une raison
-      d'indisponibilite explicite.
+- [ ] Declarer la liste ordonnee complete des moteurs Premia, puis les
+      emplacements QuantLib specialise et QuantLib Monte Carlo, avec un
+      adaptateur ou une raison d'indisponibilite explicite.
 - [ ] Laisser `validation/hierarchy.py` transmettre au moteur suivant les seules
       exceptions techniques ligne par ligne; ne jamais y envoyer une divergence.
 - [ ] Conserver les adaptateurs de backend reutilisables sous
       `validation/premia/` et `validation/quantlib/`.
 - [ ] Mettre les conversions reutilisables dans un fichier commun au modele.
+- [ ] Pour un modele equity stochastique, reutiliser
+      `validation/model/equity/stochastic_equity.py`: le fichier du modele
+      declare seulement produits, moteurs et noms natifs; les fichiers produits
+      restent des wrappers CLI minces.
 - [ ] Lire le JSON de prix produit par le vrai generateur CUDA.
 - [ ] Reconstruire chaque ligne dans le backend avec les memes conventions.
-- [ ] Comparer toutes les lignes, pas seulement un echantillon favorable.
-- [ ] En cas d'echec technique Premia, conserver ligne, statut et raison, puis
-      appliquer QuantLib uniquement a cette ligne.
+- [ ] Comparer les 900 lignes core, pas seulement un echantillon favorable;
+      n'appeler ni Premia ni QuantLib sur les 100 lignes stress dans la pipeline
+      de certification standard.
+- [ ] Appliquer aux lignes stress les controles internes pertinents: finitude,
+      erreurs standards, bornes, parites, martingalite et convergence ciblee.
+- [ ] En cas d'echec technique du moteur Premia principal, conserver ligne,
+      statut et raison, puis essayer successivement chaque autre moteur Premia;
+      appliquer QuantLib uniquement si tous ont techniquement echoue.
 - [ ] Ne jamais basculer vers QuantLib lorsque Premia a calcule un prix fini et
       comparable qui diverge: enregistrer une `comparison failure` et corriger
       la cause.
@@ -244,9 +270,11 @@ ou, pour l'exercice anticipe,
 - [ ] Controler le biais signe moyen pour detecter une erreur systematique.
 - [ ] Expliquer les tolerances par la precision FP32 ou la statistique Monte-Carlo;
       ne pas les elargir uniquement pour faire passer le test.
-- [ ] Ecrire `validation_report.json` a cote du notebook, avec ses sections
-      `core` et `stress`, le plan complet des moteurs et l'empreinte canonique
-      des prix et de leur configuration numerique.
+- [ ] Ecrire `validation_report.json` a cote du notebook, avec une section
+      `core` de certification externe et une section `stress` explicitement
+      interne et non certifiante, le `pricing_method` exact de chaque moteur
+      core disponible, le plan complet des moteurs et l'empreinte canonique des
+      prix et de leur configuration numerique.
 - [ ] Generer le rapport et le bloc YAML exclusivement depuis l'execution du
       validateur; ne jamais rediger leurs resultats a la main.
 - [ ] Faire charger et afficher ce rapport par le notebook sans relancer de
@@ -267,19 +295,26 @@ Le generateur ecrit d'abord un bloc obligatoire non verifie:
 validation:
   status: "pending"
   verified: false
+  scope: "core (900 rows)"
   reference: "none"
   notebook: "catalog/price/<asset_class>/<model>/[<curve>/]<product>/<dataset_id>/validation.ipynb"
 ```
 
 Le validateur synchronise ensuite ce bloc depuis le rapport reel. Une reference
 fusionne son moteur et sa methode, par exemple `Premia (specialized pricer)` ou
-`QuantLib (Monte Carlo)`; `mixed` est reserve a des regimes couverts par des
-references principales differentes. Premia reste prioritaire lorsqu'il produit
-un prix comparable, meme si QuantLib est aussi disponible.
+`QuantLib (Monte Carlo)`; `mixed` est reserve a une couverture core qui utilise
+effectivement plusieurs familles de references principales. Premia reste
+prioritaire lorsqu'il produit un prix comparable, meme si QuantLib est aussi
+disponible. Le stress ne modifie jamais ce bloc.
 
 Le champ `notebook` est toujours place apres `reference` et pointe vers le
 notebook compile adjacent au YAML. Il est calcule par le validateur; il n'est
 pas redige manuellement.
+
+Le YAML ne repete pas le moteur exact. Cette information appartient au rapport
+JSON: `pricing_method` contient le nom Premia natif ou la classe/fonction
+QuantLib reellement utilisee. Le notebook l'affiche automatiquement sous la
+reference principale et pour chaque repli, sans logique propre au produit.
 
 La comparaison d'une fonction CUDA avec une reimplementation des memes formules
 dans le projet n'est pas une validation independante et ne remplace ni Premia
@@ -336,7 +371,9 @@ Une extension peut etre consideree terminee uniquement si:
 - [ ] les datasets sont generes, documentes et valides au chargement;
 - [ ] chaque YAML indique explicitement le meilleur validateur qui a passe, ou
       `none` lorsqu'aucune reference independante fiable n'existe;
-- [ ] les erreurs et le biais sont dans les tolerances justifiees;
+- [ ] chaque rapport nomme la fonction ou methode de pricing exacte pour tous
+      les moteurs disponibles et tous les replis executes;
+- [ ] les erreurs et le biais du core sont dans les tolerances justifiees;
 - [ ] le catalogue et le site exposent la nouvelle extension;
 - [ ] les equations, liens, documentation et images du site sont verifies;
 - [ ] la suite CTest complete passe;

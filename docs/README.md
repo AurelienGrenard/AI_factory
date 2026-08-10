@@ -13,7 +13,8 @@ names describe both the subject and the role of each document; separate
   construction of ordered core and stress parameter rows and their YAML recipe.
 - [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md):
   mandatory model-product-aware Premia-to-QuantLib hierarchy, row-level
-  fallback, failure classification, and core/stress validation metadata.
+  fallback, failure classification, core-only external certification, and
+  separate internal stress diagnostics.
 
 ## CUDA implementation contracts
 

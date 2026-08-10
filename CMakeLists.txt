@@ -159,6 +159,8 @@ add_library(cuda_workbench STATIC
     src/model/equity/variance_gamma/up_no_touch.cu
     src/model/equity/variance_gamma/up_one_touch.cu
     src/model/equity/normal_inverse_gaussian/dataset.cpp
+    src/model/equity/rough_bergomi/dataset.cpp
+    src/model/equity/rough_bergomi/european_option.cu
     src/model/equity/normal_inverse_gaussian/american_option.cu
     src/model/equity/normal_inverse_gaussian/asian_option.cu
     src/model/equity/normal_inverse_gaussian/asset_or_nothing_option.cu
@@ -278,6 +280,14 @@ add_price_generator(
 add_price_generator(
     generate_heston_european_puts_01
     catalog/price/equity/heston/european_puts/heston_01__european_puts_01__01/generator.cpp
+)
+add_price_generator(
+    generate_rough_bergomi_european_calls_01
+    catalog/price/equity/rough_bergomi/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_rough_bergomi_european_puts_01
+    catalog/price/equity/rough_bergomi/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_asian_puts_01
@@ -731,6 +741,10 @@ add_parameter_generator(
 add_parameter_generator(
     generate_schobel_zhu_01
     catalog/model/equity/schobel_zhu/schobel_zhu_01/generator.cpp
+)
+add_parameter_generator(
+    generate_rough_bergomi_01
+    catalog/model/equity/rough_bergomi/rough_bergomi_01/generator.cpp
 )
 add_parameter_generator(
     generate_g2_01 catalog/model/fixed_income/g2/g2_01/generator.cpp
@@ -1307,32 +1321,6 @@ if(BUILD_TESTING)
             AND EXISTS
                 "${CMAKE_SOURCE_DIR}/validation/premia/premia-19-win64"
         )
-            function(add_premia_validation_test name module dataset label)
-                add_test(
-                    NAME premia_${name}
-                    COMMAND ${Python3_EXECUTABLE} -m ${module} ${dataset}
-                        ${ARGN}
-                )
-                set_tests_properties(
-                    premia_${name}
-                    PROPERTIES
-                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                        LABELS "workbench;validation;premia;${label}"
-                        TIMEOUT 120
-                )
-            endfunction()
-
-            function(add_premia_equity_terminal model product folder)
-                add_premia_validation_test(
-                    ${model}_${product}
-                    validation.premia.model.equity.validate
-                    datasets/price/equity/${model}/${folder}/${model}_01__${folder}_01__01.json
-                    ${model}
-                    ${model}
-                    ${product}
-                )
-            endfunction()
-
             function(add_black_scholes_unified_validation product)
                 if(product STREQUAL "up_no_touch")
                     set(folder up_no_touches)
@@ -1373,18 +1361,66 @@ if(BUILD_TESTING)
             )
                 add_black_scholes_unified_validation(${product})
             endforeach()
-            foreach(model IN ITEMS heston kou)
-                add_premia_equity_terminal(${model} european_call european_calls)
-                add_premia_equity_terminal(${model} european_put european_puts)
-                add_premia_equity_terminal(${model} straddle straddles)
+
+            function(add_equity_model_unified_validation model product)
+                if(product STREQUAL "up_no_touch")
+                    set(folder up_no_touches)
+                elseif(product STREQUAL "up_one_touch")
+                    set(folder up_one_touches)
+                else()
+                    set(folder ${product}s)
+                endif()
+                add_test(
+                    NAME validation_${model}_${product}
+                    COMMAND
+                        ${Python3_EXECUTABLE} -m
+                        validation.model.equity.${model}.${product}
+                        ${CMAKE_SOURCE_DIR}/datasets/price/equity/${model}/${folder}/${model}_01__${folder}_01__01.json
+                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${product}.json
+                )
+                set_tests_properties(
+                    validation_${model}_${product}
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;premia;quantlib;${model}"
+                        TIMEOUT 1800
+                )
+            endfunction()
+            foreach(model IN ITEMS merton kou)
+                foreach(product IN ITEMS
+                    asian_call asian_put
+                    asset_or_nothing_call asset_or_nothing_put
+                    athena_autocall cliquet digital_call digital_put
+                    double_knock_out_call double_knock_out_put
+                    down_and_in_put down_and_out_put
+                    european_call european_put
+                    forward_start_call forward_start_put
+                    gap_call gap_put
+                    geometric_asian_call geometric_asian_put
+                    lookback_option phoenix_autocall phoenix_memory_autocall
+                    range_accrual straddle up_and_in_call up_and_out_call
+                    up_no_touch up_one_touch
+                )
+                    add_equity_model_unified_validation(${model} ${product})
+                endforeach()
             endforeach()
-            add_premia_equity_terminal(bates european_call european_calls)
-            add_premia_equity_terminal(bates straddle straddles)
-            foreach(product IN ITEMS
-                european_call european_put digital_call digital_put
-                asset_or_nothing_put gap_put
-            )
-                add_premia_equity_terminal(merton ${product} ${product}s)
+            foreach(model IN ITEMS heston bates)
+                foreach(product IN ITEMS
+                    american_call american_put asian_call asian_put
+                    asset_or_nothing_call asset_or_nothing_put
+                    athena_autocall cliquet digital_call digital_put
+                    double_knock_out_call double_knock_out_put
+                    down_and_in_put down_and_out_put
+                    european_call european_put
+                    forward_start_call forward_start_put
+                    gap_call gap_put
+                    geometric_asian_call geometric_asian_put
+                    lookback_option phoenix_autocall phoenix_memory_autocall
+                    range_accrual straddle up_and_in_call up_and_out_call
+                    up_no_touch up_one_touch
+                )
+                    add_equity_model_unified_validation(${model} ${product})
+                endforeach()
             endforeach()
 
             function(add_gaussian_rate_validation model product folder)
@@ -1617,6 +1653,18 @@ if(BUILD_TESTING)
         tests/new_equity_dynamics_cuda_test.cu
         equity_dynamics
         30
+    )
+    add_cuda_workbench_test(
+        rough_bergomi_dynamics_cuda
+        tests/rough_bergomi_dynamics_cuda_test.cu
+        rough_bergomi_dynamics
+        30
+    )
+    add_cuda_workbench_test(
+        rough_bergomi_european_option_cuda
+        tests/rough_bergomi_european_option_cuda_test.cpp
+        rough_bergomi_products
+        60
     )
     add_cuda_workbench_test(
         black_scholes_cuda

@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "aa3cf491e4a2a2dfc21873e8560bca245f80e1a00fff82de367ed4c44f84ca5b",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "black_scholes_01__range_accruals_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Digit (marginal replication)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Digit (marginal replication)",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Digit (marginal replication)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_range_accrual_price (CumulativeNormalDistribution)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "black_scholes_01__range_accruals_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Digit (marginal replication)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Digit (marginal replication)",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Digit (marginal replication)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_range_accrual_price (CumulativeNormalDistribution)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }
