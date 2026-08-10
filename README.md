@@ -498,11 +498,13 @@ by the actual model-product pair and a compatible Premia engine, regardless of
 whether the CUDA implementation uses the same discretization. A
 continuous/discrete difference changes the documented bias explanation or
 mathematical bound; it does not make Premia unavailable. A unified validator
-under `validation/model/<asset_class>/<model>/[<curve>/]<product>.py` persists the core
-and stress results in an adjacent `validation_report.json`. The catalog
-notebook only loads this report, verifies its canonical price-and-configuration
-fingerprint, and renders
-the common diagnostics; it never reruns a reference pricer. See
+under `validation/model/<asset_class>/<model>/[<curve>/]<product>.py` persists the
+external core certification and separate internal stress diagnostics in an
+adjacent `validation_report.json`. The public validation status covers the 900
+core rows only; it never claims independent coverage of all 1,000 rows. The
+catalog notebook only loads this report, verifies its canonical
+price-and-configuration fingerprint, and renders the common diagnostics; it
+never reruns a reference pricer. See
 [`validation/premia`](validation/premia/README.md),
 [`validation/quantlib`](validation/quantlib/README.md), and the
 [catalog extension workflow](docs/catalog-extension-and-validation-workflow.md)

@@ -46,16 +46,32 @@
   validator may synchronize the compact YAML status and fused reference label;
   engine plans and row diagnostics remain in the JSON report.
 - Model/product validators declare the complete engine plan in priority order,
-  including explicit reasons for unavailable slots, and delegate row-wise
+  name the exact native pricing method/function for every available slot,
+  include explicit reasons for unavailable slots, and delegate row-wise
   fallback to `validation/hierarchy.py`; report assembly and CLI persistence
   belong in `validation/dataset_validation.py`, not in a model-local `common.py`.
-  Only technical
-  backend exceptions descend from Premia to specialized QuantLib and then
-  QuantLib Monte Carlo; finite comparison failures never fall through.
-- Determine Premia availability from the exact model-product pair and a
-  compatible Premia engine, not from AI_factory's numerical approximation.
-  Continuous/discrete differences require a documented bound or bias criterion;
-  they do not make Premia unavailable.
+  Only technical backend exceptions descend through the ordered Premia
+  candidates, then specialized QuantLib, then QuantLib Monte Carlo; finite
+  comparison failures never fall through.
+- Merton, Kou, Heston, and Bates validators reuse
+  `validation/model/equity/stochastic_equity.py`. Keep model files declarative
+  and product files as thin CLI wrappers; add model-specific pricing only in
+  the Premia or QuantLib backend adapters.
+- Audit Premia before selecting any reference engine: enumerate every method
+  registered for the exact model-product pair across all Premia asset menus,
+  including compatible exact decompositions. Only after this exhaustive
+  inventory may the candidates be ranked by contractual compatibility,
+  robustness, and measured runtime.
+- Independent price certification covers the 900 core rows only. Keep the 100
+  stress rows as internal robustness diagnostics and do not call Premia or
+  QuantLib on them in the standard publication pipeline. Never describe a
+  core-only certification as 1,000/1,000 coverage.
+- A technical failure of the preferred Premia method falls through to the next
+  compatible Premia method for that row. QuantLib is considered only after all
+  compatible Premia candidates have been exhausted. Continuous/discrete
+  differences require a documented bound or bias criterion; they do not make
+  Premia unavailable. A finite comparison failure is investigated and is never
+  hidden by choosing whichever reference happens to be closer.
 - `AI_factory_website`: website integration and equations.
 
 ## Numerical reproducibility

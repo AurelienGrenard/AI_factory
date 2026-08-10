@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "c5dcf4f8717e3bef108099c2aee2f647091e52966d2359ab4ca32671560b7a4d",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "black_scholes_01__forward_start_calls_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Call (scale-invariant reduction)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Call (scale-invariant reduction)",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Call (scale-invariant reduction)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_forward_start_price (BlackCalculator)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "black_scholes_01__forward_start_calls_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Call (scale-invariant reduction)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Call (scale-invariant reduction)",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Call (scale-invariant reduction)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_forward_start_price (BlackCalculator)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }

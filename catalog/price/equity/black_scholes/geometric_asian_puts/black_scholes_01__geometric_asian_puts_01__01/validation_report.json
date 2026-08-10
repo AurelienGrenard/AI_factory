@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "6995eb2164b41211474c5ca9c5bb02a44a5dd90f08fa8fafe11e604df674ace3",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "black_scholes_01__geometric_asian_puts_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Put (lognormal reduction)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Put (lognormal reduction)",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Put (lognormal reduction)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_geometric_asian_price (BlackCalculator)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "black_scholes_01__geometric_asian_puts_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_Put (lognormal reduction)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Put (lognormal reduction)",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_Put (lognormal reduction)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "_geometric_asian_price (BlackCalculator)",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no independent QuantLib Monte Carlo contract is required or available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }

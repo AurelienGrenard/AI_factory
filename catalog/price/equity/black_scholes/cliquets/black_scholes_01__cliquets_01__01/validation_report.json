@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "54b73fb8161553dc2a06de6fcab299274f518a16bb1c5355827ab353fef523e5",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "black_scholes_01__cliquets_01__01",
     "reference": "QuantLib (Monte Carlo)",
+    "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no compatible specialized Premia contract is exposed"
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no specialized engine matches the catalogue contract"
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
         "available": true,
         "unavailable_reason": null
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "black_scholes_01__cliquets_01__01",
     "reference": "QuantLib (Monte Carlo)",
+    "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no compatible specialized Premia contract is exposed"
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "no specialized engine matches the catalogue contract"
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": "_antithetic_path_price (GaussianPathGenerator)",
         "available": true,
         "unavailable_reason": null
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }

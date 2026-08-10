@@ -1,11 +1,12 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "validation_fingerprint": "10fa408cb749e8eb941c2a6e54322bcdabf5ee85c8aa1295456997f4d2988a63",
   "core": {
     "title": "Core validation",
     "status": "passed",
     "dataset": "g2_plus_plus_01__nelson_siegel_01__floorlets_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_ZBCallEuroHW2D",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 900,
     "accepted_without_special_treatment": 900,
@@ -26,6 +27,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_ZBCallEuroHW2D",
         "requested_rows": 900,
         "completed_rows": 900,
         "failed_rows": 0,
@@ -35,27 +37,32 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_ZBCallEuroHW2D",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "an exact specialized QuantLib engine is available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   },
   "stress": {
     "title": "Stress validation",
     "status": "passed",
     "dataset": "g2_plus_plus_01__nelson_siegel_01__floorlets_01__01",
     "reference": "Premia (specialized pricer)",
+    "pricing_method": "CF_ZBCallEuroHW2D",
     "tolerance": "5e-7 absolute + 5e-5 relative + 5 combined standard errors",
     "rows": 100,
     "accepted_without_special_treatment": 100,
@@ -76,6 +83,7 @@
     "engine_coverage": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_ZBCallEuroHW2D",
         "requested_rows": 100,
         "completed_rows": 100,
         "failed_rows": 0,
@@ -85,20 +93,24 @@
     "engine_plan": [
       {
         "reference": "Premia (specialized pricer)",
+        "pricing_method": "CF_ZBCallEuroHW2D",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (specialized pricer)",
+        "pricing_method": "G2.discountBondOption",
         "available": true,
         "unavailable_reason": null
       },
       {
         "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
         "available": false,
         "unavailable_reason": "an exact specialized QuantLib engine is available"
       }
     ],
-    "no_validation_reason": null
+    "no_validation_reason": null,
+    "failed_row_ids": []
   }
 }
