@@ -21,9 +21,9 @@ For a centered Ornstein–Uhlenbeck factor
 \mathrm dx_t=-a x_t\,\mathrm dt+\sigma\,\mathrm dW_t,
 ```
 
-where $`W`$ is a standard Brownian motion, $`a>0`$, and $`\sigma>0`$. Let
+where $`W`$ is a standard Brownian motion, $`a\gt 0`$, and $`\sigma\gt 0`$. Let
 $`\mathbb E_t`$, $`\mathrm{Var}_t`$, and $`\mathrm{Cov}_t`$ denote moments
-conditional on $`x_t`$. For one transition interval $`\Delta>0`$, define
+conditional on $`x_t`$. For one transition interval $`\Delta\gt 0`$, define
 
 ```math
 q=e^{-a\Delta},

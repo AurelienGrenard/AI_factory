@@ -31,8 +31,8 @@ The short rate follows
 \qquad r_0\in\mathbb R,
 ```
 
-where $`W`$ is a standard Brownian motion, $`a>0`$ is the mean-reversion speed,
-$`b`$ is the long-run rate, and $`\sigma>0`$ is the volatility. Over an interval
+where $`W`$ is a standard Brownian motion, $`a\gt 0`$ is the mean-reversion speed,
+$`b`$ is the long-run rate, and $`\sigma\gt 0`$ is the volatility. Over an interval
 of length $`\Delta`$,
 
 ```math
@@ -91,7 +91,7 @@ D(0,t)=e^{-I_t}.
 ```
 
 For an accrual period $`[T_1,T_2]`$ with contractual year fraction
-$`\delta>0`$, the single-curve forward rate is
+$`\delta\gt 0`$, the single-curve forward rate is
 
 ```math
 L(t,T_1,T_2)
@@ -99,7 +99,7 @@ L(t,T_1,T_2)
 \left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
 ```
 
-For swap dates $`T_0<T_1<\cdots<T_n`$ and contractual accrual fractions
+For swap dates $`T_0\lt T_1\lt \cdots\lt T_n`$ and contractual accrual fractions
 $`\delta_1,\ldots,\delta_n`$, define the swap annuity and par swap rate by
 
 ```math
@@ -133,7 +133,7 @@ V_{\mathrm{ZCB}}(t)=NP(t,T).
 
 **Pricing method:** Closed form.
 
-Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b>T_e`$, bond
+Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b\gt T_e`$, bond
 strike $`K_B`$, and side.
 
 Let
@@ -144,7 +144,7 @@ Let
 \frac{1-e^{-2a(T_e-t)}}{2a},
 ```
 
-and let $`\nu_B>0`$ be its positive square root. Define
+and let $`\nu_B\gt 0`$ be its positive square root. Define
 
 ```math
 d_1

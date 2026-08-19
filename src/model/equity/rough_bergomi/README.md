@@ -30,7 +30,7 @@ Y_t
 =\sqrt{2H}\int_0^t(t-s)^{H-\frac12}\,\mathrm dW_s.
 ```
 
-With constant forward variance $`\xi_0>0`$, the variance and risk-neutral spot
+With constant forward variance $`\xi_0\gt 0`$, the variance and risk-neutral spot
 dynamics are
 
 ```math

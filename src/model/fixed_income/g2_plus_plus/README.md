@@ -132,7 +132,7 @@ D(0,t)
 ```
 
 For an accrual period $`[T_1,T_2]`$ with contractual year fraction
-$`\delta>0`$, define
+$`\delta\gt 0`$, define
 
 ```math
 L(t,T_1,T_2)
@@ -140,7 +140,7 @@ L(t,T_1,T_2)
 \left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
 ```
 
-For swap dates $`T_0<T_1<\cdots<T_n`$ and accrual fractions
+For swap dates $`T_0\lt T_1\lt \cdots\lt T_n`$ and accrual fractions
 $`\delta_1,\ldots,\delta_n`$, define
 
 ```math
@@ -172,7 +172,7 @@ V_{\mathrm{ZCB}}(t)=NP(t,T).
 
 **Pricing method:** Closed form.
 
-Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b>T_e`$, bond
+Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b\gt T_e`$, bond
 strike $`K_B`$, and side.
 
 Set $`\Delta_e=T_e-t`$ and define the conditional factor moments
@@ -197,7 +197,7 @@ The bond-forward log-variance is
 +2B_x(T_e,T_b)B_y(T_e,T_b)C_{xy}.
 ```
 
-Let $`\nu_B>0`$ be its positive square root and define
+Let $`\nu_B\gt 0`$ be its positive square root and define
 
 ```math
 d_1
@@ -328,7 +328,7 @@ m(x)=\mu_Y+\frac{C_{XY}}{V_X}(x-\mu_X),
 s^2=V_Y-\frac{C_{XY}^2}{V_X}.
 ```
 
-Let $`s>0`$ be the positive square root of $`s^2`$.
+Let $`s\gt 0`$ be the positive square root of $`s^2`$.
 
 For each payment date, set
 

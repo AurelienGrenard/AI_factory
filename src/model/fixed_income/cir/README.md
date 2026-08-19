@@ -33,8 +33,8 @@ The short rate follows the square-root diffusion
 \qquad r_0\geq0,
 ```
 
-where $`W`$ is a standard Brownian motion, $`\kappa>0`$ is the mean-reversion
-speed, $`\theta>0`$ is the long-run rate, and $`\sigma>0`$ is the volatility.
+where $`W`$ is a standard Brownian motion, $`\kappa\gt 0`$ is the mean-reversion
+speed, $`\theta\gt 0`$ is the long-run rate, and $`\sigma\gt 0`$ is the volatility.
 
 For an interval of length $`\Delta`$, define
 
@@ -108,7 +108,7 @@ D(0,t)=e^{-I_t}.
 ```
 
 For an accrual period $`[T_1,T_2]`$ with contractual year fraction
-$`\delta>0`$, define
+$`\delta\gt 0`$, define
 
 ```math
 L(t,T_1,T_2)
@@ -116,7 +116,7 @@ L(t,T_1,T_2)
 \left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
 ```
 
-For swap dates $`T_0<T_1<\cdots<T_n`$ and accrual fractions
+For swap dates $`T_0\lt T_1\lt \cdots\lt T_n`$ and accrual fractions
 $`\delta_1,\ldots,\delta_n`$, define
 
 ```math
@@ -147,7 +147,7 @@ V_{\mathrm{ZCB}}(t)=NP(t,T).
 
 **Pricing method:** Closed form.
 
-Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b>T_e`$, bond
+Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b\gt T_e`$, bond
 strike $`K_B`$, and side.
 
 Define the expiry-to-maturity bond coefficients and critical short rate by
