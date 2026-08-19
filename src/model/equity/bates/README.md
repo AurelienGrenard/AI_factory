@@ -1,271 +1,274 @@
 # Bates
 
-| At a glance | Value |
-|---|---|
-| Process | Heston stochastic variance + lognormal jumps |
-| Transition | Heston QE-M + exact compound-Poisson interval sum |
-| Path state | `log_spot`, `variance` |
-| Random laws | Normal + uniform + Poisson |
-| Pricing | Monte Carlo, one block per price |
-| Early exercise | Longstaff–Schwartz |
-
-## Role and reference
-
-This directory extends Heston with independent compound-Poisson lognormal
-jumps:
+<details>
+<summary>Implementation</summary>
 
 ```text
-dS_t / S_(t-) = (r - q - lambda E[J-1]) dt
-                + sqrt(v_t) dW_t^S + (J-1) dN_t,
-```
-
-while `v_t` follows the Heston CIR variance process. See
-[Bates (1996)](https://doi.org/10.1093/rfs/9.1.69). The diffusion part uses
-Andersen QE-M.
-
-`W^S` and `W^v` are the correlated Brownian motions defined by Heston. `N` is
-a Poisson process with intensity `lambda`. At a jump, the spot is multiplied
-by `J = exp(Y)`, where the independent jump logs are
-`Y ~ Normal(mu_J, sigma_J^2)`. The Poisson process, jump sizes, and Heston
-Brownian motions are mutually independent. The drift subtracts
-`lambda E[J-1]` to preserve the discounted martingale.
-
-## Formula index
-
-- [Dynamics and simulation](#dynamics-interface)
-- [Pricing convention](#pricing-convention)
-- [Terminal and two-time payoffs](#terminal-and-two-time-payoffs)
-- [Averages and extrema](#averages-and-extrema)
-- [Barrier and touch products](#barrier-and-touch-products)
-- [Structured coupons](#structured-coupons)
-- [American option — Longstaff–Schwartz](#american-option)
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load Heston-plus-jump rows.
-- [`dynamics.cuh`](dynamics.cuh) / [`dynamics.cu`](dynamics.cu) combine Heston QE-M with exact compound-Poisson increments.
-- each other `<product>.cuh/.cu` pair owns one Monte Carlo launcher.
-
-## Dataset row
-
-| Symbol | Dataset field |
-|---|---|
-| $S_0$ | `spot` |
-| $r$ | `risk_free_rate` |
-| $q$ | `dividend_yield` |
-| $v_0$ | `initial_variance` |
-| $\kappa$ | `kappa` |
-| $\theta$ | `theta` |
-| $\gamma$ | `gamma` |
-| $\rho$ | `rho` |
-| $\lambda$ | `jump_intensity` |
-| $\mu_J$ | `jump_log_mean` |
-| $\sigma_J$ | `jump_log_volatility` |
-
-## Prepared parameters and state
-
-| Prepared field | Derived from |
-|---|---|
-| `heston` | Prepared Heston QE-M parameters |
-| `poisson_mean` | $\lambda\Delta t$ |
-| `poisson_zero_probability` | $e^{-\lambda\Delta t}$ |
-| `jump_log_mean` | $\mu_J$ |
-| `jump_log_volatility` | $\sigma_J$ |
-| `jump_compensator` | $\lambda E[J-1]\Delta t$ |
-
-`BatesState` is exactly `HestonState`: `log_spot` and `variance`.
-
-## Dynamics interface
-
-| Function | Role |
-|---|---|
-| `prepare_model` | Precompute Heston and jump laws for one step |
-| `initial_state` | Build the time-zero register state |
-| `one_step_transition` | Apply one transition from caller-supplied variates |
-| `simulate_terminal_state` | Return only the maturity state |
-| `simulate_mean_state` | Return only the arithmetic mean |
-| `simulate_geometric_mean_state` | Return only the geometric mean |
-| `simulate_at_two_times` | Return only two requested boundary spots |
-| `simulate_maximum_state` | Return only the monitored maximum |
-| `simulate_on_regular_grid` | Store only requested dated state fields |
-
-For a payoff that observes only an interval boundary, the code simulates all
-Heston QE steps and draws one Poisson count for the whole interval. Conditional
-on that count, the sum of lognormal jump logs is one Gaussian draw. Fully
-pathwise payoffs retain the one-step transition. This removes unnecessary
-Poisson simulations without changing the boundary law.
-
-<details>
-<summary>Exact dynamics signatures</summary>
-
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-BatesQeParameters prepare_model(const BatesModelParameters&, float maturity, std::size_t steps);
-BatesState initial_state(const BatesQeParameters&);
-void one_step_transition(const BatesQeParameters&, float variance_normal, float variance_uniform, float stock_normal, std::uint32_t jump_count, float jump_normal, BatesState&);
-BatesState simulate_terminal_state(const BatesQeParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-BatesMeanPathResult simulate_mean_state(const BatesQeParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-BatesGeometricMeanPathResult simulate_geometric_mean_state(const BatesQeParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-BatesTwoTimePathResult simulate_at_two_times(const BatesQeParameters& first, const BatesQeParameters& second, philox::PhiloxKey, std::size_t path, std::size_t first_steps, std::size_t second_steps);
-BatesMaximumPathResult simulate_maximum_state(const BatesQeParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-BatesState simulate_on_regular_grid(const BatesQeParameters& stub, const BatesQeParameters& regular, philox::PhiloxKey, std::size_t path, std::uint32_t stub_steps, std::uint32_t steps_per_exercise, std::uint32_t exercise_count, std::size_t path_count, float* spots, float* variances);
+bates/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── dynamics.cuh
+├── dynamics.cu
+├── american_option.cu
+├── american_option.cuh
+├── asian_option.cu
+├── asian_option.cuh
+├── asset_or_nothing_option.cu
+├── asset_or_nothing_option.cuh
+├── athena_autocall.cu
+├── athena_autocall.cuh
+├── cliquet.cu
+├── cliquet.cuh
+├── digital_option.cu
+├── digital_option.cuh
+├── double_knock_out_option.cu
+├── double_knock_out_option.cuh
+├── down_and_in_option.cu
+├── down_and_in_option.cuh
+├── down_and_out_option.cu
+├── down_and_out_option.cuh
+├── european_option.cu
+├── european_option.cuh
+├── forward_start_option.cu
+├── forward_start_option.cuh
+├── gap_option.cu
+├── gap_option.cuh
+├── geometric_asian_option.cu
+├── geometric_asian_option.cuh
+├── lookback_option.cu
+├── lookback_option.cuh
+├── phoenix_autocall.cu
+├── phoenix_autocall.cuh
+├── phoenix_memory_autocall.cu
+├── phoenix_memory_autocall.cuh
+├── range_accrual.cu
+├── range_accrual.cuh
+├── straddle.cu
+├── straddle.cuh
+├── up_and_in_option.cu
+├── up_and_in_option.cuh
+├── up_and_out_option.cu
+├── up_and_out_option.cuh
+├── up_no_touch.cu
+├── up_no_touch.cuh
+├── up_one_touch.cu
+└── up_one_touch.cuh
 ```
 
 </details>
 
-## Random-number strategy
+[Dynamics](#dynamics) · [Products](#products)
 
-Each path owns one `philox::UniformSequence(key, path)` and one normal cache.
-The Poisson count is obtained by CDF inversion; the jump normal is drawn only
-when the count is nonzero. Variable consumption remains local to the path.
+## Dynamics
 
-## Pricing convention
+Bates combines the Heston variance process with independent lognormal jumps:
 
-Let \(\varepsilon=+1\) for a call and \(\varepsilon=-1\) for a put. For
-maturity \(T\), the risk-neutral price of a payoff \(H\) is
+```math
+\frac{\mathrm dS_t}{S_{t^-}}
+=\left(r-q-\lambda\kappa_J\right)\mathrm dt
++\sqrt{v_t}\,\mathrm dW_t^S
++\left(e^Y-1\right)\mathrm dN_t,
+```
 
-$$
-V_0=\mathbb E^{\mathbb Q}[e^{-rT}H].
-$$
-
-A Monte Carlo launcher evaluates
-
-$$
-\widehat V_0=\frac1M\sum_{m=1}^M e^{-rT}H^{(m)},
-$$
-
-and returns both \(\widehat V_0\) and its sampling standard error. Products
-with intermediate payments discount each cashflow at its own payment date.
-The monitoring grid is \(0=t_0<t_1<\cdots<t_J=T\); \(\Delta_o\) denotes
-the product observation interval.
-
-## Terminal and two-time payoffs
-
-| Product | Product parameters | Payoff \(H\) | Pricing |
-|---|---|---|---|
-| European option | strike \(K\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\) | Monte Carlo |
-| Digital option | strike \(K\), maturity \(T\), cash payoff \(Q\) | \(Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Asset-or-nothing option | strike \(K\), maturity \(T\) | \(S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Straddle | strike \(K\), maturity \(T\) | \(|S_T-K|\) | Monte Carlo |
-| Gap option | trigger \(K_1\), payoff strike \(K_2\), maturity \(T\) | \(\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}\) | Monte Carlo |
-| Forward-start option | moneyness \(m\), reset \(T_r\), maturity \(T\) | \([\varepsilon(S_T-mS_{T_r})]^+\) | Monte Carlo |
-
-## Averages and extrema
-
-Define
-
-$$
-\bar S_A=\frac1{J+1}\sum_{j=0}^J S_{t_j},
+```math
+\mathrm dv_t
+=\kappa(\theta-v_t)\,\mathrm dt
++\gamma\sqrt{v_t}\,\mathrm dW_t^v,
 \qquad
-\bar S_G=\exp\!\left(\frac1{J+1}\sum_{j=0}^J\log S_{t_j}\right),
+\mathrm d\langle W^S,W^v\rangle_t=\rho\,\mathrm dt.
+```
+
+The Poisson process $N$ has intensity $\lambda$ and is independent of the
+Brownian motions. Jump log-sizes satisfy
+
+```math
+Y\sim\mathcal N(\mu_J,\sigma_J^2),
 \qquad
-M_T=\max_{0\le j\le J}S_{t_j}.
-$$
+\kappa_J=\mathbb E[e^Y-1]
+=e^{\mu_J+\sigma_J^2/2}-1.
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+Over an interval of length $\Delta$, the jump count satisfies
+$N_\Delta\sim\mathrm{Poisson}(\lambda\Delta)$. Conditional on
+$N_\Delta=n$, the total log jump is normal with mean $n\mu_J$ and variance
+$n\sigma_J^2$. The Heston component uses QE-M; the jump sum is exact at
+observation boundaries.
+
+| Symbol | Dataset field | Meaning |
+|---:|---|---|
+| $S_0$ | `spot` | Initial spot |
+| $r$ | `risk_free_rate` | Risk-free rate |
+| $q$ | `dividend_yield` | Dividend yield |
+| $v_0$ | `initial_variance` | Initial variance |
+| $\kappa$ | `kappa` | Variance mean reversion |
+| $\theta$ | `theta` | Long-run variance |
+| $\gamma$ | `gamma` | Volatility of variance |
+| $\rho$ | `rho` | Brownian correlation |
+| $\lambda$ | `jump_intensity` | Jump intensity |
+| $\mu_J$ | `jump_log_mean` | Mean log jump |
+| $\sigma_J$ | `jump_log_volatility` | Log-jump volatility |
+
+The model follows [Bates (1996)](https://doi.org/10.1093/rfs/9.1.69).
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$. Let
+$\mathbf 1_{\{A\}}$ equal one when condition $A$ holds and zero otherwise, and
+set $\varepsilon=1$ for a call and $\varepsilon=-1$ for a put.
+
+Let $\mathbb Q$ denote the risk-neutral measure. For a maturity-$T$ payoff
+$H$, its value is
+
+```math
+V_0=\mathbb E^{\mathbb Q}\!\left[e^{-rT}H\right].
+```
+
+For an MC product, $M$ independent paths give
+
+```math
+\widehat V_0
+=\frac{1}{M}\sum_{m=1}^{M}e^{-rT}H^{(m)},
+```
+
+where $H^{(m)}$ is the payoff generated by path $m$. Intermediate cashflows
+are discounted at their own payment dates. For path-dependent options, let
+
+```math
+0=u_0<u_1<\cdots<u_N=T
+```
+
+be the simulation grid selected by the pricing configuration.
+
+### Vanilla, digital, gap, and forward-start options
+
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| Arithmetic Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_A-K)]^+\) | Monte Carlo |
-| Geometric Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_G-K)]^+\) | Monte Carlo |
-| Fixed-strike lookback call | strike \(K\), maturity \(T\) | \([M_T-K]^+\) | Monte Carlo |
+| European option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+$ |
+| Digital option | MC | strike $K$, cash amount $Q$, maturity $T$, side $\varepsilon$ | $Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Asset-or-nothing option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Straddle | MC | strike $K$, maturity $T$ | $\lvert S_T-K\rvert$ |
+| Gap option | MC | trigger $K_1$, payoff strike $K_2$, maturity $T$, side $\varepsilon$ | $\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}$ |
+| Forward-start option | MC | reset $T_r$, moneyness $m$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-mS_{T_r})]^+$ |
 
-Both averages include issuance \(S_0\) and maturity \(S_T\). The observation
-count is derived from \(T\) and the numerical monitoring step.
+### Asian and lookback options
 
-## Barrier and touch products
+Define the arithmetic average, geometric average, and monitored maximum by
 
-Let
-
-$$
-I_D(B)=\mathbf 1_{\{\min_jS_{t_j}\le B\}},
+```math
+\overline S_A=\frac{1}{N+1}\sum_{n=0}^{N}S_{u_n},
 \qquad
-I_U(B)=\mathbf 1_{\{\max_jS_{t_j}\ge B\}}.
-$$
+\overline S_G=\exp\!\left(
+\frac{1}{N+1}\sum_{n=0}^{N}\log S_{u_n}
+\right),
+\qquad
+M_T=\max_{0\leq n\leq N}S_{u_n}.
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| Down-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_D(B)\) | Monte Carlo |
-| Down-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_D(B)]\) | Monte Carlo |
-| Up-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_U(B)\) | Monte Carlo |
-| Up-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_U(B)]\) | Monte Carlo |
-| Double-knock-out option | strike \(K\), lower \(B_L\), upper \(B_U\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\mathbf 1_{\{B_L<S_{t_j}<B_U,\ \forall j\}}\) | Monte Carlo |
-| Up no-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(Q[1-I_U(B)]\) paid at \(T\) | Monte Carlo |
-| Up one-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(QI_U(B)\) paid at \(T\) | Monte Carlo |
+| Arithmetic Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_A-K)]^+$ |
+| Geometric Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_G-K)]^+$ |
+| Fixed-strike lookback call | MC | strike $K$, maturity $T$ | $[M_T-K]^+$ |
 
-Barriers are monitored on the simulation grid, including issuance and
-maturity; no continuous-barrier correction is applied.
+The averages and maximum include both $S_0$ and $S_T$.
 
-## Structured coupons
+### Barrier and touch options
 
-For a cliquet with participation \(p\), local bounds
-\([f_\ell,c_\ell]\), and global bounds \([f_g,c_g]\),
+For a lower barrier $B_D$, an upper barrier $B_U$, and double barriers
+$B_L<B_H$, define
 
-$$
+```math
+I_D(B_D)=\mathbf 1_{\{\min_{0\leq n\leq N}S_{u_n}\leq B_D\}},
+\qquad
+I_U(B_U)=\mathbf 1_{\{\max_{0\leq n\leq N}S_{u_n}\geq B_U\}},
+```
+
+```math
+I_{\mathrm{DKO}}(B_L,B_H)
+=\prod_{n=0}^{N}\mathbf 1_{\{B_L<S_{u_n}<B_H\}}.
+```
+
+| Product | Pricing method | Parameters | Payoff at $T$ |
+|---|---|---|---|
+| Down-and-in option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_D(B_D)$ |
+| Down-and-out option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_D(B_D)]$ |
+| Up-and-in option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_U(B_U)$ |
+| Up-and-out option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_U(B_U)]$ |
+| Double-knock-out option | MC | strike $K$, barriers $B_L,B_H$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_{\mathrm{DKO}}(B_L,B_H)$ |
+| Up no-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $Q[1-I_U(B_U)]$ |
+| Up one-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $QI_U(B_U)$ |
+
+Monitoring is discrete and includes issuance and maturity. No
+continuous-monitoring correction is applied.
+
+For the scheduled products below, let $\Delta_o>0$ be the contractual
+observation interval, set $J=T/\Delta_o$, and define $t_j=j\Delta_o$ for
+$j=0,\ldots,J$.
+
+### Cliquet
+
+**Pricing method:** MC.
+
+Parameters: maturity $T$, interval $\Delta_o$, participation $\alpha$, local
+floor $f_\ell$, local cap $c_\ell$, global floor $f_g$, and global cap $c_g$.
+
+Define the local return and clipping function by
+
+```math
 R_j=\frac{S_{t_j}}{S_{t_{j-1}}}-1,
 \qquad
-R_{\mathrm{cliquet}}=
-\operatorname{clamp}\!\left(
-\sum_{j=1}^J\operatorname{clamp}(pR_j,f_\ell,c_\ell),
+\mathcal C(z;\ell,u)=\min\!\left(u,\max(\ell,z)\right).
+```
+
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{cliquet}}
+=1+\mathcal C\!\left(
+\sum_{j=1}^{J}\mathcal C(\alpha R_j;f_\ell,c_\ell);
 f_g,c_g
-\right),
-$$
+\right).
+```
 
-$$
-H_{\mathrm{cliquet}}=1+R_{\mathrm{cliquet}}.
-$$
+### Range accrual
 
-For a range accrual with barriers \(B_L,B_U\) and annual coupon rate \(c\),
+**Pricing method:** MC.
 
-$$
-H_{\mathrm{range}}=
-1+c\Delta_o\sum_{j=1}^J
-\mathbf 1_{\{B_L\le S_{t_j}\le B_U\}}.
-$$
+Parameters: maturity $T$, interval $\Delta_o$, lower barrier $B_L$, upper
+barrier $B_U$, and annual coupon rate $c$.
 
-| Product | Product parameters | Redemption rule | Pricing |
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{range}}
+=1+c\Delta_o\sum_{j=1}^{J}
+\mathbf 1_{\{B_L\leq S_{t_j}\leq B_U\}}.
+```
+
+### Autocalls
+
+All autocall catalogues use unit notional and normalized initial spot
+$S_0=1$.
+
+| Product | Pricing method | Parameters | Redemption rule |
 |---|---|---|---|
-| Cliquet | \(T,\Delta_o,p,f_\ell,c_\ell,f_g,c_g\) | \(1+R_{\mathrm{cliquet}}\) at \(T\) | Monte Carlo |
-| Range accrual | \(T,\Delta_o,B_L,B_U,c\) | \(H_{\mathrm{range}}\) at \(T\) | Monte Carlo |
-| Athena autocall | \(T,\Delta_o,B_A,B_P,c\) | first \(t_j<T\) with \(S_{t_j}\ge B_A\): pay \(1+ct_j\); at \(T\): pay \(1+cT\) if \(S_T\ge B_A\), \(1\) if \(B_P\le S_T<B_A\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | pay \(c\Delta_o\) when \(S_{t_j}\ge B_C\); before \(T\), \(S_{t_j}\ge B_A\) also redeems \(1\); at \(T\), redeem \(1\) if \(S_T\ge B_P\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix memory autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | missed coupons accumulate and are released when \(S_{t_j}\ge B_C\); autocall and final capital follow the Phoenix rule | Monte Carlo |
+| Athena | MC | $T,\Delta_o$, autocall barrier $B_A$, protection barrier $B_P$, annual coupon $c$ | At the first $t_j<T$ with $S_{t_j}\geq B_A$, pay $1+ct_j$. At $T$, pay $1+cT$ if $S_T\geq B_A$, $1$ if $B_P\leq S_T<B_A$, and $S_T$ otherwise. |
+| Phoenix | MC | $T,\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Pay $c\Delta_o$ whenever $S_{t_j}\geq B_C$. Before $T$, $S_{t_j}\geq B_A$ also redeems $1$. At $T$, redeem $1$ if $S_T\geq B_P$ and $S_T$ otherwise. |
+| Phoenix memory | MC | maturity $T$, interval $\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Missed coupons accumulate and are released at the next date with $S_{t_j}\geq B_C$; autocall and final capital follow the Phoenix rule. |
 
-The autocall catalogues use normalized nominal and issuance spot equal to one.
+### American option
 
-## American option
+**Pricing method:** MC — Longstaff–Schwartz.
 
-For strike \(K\), maturity \(T\), exercise interval \(\Delta_e\), and
-exercise dates \(\mathcal E=\{T-n\Delta_e,\ldots,T\}\),
+Parameters: strike $K$, maturity $T$, exercise dates
+$\mathcal E=\{t_1,\ldots,t_J\}$ with $t_J=T$, and side $\varepsilon$.
 
-$$
-h(t,S_t)=[\varepsilon(S_t-K)]^+,
-\qquad t\in\mathcal E.
-$$
+The exercise value at any $t_j\in\mathcal E$ is
 
-Longstaff–Schwartz backward induction regresses continuation values on the
-model state at each date and compares them with \(h(t,S_t)\). This is a
-Bermudan approximation to continuous American exercise.
+```math
+h(t_j,S_{t_j})=[\varepsilon(S_{t_j}-K)]^+.
+```
 
-
-## Pricing kernels
-
-All current products use the standard one-block-per-price Monte Carlo kernel:
-one `PreparedRow`, strided paths, FP64 payoff moments, block reduction, and
-FP32 price/standard error. Call and put use compile-time `OptionSide`.
-
-## Memory and numerical policy
-
-Ordinary products retain only the two-scalar state and their payoff statistic.
-Early-exercise grids use separate date-major spot and variance regions.
-Prepared interval laws avoid repeated exponentials in hot loops. Fast-math is
-forbidden.
-
-## American and Bermudan options
-
-`american_option.cuh/.cu` use the shared Longstaff–Schwartz pipeline and retain
-both spot and variance for the two-factor regression basis.
-
-Related navigation: [model catalog](../../../../catalog/model/equity/bates/),
-[validation](../../../../validation/model/equity/bates/),
-[dynamics contract](../../../../docs/cuda-model-dynamics-contract.md), and
-[American/Bermudan contract](../../../../docs/cuda-american-and-bermudan-pricing-contract.md).
+Backward induction estimates the conditional continuation value from simulated
+states at each exercise date and exercises when $h$ is larger.

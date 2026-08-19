@@ -1,266 +1,274 @@
 # Normal Inverse Gaussian
 
-| At a glance | Value |
-|---|---|
-| Process | Pure-jump Lévy process through an inverse-Gaussian clock |
-| Transition | Exact over each observation interval |
-| Path state | `log_spot` |
-| Random laws | Inverse Gaussian + normal |
-| Pricing | Monte Carlo, one block per price |
-| Early exercise | Longstaff–Schwartz |
-
-## Role and reference
-
-This directory implements the exponential Normal-Inverse-Gaussian model as a
-Brownian motion with drift evaluated on an inverse-Gaussian clock:
+<details>
+<summary>Implementation</summary>
 
 ```text
-X_t = beta G_t + W_(G_t),
-S_t = S_0 exp((r - q + omega)t + X_t).
-```
-
-`W` is a standard Brownian motion. `G` is an independent inverse-Gaussian
-subordinator. With `gamma = sqrt(alpha^2-beta^2)`, the implementation uses
-`G_t ~ IG(mean=delta t/gamma, shape=(delta t)^2)`. Conditional on `G_t`,
-`X_t` is Gaussian. `omega` is the deterministic martingale correction.
-
-The input uses the standard NIG `alpha`, `beta`, and `delta` parameters and
-derives the risk-neutral location correction. See
-[Barndorff-Nielsen (1997)](https://doi.org/10.1111/1467-9469.00045).
-
-## Formula index
-
-- [Dynamics and simulation](#dynamics-interface)
-- [Pricing convention](#pricing-convention)
-- [Terminal and two-time payoffs](#terminal-and-two-time-payoffs)
-- [Averages and extrema](#averages-and-extrema)
-- [Barrier and touch products](#barrier-and-touch-products)
-- [Structured coupons](#structured-coupons)
-- [American option — Longstaff–Schwartz](#american-option)
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load the model rows.
-- [`dynamics.cuh`](dynamics.cuh) / [`dynamics.cu`](dynamics.cu) implement exact Lévy increments and path summaries.
-- each other `<product>.cuh/.cu` pair owns one Monte Carlo launcher.
-
-## Dataset row
-
-There is no redundant free location parameter in the dataset.
-
-| Symbol | Dataset field |
-|---|---|
-| $S_0$ | `spot` |
-| $r$ | `risk_free_rate` |
-| $q$ | `dividend_yield` |
-| $\alpha$ | `alpha` |
-| $\beta$ | `beta` |
-| $\delta$ | `delta` |
-
-## Prepared parameters and state
-
-| Prepared field | Derived from |
-|---|---|
-| `initial_log_spot` | $\log S_0$ |
-| `inverse_gaussian_mean` | $\delta\Delta t/\sqrt{\alpha^2-\beta^2}$ |
-| `inverse_gaussian_shape` | $(\delta\Delta t)^2$ |
-| `beta` | $\beta$ |
-| `drift_dt` | $(r-q+\omega)\Delta t$ |
-
-The state contains only `log_spot`.
-
-## Dynamics interface
-
-| Function | Role |
-|---|---|
-| `prepare_model` | Precompute one exact interval law |
-| `initial_state` | Build the time-zero register state |
-| `one_step_transition` | Apply one transition from a clock draw and normal |
-| `simulate_terminal_state` | Return only the maturity state |
-| `simulate_mean_state` | Return only the arithmetic mean |
-| `simulate_geometric_mean_state` | Return only the geometric mean |
-| `simulate_at_two_times` | Return only two requested boundary spots |
-| `simulate_maximum_state` | Return only the monitored maximum |
-| `simulate_on_regular_grid` | Store only requested dated state fields |
-
-Every interval increment is exact. Terminal and two-time products use direct
-interval laws; monitored products advance through exact independent increments
-at observation dates. The transition receives one inverse-Gaussian clock
-increment and one normal.
-
-<details>
-<summary>Exact dynamics signatures</summary>
-
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-NormalInverseGaussianPreparedParameters prepare_model(const NormalInverseGaussianModelParameters&, float interval);
-NormalInverseGaussianPreparedParameters prepare_model(const NormalInverseGaussianModelParameters&, float maturity, std::size_t steps);
-NormalInverseGaussianState initial_state(const NormalInverseGaussianPreparedParameters&);
-void one_step_transition(const NormalInverseGaussianPreparedParameters&, float inverse_gaussian_increment, float normal, NormalInverseGaussianState&);
-NormalInverseGaussianState simulate_terminal_state(const NormalInverseGaussianPreparedParameters&, philox::PhiloxKey, std::size_t path);
-NormalInverseGaussianMeanPathResult simulate_mean_state(const NormalInverseGaussianPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-NormalInverseGaussianGeometricMeanPathResult simulate_geometric_mean_state(const NormalInverseGaussianPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-NormalInverseGaussianTwoTimePathResult simulate_at_two_times(const NormalInverseGaussianPreparedParameters& first, const NormalInverseGaussianPreparedParameters& second, philox::PhiloxKey, std::size_t path);
-NormalInverseGaussianMaximumPathResult simulate_maximum_state(const NormalInverseGaussianPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-NormalInverseGaussianState simulate_on_regular_grid(const NormalInverseGaussianPreparedParameters& stub, const NormalInverseGaussianPreparedParameters& regular, philox::PhiloxKey, std::size_t path, std::uint32_t exercise_count, std::size_t path_count, float* spots);
+normal_inverse_gaussian/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── dynamics.cuh
+├── dynamics.cu
+├── american_option.cu
+├── american_option.cuh
+├── asian_option.cu
+├── asian_option.cuh
+├── asset_or_nothing_option.cu
+├── asset_or_nothing_option.cuh
+├── athena_autocall.cu
+├── athena_autocall.cuh
+├── cliquet.cu
+├── cliquet.cuh
+├── digital_option.cu
+├── digital_option.cuh
+├── double_knock_out_option.cu
+├── double_knock_out_option.cuh
+├── down_and_in_option.cu
+├── down_and_in_option.cuh
+├── down_and_out_option.cu
+├── down_and_out_option.cuh
+├── european_option.cu
+├── european_option.cuh
+├── forward_start_option.cu
+├── forward_start_option.cuh
+├── gap_option.cu
+├── gap_option.cuh
+├── geometric_asian_option.cu
+├── geometric_asian_option.cuh
+├── lookback_option.cu
+├── lookback_option.cuh
+├── phoenix_autocall.cu
+├── phoenix_autocall.cuh
+├── phoenix_memory_autocall.cu
+├── phoenix_memory_autocall.cuh
+├── range_accrual.cu
+├── range_accrual.cuh
+├── straddle.cu
+├── straddle.cuh
+├── up_and_in_option.cu
+├── up_and_in_option.cuh
+├── up_and_out_option.cu
+├── up_and_out_option.cuh
+├── up_no_touch.cu
+├── up_no_touch.cuh
+├── up_one_touch.cu
+└── up_one_touch.cuh
 ```
 
 </details>
 
-## Random-number strategy
+[Dynamics](#dynamics) · [Products](#products)
 
-Each path owns one `philox::UniformSequence(key, path)` and one normal cache.
-The clock uses the Michael–Schucany–Haas generator
-([Michael, Schucany, and Haas, 1976](https://doi.org/10.1080/00031305.1976.10479147))
-on that same stream; the subordinated Brownian draw follows from the same
-normal cache.
+## Dynamics
 
-## Pricing convention
+Let $W$ be a Brownian motion and $G$ an independent
+inverse-Gaussian subordinator. Define
 
-Let \(\varepsilon=+1\) for a call and \(\varepsilon=-1\) for a put. For
-maturity \(T\), the risk-neutral price of a payoff \(H\) is
-
-$$
-V_0=\mathbb E^{\mathbb Q}[e^{-rT}H].
-$$
-
-A Monte Carlo launcher evaluates
-
-$$
-\widehat V_0=\frac1M\sum_{m=1}^M e^{-rT}H^{(m)},
-$$
-
-and returns both \(\widehat V_0\) and its sampling standard error. Products
-with intermediate payments discount each cashflow at its own payment date.
-The monitoring grid is \(0=t_0<t_1<\cdots<t_J=T\); \(\Delta_o\) denotes
-the product observation interval.
-
-## Terminal and two-time payoffs
-
-| Product | Product parameters | Payoff \(H\) | Pricing |
-|---|---|---|---|
-| European option | strike \(K\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\) | Monte Carlo |
-| Digital option | strike \(K\), maturity \(T\), cash payoff \(Q\) | \(Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Asset-or-nothing option | strike \(K\), maturity \(T\) | \(S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Straddle | strike \(K\), maturity \(T\) | \(|S_T-K|\) | Monte Carlo |
-| Gap option | trigger \(K_1\), payoff strike \(K_2\), maturity \(T\) | \(\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}\) | Monte Carlo |
-| Forward-start option | moneyness \(m\), reset \(T_r\), maturity \(T\) | \([\varepsilon(S_T-mS_{T_r})]^+\) | Monte Carlo |
-
-## Averages and extrema
-
-Define
-
-$$
-\bar S_A=\frac1{J+1}\sum_{j=0}^J S_{t_j},
+```math
+\gamma=\sqrt{\alpha^2-\beta^2},
 \qquad
-\bar S_G=\exp\!\left(\frac1{J+1}\sum_{j=0}^J\log S_{t_j}\right),
-\qquad
-M_T=\max_{0\le j\le J}S_{t_j}.
-$$
+G_\Delta\sim
+\mathrm{IG}\!\left(
+\frac{\delta\Delta}{\gamma},
+(\delta\Delta)^2
+\right),
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+where the two inverse-Gaussian arguments are its mean and shape. For
+$Z\sim\mathcal N(0,1)$ independent of $G_\Delta$, the exact log-price
+increment is
+
+```math
+\log S_{t+\Delta}
+=\log S_t+(r-q+\omega)\Delta
++\beta G_\Delta+\sqrt{G_\Delta}\,Z,
+```
+
+with martingale correction
+
+```math
+\omega
+=\delta\left(
+\sqrt{\alpha^2-(\beta+1)^2}
+-\sqrt{\alpha^2-\beta^2}
+\right).
+```
+
+The admissibility condition is $\alpha>|\beta+1|$.
+
+The state is $\log S_t$ and exact independent increments are sampled directly
+between requested dates.
+
+| Symbol | Dataset field | Meaning |
+|---:|---|---|
+| $S_0$ | `spot` | Initial spot |
+| $r$ | `risk_free_rate` | Risk-free rate |
+| $q$ | `dividend_yield` | Dividend yield |
+| $\alpha$ | `alpha` | Tail parameter |
+| $\beta$ | `beta` | Asymmetry parameter |
+| $\delta$ | `delta` | Scale parameter |
+
+The model follows [Barndorff-Nielsen (1997)](https://doi.org/10.1111/1467-9469.00045).
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$. Let
+$\mathbf 1_{\{A\}}$ equal one when condition $A$ holds and zero otherwise, and
+set $\varepsilon=1$ for a call and $\varepsilon=-1$ for a put.
+
+Let $\mathbb Q$ denote the risk-neutral measure. For a maturity-$T$ payoff
+$H$, its value is
+
+```math
+V_0=\mathbb E^{\mathbb Q}\!\left[e^{-rT}H\right].
+```
+
+For an MC product, $M$ independent paths give
+
+```math
+\widehat V_0
+=\frac{1}{M}\sum_{m=1}^{M}e^{-rT}H^{(m)},
+```
+
+where $H^{(m)}$ is the payoff generated by path $m$. Intermediate cashflows
+are discounted at their own payment dates. For path-dependent options, let
+
+```math
+0=u_0<u_1<\cdots<u_N=T
+```
+
+be the simulation grid selected by the pricing configuration.
+
+### Vanilla, digital, gap, and forward-start options
+
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| Arithmetic Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_A-K)]^+\) | Monte Carlo |
-| Geometric Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_G-K)]^+\) | Monte Carlo |
-| Fixed-strike lookback call | strike \(K\), maturity \(T\) | \([M_T-K]^+\) | Monte Carlo |
+| European option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+$ |
+| Digital option | MC | strike $K$, cash amount $Q$, maturity $T$, side $\varepsilon$ | $Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Asset-or-nothing option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Straddle | MC | strike $K$, maturity $T$ | $\lvert S_T-K\rvert$ |
+| Gap option | MC | trigger $K_1$, payoff strike $K_2$, maturity $T$, side $\varepsilon$ | $\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}$ |
+| Forward-start option | MC | reset $T_r$, moneyness $m$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-mS_{T_r})]^+$ |
 
-Both averages include issuance \(S_0\) and maturity \(S_T\). The observation
-count is derived from \(T\) and the numerical monitoring step.
+### Asian and lookback options
 
-## Barrier and touch products
+Define the arithmetic average, geometric average, and monitored maximum by
 
-Let
-
-$$
-I_D(B)=\mathbf 1_{\{\min_jS_{t_j}\le B\}},
+```math
+\overline S_A=\frac{1}{N+1}\sum_{n=0}^{N}S_{u_n},
 \qquad
-I_U(B)=\mathbf 1_{\{\max_jS_{t_j}\ge B\}}.
-$$
+\overline S_G=\exp\!\left(
+\frac{1}{N+1}\sum_{n=0}^{N}\log S_{u_n}
+\right),
+\qquad
+M_T=\max_{0\leq n\leq N}S_{u_n}.
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| Down-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_D(B)\) | Monte Carlo |
-| Down-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_D(B)]\) | Monte Carlo |
-| Up-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_U(B)\) | Monte Carlo |
-| Up-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_U(B)]\) | Monte Carlo |
-| Double-knock-out option | strike \(K\), lower \(B_L\), upper \(B_U\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\mathbf 1_{\{B_L<S_{t_j}<B_U,\ \forall j\}}\) | Monte Carlo |
-| Up no-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(Q[1-I_U(B)]\) paid at \(T\) | Monte Carlo |
-| Up one-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(QI_U(B)\) paid at \(T\) | Monte Carlo |
+| Arithmetic Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_A-K)]^+$ |
+| Geometric Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_G-K)]^+$ |
+| Fixed-strike lookback call | MC | strike $K$, maturity $T$ | $[M_T-K]^+$ |
 
-Barriers are monitored on the simulation grid, including issuance and
-maturity; no continuous-barrier correction is applied.
+The averages and maximum include both $S_0$ and $S_T$.
 
-## Structured coupons
+### Barrier and touch options
 
-For a cliquet with participation \(p\), local bounds
-\([f_\ell,c_\ell]\), and global bounds \([f_g,c_g]\),
+For a lower barrier $B_D$, an upper barrier $B_U$, and double barriers
+$B_L<B_H$, define
 
-$$
+```math
+I_D(B_D)=\mathbf 1_{\{\min_{0\leq n\leq N}S_{u_n}\leq B_D\}},
+\qquad
+I_U(B_U)=\mathbf 1_{\{\max_{0\leq n\leq N}S_{u_n}\geq B_U\}},
+```
+
+```math
+I_{\mathrm{DKO}}(B_L,B_H)
+=\prod_{n=0}^{N}\mathbf 1_{\{B_L<S_{u_n}<B_H\}}.
+```
+
+| Product | Pricing method | Parameters | Payoff at $T$ |
+|---|---|---|---|
+| Down-and-in option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_D(B_D)$ |
+| Down-and-out option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_D(B_D)]$ |
+| Up-and-in option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_U(B_U)$ |
+| Up-and-out option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_U(B_U)]$ |
+| Double-knock-out option | MC | strike $K$, barriers $B_L,B_H$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_{\mathrm{DKO}}(B_L,B_H)$ |
+| Up no-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $Q[1-I_U(B_U)]$ |
+| Up one-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $QI_U(B_U)$ |
+
+Monitoring is discrete and includes issuance and maturity. No
+continuous-monitoring correction is applied.
+
+For the scheduled products below, let $\Delta_o>0$ be the contractual
+observation interval, set $J=T/\Delta_o$, and define $t_j=j\Delta_o$ for
+$j=0,\ldots,J$.
+
+### Cliquet
+
+**Pricing method:** MC.
+
+Parameters: maturity $T$, interval $\Delta_o$, participation $\alpha$, local
+floor $f_\ell$, local cap $c_\ell$, global floor $f_g$, and global cap $c_g$.
+
+Define the local return and clipping function by
+
+```math
 R_j=\frac{S_{t_j}}{S_{t_{j-1}}}-1,
 \qquad
-R_{\mathrm{cliquet}}=
-\operatorname{clamp}\!\left(
-\sum_{j=1}^J\operatorname{clamp}(pR_j,f_\ell,c_\ell),
+\mathcal C(z;\ell,u)=\min\!\left(u,\max(\ell,z)\right).
+```
+
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{cliquet}}
+=1+\mathcal C\!\left(
+\sum_{j=1}^{J}\mathcal C(\alpha R_j;f_\ell,c_\ell);
 f_g,c_g
-\right),
-$$
+\right).
+```
 
-$$
-H_{\mathrm{cliquet}}=1+R_{\mathrm{cliquet}}.
-$$
+### Range accrual
 
-For a range accrual with barriers \(B_L,B_U\) and annual coupon rate \(c\),
+**Pricing method:** MC.
 
-$$
-H_{\mathrm{range}}=
-1+c\Delta_o\sum_{j=1}^J
-\mathbf 1_{\{B_L\le S_{t_j}\le B_U\}}.
-$$
+Parameters: maturity $T$, interval $\Delta_o$, lower barrier $B_L$, upper
+barrier $B_U$, and annual coupon rate $c$.
 
-| Product | Product parameters | Redemption rule | Pricing |
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{range}}
+=1+c\Delta_o\sum_{j=1}^{J}
+\mathbf 1_{\{B_L\leq S_{t_j}\leq B_U\}}.
+```
+
+### Autocalls
+
+All autocall catalogues use unit notional and normalized initial spot
+$S_0=1$.
+
+| Product | Pricing method | Parameters | Redemption rule |
 |---|---|---|---|
-| Cliquet | \(T,\Delta_o,p,f_\ell,c_\ell,f_g,c_g\) | \(1+R_{\mathrm{cliquet}}\) at \(T\) | Monte Carlo |
-| Range accrual | \(T,\Delta_o,B_L,B_U,c\) | \(H_{\mathrm{range}}\) at \(T\) | Monte Carlo |
-| Athena autocall | \(T,\Delta_o,B_A,B_P,c\) | first \(t_j<T\) with \(S_{t_j}\ge B_A\): pay \(1+ct_j\); at \(T\): pay \(1+cT\) if \(S_T\ge B_A\), \(1\) if \(B_P\le S_T<B_A\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | pay \(c\Delta_o\) when \(S_{t_j}\ge B_C\); before \(T\), \(S_{t_j}\ge B_A\) also redeems \(1\); at \(T\), redeem \(1\) if \(S_T\ge B_P\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix memory autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | missed coupons accumulate and are released when \(S_{t_j}\ge B_C\); autocall and final capital follow the Phoenix rule | Monte Carlo |
+| Athena | MC | $T,\Delta_o$, autocall barrier $B_A$, protection barrier $B_P$, annual coupon $c$ | At the first $t_j<T$ with $S_{t_j}\geq B_A$, pay $1+ct_j$. At $T$, pay $1+cT$ if $S_T\geq B_A$, $1$ if $B_P\leq S_T<B_A$, and $S_T$ otherwise. |
+| Phoenix | MC | $T,\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Pay $c\Delta_o$ whenever $S_{t_j}\geq B_C$. Before $T$, $S_{t_j}\geq B_A$ also redeems $1$. At $T$, redeem $1$ if $S_T\geq B_P$ and $S_T$ otherwise. |
+| Phoenix memory | MC | maturity $T$, interval $\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Missed coupons accumulate and are released at the next date with $S_{t_j}\geq B_C$; autocall and final capital follow the Phoenix rule. |
 
-The autocall catalogues use normalized nominal and issuance spot equal to one.
+### American option
 
-## American option
+**Pricing method:** MC — Longstaff–Schwartz.
 
-For strike \(K\), maturity \(T\), exercise interval \(\Delta_e\), and
-exercise dates \(\mathcal E=\{T-n\Delta_e,\ldots,T\}\),
+Parameters: strike $K$, maturity $T$, exercise dates
+$\mathcal E=\{t_1,\ldots,t_J\}$ with $t_J=T$, and side $\varepsilon$.
 
-$$
-h(t,S_t)=[\varepsilon(S_t-K)]^+,
-\qquad t\in\mathcal E.
-$$
+The exercise value at any $t_j\in\mathcal E$ is
 
-Longstaff–Schwartz backward induction regresses continuation values on the
-model state at each date and compares them with \(h(t,S_t)\). This is a
-Bermudan approximation to continuous American exercise.
+```math
+h(t_j,S_{t_j})=[\varepsilon(S_{t_j}-K)]^+.
+```
 
-
-## Pricing kernels
-
-All current products use the standard one-block-per-price Monte Carlo kernel:
-one prepared row, strided paths, FP64 moment accumulation, block reduction,
-and FP32 outputs. Call/put is a compile-time `OptionSide`.
-
-## Memory and numerical policy
-
-The evolving state is one scalar. Path summaries retain only their requested
-statistic and early-exercise grids store spots only. Exact interval laws avoid
-artificial `dt` for terminal claims. Fast-math is forbidden.
-
-## American and Bermudan options
-
-`american_option.cuh/.cu` use the shared Longstaff–Schwartz pipeline and a
-spot-only exercise grid.
-
-Related navigation: [model catalog](../../../../catalog/model/equity/normal_inverse_gaussian/),
-[validation infrastructure](../../../../validation/),
-[dynamics contract](../../../../docs/cuda-model-dynamics-contract.md), and
-[American/Bermudan contract](../../../../docs/cuda-american-and-bermudan-pricing-contract.md).
+Backward induction estimates the conditional continuation value from simulated
+states at each exercise date and exercises when $h$ is larger.

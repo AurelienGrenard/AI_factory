@@ -1,57 +1,70 @@
 # Shared mean-reverting Gaussian formulas
 
-## Role and reference
+<details>
+<summary>Implementation</summary>
 
-This directory contains model-level mathematics shared by several fixed-income
-models. It is distinct from repository-wide `src/common`: these helpers are
-specific to mean-reverting Gaussian factors.
+```text
+common/
+├── README.md
+└── mean_reverting_gaussian.cuh
+```
 
-## Files
+</details>
 
-[`mean_reverting_gaussian.cuh`](mean_reverting_gaussian.cuh) supplies stable conditional moments for one
-centered Ornstein–Uhlenbeck factor. It is used by Ornstein–Uhlenbeck, Vasicek,
-and both factors of G2/G2++.
+[Core formulas](#core-formulas)
 
-## Dataset row
+## Core formulas
 
-There is no dataset row in this directory. Callers pass mean reversion,
-volatility, interval length, and—when already available—the exponential decay.
+For a centered Ornstein–Uhlenbeck factor
 
-## Prepared parameters and state
+```math
+\mathrm dx_t=-a x_t\,\mathrm dt+\sigma\,\mathrm dW_t,
+```
 
-The helpers return scalar loadings and variances rather than owning a model or
-state. This keeps each calling model's public structures explicit while
-centralizing only identical mathematics.
+where $W$ is a standard Brownian motion, $a>0$, and $\sigma>0$. Let
+$\mathbb E_t$, $\mathrm{Var}_t$, and $\mathrm{Cov}_t$ denote moments
+conditional on $x_t$. For one transition interval $\Delta>0$, define
 
-## Dynamics interface
+```math
+q=e^{-a\Delta},
+\qquad
+B_\Delta=\frac{1-q}{a}.
+```
 
-The file provides the decay, exact endpoint variance, integral loading,
-integral variance, and state/integral covariance needed to assemble exact
-Gaussian transitions. Variants accepting precomputed decay let callers reuse
-one `exp(-a dt)` across several moments.
+The exact endpoint has conditional mean and variance
 
-## Random-number strategy
+```math
+\mathbb E_t[x_{t+\Delta}]=q x_t,
+\qquad
+V_x=\mathrm{Var}_t(x_{t+\Delta})
+=\sigma^2\frac{1-q^2}{2a}.
+```
 
-These functions are deterministic and consume no random numbers. The calling
-model applies the resulting loadings to normals from its single path-local
-Philox sequence.
+For the interval integral
 
-## Pricing kernels
+```math
+J_\Delta=\int_t^{t+\Delta}x_s\,\mathrm ds,
+```
 
-There are no kernels or launchers here. OU, Vasicek, G2, Hull–White, and G2++
-consume the formulas through their own dynamics or analytics.
+the conditional moments are
 
-## Memory and numerical policy
+```math
+\mathbb E_t[J_\Delta]=B_\Delta x_t,
+```
 
-Small-time series are used where direct expressions would subtract nearly
-equal numbers, especially for integral variances of order `dt^3`. Results stay
-FP32 because they are per-path coefficients; the formulas avoid extra model
-state and repeated transcendental work. Fast-math is forbidden.
+```math
+V_J=\mathrm{Var}_t(J_\Delta)
+=\frac{\sigma^2}{a^2}
+\left[
+\Delta-\frac{2(1-q)}{a}+\frac{1-q^2}{2a}
+\right],
+```
 
-## American and Bermudan options
+```math
+C_{xJ}=\mathrm{Cov}_t(x_{t+\Delta},J_\Delta)
+=\frac{\sigma^2}{2a^2}(1-q)^2.
+```
 
-Not applicable; this directory only supplies transition moments.
-
-Related navigation: [Ornstein–Uhlenbeck](../ornstein_uhlenbeck/),
-[Vasicek](../vasicek/), [G2](../g2/), [Hull–White](../hull_white/), and
-[G2++](../g2_plus_plus/).
+These deterministic quantities are reused by Ornstein–Uhlenbeck, Vasicek,
+Hull–White, G2, and G2++ to assemble exact Gaussian state and state-integral
+transitions.

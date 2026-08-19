@@ -1,329 +1,382 @@
 # G2++
 
-| At a glance | Value |
-|---|---|
-| Process | Two-factor Gaussian model fitted to an initial curve |
-| Transition | Exact G2 states and state/integral laws |
-| Path state | Centered factors `x`, `y`, plus deterministic `phi(t)` |
-| Random laws | Normal when simulation is requested |
-| Pricing | Closed form, one thread per price |
-| Early exercise | Not implemented |
-
-## Role and reference
-
-This directory implements the fitted two-factor Gaussian short-rate model
+<details>
+<summary>Implementation</summary>
 
 ```text
-r_t = x_t + y_t + phi(t),
-dx_t = -a x_t dt + sigma dW_t^x,
-dy_t = -b y_t dt + eta dW_t^y,
-d<W^x,W^y>_t = rho dt.
+g2_plus_plus/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── nelson_siegel/analytics.cu
+├── nelson_siegel/analytics.cuh
+├── nelson_siegel/rate_option.cu
+├── nelson_siegel/rate_option.cuh
+├── nelson_siegel/zero_coupon_bond_option.cu
+├── nelson_siegel/zero_coupon_bond_option.cuh
+├── svensson/analytics.cu
+├── svensson/analytics.cuh
+├── svensson/rate_option.cu
+├── svensson/rate_option.cuh
+├── svensson/zero_coupon_bond_option.cu
+└── svensson/zero_coupon_bond_option.cuh
+
+../g2/
+├── dynamics.cuh
+└── dynamics.cu
 ```
-
-`W^x` and `W^y` are standard Brownian motions with instantaneous correlation
-`rho`. `x` and `y` are centered Gaussian Ornstein–Uhlenbeck factors starting
-at zero. `phi(t)` is deterministic and derived from the selected initial
-curve.
-
-The deterministic shift fits the selected initial curve exactly. This is the
-two-factor counterpart of the Gaussian term-structure construction in
-[Hull and White (1990)](https://doi.org/10.1093/rfs/3.4.573).
-
-## Formula index
-
-- [Analytics — fitted two-factor Gaussian bonds](#analytics)
-- [Zero-coupon bond — fitted exponential-affine formula](#zero-coupon-bond)
-- [Zero-coupon bond option — Gaussian bond-forward projection](#zero-coupon-bond-option)
-- [Caplet / floorlet — scaled bond-option identity](#caplet--floorlet)
-- [Swap and swap rate — discounted-leg formulas](#swap-and-swap-rate)
-- [European payer swaption — conditional Gaussian quadrature](#european-payer-swaption)
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load curve-independent two-factor rows.
-- [`nelson_siegel/`](nelson_siegel/) and [`svensson/`](svensson/) contain curve-specific analytics and launchers.
-- each curve folder provides `analytics.cuh/.cu`, `rate_option.cuh/.cu`, and
-  `zero_coupon_bond_option.cuh/.cu`.
-
-There is deliberately no local dynamics file: the exact centered process is
-reused from [`../g2/dynamics.cuh`](../g2/dynamics.cuh).
-
-## Dataset row
-
-Initial factor states are zero; the initial term structure is supplied as a
-separate curve row.
-
-| Symbol | Dataset field |
-|---|---|
-| $a$ | `mean_reversion_x` |
-| $\sigma$ | `volatility_x` |
-| $b$ | `mean_reversion_y` |
-| $\eta$ | `volatility_y` |
-| $\rho$ | `correlation` |
-
-## Prepared parameters and state
-
-| Prepared field | Derived from |
-|---|---|
-| `process` | G2 process built from $a$, $\sigma$, $b$, $\eta$, and $\rho$ |
-| `initial_curve` | One Nelson–Siegel or Svensson curve row |
-
-Each curve namespace calls this structure `G2PlusPlusFittedParameters` and
-builds it with `compose_model`. The stochastic state is
-`G2State {state_x, state_y}`; `short_rate_shift` and `short_rate` reconstruct
-the fitted short rate.
-
-## Analytics
-
-In both curve namespaces,
-
-$$
-P(t,T)=A(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t},
-$$
-
-with the same factor loadings as standalone G2,
-
-$$
-B_x(t,T)=\frac{1-e^{-a(T-t)}}a,\qquad
-B_y(t,T)=\frac{1-e^{-b(T-t)}}b,
-$$
-
-and
-
-$$
-\log A(t,T)=-\int_t^T\phi(s)ds
-+\frac12\operatorname{Var}_t\!\left[\int_t^T(x_s+y_s)ds\right].
-$$
-
-`B` returns the shared `G2BondLoadings` type. At $t=0$, `log_A` reads the
-fitted curve directly; otherwise `log_A`, $B_x$, and $B_y$ are produced from
-one grouped coefficient calculation.
-
-For $I_t=\int_0^t(x_u+y_u)\,du$,
-
-$$
-D(0,t)=\exp\!\left(-I_t-\int_0^t\phi(u)\,du\right).
-$$
-
-In the single-curve convention, the same $P(t,T)$ projects forwards and
-discounts cashflows. The simple forward, swap annuity, and par swap rate are
-
-$$
-L(t,T_1,T_2)=\frac1\delta
-\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right),
-$$
-
-$$
-\operatorname{Ann}(t)=\sum_{i=1}^n\delta_iP(t,T_i),
-\qquad
-S(t;T_0,T_n)=
-\frac{P(t,T_0)-P(t,T_n)}{\operatorname{Ann}(t)}.
-$$
-
-## Zero-coupon bond
-
-For notional $N$ paid at $T$,
-
-$$
-V_{\mathrm{ZCB}}(t)
-=NP(t,T)
-=NA(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t}.
-$$
-
-The fitted shift fixes $P(0,T)$; the two-factor Gaussian transform supplies
-the conditional affine price.
-
-## Zero-coupon bond option
-
-Let $S$ be the option expiry, $T>S$ the bond maturity, $K_B$ the strike, and
-$\Delta=S-t$. Define
-
-$$
-V_x=\sigma^2\frac{1-e^{-2a\Delta}}{2a},
-\quad
-V_y=\eta^2\frac{1-e^{-2b\Delta}}{2b},
-\quad
-C_{xy}=\rho\sigma\eta\frac{1-e^{-(a+b)\Delta}}{a+b},
-$$
-
-$$
-\nu^2=B_x(S,T)^2V_x+B_y(S,T)^2V_y
-+2B_x(S,T)B_y(S,T)C_{xy}.
-$$
-
-With
-
-$$
-d_1=\frac{\log\!\left(P(t,T)/(K_BP(t,S))\right)+\nu^2/2}{\nu},
-\qquad d_2=d_1-\nu,
-$$
-
-$$
-C_{\mathrm{ZCB}}(t)=P(t,T)\Phi(d_1)-K_BP(t,S)\Phi(d_2),
-$$
-
-$$
-P_{\mathrm{ZCB}}(t)=K_BP(t,S)\Phi(-d_2)-P(t,T)\Phi(-d_1).
-$$
-
-The deterministic shift changes bond levels, not the conditional Gaussian
-bond-forward variance.
-
-## Caplet / floorlet
-
-For fixing $T_1$, payment $T_2$, accrual $\delta$, strike $K$, and notional
-$N$,
-
-$$
-\Pi_{\mathrm{caplet}}(T_2)=N\delta[L(T_1,T_1,T_2)-K]^+,
-\qquad
-\Pi_{\mathrm{floorlet}}(T_2)=N\delta[K-L(T_1,T_1,T_2)]^+.
-$$
-
-Let $K_B=(1+\delta K)^{-1}$. Then
-
-$$
-V_{\mathrm{caplet}}(t)
-=N(1+\delta K)P_{\mathrm{ZCB}}(t;T_1,T_2,K_B),
-$$
-
-$$
-V_{\mathrm{floorlet}}(t)
-=N(1+\delta K)C_{\mathrm{ZCB}}(t;T_1,T_2,K_B).
-$$
-
-## Swap and swap rate
-
-$$
-V_{\mathrm{float}}(t)
-=N\sum_{i=1}^n\delta_iL(t,T_{i-1},T_i)P(t,T_i)
-=N[P(t,T_0)-P(t,T_n)],
-$$
-
-$$
-V_{\mathrm{fixed}}(t)=NK\operatorname{Ann}(t),
-$$
-
-$$
-V_{\mathrm{payer}}(t)
-=N[P(t,T_0)-P(t,T_n)-K\operatorname{Ann}(t)]
-=N\operatorname{Ann}(t)[S(t;T_0,T_n)-K].
-$$
-
-Here $K$ is the contractual fixed rate. Setting $K=S(0;T_0,T_n)$ makes the
-swap worth zero at inception; afterward $S(t)$ moves while $K$ stays fixed.
-
-## European payer swaption
-
-**Method: planned conditional Gaussian quadrature.** At exercise and swap
-start $T_0$, set $c_i=K\delta_i+\mathbf 1_{\{i=n\}}$. Under the $T_0$-bond
-numeraire,
-
-$$
-V(t)=NP(t,T_0)\,
-\mathbb E_t^{T_0}\!\left[
-\left(1-\sum_{i=1}^nc_iP(T_0,T_i;X,Y)\right)^+
-\right].
-$$
-
-With $P(T_0,T_i;x,y)=A_i e^{-B_{x,i}x-B_{y,i}y}$, solve for every $x$
-
-$$
-\sum_{i=1}^nc_iA_i e^{-B_{x,i}x-B_{y,i}y^\star(x)}=1.
-$$
-
-If $Y\mid X=x\sim\mathcal N(m(x),s^2)$, set
-
-$$
-d_0(x)=\frac{m(x)-y^\star(x)}s,
-\qquad
-d_i(x)=\frac{m(x)-B_{y,i}s^2-y^\star(x)}s,
-$$
-
-$$
-g(x)=\Phi(d_0(x))-
-\sum_{i=1}^nc_iA_i
-e^{-B_{x,i}x-B_{y,i}m(x)+B_{y,i}^2s^2/2}\Phi(d_i(x)).
-$$
-
-The selected deterministic price is
-
-$$
-V(t)=NP(t,T_0)\int_{-\infty}^{\infty}g(x)f_X(x)\,dx,
-$$
-
-evaluated by one-dimensional Gaussian quadrature. The swaption launcher is not
-implemented yet.
-
-## Dynamics interface
-
-| Function | Role |
-|---|---|
-| `compose_model` | Combine one process row with one initial curve |
-| `short_rate_shift`, `short_rate` | Evaluate $\phi(t)$ and reconstruct $r_t$ |
-| `log_discount_factor`, `discount_factor` | Consume and exponentiate the scalar accumulated path integral |
-| `zero_coupon_bond` | Evaluate $P(t,T)$ analytically |
-| `zero_coupon_bond_call_price`, `zero_coupon_bond_put_price` | Price bond options analytically |
-| `forward_rate`, `swap_rate` | Evaluate curve-derived rates |
-| Reused G2 dynamics | Simulate exact state-only or state/integral laws |
-
-Both the correlated factor law and its joint rate integral are exact over the
-requested interval.
-
-<details>
-<summary>Exact analytics signatures</summary>
-
-The declarations below omit CUDA attributes and use `CurveParameters` for
-either supported curve type.
-
-```cpp
-G2PlusPlusFittedParameters compose_model(const G2PlusPlusModelParameters&, const CurveParameters&);
-float short_rate_shift(const G2PlusPlusFittedParameters&, float time);
-float short_rate(const G2PlusPlusFittedParameters&, const G2State&, float time);
-float log_A(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
-float A(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
-G2BondLoadings B(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
-float log_zero_coupon_bond(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float maturity);
-float log_discount_factor(const G2PlusPlusFittedParameters&, float state_integral, float time);
-float discount_factor(const G2PlusPlusFittedParameters&, float state_integral, float time);
-float zero_coupon_bond(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float maturity);
-float zero_coupon_bond_call_price(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);
-float zero_coupon_bond_put_price(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);
-float forward_rate(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float start, float end, float accrual);
-float swap_rate(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float start, const float* payment_times, const float* accruals, std::size_t payments);
-```
-
-`CurveParameters` is `NelsonSiegelParameters` or `SvenssonParameters`; the
-exact declarations are in each curve subfolder's `analytics.cuh`.
 
 </details>
 
-## Random-number strategy
+[Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
-Current pricing is closed form and consumes no random numbers. Future path
-simulation inherits the G2 rule: one `philox::UniformSequence(key, path)` and
-one normal cache for the complete path, with two normals for states or three
-for states plus integral per interval.
+## Dynamics
 
-## Pricing kernels
+The short rate is
 
-Both curve families price rate and zero-coupon-bond options with one thread per
-`(model, curve, product)` result. Files follow `PreparedRow` →
-`evaluate_price<Side>` → launcher, with compile-time call/put specialization.
+```math
+r_t=x_t+y_t+\phi(t),
+```
 
-## Memory and numerical policy
+where the centered factors satisfy
 
-The two-factor dynamics are reused rather than copied per curve. Analytical
-curve evaluation avoids term-structure arrays, exact Gaussian transitions
-avoid time stepping, and prepared Cholesky loadings avoid repeat work.
-Fast-math is forbidden.
+```math
+\mathrm dx_t=-a x_t\,\mathrm dt+\sigma\,\mathrm dW_t^x,
+\qquad
+\mathrm dy_t=-b y_t\,\mathrm dt+\eta\,\mathrm dW_t^y,
+\qquad
+\mathrm d\langle W^x,W^y\rangle_t=\rho\,\mathrm dt,
+```
 
-## American and Bermudan options
+with $x_0=y_0=0$. Let $P^M(0,T)$ be the input market discount factor and
 
-No G2++ American/Bermudan launcher is currently present.
+```math
+f^M(0,t)
+=-\left.\frac{\partial}{\partial T}\log P^M(0,T)\right|_{T=t}.
+```
 
-Related navigation: [model catalog](../../../../catalog/model/fixed_income/g2_plus_plus/),
-[validation](../../../../validation/model/fixed_income/g2_plus_plus/),
-[Nelson–Siegel curve](../../../curve/nelson_siegel/),
-[Svensson curve](../../../curve/svensson/), and
-[pricing contract](../../../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md).
+Define the time-zero integrated-factor variance
+
+```math
+\Gamma(t)
+=\mathrm{Var}\!\left[\int_0^t(x_u+y_u)\,\mathrm du\right].
+```
+
+The fitted shift is
+
+```math
+\phi(t)
+=f^M(0,t)+\frac{1}{2}\frac{\mathrm d}{\mathrm dt}\Gamma(t),
+```
+
+which enforces $P(0,T)=P^M(0,T)$. The exact G2 factor and factor-integral laws
+are reused unchanged.
+
+| Symbol | Dataset input | Meaning |
+|---:|---|---|
+| $a$ | `mean_reversion_x` | First mean reversion |
+| $\sigma$ | `volatility_x` | First volatility |
+| $b$ | `mean_reversion_y` | Second mean reversion |
+| $\eta$ | `volatility_y` | Second volatility |
+| $\rho$ | `correlation` | Brownian correlation |
+| $P^M(0,T)$ | Parametric curve | Initial discount curve |
+
+## Core formulas
+
+Let $\tau=T-t$. Define
+
+```math
+B_x(t,T)=\frac{1-e^{-a\tau}}{a},
+\qquad
+B_y(t,T)=\frac{1-e^{-b\tau}}{b}.
+```
+
+The conditional variance of the future centered-factor integral is
+
+```math
+v_I(t,T)
+=\frac{\sigma^2}{a^2}
+\left[
+\tau-\frac{2(1-e^{-a\tau})}{a}
++\frac{1-e^{-2a\tau}}{2a}
+\right]
++\frac{\eta^2}{b^2}
+\left[
+\tau-\frac{2(1-e^{-b\tau})}{b}
++\frac{1-e^{-2b\tau}}{2b}
+\right]
++2\frac{\rho\sigma\eta}{ab}
+\left[
+\tau-\frac{1-e^{-a\tau}}{a}
+-\frac{1-e^{-b\tau}}{b}
++\frac{1-e^{-(a+b)\tau}}{a+b}
+\right].
+```
+
+The zero-coupon bond is
+
+```math
+P(t,T)=A(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t},
+```
+
+```math
+\log A(t,T)
+=-\int_t^T\phi(u)\,\mathrm du+\frac{1}{2}v_I(t,T).
+```
+
+For $I_t=\int_0^t(x_u+y_u)\,\mathrm du$, define
+
+```math
+D(0,t)
+=\exp\!\left(-I_t-\int_0^t\phi(u)\,\mathrm du\right).
+```
+
+For an accrual period $[T_1,T_2]$ with contractual year fraction
+$\delta>0$, define
+
+```math
+L(t,T_1,T_2)
+=\frac{1}{\delta}
+\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
+```
+
+For swap dates $T_0<T_1<\cdots<T_n$ and accrual fractions
+$\delta_1,\ldots,\delta_n$, define
+
+```math
+A_{\mathrm{swap}}(t)
+=\sum_{i=1}^{n}\delta_iP(t,T_i),
+```
+
+```math
+S(t;T_0,T_n)
+=\frac{P(t,T_0)-P(t,T_n)}{A_{\mathrm{swap}}(t)}.
+```
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$. The function $\Phi$
+denotes the standard normal cumulative distribution function.
+
+### Zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$ and maturity $T$.
+
+```math
+V_{\mathrm{ZCB}}(t)=NP(t,T).
+```
+
+### Option on a zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, option expiry $T_e$, bond maturity $T_b>T_e$, bond
+strike $K_B$, and side.
+
+Set $\Delta_e=T_e-t$ and define the conditional factor moments
+
+```math
+V_x=\sigma^2\frac{1-e^{-2a\Delta_e}}{2a},
+\qquad
+V_y=\eta^2\frac{1-e^{-2b\Delta_e}}{2b},
+```
+
+```math
+C_{xy}
+=\rho\sigma\eta
+\frac{1-e^{-(a+b)\Delta_e}}{a+b}.
+```
+
+The bond-forward log-variance is
+
+```math
+\nu_B^2
+=B_x(T_e,T_b)^2V_x+B_y(T_e,T_b)^2V_y
++2B_x(T_e,T_b)B_y(T_e,T_b)C_{xy}.
+```
+
+Let $\nu_B>0$ be its positive square root and define
+
+```math
+d_1
+=\frac{\log\!\left(P(t,T_b)/(K_BP(t,T_e))\right)+\nu_B^2/2}{\nu_B},
+\qquad
+d_2=d_1-\nu_B.
+```
+
+The unit-notional call and put prices are
+
+```math
+c_B(t;T_e,T_b,K_B)
+=P(t,T_b)\Phi(d_1)-K_BP(t,T_e)\Phi(d_2),
+```
+
+```math
+p_B(t;T_e,T_b,K_B)
+=K_BP(t,T_e)\Phi(-d_2)-P(t,T_b)\Phi(-d_1).
+```
+
+The product value is $Nc_B$ for a call and $Np_B$ for a put.
+
+### Caplet and floorlet
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, fixing $T_1$, payment $T_2$, accrual $\delta$,
+rate strike $K$, and side.
+
+```math
+H_{\mathrm{caplet}}(T_2)
+=N\delta[L(T_1,T_1,T_2)-K]^+,
+\qquad
+H_{\mathrm{floorlet}}(T_2)
+=N\delta[K-L(T_1,T_1,T_2)]^+.
+```
+
+Define
+
+```math
+K_B=\frac{1}{1+\delta K}.
+```
+
+Then
+
+```math
+V_{\mathrm{caplet}}(t)
+=N(1+\delta K)p_B(t;T_1,T_2,K_B),
+```
+
+```math
+V_{\mathrm{floorlet}}(t)
+=N(1+\delta K)c_B(t;T_1,T_2,K_B).
+```
+
+### Swap and par swap rate
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, fixed rate $K$, start $T_0$, payment dates
+$T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+
+For $t\leq T_0$,
+
+```math
+V_{\mathrm{float}}(t)
+=N\sum_{i=1}^{n}
+\delta_iL(t,T_{i-1},T_i)P(t,T_i)
+=N[P(t,T_0)-P(t,T_n)],
+```
+
+```math
+V_{\mathrm{fixed}}(t)=NKA_{\mathrm{swap}}(t),
+```
+
+```math
+V_{\mathrm{payer}}(t)
+=N[P(t,T_0)-P(t,T_n)-KA_{\mathrm{swap}}(t)]
+=NA_{\mathrm{swap}}(t)[S(t;T_0,T_n)-K].
+```
+
+The payer receives floating and pays fixed. The contractual rate
+$K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
+
+### European payer swaption
+
+**Pricing method:** Semi-analytical — conditional Gaussian quadrature.
+
+**Status:** Planned; the pricing launcher is not implemented.
+
+Parameters: exercise and swap start $T_0$, notional $N$, fixed rate $K$,
+payment dates $T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+
+Define
+
+```math
+c_i=K\delta_i+\mathbf 1_{\{i=n\}},
+\qquad i=1,\ldots,n,
+```
+
+where $\mathbf 1_{\{i=n\}}$ equals one for $i=n$ and zero otherwise. At
+exercise, let $X=x_{T_0}$ and $Y=y_{T_0}$. Under the $T_0$-bond numeraire,
+define their conditional Gaussian law by
+
+```math
+\begin{pmatrix}X\\Y\end{pmatrix}
+\sim\mathcal N\!\left(
+\begin{pmatrix}\mu_X\\\mu_Y\end{pmatrix},
+\begin{pmatrix}V_X&C_{XY}\\C_{XY}&V_Y\end{pmatrix}
+\right).
+```
+
+The five quantities $\mu_X,\mu_Y,V_X,V_Y,C_{XY}$ are the conditional moments
+at $T_0$ produced by the exact two-factor Gaussian transition under that
+numeraire. Define the marginal density of $X$ by
+
+```math
+f_X(x)
+=\frac{1}{\sqrt{2\pi V_X}}
+\exp\!\left[-\frac{(x-\mu_X)^2}{2V_X}\right],
+```
+
+and the conditional moments of $Y$ given $X=x$ by
+
+```math
+m(x)=\mu_Y+\frac{C_{XY}}{V_X}(x-\mu_X),
+\qquad
+s^2=V_Y-\frac{C_{XY}^2}{V_X}.
+```
+
+Let $s>0$ be the positive square root of $s^2$.
+
+For each payment date, set
+
+```math
+A_i=A(T_0,T_i),
+\qquad
+B_{x,i}=B_x(T_0,T_i),
+\qquad
+B_{y,i}=B_y(T_0,T_i),
+```
+
+so that
+
+```math
+P(T_0,T_i;x,y)
+=A_i e^{-B_{x,i}x-B_{y,i}y}.
+```
+
+For every $x$, define $y^\star(x)$ as the unique solution of
+
+```math
+\sum_{i=1}^{n}
+c_iA_i e^{-B_{x,i}x-B_{y,i}y^\star(x)}=1.
+```
+
+Then define
+
+```math
+d_0(x)=\frac{m(x)-y^\star(x)}{s},
+\qquad
+d_i(x)=\frac{m(x)-B_{y,i}s^2-y^\star(x)}{s},
+```
+
+and
+
+```math
+g(x)
+=\Phi(d_0(x))
+-\sum_{i=1}^{n}
+c_iA_i
+e^{-B_{x,i}x-B_{y,i}m(x)+B_{y,i}^2s^2/2}
+\Phi(d_i(x)).
+```
+
+The time-$t$ price is the deterministic one-dimensional integral
+
+```math
+V_{\mathrm{payer\ swaption}}(t)
+=NP(t,T_0)
+\int_{-\infty}^{\infty}g(x)f_X(x)\,\mathrm dx.
+```

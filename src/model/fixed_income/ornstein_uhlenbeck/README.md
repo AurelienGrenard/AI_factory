@@ -1,320 +1,294 @@
 # Ornstein–Uhlenbeck short-rate model
 
-| At a glance | Value |
-|---|---|
-| Process | One-factor centered Gaussian short rate |
-| Transition | Exact state and state/integral laws |
-| Path state | `state`, optionally `state_integral` |
-| Random laws | Normal when simulation is requested |
-| Pricing | Closed form, one thread per price |
-| Early exercise | Not implemented |
-
-## Role and reference
-
-This directory uses a centered Ornstein–Uhlenbeck process directly as the
-short rate:
+<details>
+<summary>Implementation</summary>
 
 ```text
-dX_t = -a X_t dt + sigma dW_t,    r_t = X_t.
-```
-
-`W` is a standard Brownian motion. `X` is a centered Gaussian Markov process;
-the standalone model identifies that state directly with the short rate.
-
-The Gaussian mean-reverting process originates in
-[Uhlenbeck and Ornstein (1930)](https://doi.org/10.1103/PhysRev.36.823).
-
-## Formula index
-
-- [Analytics — Gaussian state, discounting, and affine bonds](#analytics)
-- [Zero-coupon bond — exponential-affine formula](#zero-coupon-bond)
-- [Zero-coupon bond option — expiry-bond numeraire](#zero-coupon-bond-option)
-- [Caplet / floorlet — scaled bond-option identity](#caplet--floorlet)
-- [Swap and swap rate — discounted-leg formulas](#swap-and-swap-rate)
-- [European payer swaption — Jamshidian decomposition](#european-payer-swaption)
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load the process plus initial state.
-- [`dynamics.cuh`](dynamics.cuh) / [`dynamics.cu`](dynamics.cu) implement exact state and joint state/integral transitions.
-- [`analytics.cuh`](analytics.cuh) / [`analytics.cu`](analytics.cu) provide discount, bond, forward, swap, and option formulas.
-- [`rate_option.cuh`](rate_option.cuh) / [`rate_option.cu`](rate_option.cu) and [`zero_coupon_bond_option.cuh`](zero_coupon_bond_option.cuh) / [`zero_coupon_bond_option.cu`](zero_coupon_bond_option.cu) own launchers.
-
-## Dataset row
-
-`OrnsteinUhlenbeckModelParameters` combines the process parameters with its
-initial state.
-
-| Symbol | Dataset field |
-|---|---|
-| $X_0$ | `initial_state` |
-| $a$ | `mean_reversion` |
-| $\sigma$ | `volatility` |
-
-## Prepared parameters and state
-
-| Prepared field | Derived from |
-|---|---|
-| `decay` | $e^{-a\Delta t}$ |
-| `state_standard_deviation` | $\sigma\sqrt{(1-e^{-2a\Delta t})/(2a)}$ |
-| `integral_state_loading` | Conditional mean loading of $\int X_s ds$ |
-| `integral_state_normal_loading` | Exact state/integral covariance |
-| `integral_independent_standard_deviation` | Residual integral variance |
-
-The last three fields belong to the `joint` transition.
-
-The state-only API uses one `float`. `joint::OrnsteinUhlenbeckJointState` adds
-only the accumulated integral needed for path discounting.
-
-## Dynamics interface
-
-| Function | Role |
-|---|---|
-| `integral_state_loading` | Load the current state into its future integral mean |
-| `integral_variance`, `integral_moments` | Return exact conditional integral moments |
-| `prepare_model` | Precompute an exact state transition |
-| `one_step_transition` | Apply one transition from supplied normals |
-| `simulate_terminal_state` | Apply one prepared transition directly |
-| `simulate_on_regular_grid` | Store pre-terminal date-major states |
-| `joint::*` variants | Evolve the state and accumulated integral together |
-
-All transitions are exact over the requested interval. Code needing only a
-short rate samples the state directly at observation dates. Code needing a
-discount integral uses the exact joint law; neither case requires a finer
-artificial `dt`.
-
-<details>
-<summary>Exact dynamics signatures</summary>
-
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-float integral_state_loading(float mean_reversion, float interval);
-float integral_variance(const OrnsteinUhlenbeckProcessParameters&, float interval);
-OrnsteinUhlenbeckIntegralMoments integral_moments(const OrnsteinUhlenbeckProcessParameters&, float interval);
-OrnsteinUhlenbeckExactTransition prepare_model(const OrnsteinUhlenbeckProcessParameters&, float interval);
-void one_step_transition(const OrnsteinUhlenbeckExactTransition&, float normal, float& state);
-float simulate_terminal_state(const OrnsteinUhlenbeckExactTransition&, float initial_state, float normal);
-float simulate_on_regular_grid(const OrnsteinUhlenbeckExactTransition& stub, const OrnsteinUhlenbeckExactTransition& regular, float initial_state, philox::PhiloxKey, std::size_t path, std::uint32_t observations, std::size_t path_count, float* states);
-joint::OrnsteinUhlenbeckJointExactTransition joint::prepare_model(const OrnsteinUhlenbeckProcessParameters&, float interval);
-void joint::one_step_transition(const joint::OrnsteinUhlenbeckJointExactTransition&, float state_normal, float integral_normal, joint::OrnsteinUhlenbeckJointState&);
-joint::OrnsteinUhlenbeckJointState joint::simulate_terminal_state(const joint::OrnsteinUhlenbeckJointExactTransition&, float initial_state, float state_normal, float integral_normal);
-joint::OrnsteinUhlenbeckJointState joint::simulate_on_regular_grid(const joint::OrnsteinUhlenbeckJointExactTransition& stub, const joint::OrnsteinUhlenbeckJointExactTransition& regular, float initial_state, philox::PhiloxKey, std::size_t path, std::uint32_t observations, std::size_t path_count, float* states, float* integrals);
+ornstein_uhlenbeck/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── dynamics.cuh
+├── dynamics.cu
+├── analytics.cuh
+├── analytics.cu
+├── rate_option.cu
+├── rate_option.cuh
+├── zero_coupon_bond_option.cu
+└── zero_coupon_bond_option.cuh
 ```
 
 </details>
 
-## Random-number strategy
+[Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
-Direct terminal helpers receive their normal variates from the caller.
-Regular-grid helpers create one `philox::UniformSequence(key, path)` and one
-normal cache for the complete path. The joint law consumes two normals per
-interval; the state-only law consumes one.
+## Dynamics
 
-## Analytics
+The short rate is the centered Gaussian state $r_t=x_t$, where
 
-For $\tau=T-t$, the conditional rate integral is Gaussian and
+```math
+\mathrm dx_t=-a x_t\,\mathrm dt+\sigma\,\mathrm dW_t,
+\qquad x_0\in\mathbb R.
+```
 
-$$
-B(t,T)=\frac{1-e^{-a\tau}}a,
+Here $W$ is a standard Brownian motion, $a>0$ is the mean-reversion speed, and
+$\sigma>0$ is the volatility. Over an interval of length $\Delta$,
+
+```math
+x_{t+\Delta}
+=e^{-a\Delta}x_t
++\sigma\sqrt{\frac{1-e^{-2a\Delta}}{2a}}\,Z,
+\qquad Z\sim\mathcal N(0,1).
+```
+
+The endpoint and the joint law of the endpoint with the rate integral are
+simulated exactly.
+
+| Symbol | Dataset field | Meaning |
+|---:|---|---|
+| $x_0$ | `initial_state` | Initial short rate |
+| $a$ | `mean_reversion` | Mean-reversion speed |
+| $\sigma$ | `volatility` | Volatility |
+
+The process follows [Uhlenbeck and Ornstein (1930)](https://doi.org/10.1103/PhysRev.36.823).
+
+## Core formulas
+
+Let $\tau=T-t$. Define
+
+```math
+B(t,T)=\frac{1-e^{-a\tau}}{a},
+```
+
+and the conditional variance of the future rate integral
+
+```math
+v_I(t,T)
+=\frac{\sigma^2}{a^2}
+\left[
+\tau-\frac{2(1-e^{-a\tau})}{a}
++\frac{1-e^{-2a\tau}}{2a}
+\right].
+```
+
+The zero-coupon bond is
+
+```math
+P(t,T)=A(t,T)e^{-B(t,T)x_t},
 \qquad
-V_I(t,T)=\operatorname{Var}_t\!\left[\int_t^T X_u\,du\right].
-$$
+\log A(t,T)=\frac{1}{2}v_I(t,T).
+```
 
-Consequently,
+For the accumulated integral $I_t=\int_0^t x_u\,\mathrm du$, define the path
+discount factor
 
-$$
-\log A(t,T)=\frac12V_I(t,T),
-\qquad
-P(t,T)=A(t,T)e^{-B(t,T)X_t}.
-$$
-
-For a simulated accumulated state integral $I_t=\int_0^tX_u\,du$,
-
-$$
+```math
 D(0,t)=e^{-I_t}.
-$$
+```
 
-In the single-curve convention, the same $P(t,T)$ projects forwards and
-discounts cashflows. The simple forward, swap annuity, and par swap rate are
+For an accrual period $[T_1,T_2]$ with contractual year fraction
+$\delta>0$, the single-curve forward rate is
 
-$$
-L(t,T_1,T_2)=\frac1\delta
-\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right),
-$$
+```math
+L(t,T_1,T_2)
+=\frac{1}{\delta}
+\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
+```
 
-$$
-\operatorname{Ann}(t)=\sum_{i=1}^n\delta_iP(t,T_i),
+For swap dates $T_0<T_1<\cdots<T_n$ and contractual accrual fractions
+$\delta_1,\ldots,\delta_n$, define the swap annuity and par swap rate by
+
+```math
+A_{\mathrm{swap}}(t)
+=\sum_{i=1}^{n}\delta_iP(t,T_i),
+```
+
+```math
+S(t;T_0,T_n)
+=\frac{P(t,T_0)-P(t,T_n)}{A_{\mathrm{swap}}(t)}.
+```
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$. The function $\Phi$
+denotes the standard normal cumulative distribution function.
+
+### Zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$ and maturity $T$.
+
+The bond pays $N$ at $T$, hence
+
+```math
+V_{\mathrm{ZCB}}(t)=NP(t,T).
+```
+
+### Option on a zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, option expiry $T_e$, bond maturity $T_b>T_e$, bond
+strike $K_B$, and side.
+
+Let
+
+```math
+\nu_B^2
+=B(T_e,T_b)^2\sigma^2
+\frac{1-e^{-2a(T_e-t)}}{2a},
+```
+
+and let $\nu_B>0$ be its positive square root. Define
+
+```math
+d_1
+=\frac{\log\!\left(P(t,T_b)/(K_BP(t,T_e))\right)+\nu_B^2/2}{\nu_B},
 \qquad
-S(t;T_0,T_n)=
-\frac{P(t,T_0)-P(t,T_n)}{\operatorname{Ann}(t)}.
-$$
+d_2=d_1-\nu_B.
+```
 
-These quantities are exposed by `analytics.cuh/.cu` and are the inputs to the
-product formulas below.
+The unit-notional call and put prices are
 
-## Zero-coupon bond
+```math
+c_B(t;T_e,T_b,K_B)
+=P(t,T_b)\Phi(d_1)-K_BP(t,T_e)\Phi(d_2),
+```
 
-For notional $N$ paid at $T$,
+```math
+p_B(t;T_e,T_b,K_B)
+=K_BP(t,T_e)\Phi(-d_2)-P(t,T_b)\Phi(-d_1).
+```
 
-$$
-V_{\mathrm{ZCB}}(t)=NP(t,T)=NA(t,T)e^{-B(t,T)X_t}.
-$$
+The product value is $Nc_B$ for a call and $Np_B$ for a put.
 
-The formula is the conditional Laplace transform of the Gaussian future
-short-rate integral.
+### Caplet and floorlet
 
-## Zero-coupon bond option
+**Pricing method:** Closed form.
 
-Let $S$ be the option expiry, $T>S$ the bond maturity, and $K_B$ the bond
-strike. Under the $S$-bond numeraire,
+Parameters: notional $N$, fixing $T_1$, payment $T_2$, accrual $\delta$,
+rate strike $K$, and side.
 
-$$
-\nu^2=B(S,T)^2\sigma^2
-\frac{1-e^{-2a(S-t)}}{2a},
-$$
+Their payment-date payoffs are
 
-$$
-d_1=\frac{\log\!\left(P(t,T)/(K_BP(t,S))\right)+\nu^2/2}{\nu},
-\qquad d_2=d_1-\nu.
-$$
+```math
+H_{\mathrm{caplet}}(T_2)
+=N\delta[L(T_1,T_1,T_2)-K]^+,
+```
 
-The closed-form prices are
+```math
+H_{\mathrm{floorlet}}(T_2)
+=N\delta[K-L(T_1,T_1,T_2)]^+.
+```
 
-$$
-C_{\mathrm{ZCB}}(t)=P(t,T)\Phi(d_1)-K_BP(t,S)\Phi(d_2),
-$$
+Define the equivalent bond strike
 
-$$
-P_{\mathrm{ZCB}}(t)=K_BP(t,S)\Phi(-d_2)-P(t,T)\Phi(-d_1).
-$$
+```math
+K_B=\frac{1}{1+\delta K}.
+```
 
-The expiry-bond numeraire makes the bond forward lognormal. The implementation
-uses one analytical CUDA thread per price.
+Then
 
-## Caplet / floorlet
-
-For fixing $T_1$, payment $T_2$, accrual $\delta$, strike $K$, and notional
-$N$,
-
-$$
-\Pi_{\mathrm{caplet}}(T_2)=N\delta[L(T_1,T_1,T_2)-K]^+,
-\qquad
-\Pi_{\mathrm{floorlet}}(T_2)=N\delta[K-L(T_1,T_1,T_2)]^+.
-$$
-
-Define
-
-$$
-K_B=\frac1{1+\delta K}.
-$$
-
-The exact bond-option identities are
-
-$$
+```math
 V_{\mathrm{caplet}}(t)
-=N(1+\delta K)P_{\mathrm{ZCB}}(t;T_1,T_2,K_B),
-$$
+=N(1+\delta K)p_B(t;T_1,T_2,K_B),
+```
 
-$$
+```math
 V_{\mathrm{floorlet}}(t)
-=N(1+\delta K)C_{\mathrm{ZCB}}(t;T_1,T_2,K_B).
-$$
+=N(1+\delta K)c_B(t;T_1,T_2,K_B).
+```
 
-They follow directly from the definition of
-$L(T_1,T_1,T_2)$ and reuse the analytical bond-option launcher.
+### Swap and par swap rate
 
-## Swap and swap rate
+**Pricing method:** Closed form.
 
-For a swap starting at $T_0$ with payments $T_1,\ldots,T_n$,
+Parameters: notional $N$, fixed rate $K$, start $T_0$, payment dates
+$T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
 
-$$
+For $t\leq T_0$, the payer swap receives the floating leg and pays the fixed
+leg. The floating leg is
+
+```math
 V_{\mathrm{float}}(t)
-=N\sum_{i=1}^n\delta_iL(t,T_{i-1},T_i)P(t,T_i).
-$$
+=N\sum_{i=1}^{n}
+\delta_iL(t,T_{i-1},T_i)P(t,T_i).
+```
 
 Since
 
-$$
+```math
 \delta_iL(t,T_{i-1},T_i)P(t,T_i)
 =P(t,T_{i-1})-P(t,T_i),
-$$
+```
 
 the sum telescopes:
 
-$$
-V_{\mathrm{float}}(t)=N[P(t,T_0)-P(t,T_n)].
-$$
+```math
+V_{\mathrm{float}}(t)
+=N[P(t,T_0)-P(t,T_n)].
+```
 
-For fixed rate $K$,
+The fixed leg and payer-swap value are
 
-$$
-V_{\mathrm{fixed}}(t)=NK\operatorname{Ann}(t),
-$$
+```math
+V_{\mathrm{fixed}}(t)=NKA_{\mathrm{swap}}(t),
+```
 
-$$
+```math
 V_{\mathrm{payer}}(t)
-=N[P(t,T_0)-P(t,T_n)-K\operatorname{Ann}(t)]
-=N\operatorname{Ann}(t)[S(t;T_0,T_n)-K].
-$$
+=N[P(t,T_0)-P(t,T_n)-KA_{\mathrm{swap}}(t)]
+=NA_{\mathrm{swap}}(t)[S(t;T_0,T_n)-K].
+```
 
-Here $K$ is the contractual fixed rate. Setting $K=S(0;T_0,T_n)$ makes the
-swap worth zero at inception; afterward $S(t)$ moves while $K$ stays fixed.
+The contractual rate $K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
 
-## European payer swaption
+### European payer swaption
 
-**Method: planned Jamshidian decomposition.** Exercise $T_0$ is also the swap
-start. Its payoff is
+**Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
-$$
-\Pi_{\mathrm{payer}}(T_0)=N\left[
-1-P(T_0,T_n)-K\sum_{i=1}^n\delta_iP(T_0,T_i)
+**Status:** Planned; the pricing launcher is not implemented.
+
+Parameters: exercise and swap start $T_0$, notional $N$, fixed rate $K$,
+payment dates $T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+
+At exercise,
+
+```math
+H_{\mathrm{payer}}(T_0)
+=N\left[
+1-P(T_0,T_n)
+-K\sum_{i=1}^{n}\delta_iP(T_0,T_i)
 \right]^+.
-$$
+```
 
-Set
+Define
 
-$$
+```math
 c_i=K\delta_i+\mathbf 1_{\{i=n\}},
-$$
+\qquad i=1,\ldots,n,
+```
 
-and solve the unique scalar boundary
+where $\mathbf 1_{\{i=n\}}$ equals one for $i=n$ and zero otherwise. The
+notation $P(T_0,T_i;x)$ means that the bond formula is evaluated at
+$x_{T_0}=x$. The unique exercise boundary $x^\star$ solves
 
-$$
-\sum_{i=1}^nc_iP(T_0,T_i;x^\star)=1.
-$$
+```math
+\sum_{i=1}^{n}c_iP(T_0,T_i;x^\star)=1.
+```
 
-With $K_i^\star=P(T_0,T_i;x^\star)$,
+Define the bond strikes
 
-$$
-\Pi_{\mathrm{payer}}(T_0)
-=N\sum_{i=1}^nc_i[K_i^\star-P(T_0,T_i)]^+,
-$$
+```math
+K_i^\star=P(T_0,T_i;x^\star),
+\qquad i=1,\ldots,n.
+```
 
-so the time-$t$ price is
+The time-$t$ price is
 
-$$
+```math
 V_{\mathrm{payer\ swaption}}(t)
-=N\sum_{i=1}^nc_i
-P_{\mathrm{ZCB}}(t;T_0,T_i,K_i^\star).
-$$
-
-All bond prices decrease with the same one-dimensional state, which makes the
-payoff decomposition exact. The swaption launcher is not implemented yet.
-
-## Memory and numerical policy
-
-The exact Gaussian coefficients are prepared once and shared mathematical
-moments come from `../common/mean_reverting_gaussian.cuh`. Small-time formulas
-avoid cancellation. Simulation grids use separate date-major state and
-integral arrays only when requested. Fast-math is forbidden.
-
-## American and Bermudan options
-
-No Ornstein–Uhlenbeck American/Bermudan launcher is currently present.
-
-Related navigation: [model catalog](../../../../catalog/model/fixed_income/ornstein_uhlenbeck/),
-[validation](../../../../validation/model/fixed_income/ornstein_uhlenbeck/),
-[fixed-income Gaussian helpers](../common/),
-[dynamics contract](../../../../docs/cuda-model-dynamics-contract.md), and
-[pricing contract](../../../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md).
+=N\sum_{i=1}^{n}
+c_i\,p_B(t;T_0,T_i,K_i^\star).
+```

@@ -1,241 +1,241 @@
 # CEV
 
-| At a glance | Value |
-|---|---|
-| Process | Local-volatility diffusion |
-| Transition | Absorbed Milstein numerical scheme |
-| Path state | `spot` |
-| Random laws | Normal |
-| Pricing | Monte Carlo, one block per price |
-| Early exercise | Not implemented |
-
-## Role and reference
-
-This directory implements the constant-elasticity-of-variance local-volatility
-model
+<details>
+<summary>Implementation</summary>
 
 ```text
-dS_t = (r - q) S_t dt + sigma S_t^beta dW_t.
-```
-
-`W` is a standard Brownian motion under the risk-neutral measure. The local
-diffusion coefficient is the power function `sigma S_t^beta`.
-
-The model belongs to the alternative diffusions introduced by
-[Cox and Ross (1976)](https://doi.org/10.1016/0304-405X(76)90023-4).
-The CUDA implementation uses an absorbed Milstein discretization.
-
-## Formula index
-
-- [Dynamics and simulation](#dynamics-interface)
-- [Pricing convention](#pricing-convention)
-- [Terminal and two-time payoffs](#terminal-and-two-time-payoffs)
-- [Averages and extrema](#averages-and-extrema)
-- [Barrier and touch products](#barrier-and-touch-products)
-- [Structured coupons](#structured-coupons)
-
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load the model rows.
-- [`dynamics.cuh`](dynamics.cuh) / [`dynamics.cu`](dynamics.cu) implement the absorbed Milstein scheme and path summaries.
-- each other `<product>.cuh/.cu` pair owns one Monte Carlo launcher.
-
-## Dataset row
-
-| Symbol | Dataset field |
-|---|---|
-| $S_0$ | `spot` |
-| $r$ | `risk_free_rate` |
-| $q$ | `dividend_yield` |
-| $\sigma$ | `sigma` |
-| $\beta$ | `beta` |
-
-## Prepared parameters and state
-
-| Prepared field | Derived from |
-|---|---|
-| `initial_spot` | $S_0$ |
-| `drift_dt` | $(r-q)\Delta t$ |
-| `diffusion_scale` | $\sigma\sqrt{\Delta t}$ |
-| `milstein_scale` | $\beta\sigma^2\Delta t/2$ |
-| `beta` | $\beta$ |
-
-`CevState` contains only `spot`.
-
-## Dynamics interface
-
-| Function | Role |
-|---|---|
-| `prepare_model` | Precompute one Milstein step |
-| `initial_state` | Build the time-zero register state |
-| `one_step_transition` | Apply one transition from a supplied normal |
-| `simulate_terminal_state` | Return only the maturity state |
-| `simulate_mean_state` | Return only the arithmetic mean |
-| `simulate_geometric_mean_state` | Return only the geometric mean |
-| `simulate_at_two_times` | Return only two requested boundary spots |
-| `simulate_maximum_state` | Return only the monitored maximum |
-| `simulate_on_regular_grid` | Store only requested dated state fields |
-
-`one_step_transition` evaluates `S^beta` once, reuses it in the diffusion and
-Milstein correction, and absorbs a non-positive candidate at zero. Unlike the
-exact-increment models, terminal simulation uses the requested numerical grid.
-
-<details>
-<summary>Exact dynamics signatures</summary>
-
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-CevPreparedParameters prepare_model(const CevModelParameters&, float maturity, std::size_t steps);
-CevState initial_state(const CevPreparedParameters&);
-void one_step_transition(const CevPreparedParameters&, float normal, CevState&);
-CevState simulate_terminal_state(const CevPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-CevMeanPathResult simulate_mean_state(const CevPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-CevGeometricMeanPathResult simulate_geometric_mean_state(const CevPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-CevTwoTimePathResult simulate_at_two_times(const CevPreparedParameters& first, const CevPreparedParameters& second, philox::PhiloxKey, std::size_t path, std::size_t first_steps, std::size_t second_steps);
-CevMaximumPathResult simulate_maximum_state(const CevPreparedParameters&, philox::PhiloxKey, std::size_t path, std::size_t steps);
-CevState simulate_on_regular_grid(const CevPreparedParameters& stub, const CevPreparedParameters& regular, philox::PhiloxKey, std::size_t path, std::uint32_t stub_steps, std::uint32_t steps_per_exercise, std::uint32_t exercise_count, std::size_t path_count, float* spots);
+cev/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── dynamics.cuh
+├── dynamics.cu
+├── asian_option.cu
+├── asian_option.cuh
+├── asset_or_nothing_option.cu
+├── asset_or_nothing_option.cuh
+├── athena_autocall.cu
+├── athena_autocall.cuh
+├── cliquet.cu
+├── cliquet.cuh
+├── digital_option.cu
+├── digital_option.cuh
+├── double_knock_out_option.cu
+├── double_knock_out_option.cuh
+├── down_and_in_option.cu
+├── down_and_in_option.cuh
+├── down_and_out_option.cu
+├── down_and_out_option.cuh
+├── european_option.cu
+├── european_option.cuh
+├── forward_start_option.cu
+├── forward_start_option.cuh
+├── gap_option.cu
+├── gap_option.cuh
+├── geometric_asian_option.cu
+├── geometric_asian_option.cuh
+├── lookback_option.cu
+├── lookback_option.cuh
+├── phoenix_autocall.cu
+├── phoenix_autocall.cuh
+├── phoenix_memory_autocall.cu
+├── phoenix_memory_autocall.cuh
+├── range_accrual.cu
+├── range_accrual.cuh
+├── straddle.cu
+├── straddle.cuh
+├── up_and_in_option.cu
+├── up_and_in_option.cuh
+├── up_and_out_option.cu
+├── up_and_out_option.cuh
+├── up_no_touch.cu
+├── up_no_touch.cuh
+├── up_one_touch.cu
+└── up_one_touch.cuh
 ```
 
 </details>
 
-## Random-number strategy
+[Dynamics](#dynamics) · [Products](#products)
 
-Each path owns one `philox::UniformSequence(key, path)` and one
-`philox::NormalPairCache`. One normal is consumed per Milstein step and the
-sequence remains alive for the entire path.
+## Dynamics
 
-## Pricing convention
+Under the risk-neutral measure, the spot follows
 
-Let \(\varepsilon=+1\) for a call and \(\varepsilon=-1\) for a put. For
-maturity \(T\), the risk-neutral price of a payoff \(H\) is
+```math
+\mathrm dS_t=(r-q)S_t\,\mathrm dt+\sigma S_t^\beta\,\mathrm dW_t,
+\qquad S_0>0,
+```
 
-$$
-V_0=\mathbb E^{\mathbb Q}[e^{-rT}H].
-$$
+where $W$ is a standard Brownian motion, $r$ is the risk-free rate, $q$ is the
+dividend yield, $\sigma$ is the local-volatility scale, and $\beta$ is the
+elasticity exponent.
 
-A Monte Carlo launcher evaluates
+For the grid $t_n=n\Delta$, let $Z_n\sim\mathcal N(0,1)$ be independent. The
+absorbed Milstein step is
 
-$$
-\widehat V_0=\frac1M\sum_{m=1}^M e^{-rT}H^{(m)},
-$$
+```math
+\widetilde S_{n+1}
+=S_n+(r-q)S_n\Delta+\sigma S_n^\beta\sqrt{\Delta}\,Z_n
++\frac{\beta\sigma^2}{2}S_n^{2\beta-1}\Delta(Z_n^2-1),
+```
 
-and returns both \(\widehat V_0\) and its sampling standard error. Products
-with intermediate payments discount each cashflow at its own payment date.
-The monitoring grid is \(0=t_0<t_1<\cdots<t_J=T\); \(\Delta_o\) denotes
-the product observation interval.
+```math
+S_{n+1}=\max(\widetilde S_{n+1},0).
+```
 
-## Terminal and two-time payoffs
+| Symbol | Dataset field | Meaning |
+|---:|---|---|
+| $S_0$ | `spot` | Initial spot |
+| $r$ | `risk_free_rate` | Risk-free rate |
+| $q$ | `dividend_yield` | Dividend yield |
+| $\sigma$ | `sigma` | Local-volatility scale |
+| $\beta$ | `beta` | Elasticity exponent |
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+The model follows [Cox and Ross (1976)](https://doi.org/10.1016/0304-405X(76)90023-4).
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$. Let
+$\mathbf 1_{\{A\}}$ equal one when condition $A$ holds and zero otherwise, and
+set $\varepsilon=1$ for a call and $\varepsilon=-1$ for a put.
+
+Let $\mathbb Q$ denote the risk-neutral measure. For a maturity-$T$ payoff
+$H$, its value is
+
+```math
+V_0=\mathbb E^{\mathbb Q}\!\left[e^{-rT}H\right].
+```
+
+For an MC product, $M$ independent paths give
+
+```math
+\widehat V_0
+=\frac{1}{M}\sum_{m=1}^{M}e^{-rT}H^{(m)},
+```
+
+where $H^{(m)}$ is the payoff generated by path $m$. Intermediate cashflows
+are discounted at their own payment dates. For path-dependent options, let
+
+```math
+0=u_0<u_1<\cdots<u_N=T
+```
+
+be the simulation grid selected by the pricing configuration.
+
+### Vanilla, digital, gap, and forward-start options
+
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| European option | strike \(K\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\) | Monte Carlo |
-| Digital option | strike \(K\), maturity \(T\), cash payoff \(Q\) | \(Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Asset-or-nothing option | strike \(K\), maturity \(T\) | \(S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}\) | Monte Carlo |
-| Straddle | strike \(K\), maturity \(T\) | \(|S_T-K|\) | Monte Carlo |
-| Gap option | trigger \(K_1\), payoff strike \(K_2\), maturity \(T\) | \(\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}\) | Monte Carlo |
-| Forward-start option | moneyness \(m\), reset \(T_r\), maturity \(T\) | \([\varepsilon(S_T-mS_{T_r})]^+\) | Monte Carlo |
+| European option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+$ |
+| Digital option | MC | strike $K$, cash amount $Q$, maturity $T$, side $\varepsilon$ | $Q\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Asset-or-nothing option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $S_T\mathbf 1_{\{\varepsilon(S_T-K)>0\}}$ |
+| Straddle | MC | strike $K$, maturity $T$ | $\lvert S_T-K\rvert$ |
+| Gap option | MC | trigger $K_1$, payoff strike $K_2$, maturity $T$, side $\varepsilon$ | $\varepsilon(S_T-K_2)\mathbf 1_{\{\varepsilon(S_T-K_1)>0\}}$ |
+| Forward-start option | MC | reset $T_r$, moneyness $m$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-mS_{T_r})]^+$ |
 
-## Averages and extrema
+### Asian and lookback options
 
-Define
+Define the arithmetic average, geometric average, and monitored maximum by
 
-$$
-\bar S_A=\frac1{J+1}\sum_{j=0}^J S_{t_j},
+```math
+\overline S_A=\frac{1}{N+1}\sum_{n=0}^{N}S_{u_n},
 \qquad
-\bar S_G=\exp\!\left(\frac1{J+1}\sum_{j=0}^J\log S_{t_j}\right),
+\overline S_G=\exp\!\left(
+\frac{1}{N+1}\sum_{n=0}^{N}\log S_{u_n}
+\right),
 \qquad
-M_T=\max_{0\le j\le J}S_{t_j}.
-$$
+M_T=\max_{0\leq n\leq N}S_{u_n}.
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+| Product | Pricing method | Parameters | Payoff |
 |---|---|---|---|
-| Arithmetic Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_A-K)]^+\) | Monte Carlo |
-| Geometric Asian option | strike \(K\), maturity \(T\) | \([\varepsilon(\bar S_G-K)]^+\) | Monte Carlo |
-| Fixed-strike lookback call | strike \(K\), maturity \(T\) | \([M_T-K]^+\) | Monte Carlo |
+| Arithmetic Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_A-K)]^+$ |
+| Geometric Asian option | MC | strike $K$, maturity $T$, side $\varepsilon$ | $[\varepsilon(\overline S_G-K)]^+$ |
+| Fixed-strike lookback call | MC | strike $K$, maturity $T$ | $[M_T-K]^+$ |
 
-Both averages include issuance \(S_0\) and maturity \(S_T\). The observation
-count is derived from \(T\) and the numerical monitoring step.
+The averages and maximum include both $S_0$ and $S_T$.
 
-## Barrier and touch products
+### Barrier and touch options
 
-Let
+For a lower barrier $B_D$, an upper barrier $B_U$, and double barriers
+$B_L<B_H$, define
 
-$$
-I_D(B)=\mathbf 1_{\{\min_jS_{t_j}\le B\}},
+```math
+I_D(B_D)=\mathbf 1_{\{\min_{0\leq n\leq N}S_{u_n}\leq B_D\}},
 \qquad
-I_U(B)=\mathbf 1_{\{\max_jS_{t_j}\ge B\}}.
-$$
+I_U(B_U)=\mathbf 1_{\{\max_{0\leq n\leq N}S_{u_n}\geq B_U\}},
+```
 
-| Product | Product parameters | Payoff \(H\) | Pricing |
+```math
+I_{\mathrm{DKO}}(B_L,B_H)
+=\prod_{n=0}^{N}\mathbf 1_{\{B_L<S_{u_n}<B_H\}}.
+```
+
+| Product | Pricing method | Parameters | Payoff at $T$ |
 |---|---|---|---|
-| Down-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_D(B)\) | Monte Carlo |
-| Down-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_D(B)]\) | Monte Carlo |
-| Up-and-in option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+I_U(B)\) | Monte Carlo |
-| Up-and-out option | strike \(K\), barrier \(B\), maturity \(T\) | \([\varepsilon(S_T-K)]^+[1-I_U(B)]\) | Monte Carlo |
-| Double-knock-out option | strike \(K\), lower \(B_L\), upper \(B_U\), maturity \(T\) | \([\varepsilon(S_T-K)]^+\mathbf 1_{\{B_L<S_{t_j}<B_U,\ \forall j\}}\) | Monte Carlo |
-| Up no-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(Q[1-I_U(B)]\) paid at \(T\) | Monte Carlo |
-| Up one-touch | barrier \(B\), cash payoff \(Q\), maturity \(T\) | \(QI_U(B)\) paid at \(T\) | Monte Carlo |
+| Down-and-in option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_D(B_D)$ |
+| Down-and-out option | MC | strike $K$, barrier $B_D$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_D(B_D)]$ |
+| Up-and-in option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_U(B_U)$ |
+| Up-and-out option | MC | strike $K$, barrier $B_U$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+[1-I_U(B_U)]$ |
+| Double-knock-out option | MC | strike $K$, barriers $B_L,B_H$, maturity $T$, side $\varepsilon$ | $[\varepsilon(S_T-K)]^+I_{\mathrm{DKO}}(B_L,B_H)$ |
+| Up no-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $Q[1-I_U(B_U)]$ |
+| Up one-touch | MC | barrier $B_U$, cash amount $Q$, maturity $T$ | $QI_U(B_U)$ |
 
-Barriers are monitored on the simulation grid, including issuance and
-maturity; no continuous-barrier correction is applied.
+Monitoring is discrete and includes issuance and maturity. No
+continuous-monitoring correction is applied.
 
-## Structured coupons
+For the scheduled products below, let $\Delta_o>0$ be the contractual
+observation interval, set $J=T/\Delta_o$, and define $t_j=j\Delta_o$ for
+$j=0,\ldots,J$.
 
-For a cliquet with participation \(p\), local bounds
-\([f_\ell,c_\ell]\), and global bounds \([f_g,c_g]\),
+### Cliquet
 
-$$
+**Pricing method:** MC.
+
+Parameters: maturity $T$, interval $\Delta_o$, participation $\alpha$, local
+floor $f_\ell$, local cap $c_\ell$, global floor $f_g$, and global cap $c_g$.
+
+Define the local return and clipping function by
+
+```math
 R_j=\frac{S_{t_j}}{S_{t_{j-1}}}-1,
 \qquad
-R_{\mathrm{cliquet}}=
-\operatorname{clamp}\!\left(
-\sum_{j=1}^J\operatorname{clamp}(pR_j,f_\ell,c_\ell),
+\mathcal C(z;\ell,u)=\min\!\left(u,\max(\ell,z)\right).
+```
+
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{cliquet}}
+=1+\mathcal C\!\left(
+\sum_{j=1}^{J}\mathcal C(\alpha R_j;f_\ell,c_\ell);
 f_g,c_g
-\right),
-$$
+\right).
+```
 
-$$
-H_{\mathrm{cliquet}}=1+R_{\mathrm{cliquet}}.
-$$
+### Range accrual
 
-For a range accrual with barriers \(B_L,B_U\) and annual coupon rate \(c\),
+**Pricing method:** MC.
 
-$$
-H_{\mathrm{range}}=
-1+c\Delta_o\sum_{j=1}^J
-\mathbf 1_{\{B_L\le S_{t_j}\le B_U\}}.
-$$
+Parameters: maturity $T$, interval $\Delta_o$, lower barrier $B_L$, upper
+barrier $B_U$, and annual coupon rate $c$.
 
-| Product | Product parameters | Redemption rule | Pricing |
+For unit notional, the maturity payoff is
+
+```math
+H_{\mathrm{range}}
+=1+c\Delta_o\sum_{j=1}^{J}
+\mathbf 1_{\{B_L\leq S_{t_j}\leq B_U\}}.
+```
+
+### Autocalls
+
+All autocall catalogues use unit notional and normalized initial spot
+$S_0=1$.
+
+| Product | Pricing method | Parameters | Redemption rule |
 |---|---|---|---|
-| Cliquet | \(T,\Delta_o,p,f_\ell,c_\ell,f_g,c_g\) | \(1+R_{\mathrm{cliquet}}\) at \(T\) | Monte Carlo |
-| Range accrual | \(T,\Delta_o,B_L,B_U,c\) | \(H_{\mathrm{range}}\) at \(T\) | Monte Carlo |
-| Athena autocall | \(T,\Delta_o,B_A,B_P,c\) | first \(t_j<T\) with \(S_{t_j}\ge B_A\): pay \(1+ct_j\); at \(T\): pay \(1+cT\) if \(S_T\ge B_A\), \(1\) if \(B_P\le S_T<B_A\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | pay \(c\Delta_o\) when \(S_{t_j}\ge B_C\); before \(T\), \(S_{t_j}\ge B_A\) also redeems \(1\); at \(T\), redeem \(1\) if \(S_T\ge B_P\), otherwise \(S_T\) | Monte Carlo |
-| Phoenix memory autocall | \(T,\Delta_o,B_A,B_C,B_P,c\) | missed coupons accumulate and are released when \(S_{t_j}\ge B_C\); autocall and final capital follow the Phoenix rule | Monte Carlo |
-
-The autocall catalogues use normalized nominal and issuance spot equal to one.
-
-## Pricing kernels
-
-All current products use one block per price. Threads evaluate strided paths,
-accumulate payoff moments in FP64, and reduce to an FP32 price and standard
-error. Call and put sides are compile-time `OptionSide` specializations.
-
-## Memory and numerical policy
-
-The path state is one scalar and path summaries retain only their requested
-statistic. Regular-grid storage contains spots only. The step size is part of
-the approximation and must follow the repository simulation convention.
-Fast-math is forbidden.
-
-## American and Bermudan options
-
-No CEV American/Bermudan launcher is currently present in this directory.
-
-Related navigation: [model catalog](../../../../catalog/model/equity/cev/),
-[QuantLib validation](../../../../validation/quantlib/model/equity/cev/),
-[dynamics contract](../../../../docs/cuda-model-dynamics-contract.md), and
-[pricing contract](../../../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md).
+| Athena | MC | $T,\Delta_o$, autocall barrier $B_A$, protection barrier $B_P$, annual coupon $c$ | At the first $t_j<T$ with $S_{t_j}\geq B_A$, pay $1+ct_j$. At $T$, pay $1+cT$ if $S_T\geq B_A$, $1$ if $B_P\leq S_T<B_A$, and $S_T$ otherwise. |
+| Phoenix | MC | $T,\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Pay $c\Delta_o$ whenever $S_{t_j}\geq B_C$. Before $T$, $S_{t_j}\geq B_A$ also redeems $1$. At $T$, redeem $1$ if $S_T\geq B_P$ and $S_T$ otherwise. |
+| Phoenix memory | MC | maturity $T$, interval $\Delta_o$, autocall barrier $B_A$, coupon barrier $B_C$, protection barrier $B_P$, annual coupon $c$ | Missed coupons accumulate and are released at the next date with $S_{t_j}\geq B_C$; autocall and final capital follow the Phoenix rule. |

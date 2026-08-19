@@ -1,354 +1,335 @@
 # CIR
 
-| At a glance | Value |
-|---|---|
-| Process | One-factor affine square-root short rate |
-| Transition | Exact state law at requested dates |
-| Path state | `state` |
-| Random laws | Adaptive Poisson plus Gamma |
-| Pricing | ZCB, caplet/floorlet, bond-option, forward, and swap analytics |
-| Early exercise | Not implemented |
-
-## Role and reference
-
-This directory implements the Cox-Ingersoll-Ross short-rate model
-
-```text
-dr_t = kappa(theta - r_t) dt + sigma sqrt(r_t) dW_t.
-```
-
-The exact transition preserves non-negativity. The Feller condition
-`2*kappa*theta >= sigma^2` is not required by the implementation: when it is
-violated, zero is accessible but the exact transition law remains valid.
-
-See [Cox, Ingersoll, and Ross (1985)](https://doi.org/10.2307/1911242).
-
-## Formula index
-
-- [Analytics — CIR transition, discounting, and affine bonds](#analytics)
-- [Zero-coupon bond — exponential-affine formula](#zero-coupon-bond)
-- [Zero-coupon bond option — non-central chi-square formula](#zero-coupon-bond-option)
-- [Caplet / floorlet — scaled bond-option identity](#caplet--floorlet)
-- [Swap and swap rate — discounted-leg formulas](#swap-and-swap-rate)
-- [European payer swaption — Jamshidian decomposition](#european-payer-swaption)
-
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load
-  the process plus initial rate.
-- [`dynamics.cuh`](dynamics.cuh) / [`dynamics.cu`](dynamics.cu) implement the
-  exact endpoint transition.
-- [`analytics.cuh`](analytics.cuh) / [`analytics.cu`](analytics.cu) expose the
-  affine bond coefficients, path discount, zero-coupon, bond-option, forward,
-  and swap formulas.
-- [`rate_option.cuh`](rate_option.cuh) / [`rate_option.cu`](rate_option.cu)
-  price caplets and floorlets through the exact scaled bond-option identity.
-- [`zero_coupon_bond_option.cuh`](zero_coupon_bond_option.cuh) /
-  [`zero_coupon_bond_option.cu`](zero_coupon_bond_option.cu) price European
-  calls and puts on zero-coupon bonds.
-
-## Dataset row
-
-`CirModelParameters` combines the process parameters with its initial short
-rate.
-
-| Symbol | Dataset field |
-|---|---|
-| $r_0$ | `initial_state` |
-| $\kappa$ | `mean_reversion` |
-| $\theta$ | `long_term_mean` |
-| $\sigma$ | `volatility` |
-
-All process parameters are positive and the initial rate is non-negative.
-
-## Analytics
-
-For $\tau=T-t$ and
-
-$$
-\gamma=\sqrt{\kappa^2+2\sigma^2},
-$$
-
-the model is affine:
-
-$$
-P(t,T)=A(t,T)\exp\{-B(t,T)r_t\},
-$$
-
-with
-
-$$
-B(t,T)=\frac{2(e^{\gamma\tau}-1)}
-{(\gamma+\kappa)(e^{\gamma\tau}-1)+2\gamma},
-$$
-
-and
-
-$$
-A(t,T)=\left[
-\frac{2\gamma e^{(\kappa+\gamma)\tau/2}}
-{(\gamma+\kappa)(e^{\gamma\tau}-1)+2\gamma}
-\right]^{2\kappa\theta/\sigma^2}.
-$$
-
-The implementation evaluates equivalent formulas in terms of
-`exp(-gamma*tau)` to avoid overflow. `A`, `B`, and `log_A` are public device
-functions; `log_zero_coupon_bond` uses `log_A-B*r` semantics without an
-`exp`/`log` round trip.
-
-For an accumulated rate integral $I_t=\int_0^t r_u\,du$,
-
-$$
-D(0,t)=e^{-I_t}.
-$$
-
-In the single-curve convention, the same $P(t,T)$ projects forwards and
-discounts cashflows. The simple forward, swap annuity, and par swap rate are
-
-$$
-L(t,T_1,T_2)=\frac1\delta
-\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right),
-$$
-
-$$
-\operatorname{Ann}(t)=\sum_{i=1}^n\delta_iP(t,T_i),
-\qquad
-S(t;T_0,T_n)=
-\frac{P(t,T_0)-P(t,T_n)}{\operatorname{Ann}(t)}.
-$$
-
-## Zero-coupon bond
-
-For notional $N$ paid at $T$,
-
-$$
-V_{\mathrm{ZCB}}(t)=NP(t,T)=NA(t,T)e^{-B(t,T)r_t}.
-$$
-
-The coefficients solve the affine Riccati equations associated with the CIR
-conditional transform.
-
-## Exact dynamics
-
-Over one interval $\Delta$, define
-
-$$
-c=\frac{\sigma^2(1-e^{-\kappa\Delta})}{4\kappa},\qquad
-\nu=\frac{4\kappa\theta}{\sigma^2},\qquad
-\lambda=\frac{e^{-\kappa\Delta}r_t}{c}.
-$$
-
-Then
-
-$$
-r_{t+\Delta}=cX,\qquad X\sim\chi'^2_\nu(\lambda).
-$$
-
-The device sampler uses the exact mixture
-
-```text
-N ~ Poisson(lambda / 2)
-r_next ~ Gamma(nu / 2 + N, 2 * c)
-```
-
-so `c` is applied directly as the Gamma scale. Small Poisson means use
-inversion; large means use Hoermann PTRS. One `UniformSequence(key, path)` and
-one `NormalPairCache` live for the complete path.
-
 <details>
-<summary>Dynamics signatures</summary>
+<summary>Implementation</summary>
 
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-CirExactTransition prepare_model(const CirProcessParameters&, float interval);
-void one_step_transition(const CirExactTransition&, philox::UniformSequence&, philox::NormalPairCache&, float& state);
-float simulate_terminal_state(const CirExactTransition&, float initial_state, philox::PhiloxKey, std::size_t path);
-float simulate_on_regular_grid(const CirExactTransition& stub, const CirExactTransition& regular, float initial_state, philox::PhiloxKey, std::size_t path, std::uint32_t observations, std::size_t path_count, float* states);
-
-namespace joint {
-struct CirJointTransition;
-struct CirJointState { float state; float state_integral; };
-CirJointTransition prepare_model(const CirProcessParameters&, float interval);
-void one_step_transition(const CirJointTransition&, philox::UniformSequence&, philox::NormalPairCache&, CirJointState&);
-CirJointState simulate_terminal_state(const CirJointTransition&, float initial_state, philox::PhiloxKey, std::size_t path);
-CirJointState simulate_on_regular_grid(const CirJointTransition& stub, const CirJointTransition& regular, float initial_state, philox::PhiloxKey, std::size_t path, std::uint32_t observations, std::size_t path_count, float* states, float* integrated_states);
-}
+```text
+cir/
+├── README.md
+├── dataset.hpp
+├── dataset.cpp
+├── dynamics.cuh
+├── dynamics.cu
+├── analytics.cuh
+├── analytics.cu
+├── rate_option.cu
+├── rate_option.cuh
+├── zero_coupon_bond_option.cu
+└── zero_coupon_bond_option.cuh
 ```
 
 </details>
 
-## Analytics interface
+[Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
-```cpp
-float log_A(const CirModelParameters&, float valuation_time, float maturity);
-float A(const CirModelParameters&, float valuation_time, float maturity);
-float B(const CirModelParameters&, float valuation_time, float maturity);
-float log_zero_coupon_bond(const CirModelParameters&, float state, float valuation_time, float maturity);
-float log_discount_factor(float state_integral);
-float discount_factor(float state_integral);
-float zero_coupon_bond(const CirModelParameters&, float state, float valuation_time, float maturity);
-float zero_coupon_bond_call_price(const CirModelParameters&, float state, float valuation_time, float option_expiry, float bond_maturity, float strike);
-float zero_coupon_bond_put_price(const CirModelParameters&, float state, float valuation_time, float option_expiry, float bond_maturity, float strike);
-float forward_rate(const CirModelParameters&, float state, float valuation_time, float start, float end, float accrual);
-float swap_rate(const CirModelParameters&, float state, float valuation_time, float start, const float* payment_times, const float* accruals, std::size_t payments);
+## Dynamics
+
+The short rate follows the square-root diffusion
+
+```math
+\mathrm dr_t
+=\kappa(\theta-r_t)\,\mathrm dt
++\sigma\sqrt{r_t}\,\mathrm dW_t,
+\qquad r_0\geq0,
 ```
 
-## Zero-coupon bond option
+where $W$ is a standard Brownian motion, $\kappa>0$ is the mean-reversion
+speed, $\theta>0$ is the long-run rate, and $\sigma>0$ is the volatility.
 
-The CIR bond option uses the standard two-forward-measure formula. If `S` is
-the option expiry, `T` the bond maturity, and `r_star` solves
-`A(S,T) exp(-B(S,T) r_star) = strike`, the call combines two non-central
-chi-square probabilities. The put uses the two survival probabilities directly
-instead of subtracting FP32 CDFs from one.
+For an interval of length $\Delta$, define
 
-With bond strike $K_B$, define
-
-$$
-r^\star=\frac{\log A(S,T)-\log K_B}{B(S,T)},
+```math
+c_\Delta
+=\frac{\sigma^2(1-e^{-\kappa\Delta})}{4\kappa},
 \qquad
-\nu=\frac{4\kappa\theta}{\sigma^2},
-$$
-
-and let $F_{\chi'^2_\nu(\lambda)}(z)$ and
-$\bar F_{\chi'^2_\nu(\lambda)}(z)$ denote the non-central chi-square CDF and
-survival function. The implementation constructs the two forward-measure
-parameter pairs $(\lambda_T,z_T)$ and $(\lambda_S,z_S)$ from
-$(\kappa,\theta,\sigma,r_t,t,S,T,r^\star)$. It then evaluates
-
-$$
-C_{\mathrm{ZCB}}(t)
-=P(t,T)F_{\chi'^2_\nu(\lambda_T)}(z_T)
--K_BP(t,S)F_{\chi'^2_\nu(\lambda_S)}(z_S),
-$$
-
-$$
-P_{\mathrm{ZCB}}(t)
-=K_BP(t,S)\bar F_{\chi'^2_\nu(\lambda_S)}(z_S)
--P(t,T)\bar F_{\chi'^2_\nu(\lambda_T)}(z_T).
-$$
-
-The shared device primitive in
-[`common/noncentral_chi_square.cuh`](../../../common/noncentral_chi_square.cuh)
-returns both tails. It uses a centered Poisson--Gamma mixture over the ordinary
-range and a Lugannani--Rice saddlepoint evaluation when a very large
-noncentrality would make the mixture impractical. Gamma probabilities use a
-series or modified-Lentz continued fraction. All internal CDF work is FP64;
-only the public probabilities are returned as FP32.
-
-## Caplet / floorlet
-
-For fixing $T_1$, payment $T_2$, accrual $\delta$, strike $K$, and notional
-$N$,
-
-$$
-\Pi_{\mathrm{caplet}}(T_2)=N\delta[L(T_1,T_1,T_2)-K]^+,
+d=\frac{4\kappa\theta}{\sigma^2},
 \qquad
-\Pi_{\mathrm{floorlet}}(T_2)=N\delta[K-L(T_1,T_1,T_2)]^+.
-$$
+\lambda_\Delta
+=\frac{e^{-\kappa\Delta}r_t}{c_\Delta}.
+```
 
-Let
+If $\chi'^2_d(\lambda)$ denotes a non-central chi-square variable with $d$
+degrees of freedom and noncentrality $\lambda$, then
 
-$$
-K_B=\frac1{1+\delta K}.
-$$
+```math
+r_{t+\Delta}
+=c_\Delta X,
+\qquad
+X\sim\chi'^2_d(\lambda_\Delta).
+```
+
+This exact transition preserves non-negativity and remains valid on either
+side of the Feller condition $2\kappa\theta\geq\sigma^2$.
+
+| Symbol | Dataset field | Meaning |
+|---:|---|---|
+| $r_0$ | `initial_state` | Initial short rate |
+| $\kappa$ | `mean_reversion` | Mean-reversion speed |
+| $\theta$ | `long_term_mean` | Long-run rate |
+| $\sigma$ | `volatility` | Volatility |
+
+The model follows [Cox, Ingersoll, and Ross (1985)](https://doi.org/10.2307/1911242).
+
+## Core formulas
+
+Let $\tau=T-t$ and define
+
+```math
+\gamma=\sqrt{\kappa^2+2\sigma^2}.
+```
+
+The zero-coupon bond is exponential-affine:
+
+```math
+P(t,T)=A(t,T)e^{-B(t,T)r_t},
+```
+
+with
+
+```math
+B(t,T)
+=\frac{2(e^{\gamma\tau}-1)}
+{(\gamma+\kappa)(e^{\gamma\tau}-1)+2\gamma},
+```
+
+```math
+A(t,T)
+=\left[
+\frac{2\gamma e^{(\kappa+\gamma)\tau/2}}
+{(\gamma+\kappa)(e^{\gamma\tau}-1)+2\gamma}
+\right]^{2\kappa\theta/\sigma^2}.
+```
+
+For an accumulated short-rate integral
+$I_t=\int_0^t r_u\,\mathrm du$, define
+
+```math
+D(0,t)=e^{-I_t}.
+```
+
+For an accrual period $[T_1,T_2]$ with contractual year fraction
+$\delta>0$, define
+
+```math
+L(t,T_1,T_2)
+=\frac{1}{\delta}
+\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
+```
+
+For swap dates $T_0<T_1<\cdots<T_n$ and accrual fractions
+$\delta_1,\ldots,\delta_n$, define
+
+```math
+A_{\mathrm{swap}}(t)
+=\sum_{i=1}^{n}\delta_iP(t,T_i),
+```
+
+```math
+S(t;T_0,T_n)
+=\frac{P(t,T_0)-P(t,T_n)}{A_{\mathrm{swap}}(t)}.
+```
+
+## Products
+
+For every real number $z$, define $[z]^+=\max(z,0)$.
+
+### Zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$ and maturity $T$.
+
+```math
+V_{\mathrm{ZCB}}(t)=NP(t,T).
+```
+
+### Option on a zero-coupon bond
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, option expiry $T_e$, bond maturity $T_b>T_e$, bond
+strike $K_B$, and side.
+
+Define the expiry-to-maturity bond coefficients and critical short rate by
+
+```math
+A_e=A(T_e,T_b),
+\qquad
+B_e=B(T_e,T_b),
+\qquad
+r^\star=\frac{\log A_e-\log K_B}{B_e}.
+```
+
+Let $h=T_e-t$ and define
+
+```math
+u=\frac{2\gamma e^{-\gamma h}}
+{\sigma^2(1-e^{-\gamma h})},
+\qquad
+\psi=\frac{\kappa+\gamma}{\sigma^2},
+```
+
+```math
+\ell
+=\frac{8\gamma^2e^{-\gamma h}r_t}
+{\sigma^4(1-e^{-\gamma h})^2},
+\qquad
+q_e=u+\psi,
+\qquad
+q_b=q_e+B_e.
+```
+
+Using the degrees of freedom $d=4\kappa\theta/\sigma^2$ already defined by the
+transition, set
+
+```math
+\lambda_e=\frac{\ell}{q_e},
+\qquad
+z_e=2r^\star q_e,
+\qquad
+\lambda_b=\frac{\ell}{q_b},
+\qquad
+z_b=2r^\star q_b.
+```
+
+Let $F_{d,\lambda}(z)$ be the CDF of $\chi'^2_d(\lambda)$ at $z$ and define
+its survival function by
+$\overline F_{d,\lambda}(z)=1-F_{d,\lambda}(z)$. The unit-notional prices are
+
+```math
+c_B(t;T_e,T_b,K_B)
+=P(t,T_b)F_{d,\lambda_b}(z_b)
+-K_BP(t,T_e)F_{d,\lambda_e}(z_e),
+```
+
+```math
+p_B(t;T_e,T_b,K_B)
+=K_BP(t,T_e)\overline F_{d,\lambda_e}(z_e)
+-P(t,T_b)\overline F_{d,\lambda_b}(z_b).
+```
+
+The product value is $Nc_B$ for a call and $Np_B$ for a put.
+
+### Caplet and floorlet
+
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, fixing $T_1$, payment $T_2$, accrual $\delta$,
+rate strike $K$, and side.
+
+```math
+H_{\mathrm{caplet}}(T_2)
+=N\delta[L(T_1,T_1,T_2)-K]^+,
+\qquad
+H_{\mathrm{floorlet}}(T_2)
+=N\delta[K-L(T_1,T_1,T_2)]^+.
+```
+
+Define
+
+```math
+K_B=\frac{1}{1+\delta K}.
+```
 
 Then
 
-$$
+```math
 V_{\mathrm{caplet}}(t)
-=N(1+\delta K)P_{\mathrm{ZCB}}(t;T_1,T_2,K_B),
-$$
+=N(1+\delta K)p_B(t;T_1,T_2,K_B),
+```
 
-$$
+```math
 V_{\mathrm{floorlet}}(t)
-=N(1+\delta K)C_{\mathrm{ZCB}}(t;T_1,T_2,K_B).
-$$
+=N(1+\delta K)c_B(t;T_1,T_2,K_B).
+```
 
-## Swap and swap rate
+### Swap and par swap rate
 
-$$
+**Pricing method:** Closed form.
+
+Parameters: notional $N$, fixed rate $K$, start $T_0$, payment dates
+$T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+
+For $t\leq T_0$,
+
+```math
 V_{\mathrm{float}}(t)
-=N\sum_{i=1}^n\delta_iL(t,T_{i-1},T_i)P(t,T_i)
-=N[P(t,T_0)-P(t,T_n)],
-$$
+=N\sum_{i=1}^{n}
+\delta_iL(t,T_{i-1},T_i)P(t,T_i).
+```
 
-$$
-V_{\mathrm{fixed}}(t)=NK\operatorname{Ann}(t),
-$$
+Since
 
-$$
+```math
+\delta_iL(t,T_{i-1},T_i)P(t,T_i)
+=P(t,T_{i-1})-P(t,T_i),
+```
+
+```math
+V_{\mathrm{float}}(t)
+=N[P(t,T_0)-P(t,T_n)].
+```
+
+The fixed leg and payer-swap value are
+
+```math
+V_{\mathrm{fixed}}(t)=NKA_{\mathrm{swap}}(t),
+```
+
+```math
 V_{\mathrm{payer}}(t)
-=N[P(t,T_0)-P(t,T_n)-K\operatorname{Ann}(t)]
-=N\operatorname{Ann}(t)[S(t;T_0,T_n)-K].
-$$
+=N[P(t,T_0)-P(t,T_n)-KA_{\mathrm{swap}}(t)]
+=NA_{\mathrm{swap}}(t)[S(t;T_0,T_n)-K].
+```
 
-Here $K$ is the contractual fixed rate. Setting $K=S(0;T_0,T_n)$ makes the
-swap worth zero at inception; afterward $S(t)$ moves while $K$ stays fixed.
+The payer receives floating and pays fixed. The contractual rate
+$K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
 
-## European payer swaption
+### European payer swaption
 
-**Method: planned Jamshidian decomposition.** At exercise and swap start $T_0$,
+**Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
-$$
-\Pi_{\mathrm{payer}}(T_0)=N\left[
-1-P(T_0,T_n)-K\sum_{i=1}^n\delta_iP(T_0,T_i)
+**Status:** Planned; the pricing launcher is not implemented.
+
+Parameters: exercise and swap start $T_0$, notional $N$, fixed rate $K$,
+payment dates $T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+
+At exercise,
+
+```math
+H_{\mathrm{payer}}(T_0)
+=N\left[
+1-P(T_0,T_n)
+-K\sum_{i=1}^{n}\delta_iP(T_0,T_i)
 \right]^+.
-$$
+```
 
-Set $c_i=K\delta_i+\mathbf 1_{\{i=n\}}$ and solve on the CIR state domain
+Define
 
-$$
-\sum_{i=1}^nc_iP(T_0,T_i;r^\star)=1.
-$$
+```math
+c_i=K\delta_i+\mathbf 1_{\{i=n\}},
+\qquad i=1,\ldots,n,
+```
 
-With $K_i^\star=P(T_0,T_i;r^\star)$,
+where $\mathbf 1_{\{i=n\}}$ equals one for $i=n$ and zero otherwise. The
+notation $P(T_0,T_i;r)$ means that the bond formula is evaluated at
+$r_{T_0}=r$. The unique Jamshidian boundary $r_J^\star$ solves
 
-$$
+```math
+\sum_{i=1}^{n}c_iP(T_0,T_i;r_J^\star)=1.
+```
+
+Define
+
+```math
+K_i^\star=P(T_0,T_i;r_J^\star),
+\qquad i=1,\ldots,n.
+```
+
+Then
+
+```math
 V_{\mathrm{payer\ swaption}}(t)
-=N\sum_{i=1}^nc_iP_{\mathrm{ZCB}}(t;T_0,T_i,K_i^\star).
-$$
-
-The swaption launcher is not implemented yet.
-
-The complete Premia core audit does not certify any of the four datasets:
-caplets pass 100/900 rows, floorlets 101/900, zero-coupon calls 363/900, and
-zero-coupon puts 321/900 at the catalogue tolerance. Their respective maximum
-absolute gaps are `0.004156287`, `0.004156335`, `0.006731222`, and
-`0.006731215`. Premia is recorded only as
-`status: available but not reliable`; this detailed audit remains in the model
-documentation rather than being repeated in every reference-price database.
-
-QuantLib's `CoxIngersollRoss.discountBondOption` agrees numerically when the
-out-of-the-money tail and zero-coupon parity are used for deep in-the-money
-stability. It is the reliable primary reference: caplets, floorlets, and both
-zero-coupon option sides pass 900/900 core and 100/100 stress rows. The four
-1,000-row reference databases are cached below
-`validation/datasets/price/fixed_income/cir`, and the catalogues are therefore
-`available` and `verified: true`.
-
-Each cached database fingerprints the semantic source prices and model/product
-parameters, records QuantLib's exact version and `row_priced`, and persists the
-core/stress tolerance and comparison evidence in a separate `verification`
-block. Routine validation is cache-only and fail-closed; QuantLib is imported
-only for an explicit `--generate` refresh.
-
-## Path discounting and early exercise
-
-The exact endpoint transition does not jointly sample
-$\int_t^{t+\Delta}r_s\,ds$. The common joint types and four function
-signatures are exposed so CIR follows the fixed-income interface, but their
-definitions remain deliberately unavailable until the integration scheme is
-chosen and validated. `log_discount_factor(state_integral)` and
-`discount_factor(state_integral)` are already exposed and evaluate
-`-state_integral` and `exp(-state_integral)`. They deliberately accept only the
-integral, not a `CirJointState`, so callers that need only `r_t` do not carry an
-unused joint state. Boundary-only formulas use the direct conditional bond
-value. A future
-Monte-Carlo Bermudan swaption must specify and validate its integration scheme
-or use a lattice/PDE approach; exact exercise-date rates alone are not enough
-for pathwise discounting.
-
-Related navigation: [model catalog](../../../../catalog/model/fixed_income/cir/),
-[dynamics contract](../../../../docs/cuda-model-dynamics-contract.md), and
-[pricing contract](../../../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md).
+=N\sum_{i=1}^{n}
+c_i\,p_B(t;T_0,T_i,K_i^\star).
+```
