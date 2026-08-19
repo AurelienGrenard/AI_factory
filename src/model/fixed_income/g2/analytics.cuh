@@ -9,17 +9,56 @@
 
 namespace ai_factory::workbench::model::g2 {
 
+// ======================= Model-specific analytics =========================
+
 // Return the short rate r(t) = x(t) + y(t).
 __device__ __forceinline__ float short_rate(const G2State& state);
 
+// ===================== Common fixed-income analytics ======================
+
+// Two affine state loadings in P(t,T)=A(t,T)exp(-B_x*x-B_y*y).
+struct G2BondLoadings {
+    float state_x;
+    float state_y;
+};
+
+// Return the logarithm of the affine bond prefactor A(t,T).
+__device__ __forceinline__ float log_A(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine bond prefactor A(t,T).
+__device__ __forceinline__ float A(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return both affine state loadings B(t,T).
+__device__ __forceinline__ G2BondLoadings B(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return log P = log A - B_x*x - B_y*y.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const G2ModelParameters& parameters,
+    const G2State& state,
+    float valuation_time,
+    float maturity
+);
+
 // Return minus the accumulated short-rate integral from time zero.
 __device__ __forceinline__ float log_discount_factor(
-    const joint::G2JointState& joint_state
+    float state_integral
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
-    const joint::G2JointState& joint_state
+    float state_integral
 );
 
 // Return the model zero-coupon bond P(valuation_time, maturity).

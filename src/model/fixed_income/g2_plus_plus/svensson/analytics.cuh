@@ -2,7 +2,7 @@
 #pragma once
 
 #include "curve/svensson/dataset.hpp"
-#include "model/fixed_income/g2/dynamics.cuh"
+#include "model/fixed_income/g2/analytics.cuh"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 
 #include <cuda_runtime.h>
@@ -10,6 +10,8 @@
 #include <cstddef>
 
 namespace ai_factory::workbench::model::g2_plus_plus::svensson {
+
+// ======================= Model-specific analytics =========================
 
 // Correlated G2 process and initial curve defining one fitted G2++ model.
 struct G2PlusPlusFittedParameters {
@@ -36,19 +38,50 @@ __device__ __forceinline__ float short_rate(
     float time
 );
 
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the affine bond prefactor A(t,T).
+__device__ __forceinline__ float log_A(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine bond prefactor A(t,T).
+__device__ __forceinline__ float A(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return both affine state loadings B(t,T).
+__device__ __forceinline__ model::g2::G2BondLoadings B(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return log P = log A - B_x*x - B_y*y.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const G2PlusPlusFittedParameters& parameters,
+    const model::g2::G2State& state,
+    float valuation_time,
+    float maturity
+);
+
 // The remaining analytics mirror the standalone G2 interface.
 
 // Return the accumulated path log-discount from time zero.
 __device__ __forceinline__ float log_discount_factor(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::joint::G2JointState& joint_state,
+    float state_integral,
     float time
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::joint::G2JointState& joint_state,
+    float state_integral,
     float time
 );
 

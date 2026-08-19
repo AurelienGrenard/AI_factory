@@ -9,14 +9,45 @@
 
 namespace ai_factory::workbench::model::vasicek {
 
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the affine bond prefactor A(t,T).
+__device__ __forceinline__ float log_A(
+    const VasicekModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine bond prefactor A(t,T).
+__device__ __forceinline__ float A(
+    const VasicekModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine state loading B(t,T).
+__device__ __forceinline__ float B(
+    const VasicekModelParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return log P(valuation_time,maturity) = log A - B*state.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const VasicekModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float maturity
+);
+
 // Return the accumulated path log-discount from time zero.
 __device__ __forceinline__ float log_discount_factor(
-    const joint::VasicekJointState& joint_state
+    float state_integral
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
-    const joint::VasicekJointState& joint_state
+    float state_integral
 );
 
 // Return the model zero-coupon bond P(valuation_time, maturity).

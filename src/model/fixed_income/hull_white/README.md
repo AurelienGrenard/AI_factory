@@ -56,13 +56,33 @@ Each curve namespace calls this structure `HullWhiteFittedParameters` and
 builds it with `compose_model`. The stochastic state is one centered OU
 `float`; `short_rate_shift` and `short_rate` reconstruct the fitted rate.
 
+## Affine bond formula
+
+In both curve namespaces,
+
+$$
+P(t,T)=A(t,T)e^{-B(t,T)x_t},\qquad
+B(t,T)=\frac{1-e^{-a(T-t)}}a,
+$$
+
+and
+
+$$
+\log A(t,T)=-\int_t^T\phi(s)ds
++\frac12\operatorname{Var}_t\!\left[\int_t^T x_sds\right].
+$$
+
+At $t=0$, `log_A` reads the fitted curve discount directly, avoiding
+cancellation between shift and convexity terms. Each ZCB computes `log_A` and
+`B` together once.
+
 ## Dynamics interface
 
 | Function | Role |
 |---|---|
 | `compose_model` | Combine one process row with one initial curve |
 | `short_rate_shift`, `short_rate` | Evaluate $\phi(t)$ and reconstruct $r_t$ |
-| `log_discount_factor`, `discount_factor` | Convert joint state into path discounting |
+| `log_discount_factor`, `discount_factor` | Consume and exponentiate the scalar accumulated path integral |
 | `zero_coupon_bond` | Evaluate $P(t,T)$ analytically |
 | `zero_coupon_bond_call_price`, `zero_coupon_bond_put_price` | Price bond options analytically |
 | `forward_rate`, `swap_rate` | Evaluate curve-derived rates |
@@ -81,8 +101,12 @@ either supported curve type.
 HullWhiteFittedParameters compose_model(const HullWhiteModelParameters&, const CurveParameters&);
 float short_rate_shift(const HullWhiteFittedParameters&, float time);
 float short_rate(const HullWhiteFittedParameters&, float state, float time);
-float log_discount_factor(const HullWhiteFittedParameters&, const joint::OrnsteinUhlenbeckJointState&, float time);
-float discount_factor(const HullWhiteFittedParameters&, const joint::OrnsteinUhlenbeckJointState&, float time);
+float log_A(const HullWhiteFittedParameters&, float valuation_time, float maturity);
+float A(const HullWhiteFittedParameters&, float valuation_time, float maturity);
+float B(const HullWhiteFittedParameters&, float valuation_time, float maturity);
+float log_zero_coupon_bond(const HullWhiteFittedParameters&, float state, float valuation_time, float maturity);
+float log_discount_factor(const HullWhiteFittedParameters&, float state_integral, float time);
+float discount_factor(const HullWhiteFittedParameters&, float state_integral, float time);
 float zero_coupon_bond(const HullWhiteFittedParameters&, float state, float valuation_time, float maturity);
 float zero_coupon_bond_call_price(const HullWhiteFittedParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
 float zero_coupon_bond_put_price(const HullWhiteFittedParameters&, float state, float valuation_time, float expiry, float maturity, float strike);

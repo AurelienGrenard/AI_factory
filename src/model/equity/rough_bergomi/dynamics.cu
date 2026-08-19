@@ -42,8 +42,6 @@ __device__ __forceinline__ RoughBergomiPreparedParameters prepare_model(
         logf(parameters.xi_0),
         parameters.eta,
         0.5f * parameters.eta * parameters.eta,
-        h,
-        alpha,
         alpha_plus_one,
         two_h,
         sqrtf(two_h),
@@ -235,7 +233,6 @@ __device__ __forceinline__ RoughBergomiMeanPathResult simulate_mean_state(
         spot_sum += static_cast<double>(expf(state.log_spot));
     }
     return {
-        state,
         static_cast<float>(
             spot_sum / (static_cast<double>(num_steps) + 1.0)
         ),
@@ -267,7 +264,6 @@ simulate_geometric_mean_state(
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {
-        state,
         expf(static_cast<float>(log_spot_sum / observation_count)),
     };
 }
@@ -294,7 +290,7 @@ simulate_at_two_times(
             model, grid, history, step_index, uniforms, normal_cache, state
         );
     }
-    const RoughBergomiState first_state = state;
+    const float first_spot = expf(state.log_spot);
     for (std::uint32_t step_index = first_step_index;
          step_index < terminal_step_index;
          ++step_index) {
@@ -302,7 +298,7 @@ simulate_at_two_times(
             model, grid, history, step_index, uniforms, normal_cache, state
         );
     }
-    return {first_state, state};
+    return {first_spot, expf(state.log_spot)};
 }
 
 __device__ __forceinline__ RoughBergomiMaximumPathResult
@@ -328,7 +324,7 @@ simulate_maximum_state(
         );
         maximum_spot = fmaxf(maximum_spot, expf(state.log_spot));
     }
-    return {state, maximum_spot};
+    return {maximum_spot};
 }
 
 __device__ __forceinline__ RoughBergomiState simulate_on_regular_grid(

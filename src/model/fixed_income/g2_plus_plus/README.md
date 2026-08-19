@@ -64,13 +64,39 @@ builds it with `compose_model`. The stochastic state is
 `G2State {state_x, state_y}`; `short_rate_shift` and `short_rate` reconstruct
 the fitted short rate.
 
+## Affine bond formula
+
+In both curve namespaces,
+
+$$
+P(t,T)=A(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t},
+$$
+
+with the same factor loadings as standalone G2,
+
+$$
+B_x(t,T)=\frac{1-e^{-a(T-t)}}a,\qquad
+B_y(t,T)=\frac{1-e^{-b(T-t)}}b,
+$$
+
+and
+
+$$
+\log A(t,T)=-\int_t^T\phi(s)ds
++\frac12\operatorname{Var}_t\!\left[\int_t^T(x_s+y_s)ds\right].
+$$
+
+`B` returns the shared `G2BondLoadings` type. At $t=0$, `log_A` reads the
+fitted curve directly; otherwise `log_A`, $B_x$, and $B_y$ are produced from
+one grouped coefficient calculation.
+
 ## Dynamics interface
 
 | Function | Role |
 |---|---|
 | `compose_model` | Combine one process row with one initial curve |
 | `short_rate_shift`, `short_rate` | Evaluate $\phi(t)$ and reconstruct $r_t$ |
-| `log_discount_factor`, `discount_factor` | Convert joint state into path discounting |
+| `log_discount_factor`, `discount_factor` | Consume and exponentiate the scalar accumulated path integral |
 | `zero_coupon_bond` | Evaluate $P(t,T)$ analytically |
 | `zero_coupon_bond_call_price`, `zero_coupon_bond_put_price` | Price bond options analytically |
 | `forward_rate`, `swap_rate` | Evaluate curve-derived rates |
@@ -89,8 +115,12 @@ either supported curve type.
 G2PlusPlusFittedParameters compose_model(const G2PlusPlusModelParameters&, const CurveParameters&);
 float short_rate_shift(const G2PlusPlusFittedParameters&, float time);
 float short_rate(const G2PlusPlusFittedParameters&, const G2State&, float time);
-float log_discount_factor(const G2PlusPlusFittedParameters&, const joint::G2JointState&, float time);
-float discount_factor(const G2PlusPlusFittedParameters&, const joint::G2JointState&, float time);
+float log_A(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
+float A(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
+G2BondLoadings B(const G2PlusPlusFittedParameters&, float valuation_time, float maturity);
+float log_zero_coupon_bond(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float maturity);
+float log_discount_factor(const G2PlusPlusFittedParameters&, float state_integral, float time);
+float discount_factor(const G2PlusPlusFittedParameters&, float state_integral, float time);
 float zero_coupon_bond(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float maturity);
 float zero_coupon_bond_call_price(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);
 float zero_coupon_bond_put_price(const G2PlusPlusFittedParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);

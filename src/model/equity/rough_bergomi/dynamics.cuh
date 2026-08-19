@@ -18,8 +18,6 @@ struct RoughBergomiPreparedParameters {
     float log_initial_variance;
     float eta;
     float half_eta_squared;
-    float hurst_exponent;
-    float alpha;
     float alpha_plus_one;
     float two_h;
     float sqrt_two_h;
@@ -49,26 +47,22 @@ struct RoughBergomiHistoryView {
 struct RoughBergomiHybridGridView {
     const float* far_weights;
     const float* log_variance_corrections;
-    std::uint32_t step_count;
 };
 
 struct RoughBergomiMeanPathResult {
-    RoughBergomiState terminal_state;
     float arithmetic_mean;
 };
 
 struct RoughBergomiGeometricMeanPathResult {
-    RoughBergomiState terminal_state;
     float geometric_mean;
 };
 
 struct RoughBergomiTwoTimePathResult {
-    RoughBergomiState first_state;
-    RoughBergomiState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct RoughBergomiMaximumPathResult {
-    RoughBergomiState terminal_state;
     float maximum_spot;
 };
 

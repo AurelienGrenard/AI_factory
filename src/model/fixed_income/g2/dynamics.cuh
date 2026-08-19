@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::g2 {
 
+// ======================== Model-specific dynamics =========================
+
 // Conditional moments of integral_t^{t+d}(X_s + Y_s) ds.
 struct G2IntegralMoments {
     float state_x_loading;
@@ -23,6 +25,8 @@ __device__ __forceinline__ G2IntegralMoments integral_moments(
     const G2ProcessParameters& parameters,
     float delta
 );
+
+// ======================= Common state-only dynamics ========================
 
 // Exact correlated transition of the two Gaussian factor states.
 struct G2ExactTransition {
@@ -68,8 +72,9 @@ __device__ __forceinline__ G2State simulate_on_regular_grid(
     float* __restrict__ observed_states_y
 );
 
-// Joint two-factor state and accumulated short-rate integral simulation.
 namespace joint {
+
+// ========================= Common joint dynamics ===========================
 
 // Cholesky coefficients for the exact joint transition of X, Y, and integral.
 struct G2JointExactTransition {

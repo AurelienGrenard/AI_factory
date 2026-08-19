@@ -10,7 +10,6 @@ namespace ai_factory::workbench::longstaff_schwartz {
 // Locate one typed array inside a contiguous device workspace.
 struct WorkspaceRegion {
     std::size_t offset;
-    std::size_t value_count;
 };
 
 // Describe one model-specific state array stored at every exercise observation.

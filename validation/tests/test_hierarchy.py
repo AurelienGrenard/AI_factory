@@ -43,14 +43,22 @@ class ValidationHierarchyTest(unittest.TestCase):
             "stress",
             ("000001", "000002", "000003", "000004"),
             (
-                ValidationEngine("Premia", "specialized pricer", premia),
-                ValidationEngine("QuantLib", "specialized pricer", quantlib),
+                ValidationEngine(
+                    "Premia", "specialized pricer", premia, "CF_Call"
+                ),
+                ValidationEngine(
+                    "QuantLib",
+                    "specialized pricer",
+                    quantlib,
+                    "BlackCalculator",
+                ),
             ),
         )
 
         self.assertEqual(requested_by_second, [("000003", "000004")])
         self.assertEqual(hierarchy.unresolved_row_ids, ("000004",))
         self.assertEqual(hierarchy.primary_reference, "Premia (specialized pricer)")
+        self.assertEqual(hierarchy.primary_pricing_method, "CF_Call")
 
     def test_no_compatible_engine_leaves_every_row_unresolved(self) -> None:
         hierarchy = run_validation_hierarchy(
@@ -66,7 +74,8 @@ class ValidationHierarchyTest(unittest.TestCase):
             "QuantLib",
             "specialized pricer",
             None,
-            "no compatible engine",
+            pricing_method=None,
+            unavailable_reason="no compatible engine",
         )
 
         hierarchy = run_validation_hierarchy(
@@ -95,8 +104,15 @@ class ValidationHierarchyTest(unittest.TestCase):
             "core",
             ("000001",),
             (
-                ValidationEngine("Premia", "specialized pricer", first),
-                ValidationEngine("QuantLib", "specialized pricer", second),
+                ValidationEngine(
+                    "Premia", "specialized pricer", first, "CF_Call"
+                ),
+                ValidationEngine(
+                    "QuantLib",
+                    "specialized pricer",
+                    second,
+                    "BlackCalculator",
+                ),
             ),
         )
 

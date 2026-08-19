@@ -15,7 +15,7 @@ namespace {
 namespace vasicek =
     ai_factory::workbench::model::vasicek;
 
-constexpr std::size_t kOutputCount = 21U;
+constexpr std::size_t kOutputCount = 25U;
 
 // Evaluate analytical identities and exact transitions on one CUDA thread.
 __global__ void vasicek_test_kernel(float* outputs) {
@@ -126,8 +126,8 @@ __global__ void vasicek_test_kernel(float* outputs) {
         );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
-    outputs[16] = vasicek::log_discount_factor(joint_terminal);
-    outputs[17] = vasicek::discount_factor(joint_terminal);
+    outputs[16] = vasicek::log_discount_factor(joint_terminal.state_integral);
+    outputs[17] = vasicek::discount_factor(joint_terminal.state_integral);
     const vasicek::VasicekIntegralMoments moments =
         vasicek::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading
@@ -136,6 +136,14 @@ __global__ void vasicek_test_kernel(float* outputs) {
         - vasicek::integral_variance(model.process, 0.75f);
     outputs[20] = moments.mean_increment
         - model.process.long_term_mean * (0.75f - moments.state_loading);
+    outputs[21] = vasicek::A(model, valuation_time, bond_maturity);
+    outputs[22] = vasicek::B(model, valuation_time, bond_maturity);
+    outputs[23] = vasicek::log_zero_coupon_bond(
+        model, state, valuation_time, bond_maturity
+    );
+    outputs[24] = vasicek::log_A(
+        model, valuation_time, bond_maturity
+    ) - outputs[22] * state;
 }
 
 // Stop immediately with a readable invariant name.
@@ -220,5 +228,10 @@ int main() {
             && std::fabs(outputs[19]) < 1.0e-9f
             && std::fabs(outputs[20]) < 1.0e-8f,
         "Vasicek combined integral moments differ from standalone formulas"
+    );
+    require(
+        outputs[21] > 0.0f && outputs[22] > 0.0f
+            && std::fabs(outputs[23] - outputs[24]) < 2.0e-7f,
+        "Vasicek affine A/B decomposition is incorrect"
     );
 }

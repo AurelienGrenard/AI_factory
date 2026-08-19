@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
 
+// ======================= Model-specific analytics =========================
+
 // Compose the curve-independent process with the fitted initial curve.
 __device__ __forceinline__ G2PlusPlusFittedParameters compose_model(
     const G2PlusPlusModelParameters& parameters,
@@ -81,27 +83,33 @@ __device__ __forceinline__ float shift_integral(
     return forward_integral + 0.5f * (end_variance - start_variance);
 }
 
-// Return the conditional log price of one fitted zero-coupon bond.
-__device__ __forceinline__ float log_zero_coupon_bond(
+struct AffineBondCoefficients {
+    float log_A;
+    model::g2::G2BondLoadings B;
+};
+
+// Compute fitted log(A), B_x, and B_y from one integral-moment evaluation.
+__device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
     float valuation_time,
     float maturity
 ) {
-    if (valuation_time == 0.0f
-        && state.state_x == 0.0f
-        && state.state_y == 0.0f) {
-        return curve::nelson_siegel::log_discount_factor(
-            parameters.initial_curve, maturity
-        );
-    }
     const model::g2::G2IntegralMoments moments = model::g2::integral_moments(
         parameters.process, maturity - valuation_time
     );
-    return -moments.state_x_loading * state.state_x
-        - moments.state_y_loading * state.state_y
-        - shift_integral(parameters, valuation_time, maturity)
-        + 0.5f * moments.variance;
+    if (valuation_time == 0.0f) {
+        return {
+            curve::nelson_siegel::log_discount_factor(
+                parameters.initial_curve, maturity
+            ),
+            {moments.state_x_loading, moments.state_y_loading},
+        };
+    }
+    return {
+        -shift_integral(parameters, valuation_time, maturity)
+            + 0.5f * moments.variance,
+        {moments.state_x_loading, moments.state_y_loading},
+    };
 }
 
 // Return the two-factor log-forward volatility of one bond option.
@@ -185,23 +193,83 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 }  // namespace
 
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the fitted affine prefactor.
+__device__ __forceinline__ float log_A(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return affine_bond_coefficients(
+        parameters, valuation_time, maturity
+    ).log_A;
+}
+
+// Exponentiate the affine prefactor only for callers requesting A itself.
+__device__ __forceinline__ float A(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return expf(log_A(parameters, valuation_time, maturity));
+}
+
+// Return both Gaussian-factor loadings in one value.
+__device__ __forceinline__ model::g2::G2BondLoadings B(
+    const G2PlusPlusFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    const float delta = maturity - valuation_time;
+    return {
+        model::mean_reverting_gaussian::integral_state_loading(
+            parameters.process.mean_reversion_x, delta
+        ),
+        model::mean_reverting_gaussian::integral_state_loading(
+            parameters.process.mean_reversion_y, delta
+        ),
+    };
+}
+
+// Evaluate log(A)-B_x*x-B_y*y from one grouped coefficient calculation.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const G2PlusPlusFittedParameters& parameters,
+    const model::g2::G2State& state,
+    float valuation_time,
+    float maturity
+) {
+    const AffineBondCoefficients coefficients = affine_bond_coefficients(
+        parameters, valuation_time, maturity
+    );
+    return fmaf(
+        -coefficients.B.state_x,
+        state.state_x,
+        fmaf(
+            -coefficients.B.state_y,
+            state.state_y,
+            coefficients.log_A
+        )
+    );
+}
+
 // Combine the stochastic integral with the analytical curve shift.
 __device__ __forceinline__ float log_discount_factor(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::joint::G2JointState& joint_state,
+    float state_integral,
     float time
 ) {
-    return -joint_state.state_integral
+    return -state_integral
         - shift_integral(parameters, 0.0f, time);
 }
 
 // Exponentiate the exact path log-discount only when needed.
 __device__ __forceinline__ float discount_factor(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::joint::G2JointState& joint_state,
+    float state_integral,
     float time
 ) {
-    return expf(log_discount_factor(parameters, joint_state, time));
+    return expf(log_discount_factor(parameters, state_integral, time));
 }
 
 // Price one zero-coupon from both conditional Gaussian states.

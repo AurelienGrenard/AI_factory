@@ -23,22 +23,19 @@ struct BlackScholesState {
 };
 
 struct BlackScholesMeanPathResult {
-    BlackScholesState terminal_state;
     float arithmetic_mean;
 };
 
 struct BlackScholesGeometricMeanPathResult {
-    BlackScholesState terminal_state;
     float geometric_mean;
 };
 
 struct BlackScholesTwoTimePathResult {
-    BlackScholesState first_state;
-    BlackScholesState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct BlackScholesMaximumPathResult {
-    BlackScholesState terminal_state;
     float maximum_spot;
 };
 

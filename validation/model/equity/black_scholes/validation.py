@@ -117,6 +117,60 @@ _PRODUCT_KINDS = frozenset(
     | QUANTLIB_MONTE_CARLO_PRODUCTS
 )
 
+_PREMIA_PRICING_METHODS = {
+    "asset_or_nothing_call": "CF_Call + CF_Digit (static replication)",
+    "asset_or_nothing_put": "CF_Put + CF_Digit (static replication)",
+    "digital_call": "CF_Digit",
+    "digital_put": "CF_Digit (put parity)",
+    "european_call": "CF_Call",
+    "european_put": "CF_Put",
+    "gap_call": "CF_Call + CF_Digit (static replication)",
+    "gap_put": "CF_Put + CF_Digit (static replication)",
+    "straddle": "CF_Call + CF_Put",
+    "up_and_out_call": "CF_CallUpOut",
+    "up_and_in_call": "CF_CallUpIn",
+    "down_and_out_put": "CF_PutDownOut",
+    "down_and_in_put": "CF_PutDownIn",
+    "double_knock_out_call": "CF_CallOut_KunitomoIkeda",
+    "double_knock_out_put": "CF_PutOut_KunitomoIkeda",
+    "lookback_option": "CF_Fixed_CallLookBack",
+    "asian_call": "MC_FixedAsian_ExactMethod",
+    "asian_put": "MC_FixedAsian_ExactMethod",
+    "forward_start_call": "CF_Call (scale-invariant reduction)",
+    "forward_start_put": "CF_Put (scale-invariant reduction)",
+    "geometric_asian_call": "CF_Call (lognormal reduction)",
+    "geometric_asian_put": "CF_Put (lognormal reduction)",
+    "range_accrual": "CF_Digit (marginal replication)",
+    "up_no_touch": "CF_CallUpIn + CF_Call (static replication)",
+    "up_one_touch": "CF_CallUpIn + CF_Call (static replication)",
+}
+
+_QUANTLIB_SPECIALIZED_PRICING_METHODS = {
+    "asset_or_nothing_call": "_asset_or_nothing_price (CumulativeNormalDistribution)",
+    "asset_or_nothing_put": "_asset_or_nothing_price (CumulativeNormalDistribution)",
+    "digital_call": "_digital_price (CumulativeNormalDistribution)",
+    "digital_put": "_digital_price (CumulativeNormalDistribution)",
+    "european_call": "_european_price (BlackCalculator)",
+    "european_put": "_european_price (BlackCalculator)",
+    "forward_start_call": "_forward_start_price (BlackCalculator)",
+    "forward_start_put": "_forward_start_price (BlackCalculator)",
+    "gap_call": "_gap_price (CumulativeNormalDistribution)",
+    "gap_put": "_gap_price (CumulativeNormalDistribution)",
+    "geometric_asian_call": "_geometric_asian_price (BlackCalculator)",
+    "geometric_asian_put": "_geometric_asian_price (BlackCalculator)",
+    "range_accrual": "_range_accrual_price (CumulativeNormalDistribution)",
+    "straddle": "_european_price (two BlackCalculator calls)",
+}
+
+_QUANTLIB_MONTE_CARLO_PRICING_METHODS = {
+    "asian_call": "MCDiscreteArithmeticAPEngine (antithetic pseudorandom)",
+    "asian_put": "MCDiscreteArithmeticAPEngine (antithetic pseudorandom)",
+    **{
+        product: "_antithetic_path_price (GaussianPathGenerator)"
+        for product in QUANTLIB_MONTE_CARLO_PRODUCTS - {"asian_call", "asian_put"}
+    },
+}
+
 
 def _spec(product_kind: str) -> ProductValidationSpec:
     if product_kind not in _PRODUCT_KINDS:
@@ -174,7 +228,12 @@ def _premia_terminal_engine(
             premia_row_exception,
         )
 
-    return ValidationEngine("Premia", "specialized pricer", validate)
+    return ValidationEngine(
+        "Premia",
+        "specialized pricer",
+        validate,
+        pricing_method=_PREMIA_PRICING_METHODS[spec.product_kind],
+    )
 
 
 def _premia_path_engine(spec: ProductValidationSpec) -> ValidationEngine:
@@ -194,7 +253,12 @@ def _premia_path_engine(spec: ProductValidationSpec) -> ValidationEngine:
             premia_row_exception,
         )
 
-    return ValidationEngine("Premia", "specialized pricer", validate)
+    return ValidationEngine(
+        "Premia",
+        "specialized pricer",
+        validate,
+        pricing_method=_PREMIA_PRICING_METHODS[spec.product_kind],
+    )
 
 
 def _premia_specialized_engine(spec: ProductValidationSpec) -> ValidationEngine:
@@ -216,7 +280,12 @@ def _premia_specialized_engine(spec: ProductValidationSpec) -> ValidationEngine:
             premia_row_exception,
         )
 
-    return ValidationEngine("Premia", "specialized pricer", validate)
+    return ValidationEngine(
+        "Premia",
+        "specialized pricer",
+        validate,
+        pricing_method=_PREMIA_PRICING_METHODS[spec.product_kind],
+    )
 
 
 def _unavailable(reference: str, method: str, reason: str) -> ValidationEngine:
@@ -260,7 +329,12 @@ def _engine_plan(
             )
 
         specialized = ValidationEngine(
-            "QuantLib", "specialized pricer", quantlib_specialized
+            "QuantLib",
+            "specialized pricer",
+            quantlib_specialized,
+            pricing_method=(
+                _QUANTLIB_SPECIALIZED_PRICING_METHODS[spec.product_kind]
+            ),
         )
     else:
         specialized = _unavailable(
@@ -290,7 +364,12 @@ def _engine_plan(
             )
 
         monte_carlo = ValidationEngine(
-            "QuantLib", "Monte Carlo", quantlib_monte_carlo
+            "QuantLib",
+            "Monte Carlo",
+            quantlib_monte_carlo,
+            pricing_method=(
+                _QUANTLIB_MONTE_CARLO_PRICING_METHODS[spec.product_kind]
+            ),
         )
     else:
         monte_carlo = _unavailable(

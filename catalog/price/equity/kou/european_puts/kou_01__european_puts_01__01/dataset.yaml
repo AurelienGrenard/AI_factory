@@ -5,7 +5,7 @@ url: "https://datasets.ai-factory.example/v1/price/equity/kou/european_puts/kou_
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 262144
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "European Options"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
-  verified: true
-  reference: "Premia (specialized pricer)"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/price/equity/kou/european_puts/kou_01__european_puts_01__01/validation.ipynb"
 time_grid:
   rule: "exact independent increments at payoff observation times"
   numerical_substeps: 0
@@ -38,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.210607 s"
-  kernel_seconds: "0.016757759 s"
+  wall_seconds: "0.396657014 s"
+  kernel_seconds: "0.059644928 s"

@@ -26,6 +26,8 @@ class GaussianRateValidationTest(unittest.TestCase):
                         "QuantLib (Monte Carlo)",
                     ),
                 )
+                for engine in plan:
+                    self.assertEqual(bool(engine.pricing_method), engine.available)
 
     def test_premia_is_used_only_for_proven_standalone_mappings(self) -> None:
         for product_kind in _PRODUCT_KINDS:

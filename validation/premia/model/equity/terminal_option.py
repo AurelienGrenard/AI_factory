@@ -92,7 +92,7 @@ _PRODUCT_KINDS = frozenset(
 )
 
 
-def _model_prefix(
+def premia_model_prefix(
     parameters: Mapping[str, Any], model_name: str, row_id: str
 ) -> tuple[float, ...]:
     """Map one catalogue row to the runner's documented model convention."""
@@ -159,7 +159,7 @@ def validation_from_premia_terminal_option(
             positive=True,
         )
         maturity = parameter_number(product, "maturity", context, positive=True)
-        values = (*_model_prefix(model, model_name, row.model_id), trigger, maturity)
+        values = (*premia_model_prefix(model, model_name, row.model_id), trigger, maturity)
         if needs_vanilla:
             vanilla_inputs.append(PremiaInput(row.row_id, values))
         if needs_digital:
@@ -261,4 +261,7 @@ def validation_from_premia_terminal_option(
     )
 
 
-__all__ = ("validation_from_premia_terminal_option",)
+__all__ = (
+    "premia_model_prefix",
+    "validation_from_premia_terminal_option",
+)

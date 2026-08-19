@@ -103,6 +103,25 @@ Direct terminal helpers receive normals from the caller. Grid helpers keep one
 `philox::UniformSequence(key, path)` and one normal cache alive. The state law
 uses two normals per interval and the joint state/integral law uses three.
 
+## Affine bond formula
+
+For $\tau=T-t$,
+
+$$
+P(t,T)=A(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t},
+$$
+
+where
+
+$$
+B_x(t,T)=\frac{1-e^{-a\tau}}a,\qquad
+B_y(t,T)=\frac{1-e^{-b\tau}}b,
+$$
+
+and $\log A(t,T)=\tfrac12\operatorname{Var}_t[\int_t^T(x_s+y_s)ds]$.
+`B` returns `G2BondLoadings {state_x, state_y}`. Bond evaluation obtains
+`log_A`, $B_x$, and $B_y$ from one shared integral-moment calculation.
+
 ## Pricing kernels
 
 Current rate options and zero-coupon-bond options are closed form and use one
@@ -115,9 +134,14 @@ launcher, with compile-time call/put specialization.
 The declarations below omit CUDA attributes for readability.
 
 ```cpp
+struct G2BondLoadings { float state_x; float state_y; };
+float log_A(const G2ModelParameters&, float valuation_time, float maturity);
+float A(const G2ModelParameters&, float valuation_time, float maturity);
+G2BondLoadings B(const G2ModelParameters&, float valuation_time, float maturity);
+float log_zero_coupon_bond(const G2ModelParameters&, const G2State&, float valuation_time, float maturity);
 float short_rate(const G2State&);
-float log_discount_factor(const joint::G2JointState&);
-float discount_factor(const joint::G2JointState&);
+float log_discount_factor(float state_integral);
+float discount_factor(float state_integral);
 float zero_coupon_bond(const G2ModelParameters&, const G2State&, float valuation_time, float maturity);
 float zero_coupon_bond_call_price(const G2ModelParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);
 float zero_coupon_bond_put_price(const G2ModelParameters&, const G2State&, float valuation_time, float expiry, float maturity, float strike);

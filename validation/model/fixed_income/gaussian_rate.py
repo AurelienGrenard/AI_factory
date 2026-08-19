@@ -51,20 +51,35 @@ class GaussianRateModelSpec:
 
     model_name: str
     quantlib_model: Any
+    quantlib_pricing_method: str
     premia_model: str | None
 
 
 _MODELS: Mapping[str, GaussianRateModelSpec] = {
     "vasicek": GaussianRateModelSpec(
-        "vasicek", vasicek_quantlib_model, "vasicek"
+        "vasicek",
+        vasicek_quantlib_model,
+        "Vasicek.discountBondOption",
+        "vasicek",
     ),
     "ornstein_uhlenbeck": GaussianRateModelSpec(
         "ornstein_uhlenbeck",
         ornstein_uhlenbeck_quantlib_model,
+        "Vasicek.discountBondOption (centered OU mapping)",
         "ornstein_uhlenbeck",
     ),
-    "g2": GaussianRateModelSpec("g2", g2_quantlib_model, None),
+    "g2": GaussianRateModelSpec(
+        "g2", g2_quantlib_model, "G2.discountBondOption", None
+    ),
 }
+
+
+def _premia_pricing_method(product_kind: str) -> str:
+    """Return the exact Premia method after the caplet bond-option identity."""
+
+    if product_kind in {"zero_coupon_bond_call", "floorlet"}:
+        return "CF_Vasicek1d_ZBCallEuro"
+    return "CF_Vasicek1d_ZBPutEuro"
 
 
 def _spec(model_name: str) -> GaussianRateModelSpec:
@@ -97,7 +112,10 @@ def _engine_plan(
             )
 
         premia_engine = ValidationEngine(
-            "Premia", "specialized pricer", premia
+            "Premia",
+            "specialized pricer",
+            premia,
+            pricing_method=_premia_pricing_method(product_kind),
         )
     else:
         premia_engine = unavailable_engine(
@@ -128,7 +146,10 @@ def _engine_plan(
     return (
         premia_engine,
         ValidationEngine(
-            "QuantLib", "specialized pricer", quantlib_specialized
+            "QuantLib",
+            "specialized pricer",
+            quantlib_specialized,
+            pricing_method=spec.quantlib_pricing_method,
         ),
         unavailable_engine(
             "QuantLib",

@@ -18,6 +18,7 @@ from validation.premia.price_validation import (
     select_validation_regime,
     select_validation_row_ids,
 )
+from validation.quantlib.price_validation import PriceRowDiagnostic
 
 
 DirectionalRelation = Literal[
@@ -41,6 +42,7 @@ class DirectionalValidationReport:
     maximum_absolute_error: float
     maximum_absolute_error_row_id: str
     systematic_bias: bool
+    row_diagnostics: tuple[PriceRowDiagnostic, ...]
 
     @property
     def passed(self) -> bool:
@@ -82,6 +84,7 @@ def summarize_directional_comparisons(
     absolute_sum = 0.0
     maximum = -1.0
     maximum_row = comparisons[0].row_id
+    row_diagnostics: list[PriceRowDiagnostic] = []
     for row in comparisons:
         signed = row.generated_price - row.premia_price
         absolute = abs(signed)
@@ -100,6 +103,17 @@ def summarize_directional_comparisons(
         )
         if violation:
             failed.append(row.row_id)
+        row_diagnostics.append(
+            PriceRowDiagnostic(
+                row_id=row.row_id,
+                generated_price=row.generated_price,
+                reference_price=row.premia_price,
+                generated_standard_error=row.generated_standard_error,
+                reference_standard_error=row.premia_standard_error,
+                allowance=allowance,
+                passed=not violation,
+            )
+        )
         higher += signed > 0.0
         lower += signed < 0.0
         equal += signed == 0.0
@@ -122,6 +136,7 @@ def summarize_directional_comparisons(
         maximum_absolute_error=maximum,
         maximum_absolute_error_row_id=maximum_row,
         systematic_bias=dominant,
+        row_diagnostics=tuple(row_diagnostics),
     )
 
 
@@ -146,6 +161,7 @@ def summarize_contract_difference_comparisons(
     absolute_sum = 0.0
     maximum = -1.0
     maximum_row = comparisons[0].row_id
+    row_diagnostics: list[PriceRowDiagnostic] = []
     for row in comparisons:
         signed = row.generated_price - row.premia_price
         absolute = abs(signed)
@@ -158,8 +174,20 @@ def summarize_contract_difference_comparisons(
             )
             + contract_allowances[row.row_id]
         )
-        if absolute > allowance:
+        passed = absolute <= allowance
+        if not passed:
             failed.append(row.row_id)
+        row_diagnostics.append(
+            PriceRowDiagnostic(
+                row_id=row.row_id,
+                generated_price=row.generated_price,
+                reference_price=row.premia_price,
+                generated_standard_error=row.generated_standard_error,
+                reference_standard_error=row.premia_standard_error,
+                allowance=allowance,
+                passed=passed,
+            )
+        )
         higher += signed > 0.0
         lower += signed < 0.0
         equal += signed == 0.0
@@ -181,6 +209,7 @@ def summarize_contract_difference_comparisons(
         maximum_absolute_error=maximum,
         maximum_absolute_error_row_id=maximum_row,
         systematic_bias=max(higher, lower) / row_count > 0.60,
+        row_diagnostics=tuple(row_diagnostics),
     )
 
 

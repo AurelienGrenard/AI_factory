@@ -37,6 +37,8 @@ class FittedGaussianRateValidationTest(unittest.TestCase):
                 self.assertTrue(plan[0].available)
                 self.assertTrue(plan[1].available)
                 self.assertFalse(plan[2].available)
+                for engine in plan:
+                    self.assertEqual(bool(engine.pricing_method), engine.available)
 
 
 if __name__ == "__main__":

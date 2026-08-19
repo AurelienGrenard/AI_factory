@@ -238,7 +238,6 @@ __device__ __forceinline__ BatesMeanPathResult simulate_mean_state(
     }
 
     return {
-        state,
         static_cast<float>(
             spot_sum / (static_cast<double>(num_steps) + 1.0)
         ),
@@ -269,7 +268,6 @@ simulate_geometric_mean_state(
 
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {
-        state,
         expf(static_cast<float>(log_spot_sum / observation_count)),
     };
 }
@@ -292,12 +290,12 @@ __device__ __forceinline__ BatesTwoTimePathResult simulate_at_two_times(
     simulate_interval(
         first_model, first_num_steps, uniforms, normal_cache, state
     );
-    const BatesState first_state = state;
+    const float first_spot = expf(state.log_spot);
 
     simulate_interval(
         second_model, second_num_steps, uniforms, normal_cache, state
     );
-    return {first_state, state};
+    return {first_spot, expf(state.log_spot)};
 }
 
 // Track the maximum spot at time zero and after every simulated transition.
@@ -323,7 +321,7 @@ __device__ __forceinline__ BatesMaximumPathResult simulate_maximum_state(
         maximum_spot = fmaxf(maximum_spot, spot);
     }
 
-    return {state, maximum_spot};
+    return {maximum_spot};
 }
 
 // Write pre-maturity states in a date-major grid and return terminal state.

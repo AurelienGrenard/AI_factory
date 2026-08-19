@@ -5,7 +5,7 @@ url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Kou/RangeAccrual/kou_01__ra
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Range Accruals"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/range_accruals/kou_01__range_accruals_01__01/validation.ipynb"
 time_grid:
   rule: "exact independent increments at product observation times"
   observation_count: "round(maturity / observation_interval)"
@@ -39,5 +41,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.344370021 s"
-  kernel_seconds: "0.082630432 s"
+  wall_seconds: "8.18882232 s"
+  kernel_seconds: "6.351495117 s"

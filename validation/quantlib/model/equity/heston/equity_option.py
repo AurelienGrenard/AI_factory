@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 import QuantLib as ql
 
@@ -13,6 +13,7 @@ from validation.quantlib.parameters import finite_number, positive_number
 from validation.quantlib.price_validation import (
     PriceResultRow,
     PriceValidationReport,
+    ValidationRegime,
     ValidationTolerances,
     validation_from_reference,
 )
@@ -23,7 +24,7 @@ from validation.quantlib.term_structure import (
 )
 
 
-_TARGET_DT = 1.0 / 252.0
+_TARGET_DT = 1.0 / 360.0
 _FLOAT32_EPSILON = 1.1920928955078125e-7
 _ASIAN_REFERENCE_SAMPLES = 4096
 _GEOMETRIC_ASIAN_REFERENCE_PAIRS = 512
@@ -32,6 +33,7 @@ _BARRIER_REFERENCE_PAIRS = 512
 _AUTOCALL_REFERENCE_PAIRS = 1024
 _CLIQUET_REFERENCE_PAIRS = 1024
 _RANGE_ACCRUAL_REFERENCE_PAIRS = 1024
+_LOOKBACK_REFERENCE_PAIRS = 512
 
 
 def _vanilla_payoff(option_type: int, product: Mapping[str, Any]) -> ql.Payoff:
@@ -550,6 +552,31 @@ def _double_barrier_price(
     )
 
 
+def _lookback_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    row: PriceResultRow,
+) -> tuple[float, float]:
+    """Price one discretely monitored fixed-strike lookback call."""
+
+    reference = quantlib_reference(model)
+    maturity = positive_number(product, "maturity", "Lookback option")
+    strike = positive_number(product, "strike", "Lookback option")
+    risk_free_rate = finite_number(model, "risk_free_rate", "Heston model")
+    discount = math.exp(-risk_free_rate * maturity)
+
+    def discounted_payoff(spot_path: ql.Path) -> float:
+        return discount * max(max(spot_path) - strike, 0.0)
+
+    return _antithetic_heston_path_price(
+        reference,
+        _regular_simulation_times(maturity),
+        800000000 + int(row.row_id),
+        _LOOKBACK_REFERENCE_PAIRS,
+        discounted_payoff,
+    )
+
+
 def _unit_cash_digitals(
     reference: HestonReference, strike: float, maturity: float
 ) -> tuple[float, float]:
@@ -763,6 +790,8 @@ def validation_from_quantlib_heston_option(
     price_dataset_path: str | Path,
     product_kind: str,
     tolerances: ValidationTolerances,
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
 ) -> PriceValidationReport:
     """Validate one complete Heston option dataset through a common loop."""
 
@@ -832,6 +861,8 @@ def validation_from_quantlib_heston_option(
             return _double_barrier_price(
                 model, product, row, ql.Option.Put
             )
+        if product_kind == "lookback_option":
+            return _lookback_price(model, product, row)
         if product_kind == "digital_call":
             return _digital_price(model, product, ql.Option.Call)
         if product_kind == "digital_put":
@@ -859,4 +890,6 @@ def validation_from_quantlib_heston_option(
         reference_price,
         tolerances,
         require_curve=False,
+        regime=regime,
+        row_ids=row_ids,
     )

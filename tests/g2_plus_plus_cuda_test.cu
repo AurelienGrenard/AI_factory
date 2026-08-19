@@ -12,7 +12,7 @@
 
 namespace {
 
-constexpr std::size_t kOutputCount = 8U;
+constexpr std::size_t kOutputCount = 13U;
 
 // Evaluate initial-curve fitting and zero-coupon option parity.
 __global__ void g2_plus_plus_test_kernel(float* outputs) {
@@ -51,6 +51,20 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
     outputs[6] = outputs[4] - outputs[5]
         - (outputs[2] - strike * outputs[0]);
     outputs[7] = fitted::short_rate(parameters, state, 0.0f);
+    constexpr ai_factory::workbench::model::g2::G2State affine_state = {
+        0.01f, -0.005f
+    };
+    outputs[8] = fitted::A(parameters, expiry, maturity);
+    const ai_factory::workbench::model::g2::G2BondLoadings bond_loadings =
+        fitted::B(parameters, expiry, maturity);
+    outputs[9] = bond_loadings.state_x;
+    outputs[10] = bond_loadings.state_y;
+    outputs[11] = fitted::log_zero_coupon_bond(
+        parameters, affine_state, expiry, maturity
+    );
+    outputs[12] = fitted::log_A(parameters, expiry, maturity)
+        - bond_loadings.state_x * affine_state.state_x
+        - bond_loadings.state_y * affine_state.state_y;
 }
 
 // Stop immediately with a readable invariant name.
@@ -98,5 +112,10 @@ int main() {
     require(
         std::fabs(outputs[7] - 0.02f) < 2.0e-6f,
         "G2++ initial short rate does not match the initial forward"
+    );
+    require(
+        outputs[8] > 0.0f && outputs[9] > 0.0f && outputs[10] > 0.0f
+            && std::fabs(outputs[11] - outputs[12]) < 2.0e-7f,
+        "G2++ affine A/B decomposition is incorrect"
     );
 }

@@ -93,13 +93,12 @@ __device__ __forceinline__ BlackScholesMeanPathResult simulate_mean_state(
         spot_sum += static_cast<double>(expf(state.log_spot));
     }
     return {
-        state,
         static_cast<float>(spot_sum / (static_cast<double>(num_steps) + 1.0)),
     };
 }
 
-// Simulate the joint Gaussian law of the terminal log-price and the discrete
-// average log-price directly; no intermediate grid points are constructed.
+// Simulate the discrete average log-price directly; no intermediate grid
+// points are constructed.
 __device__ __forceinline__ BlackScholesGeometricMeanPathResult
 simulate_geometric_mean_state(
     const BlackScholesPreparedParameters& model,
@@ -121,16 +120,11 @@ simulate_geometric_mean_state(
         * model.standard_deviation * step_count * (step_count - 1.0f)
         / (12.0f * (step_count + 1.0f));
     const float residual_standard_deviation = sqrtf(residual_variance);
-    const float terminal_log_spot = fmaf(
-        terminal_standard_deviation,
-        terminal_normal,
-        model.initial_log_spot + step_count * model.drift
-    );
     const float average_log_spot = model.initial_log_spot
         + 0.5f * step_count * model.drift
         + shared_coefficient * terminal_normal
         + residual_standard_deviation * residual_normal;
-    return {{terminal_log_spot}, expf(average_log_spot)};
+    return {expf(average_log_spot)};
 }
 
 __device__ __forceinline__ BlackScholesTwoTimePathResult simulate_at_two_times(
@@ -143,9 +137,9 @@ __device__ __forceinline__ BlackScholesTwoTimePathResult simulate_at_two_times(
     philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
     philox::NormalPairCache normal_cache;
     simulate_one_step(first_model, uniforms, normal_cache, state);
-    const BlackScholesState first_state = state;
+    const float first_spot = expf(state.log_spot);
     simulate_one_step(second_model, uniforms, normal_cache, state);
-    return {first_state, state};
+    return {first_spot, expf(state.log_spot)};
 }
 
 __device__ __forceinline__ BlackScholesMaximumPathResult simulate_maximum_state(
@@ -162,7 +156,7 @@ __device__ __forceinline__ BlackScholesMaximumPathResult simulate_maximum_state(
         simulate_one_step(model, uniforms, normal_cache, state);
         maximum_spot = fmaxf(maximum_spot, expf(state.log_spot));
     }
-    return {state, maximum_spot};
+    return {maximum_spot};
 }
 
 __device__ __forceinline__ BlackScholesState simulate_on_regular_grid(

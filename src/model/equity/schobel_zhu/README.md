@@ -69,10 +69,10 @@ Process: An Extension* (1999), available from the authors' institution as a
 | `initial_state` | Build the time-zero register state |
 | `one_step_transition` | Apply one transition from supplied normals |
 | `simulate_terminal_state` | Return only the maturity state |
-| `simulate_mean_state` | Return maturity state and arithmetic mean |
-| `simulate_geometric_mean_state` | Return maturity state and geometric mean |
-| `simulate_at_two_times` | Return two requested boundary states |
-| `simulate_maximum_state` | Return maturity state and monitored maximum |
+| `simulate_mean_state` | Return only the arithmetic mean |
+| `simulate_geometric_mean_state` | Return only the geometric mean |
+| `simulate_at_two_times` | Return only two requested boundary spots |
+| `simulate_maximum_state` | Return only the monitored maximum |
 | `simulate_on_regular_grid` | Store only requested dated state fields |
 
 The volatility endpoint is sampled exactly with its correct joint Gaussian

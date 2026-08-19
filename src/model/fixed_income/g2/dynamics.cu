@@ -12,6 +12,8 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::model::g2 {
+
+// ======================== Model-specific dynamics =========================
 namespace {
 
 // Return the exact covariance of the two filtered state innovations.
@@ -103,6 +105,8 @@ __device__ __forceinline__ G2IntegralMoments integral_moments(
             + 2.0f * cross_integral_covariance(parameters, delta),
     };
 }
+
+// ======================= Common state-only dynamics ========================
 
 // Prepare the Cholesky coefficients of both correlated state innovations.
 __device__ __forceinline__ G2ExactTransition prepare_model(
@@ -213,6 +217,8 @@ __device__ __forceinline__ G2State simulate_on_regular_grid(
 }
 
 namespace joint {
+
+// ========================= Common joint dynamics ===========================
 
 // Prepare a three-dimensional Cholesky transition for X, Y, and their integral.
 __device__ __forceinline__ G2JointExactTransition prepare_model(

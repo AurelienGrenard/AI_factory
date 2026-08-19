@@ -42,9 +42,21 @@ validated on its own.
 Each registered batch uses one runner process. Datasets following the 90/10
 convention are audited separately on their 900 core and 100 stress rows. The
 runner retains successful prices when an individual row returns an error, so a
-later backend can validate only the failed row. A successful finite and
-comparable Premia price that disagrees with the generated price remains a
-comparison failure and does not trigger fallback.
+later engine can validate only the failed row. Premia discovery is exhaustive
+and precedes engine selection: enumerate every method registered for the exact
+model-product pair across all Premia asset menus, inspect direct contracts and
+exact Premia-based decompositions, and record every compatible candidate. A
+closed form, approximation, tree, finite-difference method, or Monte Carlo
+method is equally eligible at this discovery stage.
+
+When several candidates exist, benchmark representative core and stress rows.
+Choose the fastest engine among the compatible, robust candidates as the
+primary engine, and retain the remaining Premia methods as ordered row-level
+fallbacks. A technical failure therefore tries every compatible Premia method
+before QuantLib. A successful finite and comparable Premia price that disagrees
+with the generated price remains a comparison failure: another method may be
+used diagnostically, but must not be selected after the fact merely because it
+is closer.
 
 The current catalogue includes the following direct Premia comparisons:
 
@@ -87,17 +99,20 @@ Straddles and the other terminal claims are exact static combinations of the
 model's compatible vanilla and cash-digital Premia engines. When one primitive
 is Monte Carlo, its reported standard error is propagated into the comparison.
 
-The audit deliberately rejects a method that merely exists. `AP_Kou_Eu`, both
-Schobel-Zhu approximations, the tested VG/NIG approximations, and several stress
-cases of the Bates, Merton, and CEV methods do not pass every current row. Those
-datasets therefore fall through to QuantLib by regime or row when a compatible
-engine passes, or remain explicitly unverified.
+The existence of a compatible method makes Premia available for the pair; it
+does not by itself validate the dataset. If a candidate such as `AP_Kou_Eu`, a
+Schobel-Zhu approximation, a VG/NIG approximation, or a stress-domain method
+fails technically on some rows, the runner must try every other compatible
+Premia candidate on those rows before considering QuantLib. If instead a
+method returns a finite comparable price outside tolerance, the discrepancy is
+reported and investigated rather than hidden by switching references.
 
-Premia also exposes the approximate CEV method `AP_BGM_Cev`. The catalogue
-uses QuantLib's exact analytic CEV engine instead, because the validation
-hierarchy applies only to a compatible backend that passes the complete
-dataset; a Premia approximation is not preferred over an exact specialized
-reference merely because it is present in the package.
+Premia also exposes the approximate CEV method `AP_BGM_Cev`. It must therefore
+appear in the CEV engine inventory and be tested before QuantLib. If it fails
+technically for a row, another Premia CEV method is tried when available; only
+after the Premia list is exhausted may QuantLib be used. A finite discrepancy
+remains a visible validation failure and is not replaced by the exact QuantLib
+price simply because that reference is more accurate.
 
 Premia availability is determined by the actual model-product pair and a
 compatible pricing method, not by whether AI_factory uses the same numerical

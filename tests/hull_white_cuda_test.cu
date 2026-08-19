@@ -17,7 +17,7 @@ namespace fitted =
 namespace ou =
     ai_factory::workbench::model::ornstein_uhlenbeck;
 
-constexpr std::size_t kOutputCount = 30U;
+constexpr std::size_t kOutputCount = 34U;
 
 // Evaluate curve limits, one exact transition, and one model zero-coupon.
 __global__ void hull_white_test_kernel(float* outputs) {
@@ -63,7 +63,9 @@ __global__ void hull_white_test_kernel(float* outputs) {
     ou::one_step_transition(step, 0.0f, state);
     ou::joint::one_step_transition(joint_step, 0.0f, 0.0f, joint_state);
     outputs[6] = state;
-    outputs[7] = fitted::log_discount_factor(prepared, joint_state, dt);
+    outputs[7] = fitted::log_discount_factor(
+        prepared, joint_state.state_integral, dt
+    );
     outputs[8] = fitted::zero_coupon_bond(
         prepared, state, dt, maturity
     );
@@ -185,6 +187,14 @@ __global__ void hull_white_test_kernel(float* outputs) {
     outputs[27] = deterministic_step.integral_state_normal_loading;
     outputs[28] = deterministic_step.integral_independent_standard_deviation;
     outputs[29] = ou::integral_state_loading(0.15f, 1.0f / 252.0f);
+    constexpr float affine_state = 0.012f;
+    outputs[30] = fitted::A(prepared, dt, maturity);
+    outputs[31] = fitted::B(prepared, dt, maturity);
+    outputs[32] = fitted::log_zero_coupon_bond(
+        prepared, affine_state, dt, maturity
+    );
+    outputs[33] = fitted::log_A(prepared, dt, maturity)
+        - outputs[31] * affine_state;
 }
 
 // Stop immediately with a readable invariant name.
@@ -288,5 +298,10 @@ int main() {
             )
         ) < 1.0e-7f,
         "Small-time OU integral loading is inaccurate"
+    );
+    require(
+        outputs[30] > 0.0f && outputs[31] > 0.0f
+            && std::fabs(outputs[32] - outputs[33]) < 2.0e-7f,
+        "Hull-White affine A/B decomposition is incorrect"
     );
 }

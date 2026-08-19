@@ -80,6 +80,7 @@ class ValidationReportingTest(unittest.TestCase):
             status="passed",
             database_id="sample",
             reference="Premia (specialized pricer)",
+            pricing_method="CF_Call",
             tolerance="five combined standard errors",
             row_count=2,
             accepted_row_count=1,
@@ -93,9 +94,12 @@ class ValidationReportingTest(unittest.TestCase):
             maximum_absolute_price_gap_row_id="000001",
             systematic_bias=False,
             engine_plan=(
-                EnginePlanEntry("Premia (specialized pricer)", True),
+                EnginePlanEntry(
+                    "Premia (specialized pricer)", "CF_Call", True
+                ),
                 EnginePlanEntry(
                     "QuantLib (specialized pricer)",
+                    None,
                     False,
                     "no compatible engine",
                 ),
@@ -106,7 +110,12 @@ class ValidationReportingTest(unittest.TestCase):
                 ),
             ),
             fallbacks=(
-                FallbackDiagnostic("000002", "QuantLib (Monte Carlo)", True),
+                FallbackDiagnostic(
+                    "000002",
+                    "QuantLib (Monte Carlo)",
+                    "_antithetic_path_price (GaussianPathGenerator)",
+                    True,
+                ),
             ),
         )
 
@@ -114,6 +123,7 @@ class ValidationReportingTest(unittest.TestCase):
 
         self.assertIn("Stress validation: PASS", rendered)
         self.assertIn("reference                          : Premia", rendered)
+        self.assertIn("pricing method                     : CF_Call", rendered)
         self.assertNotIn("criterion", rendered)
         self.assertIn("mean absolute price gap            : 1.000000e-04", rendered)
         self.assertIn(
@@ -122,6 +132,9 @@ class ValidationReportingTest(unittest.TestCase):
         )
         self.assertIn("000002\n  diagnostic : backend failure", rendered)
         self.assertIn("QuantLib (Monte Carlo) fallback for 000002: PASS", rendered)
+        self.assertIn(
+            "pricing method : _antithetic_path_price", rendered
+        )
 
     def test_json_round_trip_and_dataset_fingerprint(self) -> None:
         section = ValidationDisplayReport(
@@ -129,6 +142,7 @@ class ValidationReportingTest(unittest.TestCase):
             status="passed",
             database_id="sample",
             reference="QuantLib (specialized pricer)",
+            pricing_method="BlackCalculator",
             tolerance="absolute tolerance",
             row_count=1,
             accepted_row_count=1,
@@ -175,6 +189,7 @@ class ValidationReportingTest(unittest.TestCase):
             status="passed",
             database_id="sample",
             reference="Premia (specialized pricer)",
+            pricing_method="CF_Call",
             tolerance="absolute tolerance",
             row_count=1,
             accepted_row_count=1,
@@ -188,9 +203,12 @@ class ValidationReportingTest(unittest.TestCase):
             maximum_absolute_price_gap_row_id="000001",
             systematic_bias=False,
             engine_plan=(
-                EnginePlanEntry("Premia (specialized pricer)", True),
+                EnginePlanEntry(
+                    "Premia (specialized pricer)", "CF_Call", True
+                ),
                 EnginePlanEntry(
                     "QuantLib (specialized pricer)",
+                    None,
                     False,
                     "no compatible engine",
                 ),
@@ -225,6 +243,7 @@ class ValidationReportingTest(unittest.TestCase):
             status="not_available",
             database_id="sample",
             reference="none",
+            pricing_method=None,
             tolerance="none",
             row_count=900,
             accepted_row_count=0,

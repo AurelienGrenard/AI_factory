@@ -89,7 +89,7 @@ __device__ __forceinline__ CevMeanPathResult simulate_mean_state(
         sum += state.spot;
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
-    return {state, static_cast<float>(sum / observation_count)};
+    return {static_cast<float>(sum / observation_count)};
 }
 
 __device__ __forceinline__ CevGeometricMeanPathResult simulate_geometric_mean_state(
@@ -112,7 +112,7 @@ __device__ __forceinline__ CevGeometricMeanPathResult simulate_geometric_mean_st
     const float mean = hit_zero
         ? 0.0f
         : expf(static_cast<float>(sum / observation_count));
-    return {state, mean};
+    return {mean};
 }
 
 __device__ __forceinline__ CevTwoTimePathResult simulate_at_two_times(
@@ -124,9 +124,9 @@ __device__ __forceinline__ CevTwoTimePathResult simulate_at_two_times(
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     simulate_steps(first, first_num_steps, uniforms, normals, state);
-    const CevState first_state = state;
+    const float first_spot = state.spot;
     simulate_steps(second, second_num_steps, uniforms, normals, state);
-    return {first_state, state};
+    return {first_spot, state.spot};
 }
 
 __device__ __forceinline__ CevMaximumPathResult simulate_maximum_state(
@@ -141,7 +141,7 @@ __device__ __forceinline__ CevMaximumPathResult simulate_maximum_state(
         simulate_one_step(model, uniforms, normals, state);
         maximum = fmaxf(maximum, state.spot);
     }
-    return {state, maximum};
+    return {maximum};
 }
 
 __device__ __forceinline__ CevState simulate_on_regular_grid(

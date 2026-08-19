@@ -25,27 +25,24 @@ struct BatesQeParameters {
 // Evolving log-spot and variance private to one Monte Carlo path.
 using BatesState = heston::HestonState;
 
-// Terminal state and arithmetic mean observed from time zero to maturity.
+// Arithmetic mean observed from time zero to maturity.
 struct BatesMeanPathResult {
-    BatesState terminal_state;
     float arithmetic_mean;
 };
 
-// Terminal state and geometric mean observed from time zero to maturity.
+// Geometric mean observed from time zero to maturity.
 struct BatesGeometricMeanPathResult {
-    BatesState terminal_state;
     float geometric_mean;
 };
 
-// Path states observed at two requested times without global-memory storage.
+// Spot values observed at two requested times without retaining latent state.
 struct BatesTwoTimePathResult {
-    BatesState first_state;
-    BatesState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
-// Terminal state and maximum spot observed from time zero to maturity.
+// Maximum spot observed from time zero to maturity.
 struct BatesMaximumPathResult {
-    BatesState terminal_state;
     float maximum_spot;
 };
 
@@ -97,7 +94,7 @@ simulate_geometric_mean_state(
     std::size_t num_steps
 );
 
-// Simulate two consecutive intervals and return both boundary states.
+// Simulate two consecutive intervals and return the two boundary spots only.
 __device__ __forceinline__ BatesTwoTimePathResult simulate_at_two_times(
     const BatesQeParameters& first_model,
     const BatesQeParameters& second_model,

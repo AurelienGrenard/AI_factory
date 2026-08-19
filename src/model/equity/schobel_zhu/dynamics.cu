@@ -156,7 +156,7 @@ __device__ __forceinline__ SchobelZhuMeanPathResult simulate_mean_state(
         sum += expf(state.log_spot);
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
-    return {state, static_cast<float>(sum / observation_count)};
+    return {static_cast<float>(sum / observation_count)};
 }
 
 __device__ __forceinline__ SchobelZhuGeometricMeanPathResult
@@ -176,7 +176,6 @@ simulate_geometric_mean_state(
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {
-        state,
         expf(static_cast<float>(log_sum / observation_count)),
     };
 }
@@ -199,7 +198,7 @@ __device__ __forceinline__ SchobelZhuTwoTimePathResult simulate_at_two_times(
         normals,
         state
     );
-    const SchobelZhuState first_state = state;
+    const float first_spot = expf(state.log_spot);
     simulate_steps(
         second_model,
         second_num_steps,
@@ -207,7 +206,7 @@ __device__ __forceinline__ SchobelZhuTwoTimePathResult simulate_at_two_times(
         normals,
         state
     );
-    return {first_state, state};
+    return {first_spot, expf(state.log_spot)};
 }
 
 __device__ __forceinline__ SchobelZhuMaximumPathResult simulate_maximum_state(
@@ -224,7 +223,7 @@ __device__ __forceinline__ SchobelZhuMaximumPathResult simulate_maximum_state(
         simulate_one_step(model, uniforms, normals, state);
         maximum = fmaxf(maximum, expf(state.log_spot));
     }
-    return {state, maximum};
+    return {maximum};
 }
 
 __device__ __forceinline__ SchobelZhuState simulate_on_regular_grid(

@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::vasicek {
 
+// ======================== Model-specific dynamics =========================
+
 // Evaluate the exact loading of the current state in its future integral.
 __device__ __forceinline__ float integral_state_loading(
     float mean_reversion,
@@ -46,6 +48,8 @@ __device__ __forceinline__ VasicekIntegralMoments integral_moments(
         moments.variance,
     };
 }
+
+// ======================= Common state-only dynamics ========================
 
 // Prepare one exact Gaussian transition for the Vasicek state alone.
 __device__ __forceinline__ VasicekExactTransition prepare_model(
@@ -133,6 +137,8 @@ __device__ __forceinline__ float simulate_on_regular_grid(
 }
 
 namespace joint {
+
+// ========================= Common joint dynamics ===========================
 
 // Prepare one exact joint Gaussian transition for the state and its integral.
 __device__ __forceinline__ VasicekJointExactTransition prepare_model(

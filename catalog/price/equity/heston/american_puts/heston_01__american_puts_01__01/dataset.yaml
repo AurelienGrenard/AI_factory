@@ -15,8 +15,18 @@ summary:
   blocks_per_price: 128
   random_generator: "Philox"
 validation:
+  status: "failed"
   verified: false
-  reference: "none"
+  reference: "Premia (specialized pricer)"
+  notebook: "catalog/price/equity/heston/american_puts/heston_01__american_puts_01__01/validation.ipynb"
+  core:
+    status: "failed"
+    row_count: 900
+    reference: "Premia (specialized pricer)"
+  stress:
+    status: "failed"
+    row_count: 100
+    reference: "Premia (specialized pricer)"
 time_grid:
   target_dt: "1 / 252"
   initial_stub:

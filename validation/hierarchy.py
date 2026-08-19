@@ -39,9 +39,18 @@ class ValidationEngine:
     reference: str
     method: str
     validate: BackendValidator | None
+    pricing_method: str | None = None
     unavailable_reason: str | None = None
 
     def __post_init__(self) -> None:
+        if self.validate is not None and not self.pricing_method:
+            raise ValueError(
+                f"Available engine {self.label} requires its exact pricing method."
+            )
+        if self.validate is None and self.pricing_method is not None:
+            raise ValueError(
+                f"Unavailable engine {self.label} cannot expose a pricing method."
+            )
         if self.validate is None and not self.unavailable_reason:
             raise ValueError(
                 f"Unavailable engine {self.label} requires a concise reason."
@@ -80,13 +89,29 @@ class ValidationHierarchyResult:
     unresolved_row_ids: tuple[str, ...]
 
     @property
-    def primary_reference(self) -> str:
+    def primary_engine(self) -> ValidationEngine | None:
         """Return the engine that supplied the largest number of prices."""
 
         if not self.runs:
-            return "none"
+            return None
         primary = max(self.runs, key=lambda run: len(run.completed_row_ids))
-        return primary.engine.label if primary.completed_row_ids else "none"
+        return primary.engine if primary.completed_row_ids else None
+
+    @property
+    def primary_reference(self) -> str:
+        """Return the engine that supplied the largest number of prices."""
+
+        return self.primary_engine.label if self.primary_engine is not None else "none"
+
+    @property
+    def primary_pricing_method(self) -> str | None:
+        """Return the exact function or native method used for most rows."""
+
+        return (
+            self.primary_engine.pricing_method
+            if self.primary_engine is not None
+            else None
+        )
 
 
 def run_validation_hierarchy(

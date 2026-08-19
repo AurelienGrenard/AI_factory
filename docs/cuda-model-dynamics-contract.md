@@ -50,6 +50,29 @@ Les formules de courbe, payoffs, règles produit et kernels de pricing restent
 dans leurs couches respectives. Une dynamique ne les réimporte pas pour
 faciliter ponctuellement un pricer.
 
+## Analytics obligataires affines
+
+Un modèle de taux affine adopte la convention multiplicative
+
+```text
+P(t,T) = A(t,T) * exp(-B(t,T)' * X_t).
+```
+
+Son `analytics.cuh` expose `log_A`, `A`, `B`, `log_zero_coupon_bond` et
+`zero_coupon_bond`. Un modèle à un facteur retourne un `float` depuis `B`; G2
+et G2++ retournent le type partagé `G2BondLoadings`. Le `.cu` calcule `log_A`
+et tous les loadings dans un helper privé `affine_bond_coefficients`, afin que
+le chemin chaud d'un ZCB partage les moments et transcendantes. `A` reste un
+wrapper de lisibilité; le pricing travaille en espace logarithmique et ne fait
+pas un aller-retour `exp` puis `log`.
+
+`log_discount_factor` et `discount_factor` ne désignent pas ces coefficients :
+ils reçoivent uniquement la valeur scalaire `integral_0^t r_s ds` et retournent
+respectivement son opposé et son exponentielle. Le code appelant extrait donc
+`state_integral` d'un éventuel état joint sans transmettre les autres facteurs
+inutiles. Pour un modèle `++`, les paramètres de courbe et le temps complètent
+cette entrée scalaire afin d'ajouter l'intégrale du shift déterministe.
+
 ## Types communs
 
 ### Paramètres préparés
@@ -72,13 +95,21 @@ mathématique, comme Bates réutilise l'état log-spot/variance de Heston.
 ### Résultats de chemin
 
 Un type spécialisé tel que `<Model>MeanPathResult`,
-`<Model>TwoTimePathResult` ou `<Model>MaximumPathResult` regroupe l'état terminal
-et un résumé de chemin. Il n'est ajouté que si plusieurs produits peuvent le
-réutiliser sans introduire de logique produit dans la dynamique.
+`<Model>TwoTimePathResult` ou `<Model>MaximumPathResult` ne contient que les
+observables demandés. En particulier, les moyennes et maxima ne conservent pas
+l'état terminal, et `TwoTimePathResult` ne conserve que les deux spots de
+frontière, jamais les variables latentes. Il n'est ajouté que si plusieurs
+produits peuvent le réutiliser sans introduire de logique produit dans la
+dynamique.
 
 ## Fonctions fondamentales
 
 Les déclarations publiques apparaissent dans cet ordre dans `dynamics.cuh`.
+Pour les modèles fixed income, les interfaces state-only et `joint` partagent
+exactement les quatre noms `prepare_model`, `one_step_transition`,
+`simulate_terminal_state` et `simulate_on_regular_grid`. Les éventuels helpers
+de moments propres au modèle sont regroupés visuellement au-dessus de cette
+section commune.
 
 ### `prepare_model`
 
@@ -143,10 +174,16 @@ void one_step_transition(
 );
 ```
 
-Cette fonction est la transformation numérique déterministe d'un état. Tous
-les uniformes, normales, comptes de Poisson ou autres variates apparaissent
-explicitement dans sa signature. Elle ne connaît ni Philox, ni la seed, ni
-l'indice du chemin.
+Pour un schéma à consommation fixe, cette fonction est la transformation
+numérique déterministe d'un état : les variates apparaissent explicitement dans
+sa signature et elle ne connaît ni la seed, ni l'indice du chemin.
+
+Une loi exacte à consommation adaptative peut recevoir directement
+`philox::UniformSequence&` et `philox::NormalPairCache&`. C'est le cas de CIR :
+`one_step_transition` effectue le mélange Poisson-Gamma de la chi-deux
+décentrée. La fonction utilise uniquement la suite continue du chemin courant ;
+elle ne construit ni clé, ni sous-suite, et évite un `simulate_one_step` qui ne
+ferait que relayer les deux objets.
 
 ### `simulate_one_step`
 
@@ -161,11 +198,11 @@ void simulate_one_step(
 );
 ```
 
-Cette fonction est utilisée lorsqu'une transition doit transformer des
-uniformes, effectuer des tirages conditionnels ou partager la même logique
-aléatoire entre plusieurs simulateurs de chemins. Elle consomme les uniformes
-dans un ordre explicite, construit les variates nécessaires, puis appelle
-`one_step_transition`.
+Cette fonction optionnelle est utilisée lorsqu'une transition à consommation
+fixe doit transformer des uniformes, effectuer des tirages conditionnels ou
+partager la même logique aléatoire entre plusieurs simulateurs de chemins. Elle
+consomme les uniformes dans un ordre explicite, construit les variates
+nécessaires, puis appelle `one_step_transition`.
 
 Une transition exacte qui reçoit déjà ses normales peut appeler directement
 `one_step_transition` sans ajouter un wrapper artificiel.
@@ -274,17 +311,16 @@ seule suite aléatoire par chemin et réutilisent `simulate_one_step` :
 
 - `simulate_mean_state` : moyenne arithmétique des états observables ;
 - `simulate_geometric_mean_state` : moyenne des logarithmes puis exponentielle ;
-- `simulate_at_two_times` : états aux frontières de deux intervalles successifs ;
+- `simulate_at_two_times` : spots aux frontières de deux intervalles successifs ;
 - `simulate_maximum_state` : maximum observé sur la grille.
 
 Les accumulations de moyennes sont effectuées en FP64. Un résumé dépendant
 d'une barrière, d'un coupon ou d'une règle d'exercice reste dans le pricer.
 
 Sous Black-Scholes, `simulate_geometric_mean_state` exploite directement la loi
-gaussienne jointe du log-spot terminal et de la moyenne discrète des log-spots.
-Elle inclut le spot initial et la maturité, comme les autres dynamiques, et ne
-construit aucun point intermédiaire lorsque seul le résumé géométrique est
-requis.
+gaussienne de la moyenne discrète des log-spots. Elle inclut le spot initial et
+la maturité, comme les autres dynamiques, et ne conserve ni état terminal ni
+point intermédiaire lorsque seul le résumé géométrique est requis.
 
 ## Modèles ajustés à une courbe
 
@@ -346,6 +382,19 @@ float marsaglia_tsang_gamma(
     float scale
 );
 
+std::uint32_t poisson_from_uniform_sequence(
+    UniformSequence& uniforms,
+    float mean
+);
+
+float scaled_noncentral_chi_square(
+    UniformSequence& uniforms,
+    NormalPairCache& normal_cache,
+    float degrees_of_freedom,
+    float noncentrality,
+    float scale
+);
+
 float michael_schucany_haas_inverse_gaussian(
     UniformSequence& uniforms,
     NormalPairCache& normal_cache,
@@ -359,6 +408,18 @@ une forme inférieure à un, elle applique d'abord l'augmentation exacte de la
 forme, puis la transformation en puissance. La boucle de rejet est locale au
 chemin.
 
+`poisson_from_uniform_sequence` conserve l'inversion exacte pour les petites
+intensités et utilise le rejet transformé PTRS de Hoermann pour les grandes.
+La seconde branche ne prépare jamais `exp(-mean)` et reste donc utilisable
+lorsque cette probabilité sous-déborde en FP32. Les rejets continuent la suite
+locale du chemin comme pour les autres transformations.
+
+`scaled_noncentral_chi_square` compose cette loi de Poisson avec
+`marsaglia_tsang_gamma` selon la représentation exacte de la loi du chi-deux
+non centrée. Le facteur d'échelle est transmis à Gamma, sans allocation ni
+multiplication séparée après le tirage. CIR utilise cette primitive avec une
+suite uniforme et un cache de normales conservés pendant tout le chemin.
+
 `michael_schucany_haas_inverse_gaussian` génère une inverse gaussienne
 paramétrée par moyenne et forme. Son calcul du petit candidat utilise la forme
 réciproque stable afin d'éviter la soustraction de deux nombres proches.
@@ -370,7 +431,9 @@ validées avant l'entrée dans les kernels.
 
 - Conserver la séparation paramètres bruts, paramètres préparés et état mutable.
 - Préparer les coefficients hors de la boucle de pas.
-- Garder `one_step_transition` déterministe et indépendant de Philox.
+- Garder `one_step_transition` déterministe et indépendant de Philox pour les
+  schémas à consommation fixe ; une loi exacte adaptative consomme directement
+  la suite du chemin sans créer de clé ou de sous-suite.
 - Construire une seule suite aléatoire continue par chemin.
 - Conserver le mapping `(key, path_index, local_group_index)`.
 - Ne pas réserver un nombre fixe de groupes par chemin.

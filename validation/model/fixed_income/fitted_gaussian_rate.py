@@ -55,24 +55,48 @@ class FittedGaussianRateSpec:
     model_name: str
     curve_name: str
     quantlib_model: Any
+    quantlib_pricing_method: str
 
 
 _SPECS: Mapping[tuple[str, str], FittedGaussianRateSpec] = {
     ("hull_white", "nelson_siegel"): FittedGaussianRateSpec(
-        "hull_white", "nelson_siegel", hull_white_nelson_siegel_quantlib_model
+        "hull_white",
+        "nelson_siegel",
+        hull_white_nelson_siegel_quantlib_model,
+        "HullWhite.discountBondOption",
     ),
     ("hull_white", "svensson"): FittedGaussianRateSpec(
-        "hull_white", "svensson", hull_white_svensson_quantlib_model
+        "hull_white",
+        "svensson",
+        hull_white_svensson_quantlib_model,
+        "HullWhite.discountBondOption",
     ),
     ("g2_plus_plus", "nelson_siegel"): FittedGaussianRateSpec(
         "g2_plus_plus",
         "nelson_siegel",
         g2_plus_plus_nelson_siegel_quantlib_model,
+        "G2.discountBondOption",
     ),
     ("g2_plus_plus", "svensson"): FittedGaussianRateSpec(
-        "g2_plus_plus", "svensson", g2_plus_plus_svensson_quantlib_model
+        "g2_plus_plus",
+        "svensson",
+        g2_plus_plus_svensson_quantlib_model,
+        "G2.discountBondOption",
     ),
 }
+
+
+def _premia_pricing_method(model_name: str, product_kind: str) -> str:
+    """Return the exact Premia method after the caplet bond-option identity."""
+
+    call_side = product_kind in {"zero_coupon_bond_call", "floorlet"}
+    if model_name == "hull_white":
+        return (
+            "CF_HullWhite1d_ZBCallEuro"
+            if call_side
+            else "CF_HullWhite1d_ZBPutEuro"
+        )
+    return "CF_ZBCallEuroHW2D" if call_side else "CF_ZBPutEuroHW2D"
 
 
 def _spec(model_name: str, curve_name: str) -> FittedGaussianRateSpec:
@@ -126,9 +150,19 @@ def _engine_plan(
         )
 
     return (
-        ValidationEngine("Premia", "specialized pricer", premia),
         ValidationEngine(
-            "QuantLib", "specialized pricer", quantlib_specialized
+            "Premia",
+            "specialized pricer",
+            premia,
+            pricing_method=_premia_pricing_method(
+                spec.model_name, product_kind
+            ),
+        ),
+        ValidationEngine(
+            "QuantLib",
+            "specialized pricer",
+            quantlib_specialized,
+            pricing_method=spec.quantlib_pricing_method,
         ),
         unavailable_engine(
             "QuantLib",

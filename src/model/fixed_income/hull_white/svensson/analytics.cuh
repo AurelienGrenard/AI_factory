@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::hull_white::svensson {
 
+// ======================= Model-specific analytics =========================
+
 // OU process and initial curve defining one fitted Hull-White model.
 struct HullWhiteFittedParameters {
     model::ornstein_uhlenbeck::OrnsteinUhlenbeckProcessParameters process;
@@ -36,21 +38,50 @@ __device__ __forceinline__ float short_rate(
     float time
 );
 
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the affine bond prefactor A(t,T).
+__device__ __forceinline__ float log_A(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine bond prefactor A(t,T).
+__device__ __forceinline__ float A(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return the affine OU-state loading B(t,T).
+__device__ __forceinline__ float B(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+);
+
+// Return log P(valuation_time,maturity) = log A - B*state.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float maturity
+);
+
 // The remaining analytics mirror the standalone OU interface.
 
 // Return the accumulated path log-discount from time zero.
 __device__ __forceinline__ float log_discount_factor(
     const HullWhiteFittedParameters& parameters,
-    const model::ornstein_uhlenbeck::joint::OrnsteinUhlenbeckJointState&
-        joint_state,
+    float state_integral,
     float time
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
     const HullWhiteFittedParameters& parameters,
-    const model::ornstein_uhlenbeck::joint::OrnsteinUhlenbeckJointState&
-        joint_state,
+    float state_integral,
     float time
 );
 

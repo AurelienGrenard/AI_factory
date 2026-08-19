@@ -5,7 +5,7 @@ url: "https://datasets.ai-factory.example/v1/price/equity/kou/geometric_asian_pu
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Geometric Asian Options"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/geometric_asian_puts/kou_01__geometric_asian_puts_01__01/validation.ipynb"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -40,5 +42,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.338389549 s"
-  kernel_seconds: "0.129382141 s"
+  wall_seconds: "10.161983545 s"
+  kernel_seconds: "9.282657227 s"

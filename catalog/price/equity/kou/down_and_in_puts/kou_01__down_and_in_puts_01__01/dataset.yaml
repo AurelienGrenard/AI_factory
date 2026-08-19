@@ -5,7 +5,7 @@ url: "https://datasets.ai-factory.example/v1/price/equity/kou/down_and_in_puts/k
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Down-and-In Options"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/down_and_in_puts/kou_01__down_and_in_puts_01__01/validation.ipynb"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -40,5 +42,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.390453803 s"
-  kernel_seconds: "0.150038406 s"
+  wall_seconds: "10.76609943 s"
+  kernel_seconds: "9.294458008 s"

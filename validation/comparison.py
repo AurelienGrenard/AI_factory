@@ -13,6 +13,7 @@ from validation.reporting import (
     FallbackDiagnostic,
     SpecialRowDiagnostic,
 )
+from validation.quantlib.price_validation import PriceRowDiagnostic
 
 
 @dataclass(frozen=True)
@@ -88,12 +89,28 @@ def hierarchy_price_gap_metrics(
     )
 
 
+def hierarchy_row_diagnostics(
+    hierarchy: ValidationHierarchyResult,
+) -> tuple[PriceRowDiagnostic, ...]:
+    """Return the disjoint row-level comparisons retained by the hierarchy."""
+
+    return tuple(
+        diagnostic
+        for run in hierarchy.runs
+        for report in run.reports
+        for diagnostic in getattr(report, "row_diagnostics", ())
+    )
+
+
 def engine_coverage(run: EngineRun) -> EngineCoverage:
     """Convert one executed hierarchy step into persistent coverage."""
 
     metrics = combined_price_gap_metrics(run.reports)
+    pricing_method = run.engine.pricing_method
+    assert pricing_method is not None
     return EngineCoverage(
         reference=run.engine.label,
+        pricing_method=pricing_method,
         requested_row_count=len(run.requested_row_ids),
         completed_row_count=len(run.completed_row_ids),
         failed_row_count=len(metrics.failed_row_ids) if metrics is not None else 0,
@@ -116,6 +133,7 @@ def engine_plan(
     return tuple(
         EnginePlanEntry(
             reference=engine.label,
+            pricing_method=engine.pricing_method,
             available=engine.available,
             unavailable_reason=engine.unavailable_reason,
         )
@@ -131,6 +149,7 @@ def resolved_fallback_diagnostics(
 
     special_rows: list[SpecialRowDiagnostic] = []
     fallbacks: list[FallbackDiagnostic] = []
+    routed_row_ids: set[str] = set()
 
     def failed_row_ids(run: EngineRun) -> set[str]:
         metrics = combined_price_gap_metrics(run.reports)
@@ -138,6 +157,12 @@ def resolved_fallback_diagnostics(
 
     for run_index, run in enumerate(runs[:-1]):
         for exception in run.exceptions:
+            # A row can fail in several consecutive engines before a later
+            # candidate prices it.  Persist one end-to-end fallback from the
+            # first failure to the final resolving engine; intermediate
+            # failures remain fully visible in engine_coverage.
+            if exception.row_id in routed_row_ids:
+                continue
             resolution = next(
                 (
                     later
@@ -148,11 +173,15 @@ def resolved_fallback_diagnostics(
             )
             if resolution is None:
                 continue
+            routed_row_ids.add(exception.row_id)
+            pricing_method = resolution.engine.pricing_method
+            assert pricing_method is not None
             fallback_passed = exception.row_id not in failed_row_ids(resolution)
             fallbacks.append(
                 FallbackDiagnostic(
                     exception.row_id,
                     resolution.engine.label,
+                    pricing_method,
                     fallback_passed,
                 )
             )
@@ -172,6 +201,15 @@ def resolved_fallback_diagnostics(
                     )
                     + f", {exception.reason}",
                     resolution_text + resolution.engine.label,
+                    category="backend_failure",
+                    acceptance_rule=(
+                        "a lower-priority independent engine produced a price "
+                        "within the declared tolerance"
+                    ),
+                    evidence=(
+                        f"initial engine: {run.engine.pricing_method}",
+                        f"resolving engine: {pricing_method}",
+                    ),
                 )
             )
     return tuple(special_rows), tuple(fallbacks)

@@ -102,6 +102,25 @@ owns one `philox::UniformSequence(key, path)` and one normal cache for the whole
 path. The state-only transition consumes one normal and the joint transition
 two.
 
+## Affine bond formula
+
+For $\tau=T-t$,
+
+$$
+P(t,T)=A(t,T)e^{-B(t,T)r_t},\qquad
+B(t,T)=\frac{1-e^{-a\tau}}{a},
+$$
+
+with
+
+$$
+\log A(t,T)=\frac12V_I(\tau)-b[\tau-B(t,T)],
+$$
+
+where $V_I$ is the conditional variance of the future rate integral.
+`log_A`, `A`, and `B` expose the textbook coefficients; bond evaluation
+computes `log_A` and `B` together.
+
 ## Pricing kernels
 
 Rate options and zero-coupon-bond options use closed-form analytics with one
@@ -114,8 +133,12 @@ thread per result. Every file follows `PreparedRow` →
 The declarations below omit CUDA attributes for readability.
 
 ```cpp
-float log_discount_factor(const joint::VasicekJointState&);
-float discount_factor(const joint::VasicekJointState&);
+float log_A(const VasicekModelParameters&, float valuation_time, float maturity);
+float A(const VasicekModelParameters&, float valuation_time, float maturity);
+float B(const VasicekModelParameters&, float valuation_time, float maturity);
+float log_zero_coupon_bond(const VasicekModelParameters&, float state, float valuation_time, float maturity);
+float log_discount_factor(float state_integral);
+float discount_factor(float state_integral);
 float zero_coupon_bond(const VasicekModelParameters&, float state, float valuation_time, float maturity);
 float zero_coupon_bond_call_price(const VasicekModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
 float zero_coupon_bond_put_price(const VasicekModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
