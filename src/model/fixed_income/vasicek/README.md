@@ -31,9 +31,9 @@ The short rate follows
 \qquad r_0\in\mathbb R,
 ```
 
-where $W$ is a standard Brownian motion, $a>0$ is the mean-reversion speed,
-$b$ is the long-run rate, and $\sigma>0$ is the volatility. Over an interval
-of length $\Delta$,
+where $`W`$ is a standard Brownian motion, $`a>0`$ is the mean-reversion speed,
+$`b`$ is the long-run rate, and $`\sigma>0`$ is the volatility. Over an interval
+of length $`\Delta`$,
 
 ```math
 r_{t+\Delta}
@@ -47,16 +47,16 @@ simulated exactly.
 
 | Symbol | Dataset field | Meaning |
 |---:|---|---|
-| $r_0$ | `initial_state` | Initial short rate |
-| $a$ | `mean_reversion` | Mean-reversion speed |
-| $b$ | `long_term_mean` | Long-run rate |
-| $\sigma$ | `volatility` | Volatility |
+| $`r_0`$ | `initial_state` | Initial short rate |
+| $`a`$ | `mean_reversion` | Mean-reversion speed |
+| $`b`$ | `long_term_mean` | Long-run rate |
+| $`\sigma`$ | `volatility` | Volatility |
 
 The model follows [Vasicek (1977)](https://doi.org/10.1016/0304-405X(77)90016-2).
 
 ## Core formulas
 
-Let $\tau=T-t$. Define
+Let $`\tau=T-t`$. Define
 
 ```math
 B(t,T)=\frac{1-e^{-a\tau}}{a},
@@ -84,14 +84,14 @@ P(t,T)=A(t,T)e^{-B(t,T)r_t},
 =\frac{1}{2}v_I(t,T)-b[\tau-B(t,T)].
 ```
 
-For the accumulated integral $I_t=\int_0^t r_u\,\mathrm du$, define
+For the accumulated integral $`I_t=\int_0^t r_u\,\mathrm du`$, define
 
 ```math
 D(0,t)=e^{-I_t}.
 ```
 
-For an accrual period $[T_1,T_2]$ with contractual year fraction
-$\delta>0$, the single-curve forward rate is
+For an accrual period $`[T_1,T_2]`$ with contractual year fraction
+$`\delta>0`$, the single-curve forward rate is
 
 ```math
 L(t,T_1,T_2)
@@ -99,8 +99,8 @@ L(t,T_1,T_2)
 \left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
 ```
 
-For swap dates $T_0<T_1<\cdots<T_n$ and contractual accrual fractions
-$\delta_1,\ldots,\delta_n$, define the swap annuity and par swap rate by
+For swap dates $`T_0<T_1<\cdots<T_n`$ and contractual accrual fractions
+$`\delta_1,\ldots,\delta_n`$, define the swap annuity and par swap rate by
 
 ```math
 A_{\mathrm{swap}}(t)
@@ -114,16 +114,16 @@ S(t;T_0,T_n)
 
 ## Products
 
-For every real number $z$, define $[z]^+=\max(z,0)$. The function $\Phi$
+For every real number $`z`$, define $`[z]^+=\max(z,0)`$. The function $`\Phi`$
 denotes the standard normal cumulative distribution function.
 
 ### Zero-coupon bond
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$ and maturity $T$.
+Parameters: notional $`N`$ and maturity $`T`$.
 
-The bond pays $N$ at $T$, hence
+The bond pays $`N`$ at $`T`$, hence
 
 ```math
 V_{\mathrm{ZCB}}(t)=NP(t,T).
@@ -133,8 +133,8 @@ V_{\mathrm{ZCB}}(t)=NP(t,T).
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, option expiry $T_e$, bond maturity $T_b>T_e$, bond
-strike $K_B$, and side.
+Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b>T_e`$, bond
+strike $`K_B`$, and side.
 
 Let
 
@@ -144,7 +144,7 @@ Let
 \frac{1-e^{-2a(T_e-t)}}{2a},
 ```
 
-and let $\nu_B>0$ be its positive square root. Define
+and let $`\nu_B>0`$ be its positive square root. Define
 
 ```math
 d_1
@@ -165,14 +165,14 @@ p_B(t;T_e,T_b,K_B)
 =K_BP(t,T_e)\Phi(-d_2)-P(t,T_b)\Phi(-d_1).
 ```
 
-The product value is $Nc_B$ for a call and $Np_B$ for a put.
+The product value is $`Nc_B`$ for a call and $`Np_B`$ for a put.
 
 ### Caplet and floorlet
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, fixing $T_1$, payment $T_2$, accrual $\delta$,
-rate strike $K$, and side.
+Parameters: notional $`N`$, fixing $`T_1`$, payment $`T_2`$, accrual $`\delta`$,
+rate strike $`K`$, and side.
 
 Their payment-date payoffs are
 
@@ -208,10 +208,10 @@ V_{\mathrm{floorlet}}(t)
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, fixed rate $K$, start $T_0$, payment dates
-$T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+Parameters: notional $`N`$, fixed rate $`K`$, start $`T_0`$, payment dates
+$`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
 
-For $t\leq T_0$, the payer swap receives the floating leg and pays the fixed
+For $`t\leq T_0`$, the payer swap receives the floating leg and pays the fixed
 leg. The floating leg is
 
 ```math
@@ -246,7 +246,7 @@ V_{\mathrm{payer}}(t)
 =NA_{\mathrm{swap}}(t)[S(t;T_0,T_n)-K].
 ```
 
-The contractual rate $K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
+The contractual rate $`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 
 ### European payer swaption
 
@@ -254,8 +254,8 @@ The contractual rate $K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
 
 **Status:** Planned; the pricing launcher is not implemented.
 
-Parameters: exercise and swap start $T_0$, notional $N$, fixed rate $K$,
-payment dates $T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
+payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
 
 At exercise,
 
@@ -274,9 +274,9 @@ c_i=K\delta_i+\mathbf 1_{\{i=n\}},
 \qquad i=1,\ldots,n,
 ```
 
-where $\mathbf 1_{\{i=n\}}$ equals one for $i=n$ and zero otherwise. The
-notation $P(T_0,T_i;r)$ means that the bond formula is evaluated at
-$r_{T_0}=r$. The unique exercise boundary $r^\star$ solves
+where $`\mathbf 1_{\{i=n\}}`$ equals one for $`i=n`$ and zero otherwise. The
+notation $`P(T_0,T_i;r)`$ means that the bond formula is evaluated at
+$`r_{T_0}=r`$. The unique exercise boundary $`r^\star`$ solves
 
 ```math
 \sum_{i=1}^{n}c_iP(T_0,T_i;r^\star)=1.
@@ -289,7 +289,7 @@ K_i^\star=P(T_0,T_i;r^\star),
 \qquad i=1,\ldots,n.
 ```
 
-The time-$t$ price is
+The time-$`t`$ price is
 
 ```math
 V_{\mathrm{payer\ swaption}}(t)

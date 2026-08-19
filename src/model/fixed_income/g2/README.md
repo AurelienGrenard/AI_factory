@@ -24,7 +24,7 @@ g2/
 
 ## Dynamics
 
-The standalone short rate is $r_t=x_t+y_t$, where
+The standalone short rate is $`r_t=x_t+y_t`$, where
 
 ```math
 \mathrm dx_t=-a x_t\,\mathrm dt+\sigma\,\mathrm dW_t^x,
@@ -36,7 +36,7 @@ The standalone short rate is $r_t=x_t+y_t$, where
 \mathrm d\langle W^x,W^y\rangle_t=\rho\,\mathrm dt.
 ```
 
-Over an interval of length $\Delta$, the conditional endpoint is jointly
+Over an interval of length $`\Delta`$, the conditional endpoint is jointly
 Gaussian. Its variances and covariance are
 
 ```math
@@ -56,17 +56,17 @@ The factor endpoints and their joint rate integral are simulated exactly.
 
 | Symbol | Dataset field | Meaning |
 |---:|---|---|
-| $x_0$ | `initial_state_x` | Initial first factor |
-| $y_0$ | `initial_state_y` | Initial second factor |
-| $a$ | `mean_reversion_x` | First mean reversion |
-| $\sigma$ | `volatility_x` | First volatility |
-| $b$ | `mean_reversion_y` | Second mean reversion |
-| $\eta$ | `volatility_y` | Second volatility |
-| $\rho$ | `correlation` | Brownian correlation |
+| $`x_0`$ | `initial_state_x` | Initial first factor |
+| $`y_0`$ | `initial_state_y` | Initial second factor |
+| $`a`$ | `mean_reversion_x` | First mean reversion |
+| $`\sigma`$ | `volatility_x` | First volatility |
+| $`b`$ | `mean_reversion_y` | Second mean reversion |
+| $`\eta`$ | `volatility_y` | Second volatility |
+| $`\rho`$ | `correlation` | Brownian correlation |
 
 ## Core formulas
 
-Let $\tau=T-t$. Define the factor loadings
+Let $`\tau=T-t`$. Define the factor loadings
 
 ```math
 B_x(t,T)=\frac{1-e^{-a\tau}}{a},
@@ -104,14 +104,14 @@ P(t,T)=A(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t},
 \log A(t,T)=\frac{1}{2}v_I(t,T).
 ```
 
-For $I_t=\int_0^t(x_u+y_u)\,\mathrm du$, define
+For $`I_t=\int_0^t(x_u+y_u)\,\mathrm du`$, define
 
 ```math
 D(0,t)=e^{-I_t}.
 ```
 
-For an accrual period $[T_1,T_2]$ with contractual year fraction
-$\delta>0$, define
+For an accrual period $`[T_1,T_2]`$ with contractual year fraction
+$`\delta>0`$, define
 
 ```math
 L(t,T_1,T_2)
@@ -119,8 +119,8 @@ L(t,T_1,T_2)
 \left(\frac{P(t,T_1)}{P(t,T_2)}-1\right).
 ```
 
-For swap dates $T_0<T_1<\cdots<T_n$ and accrual fractions
-$\delta_1,\ldots,\delta_n$, define
+For swap dates $`T_0<T_1<\cdots<T_n`$ and accrual fractions
+$`\delta_1,\ldots,\delta_n`$, define
 
 ```math
 A_{\mathrm{swap}}(t)
@@ -134,14 +134,14 @@ S(t;T_0,T_n)
 
 ## Products
 
-For every real number $z$, define $[z]^+=\max(z,0)$. The function $\Phi$
+For every real number $`z`$, define $`[z]^+=\max(z,0)`$. The function $`\Phi`$
 denotes the standard normal cumulative distribution function.
 
 ### Zero-coupon bond
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$ and maturity $T$.
+Parameters: notional $`N`$ and maturity $`T`$.
 
 ```math
 V_{\mathrm{ZCB}}(t)=NP(t,T).
@@ -151,10 +151,10 @@ V_{\mathrm{ZCB}}(t)=NP(t,T).
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, option expiry $T_e$, bond maturity $T_b>T_e$, bond
-strike $K_B$, and side.
+Parameters: notional $`N`$, option expiry $`T_e`$, bond maturity $`T_b>T_e`$, bond
+strike $`K_B`$, and side.
 
-Set $\Delta_e=T_e-t$ and define the conditional factor moments
+Set $`\Delta_e=T_e-t`$ and define the conditional factor moments
 
 ```math
 V_x=\sigma^2\frac{1-e^{-2a\Delta_e}}{2a},
@@ -176,7 +176,7 @@ The bond-forward log-variance is
 +2B_x(T_e,T_b)B_y(T_e,T_b)C_{xy}.
 ```
 
-Let $\nu_B>0$ be its positive square root and define
+Let $`\nu_B>0`$ be its positive square root and define
 
 ```math
 d_1
@@ -197,14 +197,14 @@ p_B(t;T_e,T_b,K_B)
 =K_BP(t,T_e)\Phi(-d_2)-P(t,T_b)\Phi(-d_1).
 ```
 
-The product value is $Nc_B$ for a call and $Np_B$ for a put.
+The product value is $`Nc_B`$ for a call and $`Np_B`$ for a put.
 
 ### Caplet and floorlet
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, fixing $T_1$, payment $T_2$, accrual $\delta$,
-rate strike $K$, and side.
+Parameters: notional $`N`$, fixing $`T_1`$, payment $`T_2`$, accrual $`\delta`$,
+rate strike $`K`$, and side.
 
 ```math
 H_{\mathrm{caplet}}(T_2)
@@ -236,10 +236,10 @@ V_{\mathrm{floorlet}}(t)
 
 **Pricing method:** Closed form.
 
-Parameters: notional $N$, fixed rate $K$, start $T_0$, payment dates
-$T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+Parameters: notional $`N`$, fixed rate $`K`$, start $`T_0`$, payment dates
+$`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
 
-For $t\leq T_0$,
+For $`t\leq T_0`$,
 
 ```math
 V_{\mathrm{float}}(t)
@@ -259,7 +259,7 @@ V_{\mathrm{payer}}(t)
 ```
 
 The payer receives floating and pays fixed. The contractual rate
-$K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
+$`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 
 ### European payer swaption
 
@@ -267,8 +267,8 @@ $K=S(0;T_0,T_n)$ makes the swap worth zero at inception.
 
 **Status:** Planned; the pricing launcher is not implemented.
 
-Parameters: exercise and swap start $T_0$, notional $N$, fixed rate $K$,
-payment dates $T_1,\ldots,T_n$, and accruals $\delta_1,\ldots,\delta_n$.
+Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
+payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
 
 Define
 
@@ -277,8 +277,8 @@ c_i=K\delta_i+\mathbf 1_{\{i=n\}},
 \qquad i=1,\ldots,n,
 ```
 
-where $\mathbf 1_{\{i=n\}}$ equals one for $i=n$ and zero otherwise. At
-exercise, let $X=x_{T_0}$ and $Y=y_{T_0}$. Under the $T_0$-bond numeraire,
+where $`\mathbf 1_{\{i=n\}}`$ equals one for $`i=n`$ and zero otherwise. At
+exercise, let $`X=x_{T_0}`$ and $`Y=y_{T_0}`$. Under the $`T_0`$-bond numeraire,
 define their conditional Gaussian law by
 
 ```math
@@ -289,9 +289,9 @@ define their conditional Gaussian law by
 \right).
 ```
 
-The five quantities $\mu_X,\mu_Y,V_X,V_Y,C_{XY}$ are the conditional moments
-at $T_0$ produced by the exact two-factor Gaussian transition under that
-numeraire. Define the marginal density of $X$ by
+The five quantities $`\mu_X,\mu_Y,V_X,V_Y,C_{XY}`$ are the conditional moments
+at $`T_0`$ produced by the exact two-factor Gaussian transition under that
+numeraire. Define the marginal density of $`X`$ by
 
 ```math
 f_X(x)
@@ -299,7 +299,7 @@ f_X(x)
 \exp\!\left[-\frac{(x-\mu_X)^2}{2V_X}\right],
 ```
 
-and the conditional moments of $Y$ given $X=x$ by
+and the conditional moments of $`Y`$ given $`X=x`$ by
 
 ```math
 m(x)=\mu_Y+\frac{C_{XY}}{V_X}(x-\mu_X),
@@ -307,7 +307,7 @@ m(x)=\mu_Y+\frac{C_{XY}}{V_X}(x-\mu_X),
 s^2=V_Y-\frac{C_{XY}^2}{V_X}.
 ```
 
-Let $s>0$ be the positive square root of $s^2$.
+Let $`s>0`$ be the positive square root of $`s^2`$.
 
 For each payment date, set
 
@@ -326,7 +326,7 @@ P(T_0,T_i;x,y)
 =A_i e^{-B_{x,i}x-B_{y,i}y}.
 ```
 
-For every $x$, define $y^\star(x)$ as the unique solution of
+For every $`x`$, define $`y^\star(x)`$ as the unique solution of
 
 ```math
 \sum_{i=1}^{n}
@@ -352,7 +352,7 @@ e^{-B_{x,i}x-B_{y,i}m(x)+B_{y,i}^2s^2/2}
 \Phi(d_i(x)).
 ```
 
-The time-$t$ price is the deterministic one-dimensional integral
+The time-$`t`$ price is the deterministic one-dimensional integral
 
 ```math
 V_{\mathrm{payer\ swaption}}(t)
