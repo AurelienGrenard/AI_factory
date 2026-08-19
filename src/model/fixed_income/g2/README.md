@@ -28,6 +28,15 @@ mean-reverting factors are exact Ornstein–Uhlenbeck processes; the fitted
 time-dependent extension follows the Gaussian term-structure framework of
 [Hull and White (1990)](https://doi.org/10.1093/rfs/3.4.573).
 
+## Formula index
+
+- [Analytics — correlated Gaussian factors and affine bonds](#analytics)
+- [Zero-coupon bond — two-factor exponential-affine formula](#zero-coupon-bond)
+- [Zero-coupon bond option — Gaussian bond-forward projection](#zero-coupon-bond-option)
+- [Caplet / floorlet — scaled bond-option identity](#caplet--floorlet)
+- [Swap and swap rate — discounted-leg formulas](#swap-and-swap-rate)
+- [European payer swaption — conditional Gaussian quadrature](#european-payer-swaption)
+
 ## Files
 
 - [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load both factors plus initial state.
@@ -103,7 +112,7 @@ Direct terminal helpers receive normals from the caller. Grid helpers keep one
 `philox::UniformSequence(key, path)` and one normal cache alive. The state law
 uses two normals per interval and the joint state/integral law uses three.
 
-## Affine bond formula
+## Analytics
 
 For $\tau=T-t$,
 
@@ -121,6 +130,161 @@ $$
 and $\log A(t,T)=\tfrac12\operatorname{Var}_t[\int_t^T(x_s+y_s)ds]$.
 `B` returns `G2BondLoadings {state_x, state_y}`. Bond evaluation obtains
 `log_A`, $B_x$, and $B_y$ from one shared integral-moment calculation.
+
+For $I_t=\int_0^t(x_u+y_u)\,du$, $D(0,t)=e^{-I_t}$. In the single-curve
+convention, the same $P(t,T)$ projects forwards and discounts cashflows. The
+simple forward, swap annuity, and par swap rate are
+
+$$
+L(t,T_1,T_2)=\frac1\delta
+\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right),
+$$
+
+$$
+\operatorname{Ann}(t)=\sum_{i=1}^n\delta_iP(t,T_i),
+\qquad
+S(t;T_0,T_n)=
+\frac{P(t,T_0)-P(t,T_n)}{\operatorname{Ann}(t)}.
+$$
+
+## Zero-coupon bond
+
+For notional $N$ paid at $T$,
+
+$$
+V_{\mathrm{ZCB}}(t)
+=NP(t,T)
+=NA(t,T)e^{-B_x(t,T)x_t-B_y(t,T)y_t}.
+$$
+
+This is the conditional Gaussian transform of the integrated two-factor
+short rate.
+
+## Zero-coupon bond option
+
+Let $S$ be the option expiry, $T>S$ the bond maturity, $K_B$ the strike, and
+$\Delta=S-t$. Define
+
+$$
+V_x=\sigma^2\frac{1-e^{-2a\Delta}}{2a},
+\quad
+V_y=\eta^2\frac{1-e^{-2b\Delta}}{2b},
+\quad
+C_{xy}=\rho\sigma\eta\frac{1-e^{-(a+b)\Delta}}{a+b}.
+$$
+
+The bond-forward log-variance is
+
+$$
+\nu^2=B_x(S,T)^2V_x+B_y(S,T)^2V_y
++2B_x(S,T)B_y(S,T)C_{xy}.
+$$
+
+With
+
+$$
+d_1=\frac{\log\!\left(P(t,T)/(K_BP(t,S))\right)+\nu^2/2}{\nu},
+\qquad d_2=d_1-\nu,
+$$
+
+$$
+C_{\mathrm{ZCB}}(t)=P(t,T)\Phi(d_1)-K_BP(t,S)\Phi(d_2),
+$$
+
+$$
+P_{\mathrm{ZCB}}(t)=K_BP(t,S)\Phi(-d_2)-P(t,T)\Phi(-d_1).
+$$
+
+A single bond log-price is a linear projection of the Gaussian state, so its
+forward remains lognormal under the expiry-bond numeraire.
+
+## Caplet / floorlet
+
+For fixing $T_1$, payment $T_2$, accrual $\delta$, strike $K$, and notional
+$N$,
+
+$$
+\Pi_{\mathrm{caplet}}(T_2)=N\delta[L(T_1,T_1,T_2)-K]^+,
+\qquad
+\Pi_{\mathrm{floorlet}}(T_2)=N\delta[K-L(T_1,T_1,T_2)]^+.
+$$
+
+Let $K_B=(1+\delta K)^{-1}$. Then
+
+$$
+V_{\mathrm{caplet}}(t)
+=N(1+\delta K)P_{\mathrm{ZCB}}(t;T_1,T_2,K_B),
+$$
+
+$$
+V_{\mathrm{floorlet}}(t)
+=N(1+\delta K)C_{\mathrm{ZCB}}(t;T_1,T_2,K_B).
+$$
+
+## Swap and swap rate
+
+For a swap starting at $T_0$ with payments $T_1,\ldots,T_n$,
+
+$$
+V_{\mathrm{float}}(t)
+=N\sum_{i=1}^n\delta_iL(t,T_{i-1},T_i)P(t,T_i)
+=N[P(t,T_0)-P(t,T_n)],
+$$
+
+$$
+V_{\mathrm{fixed}}(t)=NK\operatorname{Ann}(t),
+$$
+
+$$
+V_{\mathrm{payer}}(t)
+=N[P(t,T_0)-P(t,T_n)-K\operatorname{Ann}(t)]
+=N\operatorname{Ann}(t)[S(t;T_0,T_n)-K].
+$$
+
+Here $K$ is the contractual fixed rate. Setting $K=S(0;T_0,T_n)$ makes the
+swap worth zero at inception; afterward $S(t)$ moves while $K$ stays fixed.
+
+## European payer swaption
+
+**Method: planned conditional Gaussian quadrature.** At exercise and swap
+start $T_0$, set $c_i=K\delta_i+\mathbf 1_{\{i=n\}}$. Under the $T_0$-bond
+numeraire,
+
+$$
+V(t)=NP(t,T_0)\,
+\mathbb E_t^{T_0}\!\left[
+\left(1-\sum_{i=1}^nc_iP(T_0,T_i;X,Y)\right)^+
+\right].
+$$
+
+Write $P(T_0,T_i;x,y)=A_i e^{-B_{x,i}x-B_{y,i}y}$. For every $x$, solve
+
+$$
+\sum_{i=1}^nc_iA_i e^{-B_{x,i}x-B_{y,i}y^\star(x)}=1.
+$$
+
+If $Y\mid X=x\sim\mathcal N(m(x),s^2)$, define
+
+$$
+d_0(x)=\frac{m(x)-y^\star(x)}s,
+\qquad
+d_i(x)=\frac{m(x)-B_{y,i}s^2-y^\star(x)}s,
+$$
+
+$$
+g(x)=\Phi(d_0(x))-
+\sum_{i=1}^nc_iA_i
+e^{-B_{x,i}x-B_{y,i}m(x)+B_{y,i}^2s^2/2}\Phi(d_i(x)).
+$$
+
+The selected deterministic price is
+
+$$
+V(t)=NP(t,T_0)\int_{-\infty}^{\infty}g(x)f_X(x)\,dx,
+$$
+
+evaluated by one-dimensional Gaussian quadrature. The swaption launcher is not
+implemented yet.
 
 ## Pricing kernels
 

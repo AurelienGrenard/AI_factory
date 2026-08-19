@@ -12,6 +12,8 @@ namespace {
 const std::filesystem::path price_catalog_path =
     "catalog/price/equity/heston/american_puts/"
     "heston_01__american_puts_01__01/dataset.yaml";
+const std::filesystem::path cir_catalog_path =
+    "catalog/model/fixed_income/cir/cir_01/dataset.yaml";
 const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml",
     "catalog/curve/svensson/svensson_01/dataset.yaml",
@@ -26,6 +28,7 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/model/fixed_income/hull_white/hull_white_01/dataset.yaml",
     "catalog/model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01/dataset.yaml",
     "catalog/model/fixed_income/vasicek/vasicek_01/dataset.yaml",
+    cir_catalog_path,
     "catalog/product/equity/european_options/"
     "european_options_01/dataset.yaml",
     "catalog/product/equity/asian_options/asian_options_01/dataset.yaml",
@@ -191,6 +194,14 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "vasicek_01__zero_coupon_bond_calls_01__01/dataset.yaml",
     "catalog/price/fixed_income/vasicek/zero_coupon_bond_puts/"
     "vasicek_01__zero_coupon_bond_puts_01__01/dataset.yaml",
+    "catalog/price/fixed_income/cir/caplets/"
+    "cir_01__caplets_01__01/dataset.yaml",
+    "catalog/price/fixed_income/cir/floorlets/"
+    "cir_01__floorlets_01__01/dataset.yaml",
+    "catalog/price/fixed_income/cir/zero_coupon_bond_calls/"
+    "cir_01__zero_coupon_bond_calls_01__01/dataset.yaml",
+    "catalog/price/fixed_income/cir/zero_coupon_bond_puts/"
+    "cir_01__zero_coupon_bond_puts_01__01/dataset.yaml",
     price_catalog_path,
 };
 
@@ -281,6 +292,34 @@ void validate_price_validation_metadata(const std::filesystem::path& path) {
         "price YAML must fuse the reference and method and omit relationship"
     );
 
+    const bool cached_reference =
+        validation.find("  status: \"available\"") != std::string::npos
+        && validation.find("  dataset: \"validation/datasets/price/")
+            != std::string::npos;
+    if (cached_reference) {
+        const std::string dataset_marker =
+            "  dataset: \"validation/datasets/price/";
+        const std::size_t dataset_start =
+            validation.find(dataset_marker) + std::string("  dataset: \"").size();
+        const std::size_t dataset_end = validation.find('"', dataset_start);
+        require(
+            dataset_end != std::string::npos
+                && std::filesystem::is_regular_file(
+                    validation.substr(dataset_start, dataset_end - dataset_start)
+                ),
+            "cached validation dataset does not exist"
+        );
+        require(
+            validation.find("  verified: true") != std::string::npos
+                && validation.find("  core:") == std::string::npos
+                && validation.find("  stress:") == std::string::npos
+                && validation.find("  reference:") == std::string::npos
+                && validation.find("  notebook:") == std::string::npos,
+            "cached validation metadata must be compact and verified"
+        );
+        return;
+    }
+
     const bool split_regimes = validation.find("  core:\n") != std::string::npos;
     if (split_regimes) {
         require(
@@ -289,15 +328,19 @@ void validate_price_validation_metadata(const std::filesystem::path& path) {
                 && validation.find("    row_count: 100") != std::string::npos,
             "split validation metadata must declare core and stress row counts"
         );
-        require(
-            occurrence_count(validation, "\n    reference: \"") >= 2U
-                && (
-                    occurrence_count(validation, "\n    verified: true") == 2U
-                    || validation.find("\n  verified: true")
-                        != std::string::npos
-                ),
-            "split validation metadata must document both selected backends"
-        );
+        if (!(occurrence_count(validation, "\n    reference: \"") >= 2U
+              && (
+                  occurrence_count(validation, "\n    verified: true") == 2U
+                  || validation.find("\n  verified: true")
+                      != std::string::npos
+                  || validation.find("\n  verified: false")
+                      != std::string::npos
+              ))) {
+            throw std::runtime_error(
+                "split validation metadata must document both selected "
+                "backends: " + path.string()
+            );
+        }
         return;
     }
     const bool premia = validation.find("  reference: \"Premia (")
@@ -385,6 +428,21 @@ int main() {
             );
         }
     }
+    const std::string cir_catalog = read_text(cir_catalog_path);
+    require(
+        cir_catalog.find(
+            "definition: \"2 * mean_reversion * long_term_mean / volatility^2\""
+        ) != std::string::npos
+            && cir_catalog.find("guaranteed_minimum: \"1 / 6\"")
+                != std::string::npos
+            && cir_catalog.find("guaranteed_maximum: 10.0")
+                != std::string::npos
+            && cir_catalog.find("guaranteed_minimum: \"1 / 10\"")
+                != std::string::npos
+            && cir_catalog.find("guaranteed_maximum: 16.0")
+                != std::string::npos,
+        "CIR YAML does not document its core/stress Feller-ratio bounds"
+    );
     for (const auto& entry : std::filesystem::recursive_directory_iterator(
              "catalog/price")) {
         if (entry.is_regular_file()

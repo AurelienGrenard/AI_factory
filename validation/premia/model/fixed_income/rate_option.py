@@ -1,7 +1,8 @@
-"""Shared Premia validation for standalone Vasicek and centered OU claims."""
+"""Shared Premia validation for standalone affine short-rate claims."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
@@ -32,6 +33,17 @@ _PRODUCTS = {
 }
 
 
+@dataclass(frozen=True)
+class PremiaRateOptionReference:
+    """One source identity and its scaled Premia reference price."""
+
+    row_id: str
+    model_id: str
+    product_id: str
+    price: float
+    standard_error: float
+
+
 def _prepared_inputs(
     price_dataset_path: str | Path,
     model_name: str,
@@ -41,7 +53,7 @@ def _prepared_inputs(
 ):
     """Load and convert one selected batch exactly once."""
 
-    if model_name not in {"vasicek", "ornstein_uhlenbeck"}:
+    if model_name not in {"cir", "vasicek", "ornstein_uhlenbeck"}:
         raise ValueError(f"Unsupported Premia rate model '{model_name}'.")
     if product_kind not in _PRODUCTS:
         raise ValueError(f"Unsupported Premia rate product '{product_kind}'.")
@@ -52,7 +64,7 @@ def _prepared_inputs(
         row_ids,
     )
     if validation_input.curve_dataset_path is not None:
-        raise ValueError("Standalone Vasicek/OU validation expects no curve dataset.")
+        raise ValueError("Standalone short-rate validation expects no curve dataset.")
     models = load_parameter_rows(validation_input.model_dataset_path, "models")
     products = load_parameter_rows(validation_input.product_dataset_path, "products")
 
@@ -70,8 +82,13 @@ def _prepared_inputs(
             parameter_number(
                 model, "volatility", model_context, positive=True
             ),
-            parameter_number(model, "long_term_mean", model_context)
-            if model_name == "vasicek" else 0.0,
+            parameter_number(
+                model,
+                "long_term_mean",
+                model_context,
+                positive=model_name == "cir",
+            )
+            if model_name in {"cir", "vasicek"} else 0.0,
         )
         product_context = f"{product_kind} row '{row.product_id}'"
         if product_kind.startswith("zero_coupon_bond_"):
@@ -125,7 +142,7 @@ def validation_from_premia_rate_option(
     regime: ValidationRegime = "all",
     row_ids: Sequence[str] | None = None,
 ) -> PriceValidationReport:
-    """Compare a complete standalone Gaussian-rate dataset with Premia."""
+    """Compare a complete standalone affine-rate dataset with Premia."""
 
     validation_input, inputs, price_scales = _prepared_inputs(
         price_dataset_path, model_name, product_kind, regime, row_ids
@@ -145,6 +162,31 @@ def validation_from_premia_rate_option(
     )
     return summarize_premia_comparisons(
         validation_input.database_id, comparisons, tolerances
+    )
+
+
+def reference_prices_from_premia_rate_option(
+    price_dataset_path: str | Path,
+    model_name: str,
+    product_kind: str,
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
+) -> tuple[PremiaRateOptionReference, ...]:
+    """Price one batch for persistence without comparing it to CUDA."""
+
+    validation_input, inputs, price_scales = _prepared_inputs(
+        price_dataset_path, model_name, product_kind, regime, row_ids
+    )
+    results = price_rows(inputs, f"{model_name}_{_PRODUCTS[product_kind]}")
+    return tuple(
+        PremiaRateOptionReference(
+            row_id=row.row_id,
+            model_id=row.model_id,
+            product_id=row.product_id,
+            price=results[row.row_id].price * price_scales[row.row_id],
+            standard_error=results[row.row_id].standard_error,
+        )
+        for row in validation_input.rows
     )
 
 
@@ -197,6 +239,8 @@ def validation_batch_from_premia_rate_option(
 
 
 __all__ = (
+    "PremiaRateOptionReference",
+    "reference_prices_from_premia_rate_option",
     "validation_batch_from_premia_rate_option",
     "validation_from_premia_rate_option",
 )

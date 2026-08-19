@@ -10,6 +10,8 @@
 
 namespace ai_factory::workbench::variance_gamma {
 
+// ======================== Common equity dynamics =========================
+
 // Prepare the exact Gamma clock increment over one requested interval.
 __device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
     const VarianceGammaModelParameters& parameters,
@@ -71,6 +73,8 @@ __device__ __forceinline__ void one_step_transition(
     );
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 // Draw one exact VG increment from the path-local scalar uniform sequence.
@@ -94,6 +98,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ VarianceGammaState simulate_terminal_state(

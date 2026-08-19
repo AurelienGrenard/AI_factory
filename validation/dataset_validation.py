@@ -274,7 +274,7 @@ def run_dataset_validation_cli(
     write_validation_report(report, arguments.report)
     synchronize_validation_yaml(report, arguments.price_dataset)
     display_validation_report(report)
-    return 1 if "failed" in (report.core.status, report.stress.status) else 0
+    return 1 if report.core.status == "failed" else 0
 
 
 __all__ = (

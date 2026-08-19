@@ -138,6 +138,46 @@ def _workbench_average_expectation(
     )
 
 
+def _asian_put_from_call(
+    call: PremiaResult,
+    spot: float,
+    rate: float,
+    dividend: float,
+    strike: float,
+    maturity: float,
+    step_count: int,
+) -> PremiaResult:
+    """Apply parity for the same endpoint grid used by the call pricer."""
+
+    discount = math.exp(-rate * maturity)
+    expected_average = _workbench_average_expectation(
+        spot, rate, dividend, maturity, step_count
+    )
+    return PremiaResult(
+        price=call.price - discount * expected_average + discount * strike,
+        standard_error=call.standard_error,
+    )
+
+
+def _premia_comparison_passes(
+    generated_price: float,
+    generated_standard_error: float,
+    reference: PremiaResult,
+    tolerances: ValidationTolerances,
+) -> bool:
+    """Apply the shared row tolerance before a declared refinement."""
+
+    combined_standard_error = math.hypot(
+        generated_standard_error, reference.standard_error
+    )
+    allowance = (
+        tolerances.absolute
+        + tolerances.relative * abs(reference.price)
+        + tolerances.standard_error_multiplier * combined_standard_error
+    )
+    return abs(generated_price - reference.price) <= allowance
+
+
 def validation_batch_from_premia_path_option(
     price_dataset_path: str | Path,
     model_name: str,
@@ -192,6 +232,14 @@ def validation_batch_from_premia_path_option(
             for field in fields
         )
         prefix = premia_model_prefix(model, model_name, row.model_id)
+        if model_name == "merton" and product_kind in {
+            "asian_call",
+            "asian_put",
+        }:
+            # AP_Asian_FMM_Mer is kept on its audited 52-date grid.  Record
+            # that same count for put-call parity; using the CUDA grid here
+            # mixes two different arithmetic averages.
+            asian_step_counts[row.row_id] = 52
         if model_name == "kou" and product_kind in {"asian_call", "asian_put"}:
             # The published Kou Asian datasets use exact increments on the
             # nearest 1/252 endpoint grid.  Premia receives the same number of
@@ -260,23 +308,136 @@ def validation_batch_from_premia_path_option(
             dividend = parameter_number(
                 model, "dividend_yield", f"model '{row.model_id}'"
             )
-            expected_average = _workbench_average_expectation(
+            adjusted[row.row_id] = _asian_put_from_call(
+                references[row.row_id],
                 spot,
                 rate,
                 dividend,
+                strike,
                 maturity,
                 asian_step_counts.get(
                     row.row_id, max(1, math.floor(360.0 * maturity + 0.5))
                 ),
             )
-            discount = math.exp(-rate * maturity)
-            call = references[row.row_id]
-            adjusted[row.row_id] = PremiaResult(
-                price=call.price - discount * expected_average + discount * strike,
-                standard_error=call.standard_error,
-            )
         references = adjusted
     if product_kind in {"asian_call", "asian_put"}:
+        # The 1,024-point Merton FMM recursion is fast enough for the complete
+        # batch but can lose a tiny OTM tail through quadrature error.  Every
+        # line that either violates an analytic bound or misses the declared
+        # tolerance is deterministically recomputed at 4,096 points.  The
+        # refined result always replaces the coarse one, so this is numerical
+        # adjudication rather than retrospective reference selection.
+        if model_name == "merton" and regime != "stress":
+            refinement_ids: list[str] = []
+            for row in validation_input.rows:
+                reference = references.get(row.row_id)
+                if reference is None:
+                    refinement_ids.append(row.row_id)
+                    continue
+                model = models[row.model_id]
+                product = products[row.product_id]
+                maturity = parameter_number(
+                    product, "maturity", f"{product_kind} row '{row.product_id}'",
+                    positive=True,
+                )
+                strike = parameter_number(
+                    product, "strike", f"{product_kind} row '{row.product_id}'",
+                    positive=True,
+                )
+                spot = parameter_number(
+                    model, "spot", f"model '{row.model_id}'", positive=True
+                )
+                rate = parameter_number(
+                    model, "risk_free_rate", f"model '{row.model_id}'"
+                )
+                dividend = parameter_number(
+                    model, "dividend_yield", f"model '{row.model_id}'"
+                )
+                discount = math.exp(-rate * maturity)
+                upper = discount * (
+                    _workbench_average_expectation(
+                        spot,
+                        rate,
+                        dividend,
+                        maturity,
+                        asian_step_counts[row.row_id],
+                    )
+                    if product_kind == "asian_call"
+                    else strike
+                )
+                if (
+                    reference.price < -1.0e-8
+                    or reference.price > upper + 1.0e-6
+                    or not _premia_comparison_passes(
+                        row.generated_price,
+                        row.generated_standard_error,
+                        reference,
+                        tolerances,
+                    )
+                ):
+                    refinement_ids.append(row.row_id)
+            if refinement_ids:
+                requested = set(refinement_ids)
+                refined_inputs = tuple(
+                    row for row in path_inputs if row.row_id in requested
+                )
+                refined, refined_failures = price_rows_partial(
+                    refined_inputs, f"{mode}_refined", method
+                )
+                for row_id, failure in refined_failures.items():
+                    exceptions[row_id] = BackendException(
+                        row_id,
+                        f"Premia row '{row_id}' failed with status "
+                        f"{failure.status}: {failure.reason}.",
+                        failure.status,
+                    )
+                    references.pop(row_id, None)
+                if asian_put_parity:
+                    for row in validation_input.rows:
+                        call = refined.get(row.row_id)
+                        if call is None:
+                            continue
+                        model = models[row.model_id]
+                        product = products[row.product_id]
+                        maturity = parameter_number(
+                            product,
+                            "maturity",
+                            f"asian_put row '{row.product_id}'",
+                            positive=True,
+                        )
+                        strike = parameter_number(
+                            product,
+                            "strike",
+                            f"asian_put row '{row.product_id}'",
+                            positive=True,
+                        )
+                        references[row.row_id] = _asian_put_from_call(
+                            call,
+                            parameter_number(
+                                model,
+                                "spot",
+                                f"model '{row.model_id}'",
+                                positive=True,
+                            ),
+                            parameter_number(
+                                model,
+                                "risk_free_rate",
+                                f"model '{row.model_id}'",
+                            ),
+                            parameter_number(
+                                model,
+                                "dividend_yield",
+                                f"model '{row.model_id}'",
+                            ),
+                            strike,
+                            maturity,
+                            asian_step_counts[row.row_id],
+                        )
+                        exceptions.pop(row.row_id, None)
+                else:
+                    references.update(refined)
+                    for row_id in refined:
+                        exceptions.pop(row_id, None)
         for row in validation_input.rows:
             if row.row_id not in references:
                 continue

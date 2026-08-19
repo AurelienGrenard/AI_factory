@@ -26,6 +26,7 @@ typedef enum ModelKind {
     MODEL_NORMAL_INVERSE_GAUSSIAN,
     MODEL_CEV,
     MODEL_STEIN,
+    MODEL_CIR,
     MODEL_VASICEK,
     MODEL_ORNSTEIN_UHLENBECK,
     MODEL_HULL_WHITE,
@@ -169,6 +170,12 @@ static const ModeSpec MODE_SPECS[] = {
     {"merton_asian_put", MODEL_MERTON, CONTRACT_FIXED_ASIAN,
      "equity_with_jumps", "Merton1dim", "AsianPutFixedEuro",
      "AP_Asian_FMM_Mer", 9},
+    {"merton_asian_call_refined", MODEL_MERTON, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Merton1dim", "AsianCallFixedEuro",
+     "AP_Asian_FMM_Mer", 9},
+    {"merton_asian_put_refined", MODEL_MERTON, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Merton1dim", "AsianPutFixedEuro",
+     "AP_Asian_FMM_Mer", 9},
     {"merton_lookback_option", MODEL_MERTON, CONTRACT_FIXED_LOOKBACK_CALL,
      "equity_with_jumps", "Merton1dim", "LookBackCallFixedEuro",
      "MC_Merton_FixedLookback", 9},
@@ -231,6 +238,18 @@ static const ModeSpec MODE_SPECS[] = {
     {"vasicek_zero_coupon_put", MODEL_VASICEK, CONTRACT_ZERO_COUPON_PUT,
      "interest", "Vasicek1d", "ZeroCouponPutBondEuro",
      "CF_Vasicek1d_ZBPutEuro", 8},
+    {"cir_zero_coupon_call", MODEL_CIR, CONTRACT_ZERO_COUPON_CALL,
+     "interest", "Cir1d", "ZeroCouponCallBondEuro",
+     "CF_Cir1d_ZBCallEuro", 8},
+    {"cir_zero_coupon_put", MODEL_CIR, CONTRACT_ZERO_COUPON_PUT,
+     "interest", "Cir1d", "ZeroCouponPutBondEuro",
+     "CF_Cir1d_ZBPutEuro", 8},
+    {"cir_zero_coupon_call_fd", MODEL_CIR, CONTRACT_ZERO_COUPON_CALL,
+     "interest", "Cir1d", "ZeroCouponCallBondEuro",
+     "FD_Gauss_Cir1d_ZBO", 8},
+    {"cir_zero_coupon_put_fd", MODEL_CIR, CONTRACT_ZERO_COUPON_PUT,
+     "interest", "Cir1d", "ZeroCouponPutBondEuro",
+     "FD_Gauss_Cir1d_ZBO", 8},
     {"vasicek_cap", MODEL_VASICEK, CONTRACT_CAP, "interest", "Vasicek1d",
      "Cap", "CF_Vasicek1d_Cap", 9},
     {"vasicek_floor", MODEL_VASICEK, CONTRACT_FLOOR, "interest", "Vasicek1d",
@@ -344,7 +363,12 @@ static void configure_method(PricingContext *context) {
                    || strstr(name, "time steps") != NULL
                    || strstr(name, "TimeStepNumber") != NULL
                    || strstr(name, "SpaceStepNumber") != NULL) {
-            set_scalar(parameter, 256.0, context->method);
+            set_scalar(
+                parameter,
+                strcmp(context->method->Name, "FD_Gauss_Cir1d_ZBO") == 0
+                    ? 1024.0 : 256.0,
+                context->method
+            );
         } else if (strstr(name, "Confidence Value") != NULL) {
             set_scalar(parameter, 0.95, context->method);
         } else if (strstr(name, "Exercise Dates") != NULL) {
@@ -352,7 +376,12 @@ static void configure_method(PricingContext *context) {
         } else if (strstr(name, "Monitoring Dates") != NULL) {
             set_scalar(parameter, 52.0, context->method);
         } else if (strstr(name, "Integration Points") != NULL) {
-            set_scalar(parameter, 1024.0, context->method);
+            set_scalar(
+                parameter,
+                strstr(context->spec->mode, "_refined") != NULL
+                    ? 4096.0 : 1024.0,
+                context->method
+            );
         }
     }
     context->error_result_index = -1;
@@ -559,6 +588,16 @@ static int prepare_equity_model(
 static int prepare_rate_model(PricingContext *context, const double *x) {
     VAR *model = context->model_variables;
     if (x[1] <= 0.0 || x[2] <= 0.0) return 12;
+    if (context->spec->model_kind == MODEL_CIR) {
+        if (x[0] < 0.0 || x[3] <= 0.0) return 12;
+        set_scalar(&model[0], 0.0, context->model->TypeModel);
+        set_scalar(&model[1], x[0], context->model->TypeModel);
+        set_scalar(&model[2], x[1], context->model->TypeModel);
+        // Cir1D's concrete struct order is T, r0, k, Sigma, theta.
+        set_scalar(&model[3], x[2], context->model->TypeModel);
+        set_scalar(&model[4], x[3], context->model->TypeModel);
+        return 0;
+    }
     set_scalar(&model[0], 0.0, context->model->TypeModel);
     set_scalar(&model[1], x[0], context->model->TypeModel);
     set_scalar(&model[2], x[1], context->model->TypeModel);
@@ -879,7 +918,8 @@ static int price_row(
     int status;
     if (uses_fitted_curve(context))
         status = prepare_fitted_rate_model(context, x);
-    else if (context->spec->model_kind == MODEL_VASICEK
+    else if (context->spec->model_kind == MODEL_CIR
+             || context->spec->model_kind == MODEL_VASICEK
              || context->spec->model_kind == MODEL_ORNSTEIN_UHLENBECK)
         status = prepare_rate_model(context, x);
     else

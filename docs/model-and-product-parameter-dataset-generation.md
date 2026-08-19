@@ -26,6 +26,12 @@ draws meaningful:
 - Heston and Bates draw `kappa` and `theta` first, then draw `gamma`
   conditionally from bounds proportional to `sqrt(kappa * theta)`. This controls
   the range of the Feller ratio without imposing it as a hard calibration rule.
+- CIR draws `mean_reversion` and `long_term_mean` first, then draws `volatility`
+  conditionally from bounds proportional to
+  `sqrt(mean_reversion * long_term_mean)`. The core Feller ratio
+  `2 * mean_reversion * long_term_mean / volatility^2` lies in `[1/6, 10]`;
+  stress widens it to `[1/10, 16]`. Both accessible- and inaccessible-zero
+  regimes are therefore represented while the exact transition remains valid.
 - Bates jump intensity, log-jump mean, and log-jump volatility use wider uniform
   bounds in the stress regime. The catalog records the jump law and martingale
   compensator.

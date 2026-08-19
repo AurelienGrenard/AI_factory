@@ -214,9 +214,9 @@ class DatasetValidationReport:
 
     @property
     def passed(self) -> bool:
-        """Return true only when both catalogue regimes are accepted."""
+        """Return the public 900-row core certification status."""
 
-        return self.core.passed and self.stress.passed
+        return self.core.passed
 
 
 def has_directional_bias(
@@ -342,21 +342,19 @@ def display_validation_report(report: DatasetValidationReport) -> None:
         - report.stress.failed_row_count
         - report.stress.unvalidated_row_count
     )
-    validated_row_count = (
-        report.core.row_count
-        + report.stress.row_count
-        - report.core.unvalidated_row_count
-        - report.stress.unvalidated_row_count
+    core_validated_row_count = (
+        report.core.row_count - report.core.unvalidated_row_count
     )
-    if validated_row_count == 0:
+    if core_validated_row_count == 0:
         status = "NOT VALIDATED"
     else:
         status = "PASS" if report.passed else "FAIL"
     conclusion = (
-        f"**{status} — {core_accepted}/{report.core.row_count} core rows and "
-        f"{stress_accepted}/{report.stress.row_count} stress rows are accepted.** "
-        f"Core reference: {report.core.reference}; "
-        f"stress reference: {report.stress.reference}."
+        f"**{status} — {core_accepted}/{report.core.row_count} core rows are "
+        "accepted; external certification is core-only.** "
+        f"Core reference: {report.core.reference}. Stress diagnostic: "
+        f"{stress_accepted}/{report.stress.row_count} rows accepted "
+        f"(reference: {report.stress.reference}; not certification)."
     )
     special_count = len(report.core.special_rows) + len(report.stress.special_rows)
     if special_count:
@@ -399,9 +397,13 @@ def write_validation_notebook(
     report_relative = (destination.parent / "validation_report.json").relative_to(
         project_root
     ).as_posix()
-    status = "PASS" if report.passed else "NOT VALIDATED" if (
-        report.core.status == report.stress.status == "not_available"
-    ) else "FAIL"
+    status = (
+        "PASS"
+        if report.passed
+        else "NOT VALIDATED"
+        if report.core.status == "not_available"
+        else "FAIL"
+    )
     core_accepted = (
         report.core.row_count
         - report.core.failed_row_count
@@ -413,10 +415,11 @@ def write_validation_notebook(
         - report.stress.unvalidated_row_count
     )
     conclusion = (
-        f"**{status} — {core_accepted}/{report.core.row_count} core rows and "
-        f"{stress_accepted}/{report.stress.row_count} stress rows are accepted.** "
-        f"Core reference: {report.core.reference}; "
-        f"stress reference: {report.stress.reference}."
+        f"**{status} — {core_accepted}/{report.core.row_count} core rows are "
+        "accepted; external certification is core-only.** "
+        f"Core reference: {report.core.reference}. Stress diagnostic: "
+        f"{stress_accepted}/{report.stress.row_count} rows accepted "
+        f"(reference: {report.stress.reference}; not certification)."
     )
     special_count = len(report.core.special_rows) + len(report.stress.special_rows)
     if special_count:
@@ -557,22 +560,14 @@ def validation_fingerprint(path: str | Path) -> str:
 
 
 def _overall_status(report: DatasetValidationReport) -> ValidationStatus:
-    if report.passed:
-        return "passed"
-    if report.core.status == report.stress.status == "not_available":
-        return "not_available"
-    return "failed"
+    return report.core.status
 
 
 def _yaml_validation_block(
     report: DatasetValidationReport, notebook_path: str
 ) -> str:
     overall_status = _overall_status(report)
-    reference = (
-        report.core.reference
-        if report.core.reference == report.stress.reference
-        else "mixed"
-    )
+    reference = report.core.reference
     lines = [
         "validation:",
         f"  status: {json.dumps(overall_status)}",

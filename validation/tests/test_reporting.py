@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 from pathlib import Path
 import tempfile
@@ -236,6 +237,49 @@ class ValidationReportingTest(unittest.TestCase):
             self.assertNotIn("method:", validation_block)
             self.assertNotIn("relationship:", yaml_text)
             self.assertNotIn("engine_plan:", yaml_text)
+
+    def test_public_status_depends_only_on_the_core_certification(self) -> None:
+        core = ValidationDisplayReport(
+            title="Core validation",
+            status="passed",
+            database_id="sample",
+            reference="Premia (specialized pricer)",
+            pricing_method="CF_Call",
+            tolerance="absolute tolerance",
+            row_count=1,
+            accepted_row_count=1,
+            failed_row_count=0,
+            higher_price_count=0,
+            lower_price_count=0,
+            equal_price_count=1,
+            mean_signed_price_gap=0.0,
+            mean_absolute_price_gap=0.0,
+            maximum_absolute_price_gap=0.0,
+            maximum_absolute_price_gap_row_id="000001",
+            systematic_bias=False,
+        )
+        stress = replace(
+            core,
+            title="Stress validation",
+            status="failed",
+            accepted_row_count=0,
+            failed_row_count=1,
+            failed_row_ids=("000001",),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset_path, yaml_path = _write_price_fixture(root)
+            report = DatasetValidationReport(
+                validation_fingerprint(dataset_path), core, stress
+            )
+
+            self.assertTrue(report.passed)
+            synchronize_validation_yaml(report, dataset_path)
+            yaml_text = yaml_path.read_text(encoding="utf-8")
+            self.assertIn('status: "passed"', yaml_text)
+            self.assertIn("verified: true", yaml_text)
+            self.assertIn('reference: "Premia (specialized pricer)"', yaml_text)
+            self.assertIn('stress:\n    status: "failed"', yaml_text)
 
     def test_unavailable_validation_has_a_dedicated_display(self) -> None:
         report = ValidationDisplayReport(

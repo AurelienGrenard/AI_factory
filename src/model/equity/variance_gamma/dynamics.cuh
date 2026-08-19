@@ -47,6 +47,8 @@ struct VarianceGammaMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 // Precompute one exact increment law over the requested time interval.
 __device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
     const VarianceGammaModelParameters& parameters,

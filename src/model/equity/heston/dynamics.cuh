@@ -55,6 +55,8 @@ struct HestonMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 // Precompute row- and time-step-dependent QE-M coefficients once per block.
 __device__ __forceinline__ HestonQeParameters prepare_model(
     const HestonModelParameters& parameters,

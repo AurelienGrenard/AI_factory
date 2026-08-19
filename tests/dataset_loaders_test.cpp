@@ -1,6 +1,7 @@
 // Exercise JSON loader invariants and generated-artifact validation.
 #include "curve/nelson_siegel/dataset.hpp"
 #include "curve/svensson/dataset.hpp"
+#include "model/fixed_income/cir/dataset.hpp"
 #include "model/fixed_income/g2/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "model/equity/bates/dataset.hpp"
@@ -166,6 +167,7 @@ int main() {
     namespace schobel_zhu = ai_factory::workbench::schobel_zhu;
     namespace vg = ai_factory::workbench::variance_gamma;
     namespace hull_white = ai_factory::workbench::model::hull_white;
+    namespace cir = ai_factory::workbench::model::cir;
     namespace ou = ai_factory::workbench::model::ornstein_uhlenbeck;
     namespace vasicek = ai_factory::workbench::model::vasicek;
     namespace product = ai_factory::workbench::product;
@@ -360,6 +362,16 @@ int main() {
             {"initial_state", 0.03f},
         }),
         vasicek::load_models
+    );
+    check_loader(
+        "CIR", "models", "long_term_mean", 0.0f, "long_term_mean",
+        one_row("models", {
+            {"mean_reversion", 0.5f},
+            {"long_term_mean", 0.04f},
+            {"volatility", 0.15f},
+            {"initial_state", 0.03f},
+        }),
+        cir::load_models
     );
     check_loader(
         "Hull-White", "models", "volatility", -0.01f, "volatility",

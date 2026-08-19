@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import time
 from typing import Literal
 
 from validation.dataset_validation import (
@@ -11,13 +12,18 @@ from validation.dataset_validation import (
     build_validation_section,
     premia_row_exception,
     quantlib_row_exception,
-    run_dataset_validation_cli,
     unavailable_engine,
 )
 from validation.hierarchy import (
     BackendBatchResult,
     ValidationEngine,
     isolate_backend_exceptions,
+    run_validation_hierarchy,
+)
+from validation.model.equity.reference_pipeline import (
+    REGIME_ROW_COUNTS,
+    detailed_pricer,
+    persist_generated_reference,
 )
 from validation.premia.model.equity.black_scholes.path_option import (
     validation_from_premia_black_scholes_path_option,
@@ -39,6 +45,11 @@ from validation.quantlib.model.equity.black_scholes.specialized_option import (
 )
 from validation.quantlib.price_validation import (
     ValidationRegime,
+    load_price_validation_input,
+)
+from validation.reference_price_dataset import (
+    ReferenceDatasetValidation,
+    ReferencePrice,
 )
 from validation.reporting import (
     DatasetValidationReport,
@@ -127,22 +138,30 @@ _PREMIA_PRICING_METHODS = {
     "gap_call": "CF_Call + CF_Digit (static replication)",
     "gap_put": "CF_Put + CF_Digit (static replication)",
     "straddle": "CF_Call + CF_Put",
-    "up_and_out_call": "CF_CallUpOut",
-    "up_and_in_call": "CF_CallUpIn",
-    "down_and_out_put": "CF_PutDownOut",
-    "down_and_in_put": "CF_PutDownIn",
-    "double_knock_out_call": "CF_CallOut_KunitomoIkeda",
-    "double_knock_out_put": "CF_PutOut_KunitomoIkeda",
-    "lookback_option": "CF_Fixed_CallLookBack",
-    "asian_call": "MC_FixedAsian_ExactMethod",
-    "asian_put": "MC_FixedAsian_ExactMethod",
+    "up_and_out_call": "CF_CallUpOut (continuous monitoring)",
+    "up_and_in_call": "CF_CallUpIn (continuous monitoring)",
+    "down_and_out_put": "CF_PutDownOut (continuous monitoring)",
+    "down_and_in_put": "CF_PutDownIn (continuous monitoring)",
+    "double_knock_out_call": (
+        "CF_CallOut_KunitomoIkeda (continuous monitoring)"
+    ),
+    "double_knock_out_put": (
+        "CF_PutOut_KunitomoIkeda (continuous monitoring)"
+    ),
+    "lookback_option": "CF_Fixed_CallLookBack (continuous monitoring)",
+    "asian_call": "MC_FixedAsian_ExactMethod (continuous-time average)",
+    "asian_put": "MC_FixedAsian_ExactMethod (continuous-time average)",
     "forward_start_call": "CF_Call (scale-invariant reduction)",
     "forward_start_put": "CF_Put (scale-invariant reduction)",
     "geometric_asian_call": "CF_Call (lognormal reduction)",
     "geometric_asian_put": "CF_Put (lognormal reduction)",
     "range_accrual": "CF_Digit (marginal replication)",
-    "up_no_touch": "CF_CallUpIn + CF_Call (static replication)",
-    "up_one_touch": "CF_CallUpIn + CF_Call (static replication)",
+    "up_no_touch": (
+        "CF_CallUpIn + CF_Call (continuous-monitoring static replication)"
+    ),
+    "up_one_touch": (
+        "CF_CallUpIn + CF_Call (continuous-monitoring static replication)"
+    ),
 }
 
 _QUANTLIB_SPECIALIZED_PRICING_METHODS = {
@@ -390,30 +409,16 @@ def _display_report(
         bias_explanation=spec.bias_explanation,
         enforce_directional_bias=spec.enforce_directional_bias,
     )
-    report = build_validation_section(
+    return build_validation_section(
         price_dataset_path, regime, _engine_plan(spec), policy
     )
-    if (
-        spec.product_kind in {"up_no_touch", "up_one_touch"}
-        and report.systematic_bias
-    ):
-        # A 100-row stress regime can cross the 60% sign alarm by sampling
-        # noise.  Confirm such an alarm with four times as many independent
-        # antithetic reference pairs before accepting or rejecting it.
-        report = build_validation_section(
-            price_dataset_path,
-            regime,
-            _engine_plan(spec, path_reference_pairs=4096),
-            policy,
-        )
-    return report
 
 
-def validate_dataset(
+def live_validation_report(
     price_dataset_path: str | Path,
     product_kind: str,
 ) -> DatasetValidationReport:
-    """Run the ordered hierarchy once and return its persistent report."""
+    """Run external engines directly for diagnostic or regeneration work."""
 
     path = Path(price_dataset_path).resolve()
     spec = _spec(product_kind)
@@ -424,10 +429,170 @@ def validate_dataset(
     )
 
 
-def run_product_validation_cli(product_kind: str) -> int:
-    """Provide the identical two-path CLI used by every thin product module."""
+# =============================================================================
+# Persistent reference generation
+# =============================================================================
 
-    return run_dataset_validation_cli(
-        lambda path: validate_dataset(path, product_kind),
-        f"Validate one Black-Scholes {product_kind} dataset.",
+
+def _pricer_identifier(engine: ValidationEngine, product_kind: str) -> str:
+    backend = engine.reference.lower().replace(" ", "_")
+    method = engine.method.lower().replace(" ", "_")
+    return f"{backend}_black_scholes_{product_kind}_{method}"
+
+
+def _comparison_relation(
+    engine: ValidationEngine,
+    product_kind: str,
+) -> str:
+    """Describe the exact mathematical contract checked by one backend."""
+
+    if engine.reference != "Premia":
+        return "absolute"
+    if product_kind in {
+        "up_and_out_call",
+        "down_and_out_put",
+        "double_knock_out_call",
+        "double_knock_out_put",
+        "up_no_touch",
+    }:
+        return "generated_at_least_reference"
+    if product_kind in {
+        "up_and_in_call",
+        "down_and_in_put",
+        "lookback_option",
+        "up_one_touch",
+    }:
+        return "generated_at_most_reference"
+    return "absolute"
+
+
+def _backend_version(engine: ValidationEngine) -> str:
+    if engine.reference == "Premia":
+        return "19"
+    if engine.reference == "QuantLib":
+        import QuantLib as ql
+
+        return ql.__version__
+    raise ValueError(f"Unsupported reference backend '{engine.reference}'.")
+
+
+def _pricer_kind(engine: ValidationEngine) -> str:
+    return engine.method.lower().replace(" ", "_")
+
+
+def _reference_pricer_section(
+    product_kind: str,
+    row_count: int,
+    hierarchy,
+) -> dict:
+    """Persist availability in order and details only for engines actually used."""
+
+    used = {
+        run.engine.label: len(run.completed_row_ids)
+        for run in hierarchy.runs
+        if run.completed_row_ids
+    }
+    section: dict = {"row_count": row_count}
+    slots = (
+        ("premia", hierarchy.engine_plan[0]),
+        ("quantlib_specialized", hierarchy.engine_plan[1]),
+        ("quantlib_monte_carlo", hierarchy.engine_plan[2]),
+    )
+    for slot, engine in slots:
+        completed = used.get(engine.label, 0)
+        if not engine.available:
+            section[slot] = {"status": "not_available"}
+        elif completed == 0:
+            section[slot] = {"status": "available"}
+        else:
+            section[slot] = detailed_pricer(
+                _pricer_identifier(engine, product_kind),
+                engine.reference,
+                _backend_version(engine),
+                _pricer_kind(engine),
+                engine.pricing_method or "",
+                completed,
+            )
+    return section
+
+
+def generate_reference_dataset(
+    price_dataset_path: str | Path,
+    reference_dataset_path: str | Path,
+    product_kind: str,
+) -> ReferenceDatasetValidation:
+    """Run the ordered hierarchy once and persist all 1000 aligned prices."""
+
+    path = Path(price_dataset_path).resolve()
+    source = load_price_validation_input(path)
+    spec = _spec(product_kind)
+    started = time.perf_counter()
+    prices_by_id: dict[str, ReferencePrice] = {}
+    pricers: dict[str, dict] = {}
+    offset = 0
+    for regime, row_count in REGIME_ROW_COUNTS:
+        selected_rows = source.rows[offset:offset + row_count]
+        offset += row_count
+        row_ids = tuple(row.row_id for row in selected_rows)
+        hierarchy = run_validation_hierarchy(
+            path,
+            regime,
+            row_ids,
+            _engine_plan(spec),
+        )
+        if hierarchy.unresolved_row_ids:
+            raise RuntimeError(
+                f"{product_kind} left unresolved reference rows: "
+                f"{hierarchy.unresolved_row_ids}"
+            )
+        source_by_id = {row.row_id: row for row in selected_rows}
+        for run in hierarchy.runs:
+            relation = _comparison_relation(run.engine, product_kind)
+            pricer_id = _pricer_identifier(run.engine, product_kind)
+            diagnostic_ids: set[str] = set()
+            for report in run.reports:
+                for diagnostic in report.row_diagnostics:
+                    if not diagnostic.passed:
+                        raise RuntimeError(
+                            f"{run.engine.label} rejected {product_kind} row "
+                            f"'{diagnostic.row_id}'."
+                        )
+                    if diagnostic.row_id in diagnostic_ids:
+                        raise RuntimeError(
+                            f"Duplicate diagnostic for row '{diagnostic.row_id}'."
+                        )
+                    diagnostic_ids.add(diagnostic.row_id)
+                    row = source_by_id[diagnostic.row_id]
+                    prices_by_id[row.row_id] = ReferencePrice(
+                        row_id=row.row_id,
+                        model_id=row.model_id,
+                        product_id=row.product_id,
+                        price=diagnostic.reference_price,
+                        standard_error=diagnostic.reference_standard_error,
+                        reference_pricer_id=pricer_id,
+                        comparison_relation=relation,
+                        comparison_allowance=diagnostic.allowance,
+                    )
+            if diagnostic_ids != set(run.completed_row_ids):
+                raise RuntimeError(
+                    f"{run.engine.label} diagnostics do not match completed rows."
+                )
+        pricers[regime] = _reference_pricer_section(
+            product_kind,
+            row_count,
+            hierarchy,
+        )
+    if offset != len(source.rows) or set(prices_by_id) != {
+        row.row_id for row in source.rows
+    }:
+        raise RuntimeError("Reference generation did not cover the source dataset.")
+    prices = tuple(prices_by_id[row.row_id] for row in source.rows)
+    return persist_generated_reference(
+        path,
+        reference_dataset_path,
+        prices,
+        pricers,
+        time.perf_counter() - started,
+        allow_systematic_bias=spec.bias_explanation is not None,
+        systematic_bias_explanation=spec.bias_explanation,
     )

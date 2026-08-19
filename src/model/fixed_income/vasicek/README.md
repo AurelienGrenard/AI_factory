@@ -22,6 +22,15 @@ dr_t = a(b - r_t) dt + sigma dW_t.
 
 See [Vasicek (1977)](https://doi.org/10.1016/0304-405X(77)90016-2).
 
+## Formula index
+
+- [Analytics — Gaussian state, discounting, and affine bonds](#analytics)
+- [Zero-coupon bond — exponential-affine formula](#zero-coupon-bond)
+- [Zero-coupon bond option — expiry-bond numeraire](#zero-coupon-bond-option)
+- [Caplet / floorlet — scaled bond-option identity](#caplet--floorlet)
+- [Swap and swap rate — discounted-leg formulas](#swap-and-swap-rate)
+- [European payer swaption — Jamshidian decomposition](#european-payer-swaption)
+
 ## Files
 
 - [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load the process plus initial rate.
@@ -102,51 +111,191 @@ owns one `philox::UniformSequence(key, path)` and one normal cache for the whole
 path. The state-only transition consumes one normal and the joint transition
 two.
 
-## Affine bond formula
+## Analytics
 
 For $\tau=T-t$,
 
 $$
-P(t,T)=A(t,T)e^{-B(t,T)r_t},\qquad
-B(t,T)=\frac{1-e^{-a\tau}}{a},
+B(t,T)=\frac{1-e^{-a\tau}}a,
+\qquad
+V_I(t,T)=\operatorname{Var}_t\!\left[\int_t^T r_u\,du\right],
 $$
 
-with
+$$
+\log A(t,T)=\frac12V_I(t,T)-b[\tau-B(t,T)],
+\qquad
+P(t,T)=A(t,T)e^{-B(t,T)r_t}.
+$$
+
+For $I_t=\int_0^t r_u\,du$,
 
 $$
-\log A(t,T)=\frac12V_I(\tau)-b[\tau-B(t,T)],
+D(0,t)=e^{-I_t}.
 $$
 
-where $V_I$ is the conditional variance of the future rate integral.
-`log_A`, `A`, and `B` expose the textbook coefficients; bond evaluation
-computes `log_A` and `B` together.
+In the single-curve convention, the same $P(t,T)$ projects forwards and
+discounts cashflows. The simple forward, swap annuity, and par swap rate are
 
-## Pricing kernels
+$$
+L(t,T_1,T_2)=\frac1\delta
+\left(\frac{P(t,T_1)}{P(t,T_2)}-1\right),
+$$
 
-Rate options and zero-coupon-bond options use closed-form analytics with one
-thread per result. Every file follows `PreparedRow` →
-`evaluate_price<Side>` → launcher. Call/put is a compile-time `OptionSide`.
+$$
+\operatorname{Ann}(t)=\sum_{i=1}^n\delta_iP(t,T_i),
+\qquad
+S(t;T_0,T_n)=
+\frac{P(t,T_0)-P(t,T_n)}{\operatorname{Ann}(t)}.
+$$
 
-<details>
-<summary>Exact analytics signatures</summary>
+These quantities are exposed by `analytics.cuh/.cu` and feed the product
+formulas below.
 
-The declarations below omit CUDA attributes for readability.
+## Zero-coupon bond
 
-```cpp
-float log_A(const VasicekModelParameters&, float valuation_time, float maturity);
-float A(const VasicekModelParameters&, float valuation_time, float maturity);
-float B(const VasicekModelParameters&, float valuation_time, float maturity);
-float log_zero_coupon_bond(const VasicekModelParameters&, float state, float valuation_time, float maturity);
-float log_discount_factor(float state_integral);
-float discount_factor(float state_integral);
-float zero_coupon_bond(const VasicekModelParameters&, float state, float valuation_time, float maturity);
-float zero_coupon_bond_call_price(const VasicekModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
-float zero_coupon_bond_put_price(const VasicekModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
-float forward_rate(const VasicekModelParameters&, float state, float valuation_time, float start, float end, float accrual);
-float swap_rate(const VasicekModelParameters&, float state, float valuation_time, float start, const float* payment_times, const float* accruals, std::size_t payments);
-```
+For notional $N$ paid at $T$,
 
-</details>
+$$
+V_{\mathrm{ZCB}}(t)=NP(t,T)=NA(t,T)e^{-B(t,T)r_t}.
+$$
+
+The formula is the conditional Laplace transform of the Gaussian future
+short-rate integral.
+
+## Zero-coupon bond option
+
+Let $S$ be the option expiry, $T>S$ the bond maturity, and $K_B$ the strike.
+Under the $S$-bond numeraire,
+
+$$
+\nu^2=B(S,T)^2\sigma^2
+\frac{1-e^{-2a(S-t)}}{2a},
+$$
+
+$$
+d_1=\frac{\log\!\left(P(t,T)/(K_BP(t,S))\right)+\nu^2/2}{\nu},
+\qquad d_2=d_1-\nu.
+$$
+
+The closed-form prices are
+
+$$
+C_{\mathrm{ZCB}}(t)=P(t,T)\Phi(d_1)-K_BP(t,S)\Phi(d_2),
+$$
+
+$$
+P_{\mathrm{ZCB}}(t)=K_BP(t,S)\Phi(-d_2)-P(t,T)\Phi(-d_1).
+$$
+
+The expiry-bond numeraire makes the bond forward lognormal. The implementation
+uses one analytical CUDA thread per price.
+
+## Caplet / floorlet
+
+For fixing $T_1$, payment $T_2$, accrual $\delta$, strike $K$, and notional
+$N$,
+
+$$
+\Pi_{\mathrm{caplet}}(T_2)=N\delta[L(T_1,T_1,T_2)-K]^+,
+\qquad
+\Pi_{\mathrm{floorlet}}(T_2)=N\delta[K-L(T_1,T_1,T_2)]^+.
+$$
+
+Define
+
+$$
+K_B=\frac1{1+\delta K}.
+$$
+
+Then
+
+$$
+V_{\mathrm{caplet}}(t)
+=N(1+\delta K)P_{\mathrm{ZCB}}(t;T_1,T_2,K_B),
+$$
+
+$$
+V_{\mathrm{floorlet}}(t)
+=N(1+\delta K)C_{\mathrm{ZCB}}(t;T_1,T_2,K_B).
+$$
+
+These exact identities follow from $L(T_1,T_1,T_2)$.
+
+## Swap and swap rate
+
+For a swap starting at $T_0$ with payments $T_1,\ldots,T_n$,
+
+$$
+V_{\mathrm{float}}(t)
+=N\sum_{i=1}^n\delta_iL(t,T_{i-1},T_i)P(t,T_i).
+$$
+
+Using
+
+$$
+\delta_iL(t,T_{i-1},T_i)P(t,T_i)
+=P(t,T_{i-1})-P(t,T_i),
+$$
+
+gives
+
+$$
+V_{\mathrm{float}}(t)=N[P(t,T_0)-P(t,T_n)].
+$$
+
+For fixed rate $K$,
+
+$$
+V_{\mathrm{fixed}}(t)=NK\operatorname{Ann}(t),
+$$
+
+$$
+V_{\mathrm{payer}}(t)
+=N[P(t,T_0)-P(t,T_n)-K\operatorname{Ann}(t)]
+=N\operatorname{Ann}(t)[S(t;T_0,T_n)-K].
+$$
+
+Here $K$ is the contractual fixed rate. Setting $K=S(0;T_0,T_n)$ makes the
+swap worth zero at inception; afterward $S(t)$ moves while $K$ stays fixed.
+
+## European payer swaption
+
+**Method: planned Jamshidian decomposition.** At exercise and swap start $T_0$,
+
+$$
+\Pi_{\mathrm{payer}}(T_0)=N\left[
+1-P(T_0,T_n)-K\sum_{i=1}^n\delta_iP(T_0,T_i)
+\right]^+.
+$$
+
+Set
+
+$$
+c_i=K\delta_i+\mathbf 1_{\{i=n\}},
+$$
+
+and solve
+
+$$
+\sum_{i=1}^nc_iP(T_0,T_i;r^\star)=1.
+$$
+
+With $K_i^\star=P(T_0,T_i;r^\star)$,
+
+$$
+\Pi_{\mathrm{payer}}(T_0)
+=N\sum_{i=1}^nc_i[K_i^\star-P(T_0,T_i)]^+,
+$$
+
+and therefore
+
+$$
+V_{\mathrm{payer\ swaption}}(t)
+=N\sum_{i=1}^nc_iP_{\mathrm{ZCB}}(t;T_0,T_i,K_i^\star).
+$$
+
+The common one-dimensional rate orders every bond in the same direction. The
+swaption launcher is not implemented yet.
 
 ## Memory and numerical policy
 

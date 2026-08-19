@@ -1,209 +1,182 @@
-"""Uniform validation policy for fitted Hull-White and G2++ options."""
+"""Persistent Premia references for fitted Hull-White and G2++ options."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+import time
+from typing import Any
 
-from validation.dataset_validation import (
-    ValidationPolicy,
-    build_dataset_validation_report,
-    quantlib_row_exception,
-    run_dataset_validation_cli,
-    unavailable_engine,
+from validation.model.fixed_income.reference_pipeline import (
+    PRODUCT_KINDS,
+    REGIME_ROW_COUNTS,
+    detailed_pricer,
+    is_call_side,
+    persist_generated_reference,
+    run_reference_cli,
+    validate_cached_reference,
+    validate_product_kind,
 )
-from validation.hierarchy import (
-    BackendBatchResult,
-    ValidationEngine,
-    isolate_backend_exceptions,
+from validation.reference_price_dataset import (
+    ReferenceDatasetValidation,
+    ReferencePrice,
 )
-from validation.premia.model.fixed_income.fitted_rate_option import (
-    validation_batch_from_premia_fitted_rate_option,
-)
-from validation.quantlib.model.fixed_income.g2_plus_plus.nelson_siegel.reference import (
-    quantlib_model as g2_plus_plus_nelson_siegel_quantlib_model,
-)
-from validation.quantlib.model.fixed_income.g2_plus_plus.svensson.reference import (
-    quantlib_model as g2_plus_plus_svensson_quantlib_model,
-)
-from validation.quantlib.model.fixed_income.hull_white.nelson_siegel.reference import (
-    quantlib_model as hull_white_nelson_siegel_quantlib_model,
-)
-from validation.quantlib.model.fixed_income.hull_white.svensson.reference import (
-    quantlib_model as hull_white_svensson_quantlib_model,
-)
-from validation.quantlib.price_validation import ValidationRegime
-from validation.quantlib.rate_option import validation_from_quantlib_rate_option
-from validation.reporting import DatasetValidationReport
 
 
-_PRODUCT_KINDS = frozenset(
+_PRODUCT_KINDS = PRODUCT_KINDS
+
+
+# =============================================================================
+# Model-specific reference mapping
+# =============================================================================
+
+
+_SPECS = frozenset(
     {
-        "caplet",
-        "floorlet",
-        "zero_coupon_bond_call",
-        "zero_coupon_bond_put",
+        ("hull_white", "nelson_siegel"),
+        ("hull_white", "svensson"),
+        ("g2_plus_plus", "nelson_siegel"),
+        ("g2_plus_plus", "svensson"),
     }
 )
 
 
-@dataclass(frozen=True)
-class FittedGaussianRateSpec:
-    """Independent engines for one model and initial-curve family."""
+def _spec(model_name: str, curve_name: str) -> tuple[str, str]:
+    """Validate and return one supported fitted model/curve pair."""
 
-    model_name: str
-    curve_name: str
-    quantlib_model: Any
-    quantlib_pricing_method: str
-
-
-_SPECS: Mapping[tuple[str, str], FittedGaussianRateSpec] = {
-    ("hull_white", "nelson_siegel"): FittedGaussianRateSpec(
-        "hull_white",
-        "nelson_siegel",
-        hull_white_nelson_siegel_quantlib_model,
-        "HullWhite.discountBondOption",
-    ),
-    ("hull_white", "svensson"): FittedGaussianRateSpec(
-        "hull_white",
-        "svensson",
-        hull_white_svensson_quantlib_model,
-        "HullWhite.discountBondOption",
-    ),
-    ("g2_plus_plus", "nelson_siegel"): FittedGaussianRateSpec(
-        "g2_plus_plus",
-        "nelson_siegel",
-        g2_plus_plus_nelson_siegel_quantlib_model,
-        "G2.discountBondOption",
-    ),
-    ("g2_plus_plus", "svensson"): FittedGaussianRateSpec(
-        "g2_plus_plus",
-        "svensson",
-        g2_plus_plus_svensson_quantlib_model,
-        "G2.discountBondOption",
-    ),
-}
-
-
-def _premia_pricing_method(model_name: str, product_kind: str) -> str:
-    """Return the exact Premia method after the caplet bond-option identity."""
-
-    call_side = product_kind in {"zero_coupon_bond_call", "floorlet"}
-    if model_name == "hull_white":
-        return (
-            "CF_HullWhite1d_ZBCallEuro"
-            if call_side
-            else "CF_HullWhite1d_ZBPutEuro"
-        )
-    return "CF_ZBCallEuroHW2D" if call_side else "CF_ZBPutEuroHW2D"
-
-
-def _spec(model_name: str, curve_name: str) -> FittedGaussianRateSpec:
-    try:
-        return _SPECS[(model_name, curve_name)]
-    except KeyError as error:
+    pair = (model_name, curve_name)
+    if pair not in _SPECS:
         raise ValueError(
             f"Unsupported fitted-rate pair '{model_name}/{curve_name}'."
-        ) from error
+        )
+    return pair
 
 
-def _engine_plan(
+def _premia_pricer(
+    model_name: str,
+    product_kind: str,
+    row_priced: int,
+) -> dict[str, Any]:
+    """Describe the Premia formula selected by model and option side."""
+
+    side = "call" if is_call_side(product_kind) else "put"
+    if model_name == "hull_white":
+        identifier = f"premia_cf_hull_white_1d_zb_{side}"
+        method = (
+            "CF_HullWhite1d_ZBCallEuro"
+            if side == "call"
+            else "CF_HullWhite1d_ZBPutEuro"
+        )
+    else:
+        identifier = f"premia_cf_hull_white_2d_zb_{side}"
+        method = "CF_ZBCallEuroHW2D" if side == "call" else "CF_ZBPutEuroHW2D"
+    return detailed_pricer(identifier, "Premia", "19", method, row_priced)
+
+
+def reference_pricers(
     model_name: str,
     curve_name: str,
     product_kind: str,
-) -> tuple[ValidationEngine, ...]:
-    if product_kind not in _PRODUCT_KINDS:
-        raise ValueError(f"Unsupported rate product '{product_kind}'.")
-    spec = _spec(model_name, curve_name)
+) -> dict[str, Any]:
+    """Describe callable engines and detail only the Premia method used."""
 
-    def premia(
-        price_dataset_path: Path,
-        regime: ValidationRegime,
-        row_ids: tuple[str, ...],
-    ) -> BackendBatchResult:
-        return validation_batch_from_premia_fitted_rate_option(
-            price_dataset_path,
-            spec.model_name,
-            spec.curve_name,
-            product_kind,
-            regime=regime,
-            row_ids=row_ids,
+    _spec(model_name, curve_name)
+    validate_product_kind(product_kind)
+    return {
+        regime: {
+            "row_count": count,
+            "premia": _premia_pricer(model_name, product_kind, count),
+            "quantlib_specialized": {"status": "available"},
+            "quantlib_monte_carlo": {"status": "not_available"},
+        }
+        for regime, count in REGIME_ROW_COUNTS
+    }
+
+
+# =============================================================================
+# Common fixed-income reference interface
+# =============================================================================
+
+
+def generate_reference_dataset(
+    price_dataset_path: str | Path,
+    reference_dataset_path: str | Path,
+    model_name: str,
+    curve_name: str,
+    product_kind: str,
+) -> ReferenceDatasetValidation:
+    """Run the selected Premia formula and persist its 1000 aligned prices."""
+
+    _spec(model_name, curve_name)
+    used_pricer = _premia_pricer(model_name, product_kind, 1)["id"]
+    from validation.premia.model.fixed_income.fitted_rate_option import (
+        reference_prices_from_premia_fitted_rate_option,
+    )
+
+    started = time.perf_counter()
+    generated = reference_prices_from_premia_fitted_rate_option(
+        price_dataset_path,
+        model_name,
+        curve_name,
+        product_kind,
+    )
+    wall_seconds = time.perf_counter() - started
+    rows = tuple(
+        ReferencePrice(
+            row.row_id,
+            row.model_id,
+            row.product_id,
+            row.price,
+            row.standard_error,
+            used_pricer,
+            row.curve_id,
         )
-
-    def quantlib_specialized(
-        price_dataset_path: Path,
-        regime: ValidationRegime,
-        row_ids: tuple[str, ...],
-    ) -> BackendBatchResult:
-        return isolate_backend_exceptions(
-            row_ids,
-            lambda selected: validation_from_quantlib_rate_option(
-                price_dataset_path,
-                spec.quantlib_model,
-                product_kind,
-                True,
-                regime=regime,
-                row_ids=selected,
-            ),
-            quantlib_row_exception,
-        )
-
-    return (
-        ValidationEngine(
-            "Premia",
-            "specialized pricer",
-            premia,
-            pricing_method=_premia_pricing_method(
-                spec.model_name, product_kind
-            ),
-        ),
-        ValidationEngine(
-            "QuantLib",
-            "specialized pricer",
-            quantlib_specialized,
-            pricing_method=spec.quantlib_pricing_method,
-        ),
-        unavailable_engine(
-            "QuantLib",
-            "Monte Carlo",
-            "an exact specialized QuantLib engine is available",
-        ),
+        for row in generated
+    )
+    return persist_generated_reference(
+        price_dataset_path,
+        reference_dataset_path,
+        rows,
+        reference_pricers(model_name, curve_name, product_kind),
+        wall_seconds,
     )
 
 
 def validate_dataset(
     price_dataset_path: str | Path,
-    model_name: str,
-    curve_name: str,
-    product_kind: str,
-) -> DatasetValidationReport:
-    """Validate one complete fitted Gaussian-rate price dataset."""
+    reference_dataset_path: str | Path,
+) -> ReferenceDatasetValidation:
+    """Validate one fitted Gaussian-rate cache without external engines."""
 
-    return build_dataset_validation_report(
-        price_dataset_path,
-        lambda: _engine_plan(model_name, curve_name, product_kind),
-        ValidationPolicy(),
-    )
+    return validate_cached_reference(price_dataset_path, reference_dataset_path)
 
 
 def run_product_validation_cli(
-    model_name: str, curve_name: str, product_kind: str
+    model_name: str,
+    curve_name: str,
+    product_kind: str,
 ) -> int:
-    """Expose the identical two-path CLI for every thin product module."""
+    """Generate explicitly or compare the immutable reference by default."""
 
-    return run_dataset_validation_cli(
-        lambda path: validate_dataset(
-            path, model_name, curve_name, product_kind
-        ),
+    _spec(model_name, curve_name)
+    validate_product_kind(product_kind)
+    return run_reference_cli(
         f"Validate one {model_name}/{curve_name} {product_kind} dataset.",
+        f"{model_name}/{curve_name}",
+        lambda source, destination: generate_reference_dataset(
+            source,
+            destination,
+            model_name,
+            curve_name,
+            product_kind,
+        ),
     )
 
 
 __all__ = (
     "_PRODUCT_KINDS",
     "_SPECS",
-    "_engine_plan",
+    "generate_reference_dataset",
+    "reference_pricers",
     "run_product_validation_cli",
     "validate_dataset",
 )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
@@ -13,6 +14,10 @@ from validation.quantlib.price_validation import (
     PriceValidationReport,
     ValidationRegime,
     ValidationTolerances,
+    load_parameter_rows,
+    load_price_validation_input,
+    select_validation_regime,
+    select_validation_row_ids,
     validation_from_reference,
 )
 
@@ -20,6 +25,17 @@ from validation.quantlib.price_validation import (
 RateModelFactory = Callable[
     [Mapping[str, Any], Mapping[str, Any] | None, Mapping[str, Any]], Any
 ]
+
+
+@dataclass(frozen=True)
+class QuantLibRateOptionReference:
+    """One aligned source identity and its QuantLib reference price."""
+
+    row_id: str
+    model_id: str
+    product_id: str
+    price: float
+    standard_error: float = 0.0
 
 
 def bond_option_times(product: Mapping[str, Any]) -> tuple[float, float]:
@@ -119,3 +135,62 @@ def validation_from_quantlib_rate_option(
         regime=regime,
         row_ids=row_ids,
     )
+
+
+def reference_prices_from_quantlib_rate_option(
+    price_dataset_path: str | Path,
+    model_factory: RateModelFactory,
+    product_kind: str,
+    require_curve: bool,
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
+) -> tuple[QuantLibRateOptionReference, ...]:
+    """Price one aligned batch for persistence without comparing to CUDA."""
+
+    validation_input = select_validation_row_ids(
+        select_validation_regime(
+            load_price_validation_input(price_dataset_path), regime
+        ),
+        row_ids,
+    )
+    if require_curve != (validation_input.curve_dataset_path is not None):
+        expected = "with" if require_curve else "without"
+        raise ValueError(f"Expected a price dataset {expected} a curve reference.")
+    models = load_parameter_rows(validation_input.model_dataset_path, "models")
+    products = load_parameter_rows(validation_input.product_dataset_path, "products")
+    curves = (
+        load_parameter_rows(validation_input.curve_dataset_path, "curves")
+        if validation_input.curve_dataset_path is not None
+        else None
+    )
+    references: list[QuantLibRateOptionReference] = []
+    for row in validation_input.rows:
+        model_parameters = models[row.model_id]
+        product = products[row.product_id]
+        curve = curves[row.curve_id] if curves is not None else None
+        model = model_factory(model_parameters, curve, product)
+        if product_kind == "zero_coupon_bond_call":
+            price = _bond_option_price(model, product, ql.Option.Call)
+        elif product_kind == "zero_coupon_bond_put":
+            price = _bond_option_price(model, product, ql.Option.Put)
+        elif product_kind == "caplet":
+            price = _rate_option_price(model, product, ql.Option.Put)
+        elif product_kind == "floorlet":
+            price = _rate_option_price(model, product, ql.Option.Call)
+        else:
+            raise ValueError(f"Unknown fixed-income product kind '{product_kind}'.")
+        references.append(
+            QuantLibRateOptionReference(
+                row.row_id, row.model_id, row.product_id, float(price)
+            )
+        )
+    return tuple(references)
+
+
+__all__ = (
+    "QuantLibRateOptionReference",
+    "RateModelFactory",
+    "bond_option_times",
+    "reference_prices_from_quantlib_rate_option",
+    "validation_from_quantlib_rate_option",
+)

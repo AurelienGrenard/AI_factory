@@ -1,6 +1,6 @@
 """Validate one Black-Scholes digital-put price dataset."""
 
-from validation.model.equity.black_scholes.validation import run_product_validation_cli
+from validation.model.equity.black_scholes.reference_pipeline import run_product_validation_cli
 
 
 if __name__ == "__main__":

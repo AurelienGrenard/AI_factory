@@ -18,7 +18,7 @@ namespace {
 namespace cir = ai_factory::workbench::model::cir;
 namespace philox = ai_factory::workbench::philox;
 
-constexpr std::size_t kOutputCount = 14U;
+constexpr std::size_t kOutputCount = 16U;
 
 // Evaluate deterministic identities and replay checks on one CUDA thread.
 __global__ void cir_test_kernel(float* outputs) {
@@ -96,6 +96,8 @@ __global__ void cir_test_kernel(float* outputs) {
         regular_transition, 0.0f, key, path
     );
     outputs[13] = regular_transition.degrees_of_freedom;
+    outputs[14] = cir::log_discount_factor(0.25f);
+    outputs[15] = cir::discount_factor(0.25f);
 }
 
 // Draw one exact endpoint per independent Philox path for moment checks.
@@ -182,6 +184,11 @@ int main() {
     require(
         outputs[12] >= 0.0f && outputs[13] > 0.0f,
         "CIR exact transition does not preserve non-negativity"
+    );
+    require(
+        outputs[14] == -0.25f
+            && std::fabs(outputs[15] - std::exp(-0.25f)) < 1.0e-7f,
+        "CIR path discount-factor identity is incorrect"
     );
 
     constexpr std::size_t sample_count = 1U << 18U;

@@ -34,10 +34,12 @@ python -m validation.premia.model.fixed_income.validate DATASET MODEL PRODUCT
 ```
 
 Catalog publication always uses the corresponding unified module under
-`validation/model/...` with the `DATASET VALIDATION_REPORT` arguments. That
-module owns backend fallback, the canonical JSON report, and YAML
-synchronization. A direct Premia command never marks a catalog entry as
-validated on its own.
+`validation/model/...`. All fixed-income and Black-Scholes modules take
+`DATASET REFERENCE_DATASET`: their default path checks the immutable cache,
+while `--generate` explicitly reruns Premia and synchronizes the compact YAML.
+Other equity families keep their legacy interface only until they are migrated
+to the same persistent-reference contract. A direct Premia command never marks
+a catalog entry as validated on its own.
 
 Each registered batch uses one runner process. Datasets following the 90/10
 convention are audited separately on their 900 core and 100 stress rows. The
@@ -73,6 +75,9 @@ The current catalogue includes the following direct Premia comparisons:
 - Vasicek and centered Ornstein-Uhlenbeck: European calls/puts on zero-coupon
   bonds, plus caplets/floorlets through their exact scaled bond-option
   identities;
+- CIR: the bond-option formulas and finite-difference alternatives were
+  inventoried and benchmarked, but the bundled methods are not used for
+  certification for the reasons below;
 - Hull-White and G2++ fitted to Nelson-Siegel or Svensson: the same four
   one-period and bond-option families through Premia HW1D/HW2D formulas.
 
@@ -84,6 +89,30 @@ Merton cash digital; `AP_Carr_Kou`; and
 The same two methods validate one-period floorlets/caplets after the exact
 strike and notional transformation. Premia's `Cap` and `Floor` contracts are
 multi-reset instruments and are deliberately not treated as caplets.
+
+Merton arithmetic Asians use `AP_Asian_FMM_Mer` on its documented 52-date
+grid. Puts are reconstructed from the call using the expectation of that same
+grid; mixing the 52-date call with the CUDA daily-grid expectation is invalid.
+The complete batch uses 1,024 integration points. A row that violates an
+analytic price bound or the declared comparison tolerance is deterministically
+recomputed at 4,096 points, and that refined result always replaces the coarse
+one. This recovers the small deep-OTM put tails without selecting whichever
+answer happens to be closer. The Merton Asian-put core then passes 900/900.
+
+Premia exposes `CF_Cir1d_ZBCallEuro`, `CF_Cir1d_ZBPutEuro`,
+`FD_Explicit_Cir1d_ZBO`, and `FD_Gauss_Cir1d_ZBO`. The bundled closed-form
+source replaces `h = sqrt(k^2 + 2 sigma^2)` by `2*h` only inside the
+non-central-chi-square parameters, and representative rows confirm the
+resulting finite pricing bias. The Gaussian finite-difference engine is
+independent but remains outside the catalogue tolerance on representative core
+rows even after a 1024-by-1024 refinement; the explicit scheme also has a
+restricted boundary regime. These methods therefore remain callable but
+unreliable candidates, not eligible references. The complete closed-form core audit gives
+100/900 passing caplets, 101/900 floorlets, 363/900 zero-coupon calls, and
+321/900 zero-coupon puts. Each persistent CIR reference database records only
+`status: available but not reliable` for Premia, then immediately describes
+the QuantLib specialized formula actually used. The detailed failed audit
+remains here; no divergent Premia price is selected or presented as a fallback.
 
 Premia HW1D/HW2D expects an initial-curve filename instead of curve
 coefficients. The runner writes one process-private temporary curve file per

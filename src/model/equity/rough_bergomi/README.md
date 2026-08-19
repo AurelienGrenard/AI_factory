@@ -32,6 +32,11 @@ Simulation uses the `kappa=1` hybrid scheme of
 the singular current cell is treated exactly and older cells use L2-optimal
 power-kernel weights.
 
+## Formula index
+
+- [Dynamics and hybrid simulation](#dynamics-interface)
+- [European option payoff and Monte Carlo price](#european-option)
+
 ## Files
 
 - [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load flat-`xi_0` model rows.
@@ -120,6 +125,27 @@ Each path owns one `philox::UniformSequence(key, path)` and one normal cache.
 Every step consumes three normals: rough Brownian increment, independent part
 of the singular-cell integral, and independent part of the spot increment.
 The sequence is never restarted.
+
+## European option
+
+For strike $K$, maturity $T$, and $\varepsilon=+1$ for a call or $-1$ for a
+put,
+
+$$
+H=[\varepsilon(S_T-K)]^+,
+\qquad
+V_0=\mathbb E^{\mathbb Q}[e^{-rT}H].
+$$
+
+Both launchers estimate
+
+$$
+\widehat V_0=\frac1M\sum_{m=1}^M e^{-rT}H^{(m)}
+$$
+
+and its Monte Carlo standard error. The direct launcher constructs the rough
+Volterra convolution from path history; the optional cuFFTDx launcher computes
+the same hybrid convolution in frequency space.
 
 ## Pricing kernels
 

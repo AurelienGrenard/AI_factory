@@ -46,6 +46,8 @@ struct BatesMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 // Precompute row- and time-step-dependent QE-M coefficients once per block.
 __device__ __forceinline__ BatesQeParameters prepare_model(
     const BatesModelParameters& parameters,

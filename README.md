@@ -137,6 +137,7 @@ datasets/
 |-- model/fixed_income/hull_white/hull_white_01.json
 |-- model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
 |-- model/fixed_income/vasicek/vasicek_01.json
+|-- model/fixed_income/cir/cir_01.json
 |-- product/equity/european_options/european_options_01.json
 |-- product/equity/american_options/american_options_01.json
 |-- product/fixed_income/rate_options/rate_options_01.json
@@ -181,6 +182,17 @@ It samples `a`, `b`, and `r(0)`, then reconstructs `sigma` from a bounded
 stationary standard deviation. Its dynamics, analytics, pricing launchers,
 and tests deliberately mirror the OU layout; only the deterministic mean
 increments and Vasicek bond levels differ.
+
+`cir_01` uses the positive square-root short-rate process
+
+```text
+dr(t) = kappa (theta - r(t)) dt + sigma sqrt(r(t)) dW(t).
+```
+
+It samples `kappa`, `theta`, and `r(0)` first, then draws `sigma`
+conditionally. The core rows cover Feller ratios from `1/6` to `10`; the
+stress rows widen the range from `1/10` to `16`. The exact non-central
+chi-square transition remains valid on both sides of the Feller threshold.
 
 `hull_white_01` stores only the mean-reversion speed `a` and volatility
 `sigma`. It uses the same stationary-dispersion reconstruction as OU, without
@@ -416,6 +428,7 @@ Parameter datasets are quick to regenerate:
 ./build/generate_hull_white_01
 ./build/generate_ornstein_uhlenbeck_01
 ./build/generate_vasicek_01
+./build/generate_cir_01
 ./build/generate_european_options_01
 ./build/generate_american_options_01
 ./build/generate_gap_call_options_01
@@ -457,6 +470,10 @@ Price datasets follow the same workflow:
 ./build/generate_vasicek_floorlets_01
 ./build/generate_vasicek_zero_coupon_bond_calls_01
 ./build/generate_vasicek_zero_coupon_bond_puts_01
+./build/generate_cir_caplets_01
+./build/generate_cir_floorlets_01
+./build/generate_cir_zero_coupon_bond_calls_01
+./build/generate_cir_zero_coupon_bond_puts_01
 ./build/generate_hull_white_nelson_siegel_caplets_01
 ./build/generate_hull_white_nelson_siegel_floorlets_01
 ./build/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
@@ -474,37 +491,41 @@ ctest --test-dir build --output-on-failure
 ```
 
 `dataset_catalog` validates two- and three-input constructions and mandatory
-catalog fields. CUDA tests cover reusable OU, Vasicek, G2, Hull-White, and G2++
-analytics; caplets, floorlets, and zero-coupon options; the uniform Heston,
+catalog fields. CUDA tests cover reusable OU, Vasicek, CIR, G2, Hull-White, and
+G2++ analytics; caplets, floorlets, and zero-coupon options; deterministic
+Gamma/non-central-chi-square tails; the uniform Heston,
 Bates, VG, NIG, Merton, Kou, CEV, and Schöbel-Zhu dynamics and product
 launchers, including path averages, forward starts, jumps, and barriers; and
 the early-exercise pipelines. They use small in-memory fixtures and skip
 automatically without a CUDA GPU.
 
-When the QuantLib Python binding is installed, CTest also validates every
-analytical fixed-income dataset and the Heston and Bates European datasets against an
-independent implementation. The shared validator reports row errors, combined
-Monte-Carlo uncertainty, directional counts, and systematic bias. Slower
-Asian, forward-start, barrier, and American references are available with:
+Every fixed-income and Black-Scholes price dataset has an immutable 1,000-row
+reference under `validation/datasets/price`. Routine CTest checks these caches,
+their source fingerprints, row provenance, metrics, and compact catalogue YAML
+without importing QuantLib or starting Premia/Wine. Vasicek, centered OU,
+Hull-White, G2++, and 25 Black-Scholes product families use Premia references;
+standalone G2 and CIR use specialized QuantLib references; four Black-Scholes
+structured families use QuantLib Monte Carlo. CIR records that Premia is
+callable but unreliable before selecting QuantLib. Direct backend checks remain
+useful numerical diagnostics when the corresponding dependency is installed.
+The shared validator reports row errors, combined Monte-Carlo uncertainty,
+directional counts, and systematic bias. Premia continuous-monitoring prices
+remain the primary analytical reference for discrete Black-Scholes barriers:
+the JSON records the proven ordering and explains the expected signed bias.
+Slower direct checks for equity models not yet migrated are available with:
 
 ```bash
 cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON
 ```
 
-Every price YAML records the primary independent reference selected in this
-order: specialized Premia pricer, specialized QuantLib pricer, independent
-QuantLib Monte Carlo, or explicitly `none`. Premia eligibility is determined
-by the actual model-product pair and a compatible Premia engine, regardless of
-whether the CUDA implementation uses the same discretization. A
-continuous/discrete difference changes the documented bias explanation or
-mathematical bound; it does not make Premia unavailable. A unified validator
-under `validation/model/<asset_class>/<model>/[<curve>/]<product>.py` persists the
-external core certification and separate internal stress diagnostics in an
-adjacent `validation_report.json`. The public validation status covers the 900
-core rows only; it never claims independent coverage of all 1,000 rows. The
-catalog notebook only loads this report, verifies its canonical
-price-and-configuration fingerprint, and renders the common diagnostics; it
-never reruns a reference pricer. See
+Every price validation follows specialized Premia, specialized QuantLib, then
+QuantLib Monte Carlo. Migrated JSON records all three slots in that order,
+details only methods that actually produced rows, and verifies both the 900-row
+core and 100-row stress regimes. Its YAML deliberately contains only `status`,
+`verified`, and the reference-dataset path. External engines run only during an
+explicit `--generate`; normal validation is cache-only. Equity models other
+than Black-Scholes retain their legacy validation only until they are migrated
+to this same contract. See
 [`validation/premia`](validation/premia/README.md),
 [`validation/quantlib`](validation/quantlib/README.md), and the
 [catalog extension workflow](docs/catalog-extension-and-validation-workflow.md)
@@ -518,9 +539,10 @@ for supported products and direct command-line usage.
    the closest CUDA contract and its public function order.
 3. Add the reproducible `generator.cpp` and generated `dataset.yaml` under the
    matching `catalog/` hierarchy, then register their CMake target and tests.
-4. For a price dataset, add the unified model-product validator, apply Premia,
-   QuantLib specialized, QuantLib Monte Carlo, then `none`, and generate the
-   adjacent `validation_report.json` and compiled `validation.ipynb`.
+4. For a price dataset, add the unified model-product validator and apply
+   Premia, QuantLib specialized, then QuantLib Monte Carlo. Persistent
+   references belong under `validation/datasets/price` and are regenerated
+   explicitly; do not add validation JSON or notebooks beside their YAML.
 5. Run the generator, loader checks, isolated validation, relevant CUDA tests,
    and the complete CTest suite before publication.
 6. Update the separately maintained website project with the new public entry.
