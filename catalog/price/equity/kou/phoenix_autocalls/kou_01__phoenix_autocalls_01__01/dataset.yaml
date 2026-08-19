@@ -5,7 +5,7 @@ url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Kou/PhoenixAutocall/kou_01_
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Phoenix Autocalls"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/phoenix_autocalls/kou_01__phoenix_autocalls_01__01/validation.ipynb"
 time_grid:
   rule: "exact independent increments at product observation times"
   observation_count: "round(maturity / observation_interval)"
@@ -39,5 +41,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.208524304 s"
-  kernel_seconds: "0.014288896 s"
+  wall_seconds: "1.176043929 s"
+  kernel_seconds: "0.720787476 s"

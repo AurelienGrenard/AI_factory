@@ -6,7 +6,10 @@ import unittest
 
 from validation.model.equity.black_scholes.validation import (
     _PATH_BOUNDS,
+    _PREMIA_PRICING_METHODS,
     _PRODUCT_KINDS,
+    _QUANTLIB_MONTE_CARLO_PRICING_METHODS,
+    _QUANTLIB_SPECIALIZED_PRICING_METHODS,
     _TERMINAL_PRODUCTS,
     _engine_plan,
     _spec,
@@ -19,6 +22,8 @@ class BlackScholesValidationCommonTest(unittest.TestCase):
         for product_kind in _PRODUCT_KINDS:
             plan = _engine_plan(_spec(product_kind))
             self.assertEqual(len(plan), 3)
+            for engine in plan:
+                self.assertEqual(bool(engine.pricing_method), engine.available)
             self.assertEqual(
                 tuple(engine.label for engine in plan),
                 (
@@ -52,6 +57,34 @@ class BlackScholesValidationCommonTest(unittest.TestCase):
             },
         )
         self.assertEqual(len(_PRODUCT_KINDS) - len(quantlib_only), 25)
+
+    def test_every_available_backend_names_its_exact_pricing_method(self) -> None:
+        self.assertEqual(
+            set(_PREMIA_PRICING_METHODS),
+            _PRODUCT_KINDS
+            - {
+                "athena_autocall",
+                "cliquet",
+                "phoenix_autocall",
+                "phoenix_memory_autocall",
+            },
+        )
+        self.assertEqual(
+            set(_QUANTLIB_SPECIALIZED_PRICING_METHODS),
+            {
+                product
+                for product in _PRODUCT_KINDS
+                if _engine_plan(_spec(product))[1].available
+            },
+        )
+        self.assertEqual(
+            set(_QUANTLIB_MONTE_CARLO_PRICING_METHODS),
+            {
+                product
+                for product in _PRODUCT_KINDS
+                if _engine_plan(_spec(product))[2].available
+            },
+        )
 
 
 if __name__ == "__main__":

@@ -9,6 +9,16 @@
 #include <cuda_runtime.h>
 
 namespace ai_factory::workbench::model::g2 {
+
+// ======================= Model-specific analytics =========================
+
+// Add both Gaussian factor states to reconstruct the short rate.
+__device__ __forceinline__ float short_rate(const G2State& state) {
+    return state.state_x + state.state_y;
+}
+
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 constexpr float kInverseSqrtTwo = 0.70710678118654752440f;
@@ -18,18 +28,23 @@ __device__ __forceinline__ float normal_cdf(float value) {
     return 0.5f * erfcf(-value * kInverseSqrtTwo);
 }
 
-// Return the conditional log price of one zero-coupon bond.
-__device__ __forceinline__ float log_zero_coupon_bond(
-    const G2ModelParameters& parameters,
-    const G2State& state,
+struct AffineBondCoefficients {
+    float log_A;
+    G2BondLoadings B;
+};
+
+// Compute log(A), B_x, and B_y from one shared integral-moment evaluation.
+__device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
+    const G2ProcessParameters& parameters,
     float delta
 ) {
     const G2IntegralMoments moments = integral_moments(
-        parameters.process, delta
+        parameters, delta
     );
-    return -moments.state_x_loading * state.state_x
-        - moments.state_y_loading * state.state_y
-        + 0.5f * moments.variance;
+    return {
+        0.5f * moments.variance,
+        {moments.state_x_loading, moments.state_y_loading},
+    };
 }
 
 // Return the conditional covariance matrix of both future factor states.
@@ -98,10 +113,10 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     float strike
 ) {
     const float expiry_log_bond = log_zero_coupon_bond(
-        parameters, state, option_expiry - valuation_time
+        parameters, state, valuation_time, option_expiry
     );
     const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, bond_maturity - valuation_time
+        parameters, state, valuation_time, bond_maturity
     );
     const float expiry_bond = expf(expiry_log_bond);
     const float underlying_bond = expf(underlying_log_bond);
@@ -134,23 +149,78 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 }  // namespace
 
-// Add both Gaussian factor states to reconstruct the short rate.
-__device__ __forceinline__ float short_rate(const G2State& state) {
-    return state.state_x + state.state_y;
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the multiplicative affine prefactor.
+__device__ __forceinline__ float log_A(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return affine_bond_coefficients(
+        parameters.process, maturity - valuation_time
+    ).log_A;
+}
+
+// Exponentiate the affine prefactor only for callers requesting A itself.
+__device__ __forceinline__ float A(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return expf(log_A(parameters, valuation_time, maturity));
+}
+
+// Return both factor loadings in one value.
+__device__ __forceinline__ G2BondLoadings B(
+    const G2ModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    const float delta = maturity - valuation_time;
+    return {
+        mean_reverting_gaussian::integral_state_loading(
+            parameters.process.mean_reversion_x, delta
+        ),
+        mean_reverting_gaussian::integral_state_loading(
+            parameters.process.mean_reversion_y, delta
+        ),
+    };
+}
+
+// Evaluate log(A)-B_x*x-B_y*y from one grouped coefficient calculation.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const G2ModelParameters& parameters,
+    const G2State& state,
+    float valuation_time,
+    float maturity
+) {
+    const AffineBondCoefficients coefficients = affine_bond_coefficients(
+        parameters.process, maturity - valuation_time
+    );
+    return fmaf(
+        -coefficients.B.state_x,
+        state.state_x,
+        fmaf(
+            -coefficients.B.state_y,
+            state.state_y,
+            coefficients.log_A
+        )
+    );
 }
 
 // The joint integral is the accumulated standalone G2 short rate.
 __device__ __forceinline__ float log_discount_factor(
-    const joint::G2JointState& joint_state
+    float state_integral
 ) {
-    return -joint_state.state_integral;
+    return -state_integral;
 }
 
 // Exponentiate the accumulated rate integral only when required.
 __device__ __forceinline__ float discount_factor(
-    const joint::G2JointState& joint_state
+    float state_integral
 ) {
-    return expf(log_discount_factor(joint_state));
+    return expf(log_discount_factor(state_integral));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
@@ -161,7 +231,7 @@ __device__ __forceinline__ float zero_coupon_bond(
     float maturity
 ) {
     return expf(log_zero_coupon_bond(
-        parameters, state, maturity - valuation_time
+        parameters, state, valuation_time, maturity
     ));
 }
 

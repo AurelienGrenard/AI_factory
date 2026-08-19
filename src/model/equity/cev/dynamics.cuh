@@ -21,22 +21,19 @@ struct CevState {
 };
 
 struct CevMeanPathResult {
-    CevState terminal_state;
     float arithmetic_mean;
 };
 
 struct CevGeometricMeanPathResult {
-    CevState terminal_state;
     float geometric_mean;
 };
 
 struct CevTwoTimePathResult {
-    CevState first_state;
-    CevState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct CevMaximumPathResult {
-    CevState terminal_state;
     float maximum_spot;
 };
 

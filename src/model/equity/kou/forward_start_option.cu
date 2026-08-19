@@ -57,8 +57,8 @@ __device__ __forceinline__ float evaluate_path(
         row.key,
         path
     );
-    const float reset_spot = expf(simulated.first_state.log_spot);
-    const float terminal_spot = expf(simulated.terminal_state.log_spot);
+    const float reset_spot = simulated.first_spot;
+    const float terminal_spot = simulated.terminal_spot;
     if constexpr (Side == OptionSide::call)
         return row.discount
             * fmaxf(terminal_spot - row.moneyness * reset_spot, 0.0f);

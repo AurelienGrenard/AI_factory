@@ -15,7 +15,7 @@ namespace {
 namespace ou =
     ai_factory::workbench::model::ornstein_uhlenbeck;
 
-constexpr std::size_t kOutputCount = 20U;
+constexpr std::size_t kOutputCount = 24U;
 
 // Evaluate analytical identities and exact transitions on one CUDA thread.
 __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
@@ -120,14 +120,21 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
         );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
-    outputs[16] = ou::log_discount_factor(joint_terminal);
-    outputs[17] = ou::discount_factor(joint_terminal);
+    outputs[16] = ou::log_discount_factor(joint_terminal.state_integral);
+    outputs[17] = ou::discount_factor(joint_terminal.state_integral);
     const ou::OrnsteinUhlenbeckIntegralMoments moments =
         ou::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading
         - ou::integral_state_loading(model.process.mean_reversion, 0.75f);
     outputs[19] = moments.variance
         - ou::integral_variance(model.process, 0.75f);
+    outputs[20] = ou::A(model, valuation_time, bond_maturity);
+    outputs[21] = ou::B(model, valuation_time, bond_maturity);
+    outputs[22] = ou::log_zero_coupon_bond(
+        model, state, valuation_time, bond_maturity
+    );
+    outputs[23] = ou::log_A(model, valuation_time, bond_maturity)
+        - outputs[21] * state;
 }
 
 // Stop immediately with a readable invariant name.
@@ -211,5 +218,10 @@ int main() {
         std::fabs(outputs[18]) < 1.0e-7f
             && std::fabs(outputs[19]) < 1.0e-9f,
         "OU combined integral moments differ from standalone formulas"
+    );
+    require(
+        outputs[20] > 0.0f && outputs[21] > 0.0f
+            && std::fabs(outputs[22] - outputs[23]) < 2.0e-7f,
+        "OU affine A/B decomposition is incorrect"
     );
 }

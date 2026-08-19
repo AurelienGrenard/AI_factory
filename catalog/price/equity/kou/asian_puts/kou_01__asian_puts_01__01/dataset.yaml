@@ -5,7 +5,7 @@ url: "https://datasets.ai-factory.example/v1/price/equity/kou/asian_puts/kou_01_
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Asian Options"
@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "failed"
   verified: false
-  reference: "none"
+  reference: "Premia (specialized pricer)"
+  notebook: "catalog/price/equity/kou/asian_puts/kou_01__asian_puts_01__01/validation.ipynb"
+  core:
+    status: "failed"
+    row_count: 900
+    reference: "Premia (specialized pricer)"
+  stress:
+    status: "failed"
+    row_count: 100
+    reference: "Premia (specialized pricer)"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -40,5 +50,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.353637393 s"
-  kernel_seconds: "0.147639297 s"
+  wall_seconds: "9.030417332 s"
+  kernel_seconds: "8.277039063 s"

@@ -5,7 +5,7 @@ url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Kou/ForwardStartCall/kou_01
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Forward-Start Options"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/forward_start_calls/kou_01__forward_start_calls_01__01/validation.ipynb"
 time_grid:
   rule: "exact independent increments at payoff observation times"
   numerical_substeps: 0
@@ -38,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.228110881 s"
-  kernel_seconds: "0.001353728 s"
+  wall_seconds: "0.419238598 s"
+  kernel_seconds: "0.092358658 s"

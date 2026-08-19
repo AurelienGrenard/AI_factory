@@ -9,6 +9,9 @@
 #include <cuda_runtime.h>
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 constexpr float kInverseSqrtTwo = 0.70710678118654752440f;
@@ -18,16 +21,20 @@ __device__ __forceinline__ float normal_cdf(float value) {
     return 0.5f * erfcf(-value * kInverseSqrtTwo);
 }
 
-// Return the conditional log price of one zero-coupon bond.
-__device__ __forceinline__ float log_zero_coupon_bond(
-    const OrnsteinUhlenbeckModelParameters& parameters,
-    float state,
+struct AffineBondCoefficients {
+    float log_A;
+    float B;
+};
+
+// Compute log(A) and B together from one shared set of integral moments.
+__device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
+    const OrnsteinUhlenbeckProcessParameters& parameters,
     float delta
 ) {
     const OrnsteinUhlenbeckIntegralMoments moments = integral_moments(
-        parameters.process, delta
+        parameters, delta
     );
-    return -moments.state_loading * state + 0.5f * moments.variance;
+    return {0.5f * moments.variance, moments.state_loading};
 }
 
 // Price a call (+1) or put (-1) with one shared Black-style expression.
@@ -48,7 +55,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
         -expiry_moments.state_loading * state
         + 0.5f * expiry_moments.variance;
     const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, bond_maturity - valuation_time
+        parameters, state, valuation_time, bond_maturity
     );
     const float expiry_bond = expf(expiry_log_bond);
     const float underlying_bond = expf(underlying_log_bond);
@@ -89,18 +96,64 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 }  // namespace
 
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the multiplicative affine prefactor.
+__device__ __forceinline__ float log_A(
+    const OrnsteinUhlenbeckModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return affine_bond_coefficients(
+        parameters.process, maturity - valuation_time
+    ).log_A;
+}
+
+// Exponentiate the affine prefactor only for callers requesting A itself.
+__device__ __forceinline__ float A(
+    const OrnsteinUhlenbeckModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return expf(log_A(parameters, valuation_time, maturity));
+}
+
+// Return the current-state loading in the affine bond expression.
+__device__ __forceinline__ float B(
+    const OrnsteinUhlenbeckModelParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return integral_state_loading(
+        parameters.process.mean_reversion, maturity - valuation_time
+    );
+}
+
+// Evaluate log(A)-B*state from one grouped coefficient calculation.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const OrnsteinUhlenbeckModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float maturity
+) {
+    const AffineBondCoefficients coefficients = affine_bond_coefficients(
+        parameters.process, maturity - valuation_time
+    );
+    return fmaf(-coefficients.B, state, coefficients.log_A);
+}
+
 // The OU state is the short rate, so its integral is the log discount.
 __device__ __forceinline__ float log_discount_factor(
-    const joint::OrnsteinUhlenbeckJointState& joint_state
+    float state_integral
 ) {
-    return -joint_state.state_integral;
+    return -state_integral;
 }
 
 // Exponentiate the accumulated short-rate integral only when required.
 __device__ __forceinline__ float discount_factor(
-    const joint::OrnsteinUhlenbeckJointState& joint_state
+    float state_integral
 ) {
-    return expf(log_discount_factor(joint_state));
+    return expf(log_discount_factor(state_integral));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
@@ -110,9 +163,9 @@ __device__ __forceinline__ float zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    return expf(
-        log_zero_coupon_bond(parameters, state, maturity - valuation_time)
-    );
+    return expf(log_zero_coupon_bond(
+        parameters, state, valuation_time, maturity
+    ));
 }
 
 // Apply the closed-form call formula to the conditional bond forward.

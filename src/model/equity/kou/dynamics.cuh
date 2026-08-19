@@ -24,22 +24,19 @@ struct KouState {
 };
 
 struct KouMeanPathResult {
-    KouState terminal_state;
     float arithmetic_mean;
 };
 
 struct KouGeometricMeanPathResult {
-    KouState terminal_state;
     float geometric_mean;
 };
 
 struct KouTwoTimePathResult {
-    KouState first_state;
-    KouState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct KouMaximumPathResult {
-    KouState terminal_state;
     float maximum_spot;
 };
 

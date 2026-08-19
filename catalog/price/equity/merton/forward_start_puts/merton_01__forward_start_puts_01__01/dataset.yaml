@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "not_available"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/merton/forward_start_puts/merton_01__forward_start_puts_01__01/validation.ipynb"
+  core:
+    status: "not_available"
+    row_count: 900
+    reference: "none"
+  stress:
+    status: "not_available"
+    row_count: 100
+    reference: "none"
 time_grid:
   rule: "exact independent increments at payoff observation times"
   numerical_substeps: 0

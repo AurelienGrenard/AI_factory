@@ -65,6 +65,19 @@ class PriceResultRow:
 
 
 @dataclass(frozen=True)
+class PriceRowDiagnostic:
+    """Persist the inputs and decision of one native price comparison."""
+
+    row_id: str
+    generated_price: float
+    reference_price: float
+    generated_standard_error: float
+    reference_standard_error: float
+    allowance: float
+    passed: bool
+
+
+@dataclass(frozen=True)
 class PriceValidationInput:
     """Resolved price rows and local source datasets required by a validator."""
 
@@ -99,6 +112,7 @@ class PriceValidationReport:
     maximum_absolute_error_row_id: str
     maximum_relative_error: float
     maximum_relative_error_row_id: str
+    row_diagnostics: tuple[PriceRowDiagnostic, ...]
 
     @property
     def passed(self) -> bool:
@@ -397,6 +411,12 @@ def summarize_price_comparisons(
         )
     )
     passed_rows = sum(row_passed)
+    allowances = tuple(
+        tolerances.absolute
+        + tolerances.relative * abs(row.quantlib_price)
+        + tolerances.standard_error_multiplier * standard_error
+        for row, standard_error in zip(comparisons, combined_standard_errors)
+    )
     row_count = len(comparisons)
     mean_error = sum(errors) / row_count
     mean_absolute_error = sum(absolute_errors) / row_count
@@ -451,6 +471,20 @@ def summarize_price_comparisons(
         maximum_absolute_error_row_id=comparisons[maximum_absolute_index].row_id,
         maximum_relative_error=relative_errors[maximum_relative_index],
         maximum_relative_error_row_id=comparisons[maximum_relative_index].row_id,
+        row_diagnostics=tuple(
+            PriceRowDiagnostic(
+                row_id=row.row_id,
+                generated_price=row.generated_price,
+                reference_price=row.quantlib_price,
+                generated_standard_error=row.generated_standard_error,
+                reference_standard_error=row.quantlib_standard_error,
+                allowance=allowance,
+                passed=passed,
+            )
+            for row, allowance, passed in zip(
+                comparisons, allowances, row_passed
+            )
+        ),
     )
 
 

@@ -28,22 +28,19 @@ struct SchobelZhuState {
 };
 
 struct SchobelZhuMeanPathResult {
-    SchobelZhuState terminal_state;
     float arithmetic_mean;
 };
 
 struct SchobelZhuGeometricMeanPathResult {
-    SchobelZhuState terminal_state;
     float geometric_mean;
 };
 
 struct SchobelZhuTwoTimePathResult {
-    SchobelZhuState first_state;
-    SchobelZhuState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct SchobelZhuMaximumPathResult {
-    SchobelZhuState terminal_state;
     float maximum_spot;
 };
 

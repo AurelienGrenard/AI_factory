@@ -109,10 +109,16 @@ counter words 2..3  = local_group_index
 `box_muller`, `NormalPairCache`, and `next_normal` produce normals while
 retaining the second Box–Muller value. `poisson_from_uniform` performs inverse
 CDF sampling from a caller-provided uniform and prepared `exp(-mean)`.
+`poisson_from_uniform_sequence` retains that inversion for small means and
+uses Hoermann PTRS transformed rejection for large means, where direct
+inversion would be slow and `exp(-mean)` can underflow.
 `marsaglia_tsang_gamma` and
 `michael_schucany_haas_inverse_gaussian` implement the Gamma and
 inverse-Gaussian samplers used by VG and NIG. Rejection loops consume the same
 path-local sequence; they never create or restart a generator.
+`scaled_noncentral_chi_square` composes the adaptive Poisson and Gamma draws
+through the exact Poisson-Gamma mixture. Its scale is applied by the Gamma
+draw itself, which avoids a separate post-draw multiply in CIR callers.
 
 ### `normal_distribution.cuh`
 

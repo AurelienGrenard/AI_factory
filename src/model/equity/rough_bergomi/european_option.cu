@@ -179,7 +179,6 @@ __global__ void rough_bergomi_european_option_kernel(
         const RoughBergomiHybridGridView grid = {
             far_weights,
             log_variance_corrections,
-            static_cast<std::uint32_t>(prepared.num_steps),
         };
 
         double sum = 0.0;

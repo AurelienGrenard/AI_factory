@@ -55,16 +55,19 @@ __global__ void exercise_dynamics_kernel(DynamicsResults* output) {
     const auto geometric = black_scholes::simulate_geometric_mean_state(
         quarter, key, 31U, 1U
     );
+    const float geometric_terminal = black_scholes::simulate_terminal_state(
+        quarter, key, 31U
+    ).log_spot;
     *output = {
         quarter.drift,
         quarter.standard_deviation,
         transitioned.log_spot,
         terminal_first,
         terminal_replay,
-        two_times.first_state.log_spot,
-        two_times.terminal_state.log_spot,
+        two_times.first_spot,
+        two_times.terminal_spot,
         geometric.geometric_mean,
-        geometric.terminal_state.log_spot,
+        geometric_terminal,
     };
 }
 

@@ -25,27 +25,24 @@ struct NormalInverseGaussianState {
     float log_spot;
 };
 
-// Terminal state and arithmetic mean observed from time zero to maturity.
+// Arithmetic mean observed from time zero to maturity.
 struct NormalInverseGaussianMeanPathResult {
-    NormalInverseGaussianState terminal_state;
     float arithmetic_mean;
 };
 
-// Terminal state and geometric mean observed from time zero to maturity.
+// Geometric mean observed from time zero to maturity.
 struct NormalInverseGaussianGeometricMeanPathResult {
-    NormalInverseGaussianState terminal_state;
     float geometric_mean;
 };
 
-// Path states observed at two requested times without global-memory storage.
+// Spot values observed at two requested times without retaining extra state.
 struct NormalInverseGaussianTwoTimePathResult {
-    NormalInverseGaussianState first_state;
-    NormalInverseGaussianState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
-// Terminal state and maximum spot observed from time zero to maturity.
+// Maximum spot observed from time zero to maturity.
 struct NormalInverseGaussianMaximumPathResult {
-    NormalInverseGaussianState terminal_state;
     float maximum_spot;
 };
 
@@ -102,7 +99,7 @@ simulate_geometric_mean_state(
     std::size_t num_steps
 );
 
-// Simulate two consecutive intervals and return both boundary states.
+// Simulate two consecutive intervals and return the two boundary spots only.
 __device__ __forceinline__ NormalInverseGaussianTwoTimePathResult
 simulate_at_two_times(
     const NormalInverseGaussianPreparedParameters& first_model,

@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "passed"
   verified: true
   reference: "QuantLib (Monte Carlo)"
+  notebook: "catalog/price/equity/heston/cliquets/heston_01__cliquets_01__01/validation.ipynb"
+  core:
+    status: "passed"
+    row_count: 900
+    reference: "QuantLib (Monte Carlo)"
+  stress:
+    status: "passed"
+    row_count: 100
+    reference: "QuantLib (Monte Carlo)"
 time_grid:
   rule: "nearest integer step count per observation interval"
   target_dt: "1 / 252"

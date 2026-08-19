@@ -12,7 +12,7 @@
 
 namespace {
 
-constexpr std::size_t kOutputCount = 19U;
+constexpr std::size_t kOutputCount = 24U;
 
 // Evaluate transition covariance identities and bond-option parity.
 __global__ void g2_test_kernel(float* outputs) {
@@ -98,6 +98,18 @@ __global__ void g2_test_kernel(float* outputs) {
     outputs[17] = small_moments.state_y_loading / small_delta;
     outputs[18] = small_moments.variance
         / (small_delta * small_delta * small_delta);
+    outputs[19] = g2::A(parameters, 0.0f, maturity);
+    const g2::G2BondLoadings bond_loadings = g2::B(
+        parameters, 0.0f, maturity
+    );
+    outputs[20] = bond_loadings.state_x;
+    outputs[21] = bond_loadings.state_y;
+    outputs[22] = g2::log_zero_coupon_bond(
+        parameters, parameters.initial_state, 0.0f, maturity
+    );
+    outputs[23] = g2::log_A(parameters, 0.0f, maturity)
+        - bond_loadings.state_x * parameters.initial_state.state_x
+        - bond_loadings.state_y * parameters.initial_state.state_y;
 }
 
 // Stop immediately with a readable invariant name.
@@ -196,5 +208,10 @@ int main() {
     require(
         std::fabs(outputs[18] - instantaneous_variance / 3.0) < 1.0e-7,
         "G2 small-time integral variance mismatch"
+    );
+    require(
+        outputs[19] > 0.0f && outputs[20] > 0.0f && outputs[21] > 0.0f
+            && std::fabs(outputs[22] - outputs[23]) < 2.0e-7f,
+        "G2 affine A/B decomposition is incorrect"
     );
 }

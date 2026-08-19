@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "passed"
   verified: true
   reference: "QuantLib (specialized pricer)"
+  notebook: "catalog/price/equity/heston/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/validation.ipynb"
+  core:
+    status: "passed"
+    row_count: 900
+    reference: "QuantLib (specialized pricer)"
+  stress:
+    status: "passed"
+    row_count: 100
+    reference: "QuantLib (specialized pricer)"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"

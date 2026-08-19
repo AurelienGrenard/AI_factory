@@ -23,22 +23,19 @@ struct MertonState {
 };
 
 struct MertonMeanPathResult {
-    MertonState terminal_state;
     float arithmetic_mean;
 };
 
 struct MertonGeometricMeanPathResult {
-    MertonState terminal_state;
     float geometric_mean;
 };
 
 struct MertonTwoTimePathResult {
-    MertonState first_state;
-    MertonState terminal_state;
+    float first_spot;
+    float terminal_spot;
 };
 
 struct MertonMaximumPathResult {
-    MertonState terminal_state;
     float maximum_spot;
 };
 

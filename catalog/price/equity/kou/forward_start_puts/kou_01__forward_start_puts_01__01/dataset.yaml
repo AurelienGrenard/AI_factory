@@ -5,7 +5,7 @@ url: "https://datasets.ai-factory.example/v1/price/equity/kou/forward_start_puts
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Forward-Start Options"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/forward_start_puts/kou_01__forward_start_puts_01__01/validation.ipynb"
 time_grid:
   rule: "exact independent increments at payoff observation times"
   numerical_substeps: 0
@@ -38,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.184086117 s"
-  kernel_seconds: "0.001369856 s"
+  wall_seconds: "0.419529978 s"
+  kernel_seconds: "0.092559357 s"

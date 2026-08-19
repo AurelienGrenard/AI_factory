@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "not_available"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/merton/phoenix_autocalls/merton_01__phoenix_autocalls_01__01/validation.ipynb"
+  core:
+    status: "not_available"
+    row_count: 900
+    reference: "none"
+  stress:
+    status: "not_available"
+    row_count: 100
+    reference: "none"
 time_grid:
   rule: "exact independent increments at product observation times"
   observation_count: "round(maturity / observation_interval)"

@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::vasicek {
 
+// ======================== Model-specific dynamics =========================
+
 // E[integral r_s ds | r_t] = state_loading*r_t + mean_increment.
 struct VasicekIntegralMoments {
     float state_loading;
@@ -35,6 +37,8 @@ __device__ __forceinline__ VasicekIntegralMoments integral_moments(
     const VasicekProcessParameters& parameters,
     float delta
 );
+
+// ======================= Common state-only dynamics ========================
 
 // Exact transition: r_next = decay*r + mean_increment + stddev*Z.
 struct VasicekExactTransition {
@@ -76,8 +80,9 @@ __device__ __forceinline__ float simulate_on_regular_grid(
     float* __restrict__ observed_states
 );
 
-// Joint Vasicek-state and time-integral simulation used for path discounting.
 namespace joint {
+
+// ========================= Common joint dynamics ===========================
 
 // Exact affine Gaussian transition for r and its accumulated integral.
 struct VasicekJointExactTransition {

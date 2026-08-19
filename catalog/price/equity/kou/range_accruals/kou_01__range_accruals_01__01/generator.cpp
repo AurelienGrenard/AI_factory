@@ -25,7 +25,7 @@ constexpr ai_factory::workbench::datasets::PriceConstruction construction =
     ai_factory::workbench::datasets::PriceConstruction::Aligned;
 
 // Numerical and CUDA configuration used by the pricing algorithm.
-constexpr std::size_t monte_carlo_paths_per_price = 16'384U;
+constexpr std::size_t monte_carlo_paths_per_price = 1'048'576U;
 constexpr unsigned int threads_per_block = 512U;
 constexpr std::size_t results_per_kernel_launch = 4'096U;
 constexpr std::size_t block_count = 1'000U;

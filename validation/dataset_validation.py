@@ -11,16 +11,19 @@ from validation.comparison import (
     engine_coverage,
     engine_plan,
     hierarchy_price_gap_metrics,
+    hierarchy_row_diagnostics,
     resolved_fallback_diagnostics,
 )
 from validation.hierarchy import ValidationEngine, run_validation_hierarchy
 from validation.quantlib.price_validation import (
     ValidationRegime,
     load_price_validation_input,
+    load_parameter_rows,
     select_validation_regime,
 )
 from validation.reporting import (
     DatasetValidationReport,
+    SpecialRowDiagnostic,
     ValidationDisplayReport,
     display_validation_report,
     has_directional_bias,
@@ -39,6 +42,8 @@ class ValidationPolicy:
     )
     bias_explanation: str | None = None
     enforce_directional_bias: bool = False
+    enforce_statistical_bias: bool = True
+    near_zero_relative_materiality: float | None = None
 
 
 EngineFactory = Callable[[], Sequence[ValidationEngine]]
@@ -64,7 +69,13 @@ def quantlib_row_exception(error: Exception) -> bool:
 def unavailable_engine(reference: str, method: str, reason: str) -> ValidationEngine:
     """Declare one intentionally unavailable hierarchy slot."""
 
-    return ValidationEngine(reference, method, None, reason)
+    return ValidationEngine(
+        reference,
+        method,
+        None,
+        pricing_method=None,
+        unavailable_reason=reason,
+    )
 
 
 def build_validation_section(
@@ -88,16 +99,78 @@ def build_validation_section(
     special_rows, fallbacks = resolved_fallback_diagnostics(
         hierarchy.runs, generated_prices
     )
+    failed_row_ids = set(metrics.failed_row_ids if metrics is not None else ())
+    if policy.near_zero_relative_materiality is not None and failed_row_ids:
+        models = load_parameter_rows(
+            validation_input.model_dataset_path, "models"
+        )
+        source_rows = {row.row_id: row for row in validation_input.rows}
+        accepted_near_zero: list[SpecialRowDiagnostic] = []
+        for diagnostic in hierarchy_row_diagnostics(hierarchy):
+            if diagnostic.row_id not in failed_row_ids:
+                continue
+            source = source_rows[diagnostic.row_id]
+            model = models[source.model_id]
+            scale_value = model.get("spot", 1.0)
+            natural_scale = (
+                abs(float(scale_value))
+                if isinstance(scale_value, (int, float))
+                else 1.0
+            )
+            natural_scale = max(natural_scale, 1.0e-12)
+            materiality = (
+                policy.near_zero_relative_materiality * natural_scale
+            )
+            if max(
+                abs(diagnostic.generated_price),
+                abs(diagnostic.reference_price),
+            ) > materiality:
+                continue
+            failed_row_ids.remove(diagnostic.row_id)
+            accepted_near_zero.append(
+                SpecialRowDiagnostic(
+                    row_id=diagnostic.row_id,
+                    category="near_zero_materiality",
+                    diagnostic=(
+                        f"initial comparison failed: CUDA price = "
+                        f"{diagnostic.generated_price:.12g}, reference price = "
+                        f"{diagnostic.reference_price:.12g}, allowance = "
+                        f"{diagnostic.allowance:.12g}"
+                    ),
+                    resolution=(
+                        "both prices are below the declared near-zero "
+                        "materiality threshold"
+                    ),
+                    acceptance_rule=(
+                        f"max(abs(CUDA), abs(reference)) <= "
+                        f"{policy.near_zero_relative_materiality:g} * natural "
+                        "price scale"
+                    ),
+                    evidence=(
+                        f"natural price scale: {natural_scale:.12g}",
+                        f"materiality threshold: {materiality:.12g}",
+                        f"CUDA standard error: "
+                        f"{diagnostic.generated_standard_error:.12g}",
+                        f"reference standard error: "
+                        f"{diagnostic.reference_standard_error:.12g}",
+                        f"CUDA paths: "
+                        f"{validation_input.monte_carlo_paths_per_price}",
+                    ),
+                )
+            )
+        special_rows = (*special_rows, *accepted_near_zero)
     unvalidated_row_count = len(hierarchy.unresolved_row_ids)
-    failed_row_ids = metrics.failed_row_ids if metrics is not None else ()
-    failed_row_count = len(set(failed_row_ids))
+    failed_row_ids_tuple = tuple(
+        row_id for row_id in row_ids if row_id in failed_row_ids
+    )
+    failed_row_count = len(failed_row_ids_tuple)
     validated_row_count = metrics.row_count if metrics is not None else 0
     directional_bias = (
         has_directional_bias(metrics.higher, metrics.lower, metrics.equal)
         if metrics is not None
         else False
     )
-    native_bias = any(
+    native_bias = policy.enforce_statistical_bias and any(
         bool(getattr(report, "systematic_bias", False))
         for run in hierarchy.runs
         for report in run.reports
@@ -133,6 +206,7 @@ def build_validation_section(
         status=status,
         database_id=validation_input.database_id,
         reference=hierarchy.primary_reference,
+        pricing_method=hierarchy.primary_pricing_method,
         tolerance=policy.tolerance,
         row_count=len(row_ids),
         accepted_row_count=(
@@ -167,6 +241,7 @@ def build_validation_section(
             if validated_row_count == 0
             else None
         ),
+        failed_row_ids=failed_row_ids_tuple,
     )
 
 

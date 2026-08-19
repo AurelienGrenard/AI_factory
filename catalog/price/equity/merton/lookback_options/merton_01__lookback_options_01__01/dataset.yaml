@@ -17,8 +17,18 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "failed"
   verified: false
-  reference: "none"
+  reference: "Premia (specialized pricer)"
+  notebook: "catalog/price/equity/merton/lookback_options/merton_01__lookback_options_01__01/validation.ipynb"
+  core:
+    status: "failed"
+    row_count: 900
+    reference: "Premia (specialized pricer)"
+  stress:
+    status: "failed"
+    row_count: 100
+    reference: "Premia (specialized pricer)"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"

@@ -13,7 +13,7 @@ import yaml
 
 
 DIRECTIONAL_BIAS_THRESHOLD = 0.60
-REPORT_SCHEMA_VERSION = 4
+REPORT_SCHEMA_VERSION = 6
 ValidationStatus = Literal["passed", "failed", "not_available"]
 
 
@@ -24,6 +24,9 @@ class SpecialRowDiagnostic:
     row_id: str
     diagnostic: str
     resolution: str
+    category: str = "backend_fallback"
+    acceptance_rule: str = "independent fallback price is within tolerance"
+    evidence: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -32,6 +35,7 @@ class FallbackDiagnostic:
 
     row_id: str
     reference: str
+    pricing_method: str
     passed: bool
 
 
@@ -49,6 +53,7 @@ class EngineCoverage:
     """Persist how many rows one compatible reference engine attempted."""
 
     reference: str
+    pricing_method: str
     requested_row_count: int
     completed_row_count: int
     failed_row_count: int
@@ -60,10 +65,19 @@ class EnginePlanEntry:
     """Persist one available or unavailable slot in the reference hierarchy."""
 
     reference: str
+    pricing_method: str | None
     available: bool
     unavailable_reason: str | None = None
 
     def __post_init__(self) -> None:
+        if self.available and not self.pricing_method:
+            raise ValueError(
+                "An available engine-plan entry requires its pricing method."
+            )
+        if not self.available and self.pricing_method is not None:
+            raise ValueError(
+                "An unavailable engine-plan entry cannot expose a pricing method."
+            )
         if not self.available and not self.unavailable_reason:
             raise ValueError("An unavailable engine-plan entry requires a reason.")
         if self.available and self.unavailable_reason is not None:
@@ -80,6 +94,7 @@ class ValidationDisplayReport:
     status: ValidationStatus
     database_id: str
     reference: str
+    pricing_method: str | None
     tolerance: str
     row_count: int
     accepted_row_count: int
@@ -99,6 +114,7 @@ class ValidationDisplayReport:
     engine_coverage: tuple[EngineCoverage, ...] = ()
     engine_plan: tuple[EnginePlanEntry, ...] = ()
     no_validation_reason: str | None = None
+    failed_row_ids: tuple[str, ...] = ()
 
     @property
     def passed(self) -> bool:
@@ -143,6 +159,10 @@ class ValidationDisplayReport:
         )
         validated_row_count = self.row_count - self.unvalidated_row_count
         if validated_row_count == 0:
+            if self.pricing_method is not None:
+                raise ValueError(
+                    "Unavailable validation cannot expose a pricing method."
+                )
             if any(gap is not None for gap in gaps):
                 raise ValueError("Unavailable validation cannot expose price gaps.")
             if self.maximum_absolute_price_gap_row_id is not None:
@@ -150,6 +170,10 @@ class ValidationDisplayReport:
             if self.status != "not_available":
                 raise ValueError("Unavailable validation cannot pass.")
         else:
+            if not self.pricing_method:
+                raise ValueError(
+                    "Validated prices require the exact pricing method."
+                )
             if any(gap is None or not math.isfinite(gap) for gap in gaps):
                 raise ValueError("Validation report price gaps must be finite.")
             if (
@@ -163,6 +187,10 @@ class ValidationDisplayReport:
             raise ValueError("A report with unvalidated rows cannot pass.")
         if self.failed_row_count and self.passed:
             raise ValueError("A report with failed rows cannot pass.")
+        if len(self.failed_row_ids) != self.failed_row_count:
+            raise ValueError("The failed-row count must match failed_row_ids.")
+        if len(set(self.failed_row_ids)) != len(self.failed_row_ids):
+            raise ValueError("Failed row ids must be unique.")
         if validated_row_count and self.status == "not_available":
             raise ValueError("A report with validated rows cannot be unavailable.")
 
@@ -218,6 +246,7 @@ def format_validation_report(report: ValidationDisplayReport) -> str:
                 f"{report.title}: NOT AVAILABLE",
                 f"dataset                            : {report.database_id}",
                 "reference                          : none",
+                "pricing method                     : none",
                 f"rows                               : {report.row_count}",
                 f"unvalidated rows                   : {report.unvalidated_row_count}",
                 "validation                         : "
@@ -232,10 +261,11 @@ def format_validation_report(report: ValidationDisplayReport) -> str:
         f"{report.title}: {'PASS' if report.passed else 'FAIL'}",
         f"dataset                            : {report.database_id}",
         f"reference                          : {report.reference}",
+        f"pricing method                     : {report.pricing_method}",
         f"tolerance                          : {report.tolerance}",
         f"rows                               : {report.row_count}",
         f"accepted without special treatment : {report.accepted_row_count}",
-        f"special rows                       : {len(report.special_rows)}",
+        f"accepted after special treatment   : {len(report.special_rows)}",
         f"failed                             : {report.failed_row_count}",
         f"mean signed price gap              : {report.mean_signed_price_gap:.6e}",
         f"mean absolute price gap            : {report.mean_absolute_price_gap:.6e}",
@@ -253,6 +283,18 @@ def format_validation_report(report: ValidationDisplayReport) -> str:
         )
     if report.bias_explanation:
         lines.append(f"bias explanation                   : {report.bias_explanation}")
+    if report.failed_row_ids:
+        visible = report.failed_row_ids[:10]
+        suffix = (
+            ""
+            if len(visible) == len(report.failed_row_ids)
+            else f" ... ({len(report.failed_row_ids)} total)"
+        )
+        lines.append(
+            "failed row ids                     : "
+            + ", ".join(visible)
+            + suffix
+        )
     for special_row in report.special_rows:
         lines.extend(
             (
@@ -260,6 +302,7 @@ def format_validation_report(report: ValidationDisplayReport) -> str:
                 special_row.row_id,
                 f"  diagnostic : {special_row.diagnostic}",
                 f"  resolution : {special_row.resolution}",
+                f"  rule       : {special_row.acceptance_rule}",
             )
         )
     for fallback in report.fallbacks:
@@ -268,6 +311,7 @@ def format_validation_report(report: ValidationDisplayReport) -> str:
                 "",
                 f"{fallback.reference} fallback for {fallback.row_id}: "
                 f"{'PASS' if fallback.passed else 'FAIL'}",
+                f"  pricing method : {fallback.pricing_method}",
             )
         )
     return "\n".join(lines)
@@ -312,9 +356,14 @@ def display_validation_report(report: DatasetValidationReport) -> None:
         f"**{status} — {core_accepted}/{report.core.row_count} core rows and "
         f"{stress_accepted}/{report.stress.row_count} stress rows are accepted.** "
         f"Core reference: {report.core.reference}; "
-        f"stress reference: {report.stress.reference}. "
-        f"Reviewed stress rows: {len(report.stress.special_rows)}."
+        f"stress reference: {report.stress.reference}."
     )
+    special_count = len(report.core.special_rows) + len(report.stress.special_rows)
+    if special_count:
+        conclusion += (
+            f" {special_count} row(s) required special treatment; consult "
+            "validation_report.json for the complete diagnostics and resolution."
+        )
     try:
         from IPython import get_ipython
         from IPython.display import Markdown, display
@@ -324,6 +373,123 @@ def display_validation_report(report: DatasetValidationReport) -> None:
         display(Markdown("## Conclusion\n\n" + conclusion))
     else:
         print("\nConclusion\n" + conclusion.replace("**", ""))
+
+
+def write_validation_notebook(
+    report: DatasetValidationReport,
+    price_dataset_path: str | Path,
+    notebook_path: str | Path,
+    model_label: str,
+    product_label: str,
+) -> Path:
+    """Write the identical compiled presentation notebook for one report.
+
+    The notebook contains no validation logic: its sole code cell reloads the
+    fingerprint-checked JSON report.  The stored output is generated from that
+    same report, so GitHub renders a useful result without executing a pricer.
+    """
+
+    dataset = Path(price_dataset_path).resolve()
+    destination = Path(notebook_path).resolve()
+    project_root = next(
+        parent for parent in (dataset.parent, *dataset.parents)
+        if (parent / "CMakeLists.txt").is_file()
+    )
+    dataset_relative = dataset.relative_to(project_root).as_posix()
+    report_relative = (destination.parent / "validation_report.json").relative_to(
+        project_root
+    ).as_posix()
+    status = "PASS" if report.passed else "NOT VALIDATED" if (
+        report.core.status == report.stress.status == "not_available"
+    ) else "FAIL"
+    core_accepted = (
+        report.core.row_count
+        - report.core.failed_row_count
+        - report.core.unvalidated_row_count
+    )
+    stress_accepted = (
+        report.stress.row_count
+        - report.stress.failed_row_count
+        - report.stress.unvalidated_row_count
+    )
+    conclusion = (
+        f"**{status} — {core_accepted}/{report.core.row_count} core rows and "
+        f"{stress_accepted}/{report.stress.row_count} stress rows are accepted.** "
+        f"Core reference: {report.core.reference}; "
+        f"stress reference: {report.stress.reference}."
+    )
+    special_count = len(report.core.special_rows) + len(report.stress.special_rows)
+    if special_count:
+        conclusion += (
+            f" {special_count} row(s) required special treatment; consult "
+            "validation_report.json for the complete diagnostics and resolution."
+        )
+    code = """from pathlib import Path
+import sys
+
+project_root = next(
+    parent for parent in (Path.cwd(), *Path.cwd().parents)
+    if (parent / \"CMakeLists.txt\").is_file()
+)
+sys.path.insert(0, str(project_root))
+
+from validation.reporting import display_validation_report, load_validation_report
+
+dataset = project_root / \"{dataset}\"
+report_path = project_root / \"{report}\"
+
+report = load_validation_report(report_path, dataset)
+display_validation_report(report)
+""".format(dataset=dataset_relative, report=report_relative)
+    notebook = {
+        "cells": [
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": [
+                    f"# {model_label} / {product_label}\n",
+                    "\n",
+                    f"Persisted independent validation of `{dataset.stem}`. "
+                    "The notebook only reads the report produced by the "
+                    "model/product validator; it never reruns Premia or QuantLib.",
+                ],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "outputs": [
+                    {
+                        "name": "stdout",
+                        "output_type": "stream",
+                        "text": [format_dataset_validation_report(report) + "\n"],
+                    },
+                    {
+                        "data": {"text/markdown": ["## Conclusion\n\n" + conclusion]},
+                        "metadata": {},
+                        "output_type": "display_data",
+                    },
+                ],
+                "source": code.splitlines(keepends=True),
+            },
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "Python 3",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {"name": "python", "version": "3"},
+        },
+        "nbformat": 4,
+        "nbformat_minor": 5,
+    }
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(
+        json.dumps(notebook, indent=1, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return destination
 
 
 def _price_catalog_yaml_path(price_dataset_path: Path) -> Path:
@@ -473,11 +639,13 @@ def _section_to_json(report: ValidationDisplayReport) -> dict[str, Any]:
         "status": report.status,
         "dataset": report.database_id,
         "reference": report.reference,
+        "pricing_method": report.pricing_method,
         "tolerance": report.tolerance,
         "rows": report.row_count,
         "accepted_without_special_treatment": report.accepted_row_count,
         "special_row_count": len(report.special_rows),
         "failed": report.failed_row_count,
+        "failed_row_ids": list(report.failed_row_ids),
         "unvalidated": report.unvalidated_row_count,
         "mean_signed_price_gap": report.mean_signed_price_gap,
         "mean_absolute_price_gap": report.mean_absolute_price_gap,
@@ -495,6 +663,9 @@ def _section_to_json(report: ValidationDisplayReport) -> dict[str, Any]:
                 "row_id": row.row_id,
                 "diagnostic": row.diagnostic,
                 "resolution": row.resolution,
+                "category": row.category,
+                "acceptance_rule": row.acceptance_rule,
+                "evidence": list(row.evidence),
             }
             for row in report.special_rows
         ],
@@ -502,6 +673,7 @@ def _section_to_json(report: ValidationDisplayReport) -> dict[str, Any]:
             {
                 "row_id": fallback.row_id,
                 "reference": fallback.reference,
+                "pricing_method": fallback.pricing_method,
                 "passed": fallback.passed,
             }
             for fallback in report.fallbacks
@@ -509,6 +681,7 @@ def _section_to_json(report: ValidationDisplayReport) -> dict[str, Any]:
         "engine_coverage": [
             {
                 "reference": engine.reference,
+                "pricing_method": engine.pricing_method,
                 "requested_rows": engine.requested_row_count,
                 "completed_rows": engine.completed_row_count,
                 "failed_rows": engine.failed_row_count,
@@ -526,6 +699,7 @@ def _section_to_json(report: ValidationDisplayReport) -> dict[str, Any]:
         "engine_plan": [
             {
                 "reference": engine.reference,
+                "pricing_method": engine.pricing_method,
                 "available": engine.available,
                 "unavailable_reason": engine.unavailable_reason,
             }
@@ -541,6 +715,12 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
             row_id=row["row_id"],
             diagnostic=row["diagnostic"],
             resolution=row["resolution"],
+            category=row.get("category", "backend_fallback"),
+            acceptance_rule=row.get(
+                "acceptance_rule",
+                "independent fallback price is within tolerance",
+            ),
+            evidence=tuple(row.get("evidence", ())),
         )
         for row in document["special_rows"]
     )
@@ -548,6 +728,7 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
         FallbackDiagnostic(
             row_id=fallback["row_id"],
             reference=fallback["reference"],
+            pricing_method=fallback["pricing_method"],
             passed=fallback["passed"],
         )
         for fallback in document["fallbacks"]
@@ -555,6 +736,7 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
     engine_coverage = tuple(
         EngineCoverage(
             reference=engine["reference"],
+            pricing_method=engine["pricing_method"],
             requested_row_count=engine["requested_rows"],
             completed_row_count=engine["completed_rows"],
             failed_row_count=engine["failed_rows"],
@@ -572,6 +754,7 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
     engine_plan = tuple(
         EnginePlanEntry(
             reference=engine["reference"],
+            pricing_method=engine["pricing_method"],
             available=engine["available"],
             unavailable_reason=engine["unavailable_reason"],
         )
@@ -584,6 +767,7 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
         status=document["status"],
         database_id=document["dataset"],
         reference=document["reference"],
+        pricing_method=document["pricing_method"],
         tolerance=document["tolerance"],
         row_count=document["rows"],
         accepted_row_count=document["accepted_without_special_treatment"],
@@ -605,6 +789,7 @@ def _section_from_json(document: Mapping[str, Any]) -> ValidationDisplayReport:
         engine_coverage=engine_coverage,
         engine_plan=engine_plan,
         no_validation_reason=document["no_validation_reason"],
+        failed_row_ids=tuple(document["failed_row_ids"]),
     )
 
 

@@ -132,7 +132,6 @@ __device__ __forceinline__ VarianceGammaMeanPathResult simulate_mean_state(
     }
 
     return {
-        state,
         static_cast<float>(
             spot_sum / (static_cast<double>(num_steps) + 1.0)
         ),
@@ -163,7 +162,6 @@ simulate_geometric_mean_state(
 
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {
-        state,
         expf(static_cast<float>(log_spot_sum / observation_count)),
     };
 }
@@ -183,10 +181,10 @@ simulate_at_two_times(
     philox::NormalPairCache normal_cache;
 
     simulate_one_step(first_model, uniforms, normal_cache, state);
-    const VarianceGammaState first_state = state;
+    const float first_spot = expf(state.log_spot);
 
     simulate_one_step(second_model, uniforms, normal_cache, state);
-    return {first_state, state};
+    return {first_spot, expf(state.log_spot)};
 }
 
 // Track the maximum spot at time zero and after every simulated transition.
@@ -211,7 +209,7 @@ simulate_maximum_state(
         maximum_spot = fmaxf(maximum_spot, expf(state.log_spot));
     }
 
-    return {state, maximum_spot};
+    return {maximum_spot};
 }
 
 // Write pre-maturity spots in a date-major grid and return terminal state.

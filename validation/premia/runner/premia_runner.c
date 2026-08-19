@@ -14,6 +14,7 @@
 #define INPUT_LINE_CAPACITY 4096
 #define MAX_NUMERIC_FIELDS 20
 #define PREMIA_MC_ITERATIONS 65536L
+#define PREMIA_PATH_MC_ITERATIONS 4096L
 
 typedef enum ModelKind {
     MODEL_BLACK_SCHOLES,
@@ -41,6 +42,8 @@ typedef enum ContractKind {
     CONTRACT_DOUBLE_BARRIER,
     CONTRACT_FIXED_LOOKBACK_CALL,
     CONTRACT_FIXED_ASIAN,
+    CONTRACT_AMERICAN_CALL,
+    CONTRACT_AMERICAN_PUT,
     CONTRACT_ZERO_COUPON_CALL,
     CONTRACT_ZERO_COUPON_PUT,
     CONTRACT_CAP,
@@ -109,25 +112,97 @@ static const ModeSpec MODE_SPECS[] = {
     {"heston_european_put", MODEL_HESTON, CONTRACT_EUROPEAN_PUT,
      "equity_stochastic_volatility", "Heston1dim", "PutEuro",
      "CF_Put_Heston", 10},
+    {"heston_up_and_out_call", MODEL_HESTON, CONTRACT_SINGLE_BARRIER,
+     "equity_stochastic_volatility", "Heston1dim", "CallUpOutEuro",
+     "AP_FastWHBar_HES", 11},
+    {"heston_down_and_out_put", MODEL_HESTON, CONTRACT_SINGLE_BARRIER,
+     "equity_stochastic_volatility", "Heston1dim", "PutDownOutEuro",
+     "AP_FastWHBar_HES", 11},
+    {"heston_asian_call", MODEL_HESTON, CONTRACT_FIXED_ASIAN,
+     "equity_stochastic_volatility", "Heston1dim", "AsianCallFixedEuro",
+     "AP_FJM_ASIAN_HESTON", 10},
+    {"heston_american_call", MODEL_HESTON, CONTRACT_AMERICAN_CALL,
+     "equity_stochastic_volatility", "Heston1dim", "CallAmer",
+     "AP_FastWHAmer_HES", 10},
+    {"heston_american_put", MODEL_HESTON, CONTRACT_AMERICAN_PUT,
+     "equity_stochastic_volatility", "Heston1dim", "PutAmer",
+     "AP_FastWHAmer_HES", 10},
     {"bates_european_call", MODEL_BATES, CONTRACT_EUROPEAN_CALL,
      "equity_stochastic_volatility", "MertonHeston1dim", "CallEuro",
      "CF_Call_MerHes", 13},
     {"bates_european_put", MODEL_BATES, CONTRACT_EUROPEAN_PUT,
      "equity_stochastic_volatility", "MertonHeston1dim", "PutEuro",
      "CF_Put_MerHes", 13},
+    {"bates_up_and_out_call", MODEL_BATES, CONTRACT_SINGLE_BARRIER,
+     "equity_stochastic_volatility", "MertonHeston1dim", "CallUpOutEuro",
+     "MC_Alfonsi_Bates_Out", 14},
+    {"bates_down_and_out_put", MODEL_BATES, CONTRACT_SINGLE_BARRIER,
+     "equity_stochastic_volatility", "MertonHeston1dim", "PutDownOutEuro",
+     "MC_Alfonsi_Bates_Out", 14},
+    {"bates_asian_call", MODEL_BATES, CONTRACT_FIXED_ASIAN,
+     "equity_stochastic_volatility", "MertonHeston1dim",
+     "AsianCallFixedEuro", "MC_Alfonsi_Asian_Bates", 13},
+    {"bates_asian_put", MODEL_BATES, CONTRACT_FIXED_ASIAN,
+     "equity_stochastic_volatility", "MertonHeston1dim",
+     "AsianPutFixedEuro", "MC_Alfonsi_Asian_Bates", 13},
+    {"bates_american_call", MODEL_BATES, CONTRACT_AMERICAN_CALL,
+     "equity_stochastic_volatility", "MertonHeston1dim", "CallAmer",
+     "MC_AM_Alfonsi_LongstaffSchwartz_Bates", 13},
+    {"bates_american_put", MODEL_BATES, CONTRACT_AMERICAN_PUT,
+     "equity_stochastic_volatility", "MertonHeston1dim", "PutAmer",
+     "MC_AM_Alfonsi_LongstaffSchwartz_Bates", 13},
     {"merton_european_call", MODEL_MERTON, CONTRACT_EUROPEAN_CALL,
      "equity_with_jumps", "Merton1dim", "CallEuro", "CF_Call_Merton", 9},
     {"merton_european_put", MODEL_MERTON, CONTRACT_EUROPEAN_PUT,
      "equity_with_jumps", "Merton1dim", "PutEuro", "CF_Put_Merton", 9},
     {"merton_digital_call", MODEL_MERTON, CONTRACT_DIGITAL_CALL,
      "equity_with_jumps", "Merton1dim", "DigitEuro", "MC_Merton", 9},
+    {"merton_up_and_out_call", MODEL_MERTON, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Merton1dim", "CallUpOutEuro",
+     "FD_ImpExpUpOut", 10},
+    {"merton_down_and_out_put", MODEL_MERTON, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Merton1dim", "PutDownOutEuro",
+     "FD_ImpExpDownOut", 10},
+    {"merton_asian_call", MODEL_MERTON, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Merton1dim", "AsianCallFixedEuro",
+     "AP_Asian_FMM_Mer", 9},
+    {"merton_asian_put", MODEL_MERTON, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Merton1dim", "AsianPutFixedEuro",
+     "AP_Asian_FMM_Mer", 9},
+    {"merton_lookback_option", MODEL_MERTON, CONTRACT_FIXED_LOOKBACK_CALL,
+     "equity_with_jumps", "Merton1dim", "LookBackCallFixedEuro",
+     "MC_Merton_FixedLookback", 9},
     {"kou_european_call", MODEL_KOU, CONTRACT_EUROPEAN_CALL,
      "equity_with_jumps", "Kou1dim", "CallEuro", "AP_Carr_Kou", 10},
     {"kou_european_put", MODEL_KOU, CONTRACT_EUROPEAN_PUT,
      "equity_with_jumps", "Kou1dim", "PutEuro", "AP_Carr_Kou", 10},
     {"kou_digital_call", MODEL_KOU, CONTRACT_DIGITAL_CALL,
      "equity_with_jumps", "Kou1dim", "DigitEuro",
-     "MC_Kou_Digital_LRM", 10},
+     "AP_Kou_Eu", 10},
+    {"kou_up_and_out_call", MODEL_KOU, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Kou1dim", "CallUpOutEuro",
+     "AP_Kou_Barrier_Out", 11},
+    {"kou_up_and_in_call", MODEL_KOU, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Kou1dim", "CallUpInEuro",
+     "AP_Kou_Barrier_In", 11},
+    {"kou_down_and_out_put", MODEL_KOU, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Kou1dim", "PutDownOutEuro",
+     "AP_Kou_Barrier_Out", 11},
+    {"kou_down_and_in_put", MODEL_KOU, CONTRACT_SINGLE_BARRIER,
+     "equity_with_jumps", "Kou1dim", "PutDownInEuro",
+     "AP_Kou_Barrier_In", 11},
+    {"kou_asian_call", MODEL_KOU, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Kou1dim", "AsianCallFixedEuro",
+     "AP_Asian_FMM_KOU", 11},
+    {"kou_asian_put", MODEL_KOU, CONTRACT_FIXED_ASIAN,
+     "equity_with_jumps", "Kou1dim", "AsianPutFixedEuro",
+     "AP_Asian_FMM_KOU", 11},
+    {"kou_lookback_option", MODEL_KOU, CONTRACT_FIXED_LOOKBACK_CALL,
+     "equity_with_jumps", "Kou1dim", "LookBackCallFixedEuro",
+     "AP_Kou_LookbackFixed", 10},
+    {"kou_up_in_call_rebate", MODEL_KOU,
+     CONTRACT_SINGLE_BARRIER_REBATE, "equity_with_jumps", "Kou1dim",
+     "CallUpInEuro", "AP_Kou_Barrier_In", 12},
     {"variance_gamma_european_call", MODEL_VARIANCE_GAMMA,
      CONTRACT_EUROPEAN_CALL, "equity_with_jumps", "VarianceGamma1dim",
      "CallEuro", "AP_Carr_VG", 8},
@@ -243,13 +318,27 @@ static const ModeSpec *find_mode(const char *mode) {
 }
 
 static void configure_method(PricingContext *context) {
+    const int path_monte_carlo =
+        strstr(context->method->Name, "Lookback") != NULL
+        || strstr(context->method->Name, "FixedAsian_IS") != NULL
+        || strstr(context->method->Name, "Kou_Out") != NULL
+        || strstr(context->method->Name, "Kou_In") != NULL
+        || strstr(context->method->Name, "WHBar_Kou") != NULL
+        || strstr(context->method->Name, "Asian_Bates") != NULL
+        || strstr(context->method->Name, "Bates_Out") != NULL
+        || strstr(context->method->Name, "LongstaffSchwartz_Bates") != NULL;
     for (int index = 0; index < MAX_PAR; ++index) {
         VAR *parameter = &context->method->Par[index];
         if (parameter->Vtype == PREMIA_NULLTYPE) break;
         const char *name = parameter->Vname == NULL ? "" : parameter->Vname;
         if (strstr(name, "iterations") != NULL
-            || strstr(name, "Iterations") != NULL) {
-            set_scalar(parameter, (double)PREMIA_MC_ITERATIONS,
+            || strstr(name, "Iterations") != NULL
+            || strstr(name, "Simulations") != NULL
+            || strstr(name, "Samples") != NULL) {
+            set_scalar(parameter,
+                       (double)(path_monte_carlo
+                           ? PREMIA_PATH_MC_ITERATIONS
+                           : PREMIA_MC_ITERATIONS),
                        context->method);
         } else if (strstr(name, "discretization steps") != NULL
                    || strstr(name, "time steps") != NULL
@@ -258,6 +347,12 @@ static void configure_method(PricingContext *context) {
             set_scalar(parameter, 256.0, context->method);
         } else if (strstr(name, "Confidence Value") != NULL) {
             set_scalar(parameter, 0.95, context->method);
+        } else if (strstr(name, "Exercise Dates") != NULL) {
+            set_scalar(parameter, 64.0, context->method);
+        } else if (strstr(name, "Monitoring Dates") != NULL) {
+            set_scalar(parameter, 52.0, context->method);
+        } else if (strstr(name, "Integration Points") != NULL) {
+            set_scalar(parameter, 1024.0, context->method);
         }
     }
     context->error_result_index = -1;
@@ -265,6 +360,23 @@ static void configure_method(PricingContext *context) {
         context->error_result_index = 2;
     else if (strcmp(context->method->Name, "MC_Kou_Digital_LRM") == 0)
         context->error_result_index = 1;
+    else if (strcmp(context->method->Name, "MC_Merton_FixedLookback") == 0
+             || strcmp(context->method->Name, "MC_Kou_LookbackFixed") == 0
+             || strcmp(context->method->Name, "MC_Alfonsi_Asian_Bates") == 0
+             || strcmp(context->method->Name, "MC_Alfonsi_Bates_Out") == 0)
+        context->error_result_index = 2;
+    else if (strcmp(
+                 context->method->Name,
+                 "MC_AM_Alfonsi_LongstaffSchwartz_Bates"
+             ) == 0)
+        context->error_result_index = 1;
+    else if (strcmp(context->method->Name, "MC_FixedAsian_IS_Lelong") == 0
+             || strcmp(context->method->Name, "MC_WHBar_Kou") == 0)
+        context->error_result_index = 1;
+    else if (strcmp(context->method->Name, "MC_Kou") == 0
+             || strcmp(context->method->Name, "MC_Kou_Out_LRM") == 0
+             || strcmp(context->method->Name, "MC_Kou_In_LRM") == 0)
+        context->error_result_index = 2;
     else if (strcmp(context->method->Name, "MC_FixedAsian_ExactMethod") == 0
              || strcmp(context->method->Name, "MC_FixedAsian_KemnaVorst") == 0)
         context->error_result_index = 2;
@@ -601,6 +713,8 @@ static int prepare_contract(PricingContext *context, const double *x) {
     switch (context->spec->contract_kind) {
         case CONTRACT_EUROPEAN_CALL:
         case CONTRACT_EUROPEAN_PUT:
+        case CONTRACT_AMERICAN_CALL:
+        case CONTRACT_AMERICAN_PUT:
             if (context->payoff == NULL) return 13;
             set_scalar(&context->payoff->Par[0], x[count - 2],
                        context->payoff);
@@ -686,7 +800,9 @@ static int prepare_contract(PricingContext *context, const double *x) {
             }
         case CONTRACT_FIXED_ASIAN:
             {
-            const int offset = count - 2;
+            const int has_explicit_monitoring_count =
+                context->spec->model_kind == MODEL_KOU;
+            const int offset = count - (has_explicit_monitoring_count ? 3 : 2);
             NumFunc_2 *payoff = context->option_variables[1].Val.V_NUMFUNC_2;
             NumFunc_2 *path = context->option_variables[2].Val.V_NUMFUNC_2;
             if (payoff == NULL || path == NULL) return 13;
@@ -700,6 +816,18 @@ static int prepare_contract(PricingContext *context, const double *x) {
             set_scalar(&path->Par[4], x[0], path);
             set_scalar(&context->option_variables[6], 1.0,
                        context->option->TypeOpt);
+            if (has_explicit_monitoring_count) {
+                for (int index = 0; index < MAX_PAR; ++index) {
+                    VAR *parameter = &context->method->Par[index];
+                    if (parameter->Vtype == PREMIA_NULLTYPE) break;
+                    const char *name = parameter->Vname == NULL
+                        ? "" : parameter->Vname;
+                    if (strstr(name, "Monitoring Dates") != NULL) {
+                        set_scalar(parameter, x[count - 1], context->method);
+                        break;
+                    }
+                }
+            }
             break;
             }
         case CONTRACT_ZERO_COUPON_CALL:

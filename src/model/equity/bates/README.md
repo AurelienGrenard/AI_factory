@@ -73,10 +73,10 @@ Brownian motions are mutually independent. The drift subtracts
 | `initial_state` | Build the time-zero register state |
 | `one_step_transition` | Apply one transition from caller-supplied variates |
 | `simulate_terminal_state` | Return only the maturity state |
-| `simulate_mean_state` | Return maturity state and arithmetic mean |
-| `simulate_geometric_mean_state` | Return maturity state and geometric mean |
-| `simulate_at_two_times` | Return two requested boundary states |
-| `simulate_maximum_state` | Return maturity state and monitored maximum |
+| `simulate_mean_state` | Return only the arithmetic mean |
+| `simulate_geometric_mean_state` | Return only the geometric mean |
+| `simulate_at_two_times` | Return only two requested boundary spots |
+| `simulate_maximum_state` | Return only the monitored maximum |
 | `simulate_on_regular_grid` | Store only requested dated state fields |
 
 For a payoff that observes only an interval boundary, the code simulates all

@@ -11,6 +11,8 @@
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
+// ======================== Model-specific dynamics =========================
+
 // For I = integral_t^{t+d} X_s ds: E[I|X_t] = state_loading * X_t,
 // while variance is Var[I|X_t].
 struct OrnsteinUhlenbeckIntegralMoments {
@@ -35,6 +37,8 @@ __device__ __forceinline__ OrnsteinUhlenbeckIntegralMoments integral_moments(
     const OrnsteinUhlenbeckProcessParameters& parameters,
     float delta
 );
+
+// ======================= Common state-only dynamics ========================
 
 // Exact transition: X_next = decay * X + state_standard_deviation * Z.
 struct OrnsteinUhlenbeckExactTransition {
@@ -75,8 +79,9 @@ __device__ __forceinline__ float simulate_on_regular_grid(
     float* __restrict__ observed_states
 );
 
-// Joint OU-state and time-integral simulation used for path discounting.
 namespace joint {
+
+// ========================= Common joint dynamics ===========================
 
 // X_next = decay*X + state_standard_deviation*Z1; I_next = I + integral_state_loading*X
 // + integral_state_normal_loading*Z1 + integral_independent_standard_deviation*Z2.

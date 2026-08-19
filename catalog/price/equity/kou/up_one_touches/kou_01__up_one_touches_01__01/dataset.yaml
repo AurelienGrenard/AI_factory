@@ -5,7 +5,7 @@ url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Kou/UpOneTouch/kou_01__up_o
 row_count: 1000
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Kou double-exponential jump diffusion"
   numerical_method: "Exact Kou increments"
   payoff: "Up One-Touches"
@@ -17,8 +17,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
+  status: "pending"
   verified: false
   reference: "none"
+  notebook: "catalog/price/equity/kou/up_one_touches/kou_01__up_one_touches_01__01/validation.ipynb"
 time_grid:
   rule: "nearest integer step count to target dt"
   target_dt: "1 / 252"
@@ -40,5 +42,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.346659142 s"
-  kernel_seconds: "0.137838531 s"
+  wall_seconds: "10.365118318 s"
+  kernel_seconds: "9.517179688 s"

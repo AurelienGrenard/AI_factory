@@ -63,7 +63,6 @@ __global__ void exercise_rough_bergomi_dynamics_kernel(
     const RoughBergomiHybridGridView grid = {
         far_weights,
         log_variance_corrections,
-        kStepCount,
     };
     const RoughBergomiHistoryView history = {history_storage, 1U};
 
@@ -128,7 +127,7 @@ __global__ void exercise_rough_bergomi_dynamics_kernel(
         explicit_second_brownian_increment,
         terminal_first.log_spot,
         terminal_replay.log_spot,
-        two_time.terminal_state.log_spot,
+        logf(two_time.terminal_spot),
         mean.arithmetic_mean,
         geometric.geometric_mean,
         maximum.maximum_spot,

@@ -8,6 +8,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
+# cuFFTDx is optional because mathDx is distributed separately from the CUDA
+# toolkit. The fused rough-Bergomi pricer is enabled explicitly with the root
+# of an extracted mathDx package.
+set(
+    AI_FACTORY_MATHDX_ROOT "" CACHE PATH
+    "Root of NVIDIA mathDx (enables the cuFFTDx rough-Bergomi pricer)"
+)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -59,6 +67,7 @@ add_library(cuda_workbench STATIC
     src/common/longstaff_schwartz/workspace.cu
     src/curve/nelson_siegel/dataset.cpp
     src/curve/svensson/dataset.cpp
+    src/model/fixed_income/cir/dataset.cpp
     src/model/fixed_income/g2/dataset.cpp
     src/model/fixed_income/g2/rate_option.cu
     src/model/fixed_income/g2/zero_coupon_bond_option.cu
@@ -244,6 +253,29 @@ endforeach()
 target_include_directories(cuda_workbench PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+if(AI_FACTORY_MATHDX_ROOT)
+    if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
+        message(FATAL_ERROR
+            "AI_FACTORY_MATHDX_ROOT does not contain include/cufftdx.hpp"
+        )
+    endif()
+    if(NOT CUDA_WORKBENCH_ARCHITECTURES STREQUAL "89")
+        message(FATAL_ERROR
+            "The tuned cuFFTDx rough-Bergomi pricer currently targets SM 8.9; "
+            "configure CUDA_WORKBENCH_ARCHITECTURES=89"
+        )
+    endif()
+    target_sources(cuda_workbench PRIVATE
+        src/model/equity/rough_bergomi/european_option_fft.cu
+    )
+    target_include_directories(cuda_workbench PRIVATE
+        ${AI_FACTORY_MATHDX_ROOT}/include
+        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+    )
+    target_compile_definitions(cuda_workbench PUBLIC
+        AI_FACTORY_HAS_CUFFTDX=1
+    )
+endif()
 target_link_libraries(
     cuda_workbench PUBLIC nlohmann_json::nlohmann_json ai_factory_dataset_tools
 )
@@ -1532,6 +1564,9 @@ if(BUILD_TESTING)
         philox_cuda tests/philox_cuda_test.cu philox 30
     )
     add_cuda_workbench_test(
+        cir_cuda tests/cir_cuda_test.cu cir 30
+    )
+    add_cuda_workbench_test(
         hull_white_cuda tests/hull_white_cuda_test.cu hull_white 30
     )
     add_cuda_workbench_test(
@@ -1666,6 +1701,14 @@ if(BUILD_TESTING)
         rough_bergomi_products
         60
     )
+    if(AI_FACTORY_MATHDX_ROOT)
+        add_cuda_workbench_test(
+            rough_bergomi_european_option_fft_cuda
+            tests/rough_bergomi_european_option_fft_cuda_test.cpp
+            rough_bergomi_products
+            120
+        )
+    endif()
     add_cuda_workbench_test(
         black_scholes_cuda
         tests/black_scholes_cuda_test.cu

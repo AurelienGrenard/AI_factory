@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
+import fcntl
 import math
 import os
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Protocol, Sequence
+from typing import Iterator, Protocol, Sequence
 
 from validation.premia.build_runner import build_runner, project_root
 
@@ -248,6 +250,26 @@ def _ensure_wine_prefix(repository: Path, environment: dict[str, str]) -> None:
     )
 
 
+@contextmanager
+def _serialized_wine_execution(repository: Path) -> Iterator[None]:
+    """Prevent concurrent Premia runners from retaining each other's pipes.
+
+    Premia itself is process-local, but concurrent programs in one persistent
+    Wine prefix can inherit shared server handles.  On completion this may
+    leave a runner as a zombie while ``subprocess.run`` still waits for EOF.
+    QuantLib validations remain parallel; only the Wine bridge is serialized.
+    """
+
+    lock_path = repository / "build" / "premia-wine.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
 def price_rows(
     rows: Sequence[_ProtocolRow], mode: str, method: str | None = None
 ) -> dict[str, PremiaResult]:
@@ -276,25 +298,26 @@ def price_rows_partial(
 
     repository = project_root()
     package = repository / "validation" / "premia" / "premia-19-win64"
-    runner = build_runner(repository)
     wine = shutil.which("wine")
     if wine is None:
         raise RuntimeError("Wine is required; install the wine and wine64 packages.")
     environment = _wine_environment(repository)
-    _ensure_wine_prefix(repository, environment)
     input_text = "\n".join(row.protocol_line() for row in rows) + "\n"
-    command = [wine, str(runner), _windows_path(package), mode]
-    if method is not None:
-        command.append(method)
-    completed = subprocess.run(
-        command,
-        cwd=package / "bin",
-        env=environment,
-        input=input_text,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    with _serialized_wine_execution(repository):
+        runner = build_runner(repository)
+        _ensure_wine_prefix(repository, environment)
+        command = [wine, str(runner), _windows_path(package), mode]
+        if method is not None:
+            command.append(method)
+        completed = subprocess.run(
+            command,
+            cwd=package / "bin",
+            env=environment,
+            input=input_text,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
     if completed.returncode != 0:
         diagnostic = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(

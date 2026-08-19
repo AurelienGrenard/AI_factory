@@ -8,6 +8,9 @@
 #include <cuda_runtime.h>
 
 namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+
+// ======================= Model-specific analytics =========================
+
 // Compose the curve-independent OU parameters with the fitted initial curve.
 __device__ __forceinline__ HullWhiteFittedParameters compose_model(
     const HullWhiteModelParameters& parameters,
@@ -89,28 +92,36 @@ __device__ __forceinline__ float normal_cdf(float value) {
     return 0.5f * erfcf(-value * kInverseSqrtTwo);
 }
 
-// Return the conditional log price of one fitted zero-coupon bond.
-__device__ __forceinline__ float log_zero_coupon_bond(
+struct AffineBondCoefficients {
+    float log_A;
+    float B;
+};
+
+// Compute fitted log(A) and B from one shared OU-moment evaluation.
+__device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     const HullWhiteFittedParameters& parameters,
-    float state,
     float valuation_time,
     float maturity
 ) {
-    // The fitted curve gives P(0,T) directly and avoids cancelling OU terms.
-    if (valuation_time == 0.0f && state == 0.0f) {
-        return curve::nelson_siegel::log_discount_factor(
-            parameters.initial_curve, maturity
-        );
-    }
-
     const float delta = maturity - valuation_time;
     const model::ornstein_uhlenbeck::OrnsteinUhlenbeckIntegralMoments moments =
         model::ornstein_uhlenbeck::integral_moments(
             parameters.process, delta
         );
-    return -moments.state_loading * state
-        - shift_integral(parameters, valuation_time, maturity)
-        + 0.5f * moments.variance;
+    // At t=0, use the fitted curve directly and avoid cancelling shift terms.
+    if (valuation_time == 0.0f) {
+        return {
+            curve::nelson_siegel::log_discount_factor(
+                parameters.initial_curve, maturity
+            ),
+            moments.state_loading,
+        };
+    }
+    return {
+        -shift_integral(parameters, valuation_time, maturity)
+            + 0.5f * moments.variance,
+        moments.state_loading,
+    };
 }
 
 // Price a call (+1) or put (-1) with one shared Black-style expression.
@@ -168,27 +179,69 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 }  // namespace
 
-// From here, public analytics follow the standalone OU order and names.
+// ===================== Common fixed-income analytics ======================
+
+// Return the logarithm of the fitted affine prefactor.
+__device__ __forceinline__ float log_A(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return affine_bond_coefficients(
+        parameters, valuation_time, maturity
+    ).log_A;
+}
+
+// Exponentiate the affine prefactor only for callers requesting A itself.
+__device__ __forceinline__ float A(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return expf(log_A(parameters, valuation_time, maturity));
+}
+
+// Return the OU-factor loading in the fitted affine expression.
+__device__ __forceinline__ float B(
+    const HullWhiteFittedParameters& parameters,
+    float valuation_time,
+    float maturity
+) {
+    return model::ornstein_uhlenbeck::integral_state_loading(
+        parameters.process.mean_reversion, maturity - valuation_time
+    );
+}
+
+// Evaluate log(A)-B*x from one grouped coefficient calculation.
+__device__ __forceinline__ float log_zero_coupon_bond(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float maturity
+) {
+    const AffineBondCoefficients coefficients = affine_bond_coefficients(
+        parameters, valuation_time, maturity
+    );
+    return fmaf(-coefficients.B, state, coefficients.log_A);
+}
 
 // Combine the stochastic integral with the analytical curve shift.
 __device__ __forceinline__ float log_discount_factor(
     const HullWhiteFittedParameters& parameters,
-    const model::ornstein_uhlenbeck::joint::OrnsteinUhlenbeckJointState&
-        joint_state,
+    float state_integral,
     float time
 ) {
-    return -joint_state.state_integral
+    return -state_integral
         - shift_integral(parameters, 0.0f, time);
 }
 
 // Exponentiate the exact path log-discount only when a payoff needs it.
 __device__ __forceinline__ float discount_factor(
     const HullWhiteFittedParameters& parameters,
-    const model::ornstein_uhlenbeck::joint::OrnsteinUhlenbeckJointState&
-        joint_state,
+    float state_integral,
     float time
 ) {
-    return expf(log_discount_factor(parameters, joint_state, time));
+    return expf(log_discount_factor(parameters, state_integral, time));
 }
 
 // Price one zero-coupon from the conditional Gaussian state integral.

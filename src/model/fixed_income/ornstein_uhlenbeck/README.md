@@ -102,6 +102,19 @@ Regular-grid helpers create one `philox::UniformSequence(key, path)` and one
 normal cache for the complete path. The joint law consumes two normals per
 interval; the state-only law consumes one.
 
+## Affine bond formula
+
+For $\tau=T-t$,
+
+$$
+P(t,T)=A(t,T)e^{-B(t,T)X_t},\qquad
+B(t,T)=\frac{1-e^{-a\tau}}{a},
+$$
+
+and $\log A(t,T)=\tfrac12\operatorname{Var}_t[\int_t^T X_sds]$.
+`log_A`, `A`, and `B` expose these coefficients; bond evaluation computes
+`log_A` and `B` together before applying the state.
+
 ## Pricing kernels
 
 The current rate and zero-coupon-bond options are closed form. Their common
@@ -115,8 +128,12 @@ standard-error buffer is allocated.
 The declarations below omit CUDA attributes for readability.
 
 ```cpp
-float log_discount_factor(const joint::OrnsteinUhlenbeckJointState&);
-float discount_factor(const joint::OrnsteinUhlenbeckJointState&);
+float log_A(const OrnsteinUhlenbeckModelParameters&, float valuation_time, float maturity);
+float A(const OrnsteinUhlenbeckModelParameters&, float valuation_time, float maturity);
+float B(const OrnsteinUhlenbeckModelParameters&, float valuation_time, float maturity);
+float log_zero_coupon_bond(const OrnsteinUhlenbeckModelParameters&, float state, float valuation_time, float maturity);
+float log_discount_factor(float state_integral);
+float discount_factor(float state_integral);
 float zero_coupon_bond(const OrnsteinUhlenbeckModelParameters&, float state, float valuation_time, float maturity);
 float zero_coupon_bond_call_price(const OrnsteinUhlenbeckModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
 float zero_coupon_bond_put_price(const OrnsteinUhlenbeckModelParameters&, float state, float valuation_time, float expiry, float maturity, float strike);
