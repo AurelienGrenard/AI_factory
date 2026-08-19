@@ -10,6 +10,8 @@
 
 namespace ai_factory::workbench::normal_inverse_gaussian {
 
+// ======================== Common equity dynamics =========================
+
 // Prepare the exact inverse-Gaussian clock over one requested interval.
 __device__ __forceinline__ NormalInverseGaussianPreparedParameters
 prepare_model(
@@ -76,6 +78,8 @@ __device__ __forceinline__ void one_step_transition(
     );
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 // Draw one exact NIG increment from the path-local scalar uniform sequence.
@@ -100,6 +104,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ NormalInverseGaussianState simulate_terminal_state(

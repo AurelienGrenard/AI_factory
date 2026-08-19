@@ -39,6 +39,8 @@ struct MertonMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ MertonPreparedParameters prepare_model(
     const MertonModelParameters& parameters,
     float time_interval

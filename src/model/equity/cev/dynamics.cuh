@@ -37,6 +37,8 @@ struct CevMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ CevPreparedParameters prepare_model(
     const CevModelParameters& parameters,
     float maturity,

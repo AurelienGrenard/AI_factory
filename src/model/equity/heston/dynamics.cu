@@ -9,6 +9,9 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::heston {
+
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 constexpr float kQePsiCritical = 1.5f;
@@ -16,6 +19,8 @@ constexpr float kGamma1 = 0.5f;
 constexpr float kGamma2 = 0.5f;
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Prepare coefficients that are constant across all paths of one result row.
 __device__ __forceinline__ HestonQeParameters prepare_model(
@@ -165,6 +170,8 @@ __device__ __forceinline__ void one_step_transition(
     state.variance = next_variance;
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 // Draw the three variates consumed by one fused QE-M transition.
@@ -191,6 +198,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ HestonState simulate_terminal_state(

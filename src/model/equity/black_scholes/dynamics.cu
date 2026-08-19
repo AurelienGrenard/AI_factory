@@ -10,6 +10,8 @@
 
 namespace ai_factory::workbench::black_scholes {
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ BlackScholesPreparedParameters prepare_model(
     const BlackScholesModelParameters& parameters,
     float time_interval
@@ -51,6 +53,8 @@ __device__ __forceinline__ void one_step_transition(
     );
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
@@ -65,6 +69,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ BlackScholesState simulate_terminal_state(
     const BlackScholesPreparedParameters& model,

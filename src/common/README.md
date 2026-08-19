@@ -25,6 +25,7 @@ model/product implementations use the same contract.
 | [`option_side.cuh`](option_side.cuh) | Compile-time call/put orientation |
 | [`philox.cuh`](philox.cuh) | Philox stream, uniforms, normals, Poisson, Gamma, and inverse-Gaussian draws |
 | [`normal_distribution.cuh`](normal_distribution.cuh) | FP32 standard-normal CDF |
+| [`noncentral_chi_square.cuh`](noncentral_chi_square.cuh) | Deterministic regularized-Gamma and non-central-chi-square CDF/survival probabilities |
 | [`reductions.cuh`](reductions.cuh) | Deterministic FP64 block reductions and Monte Carlo statistics |
 | [`longstaff_schwartz/basis.cuh`](longstaff_schwartz/basis.cuh) / [`basis.cu`](longstaff_schwartz/basis.cu) | Active regression basis |
 | [`longstaff_schwartz/exercise_schedule.cuh`](longstaff_schwartz/exercise_schedule.cuh) / [`exercise_schedule.cu`](longstaff_schwartz/exercise_schedule.cu) | Maturity-anchored exercise dates |
@@ -124,6 +125,20 @@ draw itself, which avoids a separate post-draw multiply in CIR callers.
 
 `normal_cdf` evaluates the standard-normal CDF in FP32 through `erfcf`. It is
 the shared primitive for closed-form device analytics.
+
+### `noncentral_chi_square.cuh`
+
+`regularized_gamma_probabilities` and
+`noncentral_chi_square_probabilities` return CDF and survival probability
+together, so tail-sensitive option formulas never form `1-CDF` in FP32.
+Regularized Gamma uses the convergent series on the left and a modified-Lentz
+continued fraction on the right. The non-central chi-square uses its exact
+Poisson--Gamma mixture centered at the modal Poisson term while the intensity
+is moderate, then switches to a Lugannani--Rice saddlepoint evaluation for
+large noncentralities. The internal evaluation is FP64 and the public result is
+FP32. CUDA tests compare both tails with SciPy across degrees of freedom down
+to `0.2`, the switching boundary, extreme tails, and noncentralities up to
+`1e8`.
 
 ## Monte Carlo reductions
 

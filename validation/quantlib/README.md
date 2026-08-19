@@ -21,10 +21,12 @@ ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01.json
 ```
 
 Catalog publication instead runs the corresponding unified validator under
-`validation/model/...` with `DATASET VALIDATION_REPORT`. It selects QuantLib
-only after any higher-priority compatible Premia engine is unavailable or
-fails technically, then writes the canonical report and synchronizes the YAML.
-Direct QuantLib modules do neither.
+`validation/model/...`. All fixed-income and Black-Scholes modules consume
+`DATASET REFERENCE_DATASET` and are cache-only unless `--generate` is passed
+explicitly. Other equity families retain their legacy interface only until
+they are migrated. QuantLib is selected only after any higher-priority
+compatible Premia engine is unavailable or fails technically. Direct QuantLib
+modules never publish metadata.
 
 The common report checks every absolute-plus-relative row tolerance and records
 signed errors, reported Monte-Carlo uncertainty, RMSE, worst rows, directional
@@ -42,8 +44,8 @@ selection and reporting rules are documented in
 
 Supported datasets are:
 
-- OU, Vasicek, G2, and Hull-White or G2++ fitted to Nelson-Siegel or Svensson:
-  bond calls, bond puts, caplets, and floorlets;
+- CIR, OU, Vasicek, G2, and Hull-White or G2++ fitted to Nelson-Siegel or
+  Svensson: bond calls, bond puts, caplets, and floorlets;
 - Heston terminal-payoff families through specialized analytic engines;
 - Heston arithmetic and geometric Asians, discrete barriers, touches, double
   knock-outs, Athena, Phoenix, Cliquet, and Range Accrual products through
@@ -68,6 +70,18 @@ Supported datasets are:
 - CEV European calls and puts through `AnalyticCEVEngine`, after the exact
   deterministic time change that removes carry from the CEV state variable.
 
+CIR uses `CoxIngersollRoss.discountBondOption`. QuantLib's direct deep-ITM
+branch can lose the out-of-the-money tail and return a negative opposite-side
+price, so the adapter evaluates the OTM side and reconstructs the ITM side by
+exact zero-coupon put-call parity. This enforces non-negativity and parity in
+the extreme tails. It is the reliable CIR reference after the callable Premia
+formula failed its source and numerical audit. Its 1,000 prices per product are
+persisted under `validation/datasets/price/fixed_income/cir`; all four products
+pass both the 900-row core and 100-row stress regimes. Standalone G2 uses the
+same persistent contract with `G2.discountBondOption`; the other 24 analytical
+fixed-income bases persist their selected Premia prices. Thus routine checks of
+all 32 fixed-income caches require neither QuantLib nor Premia.
+
 QuantLib 1.43 exposes no Normal-Inverse-Gaussian process or pricing engine in
 its Python binding. NIG datasets are therefore published with explicit `none`
 metadata until an independent reference exists; the CUDA implementation is not
@@ -81,8 +95,9 @@ generators. QuantLib 1.43 exposes no compatible Kou or Schobel-Zhu process.
 Their non-European datasets therefore remain explicitly `none` unless a
 different independent backend validates the complete 1,000-row dataset.
 
-The standard CTest suite runs all analytical references. Slow Heston/Bates path
-and early-exercise references are opt-in:
+The standard CTest suite checks every fixed-income and Black-Scholes cache
+without importing QuantLib. Slow direct Heston/Bates path and early-exercise
+references are opt-in:
 
 ```bash
 cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON

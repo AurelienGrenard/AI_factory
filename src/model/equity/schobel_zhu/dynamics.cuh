@@ -44,6 +44,8 @@ struct SchobelZhuMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ SchobelZhuPreparedParameters prepare_model(
     const SchobelZhuModelParameters& parameters,
     float maturity,

@@ -68,6 +68,8 @@ add_library(cuda_workbench STATIC
     src/curve/nelson_siegel/dataset.cpp
     src/curve/svensson/dataset.cpp
     src/model/fixed_income/cir/dataset.cpp
+    src/model/fixed_income/cir/rate_option.cu
+    src/model/fixed_income/cir/zero_coupon_bond_option.cu
     src/model/fixed_income/g2/dataset.cpp
     src/model/fixed_income/g2/rate_option.cu
     src/model/fixed_income/g2/zero_coupon_bond_option.cu
@@ -711,6 +713,22 @@ add_price_generator(
     catalog/price/fixed_income/hull_white/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
+    generate_cir_caplets_01
+    catalog/price/fixed_income/cir/caplets/cir_01__caplets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_cir_floorlets_01
+    catalog/price/fixed_income/cir/floorlets/cir_01__floorlets_01__01/generator.cpp
+)
+add_price_generator(
+    generate_cir_zero_coupon_bond_calls_01
+    catalog/price/fixed_income/cir/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
+)
+add_price_generator(
+    generate_cir_zero_coupon_bond_puts_01
+    catalog/price/fixed_income/cir/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
+)
+add_price_generator(
     generate_ornstein_uhlenbeck_caplets_01
     catalog/price/fixed_income/ornstein_uhlenbeck/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
 )
@@ -795,6 +813,10 @@ add_parameter_generator(
 add_parameter_generator(
     generate_vasicek_01
     catalog/model/fixed_income/vasicek/vasicek_01/generator.cpp
+)
+add_parameter_generator(
+    generate_cir_01
+    catalog/model/fixed_income/cir/cir_01/generator.cpp
 )
 add_parameter_generator(
     generate_nelson_siegel_01
@@ -1015,6 +1037,12 @@ if(BUILD_TESTING)
                         vasicek
                     )
                     add_quantlib_validation_test(
+                        cir_${product}
+                        validation.quantlib.model.fixed_income.cir.${product}
+                        datasets/price/fixed_income/cir/${product_folder}/cir_01__${product_folder}_01__01.json
+                        cir
+                    )
+                    add_quantlib_validation_test(
                         hull_white_nelson_siegel_${product}
                         validation.quantlib.model.fixed_income.hull_white.nelson_siegel.${product}
                         datasets/price/fixed_income/hull_white/nelson_siegel/${product_folder}/hull_white_01__nelson_siegel_01__${product_folder}_01__01.json
@@ -1028,10 +1056,9 @@ if(BUILD_TESTING)
                     )
                     add_quantlib_validation_test(
                         g2_${product}
-                        validation.model.fixed_income.g2.${product}
+                        validation.quantlib.model.fixed_income.g2.${product}
                         datasets/price/fixed_income/g2/${product_folder}/g2_01__${product_folder}_01__01.json
                         g2
-                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/g2_${product}.json
                     )
                     add_quantlib_validation_test(
                         g2_plus_plus_nelson_siegel_${product}
@@ -1353,47 +1380,6 @@ if(BUILD_TESTING)
             AND EXISTS
                 "${CMAKE_SOURCE_DIR}/validation/premia/premia-19-win64"
         )
-            function(add_black_scholes_unified_validation product)
-                if(product STREQUAL "up_no_touch")
-                    set(folder up_no_touches)
-                elseif(product STREQUAL "up_one_touch")
-                    set(folder up_one_touches)
-                else()
-                    set(folder ${product}s)
-                endif()
-                add_test(
-                    NAME validation_black_scholes_${product}
-                    COMMAND
-                        ${Python3_EXECUTABLE} -m
-                        validation.model.equity.black_scholes.${product}
-                        ${CMAKE_SOURCE_DIR}/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
-                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/black_scholes_${product}.json
-                )
-                set_tests_properties(
-                    validation_black_scholes_${product}
-                    PROPERTIES
-                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                        LABELS "workbench;validation;premia;quantlib;black_scholes"
-                        TIMEOUT 900
-                )
-            endfunction()
-            foreach(product IN ITEMS
-                asian_call asian_put
-                asset_or_nothing_call asset_or_nothing_put
-                athena_autocall cliquet digital_call digital_put
-                double_knock_out_call double_knock_out_put
-                down_and_in_put down_and_out_put
-                european_call european_put
-                forward_start_call forward_start_put
-                gap_call gap_put
-                geometric_asian_call geometric_asian_put
-                lookback_option phoenix_autocall phoenix_memory_autocall
-                range_accrual straddle up_and_in_call up_and_out_call
-                up_no_touch up_one_touch
-            )
-                add_black_scholes_unified_validation(${product})
-            endforeach()
-
             function(add_equity_model_unified_validation model product)
                 if(product STREQUAL "up_no_touch")
                     set(folder up_no_touches)
@@ -1455,24 +1441,110 @@ if(BUILD_TESTING)
                 endforeach()
             endforeach()
 
-            function(add_gaussian_rate_validation model product folder)
-                add_test(
-                    NAME validation_${model}_${product}
-                    COMMAND
-                        ${Python3_EXECUTABLE} -m
-                        validation.model.fixed_income.${model}.${product}
-                        ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
-                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${product}.json
+        else()
+            message(STATUS
+                "Premia runtime prerequisites unavailable: reference tests disabled"
+            )
+        endif()
+    endif()
+
+    # Persistent publication checks consume immutable references and never
+    # rerun Premia, QuantLib, or Wine. Keep them available on any Python host.
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if(Python3_Interpreter_FOUND)
+        function(add_cached_black_scholes_validation product folder)
+            add_test(
+                NAME validation_black_scholes_${product}
+                COMMAND
+                    ${Python3_EXECUTABLE} -m
+                    validation.model.equity.black_scholes.${product}
+                    ${CMAKE_SOURCE_DIR}/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/validation/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
+                    --require-verified
+            )
+            set_tests_properties(
+                validation_black_scholes_${product}
+                PROPERTIES
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    LABELS "workbench;validation;cached_reference;black_scholes"
+                    TIMEOUT 60
+            )
+        endfunction()
+        foreach(product IN ITEMS
+            asian_call asian_put
+            asset_or_nothing_call asset_or_nothing_put
+            athena_autocall cliquet digital_call digital_put
+            double_knock_out_call double_knock_out_put
+            down_and_in_put down_and_out_put
+            european_call european_put
+            forward_start_call forward_start_put
+            gap_call gap_put
+            geometric_asian_call geometric_asian_put
+            lookback_option phoenix_autocall phoenix_memory_autocall
+            range_accrual straddle up_and_in_call up_and_out_call
+        )
+            add_cached_black_scholes_validation(${product} ${product}s)
+        endforeach()
+        add_cached_black_scholes_validation(up_no_touch up_no_touches)
+        add_cached_black_scholes_validation(up_one_touch up_one_touches)
+
+        function(add_cached_standalone_rate_validation model product folder)
+            add_test(
+                NAME validation_${model}_${product}
+                COMMAND
+                    ${Python3_EXECUTABLE} -m
+                    validation.model.fixed_income.${model}.${product}
+                    ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/validation/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
+                    --require-verified
+            )
+            set_tests_properties(
+                validation_${model}_${product}
+                PROPERTIES
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    LABELS "workbench;validation;cached_reference;${model}"
+                    TIMEOUT 60
+            )
+        endfunction()
+        foreach(model IN ITEMS cir g2 ornstein_uhlenbeck vasicek)
+            foreach(product IN ITEMS
+                zero_coupon_bond_call zero_coupon_bond_put caplet floorlet
+            )
+                if(product STREQUAL "zero_coupon_bond_call")
+                    set(product_folder zero_coupon_bond_calls)
+                elseif(product STREQUAL "zero_coupon_bond_put")
+                    set(product_folder zero_coupon_bond_puts)
+                elseif(product STREQUAL "caplet")
+                    set(product_folder caplets)
+                else()
+                    set(product_folder floorlets)
+                endif()
+                add_cached_standalone_rate_validation(
+                    ${model} ${product} ${product_folder}
                 )
-                set_tests_properties(
-                    validation_${model}_${product}
-                    PROPERTIES
-                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                        LABELS "workbench;validation;premia;quantlib;${model}"
-                        TIMEOUT 180
-                )
-            endfunction()
-            foreach(model IN ITEMS vasicek ornstein_uhlenbeck)
+            endforeach()
+        endforeach()
+
+        function(add_cached_fitted_rate_validation model curve product folder)
+            add_test(
+                NAME validation_${model}_${curve}_${product}
+                COMMAND
+                    ${Python3_EXECUTABLE} -m
+                    validation.model.fixed_income.${model}.${curve}.${product}
+                    ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/validation/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
+                    --require-verified
+            )
+            set_tests_properties(
+                validation_${model}_${curve}_${product}
+                PROPERTIES
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    LABELS "workbench;validation;cached_reference;${model}"
+                    TIMEOUT 60
+            )
+        endfunction()
+        foreach(model IN ITEMS g2_plus_plus hull_white)
+            foreach(curve IN ITEMS nelson_siegel svensson)
                 foreach(product IN ITEMS
                     zero_coupon_bond_call zero_coupon_bond_put caplet floorlet
                 )
@@ -1485,56 +1557,12 @@ if(BUILD_TESTING)
                     else()
                         set(product_folder floorlets)
                     endif()
-                    add_gaussian_rate_validation(
-                        ${model} ${product} ${product_folder}
+                    add_cached_fitted_rate_validation(
+                        ${model} ${curve} ${product} ${product_folder}
                     )
                 endforeach()
             endforeach()
-
-            function(add_fitted_gaussian_rate_validation
-                model curve product folder
-            )
-                add_test(
-                    NAME validation_${model}_${curve}_${product}
-                    COMMAND
-                        ${Python3_EXECUTABLE} -m
-                        validation.model.fixed_income.${model}.${curve}.${product}
-                        ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
-                        ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${curve}_${product}.json
-                )
-                set_tests_properties(
-                    validation_${model}_${curve}_${product}
-                    PROPERTIES
-                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                        LABELS "workbench;validation;premia;quantlib;${model}"
-                        TIMEOUT 180
-                )
-            endfunction()
-            foreach(model IN ITEMS hull_white g2_plus_plus)
-                foreach(curve IN ITEMS nelson_siegel svensson)
-                    foreach(product IN ITEMS
-                        zero_coupon_bond_call zero_coupon_bond_put caplet floorlet
-                    )
-                        if(product STREQUAL "zero_coupon_bond_call")
-                            set(product_folder zero_coupon_bond_calls)
-                        elseif(product STREQUAL "zero_coupon_bond_put")
-                            set(product_folder zero_coupon_bond_puts)
-                        elseif(product STREQUAL "caplet")
-                            set(product_folder caplets)
-                        else()
-                            set(product_folder floorlets)
-                        endif()
-                        add_fitted_gaussian_rate_validation(
-                            ${model} ${curve} ${product} ${product_folder}
-                        )
-                    endforeach()
-                endforeach()
-            endforeach()
-        else()
-            message(STATUS
-                "Premia runtime prerequisites unavailable: reference tests disabled"
-            )
-        endif()
+        endforeach()
     endif()
 
     # Register one GPU integration test with shared execution rules.
@@ -1564,7 +1592,19 @@ if(BUILD_TESTING)
         philox_cuda tests/philox_cuda_test.cu philox 30
     )
     add_cuda_workbench_test(
+        noncentral_chi_square_cuda
+        tests/noncentral_chi_square_cuda_test.cu
+        distributions
+        30
+    )
+    add_cuda_workbench_test(
         cir_cuda tests/cir_cuda_test.cu cir 30
+    )
+    add_cuda_workbench_test(
+        cir_rate_options_cuda
+        tests/cir_rate_options_cuda_test.cu
+        "cir;rate_options"
+        30
     )
     add_cuda_workbench_test(
         hull_white_cuda tests/hull_white_cuda_test.cu hull_white 30

@@ -27,8 +27,8 @@ validation indépendante et le site ont tous été mis à jour.
 - [ ] Decider la disponibilite de Premia sur l'existence d'au moins un moteur
       compatible, jamais sur la methode numerique employee par le generateur
       AI_factory.
-- [ ] Inscrire obligatoirement le resultat et le backend dans le bloc YAML
-      racine `validation`.
+- [ ] Garder le YAML de validation minimal: il pointe vers le dataset de
+      reference; les details backend restent dans le JSON.
 - [ ] Ne jamais activer CUDA fast math (`--use_fast_math`). Le projet exige des
       résultats reproductibles et n'expose volontairement aucune option de
       compilation correspondante.
@@ -38,10 +38,10 @@ validation indépendante et le site ont tous été mis à jour.
 - [ ] Préserver le mapping déterministe des lignes et des chemins, l'ordre des
       réductions, ainsi que les accumulations FP64 déjà utilisées.
 
-`validation.reference: "none"` est un etat explicite, pas une validation. Il
-permet de publier une V1 clairement etiquetee lorsque Premia et QuantLib ne
+Un statut de reference `not_available` est un etat explicite, pas une
+validation. Il interdit `verified: true` lorsque Premia et QuantLib ne
 fournissent aucune reference comparable. La selection s'effectue ligne par
-ligne sur le core selon
+ligne sur les regimes core et stress selon
 [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md).
 Un echec technique Premia autorise un repli documente pour les seules lignes
 concernees, d'abord vers les autres moteurs Premia compatibles et seulement
@@ -60,8 +60,9 @@ Avant de creer un dossier, separer les couches reellement nouvelles:
 - une courbe appartient a `src/curve/` et a `catalog/curve/`;
 - le pricing d'un couple modele-produit appartient au modele, dans
   `src/model/<asset_class>/<model>/[<curve>/]`;
-- une base de prix conserve son propre generateur, YAML, rapport et notebook
-  sous `catalog/price/`, meme lorsque son code de pricing est partage;
+- une base de prix conserve son propre generateur et YAML sous
+  `catalog/price/`; un dataset migre ne stocke ni rapport ni notebook dans ce
+  dossier, ses references vivent sous `validation/datasets/price/`;
 - l'orchestration de validation appartient a `validation/model/`, tandis que
   les conversions propres a Premia et QuantLib restent dans leurs backends.
 
@@ -217,9 +218,8 @@ ou, pour l'exercice anticipe,
 
 ### Hierarchie de validation obligatoire
 
-- [ ] Separer explicitement les 900 lignes `core`, seules certifiees par une
-      reference externe, des 100 lignes `stress`, reservees aux diagnostics
-      internes de robustesse.
+- [ ] Separer explicitement les 900 lignes `core` des 100 lignes `stress` et
+      exiger une reference independante sur les deux regimes.
 - [ ] Inventorier exhaustivement tous les moteurs Premia compatibles avec le
       modele et le produit, dans tous les menus Premia, avant d'en choisir un.
 - [ ] Inclure les contrats directs et les reductions exactes fondees sur des
@@ -232,13 +232,16 @@ ou, pour l'exercice anticipe,
       de tous les moteurs Premia declares.
 - [ ] A defaut, chercher un pricer specialise QuantLib.
 - [ ] A defaut, construire une simulation Monte-Carlo QuantLib independante.
-- [ ] Si aucun backend fiable n'existe, conserver `status: "not_available"`,
-      `verified: false`, `reference: "none"` dans le YAML.
+- [ ] Si aucun backend fiable n'existe, conserver la reference
+      `not_available` et interdire la publication avec `verified: true`.
 - [ ] Ajouter le validateur unifie sous
       `validation/model/<asset_class>/<model>/[<curve>/]<product>.py`, avec la
       meme ossature que les produits voisins; omettre la courbe en equity.
-- [ ] Exposer la commande canonique `python -m <module> DATASET REPORT`; elle
-      seule orchestre les backends, ecrit le rapport et synchronise le YAML.
+- [ ] Reutiliser le `reference_pipeline.py` de la classe d'actifs et conserver
+      les memes fonctions, leur ordre et leurs signatures que le modele voisin.
+- [ ] Exposer `python -m <module> DATASET REFERENCE_DATASET`;
+      la commande est cache-only par defaut et `--generate` est la seule voie
+      qui relance un backend externe.
 - [ ] Declarer la liste ordonnee complete des moteurs Premia, puis les
       emplacements QuantLib specialise et QuantLib Monte Carlo, avec un
       adaptateur ou une raison d'indisponibilite explicite.
@@ -253,11 +256,8 @@ ou, pour l'exercice anticipe,
       restent des wrappers CLI minces.
 - [ ] Lire le JSON de prix produit par le vrai generateur CUDA.
 - [ ] Reconstruire chaque ligne dans le backend avec les memes conventions.
-- [ ] Comparer les 900 lignes core, pas seulement un echantillon favorable;
-      n'appeler ni Premia ni QuantLib sur les 100 lignes stress dans la pipeline
-      de certification standard.
-- [ ] Appliquer aux lignes stress les controles internes pertinents: finitude,
-      erreurs standards, bornes, parites, martingalite et convergence ciblee.
+- [ ] Comparer les 900 lignes core et les 100 lignes stress, pas seulement un
+      echantillon favorable.
 - [ ] En cas d'echec technique du moteur Premia principal, conserver ligne,
       statut et raison, puis essayer successivement chaque autre moteur Premia;
       appliquer QuantLib uniquement si tous ont techniquement echoue.
@@ -268,53 +268,41 @@ ou, pour l'exercice anticipe,
       une borne de non-arbitrage; conserver le diagnostic avant le repli.
 - [ ] Controler erreur absolue, erreur relative, erreur maximale et taux d'echec.
 - [ ] Controler le biais signe moyen pour detecter une erreur systematique.
+- [ ] Lorsqu'une relation mathematique continu/discret justifie le biais,
+      conserver `systematic_bias: true`, ajouter une explication non vide et
+      verifier la borne ligne par ligne; ne jamais masquer un biais inexplique.
 - [ ] Expliquer les tolerances par la precision FP32 ou la statistique Monte-Carlo;
       ne pas les elargir uniquement pour faire passer le test.
-- [ ] Ecrire `validation_report.json` a cote du notebook, avec une section
-      `core` de certification externe et une section `stress` explicitement
-      interne et non certifiante, le `pricing_method` exact de chaque moteur
-      core disponible, le plan complet des moteurs et l'empreinte canonique des
-      prix et de leur configuration numerique.
-- [ ] Generer le rapport et le bloc YAML exclusivement depuis l'execution du
-      validateur; ne jamais rediger leurs resultats a la main.
-- [ ] Faire charger et afficher ce rapport par le notebook sans relancer de
-      pricer de reference.
-- [ ] Executer et livrer le notebook afin que sa sortie compilee corresponde au
-      rapport courant.
-- [ ] Si aucun moteur n'est compatible, ecrire un rapport `reference: "none"`
-      sans statistiques inventees et conserver `verified: false` dans le YAML.
-- [ ] Ajouter le test au `CMakeLists.txt` avec le label `premia` ou `quantlib`.
-- [ ] Ajouter aussi le label du modele et un timeout adapte au backend; les
-      modules directs sous `validation/premia/` et `validation/quantlib/` sont
-      des outils de diagnostic, pas des commandes de publication.
+- [ ] Ecrire les 1 000 prix sous `validation/datasets/price`, avec empreintes
+      semantiques,
+      provenance `reference_pricer_id`, `row_priced`, version du backend
+      utilisee et verification core/stress.
+- [ ] Supprimer tout `validation_report.json` ou
+      `validation.ipynb` adjacent au YAML et ne publier dans celui-ci que
+      `status`, `verified` et `dataset`.
+- [ ] Generer le cache et le bloc YAML exclusivement depuis l'execution du
+      generateur de references; ne jamais rediger les resultats a la main.
+- [ ] Ajouter au `CMakeLists.txt` un test court portant le label
+      `cached_reference`; les modules Premia et QuantLib directs restent des
+      outils de regeneration et de diagnostic.
+- [ ] Ajouter un test qui bloque les imports Premia/QuantLib sur le chemin
+      cache-only.
 - [ ] Executer le validateur isole, puis la suite CTest complete.
 
-Le generateur ecrit d'abord un bloc obligatoire non verifie:
+Le YAML publie uniquement:
 
 ```yaml
 validation:
-  status: "pending"
-  verified: false
-  scope: "core (900 rows)"
-  reference: "none"
-  notebook: "catalog/price/<asset_class>/<model>/[<curve>/]<product>/<dataset_id>/validation.ipynb"
+  status: "available"
+  verified: true
+  dataset: "validation/datasets/price/<asset_class>/.../<database_id>.json"
 ```
 
-Le validateur synchronise ensuite ce bloc depuis le rapport reel. Une reference
-fusionne son moteur et sa methode, par exemple `Premia (specialized pricer)` ou
-`QuantLib (Monte Carlo)`; `mixed` est reserve a une couverture core qui utilise
-effectivement plusieurs familles de references principales. Premia reste
-prioritaire lorsqu'il produit un prix comparable, meme si QuantLib est aussi
-disponible. Le stress ne modifie jamais ce bloc.
-
-Le champ `notebook` est toujours place apres `reference` et pointe vers le
-notebook compile adjacent au YAML. Il est calcule par le validateur; il n'est
-pas redige manuellement.
-
-Le YAML ne repete pas le moteur exact. Cette information appartient au rapport
-JSON: `pricing_method` contient le nom Premia natif ou la classe/fonction
-QuantLib reellement utilisee. Le notebook l'affiche automatiquement sous la
-reference principale et pour chaque repli, sans logique propre au produit.
+Le YAML ne repete aucun moteur. Le JSON sous `validation/datasets` contient les
+trois emplacements ordonnes `premia`, `quantlib_specialized` et
+`quantlib_monte_carlo`. Seules les methodes effectivement utilisees portent un
+identifiant, une version, un nom natif et `row_priced`; une methode disponible
+mais inutilisee ne contient que son statut.
 
 La comparaison d'une fonction CUDA avec une reimplementation des memes formules
 dans le projet n'est pas une validation independante et ne remplace ni Premia

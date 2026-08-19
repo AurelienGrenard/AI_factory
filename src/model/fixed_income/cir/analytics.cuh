@@ -40,12 +40,42 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     float maturity
 );
 
+// Return the accumulated path log-discount from time zero.
+__device__ __forceinline__ float log_discount_factor(
+    float state_integral
+);
+
+// Return the accumulated path discount factor from time zero.
+__device__ __forceinline__ float discount_factor(
+    float state_integral
+);
+
 // Return the model zero-coupon bond P(valuation_time,maturity).
 __device__ __forceinline__ float zero_coupon_bond(
     const CirModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
+);
+
+// Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
+__device__ __forceinline__ float zero_coupon_bond_call_price(
+    const CirModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+);
+
+// Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
+__device__ __forceinline__ float zero_coupon_bond_put_price(
+    const CirModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
 );
 
 // Return the simple forward rate observed at valuation_time over [start,end].

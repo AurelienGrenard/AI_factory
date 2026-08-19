@@ -50,6 +50,12 @@ class PriceComparison:
     quantlib_price: float
     generated_standard_error: float = 0.0
     quantlib_standard_error: float = 0.0
+    comparison_relation: Literal[
+        "absolute",
+        "generated_at_least_reference",
+        "generated_at_most_reference",
+    ] = "absolute"
+    comparison_allowance: float | None = None
 
 
 @dataclass(frozen=True)
@@ -401,22 +407,42 @@ def summarize_price_comparisons(
         absolute_error / max(abs(row.quantlib_price), tolerances.relative_floor)
         for row, absolute_error in zip(comparisons, absolute_errors)
     ]
-    row_passed = tuple(
-        absolute_error
-        <= tolerances.absolute
+    allowances = tuple(
+        (
+            tolerances.absolute
             + tolerances.relative * abs(row.quantlib_price)
             + tolerances.standard_error_multiplier * standard_error
-        for row, absolute_error, standard_error in zip(
-            comparisons, absolute_errors, combined_standard_errors
+            if row.comparison_allowance is None
+            else row.comparison_allowance
+        )
+        for row, standard_error in zip(comparisons, combined_standard_errors)
+    )
+    for row, allowance in zip(comparisons, allowances):
+        if row.comparison_relation not in {
+            "absolute",
+            "generated_at_least_reference",
+            "generated_at_most_reference",
+        }:
+            raise ValueError(
+                f"Unsupported comparison relation '{row.comparison_relation}'."
+            )
+        if not math.isfinite(allowance) or allowance < 0.0:
+            raise ValueError(
+                "Comparison allowances must be finite and non-negative."
+            )
+    row_passed = tuple(
+        (
+            absolute_error <= allowance
+            if row.comparison_relation == "absolute"
+            else error >= -allowance
+            if row.comparison_relation == "generated_at_least_reference"
+            else error <= allowance
+        )
+        for row, error, absolute_error, allowance in zip(
+            comparisons, errors, absolute_errors, allowances
         )
     )
     passed_rows = sum(row_passed)
-    allowances = tuple(
-        tolerances.absolute
-        + tolerances.relative * abs(row.quantlib_price)
-        + tolerances.standard_error_multiplier * standard_error
-        for row, standard_error in zip(comparisons, combined_standard_errors)
-    )
     row_count = len(comparisons)
     mean_error = sum(errors) / row_count
     mean_absolute_error = sum(absolute_errors) / row_count

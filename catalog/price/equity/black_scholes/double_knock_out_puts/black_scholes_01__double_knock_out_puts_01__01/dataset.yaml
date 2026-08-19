@@ -17,23 +17,9 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
-  status: "passed"
+  status: "available"
   verified: true
-  reference: "Premia (specialized pricer)"
-  notebook: "catalog/price/equity/black_scholes/double_knock_out_puts/black_scholes_01__double_knock_out_puts_01__01/validation.ipynb"
-  core:
-    status: "passed"
-    row_count: 900
-    reference: "Premia (specialized pricer)"
-  stress:
-    status: "passed"
-    row_count: 100
-    reference: "Premia (specialized pricer)"
-time_grid:
-  rule: "nearest integer step count to target dt"
-  target_dt: "1 / 360"
-  step_count: "round(maturity / target_dt)"
-  effective_dt: "maturity / step_count"
+  dataset: "validation/datasets/price/equity/black_scholes/double_knock_out_puts/black_scholes_01__double_knock_out_puts_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"

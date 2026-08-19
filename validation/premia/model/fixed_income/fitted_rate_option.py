@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -41,6 +42,18 @@ _CURVE_PARAMETERS = {
     "nelson_siegel": ("beta0", "beta1", "beta2", "tau"),
     "svensson": ("beta0", "beta1", "beta2", "beta3", "tau1", "tau2"),
 }
+
+
+@dataclass(frozen=True)
+class PremiaFittedRateOptionReference:
+    """One source identity and its scaled fitted-rate Premia price."""
+
+    row_id: str
+    model_id: str
+    curve_id: str
+    product_id: str
+    price: float
+    standard_error: float
 
 
 def _numbers(
@@ -162,6 +175,38 @@ def validation_from_premia_fitted_rate_option(
     )
 
 
+def reference_prices_from_premia_fitted_rate_option(
+    price_dataset_path: str | Path,
+    model_name: str,
+    curve_name: str,
+    product_kind: str,
+    regime: ValidationRegime = "all",
+    row_ids: Sequence[str] | None = None,
+) -> tuple[PremiaFittedRateOptionReference, ...]:
+    """Price one fitted-rate batch for persistence without comparing to CUDA."""
+
+    validation_input, inputs, scales = _prepared_inputs(
+        price_dataset_path, model_name, curve_name, product_kind, regime, row_ids
+    )
+    results = price_rows(inputs, _mode(model_name, curve_name, product_kind))
+    references = []
+    for row in validation_input.rows:
+        if row.curve_id is None:
+            raise ValueError(f"Fitted-rate row '{row.row_id}' has no curve id.")
+        result = results[row.row_id]
+        references.append(
+            PremiaFittedRateOptionReference(
+                row.row_id,
+                row.model_id,
+                row.curve_id,
+                row.product_id,
+                result.price * scales[row.row_id],
+                result.standard_error,
+            )
+        )
+    return tuple(references)
+
+
 def validation_batch_from_premia_fitted_rate_option(
     price_dataset_path: str | Path,
     model_name: str,
@@ -213,6 +258,8 @@ def validation_batch_from_premia_fitted_rate_option(
 
 
 __all__ = (
+    "PremiaFittedRateOptionReference",
+    "reference_prices_from_premia_fitted_rate_option",
     "validation_batch_from_premia_fitted_rate_option",
     "validation_from_premia_fitted_rate_option",
 )

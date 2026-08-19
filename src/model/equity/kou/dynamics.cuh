@@ -40,6 +40,8 @@ struct KouMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ KouPreparedParameters prepare_model(
     const KouModelParameters& parameters,
     float time_interval

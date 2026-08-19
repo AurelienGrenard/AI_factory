@@ -4,6 +4,8 @@
 
 namespace ai_factory::workbench::merton {
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ MertonPreparedParameters prepare_model(
     const MertonModelParameters& parameters,
     float time_interval
@@ -69,6 +71,8 @@ __device__ __forceinline__ void one_step_transition(
         + jump_log_sum;
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
@@ -96,6 +100,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ MertonState simulate_terminal_state(
     const MertonPreparedParameters& model,

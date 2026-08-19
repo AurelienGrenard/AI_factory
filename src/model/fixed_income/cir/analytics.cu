@@ -3,6 +3,8 @@
 
 #include "model/fixed_income/cir/analytics.cuh"
 
+#include "common/noncentral_chi_square.cuh"
+
 #include <cuda_runtime.h>
 
 namespace ai_factory::workbench::model::cir {
@@ -24,22 +26,112 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     const float kappa = process.mean_reversion;
     const float sigma_squared = process.volatility * process.volatility;
     const float gamma = sqrtf(kappa * kappa + 2.0f * sigma_squared);
+    // Avoid subtracting nearly equal gamma and kappa for narrow diffusions.
+    const float gamma_minus_kappa =
+        2.0f * sigma_squared / (gamma + kappa);
     const float one_minus_gamma_decay = -expm1f(
         -gamma * time_to_maturity
     );
     const float denominator = fmaf(
-        kappa - gamma,
+        -gamma_minus_kappa,
         one_minus_gamma_decay,
         2.0f * gamma
     );
     const float relative_denominator_increment =
-        (kappa - gamma) * one_minus_gamma_decay / (2.0f * gamma);
+        -gamma_minus_kappa * one_minus_gamma_decay / (2.0f * gamma);
     const float log_base = -log1pf(relative_denominator_increment)
-        + 0.5f * (kappa - gamma) * time_to_maturity;
+        - 0.5f * gamma_minus_kappa * time_to_maturity;
     return {
         2.0f * kappa * process.long_term_mean / sigma_squared * log_base,
         2.0f * one_minus_gamma_decay / denominator,
     };
+}
+
+// Price a call (+1) or put (-1) through the two CIR forward-measure laws.
+__device__ __forceinline__ float zero_coupon_bond_option_price(
+    const CirModelParameters& parameters,
+    float state,
+    float option_sign,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    const float expiry_log_bond = log_zero_coupon_bond(
+        parameters, state, valuation_time, option_expiry
+    );
+    const float underlying_log_bond = log_zero_coupon_bond(
+        parameters, state, valuation_time, bond_maturity
+    );
+    const float expiry_bond = expf(expiry_log_bond);
+    const float underlying_bond = expf(underlying_log_bond);
+    const float time_to_expiry = option_expiry - valuation_time;
+    if (time_to_expiry <= 1.0e-7f) {
+        return fmaxf(
+            option_sign * (underlying_bond - strike), 0.0f
+        );
+    }
+
+    const CirProcessParameters& process = parameters.process;
+    const float sigma_squared = process.volatility * process.volatility;
+    const float gamma = sqrtf(
+        process.mean_reversion * process.mean_reversion
+        + 2.0f * sigma_squared
+    );
+    const float gamma_decay = expf(-gamma * time_to_expiry);
+    const float one_minus_gamma_decay = -expm1f(
+        -gamma * time_to_expiry
+    );
+    const float rho = 2.0f * gamma * gamma_decay
+        / (sigma_squared * one_minus_gamma_decay);
+    const float psi = (process.mean_reversion + gamma) / sigma_squared;
+    const AffineBondCoefficients expiry_coefficients =
+        affine_bond_coefficients(
+            process, bond_maturity - option_expiry
+        );
+    const float critical_state = (
+        expiry_coefficients.log_A - logf(strike)
+    ) / expiry_coefficients.B;
+
+    // rho^2*exp(gamma*dt) is formed without a growing exponential.
+    const float rho_squared_growth =
+        4.0f * gamma * gamma * gamma_decay
+        / (
+            sigma_squared * sigma_squared
+            * one_minus_gamma_decay * one_minus_gamma_decay
+        );
+    const float noncentrality_numerator =
+        2.0f * rho_squared_growth * state;
+    const float base_rate = rho + psi;
+    const float bond_rate = base_rate + expiry_coefficients.B;
+    const float degrees_of_freedom =
+        4.0f * process.mean_reversion * process.long_term_mean
+        / sigma_squared;
+    const DistributionProbabilities bond_measure =
+        noncentral_chi_square_probabilities(
+            degrees_of_freedom,
+            noncentrality_numerator / bond_rate,
+            2.0f * critical_state * bond_rate
+        );
+    const DistributionProbabilities expiry_measure =
+        noncentral_chi_square_probabilities(
+            degrees_of_freedom,
+            noncentrality_numerator / base_rate,
+            2.0f * critical_state * base_rate
+        );
+
+    if (option_sign > 0.0f) {
+        return fmaxf(
+            underlying_bond * bond_measure.cdf
+                - strike * expiry_bond * expiry_measure.cdf,
+            0.0f
+        );
+    }
+    return fmaxf(
+        strike * expiry_bond * expiry_measure.survival
+            - underlying_bond * bond_measure.survival,
+        0.0f
+    );
 }
 
 }  // namespace
@@ -94,6 +186,20 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     );
 }
 
+// The CIR state is the short rate, so its integral is the log discount.
+__device__ __forceinline__ float log_discount_factor(
+    float state_integral
+) {
+    return -state_integral;
+}
+
+// Exponentiate the accumulated short-rate integral only when required.
+__device__ __forceinline__ float discount_factor(
+    float state_integral
+) {
+    return expf(log_discount_factor(state_integral));
+}
+
 // Exponentiate the conditional affine log bond only at the public boundary.
 __device__ __forceinline__ float zero_coupon_bond(
     const CirModelParameters& parameters,
@@ -104,6 +210,46 @@ __device__ __forceinline__ float zero_coupon_bond(
     return expf(log_zero_coupon_bond(
         parameters, state, valuation_time, maturity
     ));
+}
+
+// Apply the two-CDF CIR formula for a call on a zero-coupon bond.
+__device__ __forceinline__ float zero_coupon_bond_call_price(
+    const CirModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    return zero_coupon_bond_option_price(
+        parameters,
+        state,
+        1.0f,
+        valuation_time,
+        option_expiry,
+        bond_maturity,
+        strike
+    );
+}
+
+// Apply the complementary-tail CIR formula for a zero-coupon bond put.
+__device__ __forceinline__ float zero_coupon_bond_put_price(
+    const CirModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    return zero_coupon_bond_option_price(
+        parameters,
+        state,
+        -1.0f,
+        valuation_time,
+        option_expiry,
+        bond_maturity,
+        strike
+    );
 }
 
 // Build one simple forward rate from two conditional zero-coupons.

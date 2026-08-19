@@ -39,17 +39,19 @@
 - `validation/model`: one unified validation pipeline per model/product pair,
   with an intermediate curve folder when the pricing contract uses one;
   `validation/premia` and `validation/quantlib`: reusable backend adapters.
-- Each price validation writes `validation_report.json` beside its catalog
-  notebook. Notebooks only verify, load, and display that persisted report;
-  they never rerun a reference pricer.
-- Price generators write validation as pending. Only a successful unified
-  validator may synchronize the compact YAML status and fused reference label;
-  engine plans and row diagnostics remain in the JSON report.
+- Migrated price validations persist 1,000 aligned independent prices below
+  `validation/datasets/price` and publish only `status`, `verified`, and the
+  cache path in catalogue YAML. Do not add adjacent validation reports or
+  notebooks to a migrated dataset.
+- External engines run only during explicit reference regeneration. Routine
+  validation must be cache-only, verify semantic source fingerprints and row
+  provenance, and import neither Premia nor QuantLib.
 - Model/product validators declare the complete engine plan in priority order,
   name the exact native pricing method/function for every available slot,
-  include explicit reasons for unavailable slots, and delegate row-wise
-  fallback to `validation/hierarchy.py`; report assembly and CLI persistence
-  belong in `validation/dataset_validation.py`, not in a model-local `common.py`.
+  preserve all three hierarchy slots, and delegate row-wise fallback to
+  `validation/hierarchy.py`; persistent-reference assembly and cache-only CLI
+  behavior belong in the shared asset-class reference pipeline, not in a
+  model-local `common.py`.
   Only technical backend exceptions descend through the ordered Premia
   candidates, then specialized QuantLib, then QuantLib Monte Carlo; finite
   comparison failures never fall through.
@@ -62,10 +64,9 @@
   including compatible exact decompositions. Only after this exhaustive
   inventory may the candidates be ranked by contractual compatibility,
   robustness, and measured runtime.
-- Independent price certification covers the 900 core rows only. Keep the 100
-  stress rows as internal robustness diagnostics and do not call Premia or
-  QuantLib on them in the standard publication pipeline. Never describe a
-  core-only certification as 1,000/1,000 coverage.
+- Independent price certification covers the 900 core and 100 stress rows.
+  Both regimes must be fully referenced and pass before publication may set
+  `verified: true`.
 - A technical failure of the preferred Premia method falls through to the next
   compatible Premia method for that row. QuantLib is considered only after all
   compatible Premia candidates have been exhausted. Continuous/discrete

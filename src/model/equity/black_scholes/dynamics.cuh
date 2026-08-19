@@ -39,6 +39,8 @@ struct BlackScholesMaximumPathResult {
     float maximum_spot;
 };
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ BlackScholesPreparedParameters prepare_model(
     const BlackScholesModelParameters& parameters,
     float time_interval

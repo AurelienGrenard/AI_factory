@@ -5,71 +5,39 @@ of the intended development roadmap. It contains planned work only. Ideas that
 were tested and rejected belong in `abandoned-work.md`; permanent engineering
 rules belong in the relevant implementation contract or extension workflow.
 
-## Core-only independent price validation migration
+## Persistent equity-reference migration
 
-Migrate every price validator to the certification policy documented in
-`independent-price-validation-pipeline.md`. This work is intentionally paused:
-do not resume the long Premia runs while implementing unrelated numerical or
-CUDA features.
+Black-Scholes now uses the persistent 1,000-row contract documented in
+`independent-price-validation-pipeline.md`. Migrate the remaining equity models
+one family at a time to the same architecture:
 
-The target policy is unambiguous:
+- independently reference both the 900-row core and 100-row stress regimes;
+- persist prices, standard errors, semantic fingerprints, backend versions,
+  row provenance, tolerances, and verification under
+  `validation/datasets/price/equity`;
+- preserve the Premia, QuantLib specialized, QuantLib Monte Carlo hierarchy and
+  fall through only on technical row failures;
+- use proven continuous/discrete relations where applicable and explain every
+  accepted systematic bias;
+- replace adjacent reports and notebooks with the compact YAML cache link;
+- make routine CTest cache-only and independent of Premia, Wine, and QuantLib.
 
-- certify only rows 1--900 (`core`) with external reference engines;
-- retain rows 901--1,000 (`stress`) in every dataset, but run only internal
-  robustness checks on them; stress never changes the public validation status;
-- publish a successful result as `900/900 core`, never as `1000/1000`, and use
-  the standard conclusion: "Dataset valide independamment sur son domaine
-  core. Les lignes stress testent la robustesse numerique et ne sont pas
-  couvertes par la certification externe.";
-- make the YAML status and `verified` flag depend exclusively on the core and
-  add the explicit scope `core (900 rows)`;
-- give the JSON report separate external-core and internal-stress sections, and
-  adapt the common notebook renderer, report fingerprinting, schema tests and
-  YAML synchronization together.
+Do not reuse stale legacy reports as reference prices. Regenerate each model
+after its backend mapping has been audited. Kou in particular has no generic
+QuantLib process, so products not covered by a reliable Premia method remain
+unverified until a genuinely independent reference is implemented.
 
-For every `(model, product)` pair, first rebuild the exhaustive Premia method
-inventory. Rank compatible methods globally on a fixed core pilot by contract
-fidelity, robustness and then runtime. Validate each core row through this
-strict hierarchy:
+## CIR++ model and CIR joint dynamics
 
-1. preferred Premia method;
-2. every other compatible Premia method, in declared order, but only after a
-   technical failure of the preceding method;
-3. specialized QuantLib pricer;
-4. independent QuantLib Monte Carlo when QuantLib exposes a simulable process;
-5. `none` when no independent engine produces a comparable price.
+The standalone CIR state dynamics, affine analytics, caplet/floorlet and
+zero-coupon-bond-option datasets are implemented. Complete the shifted CIR++
+form and the CIR joint rate/integral transition required by path-discounted
+products.
 
-A backend error, non-finite result, invalid standard error, documented domain
-violation or finite price violating a no-arbitrage bound is a technical engine
-failure. It must retain its row-level diagnostic and fall through; it never
-invalidates the CUDA price. A finite, financially admissible price outside the
-tolerance is a comparison failure. Other methods may diagnose it, but the
-pipeline must not cherry-pick the closest reference. A core row left without an
-independent reference is `unvalidated`, not `failed pricing`; nevertheless the
-dataset cannot be marked independently verified until all 900 core rows are
-objectively resolved.
-
-Resume the work model by model and product by product, with bounded per-engine
-timeouts and persisted progress so an interrupted slow Premia run does not
-discard completed reports. Regenerate stale reports after any repricing before
-publishing YAML or notebooks. In particular, the interrupted Kou experiment
-left a mixture of fresh and stale reports after its move to 1,048,576 paths;
-none of those partial artifacts should be treated as the completed migration.
-Kou has no generic QuantLib process, so products not covered by a reliable
-Premia method will remain explicitly unvalidated unless a genuinely independent
-reference is added.
-
-## CIR and CIR++ models
-
-Implement the Cox-Ingersoll-Ross short-rate model and its shifted CIR++ form.
-
-Use exact CIR transitions rather than reusing the Heston QE scheme. The
-noncentral chi-square transition can be generated through the Poisson-Gamma
-mixture already supported by the common random layer. Boundary-only products
-should draw one exact transition per required date; products requiring the
-integrated short rate or the complete path need a separately justified
-simulation strategy and finer time grid where exact joint sampling is not
-available.
+The implemented state transition uses the exact non-central-chi-square law via
+the common Poisson--Gamma sampler. Products requiring the integrated short
+rate or the complete path still need a separately justified simulation
+strategy and a finer time grid where exact joint sampling is not available.
 
 CIR++ must reuse the CIR stochastic factor and add only the deterministic shift
 needed to fit the initial term structure. Keep raw dynamics, curve fitting,

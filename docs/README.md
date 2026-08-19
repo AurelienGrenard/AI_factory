@@ -13,8 +13,8 @@ names describe both the subject and the role of each document; separate
   construction of ordered core and stress parameter rows and their YAML recipe.
 - [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md):
   mandatory model-product-aware Premia-to-QuantLib hierarchy, row-level
-  fallback, failure classification, core-only external certification, and
-  separate internal stress diagnostics.
+  fallback, failure classification, persistent reference datasets,
+  continuous/discrete bias handling, and cache-only publication checks.
 
 ## CUDA implementation contracts
 
@@ -31,14 +31,11 @@ names describe both the subject and the role of each document; separate
   common launch validation, CUDA error handling, resource inspection,
   theoretical occupancy, and diagnostics output.
 
-## Operations and financial derivations
+## Operations
 
 - [`website-protected-dataset-download-workflow.md`](website-protected-dataset-download-workflow.md):
   protected website download flow, Turnstile validation, temporary URLs, and
   server-side checks.
-- [`zero-coupon-bond-call-pricing-derivation.md`](zero-coupon-bond-call-pricing-derivation.md):
-  change-of-numeraire derivation of zero-coupon bond call prices under
-  standalone OU and fitted Hull-White models.
 
 ## Work tracking
 

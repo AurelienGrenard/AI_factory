@@ -14,6 +14,8 @@
 
 namespace ai_factory::workbench::bates {
 
+// ======================== Common equity dynamics =========================
+
 // Prepare coefficients that are constant across all paths of one result row.
 __device__ __forceinline__ BatesQeParameters prepare_model(
     const BatesModelParameters& parameters,
@@ -57,6 +59,8 @@ __device__ __forceinline__ BatesState initial_state(
     return heston::initial_state(model.heston);
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 // Add one already-sampled compound-Poisson increment to the log spot.
@@ -81,6 +85,8 @@ __device__ __forceinline__ void apply_jump_transition(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Apply one variance and log-spot update with the QE-M martingale correction.
 // Conditional on jump_count = n, the sum of n independent log jump sizes
@@ -109,6 +115,8 @@ __device__ __forceinline__ void one_step_transition(
         model, model.jump_compensator, jump_count, jump_normal, state
     );
 }
+
+// ==================== Model-specific implementation =======================
 
 namespace {
 
@@ -199,6 +207,8 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
 __device__ __forceinline__ BatesState simulate_terminal_state(

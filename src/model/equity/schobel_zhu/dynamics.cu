@@ -4,6 +4,8 @@
 
 namespace ai_factory::workbench::schobel_zhu {
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ SchobelZhuPreparedParameters prepare_model(
     const SchobelZhuModelParameters& parameters,
     float maturity,
@@ -88,6 +90,8 @@ __device__ __forceinline__ void one_step_transition(
         + model.ou_std * ou_normal;
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
@@ -127,6 +131,8 @@ __device__ __forceinline__ void simulate_steps(
 }
 
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ SchobelZhuState simulate_terminal_state(
     const SchobelZhuPreparedParameters& model,

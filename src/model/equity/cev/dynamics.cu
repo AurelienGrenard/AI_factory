@@ -4,6 +4,8 @@
 
 namespace ai_factory::workbench::cev {
 
+// ======================== Common equity dynamics =========================
+
 __device__ __forceinline__ CevPreparedParameters prepare_model(
     const CevModelParameters& p, float maturity, std::size_t num_steps
 ) {
@@ -44,6 +46,8 @@ __device__ __forceinline__ void one_step_transition(
     state.spot = fmaxf(proposal, 0.0f);
 }
 
+// ==================== Model-specific implementation =======================
+
 namespace {
 __device__ __forceinline__ void simulate_one_step(
     const CevPreparedParameters& model,
@@ -64,6 +68,8 @@ __device__ __forceinline__ void simulate_steps(
     }
 }
 }  // namespace
+
+// ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ CevState simulate_terminal_state(
     const CevPreparedParameters& model, philox::PhiloxKey key,
