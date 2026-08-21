@@ -79,6 +79,25 @@ reusable Jamshidian analytics are implemented. The common catalogue product,
 price datasets, independent validation, remaining model/curve combinations,
 and early-exercise launchers described below remain deferred.
 
+**URGENT -- independently certify the Ornstein-Uhlenbeck European swaption.**
+The OU implementation may be reused as the code template for other one-factor
+Jamshidian models, but it must not be treated as an independently verified
+price source until all of the following validation work is complete:
+
+- run the existing payer and receiver CUDA test on a supported target GPU so
+  it executes rather than returning the no-device skip code;
+- add payer/receiver parity checks against the time-zero forward-starting swap
+  value across representative core and stress rows;
+- audit every compatible Premia method for the exact physical-settlement
+  contract, then configure specialized QuantLib and QuantLib Monte Carlo
+  fallbacks according to the mandatory validation hierarchy;
+- generate and pass the persistent 900-row core and 100-row stress independent
+  reference dataset for both payer and receiver prices, including semantic
+  fingerprints, row provenance, backend versions, tolerances, and failure
+  diagnostics;
+- keep every swaption catalogue entry unverified until the complete cached
+  validation passes without hidden finite comparison failures.
+
 Implement a common swaption product definition covering the underlying swap,
 exercise schedule, settlement convention, payer/receiver side, strike, and
 notional.
