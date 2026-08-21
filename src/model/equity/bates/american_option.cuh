@@ -13,7 +13,7 @@ namespace ai_factory::workbench::bates {
 
 template<OptionSide Side>
 longstaff_schwartz::LaunchResult launch_bates_american_option_cuda(
-    const BatesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -21,7 +21,8 @@ longstaff_schwartz::LaunchResult launch_bates_american_option_cuda(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,

@@ -1,24 +1,25 @@
 // Forward-rate-option dataset row and host-side JSON loader.
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::product {
 
-// Compact FP32 caplet/floorlet contract transferred to CUDA.
+// Compact caplet/floorlet contract transferred to CUDA.
 struct RateOptionParameters {
     float notional;
     float strike;
-    float fixing_time;
-    float payment_time;
-    float accrual_period;
+    std::uint32_t fixing_time;
+    std::uint32_t payment_time;
+    std::uint32_t accrual_period;
 };
 
 static_assert(std::is_trivially_copyable_v<RateOptionParameters>);
 
-// Load every forward-rate-option row into one contiguous FP32 vector.
+// Load every forward-rate-option row into one contiguous vector.
 std::vector<RateOptionParameters> load_rate_options(
     const std::filesystem::path& dataset_path
 );

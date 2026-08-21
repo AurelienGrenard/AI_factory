@@ -41,9 +41,9 @@ std::vector<RateOptionParameters> load_rate_options(
         const RateOptionParameters product = {
             parameters.at("notional").get<float>(),
             parameters.at("strike").get<float>(),
-            parameters.at("fixing_time").get<float>(),
-            parameters.at("payment_time").get<float>(),
-            parameters.at("accrual_period").get<float>(),
+            parameters.at("fixing_time").get<std::uint32_t>(),
+            parameters.at("payment_time").get<std::uint32_t>(),
+            parameters.at("accrual_period").get<std::uint32_t>(),
         };
         const std::string prefix = "Rate option row id '" + row_id + "': ";
         if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
@@ -51,22 +51,28 @@ std::vector<RateOptionParameters> load_rate_options(
         // Negative strikes are valid for rate options in negative-rate regimes.
         if (!std::isfinite(product.strike))
             throw std::invalid_argument(prefix + "strike must be finite.");
-        if (!std::isfinite(product.fixing_time) || !(product.fixing_time > 0.0f))
-            throw std::invalid_argument(prefix + "fixing_time must be finite and positive.");
-        if (!std::isfinite(product.payment_time)
-            || !(product.payment_time > product.fixing_time)) {
+        if (product.fixing_time == 0U)
+            throw std::invalid_argument(prefix + "fixing_time must be positive.");
+        if (!(product.payment_time > product.fixing_time)) {
             throw std::invalid_argument(
-                prefix + "payment_time must be finite and above fixing_time."
+                prefix + "payment_time must be above fixing_time."
             );
         }
-        if (!std::isfinite(product.accrual_period)
-            || !(product.accrual_period > 0.0f)) {
+        if (product.accrual_period == 0U) {
             throw std::invalid_argument(
-                prefix + "accrual_period must be finite and positive."
+                prefix + "accrual_period must be positive."
             );
         }
+        if (product.payment_time - product.fixing_time
+            != product.accrual_period) {
+            throw std::invalid_argument(
+                prefix + "accrual_period must equal payment_time - fixing_time."
+            );
+        }
+        const float accrual_years =
+            static_cast<float>(product.accrual_period) / 252.0f;
         if (!(std::fma(
-                product.accrual_period, product.strike, 1.0f
+                accrual_years, product.strike, 1.0f
             ) > 0.0f)) {
             throw std::invalid_argument(
                 prefix + "1 + accrual_period * strike must be positive."

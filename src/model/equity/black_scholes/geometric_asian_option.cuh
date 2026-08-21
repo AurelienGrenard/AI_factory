@@ -11,7 +11,7 @@ namespace ai_factory::workbench::black_scholes {
 
 template<OptionSide Side>
 void launch_black_scholes_geometric_asian_option_cuda(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::GeometricAsianOptionParameters* device_products,
     std::size_t product_count,
@@ -19,7 +19,8 @@ void launch_black_scholes_geometric_asian_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices

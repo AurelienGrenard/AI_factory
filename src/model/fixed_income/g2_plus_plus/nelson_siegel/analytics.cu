@@ -15,7 +15,7 @@ namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
 
 // Compose the curve-independent process with the fitted initial curve.
 __device__ __forceinline__ G2PlusPlusFittedParameters compose_model(
-    const G2PlusPlusModelParameters& parameters,
+    const ModelParameters& parameters,
     const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
 ) {
     return {parameters.process, initial_curve};
@@ -47,7 +47,7 @@ __device__ __forceinline__ float short_rate_shift(
 // Add both Gaussian states to the deterministic curve shift.
 __device__ __forceinline__ float short_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float time
 ) {
     return state.state_x + state.state_y
@@ -94,7 +94,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     float valuation_time,
     float maturity
 ) {
-    const model::g2::G2IntegralMoments moments = model::g2::integral_moments(
+    const model::g2::IntegralMoments moments = model::g2::integral_moments(
         parameters.process, maturity - valuation_time
     );
     if (valuation_time == 0.0f) {
@@ -114,7 +114,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
 
 // Return the two-factor log-forward volatility of one bond option.
 __device__ __forceinline__ float bond_option_total_volatility(
-    const model::g2::G2ProcessParameters& parameters,
+    const model::g2::ProcessParameters& parameters,
     float time_to_expiry,
     float bond_tenor
 ) {
@@ -150,7 +150,7 @@ __device__ __forceinline__ float bond_option_total_volatility(
 // Price a call (+1) or put (-1) with one shared Black-style expression.
 __device__ __forceinline__ float zero_coupon_bond_option_price(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float option_sign,
     float valuation_time,
     float option_expiry,
@@ -235,7 +235,7 @@ __device__ __forceinline__ model::g2::G2BondLoadings B(
 // Evaluate log(A)-B_x*x-B_y*y from one grouped coefficient calculation.
 __device__ __forceinline__ float log_zero_coupon_bond(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float maturity
 ) {
@@ -275,7 +275,7 @@ __device__ __forceinline__ float discount_factor(
 // Price one zero-coupon from both conditional Gaussian states.
 __device__ __forceinline__ float zero_coupon_bond(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float maturity
 ) {
@@ -287,7 +287,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 // Apply the closed-form call formula to the conditional bond forward.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float option_expiry,
     float bond_maturity,
@@ -307,7 +307,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 // Apply the closed-form put formula to the conditional bond forward.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float option_expiry,
     float bond_maturity,
@@ -327,7 +327,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 // Build one simple forward rate from two conditional zero-coupons.
 __device__ __forceinline__ float forward_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float start_time,
     float end_time,
@@ -345,16 +345,16 @@ __device__ __forceinline__ float forward_rate(
 // Divide the conditional floating-leg value by the fixed-leg annuity.
 __device__ __forceinline__ float swap_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 ) {
     float annuity = 0.0f;
     float end_bond = 0.0f;
-    for (std::size_t payment = 0U; payment < payment_count; ++payment) {
+    for (std::uint32_t payment = 0U; payment < payment_count; ++payment) {
         const float current_bond = zero_coupon_bond(
             parameters, state, valuation_time, payment_times[payment]
         );

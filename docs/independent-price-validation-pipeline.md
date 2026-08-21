@@ -33,7 +33,7 @@ price.
 Source prices remain under:
 
 ```text
-datasets/price/<asset_class>/<model>/.../<database_id>.json
+datasets/model/<asset_class>/<model>/prices/.../<database_id>.json
 ```
 
 Independent prices use the same relative hierarchy under:
@@ -64,7 +64,7 @@ The top-level identity mirrors the source dataset:
 ```json
 {
   "database_id": "...",
-  "catalog": "catalog/price/...",
+  "catalog": "catalog/model/<asset_class>/<model>/prices/...",
   "url": "https://datasets.ai-factory.example/v1/validation/price/...json",
   "row_count": 1000,
   "model_dataset": {"id": "...", "catalog": "...", "url": "..."},
@@ -242,7 +242,7 @@ Routine validation is cache-only. For example:
 
 ```bash
 python -m validation.model.equity.black_scholes.european_call \
-  datasets/price/equity/black_scholes/european_calls/black_scholes_01__european_calls_01__01.json \
+  datasets/model/equity/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01.json \
   validation/datasets/price/equity/black_scholes/european_calls/black_scholes_01__european_calls_01__01.json \
   --require-verified
 ```

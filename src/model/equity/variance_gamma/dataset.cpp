@@ -10,7 +10,7 @@
 
 namespace ai_factory::workbench::variance_gamma {
 
-std::vector<VarianceGammaModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -32,12 +32,12 @@ std::vector<VarianceGammaModelParameters> load_models(
 
     datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
-    std::vector<VarianceGammaModelParameters> models;
+    std::vector<ModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
-        const VarianceGammaModelParameters model = {
+        const ModelParameters model = {
             parameters.at("spot").get<float>(),
             parameters.at("risk_free_rate").get<float>(),
             parameters.at("dividend_yield").get<float>(),

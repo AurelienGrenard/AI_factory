@@ -42,8 +42,8 @@ std::vector<ZeroCouponBondOptionParameters> load_zero_coupon_bond_options(
         const ZeroCouponBondOptionParameters product = {
             parameters.at("notional").get<float>(),
             parameters.at("strike").get<float>(),
-            parameters.at("option_expiry").get<float>(),
-            parameters.at("bond_maturity").get<float>(),
+            parameters.at("option_expiry").get<std::uint32_t>(),
+            parameters.at("bond_maturity").get<std::uint32_t>(),
         };
         const std::string prefix =
             "Zero-coupon bond call row id '" + row_id + "': ";
@@ -51,16 +51,14 @@ std::vector<ZeroCouponBondOptionParameters> load_zero_coupon_bond_options(
             throw std::invalid_argument(prefix + "notional must be finite and positive.");
         if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
             throw std::invalid_argument(prefix + "strike must be finite and positive.");
-        if (!std::isfinite(product.option_expiry)
-            || !(product.option_expiry > 0.0f)) {
+        if (product.option_expiry == 0U) {
             throw std::invalid_argument(
-                prefix + "option_expiry must be finite and positive."
+                prefix + "option_expiry must be positive."
             );
         }
-        if (!std::isfinite(product.bond_maturity)
-            || !(product.bond_maturity > product.option_expiry)) {
+        if (!(product.bond_maturity > product.option_expiry)) {
             throw std::invalid_argument(
-                prefix + "bond_maturity must be finite and above option_expiry."
+                prefix + "bond_maturity must be above option_expiry."
             );
         }
         products.push_back(product);

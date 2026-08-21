@@ -35,27 +35,26 @@ std::vector<AmericanOptionParameters> load_american_options(
     const auto& rows = document.at("products");
     std::vector<AmericanOptionParameters> products;
     products.reserve(rows.size());
-    // Retain only the three FP32 fields required by pricing.
+    // Retain only the three fields required by pricing.
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const AmericanOptionParameters product = {
             parameters.at("strike").get<float>(),
-            parameters.at("maturity").get<float>(),
-            parameters.at("exercise_interval").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
+            parameters.at("exercise_interval").get<std::uint32_t>(),
         };
         const std::string prefix =
             "American option row id '" + row_id + "': ";
         if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
             throw std::invalid_argument(prefix + "strike must be finite and positive.");
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
-        if (!std::isfinite(product.exercise_interval)
-            || !(product.exercise_interval > 0.0f)
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
+        if (product.exercise_interval == 0U
             || !(product.exercise_interval < product.maturity)) {
             throw std::invalid_argument(
                 prefix
-                + "exercise_interval must be finite, positive, and below maturity."
+                + "exercise_interval must be positive and below maturity."
             );
         }
         products.push_back(product);

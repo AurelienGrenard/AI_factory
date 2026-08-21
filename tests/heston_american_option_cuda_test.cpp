@@ -18,7 +18,8 @@ constexpr std::size_t kRowCount = 4U;
 constexpr std::size_t kPathsPerPrice = 4'096U;
 constexpr unsigned int kThreadsPerBlock = 256U;
 constexpr std::size_t kBlocksPerPrice = 16U;
-constexpr float kTargetDt = 1.0f / 252.0f;
+constexpr float kDt = 1.0f / 504.0f;
+constexpr std::uint32_t kSimulationStepsPerDay = 2U;
 constexpr std::uint64_t kSeed = 900000001ULL;
 
 void require(bool condition, const char* message) {
@@ -26,7 +27,7 @@ void require(bool condition, const char* message) {
 }
 
 struct DeviceArrays {
-    ai_factory::workbench::heston::HestonModelParameters* models = nullptr;
+    ai_factory::workbench::heston::ModelParameters* models = nullptr;
     ai_factory::workbench::product::AmericanOptionParameters* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
@@ -60,7 +61,8 @@ ai_factory::workbench::longstaff_schwartz::LaunchResult price_once(
             false,
             kRowCount,
             kPathsPerPrice,
-            kTargetDt,
+            kDt,
+            kSimulationStepsPerDay,
             kThreadsPerBlock,
             kBlocksPerPrice,
             kSeed,
@@ -92,7 +94,7 @@ template<OptionSide Side>
 void validate_side(
     const DeviceArrays& device,
     const std::vector<
-        ai_factory::workbench::heston::HestonModelParameters
+        ai_factory::workbench::heston::ModelParameters
     >& models,
     const std::vector<
         ai_factory::workbench::product::AmericanOptionParameters
@@ -186,17 +188,17 @@ int main() {
     }
     check_cuda(availability, "test cudaGetDeviceCount");
 
-    const std::vector<heston::HestonModelParameters> models = {
+    const std::vector<heston::ModelParameters> models = {
         {1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f},
         {1.0f, 0.03f, 0.00f, 0.06f, 2.0f, 0.05f, 0.40f, -0.60f},
         {1.0f, 0.01f, 0.02f, 0.03f, 1.0f, 0.06f, 0.25f, -0.50f},
         {1.0f, 0.04f, 0.01f, 0.08f, 2.5f, 0.07f, 0.50f, -0.40f},
     };
     const std::vector<product::AmericanOptionParameters> products = {
-        {0.90f, 0.50f, 1.0f / 12.0f},
-        {1.00f, 1.00f, 1.0f / 12.0f},
-        {1.10f, 1.50f, 1.0f / 24.0f},
-        {1.20f, 2.00f, 1.0f / 24.0f},
+        {0.90f, 126U, 21U},
+        {1.00f, 252U, 21U},
+        {1.10f, 378U, 10U},
+        {1.20f, 504U, 10U},
     };
 
     DeviceArrays device;

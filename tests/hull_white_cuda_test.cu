@@ -30,7 +30,7 @@ __global__ void hull_white_test_kernel(float* outputs) {
         0.02f,
         2.0f,
     };
-    const ai_factory::workbench::model::hull_white::HullWhiteModelParameters
+    const ai_factory::workbench::model::hull_white::ModelParameters
         model = {0.15f, 0.01f};
     constexpr float dt = 1.0f / 12.0f;
     constexpr float maturity = 5.0f;
@@ -38,17 +38,19 @@ __global__ void hull_white_test_kernel(float* outputs) {
     using namespace ai_factory::workbench;
     const fitted::HullWhiteFittedParameters prepared =
         fitted::compose_model(model, initial_curve);
-    const ou::OrnsteinUhlenbeckExactTransition step =
-        ou::prepare_model(prepared.process, dt);
-    const ou::joint::OrnsteinUhlenbeckJointExactTransition joint_step =
-        ou::joint::prepare_model(prepared.process, dt);
-    const ou::OrnsteinUhlenbeckExactTransition terminal_step =
-        ou::prepare_model(prepared.process, 12.0f * dt);
-    const ou::joint::OrnsteinUhlenbeckJointExactTransition
+    const ou::PreparedModel process_model =
+        ou::prepare_model(prepared.process);
+    const ou::PreparedTransition step =
+        ou::prepare_transition(process_model, dt);
+    const ou::joint::PreparedTransition joint_step =
+        ou::joint::prepare_transition(process_model, dt);
+    const ou::PreparedTransition terminal_step =
+        ou::prepare_transition(process_model, 12.0f * dt);
+    const ou::joint::PreparedTransition
         joint_terminal_step =
-            ou::joint::prepare_model(prepared.process, 12.0f * dt);
+            ou::joint::prepare_transition(process_model, 12.0f * dt);
     float state = 0.0f;
-    ou::joint::OrnsteinUhlenbeckJointState joint_state{0.0f, 0.0f};
+    ou::joint::State joint_state{0.0f, 0.0f};
 
     outputs[0] = curve::nelson_siegel::zero_rate(initial_curve, 0.0f);
     outputs[1] = initial_curve.beta0 + initial_curve.beta1;
@@ -72,17 +74,18 @@ __global__ void hull_white_test_kernel(float* outputs) {
     outputs[9] = fitted::short_rate(prepared, state, dt);
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
-    const ou::joint::OrnsteinUhlenbeckJointState terminal =
-        ou::joint::simulate_terminal_state(
-            joint_terminal_step, 0.0f, 0.25f, -0.75f
-        );
+    ou::joint::State terminal{0.0f, 0.0f};
+    ou::joint::one_step_transition(
+        joint_terminal_step, 0.25f, -0.75f, terminal
+    );
     outputs[10] = terminal.state;
     outputs[11] = terminal.state_integral;
 
     float observed_states[2] = {};
     float observed_integrated_states[2] = {};
-    const ou::joint::OrnsteinUhlenbeckJointState grid_terminal =
+    const ou::joint::State grid_terminal =
         ou::joint::simulate_on_regular_grid(
+            process_model,
             joint_step,
             joint_step,
             0.0f,
@@ -159,11 +162,12 @@ __global__ void hull_white_test_kernel(float* outputs) {
                 )
         );
 
-    const float simple_terminal =
-        ou::simulate_terminal_state(terminal_step, 0.0f, 0.5f);
+    float simple_terminal = 0.0f;
+    ou::one_step_transition(terminal_step, 0.5f, simple_terminal);
     float simple_observed_states[2] = {};
     const float simple_grid_terminal =
         ou::simulate_on_regular_grid(
+            process_model,
             step,
             step,
             0.0f,
@@ -178,12 +182,14 @@ __global__ void hull_white_test_kernel(float* outputs) {
     outputs[25] = simple_observed_states[1];
     outputs[26] = simple_grid_terminal;
 
-    const ou::OrnsteinUhlenbeckProcessParameters deterministic = {
+    const ou::ProcessParameters deterministic = {
         0.15f,
         0.0f,
     };
-    const ou::joint::OrnsteinUhlenbeckJointExactTransition deterministic_step =
-        ou::joint::prepare_model(deterministic, dt);
+    const ou::PreparedModel deterministic_model =
+        ou::prepare_model(deterministic);
+    const ou::joint::PreparedTransition deterministic_step =
+        ou::joint::prepare_transition(deterministic_model, dt);
     outputs[27] = deterministic_step.integral_state_normal_loading;
     outputs[28] = deterministic_step.integral_independent_standard_deviation;
     outputs[29] = ou::integral_state_loading(0.15f, 1.0f / 252.0f);

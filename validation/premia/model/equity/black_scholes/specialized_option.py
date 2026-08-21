@@ -32,7 +32,7 @@ from validation.premia.price_validation import (
 )
 
 
-_TARGET_DT = 1.0 / 360.0
+_TARGET_DT = 1.0 / 504.0
 SUPPORTED_PRODUCTS = frozenset(
     {
         "asian_call",

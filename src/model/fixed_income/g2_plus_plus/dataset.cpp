@@ -11,7 +11,7 @@
 namespace ai_factory::workbench::model::g2_plus_plus {
 
 // Parse and validate centered G2++ rows in their dataset order.
-std::vector<G2PlusPlusModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -32,12 +32,12 @@ std::vector<G2PlusPlusModelParameters> load_models(
 
     datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
-    std::vector<G2PlusPlusModelParameters> models;
+    std::vector<ModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& values = row.at("parameters");
-        const G2PlusPlusModelParameters model = {{
+        const ModelParameters model = {{
             values.at("mean_reversion_x").get<float>(),
             values.at("volatility_x").get<float>(),
             values.at("mean_reversion_y").get<float>(),

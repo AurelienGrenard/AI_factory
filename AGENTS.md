@@ -17,7 +17,7 @@
   `docs/cuda-launch-validation-and-kernel-diagnostics.md`.
 - For model simulation work, read `docs/cuda-model-dynamics-contract.md` before
   changing a `dynamics.cuh/.cu` interface or its Philox consumption.
-- For model or product generation work, read
+- For model-parameter or product generation work, read
   `docs/model-and-product-parameter-dataset-generation.md` and preserve its
   ordered 90/10 policy and complete adjacent YAML recipe.
 - Inspect the Git status first and preserve unrelated or pre-existing changes.
@@ -34,7 +34,10 @@
 - `src/model/<asset_class>/<model>`: model dynamics, analytics, datasets, and pricing kernels (`asset_class` is `equity` or `fixed_income`).
 - `src/curve/<curve>`: curve datasets and term-structure analytics.
 - `src/product/<product>`: product parameter rows and JSON loaders.
-- `catalog`: product, model, curve, and price dataset recipes and generators.
+- `src/generative`: method-neutral generative-model source code.
+- `catalog/model/<asset_class>/<model>`: model-owned `parameters`, `samples`,
+  and `prices` recipes and generators.
+- `catalog/curve` and `catalog/product`: curve and product recipes.
 - `tests`: CPU/CUDA tests and performance benchmarks.
 - `validation/model`: one unified validation pipeline per model/product pair,
   with an intermediate curve folder when the pricing contract uses one;
@@ -77,9 +80,11 @@
 
 ## Numerical reproducibility
 
-- Interpret catalogue times with `Actual/360`. Use `target_dt = 1 / 360` only
-  for genuinely discretized or daily-observed grids; exact transitions and
-  contractual observation dates must not receive artificial sub-steps.
+- For a discretized dataset, declare `time_grid.steps_per_year` globally and
+  derive the fixed transition `dt = 1 / steps_per_year`. Store calendars as
+  integer step counts; do not repeat the convention in every row. Exact
+  transitions and contractual observation dates must not receive artificial
+  sub-steps.
 - Never enable CUDA fast math (`--use_fast_math`). The build intentionally
   exposes no fast-math option.
 - Do not add `__launch_bounds__` without an explicitly approved,

@@ -1,9 +1,9 @@
 # AI Factory
 
-AI Factory is a C++/CUDA library for quantitative pricing and price dataset
-generation. The repository tracks source code, reproducible generation
-recipes, and YAML catalog entries. Complete datasets are kept locally or
-published to external storage.
+AI Factory is a C++/CUDA library for quantitative pricing, model simulation,
+and dataset generation. The repository tracks source code, reproducible
+generation recipes, and YAML catalog entries. Complete datasets are kept
+locally or published to external storage.
 
 ## Project Structure
 
@@ -39,6 +39,7 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
 - `src/model/<asset_class>/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels, split between `equity` and `fixed_income`;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
+- `src/generative`: reserved for method-neutral generative-model tooling.
 
 Each model, curve, or product uses `dataset.hpp/.cpp` for its compact row and
 host loader. CUDA declarations and implementations retain descriptive names
@@ -96,22 +97,26 @@ catalog/
 |-- curve/<curve>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-|-- model/<asset_class>/<model>/<dataset_id>/
-|   |-- dataset.yaml
-|   `-- generator.cpp
+|-- model/<asset_class>/<model>/
+|   |-- parameters/<dataset_id>/
+|   |   |-- dataset.yaml
+|   |   `-- generator.cpp
+|   |-- samples/<dataset_id>/
+|   |   |-- dataset.yaml
+|   |   `-- generator.cpp
+|   `-- prices/[<curve>/]<product>/<dataset_id>/
+|       |-- dataset.yaml
+|       `-- generator.cpp
 |-- product/equity/<product>/<dataset_id>/
 |-- product/fixed_income/<product>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-`-- price/<asset_class>/<model>/[<curve>/]<product>/<dataset_id>/
-    |-- dataset.yaml
-    `-- generator.cpp
 ```
 
-`generator.cpp` is the executable recipe. Curve, model, and product generators
-define parameter bounds and grids; price generators load complete input
-datasets and run the CUDA pricer. The adjacent `dataset.yaml` records the
-resulting metadata.
+`generator.cpp` is the executable recipe. Curve, model-parameter, and product
+generators define parameter bounds and grids; sample generators simulate model
+states; price generators load complete input datasets and run the CUDA pricer.
+The adjacent `dataset.yaml` records the resulting metadata.
 
 Every `dataset.yaml` exposes only two locations:
 
@@ -131,26 +136,31 @@ must be replaced with the final data server URLs.
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- curve/svensson/svensson_01.json
-|-- model/equity/heston/heston_01.json
-|-- model/fixed_income/g2/g2_01.json
-|-- model/fixed_income/g2_plus_plus/g2_plus_plus_01.json
-|-- model/fixed_income/hull_white/hull_white_01.json
-|-- model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01.json
-|-- model/fixed_income/vasicek/vasicek_01.json
-|-- model/fixed_income/cir/cir_01.json
+|-- model/equity/heston/parameters/heston_01.json
+|-- model/equity/heston/samples/<sample_dataset_id>.json
+|-- model/equity/heston/prices/<product>/<price_dataset_id>.json
+|-- model/fixed_income/g2/parameters/g2_01.json
+|-- model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
+|-- model/fixed_income/hull_white/parameters/hull_white_01.json
+|-- model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json
+|-- model/fixed_income/vasicek/parameters/vasicek_01.json
+|-- model/fixed_income/cir/parameters/cir_01.json
+|-- model/fixed_income/g2/prices/<product>/<price_dataset_id>.json
+|-- model/fixed_income/g2_plus_plus/prices/<curve>/<product>/<price_dataset_id>.json
+|-- model/fixed_income/hull_white/prices/<curve>/<product>/<price_dataset_id>.json
 |-- product/equity/european_options/european_options_01.json
 |-- product/equity/american_options/american_options_01.json
-|-- product/fixed_income/rate_options/rate_options_01.json
-|-- price/equity/heston/<product>/<price_dataset_id>.json
-|-- price/fixed_income/g2/<product>/<price_dataset_id>.json
-|-- price/fixed_income/g2_plus_plus/<curve>/<product>/<price_dataset_id>.json
-|-- price/fixed_income/ornstein_uhlenbeck/<product>/<price_dataset_id>.json
-|-- price/fixed_income/vasicek/<product>/<price_dataset_id>.json
-`-- price/fixed_income/hull_white/<curve>/<product>/<price_dataset_id>.json
+`-- product/fixed_income/rate_options/rate_options_01.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
-downloaded from the `url` declared in the catalog.
+downloaded from the `url` declared in the catalog. Generative-training sample
+datasets will likewise remain outside Git. This change provides their common
+and model-specific CUDA sampling kernels, but deliberately publishes no 3M-row
+sample recipe yet. Product calendars are stored as integer business-day counts
+under a 252-day year convention. Discretized price datasets use two simulation
+steps per business day, hence `dt = 1 / 504`; exact-transition models prepare a
+transition over the requested interval without artificial intermediate steps.
 
 ## Curves And Short Rates
 
@@ -253,8 +263,8 @@ that inspect every numerical step retain the pathwise one-jump-draw-per-step
 transition.
 
 Variance-Gamma and Normal-Inverse-Gaussian use exact Lévy increments. Terminal,
-two-time, scheduled-observation, and exercise-grid simulations draw directly
-over their requested intervals without an artificial daily `target_dt`.
+calendar, and regular-observation simulations draw directly over their
+requested intervals without an artificial daily `target_dt`.
 Products that truly monitor a path still use exact increments on each monitored
 step. VG samples its Gamma clock with Marsaglia-Tsang; NIG samples its
 inverse-Gaussian clock with Michael-Schucany-Haas. Both use the same single
@@ -292,8 +302,8 @@ The `heston_01` catalog entry begins as follows:
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-catalog: "catalog/model/equity/heston/heston_01"
-url: "https://datasets.ai-factory.example/v1/model/equity/heston/heston_01.json"
+catalog: "catalog/model/equity/heston/parameters/heston_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
 row_count: 1000
 ```
 
@@ -358,13 +368,13 @@ input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
-catalog: "catalog/price/equity/heston/european_calls/heston_01__european_calls_01__01"
+catalog: "catalog/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01"
 url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
 row_count: 1000
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/equity/heston/heston_01"
-  url: "https://datasets.ai-factory.example/v1/model/equity/heston/heston_01.json"
+  catalog: "catalog/model/equity/heston/parameters/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
 product_dataset:
   id: "european_options_01"
   catalog: "catalog/product/equity/european_options/european_options_01"

@@ -9,104 +9,122 @@
 
 namespace ai_factory::workbench::kou {
 
-struct KouPreparedParameters {
+struct PreparedModel {
     float initial_log_spot;
-    float drift_dt;
-    float diffusion_std;
-    float poisson_mean;
-    float zero_jump_probability;
+    float drift_rate;
+    float volatility;
+    float jump_intensity;
     float up_probability;
     float inverse_positive_jump_rate;
     float inverse_negative_jump_rate;
 };
-struct KouState {
+
+struct PreparedTransition {
+    float drift;
+    float diffusion_standard_deviation;
+    float poisson_mean;
+    float zero_jump_probability;
+};
+
+static_assert(sizeof(PreparedTransition) == 4U * sizeof(float));
+
+struct State {
     float log_spot;
 };
 
-struct KouMeanPathResult {
+struct MeanPathResult {
     float arithmetic_mean;
 };
 
-struct KouGeometricMeanPathResult {
+struct GeometricMeanPathResult {
     float geometric_mean;
 };
 
-struct KouTwoTimePathResult {
-    float first_spot;
-    float terminal_spot;
-};
-
-struct KouMaximumPathResult {
+struct MaximumPathResult {
     float maximum_spot;
 };
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ KouPreparedParameters prepare_model(
-    const KouModelParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters
 );
 
-__device__ __forceinline__ KouPreparedParameters prepare_model(
-    const KouModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
 );
 
-__device__ __forceinline__ KouState initial_state(
-    const KouPreparedParameters& model
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const KouPreparedParameters& model,
+    const PreparedTransition& transition,
     float diffusion_normal,
     float jump_log_sum,
-    KouState& state
+    State& state
 );
 
-__device__ __forceinline__ KouState simulate_terminal_state(
-    const KouPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path
 );
 
-__device__ __forceinline__ KouMeanPathResult simulate_mean_state(
-    const KouPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ KouGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const KouPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ KouTwoTimePathResult simulate_at_two_times(
-    const KouPreparedParameters& first_model,
-    const KouPreparedParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-__device__ __forceinline__ KouMaximumPathResult simulate_maximum_state(
-    const KouPreparedParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ KouState simulate_on_regular_grid(
-    const KouPreparedParameters& initial_stub_model,
-    const KouPreparedParameters& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    std::uint32_t observation_count,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
-    float* observed_spots
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
 );
 
 }  // namespace ai_factory::workbench::kou

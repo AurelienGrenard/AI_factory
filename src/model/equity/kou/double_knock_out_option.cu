@@ -22,30 +22,36 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    KouPreparedParameters model;
+    PreparedModel model;
+    PreparedTransition transition;
     philox::PhiloxKey key;
     float strike;
     float lower_barrier;
     float upper_barrier;
     float discount;
-    std::size_t num_steps;
+    std::uint32_t num_steps;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const KouModelParameters& model,
+    const ModelParameters& model,
     const product::DoubleKnockOutOptionParameters& product,
-    std::size_t num_steps,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t seed
 ) {
-    const float maturity = product.maturity;
+    const std::uint32_t num_steps =
+        simulation_steps_per_day * product.maturity;
+    const float maturity_years = static_cast<float>(num_steps) * dt;
+    const PreparedModel prepared_model = prepare_model(model);
     return {
-        prepare_model(model, maturity, num_steps),
+        prepared_model,
+        prepare_transition(prepared_model, dt),
         philox::make_key(seed),
         product.strike,
         product.lower_barrier,
         product.upper_barrier,
-        expf(-model.risk_free_rate * maturity),
+        expf(-model.risk_free_rate * maturity_years),
         num_steps,
     };
 }
@@ -56,7 +62,7 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    KouState state = initial_state(row.model);
+    State state = initial_state(row.model);
     float terminal_spot = expf(state.log_spot);
     if (terminal_spot <= row.lower_barrier
         || terminal_spot >= row.upper_barrier) return 0.0f;
@@ -65,10 +71,12 @@ __device__ __forceinline__ float evaluate_path(
         row.key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < row.num_steps;
         ++step_index) {
-        simulate_one_step(row.model, uniforms, normal_cache, state);
+        simulate_one_step(
+            row.model, row.transition, uniforms, normal_cache, state
+        );
         terminal_spot = expf(state.log_spot);
         if (terminal_spot <= row.lower_barrier
             || terminal_spot >= row.upper_barrier) return 0.0f;
@@ -82,14 +90,15 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 template<OptionSide Side>
 __global__ void kou_double_knock_out_option_kernel(
-    const KouModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::DoubleKnockOutOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -110,13 +119,11 @@ __global__ void kou_double_knock_out_option_kernel(
             const std::size_t product_index = indices.product_index;
             const product::DoubleKnockOutOptionParameters product =
                 products[product_index];
-            const std::size_t num_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
-            );
             prepared = prepare_row(
                 models[model_index],
                 product,
-                num_steps,
+                dt,
+                simulation_steps_per_day,
                 base_seed + result_index
             );
         }
@@ -157,7 +164,7 @@ __global__ void kou_double_knock_out_option_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_kou_double_knock_out_option_launch(
-    const KouModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::DoubleKnockOutOptionParameters* device_products,
     std::size_t product_count,
@@ -166,7 +173,8 @@ void validate_kou_double_knock_out_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -193,8 +201,9 @@ void validate_kou_double_knock_out_option_launch(
 
     // Monte Carlo paths and the requested simulation step must be valid.
     validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
+        monte_carlo_paths_per_price, dt
     );
+    validate_simulation_steps_per_day(simulation_steps_per_day);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -212,7 +221,7 @@ void validate_kou_double_knock_out_option_launch(
 // Validate and launch the pricing kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_kou_double_knock_out_option_cuda(
-    const KouModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::DoubleKnockOutOptionParameters* device_products,
     std::size_t product_count,
@@ -221,7 +230,8 @@ void launch_kou_double_knock_out_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -238,7 +248,8 @@ void launch_kou_double_knock_out_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         threads_per_block,
         block_count,
         base_seed,
@@ -288,7 +299,8 @@ void launch_kou_double_knock_out_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         base_seed,
         device_prices,
         device_standard_errors

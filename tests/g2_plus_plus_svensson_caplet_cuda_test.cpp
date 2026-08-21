@@ -11,6 +11,8 @@
 
 namespace {
 
+constexpr double kDayFraction = 1.0 / 252.0;
+
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
@@ -33,14 +35,14 @@ double zero_rate(
 
 // Price one caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::g2_plus_plus::G2PlusPlusModelParameters& model,
+    const ai_factory::workbench::model::g2_plus_plus::ModelParameters& model,
     const ai_factory::workbench::curve::svensson::SvenssonParameters& curve,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion_x;
     const double b = model.process.mean_reversion_y;
-    const double t1 = product.fixing_time;
-    const double t2 = product.payment_time;
+    const double t1 = product.fixing_time * kDayFraction;
+    const double t2 = product.payment_time * kDayFraction;
     const double p01 = std::exp(-t1 * zero_rate(curve, t1));
     const double p02 = std::exp(-t2 * zero_rate(curve, t2));
     const double loading_x = -std::expm1(-a * (t2 - t1)) / a;
@@ -60,7 +62,7 @@ double caplet_price(
         + 2.0 * loading_x * loading_y * covariance
     );
     const double strike_factor =
-        1.0 + product.accrual_period * product.strike;
+        1.0 + product.accrual_period * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     const double d1 =
         std::log(p02 / (bond_strike * p01)) / volatility
@@ -90,7 +92,7 @@ int main() {
     }
     check_cuda(availability, "caplet test cudaGetDeviceCount");
 
-    const std::vector<model::g2_plus_plus::G2PlusPlusModelParameters> models = {
+    const std::vector<model::g2_plus_plus::ModelParameters> models = {
         {{0.10f, 0.01f, 0.60f, 0.008f, -0.40f}},
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}},
         {{0.50f, 0.02f, 1.10f, 0.012f, -0.10f}},
@@ -101,13 +103,13 @@ int main() {
         {0.025f, 0.005f, -0.01f, 0.02f, 3.0f, 10.0f},
     };
     const std::vector<product::RateOptionParameters> products = {
-        {1.0f, 0.02f, 0.5f, 1.0f, 0.5f},
-        {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
-        {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
+        {1.0f, 0.02f, 126U, 252U, 126U},
+        {1.0f, 0.04f, 252U, 378U, 126U},
+        {1.0f, 0.06f, 504U, 567U, 63U},
     };
     constexpr std::size_t row_count = 3U;
 
-    model::g2_plus_plus::G2PlusPlusModelParameters* device_models = nullptr;
+    model::g2_plus_plus::ModelParameters* device_models = nullptr;
     curve::svensson::SvenssonParameters* device_curves = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -168,6 +170,7 @@ int main() {
                 row_count,
                 0U,
                 row_count,
+                static_cast<float>(kDayFraction),
                 32U,
                 1U,
                 device_prices

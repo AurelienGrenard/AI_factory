@@ -4,7 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/result_index.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/longstaff_schwartz/basis.cu"
+#include "common/longstaff_schwartz/laguerre.cuh"
 #include "common/longstaff_schwartz/exercise_schedule.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/longstaff_schwartz/regression.cu"
@@ -50,8 +50,7 @@ __device__ __forceinline__ float immediate_payoff(float spot, float strike) {
 
 // Prepared model, schedule, and memory location for one batch price.
 struct PreparedRow {
-    HestonQeParameters initial_stub_model;
-    HestonQeParameters regular_model;
+    PreparedModel model;
     philox::PhiloxKey key;
     std::size_t result_index;
     std::size_t state_offset;
@@ -67,7 +66,7 @@ struct PreparedRow {
 };
 
 // Name the two model-specific state regions returned by the generic layout.
-struct HestonStateRegions {
+struct StateRegions {
     lsm::WorkspaceRegion spots;
     lsm::WorkspaceRegion variances;
 };
@@ -85,7 +84,7 @@ lsm::WorkspaceDescriptor workspace_descriptor() {
     };
 }
 
-HestonStateRegions heston_state_regions(const lsm::WorkspaceLayout& layout) {
+StateRegions state_regions(const lsm::WorkspaceLayout& layout) {
     if (layout.state_fields.size() != 2U) {
         throw std::logic_error("Heston American options require two state fields.");
     }
@@ -127,12 +126,13 @@ std::vector<lsm::EarlyExerciseRowPlan> make_row_plans(
 
 // Prepare each batch row once before thousands of path blocks consume it.
 __global__ void prepare_rows_kernel(
-    const HestonModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::AmericanOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t batch_size,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t base_seed,
     std::size_t result_offset,
     const std::uint32_t* __restrict__ exercise_counts,
@@ -150,25 +150,23 @@ __global__ void prepare_rows_kernel(
         );
     const std::size_t model_index = indices.model_index;
     const std::size_t product_index = indices.product_index;
-    const HestonModelParameters model = models[model_index];
+    const ModelParameters model = models[model_index];
     const product::AmericanOptionParameters product = products[product_index];
     const std::uint32_t row_exercise_count =
         exercise_counts[batch_price];
-    const float first_exercise_time = fmaf(
-        -static_cast<float>(row_exercise_count - 1U),
-        product.exercise_interval,
-        product.maturity
-    );
-    const std::uint32_t initial_stub_steps = static_cast<std::uint32_t>(
-        fmaxf(1.0f, ceilf(first_exercise_time / target_dt))
-    );
-    const std::uint32_t steps_per_exercise = static_cast<std::uint32_t>(
-        fmaxf(1.0f, ceilf(product.exercise_interval / target_dt))
-    );
+    const std::uint32_t first_exercise_days = product.maturity
+        - (row_exercise_count - 1U) * product.exercise_interval;
+    const std::uint32_t initial_stub_steps =
+        simulation_steps_per_day * first_exercise_days;
+    const std::uint32_t steps_per_exercise =
+        simulation_steps_per_day * product.exercise_interval;
+    const float exercise_interval_years =
+        static_cast<float>(steps_per_exercise) * dt;
+    const float first_exercise_years =
+        static_cast<float>(initial_stub_steps) * dt;
 
     prepared_rows[batch_price] = {
-        prepare_model(model, first_exercise_time, initial_stub_steps),
-        prepare_model(model, product.exercise_interval, steps_per_exercise),
+        prepare_model(model, dt),
         philox::make_key(base_seed + result_index),
         result_index,
         state_offsets[batch_price],
@@ -176,8 +174,8 @@ __global__ void prepare_rows_kernel(
         model.spot,
         1.0f / product.strike,
         1.0f / model.theta,
-        expf(-model.risk_free_rate * product.exercise_interval),
-        expf(-model.risk_free_rate * first_exercise_time),
+        expf(-model.risk_free_rate * exercise_interval_years),
+        expf(-model.risk_free_rate * first_exercise_years),
         row_exercise_count,
         initial_stub_steps,
         steps_per_exercise,
@@ -210,17 +208,16 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        const HestonState terminal = simulate_on_regular_grid(
-            row.initial_stub_model,
-            row.regular_model,
+        const State terminal = simulate_on_regular_grid(
+            row.model,
             row.key,
             path,
             row.initial_stub_steps,
             row.steps_per_exercise,
             row.exercise_count,
             paths_per_price,
-            row_spots,
-            row_variances
+            row_spots + path,
+            row_variances + path
         );
         const float terminal_spot = expf(terminal.log_spot);
         row_cashflows[path] = immediate_payoff<Side>(terminal_spot, row.strike);
@@ -475,7 +472,7 @@ __global__ void finalize_prices_kernel(
 
 // Validate pointers, construction, Monte Carlo dimensions, and the 2D grid.
 void validate_heston_american_option_launch(
-    const HestonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -483,7 +480,8 @@ void validate_heston_american_option_launch(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -500,7 +498,8 @@ void validate_heston_american_option_launch(
     validate_model_product_construction(
         model_count, product_count, cartesian_product, result_count
     );
-    validate_monte_carlo_parameters(paths_per_price, target_dt);
+    validate_monte_carlo_parameters(paths_per_price, dt);
+    validate_simulation_steps_per_day(simulation_steps_per_day);
     validate_reduction_block_size(threads_per_block);
     validate_row_seed_range(result_count, base_seed);
 
@@ -525,7 +524,7 @@ void validate_heston_american_option_launch(
 // Price every row with one persistent workspace and memory-aware batches.
 template <OptionSide Side>
 lsm::LaunchResult launch_heston_american_option_cuda(
-    const HestonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -533,7 +532,8 @@ lsm::LaunchResult launch_heston_american_option_cuda(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -549,7 +549,8 @@ lsm::LaunchResult launch_heston_american_option_cuda(
         cartesian_product,
         result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         threads_per_block,
         blocks_per_price,
         base_seed,
@@ -630,7 +631,7 @@ lsm::LaunchResult launch_heston_american_option_cuda(
             launched_blocks_per_price,
             name
         );
-        const HestonStateRegions states = heston_state_regions(layout);
+        const StateRegions states = state_regions(layout);
         unsigned char* const device_workspace = resources.workspace();
         PreparedRow* const prepared_rows =
             lsm::workspace_pointer<PreparedRow>(
@@ -716,7 +717,8 @@ lsm::LaunchResult launch_heston_american_option_cuda(
                 product_count,
                 cartesian_product,
                 batch.result_count,
-                target_dt,
+                dt,
+                simulation_steps_per_day,
                 base_seed,
                 batch.result_offset,
                 device_exercise_counts,

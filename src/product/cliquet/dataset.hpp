@@ -1,6 +1,7 @@
 // Cliquet dataset row and host-side JSON loader.
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <type_traits>
 #include <vector>
@@ -9,8 +10,8 @@ namespace ai_factory::workbench::product {
 
 // Compact periodic-return terms transferred to the CUDA pricer.
 struct CliquetParameters {
-    float maturity;
-    float observation_interval;
+    std::uint32_t maturity;
+    std::uint32_t observation_interval;
     float participation_rate;
     float local_floor;
     float local_cap;
@@ -20,7 +21,7 @@ struct CliquetParameters {
 
 static_assert(std::is_trivially_copyable_v<CliquetParameters>);
 
-// Load every Cliquet row into one contiguous FP32 vector.
+// Load every Cliquet row into one contiguous vector.
 std::vector<CliquetParameters> load_cliquets(
     const std::filesystem::path& dataset_path
 );

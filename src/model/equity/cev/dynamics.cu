@@ -6,43 +6,45 @@ namespace ai_factory::workbench::cev {
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ CevPreparedParameters prepare_model(
-    const CevModelParameters& p, float maturity, std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters, float delta_t
 ) {
-    const float dt = maturity / static_cast<float>(num_steps);
     return {
-        p.spot,
-        (p.risk_free_rate - p.dividend_yield) * dt,
-        p.sigma * sqrtf(dt),
-        0.5f * p.sigma * p.sigma * p.beta * dt,
-        p.beta,
+        parameters.spot,
+        (parameters.risk_free_rate - parameters.dividend_yield) * delta_t,
+        parameters.sigma * sqrtf(delta_t),
+        0.5f * parameters.sigma * parameters.sigma * parameters.beta
+            * delta_t,
+        parameters.beta,
     };
 }
 
-__device__ __forceinline__ CevState initial_state(
-    const CevPreparedParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    return {model.initial_spot};
+    return {prepared_model.initial_spot};
 }
 
 // Milstein preserves the local-volatility derivative term. Zero is absorbing,
 // and a negative numerical proposal is projected to that attainable boundary.
 __device__ __forceinline__ void one_step_transition(
-    const CevPreparedParameters& model, float normal, CevState& state
+    const PreparedModel& prepared_model, float normal, State& state
 ) {
     const float spot = state.spot;
     if (!(spot > 0.0f)) {
         state.spot = 0.0f;
         return;
     }
-    const float spot_beta = powf(spot, model.beta);
+    const float spot_beta = powf(spot, prepared_model.beta);
     // Reuse S^beta instead of evaluating a second power function:
     // S^(2 beta - 1) = (S^beta)^2 / S while S is strictly positive.
     const float spot_milstein_power = spot_beta * spot_beta / spot;
     const float proposal = spot
-        + model.drift_dt * spot
-        + model.diffusion_scale * spot_beta * normal
-        + model.milstein_scale * spot_milstein_power * (normal * normal - 1.0f);
+        + prepared_model.drift_dt * spot
+        + prepared_model.diffusion_scale * spot_beta * normal
+        + prepared_model.milstein_scale * spot_milstein_power * (normal * normal - 1.0f);
     state.spot = fmaxf(proposal, 0.0f);
 }
 
@@ -50,65 +52,65 @@ __device__ __forceinline__ void one_step_transition(
 
 namespace {
 __device__ __forceinline__ void simulate_one_step(
-    const CevPreparedParameters& model,
+    const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normals,
-    CevState& state
-) { one_step_transition(model, philox::next_normal(uniforms, normals), state); }
+    State& state
+) { one_step_transition(prepared_model, philox::next_normal(uniforms, normals), state); }
 
 __device__ __forceinline__ void simulate_steps(
-    const CevPreparedParameters& model,
-    std::size_t num_steps,
+    const PreparedModel& prepared_model,
+    std::uint32_t num_steps,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normals,
-    CevState& state
+    State& state
 ) {
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
     }
 }
 }  // namespace
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ CevState simulate_terminal_state(
-    const CevPreparedParameters& model, philox::PhiloxKey key,
-    std::size_t path, std::size_t num_steps
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model, philox::PhiloxKey key,
+    std::size_t path, std::uint32_t num_steps
 ) {
-    CevState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
-    simulate_steps(model, num_steps, uniforms, normals, state);
+    simulate_steps(prepared_model, num_steps, uniforms, normals, state);
     return state;
 }
 
-__device__ __forceinline__ CevMeanPathResult simulate_mean_state(
-    const CevPreparedParameters& model, philox::PhiloxKey key,
-    std::size_t path, std::size_t num_steps
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model, philox::PhiloxKey key,
+    std::size_t path, std::uint32_t num_steps
 ) {
-    CevState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     double sum = state.spot;
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         sum += state.spot;
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {static_cast<float>(sum / observation_count)};
 }
 
-__device__ __forceinline__ CevGeometricMeanPathResult simulate_geometric_mean_state(
-    const CevPreparedParameters& model, philox::PhiloxKey key,
-    std::size_t path, std::size_t num_steps
+__device__ __forceinline__ GeometricMeanPathResult simulate_geometric_mean_state(
+    const PreparedModel& prepared_model, philox::PhiloxKey key,
+    std::size_t path, std::uint32_t num_steps
 ) {
-    CevState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     double sum = logf(state.spot);
     bool hit_zero = false;
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         hit_zero = hit_zero || !(state.spot > 0.0f);
         if (!hit_zero) {
             sum += logf(state.spot);
@@ -121,59 +123,92 @@ __device__ __forceinline__ CevGeometricMeanPathResult simulate_geometric_mean_st
     return {mean};
 }
 
-__device__ __forceinline__ CevTwoTimePathResult simulate_at_two_times(
-    const CevPreparedParameters& first, const CevPreparedParameters& second,
-    philox::PhiloxKey key, std::size_t path,
-    std::size_t first_num_steps, std::size_t second_num_steps
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model, philox::PhiloxKey key,
+    std::size_t path, std::uint32_t num_steps
 ) {
-    CevState state = initial_state(first);
-    philox::UniformSequence uniforms(key, path);
-    philox::NormalPairCache normals;
-    simulate_steps(first, first_num_steps, uniforms, normals, state);
-    const float first_spot = state.spot;
-    simulate_steps(second, second_num_steps, uniforms, normals, state);
-    return {first_spot, state.spot};
-}
-
-__device__ __forceinline__ CevMaximumPathResult simulate_maximum_state(
-    const CevPreparedParameters& model, philox::PhiloxKey key,
-    std::size_t path, std::size_t num_steps
-) {
-    CevState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     float maximum = state.spot;
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         maximum = fmaxf(maximum, state.spot);
     }
     return {maximum};
 }
 
-__device__ __forceinline__ CevState simulate_on_regular_grid(
-    const CevPreparedParameters& stub, const CevPreparedParameters& regular,
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key, std::size_t path,
-    std::uint32_t initial_stub_steps, std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count, std::size_t path_count,
-    float* observed_spots
+    std::uint32_t initial_stub_steps,
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
 ) {
-    CevState state = initial_state(stub);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
-    simulate_steps(stub, initial_stub_steps, uniforms, normals, state);
-    if (exercise_count == 1U) {
+    simulate_steps(
+        prepared_model, initial_stub_steps, uniforms, normals, state
+    );
+    if (observation_count == 1U) {
         return state;
     }
-    std::size_t output = path;
+    std::size_t output = 0U;
     observed_spots[output] = state.spot;
-    for (std::uint32_t exercise = 1U;
-         exercise + 1U < exercise_count;
-         ++exercise) {
-        simulate_steps(regular, steps_per_exercise, uniforms, normals, state);
-        output += path_count;
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_steps(
+            prepared_model,
+            steps_per_observation,
+            uniforms,
+            normals,
+            state
+        );
+        output += observation_stride;
         observed_spots[output] = state.spot;
     }
-    simulate_steps(regular, steps_per_exercise, uniforms, normals, state);
+    simulate_steps(
+        prepared_model,
+        steps_per_observation,
+        uniforms,
+        normals,
+        state
+    );
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+) {
+    State state = initial_state(prepared_model);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    std::size_t output = 0U;
+    for (std::uint32_t observation = 0U;
+         observation < observation_count;
+         ++observation) {
+        simulate_steps(
+            prepared_model,
+            steps_between_observations[observation],
+            uniforms,
+            normals,
+            state
+        );
+        if (observation + 1U < observation_count) {
+            observed_spots[output] = state.spot;
+            output += observation_stride;
+        }
+    }
     return state;
 }
 

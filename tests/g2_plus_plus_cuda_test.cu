@@ -21,7 +21,7 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
     namespace g2pp = ai_factory::workbench::model::g2_plus_plus;
     namespace fitted = g2pp::nelson_siegel;
 
-    const g2pp::G2PlusPlusModelParameters model = {{
+    const g2pp::ModelParameters model = {{
         0.15f, 0.01f, 0.70f, 0.008f, -0.40f
     }};
     const curve::NelsonSiegelParameters initial_curve = {
@@ -29,7 +29,7 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
     };
     const fitted::G2PlusPlusFittedParameters parameters =
         fitted::compose_model(model, initial_curve);
-    const ai_factory::workbench::model::g2::G2State state{0.0f, 0.0f};
+    const ai_factory::workbench::model::g2::State state{0.0f, 0.0f};
     constexpr float expiry = 1.0f;
     constexpr float maturity = 2.0f;
     constexpr float strike = 0.95f;
@@ -51,7 +51,7 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
     outputs[6] = outputs[4] - outputs[5]
         - (outputs[2] - strike * outputs[0]);
     outputs[7] = fitted::short_rate(parameters, state, 0.0f);
-    constexpr ai_factory::workbench::model::g2::G2State affine_state = {
+    constexpr ai_factory::workbench::model::g2::State affine_state = {
         0.01f, -0.005f
     };
     outputs[8] = fitted::A(parameters, expiry, maturity);

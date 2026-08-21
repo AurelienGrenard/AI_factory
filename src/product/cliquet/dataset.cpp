@@ -41,8 +41,8 @@ std::vector<CliquetParameters> load_cliquets(
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const CliquetParameters product = {
-            parameters.at("maturity").get<float>(),
-            parameters.at("observation_interval").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
+            parameters.at("observation_interval").get<std::uint32_t>(),
             parameters.at("participation_rate").get<float>(),
             parameters.at("local_floor").get<float>(),
             parameters.at("local_cap").get<float>(),
@@ -50,25 +50,18 @@ std::vector<CliquetParameters> load_cliquets(
             parameters.at("global_cap").get<float>(),
         };
         const std::string prefix = "Cliquet row id '" + row_id + "': ";
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
+        if (product.maturity == 0U)
             throw std::invalid_argument(
-                prefix + "maturity must be finite and positive."
+                prefix + "maturity must be a positive business-day count."
             );
-        if (!std::isfinite(product.observation_interval)
-            || !(product.observation_interval > 0.0f)
+        if (product.observation_interval == 0U
             || product.observation_interval > product.maturity) {
             throw std::invalid_argument(
-                prefix + "observation_interval must be finite, positive, "
+                prefix + "observation_interval must be positive "
                 "and at most maturity."
             );
         }
-        const float raw_count =
-            product.maturity / product.observation_interval;
-        const float nearest_count = roundf(raw_count);
-        const float tolerance =
-            32.0f * std::numeric_limits<float>::epsilon()
-            * std::max(raw_count, 1.0f);
-        if (fabsf(raw_count - nearest_count) > tolerance) {
+        if (product.maturity % product.observation_interval != 0U) {
             throw std::invalid_argument(
                 prefix + "maturity must be an integer multiple of "
                 "observation_interval."

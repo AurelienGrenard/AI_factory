@@ -19,17 +19,18 @@ __global__ void g2_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
     namespace g2 = ai_factory::workbench::model::g2;
 
-    const g2::G2ModelParameters parameters = {
+    const g2::ModelParameters parameters = {
         {0.15f, 0.01f, 0.70f, 0.008f, -0.40f},
         {0.02f, 0.01f},
     };
     constexpr float delta = 0.5f;
-    const g2::G2ExactTransition transition = g2::prepare_model(
-        parameters.process, delta
-    );
-    const g2::joint::G2JointExactTransition joint_transition =
-        g2::joint::prepare_model(parameters.process, delta);
-    const g2::G2IntegralMoments moments = g2::integral_moments(
+    const g2::PreparedModel prepared_model =
+        g2::prepare_model(parameters.process);
+    const g2::PreparedTransition transition =
+        g2::prepare_transition(prepared_model, delta);
+    const g2::joint::PreparedTransition joint_transition =
+        g2::joint::prepare_transition(prepared_model, delta);
+    const g2::IntegralMoments moments = g2::integral_moments(
         parameters.process, delta
     );
 
@@ -77,21 +78,23 @@ __global__ void g2_test_kernel(float* outputs) {
     outputs[11] = put;
     outputs[12] = call - put - (underlying_bond - strike * expiry_bond);
 
-    const g2::G2ProcessParameters deterministic = {
+    const g2::ProcessParameters deterministic = {
         0.15f, 0.0f, 0.70f, 0.0f, 0.0f
     };
-    const g2::G2ExactTransition deterministic_transition =
-        g2::prepare_model(deterministic, delta);
+    const g2::PreparedModel deterministic_model =
+        g2::prepare_model(deterministic);
+    const g2::PreparedTransition deterministic_transition =
+        g2::prepare_transition(deterministic_model, delta);
     outputs[13] = deterministic_transition.state_x_standard_deviation;
     outputs[14] = deterministic_transition.state_y_independent_standard_deviation;
-    const g2::joint::G2JointState terminal =
-        g2::joint::simulate_terminal_state(
-            joint_transition, parameters.initial_state, 0.2f, -0.3f, 0.5f
-        );
+    g2::joint::State terminal{parameters.initial_state, 0.0f};
+    g2::joint::one_step_transition(
+        joint_transition, 0.2f, -0.3f, 0.5f, terminal
+    );
     outputs[15] = terminal.state_integral;
 
     constexpr float small_delta = 1.0e-4f;
-    const g2::G2IntegralMoments small_moments = g2::integral_moments(
+    const g2::IntegralMoments small_moments = g2::integral_moments(
         parameters.process, small_delta
     );
     outputs[16] = small_moments.state_x_loading / small_delta;

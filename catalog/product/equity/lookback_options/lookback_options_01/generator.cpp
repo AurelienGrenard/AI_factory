@@ -19,10 +19,10 @@ int main() {
 
     constexpr float log_moneyness_slope = 0.25f;
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         log_moneyness_slope
     );
@@ -36,7 +36,7 @@ int main() {
         url,
         {
             {"strike", "Strike in normalized spot units."},
-            {"maturity", "Maturity in years."},
+            {"maturity", "Maturity in business days."},
         },
         {
             {"expression", "max(maximum(S_[0,T]) - K, 0)"},

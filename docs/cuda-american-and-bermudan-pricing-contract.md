@@ -29,14 +29,14 @@ produit. La spécialisation doit être résolue à la compilation.
 ### `PreparedRow`
 
 Structure privée contenant tous les éléments invariants d'un prix pendant un
-batch : modèles préparés pour le stub et l'intervalle régulier, clé aléatoire,
+batch : un modèle préparé pour le pas élémentaire, clé aléatoire,
 indices, offsets SoA, constantes produit, actualisations, nombre de dates et
 nombres de pas.
 
 Elle ne contient ni tableau dynamique ni pointeur propriétaire. Sa disposition
 est déclarée au planner par `workspace_descriptor()`.
 
-### `<Model>StateRegions`
+### `StateRegions`
 
 Vue nommée des `WorkspaceRegion` propres au modèle. Elle traduit les positions
 génériques de `WorkspaceLayout::state_fields` en noms lisibles tels que spot,
@@ -50,10 +50,10 @@ Fonction hôte privée qui retourne un `WorkspaceDescriptor` décrivant : taille
 et alignement de `PreparedRow`, liste des champs d'état SoA, taille de la base
 de régression et nombre de statistiques par équation normale.
 
-### `<model>_state_regions`
+### `state_regions`
 
 Fonction hôte privée qui valide le nombre de champs d'état du layout générique
-et construit la vue `<Model>StateRegions`. Une incohérence est une erreur de
+et construit la vue `StateRegions`. Une incohérence est une erreur de
 logique, pas une condition récupérable du pricing.
 
 ### `make_row_plans`
@@ -67,8 +67,9 @@ et débordements avant l'allocation GPU.
 
 Attribut : `__global__`.
 
-Un thread prépare une ligne : mapping modèle–courbe–produit, modèles numériques
-du stub et de l'intervalle régulier, seed, offsets, constantes et actualisations.
+Un thread prépare une ligne : mapping modèle–courbe–produit, transition
+élémentaire commune au stub et aux intervalles réguliers, seed, offsets,
+constantes et actualisations.
 Ce kernel ne simule aucun chemin.
 
 ### `simulate_paths_kernel<Side>`
@@ -159,7 +160,7 @@ Paramètres publics communs :
 | `host_products` | calendrier et stockage nécessaires au planning côté hôte |
 | `cartesian_product`, `result_count` | mapping aligné ou cartésien des résultats |
 | `monte_carlo_paths_per_price` | nombre de chemins et dimension des cashflows |
-| `target_dt` | pas cible du stub et des intervalles réguliers |
+| `dt` | durée fixe de la transition élémentaire du stub et des intervalles réguliers |
 | `threads_per_block` | taille commune des blocs CUDA |
 | `blocks_per_price` | parallélisme demandé pour les chemins d'un prix |
 | `base_seed` | origine de la clé `make_key(base_seed + result_index)` |
@@ -192,6 +193,8 @@ Paramètres publics communs :
 
 ### Base et régression
 
+- `longstaff_schwartz/laguerre.cuh` contient toute la base inline ; il n'existe
+  pas de paire `.cuh/.cu` distincte pour ces fonctions élémentaires.
 - `laguerre_0`, `laguerre_1`, `laguerre_2` évaluent les polynômes élémentaires.
 - `TwoFactorLaguerreBasis::evaluate` construit les valeurs de la base courante.
 - `TwoFactorLaguerreBasis::kSize` fixe le nombre de coefficients ;

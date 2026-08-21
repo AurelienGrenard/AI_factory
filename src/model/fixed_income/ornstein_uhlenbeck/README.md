@@ -12,6 +12,8 @@ ornstein_uhlenbeck/
 ├── dynamics.cu
 ├── analytics.cuh
 ├── analytics.cu
+├── european_swaption.cu
+├── european_swaption.cuh
 ├── rate_option.cu
 ├── rate_option.cuh
 ├── zero_coupon_bond_option.cu
@@ -248,7 +250,11 @@ The contractual rate $`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 
 **Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
-**Status:** Planned; the pricing launcher is not implemented.
+**Implementation:**
+`launch_ornstein_uhlenbeck_european_swaption_cuda<OptionSide::call>` prices
+the payer side and the `OptionSide::put` specialization prices the receiver
+side. The reusable Jamshidian boundary, bond strikes, swap value, and
+unit-notional payer/receiver formulas live in `analytics.cuh/.cu`.
 
 Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
 payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.

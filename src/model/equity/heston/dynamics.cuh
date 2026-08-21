@@ -12,7 +12,7 @@
 namespace ai_factory::workbench::heston {
 
 // Coefficients prepared once per result row and reused by every path.
-struct HestonQeParameters {
+struct PreparedModel {
     float initial_log_spot;
     float initial_variance;
     float theta;
@@ -29,109 +29,104 @@ struct HestonQeParameters {
 };
 
 // Evolving log-spot and variance private to one Monte Carlo path.
-struct HestonState {
+struct State {
     float log_spot;
     float variance;
 };
 
 // Arithmetic mean observed from time zero to maturity.
-struct HestonMeanPathResult {
+struct MeanPathResult {
     float arithmetic_mean;
 };
 
 // Geometric mean observed from time zero to maturity.
-struct HestonGeometricMeanPathResult {
+struct GeometricMeanPathResult {
     float geometric_mean;
 };
 
-// Spot values observed at two requested times without retaining latent state.
-struct HestonTwoTimePathResult {
-    float first_spot;
-    float terminal_spot;
-};
-
 // Maximum spot observed from time zero to maturity.
-struct HestonMaximumPathResult {
+struct MaximumPathResult {
     float maximum_spot;
 };
 
 // ======================== Common equity dynamics =========================
 
-// Precompute row- and time-step-dependent QE-M coefficients once per block.
-__device__ __forceinline__ HestonQeParameters prepare_model(
-    const HestonModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters,
+    float delta_t
 );
 
 // Construct the time-zero log-spot and variance state.
-__device__ __forceinline__ HestonState initial_state(
-    const HestonQeParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 );
 
 // Advance one path state by one Andersen QE-M time step.
 __device__ __forceinline__ void one_step_transition(
-    const HestonQeParameters& model,
+    const PreparedModel& prepared_model,
     float variance_normal,
     float variance_uniform,
     float stock_normal,
-    HestonState& state
+    State& state
 );
 
 // Simulate one complete path and return its terminal state.
-__device__ __forceinline__ HestonState simulate_terminal_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 // Simulate one path and average its spots from time zero to maturity in FP64.
-__device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 // Simulate one path and average its log-spots before one final exponential.
-__device__ __forceinline__ HestonGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const HestonQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
-);
-
-// Simulate two consecutive intervals and return the two boundary spots only.
-__device__ __forceinline__ HestonTwoTimePathResult simulate_at_two_times(
-    const HestonQeParameters& first_model,
-    const HestonQeParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::uint32_t num_steps
 );
 
 // Simulate one path and return its maximum monitored spot.
-__device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
-// Store exercise_count - 1 states; the maturity state is only returned.
-// Each date-major output needs (exercise_count - 1) * path_count values.
-__device__ __forceinline__ HestonState simulate_on_regular_grid(
-    const HestonQeParameters& initial_stub_model,
-    const HestonQeParameters& regular_model,
+// Output pointers address this path's first pre-terminal observation.
+// Store observation_count - 1 states; the terminal state is only returned.
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots,
+    float* __restrict__ observed_variances
+);
+
+// Output pointers address this path's first pre-terminal observation.
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_spots,
     float* __restrict__ observed_variances
 );

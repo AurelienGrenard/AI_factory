@@ -7,7 +7,7 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
+#include <cstdint>
 
 namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
 
@@ -15,13 +15,13 @@ namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
 
 // Correlated G2 process and initial curve defining one fitted G2++ model.
 struct G2PlusPlusFittedParameters {
-    model::g2::G2ProcessParameters process;
+    model::g2::ProcessParameters process;
     curve::nelson_siegel::NelsonSiegelParameters initial_curve;
 };
 
 // Compose one G2++ row with its fitted initial curve.
 __device__ __forceinline__ G2PlusPlusFittedParameters compose_model(
-    const G2PlusPlusModelParameters& parameters,
+    const ModelParameters& parameters,
     const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
 );
 
@@ -34,7 +34,7 @@ __device__ __forceinline__ float short_rate_shift(
 // Reconstruct the shifted short rate from both Gaussian states.
 __device__ __forceinline__ float short_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float time
 );
 
@@ -64,7 +64,7 @@ __device__ __forceinline__ model::g2::G2BondLoadings B(
 // Return log P = log A - B_x*x - B_y*y.
 __device__ __forceinline__ float log_zero_coupon_bond(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float maturity
 );
@@ -88,7 +88,7 @@ __device__ __forceinline__ float discount_factor(
 // Return the model zero-coupon bond P(valuation_time, maturity).
 __device__ __forceinline__ float zero_coupon_bond(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float maturity
 );
@@ -96,7 +96,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 // Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float option_expiry,
     float bond_maturity,
@@ -106,7 +106,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 // Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float option_expiry,
     float bond_maturity,
@@ -116,7 +116,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 // Return the simple forward rate over [start_time,end_time].
 __device__ __forceinline__ float forward_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float start_time,
     float end_time,
@@ -126,12 +126,12 @@ __device__ __forceinline__ float forward_rate(
 // Return the par swap rate observed at valuation_time.
 __device__ __forceinline__ float swap_rate(
     const G2PlusPlusFittedParameters& parameters,
-    const model::g2::G2State& state,
+    const model::g2::State& state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 );
 
 }  // namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel

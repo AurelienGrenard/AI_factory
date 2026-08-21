@@ -18,7 +18,7 @@ from validation.reference_price_dataset import synchronize_catalog_validation
 def generate_all(root: Path, selected_products: set[str]) -> None:
     """Regenerate selected products through their ordered reference hierarchy."""
 
-    source_root = root / "datasets/price/equity/black_scholes"
+    source_root = root / "datasets/model/equity/black_scholes/prices"
     destination_root = root / "validation/datasets/price/equity/black_scholes"
     for product_kind in sorted(selected_products):
         folder = product_folder(product_kind)

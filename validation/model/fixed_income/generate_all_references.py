@@ -52,14 +52,14 @@ def _persist(
 def generate_all(root: Path, selected_models: set[str]) -> None:
     """Regenerate the selected model families using their declared engines."""
 
-    source_root = root / "datasets/price/fixed_income"
+    source_root = root / "datasets/model/fixed_income"
     destination_root = root / "validation/datasets/price/fixed_income"
     for model_name in ("cir", "g2", "ornstein_uhlenbeck", "vasicek"):
         if model_name not in selected_models:
             continue
         for product_kind, folder in _PRODUCTS:
             stem = f"{model_name}_01__{folder}_01__01.json"
-            source = source_root / model_name / folder / stem
+            source = source_root / model_name / "prices" / folder / stem
             destination = destination_root / model_name / folder / stem
             if model_name == "cir":
                 report = generate_cir(source, destination, product_kind)
@@ -80,7 +80,14 @@ def generate_all(root: Path, selected_models: set[str]) -> None:
                 stem = (
                     f"{model_name}_01__{curve_name}_01__{folder}_01__01.json"
                 )
-                source = source_root / model_name / curve_name / folder / stem
+                source = (
+                    source_root
+                    / model_name
+                    / "prices"
+                    / curve_name
+                    / folder
+                    / stem
+                )
                 destination = (
                     destination_root / model_name / curve_name / folder / stem
                 )

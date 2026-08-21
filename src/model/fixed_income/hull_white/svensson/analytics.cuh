@@ -7,7 +7,7 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
+#include <cstdint>
 
 namespace ai_factory::workbench::model::hull_white::svensson {
 
@@ -15,13 +15,13 @@ namespace ai_factory::workbench::model::hull_white::svensson {
 
 // OU process and initial curve defining one fitted Hull-White model.
 struct HullWhiteFittedParameters {
-    model::ornstein_uhlenbeck::OrnsteinUhlenbeckProcessParameters process;
+    model::ornstein_uhlenbeck::ProcessParameters process;
     curve::svensson::SvenssonParameters initial_curve;
 };
 
 // Compose one Hull-White row with its fitted initial curve.
 __device__ __forceinline__ HullWhiteFittedParameters compose_model(
-    const HullWhiteModelParameters& parameters,
+    const ModelParameters& parameters,
     const curve::svensson::SvenssonParameters& initial_curve
 );
 
@@ -131,7 +131,7 @@ __device__ __forceinline__ float swap_rate(
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 );
 
 }  // namespace ai_factory::workbench::model::hull_white::svensson

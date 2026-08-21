@@ -20,7 +20,7 @@ struct AffineBondCoefficients {
 
 // Compute log(A) and B together while sharing gamma and exp(-gamma*tau).
 __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
-    const CirProcessParameters& process,
+    const ProcessParameters& process,
     float time_to_maturity
 ) {
     const float kappa = process.mean_reversion;
@@ -49,7 +49,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
 
 // Price a call (+1) or put (-1) through the two CIR forward-measure laws.
 __device__ __forceinline__ float zero_coupon_bond_option_price(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float option_sign,
     float valuation_time,
@@ -72,7 +72,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
         );
     }
 
-    const CirProcessParameters& process = parameters.process;
+    const ProcessParameters& process = parameters.process;
     const float sigma_squared = process.volatility * process.volatility;
     const float gamma = sqrtf(
         process.mean_reversion * process.mean_reversion
@@ -140,7 +140,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 // Expose log(A) because bond logarithms should not round-trip through exp/log.
 __device__ __forceinline__ float log_A(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -151,7 +151,7 @@ __device__ __forceinline__ float log_A(
 
 // Expose the textbook multiplicative prefactor used in P=A*exp(-B*r).
 __device__ __forceinline__ float A(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -160,7 +160,7 @@ __device__ __forceinline__ float A(
 
 // Expose the textbook state loading used in P=A*exp(-B*r).
 __device__ __forceinline__ float B(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -171,7 +171,7 @@ __device__ __forceinline__ float B(
 
 // Evaluate the affine bond in log space for numerical stability.
 __device__ __forceinline__ float log_zero_coupon_bond(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -202,7 +202,7 @@ __device__ __forceinline__ float discount_factor(
 
 // Exponentiate the conditional affine log bond only at the public boundary.
 __device__ __forceinline__ float zero_coupon_bond(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -214,7 +214,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 
 // Apply the two-CDF CIR formula for a call on a zero-coupon bond.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -234,7 +234,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 
 // Apply the complementary-tail CIR formula for a zero-coupon bond put.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -254,7 +254,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 
 // Build one simple forward rate from two conditional zero-coupons.
 __device__ __forceinline__ float forward_rate(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
@@ -272,17 +272,17 @@ __device__ __forceinline__ float forward_rate(
 
 // Divide the conditional floating-leg value by the fixed-leg annuity.
 __device__ __forceinline__ float swap_rate(
-    const CirModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 ) {
     float annuity = 0.0f;
     float end_bond = 0.0f;
-    for (std::size_t payment = 0U;
+    for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
         const float current_bond = zero_coupon_bond(

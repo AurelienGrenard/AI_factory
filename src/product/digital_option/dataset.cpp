@@ -42,13 +42,13 @@ std::vector<DigitalOptionParameters> load_digital_options(
             "Digital option row id '" + row_id + "': ";
         const DigitalOptionParameters product = {
             parameters.at("strike").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
             parameters.at("cash_payoff").get<float>(),
         };
         if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
             throw std::invalid_argument(prefix + "strike must be finite and positive.");
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         if (!std::isfinite(product.cash_payoff) || !(product.cash_payoff > 0.0f))
             throw std::invalid_argument(prefix + "cash_payoff must be finite and positive.");
         products.push_back(product);

@@ -22,6 +22,7 @@ struct RoughBergomiWorkspacePlan {
 RoughBergomiWorkspacePlan plan_european_option_workspace(
     const product::EuropeanOptionParameters* host_products,
     std::size_t product_count,
+    float day_fraction,
     float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count
@@ -39,6 +40,7 @@ void launch_rough_bergomi_european_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,

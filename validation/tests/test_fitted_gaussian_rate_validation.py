@@ -34,7 +34,13 @@ class FittedGaussianRateValidationTest(unittest.TestCase):
         name = f"{model_name}_01__{curve_name}_01__{folder}_01__01.json"
         relative = Path(model_name) / curve_name / folder / name
         return (
-            ROOT / "datasets/price/fixed_income" / relative,
+            ROOT
+            / "datasets/model/fixed_income"
+            / model_name
+            / "prices"
+            / curve_name
+            / folder
+            / name,
             ROOT / "validation/datasets/price/fixed_income" / relative,
         )
 

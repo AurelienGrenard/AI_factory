@@ -14,7 +14,8 @@
 namespace {
 
 constexpr std::size_t kPathsPerPrice = 8'192U;
-constexpr float kTargetDt = 1.0f / 252.0f;
+constexpr float kDt = 1.0f / 504.0f;
+constexpr std::uint32_t kSimulationStepsPerDay = 2U;
 constexpr unsigned int kThreadsPerBlock = 256U;
 constexpr std::uint64_t kSeed = 900000001ULL;
 
@@ -25,7 +26,7 @@ void require(bool condition, const char* message) {
 
 // Own every device allocation shared by the three launcher checks.
 struct DeviceArrays {
-    ai_factory::workbench::bates::BatesModelParameters* model = nullptr;
+    ai_factory::workbench::bates::ModelParameters* model = nullptr;
     ai_factory::workbench::product::EuropeanOptionParameters* european = nullptr;
     ai_factory::workbench::product::AsianOptionParameters* asian = nullptr;
     ai_factory::workbench::product::LookbackOptionParameters* lookback = nullptr;
@@ -81,13 +82,13 @@ int main() {
     }
     check_cuda(availability, "path-product test cudaGetDeviceCount");
 
-    const bates::BatesModelParameters model = {
+    const bates::ModelParameters model = {
         1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
         0.40f, -0.10f, 0.20f,
     };
-    const product::EuropeanOptionParameters european = {1.0f, 1.0f};
-    const product::AsianOptionParameters asian = {1.0f, 1.0f};
-    const product::LookbackOptionParameters lookback = {1.0f, 1.0f};
+    const product::EuropeanOptionParameters european = {1.0f, 252U};
+    const product::AsianOptionParameters asian = {1.0f, 252U};
+    const product::LookbackOptionParameters lookback = {1.0f, 252U};
 
     DeviceArrays device;
     check_cuda(cudaMalloc(&device.model, sizeof(model)), "test cudaMalloc model");
@@ -139,7 +140,7 @@ int main() {
     float european_error = 0.0f;
     bates::launch_bates_european_option_cuda<OptionSide::call>(
         device.model, 1U, device.european, 1U, false, 1U, 0U, 1U,
-        kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
+        kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
     copy_outputs(device, european_price, european_error);
@@ -148,7 +149,7 @@ int main() {
     float asian_error = 0.0f;
     bates::launch_bates_asian_option_cuda<OptionSide::call>(
         device.model, 1U, device.asian, 1U, false, 1U, 0U, 1U,
-        kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
+        kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
     copy_outputs(device, asian_price, asian_error);
@@ -157,7 +158,7 @@ int main() {
     float lookback_error = 0.0f;
     bates::launch_bates_lookback_option_cuda(
         device.model, 1U, device.lookback, 1U, false, 1U, 0U, 1U,
-        kPathsPerPrice, kTargetDt, kThreadsPerBlock, 1U, kSeed,
+        kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
     copy_outputs(device, lookback_price, lookback_error);

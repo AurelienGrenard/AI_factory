@@ -27,13 +27,19 @@ def _validate_product(
     database_id = f"{model_name}_01__{folder}_01__01"
     dataset = (
         root
-        / "datasets/price/equity"
+        / "datasets/model/equity"
         / model_name
+        / "prices"
         / folder
         / f"{database_id}.json"
     )
     catalog = (
-        root / "catalog/price/equity" / model_name / folder / database_id
+        root
+        / "catalog/model/equity"
+        / model_name
+        / "prices"
+        / folder
+        / database_id
     )
     report = validation.validate_dataset(dataset, product_kind)
     write_validation_report(report, catalog / "validation_report.json")

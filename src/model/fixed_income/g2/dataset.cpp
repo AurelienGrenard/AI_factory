@@ -11,7 +11,7 @@
 namespace ai_factory::workbench::model::g2 {
 
 // Parse and validate G2 rows while preserving their dataset order.
-std::vector<G2ModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -31,12 +31,12 @@ std::vector<G2ModelParameters> load_models(
 
     datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
-    std::vector<G2ModelParameters> models;
+    std::vector<ModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& values = row.at("parameters");
-        const G2ModelParameters model = {
+        const ModelParameters model = {
             {
                 values.at("mean_reversion_x").get<float>(),
                 values.at("volatility_x").get<float>(),

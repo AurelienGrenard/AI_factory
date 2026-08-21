@@ -22,28 +22,31 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    HestonQeParameters model;
+    PreparedModel model;
     philox::PhiloxKey key;
     float strike;
     float barrier;
     float discount;
-    std::size_t num_steps;
+    std::uint32_t num_steps;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const HestonModelParameters& model,
+    const ModelParameters& model,
     const product::DownAndOutOptionParameters& product,
-    std::size_t num_steps,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t seed
 ) {
-    const float maturity = product.maturity;
+    const std::uint32_t num_steps =
+        simulation_steps_per_day * product.maturity;
+    const float maturity_years = static_cast<float>(num_steps) * dt;
     return {
-        prepare_model(model, maturity, num_steps),
+        prepare_model(model, dt),
         philox::make_key(seed),
         product.strike,
         product.barrier,
-        expf(-model.risk_free_rate * maturity),
+        expf(-model.risk_free_rate * maturity_years),
         num_steps,
     };
 }
@@ -54,7 +57,7 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    HestonState state = initial_state(row.model);
+    State state = initial_state(row.model);
     float terminal_spot = expf(state.log_spot);
     if (terminal_spot <= row.barrier) return 0.0f;
 
@@ -62,7 +65,7 @@ __device__ __forceinline__ float evaluate_path(
         row.key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < row.num_steps;
         ++step_index) {
         simulate_one_step(row.model, uniforms, normal_cache, state);
@@ -78,14 +81,15 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 template<OptionSide Side>
 __global__ void heston_down_and_out_option_kernel(
-    const HestonModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::DownAndOutOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -106,13 +110,11 @@ __global__ void heston_down_and_out_option_kernel(
             const std::size_t product_index = indices.product_index;
             const product::DownAndOutOptionParameters product =
                 products[product_index];
-            const std::size_t num_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
-            );
             prepared = prepare_row(
                 models[model_index],
                 product,
-                num_steps,
+                dt,
+                simulation_steps_per_day,
                 base_seed + result_index
             );
         }
@@ -153,7 +155,7 @@ __global__ void heston_down_and_out_option_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_heston_down_and_out_option_launch(
-    const HestonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::DownAndOutOptionParameters* device_products,
     std::size_t product_count,
@@ -162,7 +164,8 @@ void validate_heston_down_and_out_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -189,10 +192,11 @@ void validate_heston_down_and_out_option_launch(
 
     // Monte Carlo paths and the requested simulation step must be valid.
     validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
+        monte_carlo_paths_per_price, dt
     );
 
     // The block must fit the GPU and contain a whole number of warps.
+    validate_simulation_steps_per_day(simulation_steps_per_day);
     validate_reduction_block_size(threads_per_block);
 
     // The persistent grid must contain valid blocks and fit gridDim.x.
@@ -208,7 +212,7 @@ void validate_heston_down_and_out_option_launch(
 // Validate and launch the pricing kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_heston_down_and_out_option_cuda(
-    const HestonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::DownAndOutOptionParameters* device_products,
     std::size_t product_count,
@@ -217,7 +221,8 @@ void launch_heston_down_and_out_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -234,7 +239,8 @@ void launch_heston_down_and_out_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         threads_per_block,
         block_count,
         base_seed,
@@ -284,7 +290,8 @@ void launch_heston_down_and_out_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         base_seed,
         device_prices,
         device_standard_errors

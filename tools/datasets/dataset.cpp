@@ -210,37 +210,48 @@ void write_parameter_dataset(
     const std::string& url,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& definition,
-    const GeneratedRows& generated
+    const GeneratedRows& generated,
+    const nlohmann::ordered_json& metadata
 ) {
     if (generated.rows.empty()) {
         throw std::invalid_argument("A parameter dataset cannot be empty.");
     }
     validate_dataset_url(url);
 
-    const nlohmann::ordered_json dataset = {
+    nlohmann::ordered_json dataset = {
         {"database_id", database_id},
         {family_key, family},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", generated.rows.size()},
-        {row_key, database_rows(generated.rows)},
     };
+    for (const auto& [key, value] : metadata.items()) dataset[key] = value;
+    dataset[row_key] = database_rows(generated.rows);
     write_json_file(dataset_path, dataset);
 
-    write_yaml_file(catalog_path, {
+    nlohmann::ordered_json catalog = {
         {"title", family + " parameter dataset " + database_id},
         {"database_id", database_id},
         {family_key, family},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", generated.rows.size()},
-        {"parameters", parameter_descriptions},
-        {definition_key, definition},
-        {"construction", generated.construction},
-    });
+    };
+    for (const auto& [key, value] : metadata.items()) catalog[key] = value;
+    catalog["parameters"] = parameter_descriptions;
+    catalog[definition_key] = definition;
+    catalog["construction"] = generated.construction;
+    write_yaml_file(catalog_path, catalog);
 }
 
 }  // namespace
+
+void write_catalog_yaml(
+    const std::filesystem::path& path,
+    const nlohmann::ordered_json& document
+) {
+    write_yaml_file(path, document);
+}
 
 // Sample every declared parameter independently across all rows.
 GeneratedRows uniform_rows(
@@ -437,7 +448,7 @@ GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters) {
 
 // Generate a conditional log-strike grid for every maturity.
 GeneratedRows maturity_dependent_exponential_strike_grid(
-    const std::vector<float>& maturities,
+    const std::vector<std::uint32_t>& maturities,
     std::size_t strikes_per_maturity,
     float log_moneyness_slope
 ) {
@@ -452,10 +463,10 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
             "The log-moneyness slope must be finite and non-negative."
         );
     }
-    for (float maturity : maturities) {
-        if (!(maturity > 0.0f) || !std::isfinite(maturity)) {
+    for (std::uint32_t maturity : maturities) {
+        if (maturity == 0U) {
             throw std::invalid_argument(
-                "Exponential strike-grid maturities must be positive and finite."
+                "Exponential strike-grid maturities must be positive."
             );
         }
     }
@@ -471,8 +482,9 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
     std::vector<ParameterRow> rows;
     rows.reserve(row_count);
     // Each maturity receives its own symmetric log-moneyness interval.
-    for (float maturity : maturities) {
-        const float radius = log_moneyness_slope * maturity;
+    for (std::uint32_t maturity : maturities) {
+        const float maturity_years = business_days_to_years(maturity);
+        const float radius = log_moneyness_slope * maturity_years;
         const std::vector<float> log_strikes =
             linear_grid(-radius, radius, strikes_per_maturity);
         for (float log_strike : log_strikes) {
@@ -492,19 +504,20 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
             {"method", "maturity-dependent exponential grid"},
             {
                 "rule",
-                "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+                "For each T in business days, x is linearly spaced on "
+                "[-aT/252, aT/252] and K = exp(x)."
             },
             {"grid", {
                 {"maturity", {
-                    {"minimum", readable_grid_bound(*minimum_maturity)},
-                    {"maximum", readable_grid_bound(*maximum_maturity)},
+                    {"minimum", *minimum_maturity},
+                    {"maximum", *maximum_maturity},
                     {"count", maturities.size()},
                     {"spacing", "linear"},
                 }},
                 {"strike", {
                     {"count_per_maturity", strikes_per_maturity},
                     {"spacing", "linear in log-strike"},
-                    {"conditional_bounds", "[exp(-aT), exp(aT)]"},
+                    {"conditional_bounds", "[exp(-aT/252), exp(aT/252)]"},
                     {"a", readable_grid_bound(log_moneyness_slope)},
                 }},
             }},
@@ -514,10 +527,10 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
 
 // Combine a representative strike/maturity grid with a wider stress grid.
 GeneratedRows core_stress_exponential_strike_grid(
-    const std::vector<float>& core_maturities,
+    const std::vector<std::uint32_t>& core_maturities,
     std::size_t core_strikes_per_maturity,
     float core_log_moneyness_slope,
-    const std::vector<float>& stress_maturities,
+    const std::vector<std::uint32_t>& stress_maturities,
     std::size_t stress_strikes_per_maturity,
     float stress_log_moneyness_slope
 ) {
@@ -543,14 +556,14 @@ GeneratedRows core_stress_exponential_strike_grid(
     combined.construction["grid"] = {
         {"maturity", {
             {"core", {
-                {"minimum", readable_grid_bound(*core_minimum)},
-                {"maximum", readable_grid_bound(*core_maximum)},
+                {"minimum", *core_minimum},
+                {"maximum", *core_maximum},
                 {"count", core_maturities.size()},
                 {"spacing", "linear"},
             }},
             {"stress", {
-                {"minimum", readable_grid_bound(*stress_minimum)},
-                {"maximum", readable_grid_bound(*stress_maximum)},
+                {"minimum", *stress_minimum},
+                {"maximum", *stress_maximum},
                 {"count", stress_maturities.size()},
                 {"spacing", "linear"},
             }},
@@ -558,12 +571,12 @@ GeneratedRows core_stress_exponential_strike_grid(
         {"strike", {
             {"core", {
                 {"count_per_maturity", core_strikes_per_maturity},
-                {"conditional_bounds", "[exp(-aT), exp(aT)]"},
+                {"conditional_bounds", "[exp(-aT/252), exp(aT/252)]"},
                 {"a", readable_grid_bound(core_log_moneyness_slope)},
             }},
             {"stress", {
                 {"count_per_maturity", stress_strikes_per_maturity},
-                {"conditional_bounds", "[exp(-aT), exp(aT)]"},
+                {"conditional_bounds", "[exp(-aT/252), exp(aT/252)]"},
                 {"a", readable_grid_bound(stress_log_moneyness_slope)},
             }},
             {"spacing", "linear in log-strike"},
@@ -586,8 +599,7 @@ void assign_uniform_exercise_intervals(
         );
     }
     for (const ExerciseInterval& interval : intervals) {
-        if (!(interval.years > 0.0f) || !std::isfinite(interval.years)
-            || interval.label.empty()) {
+        if (interval.business_days == 0U || interval.label.empty()) {
             throw std::invalid_argument(
                 "Exercise intervals require positive values and labels."
             );
@@ -598,12 +610,13 @@ void assign_uniform_exercise_intervals(
     const std::size_t required_pre_maturity_dates =
         minimum_exercise_count - 1U;
     for (ParameterRow& row : generated.rows) {
-        const float maturity = row.at("maturity").get<float>();
-        std::vector<float> feasible_intervals;
+        const std::uint32_t maturity =
+            row.at("maturity").get<std::uint32_t>();
+        std::vector<std::uint32_t> feasible_intervals;
         for (const ExerciseInterval& interval : intervals) {
-            if (static_cast<float>(required_pre_maturity_dates)
-                    * interval.years < maturity) {
-                feasible_intervals.push_back(interval.years);
+            if (required_pre_maturity_dates * interval.business_days
+                    < maturity) {
+                feasible_intervals.push_back(interval.business_days);
             }
         }
         if (feasible_intervals.empty()) {
@@ -655,6 +668,39 @@ std::vector<float> linear_grid(float minimum, float maximum, std::size_t count) 
     return values;
 }
 
+std::vector<std::uint32_t> linear_business_day_grid(
+    std::uint32_t minimum,
+    std::uint32_t maximum,
+    std::size_t count
+) {
+    if (count == 0U || minimum == 0U || minimum > maximum) {
+        throw std::invalid_argument(
+            "A business-day grid requires positive valid bounds and count."
+        );
+    }
+    if (count == 1U) return {minimum};
+    if (static_cast<std::uint64_t>(maximum) - minimum + 1U < count) {
+        throw std::invalid_argument(
+            "A business-day grid cannot contain duplicate days."
+        );
+    }
+    std::vector<std::uint32_t> values(count);
+    const double denominator = static_cast<double>(count - 1U);
+    for (std::size_t index = 0U; index < count; ++index) {
+        const double weight = static_cast<double>(index) / denominator;
+        values[index] = static_cast<std::uint32_t>(std::llround(
+            static_cast<double>(minimum)
+                + weight * static_cast<double>(maximum - minimum)
+        ));
+        if (index > 0U && values[index] <= values[index - 1U]) {
+            throw std::runtime_error(
+                "A rounded business-day grid is not strictly increasing."
+            );
+        }
+    }
+    return values;
+}
+
 // Write one model dataset and its versioned metadata artifacts.
 void write_model_dataset(
     const std::string& database_id,
@@ -669,7 +715,8 @@ void write_model_dataset(
     write_parameter_dataset(
         database_id, model_family, "model_family", "models", "dynamics",
         dataset_path, catalog_path, url, parameter_descriptions, dynamics,
-        generated
+        generated,
+        {}
     );
 }
 
@@ -687,7 +734,8 @@ void write_curve_dataset(
     write_parameter_dataset(
         database_id, curve_family, "curve_family", "curves", "curve",
         dataset_path, catalog_path, url, parameter_descriptions,
-        curve_definition, generated
+        curve_definition, generated,
+        {}
     );
 }
 
@@ -705,11 +753,48 @@ void write_product_dataset(
     write_parameter_dataset(
         database_id, product_family, "product_family", "products", "payoff",
         dataset_path, catalog_path, url, parameter_descriptions, payoff,
-        generated
+        generated,
+        {{"time_convention", {
+            {"unit", "business_day"},
+            {"days_per_year", kBusinessDaysPerYear},
+        }}}
     );
 }
 
 namespace {
+
+// Add the fixed numerical grid used by one price recipe, when applicable.
+void add_fixed_time_grid(
+    nlohmann::ordered_json& catalog,
+    const nlohmann::ordered_json& cuda_execution,
+    const nlohmann::ordered_json& product_document,
+    const std::string& delta_t = ""
+) {
+    if (!cuda_execution.contains("simulation_steps_per_day")) return;
+    const std::uint32_t simulation_steps_per_day =
+        cuda_execution.at("simulation_steps_per_day").get<std::uint32_t>();
+    if (simulation_steps_per_day == 0U) {
+        throw std::invalid_argument(
+            "simulation_steps_per_day must be positive."
+        );
+    }
+    const std::uint32_t days_per_year = product_document
+        .at("time_convention")
+        .at("days_per_year")
+        .get<std::uint32_t>();
+    const std::uint32_t steps_per_year =
+        simulation_steps_per_day * days_per_year;
+    catalog["time_grid"] = {
+        {"simulation_steps_per_day", simulation_steps_per_day},
+        {"steps_per_year", steps_per_year},
+        {
+            "delta_t",
+            delta_t.empty()
+                ? "1 / " + std::to_string(steps_per_year)
+                : delta_t
+        },
+    };
+}
 
 // Locate the source model and product rows of one result.
 struct PriceIndices {
@@ -874,6 +959,7 @@ void write_analytical_price_dataset_impl(
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"model_dataset", dataset_reference(model_document)},
         {"curve_dataset", dataset_reference(curve_document)},
         {"product_dataset", dataset_reference(product_document)},
@@ -900,6 +986,7 @@ void write_analytical_price_dataset_impl(
         {"device", "gpu"},
     };
     for (const auto& [name, value] : cuda_execution.items()) {
+        if (name == "simulation_steps_per_day") continue;
         summary[name] = value;
     }
     nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
@@ -909,12 +996,13 @@ void write_analytical_price_dataset_impl(
             {"order", "model, curve, product"},
         };
     }
-    const nlohmann::ordered_json catalog = {
+    nlohmann::ordered_json catalog = {
         {"title", database_id},
         {"database_id", database_id},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
         {"validation", price_validation_metadata(catalog_path.parent_path())},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
@@ -927,6 +1015,7 @@ void write_analytical_price_dataset_impl(
             {"kernel_seconds", format_duration(kernel_seconds)},
         }},
     };
+    add_fixed_time_grid(catalog, cuda_execution, product_document);
     write_yaml_file(catalog_path, catalog);
 }
 
@@ -1007,6 +1096,7 @@ void write_analytical_price_dataset_impl(
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"model_dataset", dataset_reference(model_document)},
         {"product_dataset", dataset_reference(product_document)},
         {"timing", {
@@ -1030,6 +1120,7 @@ void write_analytical_price_dataset_impl(
         {"device", "gpu"},
     };
     for (const auto& [name, value] : cuda_execution.items()) {
+        if (name == "simulation_steps_per_day") continue;
         summary[name] = value;
     }
     nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
@@ -1039,12 +1130,13 @@ void write_analytical_price_dataset_impl(
             {"order", "model, product"},
         };
     }
-    write_yaml_file(catalog_path, {
+    nlohmann::ordered_json catalog = {
         {"title", database_id},
         {"database_id", database_id},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
         {"validation", price_validation_metadata(catalog_path.parent_path())},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
@@ -1055,7 +1147,9 @@ void write_analytical_price_dataset_impl(
             {"wall_seconds", format_duration(wall_seconds)},
             {"kernel_seconds", format_duration(kernel_seconds)},
         }},
-    });
+    };
+    add_fixed_time_grid(catalog, cuda_execution, product_document);
+    write_yaml_file(catalog_path, catalog);
 }
 
 // Serialize one complete Monte Carlo price dataset and its metadata.
@@ -1071,7 +1165,7 @@ void write_monte_carlo_price_dataset_impl(
     const std::string& url,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
-    const std::string& target_dt,
+    const std::string& delta_t,
     const nlohmann::ordered_json& cuda_execution,
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
@@ -1160,6 +1254,7 @@ void write_monte_carlo_price_dataset_impl(
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"model_dataset", json_model_dataset},
         {"product_dataset", json_product_dataset},
         {"timing", {
@@ -1185,6 +1280,7 @@ void write_monte_carlo_price_dataset_impl(
         {"device", "gpu"},
     };
     for (const auto& [name, value] : cuda_execution.items()) {
+        if (name == "simulation_steps_per_day") continue;
         summary[name] = value;
     }
     summary["random_generator"] = random_generator;
@@ -1202,17 +1298,9 @@ void write_monte_carlo_price_dataset_impl(
         {"wall_seconds", format_duration(wall_seconds)},
         {"kernel_seconds", format_duration(kernel_seconds)},
     };
-    const nlohmann::ordered_json time_grid = target_dt.empty()
-        ? nlohmann::ordered_json{
-            {
-                "rule",
-                "exact independent increments at payoff observation times"
-            },
-            {"numerical_substeps", 0U},
-        }
-        : nlohmann::ordered_json{
+    const nlohmann::ordered_json time_grid = {
             {"rule", "nearest integer step count to target dt"},
-            {"target_dt", target_dt},
+            {"target_dt", delta_t},
             {"step_count", "round(maturity / target_dt)"},
             {"effective_dt", "maturity / step_count"},
         };
@@ -1222,9 +1310,9 @@ void write_monte_carlo_price_dataset_impl(
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
         {"row_count", row_count},
+        {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
         {"validation", price_validation_metadata(catalog_path.parent_path())},
-        {"time_grid", time_grid},
         {"outputs", {
             {"price", {{"estimator", "Monte Carlo discounted payoff mean"}}},
             {
@@ -1237,6 +1325,7 @@ void write_monte_carlo_price_dataset_impl(
         {"price_construction", price_construction},
         {"timing", yaml_timing},
     };
+    if (!delta_t.empty()) catalog["time_grid"] = time_grid;
     if (!catalog_sections.is_object()) {
         throw std::invalid_argument(
             "Additional catalog sections must form an object."
@@ -1245,6 +1334,9 @@ void write_monte_carlo_price_dataset_impl(
     for (const auto& [name, value] : catalog_sections.items()) {
         catalog[name] = value;
     }
+    add_fixed_time_grid(
+        catalog, cuda_execution, product_document, delta_t
+    );
     write_yaml_file(catalog_path, catalog);
 }
 
@@ -1284,7 +1376,7 @@ void write_monte_carlo_price_dataset(
     const std::string& url,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
-    const std::string& target_dt,
+    const std::string& delta_t,
     const nlohmann::ordered_json& cuda_execution,
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,
@@ -1303,7 +1395,7 @@ void write_monte_carlo_price_dataset(
         url,
         numerical_method,
         monte_carlo_paths_per_price,
-        target_dt,
+        delta_t,
         cuda_execution,
         catalog_sections,
         first_seed,

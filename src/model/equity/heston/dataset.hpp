@@ -8,7 +8,7 @@
 namespace ai_factory::workbench::heston {
 
 // Compact FP32 model row transferred from host memory to CUDA.
-struct HestonModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -19,10 +19,10 @@ struct HestonModelParameters {
     float rho;
 };
 
-static_assert(std::is_trivially_copyable_v<HestonModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
 // Load every model row from JSON into one contiguous FP32 vector.
-std::vector<HestonModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

@@ -22,30 +22,33 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    CevPreparedParameters reset_model;
-    CevPreparedParameters remaining_model;
+    PreparedModel model;
     philox::PhiloxKey key;
     float moneyness;
     float discount;
-    std::size_t reset_steps;
-    std::size_t remaining_steps;
+    std::uint32_t reset_steps;
+    std::uint32_t remaining_steps;
 };
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const CevModelParameters& model,
+    const ModelParameters& model,
     const product::ForwardStartOptionParameters& product,
-    std::size_t reset_steps,
-    std::size_t remaining_steps,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t seed
 ) {
-    const float remaining_time = product.maturity - product.reset_time;
+    const std::uint32_t reset_steps =
+        simulation_steps_per_day * product.reset_time;
+    const std::uint32_t remaining_steps = simulation_steps_per_day
+        * (product.maturity - product.reset_time);
+    const std::uint32_t num_steps = reset_steps + remaining_steps;
+    const float maturity_years = static_cast<float>(num_steps) * dt;
     return {
-        prepare_model(model, product.reset_time, reset_steps),
-        prepare_model(model, remaining_time, remaining_steps),
+        prepare_model(model, dt),
         philox::make_key(seed),
         product.moneyness,
-        expf(-model.risk_free_rate * product.maturity),
+        expf(-model.risk_free_rate * maturity_years),
         reset_steps,
         remaining_steps,
     };
@@ -57,16 +60,21 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    const CevTwoTimePathResult simulated = simulate_at_two_times(
-        row.reset_model,
-        row.remaining_model,
+    const std::uint32_t steps_between_observations[2] = {
+        row.reset_steps,
+        row.remaining_steps,
+    };
+    float reset_spot = 0.0f;
+    const State terminal = simulate_on_calendar(
+        row.model,
         row.key,
         path,
-        row.reset_steps,
-        row.remaining_steps
+        steps_between_observations,
+        2U,
+        1U,
+        &reset_spot
     );
-    const float reset_spot = simulated.first_spot;
-    const float terminal_spot = simulated.terminal_spot;
+    const float terminal_spot = terminal.spot;
     if constexpr (Side == OptionSide::call)
         return row.discount
             * fmaxf(terminal_spot - row.moneyness * reset_spot, 0.0f);
@@ -78,14 +86,15 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 template<OptionSide Side>
 __global__ void cev_forward_start_option_kernel(
-    const CevModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::ForwardStartOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -106,19 +115,11 @@ __global__ void cev_forward_start_option_kernel(
             const std::size_t product_index = indices.product_index;
             const product::ForwardStartOptionParameters product =
                 products[product_index];
-            const std::size_t reset_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.reset_time / target_dt + 0.5f))
-            );
-            const float remaining_time =
-                product.maturity - product.reset_time;
-            const std::size_t remaining_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(remaining_time / target_dt + 0.5f))
-            );
             prepared = prepare_row(
                 models[model_index],
                 product,
-                reset_steps,
-                remaining_steps,
+                dt,
+                simulation_steps_per_day,
                 base_seed + result_index
             );
         }
@@ -159,7 +160,7 @@ __global__ void cev_forward_start_option_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_cev_forward_start_option_launch(
-    const CevModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -168,7 +169,8 @@ void validate_cev_forward_start_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -195,10 +197,11 @@ void validate_cev_forward_start_option_launch(
 
     // Monte Carlo paths and the requested simulation step must be valid.
     validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
+        monte_carlo_paths_per_price, dt
     );
 
     // The block must fit the GPU and contain a whole number of warps.
+    validate_simulation_steps_per_day(simulation_steps_per_day);
     validate_reduction_block_size(threads_per_block);
 
     // The persistent grid must contain valid blocks and fit gridDim.x.
@@ -214,7 +217,7 @@ void validate_cev_forward_start_option_launch(
 // Validate and launch the pricing kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_cev_forward_start_option_cuda(
-    const CevModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -223,7 +226,8 @@ void launch_cev_forward_start_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -240,7 +244,8 @@ void launch_cev_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         threads_per_block,
         block_count,
         base_seed,
@@ -290,7 +295,8 @@ void launch_cev_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         base_seed,
         device_prices,
         device_standard_errors

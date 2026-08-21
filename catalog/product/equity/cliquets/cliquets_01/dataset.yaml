@@ -4,9 +4,12 @@ product_family: "Cliquets"
 catalog: "catalog/product/equity/cliquets/cliquets_01"
 url: "https://datasets.ai-factory.example/v1/product/cliquets/cliquets_01.json"
 row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
 parameters:
-  maturity: "Time from issuance to final payment in years."
-  observation_interval: "Time in years between consecutive return observations."
+  maturity: "Time from issuance to final payment in business days."
+  observation_interval: "Business days between consecutive return observations."
   participation_rate: "Multiplier applied to every periodic spot return."
   local_floor: "Lower bound applied to each periodic return."
   local_cap: "Upper bound applied to each periodic return."
@@ -43,11 +46,11 @@ construction:
     core:
       row_count: 900
       maturity:
-        - "1 year"
-        - "5 years"
+        - 252
+        - 1260
       observation_interval:
-        - "1 / 12"
-        - "1 / 4"
+        - 21
+        - 63
       participation_rate:
         - 0.8
         - 1.2
@@ -64,12 +67,12 @@ construction:
     stress:
       row_count: 100
       maturity:
-        - "0.5 year"
-        - "7 years"
+        - 126
+        - 1764
       observation_interval:
-        - "1 / 52"
-        - "1 / 2"
-        - "1"
+        - 5
+        - 126
+        - 252
       participation_rate:
         - 0.25
         - 2.0

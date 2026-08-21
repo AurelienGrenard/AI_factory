@@ -11,81 +11,98 @@
 
 namespace ai_factory::workbench::model::vasicek {
 
-// ======================== Model-specific dynamics =========================
-
-// E[integral r_s ds | r_t] = state_loading*r_t + mean_increment.
-struct VasicekIntegralMoments {
+struct IntegralMoments {
     float state_loading;
     float mean_increment;
     float variance;
 };
 
-// Return B(delta), the loading of the current state in its future integral.
 __device__ __forceinline__ float integral_state_loading(
     float mean_reversion,
     float delta
 );
 
-// Return the variance of the future integral of the Gaussian state.
 __device__ __forceinline__ float integral_variance(
-    const VasicekProcessParameters& parameters,
+    const ProcessParameters& parameters,
     float delta
 );
 
-// Compute both integral moments while sharing their exponential decay.
-__device__ __forceinline__ VasicekIntegralMoments integral_moments(
-    const VasicekProcessParameters& parameters,
+__device__ __forceinline__ IntegralMoments integral_moments(
+    const ProcessParameters& parameters,
     float delta
 );
 
-// ======================= Common state-only dynamics ========================
+// Time-invariant coefficients of one Vasicek process.
+struct PreparedModel {
+    float mean_reversion;
+    float long_term_mean;
+    float volatility_squared;
+};
 
-// Exact transition: r_next = decay*r + mean_increment + stddev*Z.
-struct VasicekExactTransition {
+// Coefficients required to advance the prepared model by one delta_t.
+struct PreparedTransition {
     float decay;
     float mean_increment;
     float state_standard_deviation;
 };
 
-// Precompute the exact state transition reused at every equal time step.
-__device__ __forceinline__ VasicekExactTransition prepare_model(
-    const VasicekProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ProcessParameters& parameters
 );
 
-// Advance the Vasicek state exactly over one time step.
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+);
+
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const VasicekExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float& state
 );
 
-// Apply the prepared exact transition and return its terminal state.
 __device__ __forceinline__ float simulate_terminal_state(
-    const VasicekExactTransition& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     float initial_state,
-    float state_normal
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store observation_count - 1 states; the terminal state is only returned.
-// The date-major output requires (observation_count - 1) * path_count values.
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const VasicekExactTransition& initial_stub_model,
-    const VasicekExactTransition& regular_model,
+__device__ __forceinline__ float simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states
+);
+
+__device__ __forceinline__ float simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states
 );
 
 namespace joint {
 
-// ========================= Common joint dynamics ===========================
-
-// Exact affine Gaussian transition for r and its accumulated integral.
-struct VasicekJointExactTransition {
+struct PreparedTransition {
     float decay;
     float state_mean_increment;
     float state_standard_deviation;
@@ -95,44 +112,60 @@ struct VasicekJointExactTransition {
     float integral_independent_standard_deviation;
 };
 
-// Store X_t and state_integral = integral_0^t X_s ds for one path.
-struct VasicekJointState {
+struct State {
     float state;
     float state_integral;
 };
 
-// Precompute the exact joint transition reused at every equal time step.
-__device__ __forceinline__ VasicekJointExactTransition prepare_model(
-    const VasicekProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const vasicek::PreparedModel& model,
+    float delta_t
 );
 
-// Advance the Vasicek state and its integral exactly over one time step.
+__device__ __forceinline__ void prepare_calendar(
+    const vasicek::PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const VasicekJointExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float integral_normal,
-    VasicekJointState& joint_state
+    State& state
 );
 
-// Apply the prepared exact transition and return its state and integral.
-__device__ __forceinline__ VasicekJointState simulate_terminal_state(
-    const VasicekJointExactTransition& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const vasicek::PreparedModel& model,
+    const PreparedTransition& transition,
     float initial_state,
-    float state_normal,
-    float integral_normal
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store observation_count - 1 joint states and return the terminal state.
-// Each date-major output needs (observation_count - 1) * path_count values.
-__device__ __forceinline__ VasicekJointState simulate_on_regular_grid(
-    const VasicekJointExactTransition& initial_stub_model,
-    const VasicekJointExactTransition& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const vasicek::PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states,
+    float* __restrict__ observed_integrated_states
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const vasicek::PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states,
     float* __restrict__ observed_integrated_states
 );

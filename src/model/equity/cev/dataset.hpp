@@ -7,7 +7,7 @@
 
 namespace ai_factory::workbench::cev {
 
-struct CevModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -15,9 +15,9 @@ struct CevModelParameters {
     float beta;
 };
 
-static_assert(std::is_trivially_copyable_v<CevModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-std::vector<CevModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

@@ -22,7 +22,7 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    CevPreparedParameters model;
+    PreparedModel model;
     philox::PhiloxKey key;
     float autocall_barrier;
     float protection_barrier;
@@ -34,23 +34,25 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const CevModelParameters& model,
+    const ModelParameters& model,
     const product::AthenaAutocallParameters& product,
-    std::uint32_t observation_count,
-    std::uint32_t steps_per_observation,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t seed
 ) {
+    const std::uint32_t observation_count =
+        product.maturity / product.observation_interval;
+    const std::uint32_t steps_per_observation =
+        simulation_steps_per_day * product.observation_interval;
+    const float observation_years =
+        static_cast<float>(steps_per_observation) * dt;
     return {
-        prepare_model(
-            model,
-            product.observation_interval,
-            steps_per_observation
-        ),
+        prepare_model(model, dt),
         philox::make_key(seed),
         product.autocall_barrier,
         product.protection_barrier,
-        product.annual_coupon_rate * product.observation_interval,
-        expf(-model.risk_free_rate * product.observation_interval),
+        product.annual_coupon_rate * observation_years,
+        expf(-model.risk_free_rate * observation_years),
         observation_count,
         steps_per_observation,
     };
@@ -61,7 +63,7 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    CevState state = initial_state(row.model);
+    State state = initial_state(row.model);
     philox::UniformSequence uniforms(
         row.key, static_cast<std::uint64_t>(path)
     );
@@ -96,14 +98,15 @@ __device__ __forceinline__ float evaluate_path(
 
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void cev_athena_autocall_kernel(
-    const CevModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::AthenaAutocallParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -124,20 +127,11 @@ __global__ void cev_athena_autocall_kernel(
             const std::size_t product_index = indices.product_index;
             const product::AthenaAutocallParameters product =
                 products[product_index];
-            const std::uint32_t observation_count =
-                static_cast<std::uint32_t>(floorf(
-                    product.maturity / product.observation_interval + 0.5f
-                ));
-            const std::uint32_t steps_per_observation =
-                static_cast<std::uint32_t>(fmaxf(
-                    1.0f,
-                    floorf(product.observation_interval / target_dt + 0.5f)
-                ));
             prepared = prepare_row(
                 models[model_index],
                 product,
-                observation_count,
-                steps_per_observation,
+                dt,
+                simulation_steps_per_day,
                 base_seed + result_index
             );
         }
@@ -178,7 +172,7 @@ __global__ void cev_athena_autocall_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_cev_athena_autocall_launch(
-    const CevModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AthenaAutocallParameters* device_products,
     std::size_t product_count,
@@ -187,7 +181,8 @@ void validate_cev_athena_autocall_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -214,10 +209,11 @@ void validate_cev_athena_autocall_launch(
 
     // Monte Carlo paths and the requested simulation step must be valid.
     validate_monte_carlo_parameters(
-        monte_carlo_paths_per_price, target_dt
+        monte_carlo_paths_per_price, dt
     );
 
     // The block must fit the GPU and contain a whole number of warps.
+    validate_simulation_steps_per_day(simulation_steps_per_day);
     validate_reduction_block_size(threads_per_block);
 
     // The persistent grid must contain valid blocks and fit gridDim.x.
@@ -232,7 +228,7 @@ void validate_cev_athena_autocall_launch(
 
 // Validate and launch the pricing kernel on caller-owned device arrays.
 void launch_cev_athena_autocall_cuda(
-    const CevModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AthenaAutocallParameters* device_products,
     std::size_t product_count,
@@ -241,7 +237,8 @@ void launch_cev_athena_autocall_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    float target_dt,
+    float dt,
+    std::uint32_t simulation_steps_per_day,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -258,7 +255,8 @@ void launch_cev_athena_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         threads_per_block,
         block_count,
         base_seed,
@@ -308,7 +306,8 @@ void launch_cev_athena_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        target_dt,
+        dt,
+        simulation_steps_per_day,
         base_seed,
         device_prices,
         device_standard_errors

@@ -1,5 +1,8 @@
-"""Check row tolerances and aggregate signed-bias detection."""
+"""Check parameter conversion, row tolerances, and signed-bias detection."""
 
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
 from validation.quantlib.price_validation import (
@@ -7,6 +10,7 @@ from validation.quantlib.price_validation import (
     PriceValidationInput,
     PriceComparison,
     ValidationTolerances,
+    load_parameter_rows,
     select_validation_regime,
     select_validation_row_ids,
     summarize_price_comparisons,
@@ -85,6 +89,36 @@ class PriceValidationTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "no rows"):
             select_validation_row_ids(validation_input, ("missing",))
+
+    def test_product_business_days_are_exposed_as_year_fractions(self) -> None:
+        document = {
+            "database_id": "product_times",
+            "row_count": 1,
+            "time_convention": {
+                "unit": "business_day",
+                "days_per_year": 252,
+            },
+            "products": [
+                {
+                    "id": "000001",
+                    "parameters": {
+                        "maturity": 126,
+                        "observation_interval": 21,
+                        "payment_times": [63, 126],
+                        "strike": 1.0,
+                    },
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "products.json"
+            path.write_text(json.dumps(document), encoding="utf-8")
+            parameters = load_parameter_rows(path, "products")["000001"]
+
+        self.assertEqual(parameters["maturity"], 0.5)
+        self.assertEqual(parameters["observation_interval"], 1.0 / 12.0)
+        self.assertEqual(parameters["payment_times"], [0.25, 0.5])
+        self.assertEqual(parameters["strike"], 1.0)
 
 
 if __name__ == "__main__":

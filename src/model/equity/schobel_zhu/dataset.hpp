@@ -7,7 +7,7 @@
 
 namespace ai_factory::workbench::schobel_zhu {
 
-struct SchobelZhuModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -18,9 +18,9 @@ struct SchobelZhuModelParameters {
     float correlation;
 };
 
-static_assert(std::is_trivially_copyable_v<SchobelZhuModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-std::vector<SchobelZhuModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

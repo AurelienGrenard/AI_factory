@@ -19,17 +19,19 @@ int main() {
         "gap_put_options_01.json";
 
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         0.2f,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         0.2f
     );
     for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
         const float trigger = rows.rows[index].at("strike").get<float>();
-        const float maturity = rows.rows[index].at("maturity").get<float>();
-        const float relative_gap = 0.05f * sqrtf(maturity / 3.0f);
+        const std::uint32_t maturity =
+            rows.rows[index].at("maturity").get<std::uint32_t>();
+        const float maturity_years = business_days_to_years(maturity);
+        const float relative_gap = 0.05f * sqrtf(maturity_years / 3.0f);
         const float payoff_strike = trigger * expf(relative_gap);
         rows.rows[index] = {
             {"trigger_strike", trigger},
@@ -41,7 +43,7 @@ int main() {
         rows.construction["grid"].at("strike");
     rows.construction["grid"].erase("strike");
     rows.construction["payoff_strike"] = {
-        {"rule", "trigger_strike * exp(0.05 * sqrt(T / 3))"},
+        {"rule", "trigger_strike * exp(0.05 * sqrt((T / 252) / 3))"},
     };
 
     write_product_dataset(
@@ -53,7 +55,7 @@ int main() {
         {
             {"trigger_strike", "Strike that activates the terminal payoff."},
             {"payoff_strike", "Strike from which the terminal spot is subtracted."},
-            {"maturity", "Maturity in years."},
+            {"maturity", "Maturity in business days."},
         },
         {
             {"expression", "(payoff_strike - S_T) * 1{S_T < trigger_strike}"},

@@ -6,15 +6,15 @@ namespace ai_factory::workbench::schobel_zhu {
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ SchobelZhuPreparedParameters prepare_model(
-    const SchobelZhuModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters,
+    float delta_t
 ) {
-    const float dt = maturity / static_cast<float>(num_steps);
-    const float sqrt_dt = sqrtf(dt);
+    const float sqrt_dt = sqrtf(delta_t);
     const float exp_mean_reversion_dt = expf(
-        -parameters.mean_reversion * dt
+        -parameters.mean_reversion * delta_t
     );
     const float endpoint_variance =
         (1.0f - exp_mean_reversion_dt * exp_mean_reversion_dt)
@@ -23,7 +23,7 @@ __device__ __forceinline__ SchobelZhuPreparedParameters prepare_model(
         (1.0f - exp_mean_reversion_dt)
         / (
             parameters.mean_reversion
-            * sqrtf(dt * endpoint_variance)
+            * sqrtf(delta_t * endpoint_variance)
         );
     const float clamped_endpoint_correlation = fminf(
         1.0f,
@@ -45,49 +45,49 @@ __device__ __forceinline__ SchobelZhuPreparedParameters prepare_model(
                         * clamped_endpoint_correlation
             )
         ),
-        (parameters.risk_free_rate - parameters.dividend_yield) * dt,
+        (parameters.risk_free_rate - parameters.dividend_yield) * delta_t,
         sqrt_dt,
         parameters.correlation,
         sqrtf(1.0f - parameters.correlation * parameters.correlation),
     };
 }
 
-__device__ __forceinline__ SchobelZhuState initial_state(
-    const SchobelZhuPreparedParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    return {model.initial_log_spot, model.initial_volatility};
+    return {prepared_model.initial_log_spot, prepared_model.initial_volatility};
 }
 
 // The OU endpoint is exact. Its Gaussian innovation is coupled to the
 // volatility Brownian increment used by the log-spot Euler step, preserving
 // the requested instantaneous asset/volatility correlation.
 __device__ __forceinline__ void one_step_transition(
-    const SchobelZhuPreparedParameters& model,
+    const PreparedModel& prepared_model,
     float ou_normal,
     float increment_residual_normal,
     float asset_residual_normal,
-    SchobelZhuState& state
+    State& state
 ) {
     const float volatility_brownian_normal = fmaf(
-        model.endpoint_increment_residual,
+        prepared_model.endpoint_increment_residual,
         increment_residual_normal,
-        model.endpoint_increment_correlation * ou_normal
+        prepared_model.endpoint_increment_correlation * ou_normal
     );
     const float asset_normal = fmaf(
-        model.correlation_residual,
+        prepared_model.correlation_residual,
         asset_residual_normal,
-        model.correlation * volatility_brownian_normal
+        prepared_model.correlation * volatility_brownian_normal
     );
     const float volatility = state.volatility;
     state.log_spot +=
-        model.drift_dt
-        - 0.5f * volatility * volatility * model.sqrt_dt * model.sqrt_dt
-        + volatility * model.sqrt_dt * asset_normal;
+        prepared_model.drift_dt
+        - 0.5f * volatility * volatility * prepared_model.sqrt_dt * prepared_model.sqrt_dt
+        + volatility * prepared_model.sqrt_dt * asset_normal;
     state.volatility =
-        model.long_run_volatility
-        + (volatility - model.long_run_volatility)
-            * model.exp_mean_reversion_dt
-        + model.ou_std * ou_normal;
+        prepared_model.long_run_volatility
+        + (volatility - prepared_model.long_run_volatility)
+            * prepared_model.exp_mean_reversion_dt
+        + prepared_model.ou_std * ou_normal;
 }
 
 // ==================== Model-specific implementation =======================
@@ -95,10 +95,10 @@ __device__ __forceinline__ void one_step_transition(
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
-    const SchobelZhuPreparedParameters& model,
+    const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normals,
-    SchobelZhuState& state
+    State& state
 ) {
     const float ou_normal = philox::next_normal(uniforms, normals);
     const float increment_residual_normal = philox::next_normal(
@@ -110,7 +110,7 @@ __device__ __forceinline__ void simulate_one_step(
         normals
     );
     one_step_transition(
-        model,
+        prepared_model,
         ou_normal,
         increment_residual_normal,
         asset_residual_normal,
@@ -119,14 +119,14 @@ __device__ __forceinline__ void simulate_one_step(
 }
 
 __device__ __forceinline__ void simulate_steps(
-    const SchobelZhuPreparedParameters& model,
-    std::size_t num_steps,
+    const PreparedModel& prepared_model,
+    std::uint32_t num_steps,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normals,
-    SchobelZhuState& state
+    State& state
 ) {
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
     }
 }
 
@@ -134,50 +134,50 @@ __device__ __forceinline__ void simulate_steps(
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ SchobelZhuState simulate_terminal_state(
-    const SchobelZhuPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    SchobelZhuState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
-    simulate_steps(model, num_steps, uniforms, normals, state);
+    simulate_steps(prepared_model, num_steps, uniforms, normals, state);
     return state;
 }
 
-__device__ __forceinline__ SchobelZhuMeanPathResult simulate_mean_state(
-    const SchobelZhuPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    SchobelZhuState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     double sum = expf(state.log_spot);
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         sum += expf(state.log_spot);
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
     return {static_cast<float>(sum / observation_count)};
 }
 
-__device__ __forceinline__ SchobelZhuGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const SchobelZhuPreparedParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    SchobelZhuState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     double log_sum = state.log_spot;
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         log_sum += state.log_spot;
     }
     const double observation_count = static_cast<double>(num_steps) + 1.0;
@@ -186,102 +186,105 @@ simulate_geometric_mean_state(
     };
 }
 
-__device__ __forceinline__ SchobelZhuTwoTimePathResult simulate_at_two_times(
-    const SchobelZhuPreparedParameters& first_model,
-    const SchobelZhuPreparedParameters& second_model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::uint32_t num_steps
 ) {
-    SchobelZhuState state = initial_state(first_model);
-    philox::UniformSequence uniforms(key, path);
-    philox::NormalPairCache normals;
-    simulate_steps(
-        first_model,
-        first_num_steps,
-        uniforms,
-        normals,
-        state
-    );
-    const float first_spot = expf(state.log_spot);
-    simulate_steps(
-        second_model,
-        second_num_steps,
-        uniforms,
-        normals,
-        state
-    );
-    return {first_spot, expf(state.log_spot)};
-}
-
-__device__ __forceinline__ SchobelZhuMaximumPathResult simulate_maximum_state(
-    const SchobelZhuPreparedParameters& model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t num_steps
-) {
-    SchobelZhuState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     float maximum = expf(state.log_spot);
-    for (std::size_t step = 0U; step < num_steps; ++step) {
-        simulate_one_step(model, uniforms, normals, state);
+    for (std::uint32_t step = 0U; step < num_steps; ++step) {
+        simulate_one_step(prepared_model, uniforms, normals, state);
         maximum = fmaxf(maximum, expf(state.log_spot));
     }
     return {maximum};
 }
 
-__device__ __forceinline__ SchobelZhuState simulate_on_regular_grid(
-    const SchobelZhuPreparedParameters& initial_stub_model,
-    const SchobelZhuPreparedParameters& regular_model,
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
-    float* observed_spots,
-    float* observed_volatilities
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots,
+    float* __restrict__ observed_volatilities
 ) {
-    SchobelZhuState state = initial_state(initial_stub_model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(key, path);
     philox::NormalPairCache normals;
     simulate_steps(
-        initial_stub_model,
+        prepared_model,
         initial_stub_steps,
         uniforms,
         normals,
         state
     );
-    if (exercise_count == 1U) {
+    if (observation_count == 1U) {
         return state;
     }
 
-    std::size_t output_index = path;
+    std::size_t output_index = 0U;
     observed_spots[output_index] = expf(state.log_spot);
     observed_volatilities[output_index] = state.volatility;
-    for (std::uint32_t exercise_index = 1U;
-         exercise_index + 1U < exercise_count;
-         ++exercise_index) {
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
         simulate_steps(
-            regular_model,
-            steps_per_exercise,
+            prepared_model,
+            steps_per_observation,
             uniforms,
             normals,
             state
         );
-        output_index += path_count;
+        output_index += observation_stride;
         observed_spots[output_index] = expf(state.log_spot);
         observed_volatilities[output_index] = state.volatility;
     }
     simulate_steps(
-        regular_model,
-        steps_per_exercise,
+        prepared_model,
+        steps_per_observation,
         uniforms,
         normals,
         state
     );
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots,
+    float* __restrict__ observed_volatilities
+) {
+    State state = initial_state(prepared_model);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    std::size_t output_index = 0U;
+    for (std::uint32_t observation = 0U;
+         observation < observation_count;
+         ++observation) {
+        simulate_steps(
+            prepared_model,
+            steps_between_observations[observation],
+            uniforms,
+            normals,
+            state
+        );
+        if (observation + 1U < observation_count) {
+            observed_spots[output_index] = expf(state.log_spot);
+            observed_volatilities[output_index] = state.volatility;
+            output_index += observation_stride;
+        }
+    }
     return state;
 }
 

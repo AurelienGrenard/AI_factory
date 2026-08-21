@@ -1,12 +1,12 @@
 {
   "database_id": "vasicek_01__zero_coupon_bond_puts_01__01",
-  "catalog": "catalog/price/fixed_income/vasicek/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01",
+  "catalog": "catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01",
   "url": "https://datasets.ai-factory.example/v1/validation/price/fixed_income/vasicek/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01.json",
   "row_count": 1000,
   "model_dataset": {
     "id": "vasicek_01",
-    "catalog": "catalog/model/fixed_income/vasicek/vasicek_01",
-    "url": "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/vasicek_01.json"
+    "catalog": "catalog/model/fixed_income/vasicek/parameters/vasicek_01",
+    "url": "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/parameters/vasicek_01.json"
   },
   "product_dataset": {
     "id": "zero_coupon_bond_options_01",
@@ -14,9 +14,9 @@
     "url": "https://datasets.ai-factory.example/v1/product/zero_coupon_bond_options/zero_coupon_bond_options_01.json"
   },
   "source_fingerprints": {
-    "price_results": "sha256:cfdbec452ee465b1784c372e789202e76e67d5e07eec587ccba41d9d70a78f24",
+    "price_results": "sha256:41f6e3892a9d83addf3eaee65d9c985ecfbe6578ec5413d21a5be6d8e80f9b44",
     "model_parameters": "sha256:d1d5c80271d1eb3b81bac69fd80dba62732a17c738a4853f213b3b0f8bb9c7fa",
-    "product_parameters": "sha256:e6b4644dbcf9fb3617250f9a4c82cf99ab6b6500fe9a993f4370bae3bfa6a214"
+    "product_parameters": "sha256:71b01daf3df6e58f7a18ed814f481f8f7768d13108304105e1c00fc38d7975a7"
   },
   "reference_pricers": {
     "core": {
@@ -70,9 +70,9 @@
       "row_count": 900,
       "passed_row_count": 900,
       "failed_row_count": 0,
-      "maximum_absolute_error": 1.6670913316474412e-07,
-      "maximum_absolute_error_row_id": "000221",
-      "mean_signed_error": -1.908969893487151e-09,
+      "maximum_absolute_error": 1.8386994993235817e-07,
+      "maximum_absolute_error_row_id": "000749",
+      "mean_signed_error": -2.0710274367671905e-10,
       "systematic_bias": false
     },
     "stress": {
@@ -80,14 +80,14 @@
       "row_count": 100,
       "passed_row_count": 100,
       "failed_row_count": 0,
-      "maximum_absolute_error": 1.6046906781141956e-07,
-      "maximum_absolute_error_row_id": "000990",
-      "mean_signed_error": -8.286129878985194e-10,
+      "maximum_absolute_error": 1.5650826323820866e-07,
+      "maximum_absolute_error_row_id": "000920",
+      "mean_signed_error": -3.0537292043408752e-09,
       "systematic_bias": false
     }
   },
   "timing": {
-    "wall_seconds": 1.9076984580024146
+    "wall_seconds": 1.5566855709985248
   },
   "results": [
     {
@@ -546,7 +546,7 @@
       "product_id": "000051",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.911482385339293e-217
+        "price": 2.0545838698064256e-217
       }
     },
     {
@@ -564,7 +564,7 @@
       "product_id": "000053",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.307476051347691e-82
+        "price": 1.0980857245970511e-82
       }
     },
     {
@@ -582,7 +582,7 @@
       "product_id": "000055",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5540007408891504e-160
+        "price": 1.0302174430464755e-160
       }
     },
     {
@@ -591,7 +591,7 @@
       "product_id": "000056",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.1578694632121e-46
+        "price": 4.849706194010684e-46
       }
     },
     {
@@ -600,7 +600,7 @@
       "product_id": "000057",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.698480490150223e-09
+        "price": 5.6340929941464755e-09
       }
     },
     {
@@ -609,7 +609,7 @@
       "product_id": "000058",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.482496026352633e-08
+        "price": 3.3345877063106115e-08
       }
     },
     {
@@ -618,7 +618,7 @@
       "product_id": "000059",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.293123019106684e-14
+        "price": 9.136217860627984e-14
       }
     },
     {
@@ -627,7 +627,7 @@
       "product_id": "000060",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.7264945020419164e-08
+        "price": 4.6017547145878006e-08
       }
     },
     {
@@ -636,7 +636,7 @@
       "product_id": "000061",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3035144664866136e-15
+        "price": 1.1751241909408366e-15
       }
     },
     {
@@ -645,7 +645,7 @@
       "product_id": "000062",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0001780907898235734
+        "price": 0.00017568554695360228
       }
     },
     {
@@ -654,7 +654,7 @@
       "product_id": "000063",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.012674470402354e-06
+        "price": 8.712780616345131e-06
       }
     },
     {
@@ -663,7 +663,7 @@
       "product_id": "000064",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.720286276671374e-18
+        "price": 5.829874231215961e-18
       }
     },
     {
@@ -672,7 +672,7 @@
       "product_id": "000065",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.840334296987163e-05
+        "price": 9.797784636619844e-05
       }
     },
     {
@@ -681,7 +681,7 @@
       "product_id": "000066",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008019948703874902
+        "price": 0.008024961387526952
       }
     },
     {
@@ -690,7 +690,7 @@
       "product_id": "000067",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0043605422347176015
+        "price": 0.004379990284670732
       }
     },
     {
@@ -699,7 +699,7 @@
       "product_id": "000068",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001819544442766663
+        "price": 0.0018155174070729752
       }
     },
     {
@@ -708,7 +708,7 @@
       "product_id": "000069",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0001180576861481708
+        "price": 0.00011829542501129442
       }
     },
     {
@@ -717,7 +717,7 @@
       "product_id": "000070",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006542154509692644
+        "price": 0.0065284173033086645
       }
     },
     {
@@ -726,7 +726,7 @@
       "product_id": "000071",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.027850372114821886
+        "price": 0.02784486595614688
       }
     },
     {
@@ -735,7 +735,7 @@
       "product_id": "000072",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04276851110398583
+        "price": 0.04273747434266606
       }
     },
     {
@@ -744,7 +744,7 @@
       "product_id": "000073",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06366479240636758
+        "price": 0.06367161937907506
       }
     },
     {
@@ -753,7 +753,7 @@
       "product_id": "000074",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07636932718577383
+        "price": 0.07637247668857161
       }
     },
     {
@@ -762,7 +762,7 @@
       "product_id": "000075",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11484667142856542
+        "price": 0.11486443053970763
       }
     },
     {
@@ -771,7 +771,7 @@
       "product_id": "000076",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8844717651824866e-91
+        "price": 8.197625930110869e-92
       }
     },
     {
@@ -780,7 +780,7 @@
       "product_id": "000077",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.892547362182965e-55
+        "price": 1.6584182926443983e-55
       }
     },
     {
@@ -789,7 +789,7 @@
       "product_id": "000078",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.5884048490377965e-29
+        "price": 1.3276967234914682e-29
       }
     },
     {
@@ -798,7 +798,7 @@
       "product_id": "000079",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.345471116551255e-34
+        "price": 1.8640450869373758e-34
       }
     },
     {
@@ -807,7 +807,7 @@
       "product_id": "000080",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.120091239680081e-27
+        "price": 3.951611195481576e-27
       }
     },
     {
@@ -816,7 +816,7 @@
       "product_id": "000081",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.215168187882224e-183
+        "price": 3.3271807066770956e-183
       }
     },
     {
@@ -825,7 +825,7 @@
       "product_id": "000082",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.2707477486706446e-84
+        "price": 1.5017790858945904e-84
       }
     },
     {
@@ -834,7 +834,7 @@
       "product_id": "000083",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007252685968557215
+        "price": 0.0072510826331189104
       }
     },
     {
@@ -843,7 +843,7 @@
       "product_id": "000084",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.6603201484168124e-08
+        "price": 3.483715111880553e-08
       }
     },
     {
@@ -852,7 +852,7 @@
       "product_id": "000085",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011997653484477566
+        "price": 0.012024194255417342
       }
     },
     {
@@ -861,7 +861,7 @@
       "product_id": "000086",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008582397546667841
+        "price": 0.0008543495460609507
       }
     },
     {
@@ -870,7 +870,7 @@
       "product_id": "000087",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.027157439708914266
+        "price": 0.027195444090317156
       }
     },
     {
@@ -879,7 +879,7 @@
       "product_id": "000088",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010197062894461095
+        "price": 0.010207039962027986
       }
     },
     {
@@ -888,7 +888,7 @@
       "product_id": "000089",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00933352035910262
+        "price": 0.009327000456433532
       }
     },
     {
@@ -897,7 +897,7 @@
       "product_id": "000090",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.989495082025412e-21
+        "price": 7.099649846464713e-21
       }
     },
     {
@@ -906,7 +906,7 @@
       "product_id": "000091",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014883933314303599
+        "price": 0.014917518669069763
       }
     },
     {
@@ -915,7 +915,7 @@
       "product_id": "000092",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.015588705700988581
+        "price": 0.015592550194191035
       }
     },
     {
@@ -924,7 +924,7 @@
       "product_id": "000093",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4770363803246015e-09
+        "price": 1.4177033380890198e-09
       }
     },
     {
@@ -933,7 +933,7 @@
       "product_id": "000094",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0003002651468477502
+        "price": 0.00029850671084871716
       }
     },
     {
@@ -942,7 +942,7 @@
       "product_id": "000095",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025930168702075096
+        "price": 0.025931801225182793
       }
     },
     {
@@ -951,7 +951,7 @@
       "product_id": "000096",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01943724948137937
+        "price": 0.019426480903577237
       }
     },
     {
@@ -960,7 +960,7 @@
       "product_id": "000097",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05001060714887451
+        "price": 0.05000094547609646
       }
     },
     {
@@ -969,7 +969,7 @@
       "product_id": "000098",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10595708847086005
+        "price": 0.1059794736327806
       }
     },
     {
@@ -978,7 +978,7 @@
       "product_id": "000099",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09361438494507757
+        "price": 0.09359016442767953
       }
     },
     {
@@ -987,7 +987,7 @@
       "product_id": "000100",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.13243022189538212
+        "price": 0.13245617327581072
       }
     },
     {
@@ -996,7 +996,7 @@
       "product_id": "000101",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8305888720012702e-250
+        "price": 3.6381239491790137e-250
       }
     },
     {
@@ -1005,7 +1005,7 @@
       "product_id": "000102",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.578942559913438e-185
+        "price": 1.0522635245637863e-184
       }
     },
     {
@@ -1023,7 +1023,7 @@
       "product_id": "000104",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.7019614290157847e-248
+        "price": 2.555050248461925e-248
       }
     },
     {
@@ -1032,7 +1032,7 @@
       "product_id": "000105",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0537210334196085e-94
+        "price": 1.1690649506027899e-94
       }
     },
     {
@@ -1050,7 +1050,7 @@
       "product_id": "000107",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.698137033916807e-41
+        "price": 4.834674735833364e-41
       }
     },
     {
@@ -1059,7 +1059,7 @@
       "product_id": "000108",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.173918016942839e-05
+        "price": 9.181310625719363e-05
       }
     },
     {
@@ -1068,7 +1068,7 @@
       "product_id": "000109",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.4806887099430852e-05
+        "price": 2.4926662938389715e-05
       }
     },
     {
@@ -1077,7 +1077,7 @@
       "product_id": "000110",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.068371792746723e-12
+        "price": 5.186545237206319e-12
       }
     },
     {
@@ -1086,7 +1086,7 @@
       "product_id": "000111",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005102755947195281
+        "price": 0.000509808522323657
       }
     },
     {
@@ -1095,7 +1095,7 @@
       "product_id": "000112",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.877868456034595e-64
+        "price": 9.231299665261096e-64
       }
     },
     {
@@ -1104,7 +1104,7 @@
       "product_id": "000113",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0014090167762400019
+        "price": 0.0014079873746951077
       }
     },
     {
@@ -1113,7 +1113,7 @@
       "product_id": "000114",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005847955464766352
+        "price": 0.005846370651605426
       }
     },
     {
@@ -1122,7 +1122,7 @@
       "product_id": "000115",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.761535530831056e-12
+        "price": 7.872783744952971e-12
       }
     },
     {
@@ -1131,7 +1131,7 @@
       "product_id": "000116",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0010019393682546562
+        "price": 0.0010032379990730922
       }
     },
     {
@@ -1140,7 +1140,7 @@
       "product_id": "000117",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.3910218784550675e-06
+        "price": 4.424998329595475e-06
       }
     },
     {
@@ -1149,7 +1149,7 @@
       "product_id": "000118",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002603957217322983
+        "price": 0.002606320144801222
       }
     },
     {
@@ -1158,7 +1158,7 @@
       "product_id": "000119",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0016413820679654356
+        "price": 0.001642307018958733
       }
     },
     {
@@ -1167,7 +1167,7 @@
       "product_id": "000120",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.026242105457578435
+        "price": 0.02623975509694554
       }
     },
     {
@@ -1176,7 +1176,7 @@
       "product_id": "000121",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0366384164502952
+        "price": 0.036633083196254246
       }
     },
     {
@@ -1185,7 +1185,7 @@
       "product_id": "000122",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05561869570169764
+        "price": 0.05561895063737243
       }
     },
     {
@@ -1194,7 +1194,7 @@
       "product_id": "000123",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0657516868591046
+        "price": 0.06574438253844683
       }
     },
     {
@@ -1203,7 +1203,7 @@
       "product_id": "000124",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08623945908646058
+        "price": 0.08624585304851118
       }
     },
     {
@@ -1212,7 +1212,7 @@
       "product_id": "000125",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10795329546653598
+        "price": 0.10795161183732582
       }
     },
     {
@@ -1221,7 +1221,7 @@
       "product_id": "000126",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.487855161333563e-53
+        "price": 4.748376366949788e-53
       }
     },
     {
@@ -1230,7 +1230,7 @@
       "product_id": "000127",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.9861313429443517e-120
+        "price": 4.043590295412492e-120
       }
     },
     {
@@ -1239,7 +1239,7 @@
       "product_id": "000128",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.4037692971542167e-57
+        "price": 3.903001569656705e-57
       }
     },
     {
@@ -1248,7 +1248,7 @@
       "product_id": "000129",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7726879927985307e-27
+        "price": 2.9654088437322695e-27
       }
     },
     {
@@ -1257,7 +1257,7 @@
       "product_id": "000130",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.015380696629606e-09
+        "price": 8.061753715367221e-09
       }
     },
     {
@@ -1266,7 +1266,7 @@
       "product_id": "000131",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.141644347182102e-10
+        "price": 2.1513316101848668e-10
       }
     },
     {
@@ -1275,7 +1275,7 @@
       "product_id": "000132",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001789344094706824
+        "price": 0.0017899751108807482
       }
     },
     {
@@ -1284,7 +1284,7 @@
       "product_id": "000133",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011756902658601742
+        "price": 0.011758838823254458
       }
     },
     {
@@ -1293,7 +1293,7 @@
       "product_id": "000134",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0012191170341501467
+        "price": 0.0012201257155857737
       }
     },
     {
@@ -1302,7 +1302,7 @@
       "product_id": "000135",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00014845606035933379
+        "price": 0.00014918430142511763
       }
     },
     {
@@ -1311,7 +1311,7 @@
       "product_id": "000136",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00013761307755025265
+        "price": 0.00013799646118392572
       }
     },
     {
@@ -1320,7 +1320,7 @@
       "product_id": "000137",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.776791187308647e-05
+        "price": 8.803751733221094e-05
       }
     },
     {
@@ -1329,7 +1329,7 @@
       "product_id": "000138",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0031081343484555823
+        "price": 0.0031138079639419503
       }
     },
     {
@@ -1338,7 +1338,7 @@
       "product_id": "000139",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6135634619794788e-10
+        "price": 1.605524000045993e-10
       }
     },
     {
@@ -1347,7 +1347,7 @@
       "product_id": "000140",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0051537666589012154
+        "price": 0.00515949893790657
       }
     },
     {
@@ -1356,7 +1356,7 @@
       "product_id": "000141",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0002077007696343336
+        "price": 0.00020878894797339564
       }
     },
     {
@@ -1365,7 +1365,7 @@
       "product_id": "000142",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004562773470322523
+        "price": 0.004549718325264185
       }
     },
     {
@@ -1374,7 +1374,7 @@
       "product_id": "000143",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006305350575175339
+        "price": 0.006308915166819196
       }
     },
     {
@@ -1383,7 +1383,7 @@
       "product_id": "000144",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.015951781985069746
+        "price": 0.015959086588674176
       }
     },
     {
@@ -1392,7 +1392,7 @@
       "product_id": "000145",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0625414474207554
+        "price": 0.0625369932176636
       }
     },
     {
@@ -1401,7 +1401,7 @@
       "product_id": "000146",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05535742606451444
+        "price": 0.0553719357804926
       }
     },
     {
@@ -1410,7 +1410,7 @@
       "product_id": "000147",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08889200779298745
+        "price": 0.0888846297712973
       }
     },
     {
@@ -1419,7 +1419,7 @@
       "product_id": "000148",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06250225416732624
+        "price": 0.06250004058221859
       }
     },
     {
@@ -1428,7 +1428,7 @@
       "product_id": "000149",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1311411257842241
+        "price": 0.1311283511190967
       }
     },
     {
@@ -1437,7 +1437,7 @@
       "product_id": "000150",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1399419877103949
+        "price": 0.13993391451972226
       }
     },
     {
@@ -1455,7 +1455,7 @@
       "product_id": "000152",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6502383483782028e-174
+        "price": 1.3595750594144226e-174
       }
     },
     {
@@ -1464,7 +1464,7 @@
       "product_id": "000153",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.161132711583764e-89
+        "price": 2.7804387940768414e-89
       }
     },
     {
@@ -1473,7 +1473,7 @@
       "product_id": "000154",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.62364344652481e-35
+        "price": 1.5969979913520608e-35
       }
     },
     {
@@ -1482,7 +1482,7 @@
       "product_id": "000155",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.6023357847484533e-26
+        "price": 3.4074096648798586e-26
       }
     },
     {
@@ -1491,7 +1491,7 @@
       "product_id": "000156",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.616241942278684e-69
+        "price": 4.932062494943985e-69
       }
     },
     {
@@ -1500,7 +1500,7 @@
       "product_id": "000157",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.5776002956445625e-19
+        "price": 4.396529490687602e-19
       }
     },
     {
@@ -1509,7 +1509,7 @@
       "product_id": "000158",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4103223958886552e-09
+        "price": 1.407031660814541e-09
       }
     },
     {
@@ -1518,7 +1518,7 @@
       "product_id": "000159",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8976833144044052e-16
+        "price": 1.8260514200459033e-16
       }
     },
     {
@@ -1527,7 +1527,7 @@
       "product_id": "000160",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.198132602827425e-07
+        "price": 1.202983895025653e-07
       }
     },
     {
@@ -1536,7 +1536,7 @@
       "product_id": "000161",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6001458340642684e-19
+        "price": 2.568234716568472e-19
       }
     },
     {
@@ -1545,7 +1545,7 @@
       "product_id": "000162",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002177003090200802
+        "price": 0.002175698843404461
       }
     },
     {
@@ -1554,7 +1554,7 @@
       "product_id": "000163",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011509531852665345
+        "price": 0.001151531727581201
       }
     },
     {
@@ -1563,7 +1563,7 @@
       "product_id": "000164",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.166054977630673e-05
+        "price": 4.171130191151992e-05
       }
     },
     {
@@ -1572,7 +1572,7 @@
       "product_id": "000165",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.346025624104316e-05
+        "price": 7.356209958001361e-05
       }
     },
     {
@@ -1581,7 +1581,7 @@
       "product_id": "000166",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1394333775024404e-07
+        "price": 1.1306038424803422e-07
       }
     },
     {
@@ -1590,7 +1590,7 @@
       "product_id": "000167",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008781401698396696
+        "price": 0.0008747620800137468
       }
     },
     {
@@ -1599,7 +1599,7 @@
       "product_id": "000168",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01333773090520296
+        "price": 0.013339966999281416
       }
     },
     {
@@ -1608,7 +1608,7 @@
       "product_id": "000169",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010353142448660924
+        "price": 0.010360285586015983
       }
     },
     {
@@ -1617,7 +1617,7 @@
       "product_id": "000170",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008448032349502088
+        "price": 0.008459646768760432
       }
     },
     {
@@ -1626,7 +1626,7 @@
       "product_id": "000171",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03576950702377779
+        "price": 0.03576847233509095
       }
     },
     {
@@ -1635,7 +1635,7 @@
       "product_id": "000172",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02764536211067159
+        "price": 0.02764440370814314
       }
     },
     {
@@ -1644,7 +1644,7 @@
       "product_id": "000173",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05801253646963178
+        "price": 0.05802543341774846
       }
     },
     {
@@ -1653,7 +1653,7 @@
       "product_id": "000174",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07874837079838515
+        "price": 0.07875797077952962
       }
     },
     {
@@ -1662,7 +1662,7 @@
       "product_id": "000175",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.12371686685147609
+        "price": 0.12372095655031756
       }
     },
     {
@@ -1671,7 +1671,7 @@
       "product_id": "000176",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.446890531851215e-34
+        "price": 4.170299553524999e-34
       }
     },
     {
@@ -1680,7 +1680,7 @@
       "product_id": "000177",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8042755504800244e-28
+        "price": 1.7280167583823875e-28
       }
     },
     {
@@ -1689,7 +1689,7 @@
       "product_id": "000178",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.915411842187473e-128
+        "price": 3.951198694659187e-128
       }
     },
     {
@@ -1698,7 +1698,7 @@
       "product_id": "000179",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8981136714038233e-11
+        "price": 1.888920932411002e-11
       }
     },
     {
@@ -1707,7 +1707,7 @@
       "product_id": "000180",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.47314970746727e-31
+        "price": 5.2093948710384155e-31
       }
     },
     {
@@ -1716,7 +1716,7 @@
       "product_id": "000181",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.155507635095968e-07
+        "price": 7.100636681099128e-07
       }
     },
     {
@@ -1725,7 +1725,7 @@
       "product_id": "000182",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0003439664096333561
+        "price": 0.0003435576434275417
       }
     },
     {
@@ -1734,7 +1734,7 @@
       "product_id": "000183",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011489747598949496
+        "price": 0.001148103381346105
       }
     },
     {
@@ -1743,7 +1743,7 @@
       "product_id": "000184",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.842869585456685e-06
+        "price": 7.719802404309445e-06
       }
     },
     {
@@ -1752,7 +1752,7 @@
       "product_id": "000185",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.012807659378129e-06
+        "price": 7.95713191903153e-06
       }
     },
     {
@@ -1761,7 +1761,7 @@
       "product_id": "000186",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000189334830767815
+        "price": 0.00018839978802173696
       }
     },
     {
@@ -1770,7 +1770,7 @@
       "product_id": "000187",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005354246872501245
+        "price": 0.000534844779318755
       }
     },
     {
@@ -1779,7 +1779,7 @@
       "product_id": "000188",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.028761985361633546
+        "price": 0.02876107898477609
       }
     },
     {
@@ -1788,7 +1788,7 @@
       "product_id": "000189",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008166221088073966
+        "price": 0.0008149877927526306
       }
     },
     {
@@ -1797,7 +1797,7 @@
       "product_id": "000190",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.057915289498161e-17
+        "price": 8.887013539273142e-17
       }
     },
     {
@@ -1806,7 +1806,7 @@
       "product_id": "000191",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001414550431699385
+        "price": 0.001411790664148288
       }
     },
     {
@@ -1815,7 +1815,7 @@
       "product_id": "000192",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0035393456083049335
+        "price": 0.003533269407211548
       }
     },
     {
@@ -1824,7 +1824,7 @@
       "product_id": "000193",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02860462341035941
+        "price": 0.028615772357655223
       }
     },
     {
@@ -1833,7 +1833,7 @@
       "product_id": "000194",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.019975790670670124
+        "price": 0.0199689967642791
       }
     },
     {
@@ -1842,7 +1842,7 @@
       "product_id": "000195",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03342296152812674
+        "price": 0.03342083552418118
       }
     },
     {
@@ -1851,7 +1851,7 @@
       "product_id": "000196",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07425269783658206
+        "price": 0.07426155233364262
       }
     },
     {
@@ -1860,7 +1860,7 @@
       "product_id": "000197",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08108530314926898
+        "price": 0.08110085299314407
       }
     },
     {
@@ -1869,7 +1869,7 @@
       "product_id": "000198",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07504411938673194
+        "price": 0.07504867023106343
       }
     },
     {
@@ -1878,7 +1878,7 @@
       "product_id": "000199",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10996406365494205
+        "price": 0.10996872154668802
       }
     },
     {
@@ -1887,7 +1887,7 @@
       "product_id": "000200",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11542177002657517
+        "price": 0.11544076351492161
       }
     },
     {
@@ -1896,7 +1896,7 @@
       "product_id": "000201",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.270243757897077e-126
+        "price": 6.666196768289169e-126
       }
     },
     {
@@ -1905,7 +1905,7 @@
       "product_id": "000202",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.3461994288349474e-142
+        "price": 3.1782052589220256e-142
       }
     },
     {
@@ -1914,7 +1914,7 @@
       "product_id": "000203",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.896706267060924e-80
+        "price": 2.066975075213645e-80
       }
     },
     {
@@ -1923,7 +1923,7 @@
       "product_id": "000204",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.9056223381611557e-41
+        "price": 2.022733431894841e-41
       }
     },
     {
@@ -1932,7 +1932,7 @@
       "product_id": "000205",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2717237911760958e-45
+        "price": 1.3731659998926277e-45
       }
     },
     {
@@ -1941,7 +1941,7 @@
       "product_id": "000206",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.727403011952255e-15
+        "price": 4.787432284361037e-15
       }
     },
     {
@@ -1950,7 +1950,7 @@
       "product_id": "000207",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.9989022295305996e-16
+        "price": 3.1188688044586595e-16
       }
     },
     {
@@ -1959,7 +1959,7 @@
       "product_id": "000208",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.693916742876365e-10
+        "price": 4.724314726826409e-10
       }
     },
     {
@@ -1968,7 +1968,7 @@
       "product_id": "000209",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.2517162836202355e-09
+        "price": 2.236840916111208e-09
       }
     },
     {
@@ -1977,7 +1977,7 @@
       "product_id": "000210",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.071023883344821e-29
+        "price": 8.316884252312494e-29
       }
     },
     {
@@ -1986,7 +1986,7 @@
       "product_id": "000211",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.904817119496238e-12
+        "price": 9.359069027079521e-12
       }
     },
     {
@@ -1995,7 +1995,7 @@
       "product_id": "000212",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2415769457338119e-05
+        "price": 1.2501988306802547e-05
       }
     },
     {
@@ -2004,7 +2004,7 @@
       "product_id": "000213",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.695517324082015e-06
+        "price": 5.7378910456986135e-06
       }
     },
     {
@@ -2013,7 +2013,7 @@
       "product_id": "000214",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.053150879999699e-38
+        "price": 3.982485964751221e-38
       }
     },
     {
@@ -2022,7 +2022,7 @@
       "product_id": "000215",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.359749734103737e-08
+        "price": 1.359914198799397e-08
       }
     },
     {
@@ -2031,7 +2031,7 @@
       "product_id": "000216",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002886859134754949
+        "price": 0.0028954536972225497
       }
     },
     {
@@ -2040,7 +2040,7 @@
       "product_id": "000217",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002635882060745609
+        "price": 0.002641761034372969
       }
     },
     {
@@ -2049,7 +2049,7 @@
       "product_id": "000218",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003986645583933024
+        "price": 0.0039907922275319585
       }
     },
     {
@@ -2058,7 +2058,7 @@
       "product_id": "000219",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02106963314689636
+        "price": 0.021065514284679066
       }
     },
     {
@@ -2067,7 +2067,7 @@
       "product_id": "000220",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025754649520252748
+        "price": 0.02574891900755716
       }
     },
     {
@@ -2076,7 +2076,7 @@
       "product_id": "000221",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025915485804370864
+        "price": 0.025922439114543394
       }
     },
     {
@@ -2085,7 +2085,7 @@
       "product_id": "000222",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03642363485842037
+        "price": 0.0364222571096684
       }
     },
     {
@@ -2094,7 +2094,7 @@
       "product_id": "000223",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07262684830247823
+        "price": 0.0726175049907899
       }
     },
     {
@@ -2103,7 +2103,7 @@
       "product_id": "000224",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08440852842768054
+        "price": 0.08441718682823351
       }
     },
     {
@@ -2112,7 +2112,7 @@
       "product_id": "000225",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10362907687406786
+        "price": 0.10362544564239728
       }
     },
     {
@@ -2121,7 +2121,7 @@
       "product_id": "000226",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3846357209229206e-69
+        "price": 1.4197896585214812e-69
       }
     },
     {
@@ -2130,7 +2130,7 @@
       "product_id": "000227",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6471840337861062e-46
+        "price": 1.7239986979035896e-46
       }
     },
     {
@@ -2139,7 +2139,7 @@
       "product_id": "000228",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1324841860118921e-216
+        "price": 1.8520349205265097e-216
       }
     },
     {
@@ -2148,7 +2148,7 @@
       "product_id": "000229",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.108083751271028e-07
+        "price": 7.156951223596659e-07
       }
     },
     {
@@ -2157,7 +2157,7 @@
       "product_id": "000230",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.495055272211354e-60
+        "price": 8.3906189844606e-60
       }
     },
     {
@@ -2166,7 +2166,7 @@
       "product_id": "000231",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0010472230827064943
+        "price": 0.0010493294498145345
       }
     },
     {
@@ -2175,7 +2175,7 @@
       "product_id": "000232",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3465387624596024e-71
+        "price": 1.7580130678211145e-71
       }
     },
     {
@@ -2184,7 +2184,7 @@
       "product_id": "000233",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010037803020452318
+        "price": 0.010028570852498198
       }
     },
     {
@@ -2193,7 +2193,7 @@
       "product_id": "000234",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011138347189589282
+        "price": 0.0011132544924707388
       }
     },
     {
@@ -2202,7 +2202,7 @@
       "product_id": "000235",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014891697065337328
+        "price": 0.014890059807235456
       }
     },
     {
@@ -2211,7 +2211,7 @@
       "product_id": "000236",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010361517067365322
+        "price": 0.010339248290061942
       }
     },
     {
@@ -2220,7 +2220,7 @@
       "product_id": "000237",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.025516510544695e-05
+        "price": 2.0321389071955437e-05
       }
     },
     {
@@ -2229,7 +2229,7 @@
       "product_id": "000238",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004734411744638567
+        "price": 0.00473949022823883
       }
     },
     {
@@ -2238,7 +2238,7 @@
       "product_id": "000239",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.027674577354286356
+        "price": 0.027668873654113635
       }
     },
     {
@@ -2247,7 +2247,7 @@
       "product_id": "000240",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.168494898764742e-05
+        "price": 8.202623724385891e-05
       }
     },
     {
@@ -2256,7 +2256,7 @@
       "product_id": "000241",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.030289770718731734
+        "price": 0.030297752856394244
       }
     },
     {
@@ -2265,7 +2265,7 @@
       "product_id": "000242",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0305909711375435
+        "price": 0.030579485051209443
       }
     },
     {
@@ -2274,7 +2274,7 @@
       "product_id": "000243",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007224265924532514
+        "price": 0.0072475967258647245
       }
     },
     {
@@ -2283,7 +2283,7 @@
       "product_id": "000244",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.031624879800963845
+        "price": 0.03162381204974063
       }
     },
     {
@@ -2292,7 +2292,7 @@
       "product_id": "000245",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05783167004097234
+        "price": 0.05782662931954363
       }
     },
     {
@@ -2301,7 +2301,7 @@
       "product_id": "000246",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02396854191288811
+        "price": 0.02393943225502393
       }
     },
     {
@@ -2310,7 +2310,7 @@
       "product_id": "000247",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0808354629706719
+        "price": 0.0808184360058315
       }
     },
     {
@@ -2319,7 +2319,7 @@
       "product_id": "000248",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09123490501430231
+        "price": 0.0912117063648128
       }
     },
     {
@@ -2328,7 +2328,7 @@
       "product_id": "000249",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10702170697257507
+        "price": 0.10699345053476095
       }
     },
     {
@@ -2337,7 +2337,7 @@
       "product_id": "000250",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10612354956732817
+        "price": 0.10612054278489536
       }
     },
     {
@@ -2355,7 +2355,7 @@
       "product_id": "000252",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.7607962175778822e-174
+        "price": 1.6204813404368272e-174
       }
     },
     {
@@ -2364,7 +2364,7 @@
       "product_id": "000253",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.839219593696588e-59
+        "price": 8.729768700662643e-59
       }
     },
     {
@@ -2373,7 +2373,7 @@
       "product_id": "000254",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.4978818023241927e-46
+        "price": 2.4953181159178884e-46
       }
     },
     {
@@ -2382,7 +2382,7 @@
       "product_id": "000255",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.210812918558603e-261
+        "price": 5.598234170524097e-261
       }
     },
     {
@@ -2391,7 +2391,7 @@
       "product_id": "000256",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.9617125985972297e-13
+        "price": 1.9602182822783005e-13
       }
     },
     {
@@ -2400,7 +2400,7 @@
       "product_id": "000257",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.146776907015294e-06
+        "price": 4.143996657368469e-06
       }
     },
     {
@@ -2409,7 +2409,7 @@
       "product_id": "000258",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.772782614558934e-11
+        "price": 7.748094882460439e-11
       }
     },
     {
@@ -2418,7 +2418,7 @@
       "product_id": "000259",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00019718344994264225
+        "price": 0.00019723107086880298
       }
     },
     {
@@ -2427,7 +2427,7 @@
       "product_id": "000260",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.332071497194968e-06
+        "price": 7.327611276844795e-06
       }
     },
     {
@@ -2436,7 +2436,7 @@
       "product_id": "000261",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0020250108762944197
+        "price": 0.0020254460684449582
       }
     },
     {
@@ -2445,7 +2445,7 @@
       "product_id": "000262",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.853242009745018e-95
+        "price": 3.910826574110664e-95
       }
     },
     {
@@ -2454,7 +2454,7 @@
       "product_id": "000263",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0013473379797208085
+        "price": 0.001346985816604196
       }
     },
     {
@@ -2463,7 +2463,7 @@
       "product_id": "000264",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.713342289424729e-11
+        "price": 8.674721650556677e-11
       }
     },
     {
@@ -2472,7 +2472,7 @@
       "product_id": "000265",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00010357184602667255
+        "price": 0.00010353035372046362
       }
     },
     {
@@ -2481,7 +2481,7 @@
       "product_id": "000266",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.926020597781744e-10
+        "price": 4.923975048308817e-10
       }
     },
     {
@@ -2490,7 +2490,7 @@
       "product_id": "000267",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00010090471807158718
+        "price": 0.00010094828073234363
       }
     },
     {
@@ -2499,7 +2499,7 @@
       "product_id": "000268",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00035826107536279794
+        "price": 0.00035810578243936075
       }
     },
     {
@@ -2508,7 +2508,7 @@
       "product_id": "000269",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013689725585570467
+        "price": 0.013690200627230809
       }
     },
     {
@@ -2517,7 +2517,7 @@
       "product_id": "000270",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004272061280074624
+        "price": 0.0042737919766782095
       }
     },
     {
@@ -2526,7 +2526,7 @@
       "product_id": "000271",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.024118107926802468
+        "price": 0.0241201341749131
       }
     },
     {
@@ -2535,7 +2535,7 @@
       "product_id": "000272",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02821253407624147
+        "price": 0.028212708346978976
       }
     },
     {
@@ -2544,7 +2544,7 @@
       "product_id": "000273",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05260301570198833
+        "price": 0.05260245656255047
       }
     },
     {
@@ -2553,7 +2553,7 @@
       "product_id": "000274",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08342732679193143
+        "price": 0.08342756230997417
       }
     },
     {
@@ -2562,7 +2562,7 @@
       "product_id": "000275",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11471941654086737
+        "price": 0.11472010681534073
       }
     },
     {
@@ -2580,7 +2580,7 @@
       "product_id": "000277",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.2250895486393804e-19
+        "price": 3.214357119623362e-19
       }
     },
     {
@@ -2589,7 +2589,7 @@
       "product_id": "000278",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.900372962413106e-45
+        "price": 8.752561843581392e-45
       }
     },
     {
@@ -2598,7 +2598,7 @@
       "product_id": "000279",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.04517654223783e-16
+        "price": 2.0457991603333982e-16
       }
     },
     {
@@ -2607,7 +2607,7 @@
       "product_id": "000280",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6130632998810027e-86
+        "price": 1.5474947258428217e-86
       }
     },
     {
@@ -2616,7 +2616,7 @@
       "product_id": "000281",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.830343784438663e-16
+        "price": 1.8236276699314737e-16
       }
     },
     {
@@ -2625,7 +2625,7 @@
       "product_id": "000282",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00990199071773712
+        "price": 0.00990105618803272
       }
     },
     {
@@ -2634,7 +2634,7 @@
       "product_id": "000283",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007329247973242414
+        "price": 0.00733067796850595
       }
     },
     {
@@ -2643,7 +2643,7 @@
       "product_id": "000284",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011374969166804916
+        "price": 0.011375041831681587
       }
     },
     {
@@ -2652,7 +2652,7 @@
       "product_id": "000285",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021031545097731863
+        "price": 0.02103067818030202
       }
     },
     {
@@ -2661,7 +2661,7 @@
       "product_id": "000286",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.028320532310521895
+        "price": 0.028321322090334
       }
     },
     {
@@ -2670,7 +2670,7 @@
       "product_id": "000287",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014567898695599824
+        "price": 0.014570515562618569
       }
     },
     {
@@ -2679,7 +2679,7 @@
       "product_id": "000288",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003536777971992311
+        "price": 0.003536679414134214
       }
     },
     {
@@ -2688,7 +2688,7 @@
       "product_id": "000289",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008143459128971742
+        "price": 0.008141657683349957
       }
     },
     {
@@ -2697,7 +2697,7 @@
       "product_id": "000290",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001631179340581268
+        "price": 0.0016309071910461104
       }
     },
     {
@@ -2706,7 +2706,7 @@
       "product_id": "000291",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001452035237354543
+        "price": 0.0014517754662653481
       }
     },
     {
@@ -2715,7 +2715,7 @@
       "product_id": "000292",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.79479147582085e-05
+        "price": 7.780310711495014e-05
       }
     },
     {
@@ -2724,7 +2724,7 @@
       "product_id": "000293",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.032092751090783134
+        "price": 0.03209040491750581
       }
     },
     {
@@ -2733,7 +2733,7 @@
       "product_id": "000294",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.045032074986438464
+        "price": 0.04503220238224981
       }
     },
     {
@@ -2742,7 +2742,7 @@
       "product_id": "000295",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.023318961829592366
+        "price": 0.023319000449950833
       }
     },
     {
@@ -2751,7 +2751,7 @@
       "product_id": "000296",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03452360361241025
+        "price": 0.03452392463044307
       }
     },
     {
@@ -2760,7 +2760,7 @@
       "product_id": "000297",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07477726572278931
+        "price": 0.07477673030590493
       }
     },
     {
@@ -2769,7 +2769,7 @@
       "product_id": "000298",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06271883673103718
+        "price": 0.06271869732833846
       }
     },
     {
@@ -2778,7 +2778,7 @@
       "product_id": "000299",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0800877745428683
+        "price": 0.0800890410174615
       }
     },
     {
@@ -2787,7 +2787,7 @@
       "product_id": "000300",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1533490071728435
+        "price": 0.1533519309751593
       }
     },
     {
@@ -2796,7 +2796,7 @@
       "product_id": "000301",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.443548111159841e-276
+        "price": 3.4988421208996655e-276
       }
     },
     {
@@ -2805,7 +2805,7 @@
       "product_id": "000302",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.8194525810362887e-52
+        "price": 2.6598205422476077e-52
       }
     },
     {
@@ -2823,7 +2823,7 @@
       "product_id": "000304",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.547582579742267e-28
+        "price": 3.350022274013159e-28
       }
     },
     {
@@ -2832,7 +2832,7 @@
       "product_id": "000305",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7279747176780384e-18
+        "price": 2.6191851728893e-18
       }
     },
     {
@@ -2841,7 +2841,7 @@
       "product_id": "000306",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.924217082202384e-48
+        "price": 5.56458131486669e-48
       }
     },
     {
@@ -2850,7 +2850,7 @@
       "product_id": "000307",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7799905076633386e-07
+        "price": 2.7809843541196154e-07
       }
     },
     {
@@ -2859,7 +2859,7 @@
       "product_id": "000308",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.426420656155299e-08
+        "price": 3.442049644314293e-08
       }
     },
     {
@@ -2868,7 +2868,7 @@
       "product_id": "000309",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2183359194991063e-11
+        "price": 1.1842164458225919e-11
       }
     },
     {
@@ -2877,7 +2877,7 @@
       "product_id": "000310",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.1717040528826622e-23
+        "price": 2.15727480925913e-23
       }
     },
     {
@@ -2886,7 +2886,7 @@
       "product_id": "000311",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0035320136095879917
+        "price": 0.0035300190121155817
       }
     },
     {
@@ -2895,7 +2895,7 @@
       "product_id": "000312",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011426121830882263
+        "price": 0.0011417611008945339
       }
     },
     {
@@ -2904,7 +2904,7 @@
       "product_id": "000313",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006080396967933388
+        "price": 0.0060816191023801425
       }
     },
     {
@@ -2913,7 +2913,7 @@
       "product_id": "000314",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005214710561202263
+        "price": 0.005216654361491435
       }
     },
     {
@@ -2922,7 +2922,7 @@
       "product_id": "000315",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2307547395693305e-16
+        "price": 1.2206052582863937e-16
       }
     },
     {
@@ -2931,7 +2931,7 @@
       "product_id": "000316",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004642167963812116
+        "price": 0.004639277078306692
       }
     },
     {
@@ -2940,7 +2940,7 @@
       "product_id": "000317",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010280980621931168
+        "price": 0.010284666666707132
       }
     },
     {
@@ -2949,7 +2949,7 @@
       "product_id": "000318",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006555699924677083
+        "price": 0.006557367949432957
       }
     },
     {
@@ -2958,7 +2958,7 @@
       "product_id": "000319",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011892347056508545
+        "price": 0.011897318067996432
       }
     },
     {
@@ -2967,7 +2967,7 @@
       "product_id": "000320",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005195777611674779
+        "price": 0.005195503351959951
       }
     },
     {
@@ -2976,7 +2976,7 @@
       "product_id": "000321",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.018233219904068565
+        "price": 0.01822735072261239
       }
     },
     {
@@ -2985,7 +2985,7 @@
       "product_id": "000322",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.044030067622880975
+        "price": 0.04404452364766365
       }
     },
     {
@@ -2994,7 +2994,7 @@
       "product_id": "000323",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.051563028670763345
+        "price": 0.05156141973358952
       }
     },
     {
@@ -3003,7 +3003,7 @@
       "product_id": "000324",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0857057758202252
+        "price": 0.08570850117939399
       }
     },
     {
@@ -3012,7 +3012,7 @@
       "product_id": "000325",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1141784348533853
+        "price": 0.11420373626949776
       }
     },
     {
@@ -3021,7 +3021,7 @@
       "product_id": "000326",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.041893080306367e-94
+        "price": 2.98021950946845e-94
       }
     },
     {
@@ -3030,7 +3030,7 @@
       "product_id": "000327",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.404334360226673e-107
+        "price": 2.854334800014553e-107
       }
     },
     {
@@ -3039,7 +3039,7 @@
       "product_id": "000328",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1626267540488278e-13
+        "price": 1.162535547538967e-13
       }
     },
     {
@@ -3048,7 +3048,7 @@
       "product_id": "000329",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5989064864853673e-47
+        "price": 2.5706164742096524e-47
       }
     },
     {
@@ -3057,7 +3057,7 @@
       "product_id": "000330",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.455726631509771e-49
+        "price": 4.402272591556028e-49
       }
     },
     {
@@ -3066,7 +3066,7 @@
       "product_id": "000331",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.0047436301437803e-28
+        "price": 2.0168763489810283e-28
       }
     },
     {
@@ -3075,7 +3075,7 @@
       "product_id": "000332",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.941327532793762e-15
+        "price": 1.933715125316466e-15
       }
     },
     {
@@ -3084,7 +3084,7 @@
       "product_id": "000333",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011608970632561944
+        "price": 0.011612225528081721
       }
     },
     {
@@ -3093,7 +3093,7 @@
       "product_id": "000334",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005168881119386792
+        "price": 0.005170567113635782
       }
     },
     {
@@ -3102,7 +3102,7 @@
       "product_id": "000335",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02713002023294142
+        "price": 0.02713189984287423
       }
     },
     {
@@ -3111,7 +3111,7 @@
       "product_id": "000336",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.017998376420588214
+        "price": 0.01799957126280094
       }
     },
     {
@@ -3120,7 +3120,7 @@
       "product_id": "000337",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009676531620012585
+        "price": 0.009691434927931564
       }
     },
     {
@@ -3129,7 +3129,7 @@
       "product_id": "000338",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.354905815234626e-05
+        "price": 8.397220660139731e-05
       }
     },
     {
@@ -3138,7 +3138,7 @@
       "product_id": "000339",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0007449982012645295
+        "price": 0.0007428096302291853
       }
     },
     {
@@ -3147,7 +3147,7 @@
       "product_id": "000340",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0366374531864766
+        "price": 0.03664268751927857
       }
     },
     {
@@ -3156,7 +3156,7 @@
       "product_id": "000341",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.026736401673813304
+        "price": 0.026733187641029832
       }
     },
     {
@@ -3165,7 +3165,7 @@
       "product_id": "000342",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010339213825404592
+        "price": 0.010350946675046546
       }
     },
     {
@@ -3174,7 +3174,7 @@
       "product_id": "000343",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000593988122078809
+        "price": 0.0005946632483009029
       }
     },
     {
@@ -3183,7 +3183,7 @@
       "product_id": "000344",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011415532543311069
+        "price": 0.011421934147922697
       }
     },
     {
@@ -3192,7 +3192,7 @@
       "product_id": "000345",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014110935891843979
+        "price": 0.014103879798833208
       }
     },
     {
@@ -3201,7 +3201,7 @@
       "product_id": "000346",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03602495650227222
+        "price": 0.03603060025858307
       }
     },
     {
@@ -3210,7 +3210,7 @@
       "product_id": "000347",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04567530578827128
+        "price": 0.04567535278219703
       }
     },
     {
@@ -3219,7 +3219,7 @@
       "product_id": "000348",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09428154253047194
+        "price": 0.09430579634035374
       }
     },
     {
@@ -3228,7 +3228,7 @@
       "product_id": "000349",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11192022352581987
+        "price": 0.11195256327009007
       }
     },
     {
@@ -3237,7 +3237,7 @@
       "product_id": "000350",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10848939540446356
+        "price": 0.1085037636317655
       }
     },
     {
@@ -3246,7 +3246,7 @@
       "product_id": "000351",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.230328341045405e-262
+        "price": 5.285711672776351e-262
       }
     },
     {
@@ -3255,7 +3255,7 @@
       "product_id": "000352",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.414183478537305e-119
+        "price": 5.515235706204057e-119
       }
     },
     {
@@ -3264,7 +3264,7 @@
       "product_id": "000353",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.752162110554381e-258
+        "price": 4.926053270113648e-258
       }
     },
     {
@@ -3273,7 +3273,7 @@
       "product_id": "000354",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7671697648828992e-45
+        "price": 2.7791380505801792e-45
       }
     },
     {
@@ -3282,7 +3282,7 @@
       "product_id": "000355",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.809890911367485e-24
+        "price": 5.801839549282171e-24
       }
     },
     {
@@ -3291,7 +3291,7 @@
       "product_id": "000356",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4025451175399231e-09
+        "price": 1.40574974853614e-09
       }
     },
     {
@@ -3300,7 +3300,7 @@
       "product_id": "000357",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.154343125520923e-05
+        "price": 2.155410591412818e-05
       }
     },
     {
@@ -3309,7 +3309,7 @@
       "product_id": "000358",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.843249994776431e-21
+        "price": 1.861479807185637e-21
       }
     },
     {
@@ -3318,7 +3318,7 @@
       "product_id": "000359",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.442523248900061e-07
+        "price": 2.440684669208329e-07
       }
     },
     {
@@ -3327,7 +3327,7 @@
       "product_id": "000360",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.907622986777081e-08
+        "price": 6.912769953280797e-08
       }
     },
     {
@@ -3336,7 +3336,7 @@
       "product_id": "000361",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005164924222037376
+        "price": 0.0005168608316335477
       }
     },
     {
@@ -3345,7 +3345,7 @@
       "product_id": "000362",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.321608299669765e-08
+        "price": 9.326366352215476e-08
       }
     },
     {
@@ -3354,7 +3354,7 @@
       "product_id": "000363",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001818834604649433
+        "price": 0.0018195785765489636
       }
     },
     {
@@ -3363,7 +3363,7 @@
       "product_id": "000364",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4555988192450595e-10
+        "price": 1.460552369026161e-10
       }
     },
     {
@@ -3372,7 +3372,7 @@
       "product_id": "000365",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008466188798338659
+        "price": 0.0008465973286362061
       }
     },
     {
@@ -3381,7 +3381,7 @@
       "product_id": "000366",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.627102926175509e-05
+        "price": 8.621911043469807e-05
       }
     },
     {
@@ -3390,7 +3390,7 @@
       "product_id": "000367",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.165929665294044e-16
+        "price": 6.175162641595221e-16
       }
     },
     {
@@ -3399,7 +3399,7 @@
       "product_id": "000368",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.325642301046621e-08
+        "price": 2.3030858679336892e-08
       }
     },
     {
@@ -3408,7 +3408,7 @@
       "product_id": "000369",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012438129915857465
+        "price": 0.012440173119041886
       }
     },
     {
@@ -3417,7 +3417,7 @@
       "product_id": "000370",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.026933228364001693
+        "price": 0.026932853778907306
       }
     },
     {
@@ -3426,7 +3426,7 @@
       "product_id": "000371",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.032444551714936654
+        "price": 0.03244585266385103
       }
     },
     {
@@ -3435,7 +3435,7 @@
       "product_id": "000372",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05071857584153627
+        "price": 0.05071502947521522
       }
     },
     {
@@ -3444,7 +3444,7 @@
       "product_id": "000373",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0493151555015412
+        "price": 0.04931260325886866
       }
     },
     {
@@ -3453,7 +3453,7 @@
       "product_id": "000374",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08132971460586258
+        "price": 0.08132767929993034
       }
     },
     {
@@ -3462,7 +3462,7 @@
       "product_id": "000375",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10506247326875562
+        "price": 0.10505791023367017
       }
     },
     {
@@ -3471,7 +3471,7 @@
       "product_id": "000376",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.723998014279305e-146
+        "price": 2.7644556126001586e-146
       }
     },
     {
@@ -3489,7 +3489,7 @@
       "product_id": "000378",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2336704846401085e-09
+        "price": 1.2359759909034395e-09
       }
     },
     {
@@ -3498,7 +3498,7 @@
       "product_id": "000379",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6305959243739737e-09
+        "price": 1.6293819709919574e-09
       }
     },
     {
@@ -3507,7 +3507,7 @@
       "product_id": "000380",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0013419939341744458
+        "price": 0.001342713734359069
       }
     },
     {
@@ -3516,7 +3516,7 @@
       "product_id": "000381",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005960951504633688
+        "price": 0.0005960712646338878
       }
     },
     {
@@ -3525,7 +3525,7 @@
       "product_id": "000382",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.152131932205226e-14
+        "price": 5.164296288045185e-14
       }
     },
     {
@@ -3534,7 +3534,7 @@
       "product_id": "000383",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.026187150763109956
+        "price": 0.02618590666806031
       }
     },
     {
@@ -3543,7 +3543,7 @@
       "product_id": "000384",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.121192175488139e-06
+        "price": 4.118466483134242e-06
       }
     },
     {
@@ -3552,7 +3552,7 @@
       "product_id": "000385",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025733827398355502
+        "price": 0.025732273706772113
       }
     },
     {
@@ -3561,7 +3561,7 @@
       "product_id": "000386",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0009171484079867065
+        "price": 0.0009171841912740952
       }
     },
     {
@@ -3570,7 +3570,7 @@
       "product_id": "000387",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.184058017076513e-06
+        "price": 2.1910352607256746e-06
       }
     },
     {
@@ -3579,7 +3579,7 @@
       "product_id": "000388",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03483593278401864
+        "price": 0.034834562357770715
       }
     },
     {
@@ -3588,7 +3588,7 @@
       "product_id": "000389",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02878206924575699
+        "price": 0.028779278393919028
       }
     },
     {
@@ -3597,7 +3597,7 @@
       "product_id": "000390",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014007273927330255
+        "price": 0.01401044074049107
       }
     },
     {
@@ -3606,7 +3606,7 @@
       "product_id": "000391",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02779410382563474
+        "price": 0.027796862048535487
       }
     },
     {
@@ -3615,7 +3615,7 @@
       "product_id": "000392",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0030231024417195496
+        "price": 0.003021552823003315
       }
     },
     {
@@ -3624,7 +3624,7 @@
       "product_id": "000393",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009080982724730124
+        "price": 0.009079043332740011
       }
     },
     {
@@ -3633,7 +3633,7 @@
       "product_id": "000394",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03321591523213974
+        "price": 0.03321726312270523
       }
     },
     {
@@ -3642,7 +3642,7 @@
       "product_id": "000395",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02970657213516381
+        "price": 0.029706318277511135
       }
     },
     {
@@ -3651,7 +3651,7 @@
       "product_id": "000396",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06631507169740636
+        "price": 0.06631641225790164
       }
     },
     {
@@ -3660,7 +3660,7 @@
       "product_id": "000397",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06759024351061482
+        "price": 0.06758276117916795
       }
     },
     {
@@ -3669,7 +3669,7 @@
       "product_id": "000398",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0922618143349202
+        "price": 0.09225543887893106
       }
     },
     {
@@ -3678,7 +3678,7 @@
       "product_id": "000399",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07621848607857507
+        "price": 0.07621862230346377
       }
     },
     {
@@ -3687,7 +3687,7 @@
       "product_id": "000400",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10512675724744514
+        "price": 0.10512196244466931
       }
     },
     {
@@ -3714,7 +3714,7 @@
       "product_id": "000403",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.5497118769446295e-50
+        "price": 3.3770190003503473e-50
       }
     },
     {
@@ -3723,7 +3723,7 @@
       "product_id": "000404",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6372725433582255e-48
+        "price": 2.4663683687528868e-48
       }
     },
     {
@@ -3732,7 +3732,7 @@
       "product_id": "000405",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.874085859658652e-25
+        "price": 6.742598990531062e-25
       }
     },
     {
@@ -3741,7 +3741,7 @@
       "product_id": "000406",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.831772447405868e-41
+        "price": 9.846685675252187e-41
       }
     },
     {
@@ -3750,7 +3750,7 @@
       "product_id": "000407",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.9457266061029e-47
+        "price": 9.316649251399688e-47
       }
     },
     {
@@ -3759,7 +3759,7 @@
       "product_id": "000408",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.0865380158270654e-55
+        "price": 2.157451142746914e-55
       }
     },
     {
@@ -3768,7 +3768,7 @@
       "product_id": "000409",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.082204078340745e-38
+        "price": 7.868363511065869e-38
       }
     },
     {
@@ -3777,7 +3777,7 @@
       "product_id": "000410",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3968565851112252e-10
+        "price": 1.3915996860728824e-10
       }
     },
     {
@@ -3786,7 +3786,7 @@
       "product_id": "000411",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.7806831258897257e-06
+        "price": 3.7691430187043393e-06
       }
     },
     {
@@ -3795,7 +3795,7 @@
       "product_id": "000412",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0004339057646289973
+        "price": 0.0004336117107164028
       }
     },
     {
@@ -3804,7 +3804,7 @@
       "product_id": "000413",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0046471587708402096
+        "price": 0.004648389962419119
       }
     },
     {
@@ -3813,7 +3813,7 @@
       "product_id": "000414",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002661336834170025
+        "price": 0.0026594599401422725
       }
     },
     {
@@ -3822,7 +3822,7 @@
       "product_id": "000415",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0016138573910399745
+        "price": 0.0016136418344780412
       }
     },
     {
@@ -3831,7 +3831,7 @@
       "product_id": "000416",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0001296089452930277
+        "price": 0.00012969332573363468
       }
     },
     {
@@ -3840,7 +3840,7 @@
       "product_id": "000417",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.549754582979246e-11
+        "price": 4.5678315824356444e-11
       }
     },
     {
@@ -3849,7 +3849,7 @@
       "product_id": "000418",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003306515351628736
+        "price": 0.0033090944484209794
       }
     },
     {
@@ -3858,7 +3858,7 @@
       "product_id": "000419",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.020037125271030076
+        "price": 0.020038724894808513
       }
     },
     {
@@ -3867,7 +3867,7 @@
       "product_id": "000420",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006093515218376089
+        "price": 0.006100768928782863
       }
     },
     {
@@ -3876,7 +3876,7 @@
       "product_id": "000421",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.018047010328575586
+        "price": 0.018051752328627435
       }
     },
     {
@@ -3885,7 +3885,7 @@
       "product_id": "000422",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04311046580581601
+        "price": 0.04311693519906712
       }
     },
     {
@@ -3894,7 +3894,7 @@
       "product_id": "000423",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.057705448416696115
+        "price": 0.057705334069632186
       }
     },
     {
@@ -3903,7 +3903,7 @@
       "product_id": "000424",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07742765236287263
+        "price": 0.0774322802538675
       }
     },
     {
@@ -3912,7 +3912,7 @@
       "product_id": "000425",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11692907238021055
+        "price": 0.11694160730902048
       }
     },
     {
@@ -3921,7 +3921,7 @@
       "product_id": "000426",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.351733902988607e-37
+        "price": 4.2462737987634704e-37
       }
     },
     {
@@ -3930,7 +3930,7 @@
       "product_id": "000427",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.3370224479506402e-40
+        "price": 2.279515385756929e-40
       }
     },
     {
@@ -3939,7 +3939,7 @@
       "product_id": "000428",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.8588060180737e-16
+        "price": 2.8051064396030517e-16
       }
     },
     {
@@ -3948,7 +3948,7 @@
       "product_id": "000429",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2596634074602189e-29
+        "price": 1.270296597898771e-29
       }
     },
     {
@@ -3957,7 +3957,7 @@
       "product_id": "000430",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.048888413960259e-182
+        "price": 2.9915079559409634e-182
       }
     },
     {
@@ -3966,7 +3966,7 @@
       "product_id": "000431",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0025251984232514957
+        "price": 0.002525396093226162
       }
     },
     {
@@ -3975,7 +3975,7 @@
       "product_id": "000432",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005509087442280958
+        "price": 0.005507538592832983
       }
     },
     {
@@ -3984,7 +3984,7 @@
       "product_id": "000433",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.914671189672624e-07
+        "price": 3.918520368724834e-07
       }
     },
     {
@@ -3993,7 +3993,7 @@
       "product_id": "000434",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0064148886810492245
+        "price": 0.006418777876197046
       }
     },
     {
@@ -4002,7 +4002,7 @@
       "product_id": "000435",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0020409353910992856
+        "price": 0.002036801105232633
       }
     },
     {
@@ -4011,7 +4011,7 @@
       "product_id": "000436",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0020835582404610253
+        "price": 0.0020798009498761427
       }
     },
     {
@@ -4020,7 +4020,7 @@
       "product_id": "000437",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005377065860796226
+        "price": 0.0053753819075000875
       }
     },
     {
@@ -4029,7 +4029,7 @@
       "product_id": "000438",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00477504496118436
+        "price": 0.004775497490240033
       }
     },
     {
@@ -4038,7 +4038,7 @@
       "product_id": "000439",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03100767833943574
+        "price": 0.031012207153391147
       }
     },
     {
@@ -4047,7 +4047,7 @@
       "product_id": "000440",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0001628640845862117
+        "price": 0.00016259251887260767
       }
     },
     {
@@ -4056,7 +4056,7 @@
       "product_id": "000441",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00022783941139983138
+        "price": 0.00022794030694237022
       }
     },
     {
@@ -4065,7 +4065,7 @@
       "product_id": "000442",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.524483953260617e-06
+        "price": 9.540060844720477e-06
       }
     },
     {
@@ -4074,7 +4074,7 @@
       "product_id": "000443",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0004514924631412315
+        "price": 0.00045153080240852017
       }
     },
     {
@@ -4083,7 +4083,7 @@
       "product_id": "000444",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03238173357189755
+        "price": 0.03237690701340323
       }
     },
     {
@@ -4092,7 +4092,7 @@
       "product_id": "000445",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.032774726129748744
+        "price": 0.032777279156389616
       }
     },
     {
@@ -4101,7 +4101,7 @@
       "product_id": "000446",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0346192882803803
+        "price": 0.034618135277503015
       }
     },
     {
@@ -4110,7 +4110,7 @@
       "product_id": "000447",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06687706041710328
+        "price": 0.06689422910292797
       }
     },
     {
@@ -4119,7 +4119,7 @@
       "product_id": "000448",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07836391888611849
+        "price": 0.07836714640549836
       }
     },
     {
@@ -4128,7 +4128,7 @@
       "product_id": "000449",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1195271624183405
+        "price": 0.1195398460798468
       }
     },
     {
@@ -4137,7 +4137,7 @@
       "product_id": "000450",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11620057699060926
+        "price": 0.11621291173101533
       }
     },
     {
@@ -4146,7 +4146,7 @@
       "product_id": "000451",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.984820180676053e-149
+        "price": 6.4337852984700225e-149
       }
     },
     {
@@ -4155,7 +4155,7 @@
       "product_id": "000452",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5375909159084893e-182
+        "price": 2.5882870704253552e-182
       }
     },
     {
@@ -4173,7 +4173,7 @@
       "product_id": "000454",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.664806358010551e-81
+        "price": 6.888244888010591e-81
       }
     },
     {
@@ -4182,7 +4182,7 @@
       "product_id": "000455",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1065811831845169e-26
+        "price": 1.1030650724635109e-26
       }
     },
     {
@@ -4191,7 +4191,7 @@
       "product_id": "000456",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.499880330417621e-13
+        "price": 5.497596916657685e-13
       }
     },
     {
@@ -4200,7 +4200,7 @@
       "product_id": "000457",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.047654845320059e-07
+        "price": 3.0541239478464e-07
       }
     },
     {
@@ -4209,7 +4209,7 @@
       "product_id": "000458",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.3348349093585626e-06
+        "price": 7.343866789302159e-06
       }
     },
     {
@@ -4218,7 +4218,7 @@
       "product_id": "000459",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.434535701471992e-14
+        "price": 7.449956276759806e-14
       }
     },
     {
@@ -4227,7 +4227,7 @@
       "product_id": "000460",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1238928928299468e-12
+        "price": 1.1177277359310927e-12
       }
     },
     {
@@ -4236,7 +4236,7 @@
       "product_id": "000461",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003988999552473449
+        "price": 0.003991261479122876
       }
     },
     {
@@ -4245,7 +4245,7 @@
       "product_id": "000462",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4899337735951218e-13
+        "price": 1.4613215428093021e-13
       }
     },
     {
@@ -4254,7 +4254,7 @@
       "product_id": "000463",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00028429978143122703
+        "price": 0.00028432912495165996
       }
     },
     {
@@ -4263,7 +4263,7 @@
       "product_id": "000464",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.298347849142052e-06
+        "price": 7.307968138571715e-06
       }
     },
     {
@@ -4272,7 +4272,7 @@
       "product_id": "000465",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00013120359917503238
+        "price": 0.0001313636318712244
       }
     },
     {
@@ -4281,7 +4281,7 @@
       "product_id": "000466",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2831475042641982e-05
+        "price": 1.2828118244961884e-05
       }
     },
     {
@@ -4290,7 +4290,7 @@
       "product_id": "000467",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000829355655424413
+        "price": 0.0008296165692733004
       }
     },
     {
@@ -4299,7 +4299,7 @@
       "product_id": "000468",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012859227745074309
+        "price": 0.012857319893139985
       }
     },
     {
@@ -4308,7 +4308,7 @@
       "product_id": "000469",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013794728235261955
+        "price": 0.01379548305468803
       }
     },
     {
@@ -4317,7 +4317,7 @@
       "product_id": "000470",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008549571789439825
+        "price": 0.008554457108171154
       }
     },
     {
@@ -4326,7 +4326,7 @@
       "product_id": "000471",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.030811692815831293
+        "price": 0.030812458190752623
       }
     },
     {
@@ -4335,7 +4335,7 @@
       "product_id": "000472",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025740939557472253
+        "price": 0.025740859959682227
       }
     },
     {
@@ -4344,7 +4344,7 @@
       "product_id": "000473",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05286182039909049
+        "price": 0.05285524093084926
       }
     },
     {
@@ -4353,7 +4353,7 @@
       "product_id": "000474",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06972916283800701
+        "price": 0.06972636839171087
       }
     },
     {
@@ -4362,7 +4362,7 @@
       "product_id": "000475",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11127026609016688
+        "price": 0.11125424857067034
       }
     },
     {
@@ -4371,7 +4371,7 @@
       "product_id": "000476",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.7327477112689405e-73
+        "price": 1.779061536116451e-73
       }
     },
     {
@@ -4380,7 +4380,7 @@
       "product_id": "000477",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.361163605544485e-71
+        "price": 5.491338766843879e-71
       }
     },
     {
@@ -4389,7 +4389,7 @@
       "product_id": "000478",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.8613221595545623e-12
+        "price": 2.88338708390927e-12
       }
     },
     {
@@ -4398,7 +4398,7 @@
       "product_id": "000479",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.1271397510984637e-08
+        "price": 5.12725771376223e-08
       }
     },
     {
@@ -4407,7 +4407,7 @@
       "product_id": "000480",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5184037420391914e-18
+        "price": 2.525869889940116e-18
       }
     },
     {
@@ -4416,7 +4416,7 @@
       "product_id": "000481",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005962861509803963
+        "price": 0.0005969214679774348
       }
     },
     {
@@ -4425,7 +4425,7 @@
       "product_id": "000482",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0036096953334477933
+        "price": 0.0036110625153050746
       }
     },
     {
@@ -4434,7 +4434,7 @@
       "product_id": "000483",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002400916868898706
+        "price": 0.0024026131650457527
       }
     },
     {
@@ -4443,7 +4443,7 @@
       "product_id": "000484",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0036030636641842806
+        "price": 0.0036003484489394166
       }
     },
     {
@@ -4452,7 +4452,7 @@
       "product_id": "000485",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021917411250170327
+        "price": 0.0219211161303563
       }
     },
     {
@@ -4461,7 +4461,7 @@
       "product_id": "000486",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.016084639516201427
+        "price": 0.01608063230637935
       }
     },
     {
@@ -4470,7 +4470,7 @@
       "product_id": "000487",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.018006839441449984
+        "price": 0.01800724258664632
       }
     },
     {
@@ -4479,7 +4479,7 @@
       "product_id": "000488",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0013028212897679692
+        "price": 0.0013015820526967037
       }
     },
     {
@@ -4488,7 +4488,7 @@
       "product_id": "000489",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.4125467561947e-07
+        "price": 6.431485005479456e-07
       }
     },
     {
@@ -4497,7 +4497,7 @@
       "product_id": "000490",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001980732801269869
+        "price": 0.001982915590152068
       }
     },
     {
@@ -4506,7 +4506,7 @@
       "product_id": "000491",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009148763845822194
+        "price": 0.009151854236030044
       }
     },
     {
@@ -4515,7 +4515,7 @@
       "product_id": "000492",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03843438595109616
+        "price": 0.038432995565097716
       }
     },
     {
@@ -4524,7 +4524,7 @@
       "product_id": "000493",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03315252601642049
+        "price": 0.03315074502996551
       }
     },
     {
@@ -4533,7 +4533,7 @@
       "product_id": "000494",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.034539367410070576
+        "price": 0.03453562230220353
       }
     },
     {
@@ -4542,7 +4542,7 @@
       "product_id": "000495",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.046788813343889735
+        "price": 0.04678294554999174
       }
     },
     {
@@ -4551,7 +4551,7 @@
       "product_id": "000496",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04204734642684904
+        "price": 0.042056103847612714
       }
     },
     {
@@ -4560,7 +4560,7 @@
       "product_id": "000497",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07394290755000443
+        "price": 0.07393189174343173
       }
     },
     {
@@ -4569,7 +4569,7 @@
       "product_id": "000498",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.087898157189786
+        "price": 0.08788217039047252
       }
     },
     {
@@ -4578,7 +4578,7 @@
       "product_id": "000499",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08350010626317017
+        "price": 0.08349661808390718
       }
     },
     {
@@ -4587,7 +4587,7 @@
       "product_id": "000500",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.12022068093011229
+        "price": 0.12021211652980635
       }
     },
     {
@@ -4596,7 +4596,7 @@
       "product_id": "000501",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7139150174045444e-174
+        "price": 2.708921481550922e-174
       }
     },
     {
@@ -4614,7 +4614,7 @@
       "product_id": "000503",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4665060055481075e-105
+        "price": 1.450803623484333e-105
       }
     },
     {
@@ -4632,7 +4632,7 @@
       "product_id": "000505",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.194767142983038e-20
+        "price": 6.198715675269882e-20
       }
     },
     {
@@ -4641,7 +4641,7 @@
       "product_id": "000506",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.768292450014522e-108
+        "price": 1.760803568946851e-108
       }
     },
     {
@@ -4650,7 +4650,7 @@
       "product_id": "000507",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.702540550946122e-76
+        "price": 3.686145967397483e-76
       }
     },
     {
@@ -4659,7 +4659,7 @@
       "product_id": "000508",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0895399833121903e-07
+        "price": 1.0898555712449029e-07
       }
     },
     {
@@ -4668,7 +4668,7 @@
       "product_id": "000509",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1580913981543844e-05
+        "price": 1.1589447897728672e-05
       }
     },
     {
@@ -4677,7 +4677,7 @@
       "product_id": "000510",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0009960715009537657
+        "price": 0.0009959305179287337
       }
     },
     {
@@ -4686,7 +4686,7 @@
       "product_id": "000511",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.403358758193318e-14
+        "price": 7.379549828921255e-14
       }
     },
     {
@@ -4695,7 +4695,7 @@
       "product_id": "000512",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.459137692694573e-15
+        "price": 6.4601586280548424e-15
       }
     },
     {
@@ -4704,7 +4704,7 @@
       "product_id": "000513",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.240090996800751e-22
+        "price": 6.242792753846275e-22
       }
     },
     {
@@ -4713,7 +4713,7 @@
       "product_id": "000514",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002071752545894978
+        "price": 0.00207159921950667
       }
     },
     {
@@ -4722,7 +4722,7 @@
       "product_id": "000515",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.202149872973779e-05
+        "price": 4.203608006117694e-05
       }
     },
     {
@@ -4731,7 +4731,7 @@
       "product_id": "000516",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.00748428627707e-15
+        "price": 3.031778375584789e-15
       }
     },
     {
@@ -4740,7 +4740,7 @@
       "product_id": "000517",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0032523570290876602
+        "price": 0.0032520235122920904
       }
     },
     {
@@ -4749,7 +4749,7 @@
       "product_id": "000518",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5445727110919025e-05
+        "price": 2.545501784606552e-05
       }
     },
     {
@@ -4758,7 +4758,7 @@
       "product_id": "000519",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.018502222505576205
+        "price": 0.018503225750691077
       }
     },
     {
@@ -4767,7 +4767,7 @@
       "product_id": "000520",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02293981068465123
+        "price": 0.0229410801578116
       }
     },
     {
@@ -4776,7 +4776,7 @@
       "product_id": "000521",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03199784800137384
+        "price": 0.03199955655459952
       }
     },
     {
@@ -4785,7 +4785,7 @@
       "product_id": "000522",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04315780560339977
+        "price": 0.043158626501500486
       }
     },
     {
@@ -4794,7 +4794,7 @@
       "product_id": "000523",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04789075861264991
+        "price": 0.047892317320439304
       }
     },
     {
@@ -4803,7 +4803,7 @@
       "product_id": "000524",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08365438392531155
+        "price": 0.0836585289624604
       }
     },
     {
@@ -4812,7 +4812,7 @@
       "product_id": "000525",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11066490146402941
+        "price": 0.11067121258101531
       }
     },
     {
@@ -4821,7 +4821,7 @@
       "product_id": "000526",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2155178832393901e-195
+        "price": 1.1482921198795276e-195
       }
     },
     {
@@ -4839,7 +4839,7 @@
       "product_id": "000528",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.888632853699091e-23
+        "price": 8.843776467856878e-23
       }
     },
     {
@@ -4857,7 +4857,7 @@
       "product_id": "000530",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.9244612750536446e-05
+        "price": 4.9199251037523005e-05
       }
     },
     {
@@ -4866,7 +4866,7 @@
       "product_id": "000531",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.161539843385942e-22
+        "price": 6.118708637657702e-22
       }
     },
     {
@@ -4875,7 +4875,7 @@
       "product_id": "000532",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009926411434425186
+        "price": 0.009926628855429609
       }
     },
     {
@@ -4884,7 +4884,7 @@
       "product_id": "000533",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002567418352972084
+        "price": 0.0025666551867318255
       }
     },
     {
@@ -4893,7 +4893,7 @@
       "product_id": "000534",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02759883888243797
+        "price": 0.027599358383539774
       }
     },
     {
@@ -4902,7 +4902,7 @@
       "product_id": "000535",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01971900552135386
+        "price": 0.019717427564575285
       }
     },
     {
@@ -4911,7 +4911,7 @@
       "product_id": "000536",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.4697888463071977e-08
+        "price": 2.4747693162875174e-08
       }
     },
     {
@@ -4920,7 +4920,7 @@
       "product_id": "000537",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01886490344958347
+        "price": 0.018865755291814557
       }
     },
     {
@@ -4929,7 +4929,7 @@
       "product_id": "000538",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00022100985137323698
+        "price": 0.00022109296480063434
       }
     },
     {
@@ -4938,7 +4938,7 @@
       "product_id": "000539",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010863300151526367
+        "price": 0.010863553237768442
       }
     },
     {
@@ -4947,7 +4947,7 @@
       "product_id": "000540",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.029953201941379626
+        "price": 0.029954022512960088
       }
     },
     {
@@ -4956,7 +4956,7 @@
       "product_id": "000541",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00038384529153237534
+        "price": 0.0003839284851089586
       }
     },
     {
@@ -4965,7 +4965,7 @@
       "product_id": "000542",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013834392978276266
+        "price": 0.013830779760009904
       }
     },
     {
@@ -4974,7 +4974,7 @@
       "product_id": "000543",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012247404899343506
+        "price": 0.012251078908534496
       }
     },
     {
@@ -4983,7 +4983,7 @@
       "product_id": "000544",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.023643740918156797
+        "price": 0.023644889295036164
       }
     },
     {
@@ -4992,7 +4992,7 @@
       "product_id": "000545",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.050930319981568384
+        "price": 0.05093149647404649
       }
     },
     {
@@ -5001,7 +5001,7 @@
       "product_id": "000546",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.035618159029429775
+        "price": 0.035618549000953625
       }
     },
     {
@@ -5010,7 +5010,7 @@
       "product_id": "000547",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06448507030633943
+        "price": 0.06448863950027306
       }
     },
     {
@@ -5019,7 +5019,7 @@
       "product_id": "000548",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07097653006113591
+        "price": 0.07097780567419598
       }
     },
     {
@@ -5028,7 +5028,7 @@
       "product_id": "000549",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08146456533125235
+        "price": 0.08146730276178482
       }
     },
     {
@@ -5037,7 +5037,7 @@
       "product_id": "000550",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11704300698024139
+        "price": 0.11704812355843774
       }
     },
     {
@@ -5046,7 +5046,7 @@
       "product_id": "000551",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.287613409252969e-207
+        "price": 1.067441695980746e-206
       }
     },
     {
@@ -5055,7 +5055,7 @@
       "product_id": "000552",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.6756560518639e-113
+        "price": 7.829550205819651e-113
       }
     },
     {
@@ -5064,7 +5064,7 @@
       "product_id": "000553",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.1811898817392543e-84
+        "price": 1.2401512065207513e-84
       }
     },
     {
@@ -5073,7 +5073,7 @@
       "product_id": "000554",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.366504173928061e-184
+        "price": 8.964174884254315e-184
       }
     },
     {
@@ -5082,7 +5082,7 @@
       "product_id": "000555",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.7742684249488493e-216
+        "price": 2.6648357121469913e-216
       }
     },
     {
@@ -5091,7 +5091,7 @@
       "product_id": "000556",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.721248621349524e-286
+        "price": 9.520823184842174e-286
       }
     },
     {
@@ -5100,7 +5100,7 @@
       "product_id": "000557",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.879371806900928e-10
+        "price": 2.8799850761459146e-10
       }
     },
     {
@@ -5109,7 +5109,7 @@
       "product_id": "000558",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.433038994581103e-17
+        "price": 8.418062718679383e-17
       }
     },
     {
@@ -5118,7 +5118,7 @@
       "product_id": "000559",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.799090666020063e-10
+        "price": 6.801287126768636e-10
       }
     },
     {
@@ -5127,7 +5127,7 @@
       "product_id": "000560",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0012023414051287318
+        "price": 0.0012022340262166364
       }
     },
     {
@@ -5136,7 +5136,7 @@
       "product_id": "000561",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.563854254158509e-10
+        "price": 1.5643837093956913e-10
       }
     },
     {
@@ -5145,7 +5145,7 @@
       "product_id": "000562",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005176282879273131
+        "price": 0.0005173097729919696
       }
     },
     {
@@ -5154,7 +5154,7 @@
       "product_id": "000563",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.327907317404425e-09
+        "price": 1.331948923753537e-09
       }
     },
     {
@@ -5163,7 +5163,7 @@
       "product_id": "000564",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007009917824121303
+        "price": 0.00700890071723459
       }
     },
     {
@@ -5172,7 +5172,7 @@
       "product_id": "000565",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.715993994878915e-10
+        "price": 6.843292341743917e-10
       }
     },
     {
@@ -5181,7 +5181,7 @@
       "product_id": "000566",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.129087333812829e-14
+        "price": 5.169738730967291e-14
       }
     },
     {
@@ -5190,7 +5190,7 @@
       "product_id": "000567",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.56458749743056e-08
+        "price": 6.570226358037037e-08
       }
     },
     {
@@ -5199,7 +5199,7 @@
       "product_id": "000568",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.9225260863801134e-09
+        "price": 1.9083781315730565e-09
       }
     },
     {
@@ -5208,7 +5208,7 @@
       "product_id": "000569",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012747282671839555
+        "price": 0.01274720580593025
       }
     },
     {
@@ -5217,7 +5217,7 @@
       "product_id": "000570",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007855379536291784
+        "price": 0.007854867358200512
       }
     },
     {
@@ -5226,7 +5226,7 @@
       "product_id": "000571",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013364696247852415
+        "price": 0.013364158803068404
       }
     },
     {
@@ -5235,7 +5235,7 @@
       "product_id": "000572",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.038102950228290466
+        "price": 0.038095883134251385
       }
     },
     {
@@ -5244,7 +5244,7 @@
       "product_id": "000573",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.058594254161514536
+        "price": 0.05858063717033002
       }
     },
     {
@@ -5253,7 +5253,7 @@
       "product_id": "000574",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0837864113002329
+        "price": 0.08377256780109732
       }
     },
     {
@@ -5262,7 +5262,7 @@
       "product_id": "000575",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10875573847427211
+        "price": 0.10874254365116831
       }
     },
     {
@@ -5271,7 +5271,7 @@
       "product_id": "000576",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.1561689000137728e-114
+        "price": 3.1508304036912046e-114
       }
     },
     {
@@ -5280,7 +5280,7 @@
       "product_id": "000577",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.2108244156711285e-16
+        "price": 3.2316186702512898e-16
       }
     },
     {
@@ -5289,7 +5289,7 @@
       "product_id": "000578",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.291304052730438e-20
+        "price": 3.339544292240064e-20
       }
     },
     {
@@ -5298,7 +5298,7 @@
       "product_id": "000579",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.5907251858991896e-05
+        "price": 1.5926296231468483e-05
       }
     },
     {
@@ -5307,7 +5307,7 @@
       "product_id": "000580",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.429425507668239e-10
+        "price": 5.435984179887422e-10
       }
     },
     {
@@ -5316,7 +5316,7 @@
       "product_id": "000581",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005039850204389629
+        "price": 0.0050442828343698065
       }
     },
     {
@@ -5325,7 +5325,7 @@
       "product_id": "000582",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001116126993890909
+        "price": 0.0011144707435012946
       }
     },
     {
@@ -5334,7 +5334,7 @@
       "product_id": "000583",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.017553777764917844
+        "price": 0.017547608324404163
       }
     },
     {
@@ -5343,7 +5343,7 @@
       "product_id": "000584",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02590227275653645
+        "price": 0.02590404252124856
       }
     },
     {
@@ -5352,7 +5352,7 @@
       "product_id": "000585",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013432957748145569
+        "price": 0.013438380354885093
       }
     },
     {
@@ -5361,7 +5361,7 @@
       "product_id": "000586",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0025101190849042276
+        "price": 0.002505091008024485
       }
     },
     {
@@ -5370,7 +5370,7 @@
       "product_id": "000587",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0037754187946015816
+        "price": 0.0037718296841294796
       }
     },
     {
@@ -5379,7 +5379,7 @@
       "product_id": "000588",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00096909061147539
+        "price": 0.0009680631885206625
       }
     },
     {
@@ -5388,7 +5388,7 @@
       "product_id": "000589",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013359844992028913
+        "price": 0.01336359739284132
       }
     },
     {
@@ -5397,7 +5397,7 @@
       "product_id": "000590",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021849732931810584
+        "price": 0.021838808900368156
       }
     },
     {
@@ -5406,7 +5406,7 @@
       "product_id": "000591",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.033950697153343756
+        "price": 0.033942573044968394
       }
     },
     {
@@ -5415,7 +5415,7 @@
       "product_id": "000592",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.025957370891714016
+        "price": 0.025952067285336722
       }
     },
     {
@@ -5424,7 +5424,7 @@
       "product_id": "000593",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.028813659167359562
+        "price": 0.028806211030385498
       }
     },
     {
@@ -5433,7 +5433,7 @@
       "product_id": "000594",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04459520755063773
+        "price": 0.044590267085033886
       }
     },
     {
@@ -5442,7 +5442,7 @@
       "product_id": "000595",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03900229203310357
+        "price": 0.03899569087601529
       }
     },
     {
@@ -5451,7 +5451,7 @@
       "product_id": "000596",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05308024063818162
+        "price": 0.05308044145879287
       }
     },
     {
@@ -5460,7 +5460,7 @@
       "product_id": "000597",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03931566852436952
+        "price": 0.0393151901957397
       }
     },
     {
@@ -5469,7 +5469,7 @@
       "product_id": "000598",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08564839037338168
+        "price": 0.08563685119579834
       }
     },
     {
@@ -5478,7 +5478,7 @@
       "product_id": "000599",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07754227079486387
+        "price": 0.07753001110271829
       }
     },
     {
@@ -5487,7 +5487,7 @@
       "product_id": "000600",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.12006937371411774
+        "price": 0.12004518889061133
       }
     },
     {
@@ -5505,7 +5505,7 @@
       "product_id": "000602",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.7216354170691855e-249
+        "price": 3.727019240785795e-249
       }
     },
     {
@@ -5514,7 +5514,7 @@
       "product_id": "000603",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3896904613957992e-86
+        "price": 1.4031433696866487e-86
       }
     },
     {
@@ -5523,7 +5523,7 @@
       "product_id": "000604",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3371657881450507e-26
+        "price": 1.3372623166093294e-26
       }
     },
     {
@@ -5532,7 +5532,7 @@
       "product_id": "000605",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6917002737830393e-41
+        "price": 2.7004325947201944e-41
       }
     },
     {
@@ -5541,7 +5541,7 @@
       "product_id": "000606",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4502930487122843e-25
+        "price": 1.4509952473948728e-25
       }
     },
     {
@@ -5559,7 +5559,7 @@
       "product_id": "000608",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.1604752561805614e-06
+        "price": 4.161036656202301e-06
       }
     },
     {
@@ -5568,7 +5568,7 @@
       "product_id": "000609",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0017747669793484189
+        "price": 0.0017748491794858934
       }
     },
     {
@@ -5577,7 +5577,7 @@
       "product_id": "000610",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0006919098321300776
+        "price": 0.000692184442310062
       }
     },
     {
@@ -5586,7 +5586,7 @@
       "product_id": "000611",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00041258505147860614
+        "price": 0.00041258042297613595
       }
     },
     {
@@ -5595,7 +5595,7 @@
       "product_id": "000612",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005944952991439378
+        "price": 0.005944997677670205
       }
     },
     {
@@ -5604,7 +5604,7 @@
       "product_id": "000613",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.002561826316461402
+        "price": 0.002561546921016733
       }
     },
     {
@@ -5613,7 +5613,7 @@
       "product_id": "000614",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.131293573734992e-43
+        "price": 2.1314636322852786e-43
       }
     },
     {
@@ -5622,7 +5622,7 @@
       "product_id": "000615",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00038542215556790216
+        "price": 0.00038546589934593256
       }
     },
     {
@@ -5631,7 +5631,7 @@
       "product_id": "000616",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008554433433892172
+        "price": 0.0008555430619269777
       }
     },
     {
@@ -5640,7 +5640,7 @@
       "product_id": "000617",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00044748745403364043
+        "price": 0.0004474246254717318
       }
     },
     {
@@ -5649,7 +5649,7 @@
       "product_id": "000618",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011430349222597336
+        "price": 0.01143036641275108
       }
     },
     {
@@ -5658,7 +5658,7 @@
       "product_id": "000619",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01190999607571519
+        "price": 0.011909947747117289
       }
     },
     {
@@ -5667,7 +5667,7 @@
       "product_id": "000620",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0021430920341233284
+        "price": 0.0021429141221752657
       }
     },
     {
@@ -5676,7 +5676,7 @@
       "product_id": "000621",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02960914053655872
+        "price": 0.029609256603778222
       }
     },
     {
@@ -5685,7 +5685,7 @@
       "product_id": "000622",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.043194827919656675
+        "price": 0.043193677401309194
       }
     },
     {
@@ -5694,7 +5694,7 @@
       "product_id": "000623",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05673413495236601
+        "price": 0.05673348088390229
       }
     },
     {
@@ -5703,7 +5703,7 @@
       "product_id": "000624",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07992045417792482
+        "price": 0.079919655014427
       }
     },
     {
@@ -5712,7 +5712,7 @@
       "product_id": "000625",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09980335542126662
+        "price": 0.09980072377067495
       }
     },
     {
@@ -5730,7 +5730,7 @@
       "product_id": "000627",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.412437375326348e-245
+        "price": 2.413850764968618e-245
       }
     },
     {
@@ -5739,7 +5739,7 @@
       "product_id": "000628",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.988285683771519e-98
+        "price": 8.000407721166675e-98
       }
     },
     {
@@ -5748,7 +5748,7 @@
       "product_id": "000629",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.552993898065524e-20
+        "price": 9.565230127406604e-20
       }
     },
     {
@@ -5757,7 +5757,7 @@
       "product_id": "000630",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.793761600361288e-15
+        "price": 4.79468748288114e-15
       }
     },
     {
@@ -5766,7 +5766,7 @@
       "product_id": "000631",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005828492328184554
+        "price": 0.0005829364070083221
       }
     },
     {
@@ -5775,7 +5775,7 @@
       "product_id": "000632",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013073298063087546
+        "price": 0.013073604256070737
       }
     },
     {
@@ -5784,7 +5784,7 @@
       "product_id": "000633",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00044136497590005486
+        "price": 0.00044134137023285613
       }
     },
     {
@@ -5793,7 +5793,7 @@
       "product_id": "000634",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02725541528976949
+        "price": 0.027254692389717672
       }
     },
     {
@@ -5802,7 +5802,7 @@
       "product_id": "000635",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0186876243209948
+        "price": 0.018687270996003313
       }
     },
     {
@@ -5811,7 +5811,7 @@
       "product_id": "000636",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003929079724275253
+        "price": 0.0039291157468337445
       }
     },
     {
@@ -5820,7 +5820,7 @@
       "product_id": "000637",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012872204576406143
+        "price": 0.01287152383923007
       }
     },
     {
@@ -5829,7 +5829,7 @@
       "product_id": "000638",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004583686913238294
+        "price": 0.004583852015767442
       }
     },
     {
@@ -5838,7 +5838,7 @@
       "product_id": "000639",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02224788307843717
+        "price": 0.022247810938922585
       }
     },
     {
@@ -5847,7 +5847,7 @@
       "product_id": "000640",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0035913247529030246
+        "price": 0.003591404598496606
       }
     },
     {
@@ -5856,7 +5856,7 @@
       "product_id": "000641",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014520178337931289
+        "price": 0.014520640078872993
       }
     },
     {
@@ -5865,7 +5865,7 @@
       "product_id": "000642",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0021015798345013492
+        "price": 0.0021015174672532055
       }
     },
     {
@@ -5874,7 +5874,7 @@
       "product_id": "000643",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.015222267778270182
+        "price": 0.015221975943984889
       }
     },
     {
@@ -5883,7 +5883,7 @@
       "product_id": "000644",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.003437121670700649
+        "price": 0.0034372494270533682
       }
     },
     {
@@ -5892,7 +5892,7 @@
       "product_id": "000645",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008789712274991479
+        "price": 0.008789396883952194
       }
     },
     {
@@ -5901,7 +5901,7 @@
       "product_id": "000646",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03303064504706743
+        "price": 0.033030801570018364
       }
     },
     {
@@ -5910,7 +5910,7 @@
       "product_id": "000647",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06206135407576152
+        "price": 0.062062508832586905
       }
     },
     {
@@ -5919,7 +5919,7 @@
       "product_id": "000648",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08604001004938766
+        "price": 0.08603808982775629
       }
     },
     {
@@ -5928,7 +5928,7 @@
       "product_id": "000649",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09021845597356504
+        "price": 0.09021691323976755
       }
     },
     {
@@ -5937,7 +5937,7 @@
       "product_id": "000650",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.12606819547783144
+        "price": 0.12606622724431393
       }
     },
     {
@@ -5955,7 +5955,7 @@
       "product_id": "000652",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4196892108902382e-55
+        "price": 1.3868344323413156e-55
       }
     },
     {
@@ -5964,7 +5964,7 @@
       "product_id": "000653",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4910899036255502e-155
+        "price": 1.4498934820832897e-155
       }
     },
     {
@@ -5973,7 +5973,7 @@
       "product_id": "000654",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.470063486261462e-99
+        "price": 4.174283155098649e-99
       }
     },
     {
@@ -5982,7 +5982,7 @@
       "product_id": "000655",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.277751043348127e-39
+        "price": 4.247210485494145e-39
       }
     },
     {
@@ -5991,7 +5991,7 @@
       "product_id": "000656",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.507282843360059e-08
+        "price": 1.500974332748003e-08
       }
     },
     {
@@ -6000,7 +6000,7 @@
       "product_id": "000657",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.130962370157136e-21
+        "price": 1.1173992880933203e-21
       }
     },
     {
@@ -6009,7 +6009,7 @@
       "product_id": "000658",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.19724769600689e-20
+        "price": 7.221625127074596e-20
       }
     },
     {
@@ -6018,7 +6018,7 @@
       "product_id": "000659",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001788901172837698
+        "price": 0.0017892540159806791
       }
     },
     {
@@ -6027,7 +6027,7 @@
       "product_id": "000660",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.498248307047189e-05
+        "price": 3.494839013406907e-05
       }
     },
     {
@@ -6036,7 +6036,7 @@
       "product_id": "000661",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0006838686957491569
+        "price": 0.0006833391029196223
       }
     },
     {
@@ -6045,7 +6045,7 @@
       "product_id": "000662",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005353514904214152
+        "price": 0.0005357825862120219
       }
     },
     {
@@ -6054,7 +6054,7 @@
       "product_id": "000663",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.532399663580727e-05
+        "price": 7.526410718227891e-05
       }
     },
     {
@@ -6063,7 +6063,7 @@
       "product_id": "000664",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004888817517010091
+        "price": 0.004889073547434619
       }
     },
     {
@@ -6072,7 +6072,7 @@
       "product_id": "000665",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.8751293482396842e-05
+        "price": 2.8739527241323365e-05
       }
     },
     {
@@ -6081,7 +6081,7 @@
       "product_id": "000666",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00035602010786806026
+        "price": 0.00035596972200835353
       }
     },
     {
@@ -6090,7 +6090,7 @@
       "product_id": "000667",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005100175326470946
+        "price": 0.0005099746043619457
       }
     },
     {
@@ -6099,7 +6099,7 @@
       "product_id": "000668",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0012929715465897496
+        "price": 0.001293410315403809
       }
     },
     {
@@ -6108,7 +6108,7 @@
       "product_id": "000669",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.0502134272733517e-06
+        "price": 3.0531753189284687e-06
       }
     },
     {
@@ -6117,7 +6117,7 @@
       "product_id": "000670",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011077871966197028
+        "price": 0.011078233360940937
       }
     },
     {
@@ -6126,7 +6126,7 @@
       "product_id": "000671",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02403995200674558
+        "price": 0.024042776059759574
       }
     },
     {
@@ -6135,7 +6135,7 @@
       "product_id": "000672",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04042092874045433
+        "price": 0.04042604674975969
       }
     },
     {
@@ -6144,7 +6144,7 @@
       "product_id": "000673",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.060998982500539256
+        "price": 0.06100936713121885
       }
     },
     {
@@ -6153,7 +6153,7 @@
       "product_id": "000674",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0783307106359864
+        "price": 0.07833617990923425
       }
     },
     {
@@ -6162,7 +6162,7 @@
       "product_id": "000675",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10175046377745067
+        "price": 0.1017664204100932
       }
     },
     {
@@ -6180,7 +6180,7 @@
       "product_id": "000677",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.37411772196208e-28
+        "price": 2.3778622343870615e-28
       }
     },
     {
@@ -6189,7 +6189,7 @@
       "product_id": "000678",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.35607101698975e-67
+        "price": 6.878216340935112e-67
       }
     },
     {
@@ -6198,7 +6198,7 @@
       "product_id": "000679",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.906687387940612e-17
+        "price": 4.867917755979919e-17
       }
     },
     {
@@ -6207,7 +6207,7 @@
       "product_id": "000680",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0005095891793877455
+        "price": 0.0005089727322602905
       }
     },
     {
@@ -6216,7 +6216,7 @@
       "product_id": "000681",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0988563796927318e-11
+        "price": 1.1035773574827664e-11
       }
     },
     {
@@ -6225,7 +6225,7 @@
       "product_id": "000682",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.196137650478788e-07
+        "price": 2.2001486928820895e-07
       }
     },
     {
@@ -6234,7 +6234,7 @@
       "product_id": "000683",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.3998635231721726e-06
+        "price": 2.3997284327836443e-06
       }
     },
     {
@@ -6243,7 +6243,7 @@
       "product_id": "000684",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.41387694680294e-45
+        "price": 4.5358231710746814e-45
       }
     },
     {
@@ -6252,7 +6252,7 @@
       "product_id": "000685",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009691414573638535
+        "price": 0.00968610258951208
       }
     },
     {
@@ -6261,7 +6261,7 @@
       "product_id": "000686",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008749458919337372
+        "price": 0.0008744167548566106
       }
     },
     {
@@ -6270,7 +6270,7 @@
       "product_id": "000687",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.010767229188382355
+        "price": 0.01076532074406722
       }
     },
     {
@@ -6279,7 +6279,7 @@
       "product_id": "000688",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0027423232851734314
+        "price": 0.0027431864844030818
       }
     },
     {
@@ -6288,7 +6288,7 @@
       "product_id": "000689",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0056311714110666156
+        "price": 0.005631932368615478
       }
     },
     {
@@ -6297,7 +6297,7 @@
       "product_id": "000690",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0031148355757784074
+        "price": 0.0031216718858172454
       }
     },
     {
@@ -6306,7 +6306,7 @@
       "product_id": "000691",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02608176282824115
+        "price": 0.02608273281416784
       }
     },
     {
@@ -6315,7 +6315,7 @@
       "product_id": "000692",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.012741693128438758
+        "price": 0.01273926196925923
       }
     },
     {
@@ -6324,7 +6324,7 @@
       "product_id": "000693",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.005795054375114184
+        "price": 0.0057956669648456804
       }
     },
     {
@@ -6333,7 +6333,7 @@
       "product_id": "000694",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006423207755785421
+        "price": 0.006427028493163123
       }
     },
     {
@@ -6342,7 +6342,7 @@
       "product_id": "000695",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0127806972222263
+        "price": 0.012787965171625393
       }
     },
     {
@@ -6351,7 +6351,7 @@
       "product_id": "000696",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05303624498409387
+        "price": 0.05304155217887374
       }
     },
     {
@@ -6360,7 +6360,7 @@
       "product_id": "000697",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05407650435175548
+        "price": 0.054076340213120466
       }
     },
     {
@@ -6369,7 +6369,7 @@
       "product_id": "000698",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.08719124314996163
+        "price": 0.08720678000198767
       }
     },
     {
@@ -6378,7 +6378,7 @@
       "product_id": "000699",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10763188222796027
+        "price": 0.10764753979104513
       }
     },
     {
@@ -6387,7 +6387,7 @@
       "product_id": "000700",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.11350509477958659
+        "price": 0.11351345368587418
       }
     },
     {
@@ -6396,7 +6396,7 @@
       "product_id": "000701",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.811930960304371e-107
+        "price": 6.806492439399955e-107
       }
     },
     {
@@ -6405,7 +6405,7 @@
       "product_id": "000702",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.364958683057068e-54
+        "price": 3.380293220894256e-54
       }
     },
     {
@@ -6414,7 +6414,7 @@
       "product_id": "000703",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8738387343483905e-73
+        "price": 1.8790687689984844e-73
       }
     },
     {
@@ -6423,7 +6423,7 @@
       "product_id": "000704",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.074885297184417e-194
+        "price": 4.087428841327209e-194
       }
     },
     {
@@ -6432,7 +6432,7 @@
       "product_id": "000705",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.932291178681732e-16
+        "price": 2.931190817054081e-16
       }
     },
     {
@@ -6441,7 +6441,7 @@
       "product_id": "000706",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.821870186659901e-33
+        "price": 4.8412828673330575e-33
       }
     },
     {
@@ -6450,7 +6450,7 @@
       "product_id": "000707",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.86428250810959e-42
+        "price": 3.964867732064568e-42
       }
     },
     {
@@ -6459,7 +6459,7 @@
       "product_id": "000708",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2666344850790004e-05
+        "price": 1.2665572599546149e-05
       }
     },
     {
@@ -6468,7 +6468,7 @@
       "product_id": "000709",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.001043056846669943
+        "price": 0.001043415148116178
       }
     },
     {
@@ -6477,7 +6477,7 @@
       "product_id": "000710",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.6161542924210767e-08
+        "price": 1.6105293165612916e-08
       }
     },
     {
@@ -6486,7 +6486,7 @@
       "product_id": "000711",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0002363175381386029
+        "price": 0.00023630113538514186
       }
     },
     {
@@ -6495,7 +6495,7 @@
       "product_id": "000712",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.1619856370928663e-06
+        "price": 2.1617889920332554e-06
       }
     },
     {
@@ -6504,7 +6504,7 @@
       "product_id": "000713",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.1859278500306848e-78
+        "price": 2.1755074468416374e-78
       }
     },
     {
@@ -6513,7 +6513,7 @@
       "product_id": "000714",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.006034974645165336
+        "price": 0.006034535176122846
       }
     },
     {
@@ -6522,7 +6522,7 @@
       "product_id": "000715",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5318635620525686e-09
+        "price": 2.5319856225284107e-09
       }
     },
     {
@@ -6531,7 +6531,7 @@
       "product_id": "000716",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000393741884343074
+        "price": 0.00039375418274124885
       }
     },
     {
@@ -6540,7 +6540,7 @@
       "product_id": "000717",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009083375666785187
+        "price": 0.00908358799443132
       }
     },
     {
@@ -6549,7 +6549,7 @@
       "product_id": "000718",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.009154468865609
+        "price": 0.00915562678393289
       }
     },
     {
@@ -6558,7 +6558,7 @@
       "product_id": "000719",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004923747212989715
+        "price": 0.0049242442156054445
       }
     },
     {
@@ -6567,7 +6567,7 @@
       "product_id": "000720",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.023812410813732976
+        "price": 0.023810147360420197
       }
     },
     {
@@ -6576,7 +6576,7 @@
       "product_id": "000721",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014557295267134007
+        "price": 0.014556642149658239
       }
     },
     {
@@ -6585,7 +6585,7 @@
       "product_id": "000722",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04346952582723107
+        "price": 0.04346557431644815
       }
     },
     {
@@ -6594,7 +6594,7 @@
       "product_id": "000723",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06301265610345286
+        "price": 0.06300698280806072
       }
     },
     {
@@ -6603,7 +6603,7 @@
       "product_id": "000724",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07634636033631881
+        "price": 0.07634246037329473
       }
     },
     {
@@ -6612,7 +6612,7 @@
       "product_id": "000725",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10367695446637903
+        "price": 0.10367241944149741
       }
     },
     {
@@ -6621,7 +6621,7 @@
       "product_id": "000726",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.964704099283495e-44
+        "price": 1.0001952257434495e-43
       }
     },
     {
@@ -6630,7 +6630,7 @@
       "product_id": "000727",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.536344831869735e-26
+        "price": 4.5356659235775115e-26
       }
     },
     {
@@ -6639,7 +6639,7 @@
       "product_id": "000728",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.035996879195434e-19
+        "price": 9.032377656886326e-19
       }
     },
     {
@@ -6648,7 +6648,7 @@
       "product_id": "000729",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.663720714525555e-54
+        "price": 3.7134821902407364e-54
       }
     },
     {
@@ -6657,7 +6657,7 @@
       "product_id": "000730",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.572485409129085e-06
+        "price": 7.5848837077911214e-06
       }
     },
     {
@@ -6666,7 +6666,7 @@
       "product_id": "000731",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007330312029513286
+        "price": 0.00732942727389152
       }
     },
     {
@@ -6675,7 +6675,7 @@
       "product_id": "000732",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00014476775241192147
+        "price": 0.0001447144947621104
       }
     },
     {
@@ -6684,7 +6684,7 @@
       "product_id": "000733",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011671959490617834
+        "price": 0.0011667352832847033
       }
     },
     {
@@ -6693,7 +6693,7 @@
       "product_id": "000734",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0011758709860034133
+        "price": 0.001176025649572282
       }
     },
     {
@@ -6702,7 +6702,7 @@
       "product_id": "000735",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8238372320612123e-06
+        "price": 1.8220651376922884e-06
       }
     },
     {
@@ -6711,7 +6711,7 @@
       "product_id": "000736",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0008199972084484974
+        "price": 0.0008210241803462415
       }
     },
     {
@@ -6720,7 +6720,7 @@
       "product_id": "000737",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01502062671468607
+        "price": 0.015016759244986688
       }
     },
     {
@@ -6729,7 +6729,7 @@
       "product_id": "000738",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0001839070499277881
+        "price": 0.00018392798905948055
       }
     },
     {
@@ -6738,7 +6738,7 @@
       "product_id": "000739",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007973589424321914
+        "price": 0.007973819594291442
       }
     },
     {
@@ -6747,7 +6747,7 @@
       "product_id": "000740",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00433056386021996
+        "price": 0.004329234043548347
       }
     },
     {
@@ -6756,7 +6756,7 @@
       "product_id": "000741",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004279056487181132
+        "price": 0.0042790018300138954
       }
     },
     {
@@ -6765,7 +6765,7 @@
       "product_id": "000742",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000734303359279348
+        "price": 0.0007341390021264604
       }
     },
     {
@@ -6774,7 +6774,7 @@
       "product_id": "000743",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03080469196694502
+        "price": 0.03079981717961533
       }
     },
     {
@@ -6783,7 +6783,7 @@
       "product_id": "000744",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04522117973296402
+        "price": 0.045216073826890635
       }
     },
     {
@@ -6792,7 +6792,7 @@
       "product_id": "000745",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.028427739406939434
+        "price": 0.028426156251853074
       }
     },
     {
@@ -6801,7 +6801,7 @@
       "product_id": "000746",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06045226881755861
+        "price": 0.06044482216197433
       }
     },
     {
@@ -6810,7 +6810,7 @@
       "product_id": "000747",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06945744514782726
+        "price": 0.06945242730514223
       }
     },
     {
@@ -6819,7 +6819,7 @@
       "product_id": "000748",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04948297621883213
+        "price": 0.04948215997258598
       }
     },
     {
@@ -6828,7 +6828,7 @@
       "product_id": "000749",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09219592442563307
+        "price": 0.09219694643174803
       }
     },
     {
@@ -6837,7 +6837,7 @@
       "product_id": "000750",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1222861770608773
+        "price": 0.12227796260370138
       }
     },
     {
@@ -6864,7 +6864,7 @@
       "product_id": "000753",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.858741535495542e-35
+        "price": 4.848365473911858e-35
       }
     },
     {
@@ -6873,7 +6873,7 @@
       "product_id": "000754",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.9829728846772036e-26
+        "price": 1.9816692537126786e-26
       }
     },
     {
@@ -6882,7 +6882,7 @@
       "product_id": "000755",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.480069459995855e-32
+        "price": 2.481343333561384e-32
       }
     },
     {
@@ -6891,7 +6891,7 @@
       "product_id": "000756",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2480330367272297e-72
+        "price": 1.2505738541973364e-72
       }
     },
     {
@@ -6900,7 +6900,7 @@
       "product_id": "000757",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8256057612833892e-08
+        "price": 1.8260036301284303e-08
       }
     },
     {
@@ -6909,7 +6909,7 @@
       "product_id": "000758",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5107106279875424e-12
+        "price": 2.5150044223087313e-12
       }
     },
     {
@@ -6918,7 +6918,7 @@
       "product_id": "000759",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.68679734572604e-09
+        "price": 7.685334838643403e-09
       }
     },
     {
@@ -6927,7 +6927,7 @@
       "product_id": "000760",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.6661362851867375e-07
+        "price": 3.6556175339683833e-07
       }
     },
     {
@@ -6936,7 +6936,7 @@
       "product_id": "000761",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00042985357578081973
+        "price": 0.00042987376261471866
       }
     },
     {
@@ -6945,7 +6945,7 @@
       "product_id": "000762",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6528931795234447e-10
+        "price": 2.6638656733505254e-10
       }
     },
     {
@@ -6954,7 +6954,7 @@
       "product_id": "000763",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00131099246149885
+        "price": 0.0013112681284889183
       }
     },
     {
@@ -6963,7 +6963,7 @@
       "product_id": "000764",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004542666416467056
+        "price": 0.0045428500454111065
       }
     },
     {
@@ -6972,7 +6972,7 @@
       "product_id": "000765",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.392399498633452e-16
+        "price": 3.395490228756543e-16
       }
     },
     {
@@ -6981,7 +6981,7 @@
       "product_id": "000766",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0036806437642096235
+        "price": 0.003680105133602285
       }
     },
     {
@@ -6990,7 +6990,7 @@
       "product_id": "000767",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00016816991007394255
+        "price": 0.00016819930344767753
       }
     },
     {
@@ -6999,7 +6999,7 @@
       "product_id": "000768",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007903441473788853
+        "price": 0.007902666049080076
       }
     },
     {
@@ -7008,7 +7008,7 @@
       "product_id": "000769",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007990389969432021
+        "price": 0.007990636659590766
       }
     },
     {
@@ -7017,7 +7017,7 @@
       "product_id": "000770",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.018230085312481825
+        "price": 0.018230074288835718
       }
     },
     {
@@ -7026,7 +7026,7 @@
       "product_id": "000771",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03081932305479007
+        "price": 0.030821607845275656
       }
     },
     {
@@ -7035,7 +7035,7 @@
       "product_id": "000772",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04453068130523974
+        "price": 0.04453200518881806
       }
     },
     {
@@ -7044,7 +7044,7 @@
       "product_id": "000773",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05881901770482301
+        "price": 0.05882404548851261
       }
     },
     {
@@ -7053,7 +7053,7 @@
       "product_id": "000774",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.07245389285183279
+        "price": 0.0724572703906855
       }
     },
     {
@@ -7062,7 +7062,7 @@
       "product_id": "000775",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10395292149688873
+        "price": 0.1039583447531579
       }
     },
     {
@@ -7071,7 +7071,7 @@
       "product_id": "000776",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.810636300540214e-36
+        "price": 4.804184494525668e-36
       }
     },
     {
@@ -7080,7 +7080,7 @@
       "product_id": "000777",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4152516017882771e-36
+        "price": 1.4149867807655947e-36
       }
     },
     {
@@ -7089,7 +7089,7 @@
       "product_id": "000778",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2751583248130397e-25
+        "price": 1.2750749915130612e-25
       }
     },
     {
@@ -7098,7 +7098,7 @@
       "product_id": "000779",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.660680776514632e-57
+        "price": 6.4952451847898e-57
       }
     },
     {
@@ -7107,7 +7107,7 @@
       "product_id": "000780",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00043762495847589344
+        "price": 0.00043757549821372976
       }
     },
     {
@@ -7116,7 +7116,7 @@
       "product_id": "000781",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007081399998402738
+        "price": 0.007081568208782252
       }
     },
     {
@@ -7125,7 +7125,7 @@
       "product_id": "000782",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0674139253464833e-16
+        "price": 1.0682335008905748e-16
       }
     },
     {
@@ -7134,7 +7134,7 @@
       "product_id": "000783",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.640853521615691e-11
+        "price": 1.640368608676875e-11
       }
     },
     {
@@ -7143,7 +7143,7 @@
       "product_id": "000784",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00668005031560559
+        "price": 0.0066798783974981735
       }
     },
     {
@@ -7152,7 +7152,7 @@
       "product_id": "000785",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004109316400392915
+        "price": 0.0041093571613970425
       }
     },
     {
@@ -7161,7 +7161,7 @@
       "product_id": "000786",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.01019095771470957
+        "price": 0.010190980588994258
       }
     },
     {
@@ -7170,7 +7170,7 @@
       "product_id": "000787",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03254006179829105
+        "price": 0.032541577521229326
       }
     },
     {
@@ -7179,7 +7179,7 @@
       "product_id": "000788",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02775357405521106
+        "price": 0.02775579711085352
       }
     },
     {
@@ -7188,7 +7188,7 @@
       "product_id": "000789",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004496206548997073
+        "price": 0.0044923397030701695
       }
     },
     {
@@ -7197,7 +7197,7 @@
       "product_id": "000790",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021178957777873153
+        "price": 0.02117722408355327
       }
     },
     {
@@ -7206,7 +7206,7 @@
       "product_id": "000791",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.014082499263756598
+        "price": 0.014084724896908707
       }
     },
     {
@@ -7215,7 +7215,7 @@
       "product_id": "000792",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02277314380408424
+        "price": 0.02277337077534336
       }
     },
     {
@@ -7224,7 +7224,7 @@
       "product_id": "000793",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03232229307009782
+        "price": 0.03232308900768144
       }
     },
     {
@@ -7233,7 +7233,7 @@
       "product_id": "000794",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03116076119203981
+        "price": 0.031162711135270138
       }
     },
     {
@@ -7242,7 +7242,7 @@
       "product_id": "000795",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.053201956475674606
+        "price": 0.05320603192544271
       }
     },
     {
@@ -7251,7 +7251,7 @@
       "product_id": "000796",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.036416684224943596
+        "price": 0.036417136985513854
       }
     },
     {
@@ -7260,7 +7260,7 @@
       "product_id": "000797",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03308896893136193
+        "price": 0.033090413306109734
       }
     },
     {
@@ -7269,7 +7269,7 @@
       "product_id": "000798",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.04585322271781467
+        "price": 0.04585386260183
       }
     },
     {
@@ -7278,7 +7278,7 @@
       "product_id": "000799",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0701647253084996
+        "price": 0.07016505626682357
       }
     },
     {
@@ -7287,7 +7287,7 @@
       "product_id": "000800",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.12211636378510438
+        "price": 0.12212650817870774
       }
     },
     {
@@ -7305,7 +7305,7 @@
       "product_id": "000802",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.18590432873181e-205
+        "price": 5.214993524878807e-205
       }
     },
     {
@@ -7314,7 +7314,7 @@
       "product_id": "000803",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.8708256340519495e-69
+        "price": 3.866012906874006e-69
       }
     },
     {
@@ -7323,7 +7323,7 @@
       "product_id": "000804",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.5215724701038258e-21
+        "price": 2.5291850764733995e-21
       }
     },
     {
@@ -7332,7 +7332,7 @@
       "product_id": "000805",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.4242615707507533e-24
+        "price": 1.4236258790667988e-24
       }
     },
     {
@@ -7341,7 +7341,7 @@
       "product_id": "000806",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.683154992034692e-09
+        "price": 2.6886969740237936e-09
       }
     },
     {
@@ -7350,7 +7350,7 @@
       "product_id": "000807",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.356377553608131e-16
+        "price": 9.494260955582943e-16
       }
     },
     {
@@ -7359,7 +7359,7 @@
       "product_id": "000808",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8706418745141054e-06
+        "price": 1.8714401407795862e-06
       }
     },
     {
@@ -7368,7 +7368,7 @@
       "product_id": "000809",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.9751487251220418e-05
+        "price": 1.9756937325568838e-05
       }
     },
     {
@@ -7377,7 +7377,7 @@
       "product_id": "000810",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.00029670128212257174
+        "price": 0.00029652702754884297
       }
     },
     {
@@ -7386,7 +7386,7 @@
       "product_id": "000811",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0007798689033874928
+        "price": 0.0007804170974888835
       }
     },
     {
@@ -7395,7 +7395,7 @@
       "product_id": "000812",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0023954508757949022
+        "price": 0.002395068901146602
       }
     },
     {
@@ -7404,7 +7404,7 @@
       "product_id": "000813",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.4979285457164585e-07
+        "price": 2.497445202635459e-07
       }
     },
     {
@@ -7413,7 +7413,7 @@
       "product_id": "000814",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.852780603954802e-05
+        "price": 2.8587582665891287e-05
       }
     },
     {
@@ -7422,7 +7422,7 @@
       "product_id": "000815",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.596955326898976e-27
+        "price": 4.573590658118336e-27
       }
     },
     {
@@ -7431,7 +7431,7 @@
       "product_id": "000816",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.2193164207292481e-05
+        "price": 1.2159892720112545e-05
       }
     },
     {
@@ -7440,7 +7440,7 @@
       "product_id": "000817",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.852277377847839e-08
+        "price": 3.840601420468078e-08
       }
     },
     {
@@ -7449,7 +7449,7 @@
       "product_id": "000818",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.067169349121738e-08
+        "price": 3.064826733073083e-08
       }
     },
     {
@@ -7458,7 +7458,7 @@
       "product_id": "000819",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.013457349634275806
+        "price": 0.013458174143816226
       }
     },
     {
@@ -7467,7 +7467,7 @@
       "product_id": "000820",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.008300862426396383
+        "price": 0.008298925887402997
       }
     },
     {
@@ -7476,7 +7476,7 @@
       "product_id": "000821",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03214813771225622
+        "price": 0.032142208815325035
       }
     },
     {
@@ -7485,7 +7485,7 @@
       "product_id": "000822",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03756821669887389
+        "price": 0.03756489121253681
       }
     },
     {
@@ -7494,7 +7494,7 @@
       "product_id": "000823",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.049246450184328494
+        "price": 0.04924264253115673
       }
     },
     {
@@ -7503,7 +7503,7 @@
       "product_id": "000824",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0773810505316348
+        "price": 0.07736769560146006
       }
     },
     {
@@ -7512,7 +7512,7 @@
       "product_id": "000825",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09569755139512792
+        "price": 0.09568428638826476
       }
     },
     {
@@ -7521,7 +7521,7 @@
       "product_id": "000826",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.6143188608549636e-31
+        "price": 3.626518995210022e-31
       }
     },
     {
@@ -7530,7 +7530,7 @@
       "product_id": "000827",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.607840460670738e-22
+        "price": 6.605274154764018e-22
       }
     },
     {
@@ -7539,7 +7539,7 @@
       "product_id": "000828",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.7980509140081855e-24
+        "price": 5.804721338046888e-24
       }
     },
     {
@@ -7548,7 +7548,7 @@
       "product_id": "000829",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 8.432500732820118e-59
+        "price": 8.411871159517817e-59
       }
     },
     {
@@ -7557,7 +7557,7 @@
       "product_id": "000830",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.944394508244697e-15
+        "price": 7.933608567513103e-15
       }
     },
     {
@@ -7566,7 +7566,7 @@
       "product_id": "000831",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.617549058971882e-11
+        "price": 6.611914741907356e-11
       }
     },
     {
@@ -7575,7 +7575,7 @@
       "product_id": "000832",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.8736264249963084e-25
+        "price": 1.8684686685453907e-25
       }
     },
     {
@@ -7584,7 +7584,7 @@
       "product_id": "000833",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0010205670987017412
+        "price": 0.0010217438748037905
       }
     },
     {
@@ -7593,7 +7593,7 @@
       "product_id": "000834",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004127431121051406
+        "price": 0.004126267219968782
       }
     },
     {
@@ -7602,7 +7602,7 @@
       "product_id": "000835",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.000752452061594952
+        "price": 0.0007518673396676584
       }
     },
     {
@@ -7611,7 +7611,7 @@
       "product_id": "000836",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02947763768847156
+        "price": 0.029476867390049066
       }
     },
     {
@@ -7620,7 +7620,7 @@
       "product_id": "000837",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.004104598303793006
+        "price": 0.004106519188304181
       }
     },
     {
@@ -7629,7 +7629,7 @@
       "product_id": "000838",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0040975642244521215
+        "price": 0.004095957129698957
       }
     },
     {
@@ -7638,7 +7638,7 @@
       "product_id": "000839",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.675377971361528e-08
+        "price": 5.6762744282421525e-08
       }
     },
     {
@@ -7647,7 +7647,7 @@
       "product_id": "000840",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.642711949511607e-09
+        "price": 4.574437256724088e-09
       }
     },
     {
@@ -7656,7 +7656,7 @@
       "product_id": "000841",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.007340883189608682
+        "price": 0.007338534472821179
       }
     },
     {
@@ -7665,7 +7665,7 @@
       "product_id": "000842",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021746519106441986
+        "price": 0.021745337455613134
       }
     },
     {
@@ -7674,7 +7674,7 @@
       "product_id": "000843",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03072962433012083
+        "price": 0.03072430622549216
       }
     },
     {
@@ -7683,7 +7683,7 @@
       "product_id": "000844",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03243459039894825
+        "price": 0.032430381509019
       }
     },
     {
@@ -7692,7 +7692,7 @@
       "product_id": "000845",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03494401465932373
+        "price": 0.034941071667935364
       }
     },
     {
@@ -7701,7 +7701,7 @@
       "product_id": "000846",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.05904953830773496
+        "price": 0.059040769235722546
       }
     },
     {
@@ -7710,7 +7710,7 @@
       "product_id": "000847",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.06268647841998787
+        "price": 0.06267614480152905
       }
     },
     {
@@ -7719,7 +7719,7 @@
       "product_id": "000848",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.0732250057965882
+        "price": 0.0732153690773345
       }
     },
     {
@@ -7728,7 +7728,7 @@
       "product_id": "000849",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.09489303759326606
+        "price": 0.09488259553075129
       }
     },
     {
@@ -7737,7 +7737,7 @@
       "product_id": "000850",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10482445747694746
+        "price": 0.10481378208922609
       }
     },
     {
@@ -8223,7 +8223,7 @@
       "product_id": "000904",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.25161746990137823
+        "price": 0.251613516404837
       }
     },
     {
@@ -8232,7 +8232,7 @@
       "product_id": "000905",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.7540302575927949
+        "price": 0.7540189436811123
       }
     },
     {
@@ -8259,7 +8259,7 @@
       "product_id": "000908",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.6981716362202053
+        "price": 0.6981534745514886
       }
     },
     {
@@ -8268,7 +8268,7 @@
       "product_id": "000909",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.9427560591830437
+        "price": 0.9427829552084643
       }
     },
     {
@@ -8277,7 +8277,7 @@
       "product_id": "000910",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0398966895326323
+        "price": 1.0398709735706197
       }
     },
     {
@@ -8313,7 +8313,7 @@
       "product_id": "000914",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.25989486494656244
+        "price": 0.2598912792256922
       }
     },
     {
@@ -8322,7 +8322,7 @@
       "product_id": "000915",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.7516023392147643
+        "price": 0.7516103075722416
       }
     },
     {
@@ -8340,7 +8340,7 @@
       "product_id": "000917",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.29726816275913404
+        "price": 0.2973023481736083
       }
     },
     {
@@ -8349,7 +8349,7 @@
       "product_id": "000918",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.6296107810078607
+        "price": 0.6296597542846647
       }
     },
     {
@@ -8358,7 +8358,7 @@
       "product_id": "000919",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.9059886037579674
+        "price": 0.9060653773348276
       }
     },
     {
@@ -8367,7 +8367,7 @@
       "product_id": "000920",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.0540187630840203
+        "price": 1.0540918484790884
       }
     },
     {
@@ -8394,7 +8394,7 @@
       "product_id": "000923",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.5476131134177654e-25
+        "price": 1.5477305713551885e-25
       }
     },
     {
@@ -8403,7 +8403,7 @@
       "product_id": "000924",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.21446083712456332
+        "price": 0.21443590783452904
       }
     },
     {
@@ -8412,7 +8412,7 @@
       "product_id": "000925",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.6967236200993343
+        "price": 0.6967204107346441
       }
     },
     {
@@ -8421,7 +8421,7 @@
       "product_id": "000926",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.121370937817028e-117
+        "price": 7.242658454857039e-117
       }
     },
     {
@@ -8430,7 +8430,7 @@
       "product_id": "000927",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 9.70556277194155e-41
+        "price": 9.668577779018454e-41
       }
     },
     {
@@ -8439,7 +8439,7 @@
       "product_id": "000928",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.4858698076817654
+        "price": 0.4858050404475259
       }
     },
     {
@@ -8448,7 +8448,7 @@
       "product_id": "000929",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.43386779155481625
+        "price": 0.4338472628733494
       }
     },
     {
@@ -8457,7 +8457,7 @@
       "product_id": "000930",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.8497695024503049
+        "price": 0.8497260189995529
       }
     },
     {
@@ -8484,7 +8484,7 @@
       "product_id": "000933",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 7.053707649048552e-12
+        "price": 7.052640423492553e-12
       }
     },
     {
@@ -8493,7 +8493,7 @@
       "product_id": "000934",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.24533732040388712
+        "price": 0.2453314329014329
       }
     },
     {
@@ -8502,7 +8502,7 @@
       "product_id": "000935",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.695034930086352
+        "price": 0.695049807223933
       }
     },
     {
@@ -8520,7 +8520,7 @@
       "product_id": "000937",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.021138566957654314
+        "price": 0.02114081996672057
       }
     },
     {
@@ -8529,7 +8529,7 @@
       "product_id": "000938",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.13955636486587353
+        "price": 0.13958160814026843
       }
     },
     {
@@ -8538,7 +8538,7 @@
       "product_id": "000939",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.5638178133410612
+        "price": 0.5639385941325216
       }
     },
     {
@@ -8547,7 +8547,7 @@
       "product_id": "000940",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.7548290989074986
+        "price": 0.7550333627126982
       }
     },
     {
@@ -8574,7 +8574,7 @@
       "product_id": "000943",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6202210583129046e-18
+        "price": 2.6199711938826405e-18
       }
     },
     {
@@ -8583,7 +8583,7 @@
       "product_id": "000944",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.16325517673957557
+        "price": 0.1632444399119788
       }
     },
     {
@@ -8592,7 +8592,7 @@
       "product_id": "000945",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.45452973428010135
+        "price": 0.45449905424921977
       }
     },
     {
@@ -8619,7 +8619,7 @@
       "product_id": "000948",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.30870925993745313
+        "price": 0.3086775111593362
       }
     },
     {
@@ -8628,7 +8628,7 @@
       "product_id": "000949",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.3029766414306847
+        "price": 0.3029730015102303
       }
     },
     {
@@ -8637,7 +8637,7 @@
       "product_id": "000950",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.7162997692497934
+        "price": 0.7162858065740776
       }
     },
     {
@@ -8664,7 +8664,7 @@
       "product_id": "000953",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 6.4263032014822955e-27
+        "price": 6.430324831525553e-27
       }
     },
     {
@@ -8673,7 +8673,7 @@
       "product_id": "000954",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1353369029768
+        "price": 0.13534145196302017
       }
     },
     {
@@ -8682,7 +8682,7 @@
       "product_id": "000955",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.34941728357234997
+        "price": 0.34942985037521446
       }
     },
     {
@@ -8691,7 +8691,7 @@
       "product_id": "000956",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.5888612722241587e-158
+        "price": 1.5884586037393706e-158
       }
     },
     {
@@ -8700,7 +8700,7 @@
       "product_id": "000957",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.13329427875770195
+        "price": 0.13330016381237067
       }
     },
     {
@@ -8709,7 +8709,7 @@
       "product_id": "000958",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.24788959931466262
+        "price": 0.2478994448979765
       }
     },
     {
@@ -8718,7 +8718,7 @@
       "product_id": "000959",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.45467054444857774
+        "price": 0.45468150071083924
       }
     },
     {
@@ -8727,7 +8727,7 @@
       "product_id": "000960",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.534651552312243
+        "price": 0.5346455698057146
       }
     },
     {
@@ -8754,7 +8754,7 @@
       "product_id": "000963",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.8550327162700478e-24
+        "price": 2.855594230326603e-24
       }
     },
     {
@@ -8763,7 +8763,7 @@
       "product_id": "000964",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.1071768572456756
+        "price": 0.10715489487416213
       }
     },
     {
@@ -8772,7 +8772,7 @@
       "product_id": "000965",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.3978410060625476
+        "price": 0.39778483605586246
       }
     },
     {
@@ -8790,7 +8790,7 @@
       "product_id": "000967",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.3840200035014616e-22
+        "price": 1.3839259457610615e-22
       }
     },
     {
@@ -8799,7 +8799,7 @@
       "product_id": "000968",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 4.03407901383112e-33
+        "price": 4.034212195488706e-33
       }
     },
     {
@@ -8808,7 +8808,7 @@
       "product_id": "000969",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.403288897664387
+        "price": 0.40324326294683144
       }
     },
     {
@@ -8817,7 +8817,7 @@
       "product_id": "000970",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.700445534198824
+        "price": 0.7003981994273989
       }
     },
     {
@@ -8844,7 +8844,7 @@
       "product_id": "000973",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.6651267498151618e-20
+        "price": 2.666312525867908e-20
       }
     },
     {
@@ -8853,7 +8853,7 @@
       "product_id": "000974",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.17654676128040936
+        "price": 0.17656071293445164
       }
     },
     {
@@ -8862,7 +8862,7 @@
       "product_id": "000975",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.14698868050354977
+        "price": 0.14702203078433196
       }
     },
     {
@@ -8880,7 +8880,7 @@
       "product_id": "000977",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 5.773265341723055e-36
+        "price": 5.773386295018614e-36
       }
     },
     {
@@ -8889,7 +8889,7 @@
       "product_id": "000978",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.011241160094239255
+        "price": 0.01124095266913444
       }
     },
     {
@@ -8898,7 +8898,7 @@
       "product_id": "000979",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.2621615598128483
+        "price": 0.2621630718577097
       }
     },
     {
@@ -8907,7 +8907,7 @@
       "product_id": "000980",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.44366635725909553
+        "price": 0.4437345886323608
       }
     },
     {
@@ -8934,7 +8934,7 @@
       "product_id": "000983",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 1.7986848403425102e-17
+        "price": 1.7990662454135234e-17
       }
     },
     {
@@ -8943,7 +8943,7 @@
       "product_id": "000984",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.10381919529808104
+        "price": 0.10381123466326675
       }
     },
     {
@@ -8952,7 +8952,7 @@
       "product_id": "000985",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.4563181938390829
+        "price": 0.45629829540122024
       }
     },
     {
@@ -8970,7 +8970,7 @@
       "product_id": "000987",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.02233583377022036
+        "price": 0.022334257492328313
       }
     },
     {
@@ -8979,7 +8979,7 @@
       "product_id": "000988",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 2.870452801541054e-16
+        "price": 2.8705304279178983e-16
       }
     },
     {
@@ -8988,7 +8988,7 @@
       "product_id": "000989",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.36777603592407093
+        "price": 0.3677532761214811
       }
     },
     {
@@ -8997,7 +8997,7 @@
       "product_id": "000990",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.6965957467422359
+        "price": 0.6966005164255555
       }
     },
     {
@@ -9024,7 +9024,7 @@
       "product_id": "000993",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 3.84491321222242e-17
+        "price": 3.845922794845084e-17
       }
     },
     {
@@ -9033,7 +9033,7 @@
       "product_id": "000994",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.03440438004428495
+        "price": 0.03440438580012431
       }
     },
     {
@@ -9042,7 +9042,7 @@
       "product_id": "000995",
       "reference_pricer_id": "premia_cf_vasicek_zb_put",
       "outputs": {
-        "price": 0.16500708807659928
+        "price": 0.1650070954696679
       }
     },
     {

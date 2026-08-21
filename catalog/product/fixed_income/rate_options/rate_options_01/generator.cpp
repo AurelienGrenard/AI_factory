@@ -3,31 +3,8 @@
 #include "tools/datasets/dataset_validation.hpp"
 
 #include <filesystem>
-#include <cmath>
 #include <string>
 #include <utility>
-
-namespace {
-
-std::vector<float> actual_360_grid(
-    int first_day,
-    int last_day,
-    std::size_t point_count
-) {
-    std::vector<float> times;
-    times.reserve(point_count);
-    for (std::size_t index = 0U; index < point_count; ++index) {
-        const double weight = static_cast<double>(index)
-            / static_cast<double>(point_count - 1U);
-        const int day = static_cast<int>(std::lround(
-            first_day + weight * (last_day - first_day)
-        ));
-        times.push_back(static_cast<float>(day) / 360.0f);
-    }
-    return times;
-}
-
-}  // namespace
 
 // Generate the forward rate option dataset and catalog entry.
 int main() {
@@ -50,13 +27,13 @@ int main() {
                               : 0.04f + 0.06f * cube
         );
     }
-    const auto regime = [](const std::vector<float>& fixing_times,
-                           const std::vector<float>& accrual_periods,
+    const auto regime = [](const std::vector<std::uint32_t>& fixing_times,
+                           const std::vector<std::uint32_t>& accrual_periods,
                            const std::vector<float>& strikes,
                            const std::string& description) {
         GeneratedRows generated;
-        for (const float fixing_time : fixing_times) {
-            for (const float accrual_period : accrual_periods) {
+        for (const std::uint32_t fixing_time : fixing_times) {
+            for (const std::uint32_t accrual_period : accrual_periods) {
                 for (const float strike : strikes) {
                     generated.rows.push_back({
                     {"notional", 1.0f},
@@ -80,14 +57,14 @@ int main() {
         return generated;
     };
     GeneratedRows core = regime(
-        actual_360_grid(90, 1800, 18U),
-        {0.25f, 0.5f},
+        linear_business_day_grid(63U, 1260U, 18U),
+        {63U, 126U},
         core_strikes,
         "Representative fixing dates and strikes concentrated around 4%."
     );
     GeneratedRows stress = regime(
-        actual_360_grid(7, 5400, 10U),
-        {7.0f / 360.0f, 2.0f},
+        linear_business_day_grid(5U, 3780U, 10U),
+        {5U, 504U},
         {-0.10f, -0.02f, 0.04f, 0.15f, 0.35f},
         "Very short/long dates, short/long accruals, and negative/high strikes."
     );
@@ -104,9 +81,9 @@ int main() {
         {
             {"notional", "Normalized contract notional."},
             {"strike", "Simple annualized forward rate option strike."},
-            {"fixing_time", "Forward-rate fixing time T1 in years."},
-            {"payment_time", "Cashflow payment time T2 in years."},
-            {"accrual_period", "Year fraction delta for [T1, T2]."},
+            {"fixing_time", "Forward-rate fixing time T1 in business days."},
+            {"payment_time", "Cashflow payment time T2 in business days."},
+            {"accrual_period", "Business days in the interval [T1, T2]."},
         },
         {
             {"expression", "N * delta * max(side * (L(T1; T1, T2) - K), 0), side = +1 caplet / -1 floorlet"},

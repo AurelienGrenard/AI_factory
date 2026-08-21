@@ -23,10 +23,10 @@ int main() {
 
     // Reuse exactly the European-call strike and maturity construction.
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_grid(1.0f / 26.0f, 7.0f, 10U),
+        linear_business_day_grid(10U, 1764U, 10U),
         10U,
         log_moneyness_slope
     );
@@ -35,9 +35,9 @@ int main() {
     assign_uniform_exercise_intervals(
         rows,
         {
-            {1.0f / 12.0f, "1 / 12"},
-            {1.0f / 24.0f, "1 / 24"},
-            {1.0f / 52.0f, "1 / 52"},
+            {21U, "21 business days (monthly)"},
+            {10U, "10 business days (semi-monthly)"},
+            {5U, "5 business days (weekly)"},
         },
         minimum_exercise_dates,
         exercise_interval_seed
@@ -51,8 +51,8 @@ int main() {
         url,
         {
             {"strike", "Strike in normalized spot units."},
-            {"maturity", "Maturity in years."},
-            {"exercise_interval", "Time in years between exercise dates."},
+            {"maturity", "Maturity in business days."},
+            {"exercise_interval", "Business days between exercise dates."},
         },
         {
             {"expression", "max(side * (S_t - K), 0) at each exercise date; side = +1 call / -1 put"},

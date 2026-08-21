@@ -22,33 +22,32 @@ constexpr float kGamma2 = 0.5f;
 
 // ======================== Common equity dynamics =========================
 
-// Prepare coefficients that are constant across all paths of one result row.
-__device__ __forceinline__ HestonQeParameters prepare_model(
-    const HestonModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters,
+    float delta_t
 ) {
     const float kappa = parameters.kappa;
     const float theta = parameters.theta;
     const float gamma = parameters.gamma;
     const float rho = parameters.rho;
-    const float dt = maturity / static_cast<float>(num_steps);
-    const float one_minus_exp = -expm1f(-kappa * dt);
+    const float one_minus_exp = -expm1f(-kappa * delta_t);
     const float exp_kdt = 1.0f - one_minus_exp;
     const float gamma2 = gamma * gamma;
     const float drift_dt = fmaf(
         parameters.risk_free_rate - parameters.dividend_yield,
-        dt,
+        delta_t,
         0.0f
     );
     const float kappa_rho_over_gamma = kappa * rho / gamma;
     const float rho_over_gamma = rho / gamma;
     const float k2 = fmaf(
-        kGamma2 * dt,
+        kGamma2 * delta_t,
         kappa_rho_over_gamma - 0.5f,
         rho_over_gamma
     );
-    const float k4 = kGamma2 * dt * (1.0f - rho * rho);
+    const float k4 = kGamma2 * delta_t * (1.0f - rho * rho);
 
     return {
         logf(parameters.spot),
@@ -58,40 +57,41 @@ __device__ __forceinline__ HestonQeParameters prepare_model(
         gamma2 * exp_kdt * one_minus_exp / kappa,
         theta * gamma2 * one_minus_exp * one_minus_exp / (2.0f * kappa),
         drift_dt,
-        drift_dt - rho * kappa * theta * dt / gamma,
-        kGamma1 * dt * (kappa_rho_over_gamma - 0.5f) - rho_over_gamma,
+        drift_dt - rho * kappa * theta * delta_t / gamma,
+        kGamma1 * delta_t * (kappa_rho_over_gamma - 0.5f)
+            - rho_over_gamma,
         k2,
-        kGamma1 * dt * (1.0f - rho * rho),
+        kGamma1 * delta_t * (1.0f - rho * rho),
         k4,
         k2 + 0.5f * k4,
     };
 }
 
 // Construct the time-zero state stored in the prepared QE parameters.
-__device__ __forceinline__ HestonState initial_state(
-    const HestonQeParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    return {model.initial_log_spot, model.initial_variance};
+    return {prepared_model.initial_log_spot, prepared_model.initial_variance};
 }
 
 // Apply one variance and log-spot update with the QE-M martingale correction.
 __device__ __forceinline__ void one_step_transition(
-    const HestonQeParameters& model,
+    const PreparedModel& prepared_model,
     float variance_normal,
     float variance_uniform,
     float stock_normal,
-    HestonState& state
+    State& state
 ) {
     const float previous_variance = fmaxf(state.variance, 0.0f);
     const float conditional_mean = fmaf(
-        previous_variance - model.theta,
-        model.exp_kdt,
-        model.theta
+        previous_variance - prepared_model.theta,
+        prepared_model.exp_kdt,
+        prepared_model.theta
     );
     const float conditional_variance = fmaf(
         previous_variance,
-        model.variance_linear_scale,
-        model.variance_constant_scale
+        prepared_model.variance_linear_scale,
+        prepared_model.variance_constant_scale
     );
 
     float next_variance = 0.0f;
@@ -114,10 +114,10 @@ __device__ __forceinline__ void one_step_transition(
             next_variance = a * shifted * shifted;
 
             const float denominator = fmaf(
-                -2.0f * model.martingale_a, a, 1.0f
+                -2.0f * prepared_model.martingale_a, a, 1.0f
             );
             if (denominator > 0.0f) {
-                log_moment = model.martingale_a * b2 * a / denominator
+                log_moment = prepared_model.martingale_a * b2 * a / denominator
                              - 0.5f * logf(denominator);
             } else {
                 martingale_valid = false;
@@ -132,11 +132,11 @@ __device__ __forceinline__ void one_step_transition(
                 : logf((1.0f - probability_zero) / (1.0f - variance_uniform))
                       / beta;
 
-            if (model.martingale_a < beta) {
+            if (prepared_model.martingale_a < beta) {
                 const float moment =
                     probability_zero
                     + beta * (1.0f - probability_zero)
-                          / (beta - model.martingale_a);
+                          / (beta - prepared_model.martingale_a);
                 martingale_valid = moment > 0.0f;
                 if (martingale_valid) log_moment = logf(moment);
             } else {
@@ -146,7 +146,7 @@ __device__ __forceinline__ void one_step_transition(
     }
 
     const float variance_integral_proxy = fmaxf(
-        fmaf(model.k3, previous_variance, model.k4 * next_variance),
+        fmaf(prepared_model.k3, previous_variance, prepared_model.k4 * next_variance),
         0.0f
     );
     const float stock_diffusion =
@@ -154,17 +154,17 @@ __device__ __forceinline__ void one_step_transition(
     // Apply QE-M when valid, otherwise use the stable QE fallback.
     if (martingale_valid) {
         float increment = fmaf(
-            -0.5f * model.k3,
+            -0.5f * prepared_model.k3,
             previous_variance,
-            model.drift_dt - log_moment
+            prepared_model.drift_dt - log_moment
         );
-        increment = fmaf(model.k2, next_variance, increment);
+        increment = fmaf(prepared_model.k2, next_variance, increment);
         state.log_spot += increment + stock_diffusion;
     } else {
         float increment = fmaf(
-            model.k1, previous_variance, model.k0
+            prepared_model.k1, previous_variance, prepared_model.k0
         );
-        increment = fmaf(model.k2, next_variance, increment);
+        increment = fmaf(prepared_model.k2, next_variance, increment);
         state.log_spot += increment + stock_diffusion;
     }
     state.variance = next_variance;
@@ -176,10 +176,10 @@ namespace {
 
 // Draw the three variates consumed by one fused QE-M transition.
 __device__ __forceinline__ void simulate_one_step(
-    const HestonQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    HestonState& state
+    State& state
 ) {
     const float variance_normal = philox::next_normal(
         uniforms, normal_cache
@@ -189,7 +189,7 @@ __device__ __forceinline__ void simulate_one_step(
     );
     const float variance_uniform = uniforms.next();
     one_step_transition(
-        model,
+        prepared_model,
         variance_normal,
         variance_uniform,
         stock_normal,
@@ -202,44 +202,44 @@ __device__ __forceinline__ void simulate_one_step(
 // ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
-__device__ __forceinline__ HestonState simulate_terminal_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    HestonState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
     }
     return state;
 }
 
 // Accumulate spots from time zero to maturity and return their arithmetic mean.
-__device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    HestonState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
     double spot_sum = static_cast<double>(expf(state.log_spot));
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         spot_sum += static_cast<double>(expf(state.log_spot));
     }
 
@@ -251,24 +251,24 @@ __device__ __forceinline__ HestonMeanPathResult simulate_mean_state(
 }
 
 // Average log-spots in FP64 and exponentiate only the completed mean.
-__device__ __forceinline__ HestonGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const HestonQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    HestonState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
     double log_spot_sum = static_cast<double>(state.log_spot);
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         log_spot_sum += static_cast<double>(state.log_spot);
     }
 
@@ -278,44 +278,14 @@ simulate_geometric_mean_state(
     };
 }
 
-// Reuse one Philox sequence across two exact QE-M interval preparations.
-__device__ __forceinline__ HestonTwoTimePathResult simulate_at_two_times(
-    const HestonQeParameters& first_model,
-    const HestonQeParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
-) {
-    HestonState state = initial_state(first_model);
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
-    philox::NormalPairCache normal_cache;
-
-    for (std::size_t step_index = 0U;
-         step_index < first_num_steps;
-         ++step_index) {
-        simulate_one_step(first_model, uniforms, normal_cache, state);
-    }
-    const float first_spot = expf(state.log_spot);
-
-    for (std::size_t step_index = 0U;
-         step_index < second_num_steps;
-         ++step_index) {
-        simulate_one_step(second_model, uniforms, normal_cache, state);
-    }
-    return {first_spot, expf(state.log_spot)};
-}
-
 // Track the maximum spot at time zero and after every simulated transition.
-__device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
-    const HestonQeParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    HestonState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
@@ -323,10 +293,10 @@ __device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
     const float initial_spot = expf(state.log_spot);
     float maximum_spot = initial_spot;
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         const float spot = expf(state.log_spot);
         maximum_spot = fmaxf(maximum_spot, spot);
     }
@@ -335,19 +305,18 @@ __device__ __forceinline__ HestonMaximumPathResult simulate_maximum_state(
 }
 
 // Write pre-maturity states in a date-major grid and return terminal state.
-__device__ __forceinline__ HestonState simulate_on_regular_grid(
-    const HestonQeParameters& initial_stub_model,
-    const HestonQeParameters& regular_model,
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_spots,
     float* __restrict__ observed_variances
 ) {
-    HestonState state = initial_state(initial_stub_model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
@@ -357,32 +326,65 @@ __device__ __forceinline__ HestonState simulate_on_regular_grid(
     for (std::uint32_t step_index = 0U;
          step_index < initial_stub_steps;
          ++step_index) {
-        simulate_one_step(initial_stub_model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
     }
-    if (exercise_count == 1U) return state;
-    std::size_t output_index = path;
+    if (observation_count == 1U) return state;
+    std::size_t output_index = 0U;
     observed_spots[output_index] = expf(state.log_spot);
     observed_variances[output_index] = state.variance;
 
     // Store only pre-terminal states with one running date-major offset.
-    for (std::uint32_t exercise = 1U;
-         exercise + 1U < exercise_count;
-         ++exercise) {
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
         for (std::uint32_t step_index = 0U;
-             step_index < steps_per_exercise;
+             step_index < steps_per_observation;
              ++step_index) {
-            simulate_one_step(regular_model, uniforms, normal_cache, state);
+            simulate_one_step(prepared_model, uniforms, normal_cache, state);
         }
-        output_index += path_count;
+        output_index += observation_stride;
         observed_spots[output_index] = expf(state.log_spot);
         observed_variances[output_index] = state.variance;
     }
 
     // Simulate the maturity interval without a global-memory write.
     for (std::uint32_t step_index = 0U;
-         step_index < steps_per_exercise;
+         step_index < steps_per_observation;
          ++step_index) {
-        simulate_one_step(regular_model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
+    }
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots,
+    float* __restrict__ observed_variances
+) {
+    State state = initial_state(prepared_model);
+    philox::UniformSequence uniforms(
+        key, static_cast<std::uint64_t>(path)
+    );
+    philox::NormalPairCache normal_cache;
+    std::size_t output_index = 0U;
+    for (std::uint32_t observation = 0U;
+         observation < observation_count;
+         ++observation) {
+        for (std::uint32_t step_index = 0U;
+             step_index < steps_between_observations[observation];
+             ++step_index) {
+            simulate_one_step(prepared_model, uniforms, normal_cache, state);
+        }
+        if (observation + 1U < observation_count) {
+            observed_spots[output_index] = expf(state.log_spot);
+            observed_variances[output_index] = state.variance;
+            output_index += observation_stride;
+        }
     }
     return state;
 }

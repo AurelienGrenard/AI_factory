@@ -20,30 +20,32 @@ int main() {
 
     constexpr float log_moneyness_slope = 0.2f;
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         log_moneyness_slope
     );
     for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
         auto& row = rows.rows[index];
         const bool stress = index >= 900U;
-        const float maturity = row.at("maturity").get<float>();
+        const std::uint32_t maturity =
+            row.at("maturity").get<std::uint32_t>();
+        const float maturity_years = business_days_to_years(maturity);
         const float log_strike = logf(row.at("strike").get<float>());
         const float regime_slope = stress
             ? log_moneyness_slope
             : log_moneyness_slope;
         const float grid_position = (
-            log_strike + regime_slope * maturity
-        ) / (2.0f * regime_slope * maturity);
+            log_strike + regime_slope * maturity_years
+        ) / (2.0f * regime_slope * maturity_years);
         row.erase("strike");
         row["barrier"] = stress
             ? expf(0.01f + grid_position
-                * (0.80f + 0.40f * sqrtf(maturity / 7.0f)))
+                * (0.80f + 0.40f * sqrtf(maturity_years / 7.0f)))
             : expf(0.05f + grid_position
-                * (0.10f + 0.20f * sqrtf(maturity / 3.0f)));
+                * (0.10f + 0.20f * sqrtf(maturity_years / 3.0f)));
         row["cash_payoff"] = 1.0f;
     }
     rows.construction["rule"] =
@@ -53,11 +55,11 @@ int main() {
         {"spacing", "linear in log-barrier"},
         {"core", {
             {"count_per_maturity", 20},
-            {"conditional_bounds", "[exp(0.05), exp(0.15 + 0.20 sqrt(T / 3))]"},
+            {"conditional_bounds", "[exp(0.05), exp(0.15 + 0.20 sqrt((T/252) / 3))]"},
         }},
         {"stress", {
             {"count_per_maturity", 10},
-            {"conditional_bounds", "[exp(0.01), exp(0.81 + 0.40 sqrt(T / 7))]"},
+            {"conditional_bounds", "[exp(0.01), exp(0.81 + 0.40 sqrt((T/252) / 7))]"},
         }},
     };
     rows.construction["cash_payoff"] = 1.0f;
@@ -71,7 +73,7 @@ int main() {
         {
             {"barrier", "Upper touch level in normalized spot units."},
             {"cash_payoff", "Cash amount paid at maturity after a touch."},
-            {"maturity", "Maturity in years."},
+            {"maturity", "Maturity in business days."},
         },
         {
             {"expression", "cash_payoff if max(S_[0,T]) >= barrier; otherwise 0"},

@@ -10,24 +10,24 @@
 namespace {
 
 const std::filesystem::path price_catalog_path =
-    "catalog/price/equity/heston/american_puts/"
+    "catalog/model/equity/heston/prices/american_puts/"
     "heston_01__american_puts_01__01/dataset.yaml";
 const std::filesystem::path cir_catalog_path =
-    "catalog/model/fixed_income/cir/cir_01/dataset.yaml";
+    "catalog/model/fixed_income/cir/parameters/cir_01/dataset.yaml";
 const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml",
     "catalog/curve/svensson/svensson_01/dataset.yaml",
-    "catalog/model/equity/heston/heston_01/dataset.yaml",
-    "catalog/model/equity/bates/bates_01/dataset.yaml",
-    "catalog/model/equity/variance_gamma/variance_gamma_01/dataset.yaml",
+    "catalog/model/equity/heston/parameters/heston_01/dataset.yaml",
+    "catalog/model/equity/bates/parameters/bates_01/dataset.yaml",
+    "catalog/model/equity/variance_gamma/parameters/variance_gamma_01/dataset.yaml",
     "catalog/model/equity/normal_inverse_gaussian/"
-    "normal_inverse_gaussian_01/dataset.yaml",
-    "catalog/model/equity/rough_bergomi/rough_bergomi_01/dataset.yaml",
-    "catalog/model/fixed_income/g2/g2_01/dataset.yaml",
-    "catalog/model/fixed_income/g2_plus_plus/g2_plus_plus_01/dataset.yaml",
-    "catalog/model/fixed_income/hull_white/hull_white_01/dataset.yaml",
-    "catalog/model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01/dataset.yaml",
-    "catalog/model/fixed_income/vasicek/vasicek_01/dataset.yaml",
+    "parameters/normal_inverse_gaussian_01/dataset.yaml",
+    "catalog/model/equity/rough_bergomi/parameters/rough_bergomi_01/dataset.yaml",
+    "catalog/model/fixed_income/g2/parameters/g2_01/dataset.yaml",
+    "catalog/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01/dataset.yaml",
+    "catalog/model/fixed_income/hull_white/parameters/hull_white_01/dataset.yaml",
+    "catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/dataset.yaml",
+    "catalog/model/fixed_income/vasicek/parameters/vasicek_01/dataset.yaml",
     cir_catalog_path,
     "catalog/product/equity/european_options/"
     "european_options_01/dataset.yaml",
@@ -70,137 +70,137 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/product/fixed_income/rate_options/rate_options_01/dataset.yaml",
     "catalog/product/fixed_income/zero_coupon_bond_options/"
     "zero_coupon_bond_options_01/dataset.yaml",
-    "catalog/price/equity/heston/european_calls/"
+    "catalog/model/equity/heston/prices/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/european_puts/"
+    "catalog/model/equity/heston/prices/european_puts/"
     "heston_01__european_puts_01__01/dataset.yaml",
-    "catalog/price/equity/rough_bergomi/european_calls/"
+    "catalog/model/equity/rough_bergomi/prices/european_calls/"
     "rough_bergomi_01__european_calls_01__01/dataset.yaml",
-    "catalog/price/equity/rough_bergomi/european_puts/"
+    "catalog/model/equity/rough_bergomi/prices/european_puts/"
     "rough_bergomi_01__european_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/asian_calls/"
+    "catalog/model/equity/heston/prices/asian_calls/"
     "heston_01__asian_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/athena_autocalls/"
+    "catalog/model/equity/heston/prices/athena_autocalls/"
     "heston_01__athena_autocalls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/phoenix_autocalls/"
+    "catalog/model/equity/heston/prices/phoenix_autocalls/"
     "heston_01__phoenix_autocalls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/phoenix_memory_autocalls/"
+    "catalog/model/equity/heston/prices/phoenix_memory_autocalls/"
     "heston_01__phoenix_memory_autocalls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/cliquets/"
+    "catalog/model/equity/heston/prices/cliquets/"
     "heston_01__cliquets_01__01/dataset.yaml",
-    "catalog/price/equity/heston/range_accruals/"
+    "catalog/model/equity/heston/prices/range_accruals/"
     "heston_01__range_accruals_01__01/dataset.yaml",
-    "catalog/price/equity/heston/asian_puts/"
+    "catalog/model/equity/heston/prices/asian_puts/"
     "heston_01__asian_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/digital_calls/"
+    "catalog/model/equity/heston/prices/digital_calls/"
     "heston_01__digital_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/digital_puts/"
+    "catalog/model/equity/heston/prices/digital_puts/"
     "heston_01__digital_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/asset_or_nothing_calls/"
+    "catalog/model/equity/heston/prices/asset_or_nothing_calls/"
     "heston_01__asset_or_nothing_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/asset_or_nothing_puts/"
+    "catalog/model/equity/heston/prices/asset_or_nothing_puts/"
     "heston_01__asset_or_nothing_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/gap_calls/"
+    "catalog/model/equity/heston/prices/gap_calls/"
     "heston_01__gap_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/gap_puts/"
+    "catalog/model/equity/heston/prices/gap_puts/"
     "heston_01__gap_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/straddles/"
+    "catalog/model/equity/heston/prices/straddles/"
     "heston_01__straddles_01__01/dataset.yaml",
-    "catalog/price/equity/heston/lookback_options/"
+    "catalog/model/equity/heston/prices/lookback_options/"
     "heston_01__lookback_options_01__01/dataset.yaml",
-    "catalog/price/equity/heston/geometric_asian_calls/"
+    "catalog/model/equity/heston/prices/geometric_asian_calls/"
     "heston_01__geometric_asian_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/geometric_asian_puts/"
+    "catalog/model/equity/heston/prices/geometric_asian_puts/"
     "heston_01__geometric_asian_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/forward_start_calls/"
+    "catalog/model/equity/heston/prices/forward_start_calls/"
     "heston_01__forward_start_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/forward_start_puts/"
+    "catalog/model/equity/heston/prices/forward_start_puts/"
     "heston_01__forward_start_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/up_and_out_calls/"
+    "catalog/model/equity/heston/prices/up_and_out_calls/"
     "heston_01__up_and_out_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/down_and_out_puts/"
+    "catalog/model/equity/heston/prices/down_and_out_puts/"
     "heston_01__down_and_out_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/up_and_in_calls/"
+    "catalog/model/equity/heston/prices/up_and_in_calls/"
     "heston_01__up_and_in_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/down_and_in_puts/"
+    "catalog/model/equity/heston/prices/down_and_in_puts/"
     "heston_01__down_and_in_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/up_one_touches/"
+    "catalog/model/equity/heston/prices/up_one_touches/"
     "heston_01__up_one_touches_01__01/dataset.yaml",
-    "catalog/price/equity/heston/up_no_touches/"
+    "catalog/model/equity/heston/prices/up_no_touches/"
     "heston_01__up_no_touches_01__01/dataset.yaml",
-    "catalog/price/equity/heston/double_knock_out_calls/"
+    "catalog/model/equity/heston/prices/double_knock_out_calls/"
     "heston_01__double_knock_out_calls_01__01/dataset.yaml",
-    "catalog/price/equity/heston/double_knock_out_puts/"
+    "catalog/model/equity/heston/prices/double_knock_out_puts/"
     "heston_01__double_knock_out_puts_01__01/dataset.yaml",
-    "catalog/price/equity/heston/american_calls/"
+    "catalog/model/equity/heston/prices/american_calls/"
     "heston_01__american_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2/caplets/"
+    "catalog/model/fixed_income/g2/prices/caplets/"
     "g2_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2/floorlets/"
+    "catalog/model/fixed_income/g2/prices/floorlets/"
     "g2_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/"
     "g2_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/"
     "g2_01__zero_coupon_bond_puts_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/nelson_siegel/caplets/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/"
     "g2_plus_plus_01__nelson_siegel_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/nelson_siegel/floorlets/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/"
     "g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/"
     "g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/"
     "dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/"
     "g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/"
     "dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/svensson/caplets/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/"
     "g2_plus_plus_01__svensson_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/svensson/floorlets/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/"
     "g2_plus_plus_01__svensson_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_calls/"
     "g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/"
     "dataset.yaml",
-    "catalog/price/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/"
     "g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/"
     "dataset.yaml",
-    "catalog/price/fixed_income/hull_white/nelson_siegel/caplets/"
+    "catalog/model/fixed_income/hull_white/prices/nelson_siegel/caplets/"
     "hull_white_01__nelson_siegel_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/nelson_siegel/floorlets/"
+    "catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/"
     "hull_white_01__nelson_siegel_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_calls/"
     "hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/"
     "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/svensson/caplets/"
+    "catalog/model/fixed_income/hull_white/prices/svensson/caplets/"
     "hull_white_01__svensson_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/svensson/floorlets/"
+    "catalog/model/fixed_income/hull_white/prices/svensson/floorlets/"
     "hull_white_01__svensson_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/svensson/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/"
     "hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/hull_white/svensson/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_puts/"
     "hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/dataset.yaml",
-    "catalog/price/fixed_income/ornstein_uhlenbeck/caplets/"
+    "catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/"
     "ornstein_uhlenbeck_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/ornstein_uhlenbeck/floorlets/"
+    "catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/"
     "ornstein_uhlenbeck_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/"
     "ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/"
     "ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/dataset.yaml",
-    "catalog/price/fixed_income/vasicek/caplets/"
+    "catalog/model/fixed_income/vasicek/prices/caplets/"
     "vasicek_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/vasicek/floorlets/"
+    "catalog/model/fixed_income/vasicek/prices/floorlets/"
     "vasicek_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/vasicek/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/"
     "vasicek_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/vasicek/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/"
     "vasicek_01__zero_coupon_bond_puts_01__01/dataset.yaml",
-    "catalog/price/fixed_income/cir/caplets/"
+    "catalog/model/fixed_income/cir/prices/caplets/"
     "cir_01__caplets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/cir/floorlets/"
+    "catalog/model/fixed_income/cir/prices/floorlets/"
     "cir_01__floorlets_01__01/dataset.yaml",
-    "catalog/price/fixed_income/cir/zero_coupon_bond_calls/"
+    "catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/"
     "cir_01__zero_coupon_bond_calls_01__01/dataset.yaml",
-    "catalog/price/fixed_income/cir/zero_coupon_bond_puts/"
+    "catalog/model/fixed_income/cir/prices/zero_coupon_bond_puts/"
     "cir_01__zero_coupon_bond_puts_01__01/dataset.yaml",
     price_catalog_path,
 };
@@ -260,6 +260,20 @@ void validate_catalog_locations(const std::filesystem::path& path) {
             && row_count_position == catalog.find('\n', url_position + 1U)
             && occurrence_count(catalog, "\nrow_count: ") == 1U,
         "catalog YAML must place one root row_count immediately after url"
+    );
+}
+
+// Product and price catalogs declare one shared business-day convention.
+void validate_time_convention_metadata(const std::filesystem::path& path) {
+    const std::string catalog = read_text(path);
+    require(
+        occurrence_count(catalog, "\ntime_convention:\n") == 1U
+            && catalog.find(
+                "\ntime_convention:\n"
+                "  unit: \"business_day\"\n"
+                "  days_per_year: 252\n"
+            ) != std::string::npos,
+        "product/price YAML must declare the 252-business-day convention"
     );
 }
 
@@ -416,7 +430,7 @@ int main() {
     for (const auto& path : catalog_paths) {
         validate_catalog_locations(path);
         const std::string generic_path = path.generic_string();
-        if (generic_path.rfind("catalog/model/", 0U) == 0U
+        if (generic_path.find("/parameters/") != std::string::npos
             || generic_path.rfind("catalog/product/", 0U) == 0U) {
             const std::string parameter_catalog = read_text(path);
             require(
@@ -426,6 +440,10 @@ int main() {
                         != std::string::npos,
                 "model/product YAML does not document its 90/10 split"
             );
+        }
+        if (generic_path.rfind("catalog/product/", 0U) == 0U
+            || generic_path.find("/prices/") != std::string::npos) {
+            validate_time_convention_metadata(path);
         }
     }
     const std::string cir_catalog = read_text(cir_catalog_path);
@@ -443,12 +461,25 @@ int main() {
                 != std::string::npos,
         "CIR YAML does not document its core/stress Feller-ratio bounds"
     );
+    require(
+        !std::filesystem::exists("catalog/model/sample_generation"),
+        "model-sample recipes must remain in their adjacent generators"
+    );
     for (const auto& entry : std::filesystem::recursive_directory_iterator(
-             "catalog/price")) {
+             "catalog/model")) {
         if (entry.is_regular_file()
-            && entry.path().filename() == "dataset.yaml") {
+            && entry.path().filename() == "dataset.yaml"
+            && entry.path().generic_string().find("/prices/")
+                != std::string::npos) {
             validate_catalog_locations(entry.path());
             validate_price_validation_metadata(entry.path());
+            validate_time_convention_metadata(entry.path());
+        }
+        if (entry.is_regular_file()
+            && entry.path().filename() == "dataset.yaml"
+            && entry.path().generic_string().find("/samples/")
+                != std::string::npos) {
+            validate_catalog_locations(entry.path());
         }
     }
     require(

@@ -1,7 +1,7 @@
 // Fixed-basis normal-equation accumulation and solve helpers for LSM kernels.
 #pragma once
 
-#include "common/longstaff_schwartz/basis.cuh"
+#include "common/longstaff_schwartz/laguerre.cuh"
 
 #include <cstddef>
 #include <cstdint>

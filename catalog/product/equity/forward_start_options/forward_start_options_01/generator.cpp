@@ -19,17 +19,18 @@ int main() {
 
     constexpr float log_moneyness_slope = 0.2f;
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         log_moneyness_slope
     );
     for (auto& row : rows.rows) {
-        const float maturity = row.at("maturity").get<float>();
+        const std::uint32_t maturity =
+            row.at("maturity").get<std::uint32_t>();
         row["moneyness"] = row.at("strike");
-        row["reset_time"] = 0.5f * maturity;
+        row["reset_time"] = maturity / 2U;
         row.erase("strike");
     }
     // Preserve the exact lower maturity bound in human-readable metadata.
@@ -37,7 +38,7 @@ int main() {
         rows.construction["grid"].at("strike");
     rows.construction["grid"].erase("strike");
     rows.construction["reset_time"] = {
-        {"rule", "maturity / 2"},
+        {"rule", "floor(maturity / 2) business days"},
     };
 
     write_product_dataset(
@@ -48,8 +49,8 @@ int main() {
         url,
         {
             {"moneyness", "Strike multiplier applied to the reset spot."},
-            {"reset_time", "Time when the floating strike is fixed."},
-            {"maturity", "Maturity in years."},
+            {"reset_time", "Business day when the floating strike is fixed."},
+            {"maturity", "Maturity in business days."},
         },
         {
             {"expression", "max(side * (S_T - moneyness * S_reset), 0), side = +1 call / -1 put"},

@@ -16,7 +16,7 @@ Direct backend modules can be used for diagnostics, for example:
 
 ```bash
 python -m validation.quantlib.model.fixed_income.ornstein_uhlenbeck.zero_coupon_bond_call \
-  datasets/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_calls/\
+  datasets/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/\
 ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01.json
 ```
 

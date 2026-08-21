@@ -4,127 +4,122 @@
 #include "common/philox.cuh"
 #include "model/equity/variance_gamma/dataset.hpp"
 
-#include <cuda_runtime.h>
-
 #include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::variance_gamma {
 
-// Coefficients prepared once per result row and fixed simulation time step.
-struct VarianceGammaPreparedParameters {
+struct PreparedModel {
     float initial_log_spot;
-    float gamma_shape;
-    float gamma_scale;
+    float drift_rate;
+    float inverse_nu;
+    float nu;
     float theta;
     float sigma;
-    float drift_dt;
 };
 
-// Evolving log-spot private to one Monte Carlo path.
-struct VarianceGammaState {
+struct PreparedTransition {
+    float drift;
+    float gamma_shape;
+};
+
+struct State {
     float log_spot;
 };
 
-// Arithmetic mean observed from time zero to maturity.
-struct VarianceGammaMeanPathResult {
+struct MeanPathResult {
     float arithmetic_mean;
 };
 
-// Geometric mean observed from time zero to maturity.
-struct VarianceGammaGeometricMeanPathResult {
+struct GeometricMeanPathResult {
     float geometric_mean;
 };
 
-// Spot values observed at two requested times without retaining extra state.
-struct VarianceGammaTwoTimePathResult {
-    float first_spot;
-    float terminal_spot;
-};
-
-// Maximum spot observed from time zero to maturity.
-struct VarianceGammaMaximumPathResult {
+struct MaximumPathResult {
     float maximum_spot;
 };
 
 // ======================== Common equity dynamics =========================
 
-// Precompute one exact increment law over the requested time interval.
-__device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
-    const VarianceGammaModelParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters
 );
 
-// Precompute one monitored sub-step and its risk-neutral drift correction.
-__device__ __forceinline__ VarianceGammaPreparedParameters prepare_model(
-    const VarianceGammaModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
 );
 
-// Construct the time-zero log-spot state.
-__device__ __forceinline__ VarianceGammaState initial_state(
-    const VarianceGammaPreparedParameters& model
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
 );
 
-// Apply one exact subordinated-Brownian increment to the log-spot.
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& model
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const VarianceGammaPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     float gamma_increment,
     float brownian_normal,
-    VarianceGammaState& state
+    State& state
 );
 
-// Simulate one complete path and return its terminal state.
-__device__ __forceinline__ VarianceGammaState simulate_terminal_state(
-    const VarianceGammaPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path
 );
 
-// Simulate one path and average its spots from time zero to maturity in FP64.
-__device__ __forceinline__ VarianceGammaMeanPathResult simulate_mean_state(
-    const VarianceGammaPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-// Simulate one path and average its log-spots before one final exponential.
-__device__ __forceinline__ VarianceGammaGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const VarianceGammaPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-// Simulate two consecutive intervals and return the two boundary spots only.
-__device__ __forceinline__ VarianceGammaTwoTimePathResult
-simulate_at_two_times(
-    const VarianceGammaPreparedParameters& first_model,
-    const VarianceGammaPreparedParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-// Simulate one path and return its maximum monitored spot.
-__device__ __forceinline__ VarianceGammaMaximumPathResult
-simulate_maximum_state(
-    const VarianceGammaPreparedParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-// Store exercise_count - 1 spots; the maturity state is only returned.
-__device__ __forceinline__ VarianceGammaState simulate_on_regular_grid(
-    const VarianceGammaPreparedParameters& initial_stub_model,
-    const VarianceGammaPreparedParameters& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    std::uint32_t observation_count,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_spots
 );
 

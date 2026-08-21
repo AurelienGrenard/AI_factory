@@ -12,41 +12,44 @@
 namespace {
 
 struct DynamicsResults {
-    ai_factory::workbench::bates::BatesQeParameters prepared;
-    ai_factory::workbench::bates::BatesState initial;
-    ai_factory::workbench::bates::BatesState no_jump;
-    ai_factory::workbench::heston::HestonState heston_no_jump;
-    ai_factory::workbench::bates::BatesState with_jumps;
-    ai_factory::workbench::heston::HestonState heston_before_jumps;
-    ai_factory::workbench::bates::BatesState terminal_first;
-    ai_factory::workbench::bates::BatesState terminal_second;
-    ai_factory::workbench::bates::BatesState no_jump_terminal;
-    ai_factory::workbench::heston::HestonState heston_terminal;
+    ai_factory::workbench::bates::PreparedModel prepared;
+    ai_factory::workbench::bates::State initial;
+    ai_factory::workbench::bates::State no_jump;
+    ai_factory::workbench::heston::State heston_no_jump;
+    ai_factory::workbench::bates::State with_jumps;
+    ai_factory::workbench::heston::State heston_before_jumps;
+    ai_factory::workbench::bates::State terminal_first;
+    ai_factory::workbench::bates::State terminal_second;
+    ai_factory::workbench::bates::State no_jump_terminal;
+    ai_factory::workbench::heston::State heston_terminal;
     std::uint32_t poisson_zero;
     std::uint32_t poisson_one;
     std::uint32_t poisson_two;
+    std::uint32_t heston_calendar_matches_regular;
+    std::uint32_t bates_calendar_matches_regular;
 };
 
 __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     using namespace ai_factory::workbench;
 
     constexpr float maturity = 0.5f;
-    constexpr std::size_t step_count = 10U;
-    const bates::BatesModelParameters parameters = {
+    constexpr std::uint32_t step_count = 10U;
+    constexpr float delta_t = maturity / static_cast<float>(step_count);
+    const bates::ModelParameters parameters = {
         1.25f, 0.03f, 0.01f, 0.05f, 1.4f, 0.04f, 0.32f, -0.65f,
         0.8f, -0.12f, 0.24f,
     };
-    const bates::BatesModelParameters no_jump_parameters = {
+    const bates::ModelParameters no_jump_parameters = {
         1.25f, 0.03f, 0.01f, 0.05f, 1.4f, 0.04f, 0.32f, -0.65f,
         0.0f, -0.12f, 0.24f,
     };
-    const bates::BatesQeParameters prepared =
-        bates::prepare_model(parameters, maturity, step_count);
-    const bates::BatesQeParameters no_jump_prepared =
-        bates::prepare_model(no_jump_parameters, maturity, step_count);
+    const bates::PreparedModel prepared =
+        bates::prepare_model(parameters, delta_t);
+    const bates::PreparedModel no_jump_prepared =
+        bates::prepare_model(no_jump_parameters, delta_t);
 
-    bates::BatesState no_jump = bates::initial_state(no_jump_prepared);
-    heston::HestonState heston_no_jump = no_jump;
+    bates::State no_jump = bates::initial_state(no_jump_prepared);
+    heston::State heston_no_jump = no_jump;
     constexpr float variance_normal = -0.35f;
     constexpr float variance_uniform = 0.62f;
     constexpr float stock_normal = 0.41f;
@@ -67,8 +70,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         heston_no_jump
     );
 
-    bates::BatesState with_jumps = bates::initial_state(prepared);
-    heston::HestonState heston_before_jumps = with_jumps;
+    bates::State with_jumps = bates::initial_state(prepared);
+    heston::State heston_before_jumps = with_jumps;
     heston::one_step_transition(
         prepared.heston,
         variance_normal,
@@ -87,15 +90,15 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     );
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
-    const bates::BatesState terminal_first =
+    const bates::State terminal_first =
         bates::simulate_terminal_state(prepared, key, 17U, step_count);
-    const bates::BatesState terminal_second =
+    const bates::State terminal_second =
         bates::simulate_terminal_state(prepared, key, 17U, step_count);
-    const bates::BatesState no_jump_terminal =
+    const bates::State no_jump_terminal =
         bates::simulate_terminal_state(
             no_jump_prepared, key, 19U, step_count
         );
-    const heston::HestonState heston_terminal =
+    const heston::State heston_terminal =
         heston::simulate_terminal_state(
             no_jump_prepared.heston, key, 19U, step_count
         );
@@ -107,6 +110,59 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     );
     const std::uint32_t poisson_two = philox::poisson_from_uniform(
         0.9999f, prepared.poisson_mean, prepared.poisson_zero_probability
+    );
+
+    constexpr std::uint32_t steps_between_observations[3] = {2U, 4U, 4U};
+    float heston_regular_spots[2];
+    float heston_regular_variances[2];
+    float heston_calendar_spots[2];
+    float heston_calendar_variances[2];
+    const heston::State heston_regular = heston::simulate_on_regular_grid(
+        no_jump_prepared.heston,
+        key,
+        23U,
+        2U,
+        4U,
+        3U,
+        1U,
+        heston_regular_spots,
+        heston_regular_variances
+    );
+    const heston::State heston_calendar = heston::simulate_on_calendar(
+        no_jump_prepared.heston,
+        key,
+        23U,
+        steps_between_observations,
+        3U,
+        1U,
+        heston_calendar_spots,
+        heston_calendar_variances
+    );
+
+    float bates_regular_spots[2];
+    float bates_regular_variances[2];
+    float bates_calendar_spots[2];
+    float bates_calendar_variances[2];
+    const bates::State bates_regular = bates::simulate_on_regular_grid(
+        prepared,
+        key,
+        29U,
+        2U,
+        4U,
+        3U,
+        1U,
+        bates_regular_spots,
+        bates_regular_variances
+    );
+    const bates::State bates_calendar = bates::simulate_on_calendar(
+        prepared,
+        key,
+        29U,
+        steps_between_observations,
+        3U,
+        1U,
+        bates_calendar_spots,
+        bates_calendar_variances
     );
     *output = {
         prepared,
@@ -122,6 +178,22 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         poisson_zero,
         poisson_one,
         poisson_two,
+        static_cast<std::uint32_t>(
+            heston_calendar.log_spot == heston_regular.log_spot
+            && heston_calendar.variance == heston_regular.variance
+            && heston_calendar_spots[0] == heston_regular_spots[0]
+            && heston_calendar_spots[1] == heston_regular_spots[1]
+            && heston_calendar_variances[0] == heston_regular_variances[0]
+            && heston_calendar_variances[1] == heston_regular_variances[1]
+        ),
+        static_cast<std::uint32_t>(
+            bates_calendar.log_spot == bates_regular.log_spot
+            && bates_calendar.variance == bates_regular.variance
+            && bates_calendar_spots[0] == bates_regular_spots[0]
+            && bates_calendar_spots[1] == bates_regular_spots[1]
+            && bates_calendar_variances[0] == bates_regular_variances[0]
+            && bates_calendar_variances[1] == bates_regular_variances[1]
+        ),
     };
 }
 
@@ -209,5 +281,13 @@ int main() {
                 && results.poisson_one == 1U
                 && results.poisson_two == 2U,
             "Philox Poisson inverse CDF returned incorrect quantiles");
+    require(
+        results.heston_calendar_matches_regular == 1U,
+        "Heston calendar simulation differs from its equivalent regular grid"
+    );
+    require(
+        results.bates_calendar_matches_regular == 1U,
+        "Bates calendar simulation differs from its equivalent regular grid"
+    );
     return 0;
 }

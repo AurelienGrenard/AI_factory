@@ -20,6 +20,14 @@ enum class PriceConstruction : unsigned int {
 // One generated model or product parameter object.
 using ParameterRow = nlohmann::ordered_json;
 
+// Serialize an arbitrary catalog metadata tree with the repository YAML
+// subset. Specialized generators use this after their executable has fixed
+// the generation recipe; YAML is documentation, never generator input.
+void write_catalog_yaml(
+    const std::filesystem::path& path,
+    const nlohmann::ordered_json& document
+);
+
 // Describe one independently sampled floating-point field.
 struct UniformParameter {
     std::string name;
@@ -34,9 +42,17 @@ struct GridParameter {
     std::string spacing = "explicit values";
 };
 
-// Describe one human-readable exercise interval measured in years.
+inline constexpr std::uint32_t kBusinessDaysPerYear = 252U;
+
+// Convert an integer business-day count to the repository year fraction.
+constexpr float business_days_to_years(std::uint32_t business_days) {
+    return static_cast<float>(business_days)
+        / static_cast<float>(kBusinessDaysPerYear);
+}
+
+// Describe one human-readable exercise interval measured in business days.
 struct ExerciseInterval {
-    float years;
+    std::uint32_t business_days;
     std::string label;
 };
 
@@ -66,9 +82,9 @@ GeneratedRows aligned_grid(const std::vector<GridParameter>& parameters);
 // Build the full Cartesian product of the supplied parameter vectors.
 GeneratedRows cartesian_grid(const std::vector<GridParameter>& parameters);
 
-// Build K = exp(x), with x linearly spaced on [-aT, aT] for every maturity T.
+// Build K = exp(x) from annualized log-moneyness at each business-day maturity.
 GeneratedRows maturity_dependent_exponential_strike_grid(
-    const std::vector<float>& maturities,
+    const std::vector<std::uint32_t>& maturities,
     std::size_t strikes_per_maturity,
     float log_moneyness_slope
 );
@@ -76,10 +92,10 @@ GeneratedRows maturity_dependent_exponential_strike_grid(
 // Build traceable core and stress strike grids and concatenate them in that
 // order. This is the common 90/10 construction for normalized equity terms.
 GeneratedRows core_stress_exponential_strike_grid(
-    const std::vector<float>& core_maturities,
+    const std::vector<std::uint32_t>& core_maturities,
     std::size_t core_strikes_per_maturity,
     float core_log_moneyness_slope,
-    const std::vector<float>& stress_maturities,
+    const std::vector<std::uint32_t>& stress_maturities,
     std::size_t stress_strikes_per_maturity,
     float stress_log_moneyness_slope
 );
@@ -94,6 +110,13 @@ void assign_uniform_exercise_intervals(
 
 // Return an inclusive linearly spaced FP32 grid.
 std::vector<float> linear_grid(float minimum, float maximum, std::size_t count);
+
+// Return a strictly increasing inclusive grid of integer business days.
+std::vector<std::uint32_t> linear_business_day_grid(
+    std::uint32_t minimum,
+    std::uint32_t maximum,
+    std::size_t count
+);
 
 // Return the number of prices implied by the selected construction.
 std::size_t price_row_count(
@@ -159,7 +182,7 @@ void write_monte_carlo_price_dataset(
     const std::string& url,
     const std::string& numerical_method,
     std::size_t monte_carlo_paths_per_price,
-    const std::string& target_dt,
+    const std::string& delta_t,
     const nlohmann::ordered_json& cuda_execution,
     const nlohmann::ordered_json& catalog_sections,
     std::uint64_t first_seed,

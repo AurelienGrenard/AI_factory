@@ -11,6 +11,9 @@ names describe both the subject and the role of each document; separate
   independent validation, and website entry.
 - [`model-and-product-parameter-dataset-generation.md`](model-and-product-parameter-dataset-generation.md):
   construction of ordered core and stress parameter rows and their YAML recipe.
+- [`model-sample-dataset-generation.md`](model-sample-dataset-generation.md):
+  3M-row generative-training datasets, in-memory Philox parameter generation,
+  persistent CUDA sampling, streaming JSON, and smoke-test contract.
 - [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md):
   mandatory model-product-aware Premia-to-QuantLib hierarchy, row-level
   fallback, failure classification, persistent reference datasets,

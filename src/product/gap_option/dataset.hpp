@@ -3,6 +3,7 @@
 
 #include "common/option_side.cuh"
 
+#include <cstdint>
 #include <filesystem>
 #include <type_traits>
 #include <vector>
@@ -13,7 +14,7 @@ namespace ai_factory::workbench::product {
 struct GapOptionParameters {
     float trigger_strike;
     float payoff_strike;
-    float maturity;
+    std::uint32_t maturity;
 };
 
 static_assert(std::is_trivially_copyable_v<GapOptionParameters>);

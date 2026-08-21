@@ -22,7 +22,8 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    KouPreparedParameters model;
+    PreparedModel model;
+    PreparedTransition transition;
     philox::PhiloxKey key;
     float strike;
     float discount;
@@ -30,16 +31,20 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const KouModelParameters& model,
+    const ModelParameters& model,
     const product::StraddleParameters& product,
+    float day_fraction,
     std::uint64_t seed
 ) {
-    const float maturity = product.maturity;
+    const float maturity_years =
+        static_cast<float>(product.maturity) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     return {
-        prepare_model(model, maturity),
+        prepared_model,
+        prepare_transition(prepared_model, maturity_years),
         philox::make_key(seed),
         product.strike,
-        expf(-model.risk_free_rate * maturity),
+        expf(-model.risk_free_rate * maturity_years),
     };
 }
 
@@ -48,21 +53,24 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    const KouState terminal =
-        simulate_terminal_state(row.model, row.key, path);
+    const State terminal =
+        simulate_terminal_state(
+            row.model, row.transition, row.key, path
+        );
     const float terminal_spot = expf(terminal.log_spot);
     return row.discount * fabsf(terminal_spot - row.strike);
 }
 
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void kou_straddle_kernel(
-    const KouModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::StraddleParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -86,6 +94,7 @@ __global__ void kou_straddle_kernel(
             prepared = prepare_row(
                 models[model_index],
                 product,
+                day_fraction,
                 base_seed + result_index
             );
         }
@@ -126,7 +135,7 @@ __global__ void kou_straddle_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_kou_straddle_launch(
-    const KouModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::StraddleParameters* device_products,
     std::size_t product_count,
@@ -135,6 +144,7 @@ void validate_kou_straddle_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -161,6 +171,7 @@ void validate_kou_straddle_launch(
 
     // The Monte Carlo path count must be valid.
     validate_monte_carlo_path_count(monte_carlo_paths_per_price);
+    validate_day_fraction(day_fraction);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -177,7 +188,7 @@ void validate_kou_straddle_launch(
 
 // Validate and launch the pricing kernel on caller-owned device arrays.
 void launch_kou_straddle_cuda(
-    const KouModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::StraddleParameters* device_products,
     std::size_t product_count,
@@ -186,6 +197,7 @@ void launch_kou_straddle_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -202,6 +214,7 @@ void launch_kou_straddle_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         block_count,
         base_seed,
@@ -251,6 +264,7 @@ void launch_kou_straddle_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         base_seed,
         device_prices,
         device_standard_errors

@@ -1,0 +1,69 @@
+title: "Vasicek short rate parameter dataset vasicek_01"
+database_id: "vasicek_01"
+model_family: "Vasicek short rate"
+catalog: "catalog/model/fixed_income/vasicek/parameters/vasicek_01"
+url: "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/parameters/vasicek_01.json"
+row_count: 1000
+parameters:
+  mean_reversion: "Positive mean-reversion speed a."
+  long_term_mean: "Long-run short-rate mean b."
+  volatility: "Instantaneous short-rate volatility sigma."
+  initial_state: "Initial short rate r(0)."
+dynamics:
+  short_rate: "dr_t = a * (b - r_t) dt + sigma dW_t"
+  transition: "exact Gaussian state and optional joint state-integral transitions"
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "stationary-dispersion reconstruction"
+      sampled_factors:
+        mean_reversion:
+          uniform_bounds:
+            - 0.03
+            - 1.0
+        long_term_mean:
+          uniform_bounds:
+            - 0.001
+            - 0.08
+        initial_state:
+          uniform_bounds:
+            - 0.001
+            - 0.08
+        stationary_standard_deviation:
+          definition: "sigma / sqrt(2 * mean_reversion)"
+          uniform_bounds:
+            - 0.0025
+            - 0.025
+      reconstruction:
+        volatility: "stationary_standard_deviation * sqrt(2 * mean_reversion)"
+  stress:
+    row_count: 100
+    generation:
+      method: "stationary-dispersion reconstruction"
+      sampled_factors:
+        mean_reversion:
+          uniform_bounds:
+            - 0.005
+            - 2.5
+        long_term_mean:
+          uniform_bounds:
+            - -0.03
+            - 0.15
+        initial_state:
+          uniform_bounds:
+            - -0.05
+            - 0.15
+        stationary_standard_deviation:
+          definition: "sigma / sqrt(2 * mean_reversion)"
+          uniform_bounds:
+            - 0.001
+            - 0.06
+      reconstruction:
+        volatility: "stationary_standard_deviation * sqrt(2 * mean_reversion)"

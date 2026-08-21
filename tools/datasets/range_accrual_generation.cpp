@@ -13,11 +13,11 @@
 namespace ai_factory::workbench::datasets::range_accrual {
 namespace {
 
-constexpr std::array<float, 3U> kCoreIntervals = {
-    1.0f / 252.0f, 1.0f / 52.0f, 1.0f / 12.0f,
+constexpr std::array<std::uint32_t, 3U> kCoreIntervals = {
+    1U, 5U, 21U,
 };
-constexpr std::array<float, 4U> kTailIntervals = {
-    1.0f / 252.0f, 1.0f / 52.0f, 1.0f / 12.0f, 1.0f / 4.0f,
+constexpr std::array<std::uint32_t, 4U> kTailIntervals = {
+    1U, 5U, 21U, 63U,
 };
 
 // Draw one uniform FP32 value without exposing RNG details to generators.
@@ -31,30 +31,27 @@ float uniform(
 
 // Draw an issuance schedule and return maturity, interval, and date count.
 template <std::size_t IntervalCount>
-std::tuple<float, float, std::size_t> schedule(
+std::tuple<std::uint32_t, std::uint32_t, std::size_t> schedule(
     std::mt19937_64& generator,
-    const std::array<float, IntervalCount>& intervals,
-    float minimum_maturity,
-    float maximum_maturity
+    const std::array<std::uint32_t, IntervalCount>& intervals,
+    std::uint32_t minimum_maturity,
+    std::uint32_t maximum_maturity
 ) {
-    const float interval = intervals[
+    const std::uint32_t interval = intervals[
         std::uniform_int_distribution<std::size_t>(
             0U, intervals.size() - 1U
         )(generator)
     ];
-    const auto minimum_observations = std::max<std::size_t>(
-        1U,
-        static_cast<std::size_t>(ceilf(minimum_maturity / interval))
+    const std::size_t minimum_observations = std::max<std::size_t>(
+        1U, (minimum_maturity + interval - 1U) / interval
     );
-    const auto maximum_observations = static_cast<std::size_t>(
-        floorf(maximum_maturity / interval)
-    );
+    const std::size_t maximum_observations = maximum_maturity / interval;
     const std::size_t observation_count =
         std::uniform_int_distribution<std::size_t>(
             minimum_observations, maximum_observations
         )(generator);
     return {
-        interval * static_cast<float>(observation_count),
+        interval * static_cast<std::uint32_t>(observation_count),
         interval,
         observation_count,
     };
@@ -87,7 +84,7 @@ GeneratedRows generate_rows(
 
     for (std::size_t row = 0U; row < core_row_count; ++row) {
         const auto [maturity, interval, observation_count] = schedule(
-            generator, kCoreIntervals, 1.0f, 5.0f
+            generator, kCoreIntervals, 252U, 1260U
         );
         static_cast<void>(observation_count);
         generated.rows.push_back({
@@ -101,7 +98,7 @@ GeneratedRows generate_rows(
 
     for (std::size_t row = 0U; row < tail_row_count; ++row) {
         const auto [maturity, interval, observation_count] = schedule(
-            generator, kTailIntervals, 0.5f, 7.0f
+            generator, kTailIntervals, 126U, 1764U
         );
         static_cast<void>(observation_count);
         const bool narrow_range = (row % 2U) == 0U;
@@ -160,18 +157,16 @@ GeneratedRows generate_rows(
         {"regimes", {
             {"core", {
                 {"row_count", core_row_count},
-                {"maturity", {"1 year", "5 years"}},
-                {"observation_interval", {"1 / 252", "1 / 52", "1 / 12"}},
+                {"maturity", {252, 1260}},
+                {"observation_interval", {1, 5, 21}},
                 {"lower_barrier", {0.70, 0.95}},
                 {"upper_barrier", {1.05, 1.40}},
                 {"coupon_rate", {0.02, 0.12}},
             }},
             {"stress", {
                 {"row_count", tail_row_count},
-                {"maturity", {"0.5 year", "7 years"}},
-                {"observation_interval", {
-                    "1 / 252", "1 / 52", "1 / 12", "1 / 4"
-                }},
+                {"maturity", {126, 1764}},
+                {"observation_interval", {1, 5, 21, 63}},
                 {"range_shape", "50 narrow rows and 50 wide rows"},
                 {"narrow_lower_barrier", {0.94, 0.995}},
                 {"narrow_upper_barrier", {1.005, 1.06}},

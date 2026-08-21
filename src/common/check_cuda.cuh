@@ -154,14 +154,34 @@ inline void validate_monte_carlo_path_count(std::size_t paths_per_result) {
     }
 }
 
+// Validate the year fraction represented by one contractual calendar day.
+inline void validate_day_fraction(float day_fraction) {
+    if (!(day_fraction > 0.0f) || !std::isfinite(day_fraction)) {
+        throw std::invalid_argument(
+            "day_fraction must be positive and finite."
+        );
+    }
+}
+
 // Validate the path count and step requested by a discretized simulation.
 inline void validate_monte_carlo_parameters(
     std::size_t paths_per_result,
-    float target_dt
+    float dt
 ) {
     validate_monte_carlo_path_count(paths_per_result);
-    if (!(target_dt > 0.0f) || !std::isfinite(target_dt)) {
-        throw std::invalid_argument("target_dt must be positive and finite.");
+    if (!(dt > 0.0f) || !std::isfinite(dt)) {
+        throw std::invalid_argument("dt must be positive and finite.");
+    }
+}
+
+// Reject an empty numerical grid within one product business day.
+inline void validate_simulation_steps_per_day(
+    std::uint32_t simulation_steps_per_day
+) {
+    if (simulation_steps_per_day == 0U) {
+        throw std::invalid_argument(
+            "simulation_steps_per_day must be positive."
+        );
     }
 }
 

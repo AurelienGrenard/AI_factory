@@ -20,19 +20,22 @@ struct PreparedRow {
 };
 
 __device__ __forceinline__ PreparedRow prepare_row(
-    const BlackScholesModelParameters& model,
-    const product::AssetOrNothingOptionParameters& product
+    const ModelParameters& model,
+    const product::AssetOrNothingOptionParameters& product,
+    float day_fraction
 ) {
-    const float sqrt_maturity = sqrtf(product.maturity);
+    const float maturity_years =
+        static_cast<float>(product.maturity) * day_fraction;
+    const float sqrt_maturity = sqrtf(maturity_years);
     const float volatility_sqrt_maturity = model.volatility * sqrt_maturity;
     const float variance = model.volatility * model.volatility;
     const float d1 = (
         logf(model.spot / product.strike)
         + (model.risk_free_rate - model.dividend_yield + 0.5f * variance)
-            * product.maturity
+            * maturity_years
     ) / volatility_sqrt_maturity;
     return {
-        model.spot * expf(-model.dividend_yield * product.maturity),
+        model.spot * expf(-model.dividend_yield * maturity_years),
         d1,
     };
 }
@@ -48,12 +51,13 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
 
 template<OptionSide Side>
 __global__ void black_scholes_asset_or_nothing_option_kernel(
-    const BlackScholesModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::AssetOrNothingOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     float* __restrict__ prices
 ) {
     const std::size_t launch_index =
@@ -64,13 +68,13 @@ __global__ void black_scholes_asset_or_nothing_option_kernel(
         result_index, product_count, cartesian_product
     );
     const PreparedRow row = prepare_row(
-        models[indices.model_index], products[indices.product_index]
+        models[indices.model_index], products[indices.product_index], day_fraction
     );
     prices[result_index] = evaluate_price<Side>(row);
 }
 
 void validate_black_scholes_asset_or_nothing_option_launch(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AssetOrNothingOptionParameters* device_products,
     std::size_t product_count,
@@ -78,6 +82,7 @@ void validate_black_scholes_asset_or_nothing_option_launch(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -88,6 +93,7 @@ void validate_black_scholes_asset_or_nothing_option_launch(
     validate_model_product_construction(
         model_count, product_count, cartesian_product, result_count
     );
+    validate_day_fraction(day_fraction);
     if (result_offset >= result_count
         || launch_result_count == 0U
         || launch_result_count > result_count - result_offset) {
@@ -114,7 +120,7 @@ void validate_black_scholes_asset_or_nothing_option_launch(
 
 template<OptionSide Side>
 void launch_black_scholes_asset_or_nothing_option_cuda(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AssetOrNothingOptionParameters* device_products,
     std::size_t product_count,
@@ -122,6 +128,7 @@ void launch_black_scholes_asset_or_nothing_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices
@@ -129,6 +136,7 @@ void launch_black_scholes_asset_or_nothing_option_cuda(
     validate_black_scholes_asset_or_nothing_option_launch(
         device_models, model_count, device_products, product_count,
         cartesian_product, result_count, result_offset, launch_result_count,
+        day_fraction,
         threads_per_block, block_count, device_prices
     );
     report_cuda_kernel_launch_if_enabled(
@@ -142,7 +150,7 @@ void launch_black_scholes_asset_or_nothing_option_cuda(
         static_cast<unsigned int>(block_count), threads_per_block
     >>>(
         device_models, device_products, product_count, cartesian_product,
-        result_offset, launch_result_count, device_prices
+        result_offset, launch_result_count, day_fraction, device_prices
     );
     check_cuda(cudaGetLastError(), "Black-Scholes AssetOrNothingOption kernel");
 }

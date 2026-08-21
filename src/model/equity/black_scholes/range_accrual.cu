@@ -27,23 +27,26 @@ struct PreparedRow {
 };
 
 __device__ __forceinline__ PreparedRow prepare_row(
-    const BlackScholesModelParameters& model,
-    const product::RangeAccrualParameters& product
+    const ModelParameters& model,
+    const product::RangeAccrualParameters& product,
+    float day_fraction
 ) {
     const float variance = model.volatility * model.volatility;
+    const float observation_years =
+        static_cast<float>(product.observation_interval) * day_fraction;
+    const float maturity_years =
+        static_cast<float>(product.maturity) * day_fraction;
     const float maturity_discount =
-        expf(-model.risk_free_rate * product.maturity);
+        expf(-model.risk_free_rate * maturity_years);
     return {
         logf(product.lower_barrier),
         logf(product.upper_barrier),
         model.risk_free_rate - model.dividend_yield - 0.5f * variance,
         model.volatility,
-        product.observation_interval,
+        observation_years,
         maturity_discount,
-        maturity_discount * product.coupon_rate * product.observation_interval,
-        static_cast<std::uint32_t>(floorf(
-            product.maturity / product.observation_interval + 0.5f
-        )),
+        maturity_discount * product.coupon_rate * observation_years,
+        product.maturity / product.observation_interval,
     };
 }
 
@@ -70,12 +73,13 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
 }
 
 __global__ void black_scholes_range_accrual_kernel(
-    const BlackScholesModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::RangeAccrualParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     float* __restrict__ prices
 ) {
     const std::size_t launch_index =
@@ -86,13 +90,14 @@ __global__ void black_scholes_range_accrual_kernel(
         result_index, product_count, cartesian_product
     );
     const PreparedRow row = prepare_row(
-        models[indices.model_index], products[indices.product_index]
+        models[indices.model_index], products[indices.product_index],
+        day_fraction
     );
     prices[result_index] = evaluate_price(row);
 }
 
 void validate_black_scholes_range_accrual_launch(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
@@ -100,6 +105,7 @@ void validate_black_scholes_range_accrual_launch(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -110,6 +116,7 @@ void validate_black_scholes_range_accrual_launch(
     validate_model_product_construction(
         model_count, product_count, cartesian_product, result_count
     );
+    validate_day_fraction(day_fraction);
     if (result_offset >= result_count
         || launch_result_count == 0U
         || launch_result_count > result_count - result_offset) {
@@ -135,7 +142,7 @@ void validate_black_scholes_range_accrual_launch(
 }  // namespace
 
 void launch_black_scholes_range_accrual_cuda(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
@@ -143,6 +150,7 @@ void launch_black_scholes_range_accrual_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices
@@ -150,7 +158,7 @@ void launch_black_scholes_range_accrual_cuda(
     validate_black_scholes_range_accrual_launch(
         device_models, model_count, device_products, product_count,
         cartesian_product, result_count, result_offset, launch_result_count,
-        threads_per_block, block_count, device_prices
+        day_fraction, threads_per_block, block_count, device_prices
     );
     report_cuda_kernel_launch_if_enabled(
         "black_scholes.range_accrual",
@@ -163,7 +171,7 @@ void launch_black_scholes_range_accrual_cuda(
         static_cast<unsigned int>(block_count), threads_per_block
     >>>(
         device_models, device_products, product_count, cartesian_product,
-        result_offset, launch_result_count, device_prices
+        result_offset, launch_result_count, day_fraction, device_prices
     );
     check_cuda(cudaGetLastError(), "Black-Scholes Range-accrual kernel");
 }

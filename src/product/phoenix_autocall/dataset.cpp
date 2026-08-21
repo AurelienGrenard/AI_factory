@@ -41,8 +41,8 @@ std::vector<PhoenixAutocallParameters> load_phoenix_autocalls(
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const PhoenixAutocallParameters product = {
-            parameters.at("maturity").get<float>(),
-            parameters.at("observation_interval").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
+            parameters.at("observation_interval").get<std::uint32_t>(),
             parameters.at("autocall_barrier").get<float>(),
             parameters.at("coupon_barrier").get<float>(),
             parameters.at("protection_barrier").get<float>(),
@@ -50,24 +50,16 @@ std::vector<PhoenixAutocallParameters> load_phoenix_autocalls(
         };
         const std::string prefix =
             "Phoenix autocall row id '" + row_id + "': ";
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
-        if (!std::isfinite(product.observation_interval)
-            || !(product.observation_interval > 0.0f)
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
+        if (product.observation_interval == 0U
             || product.observation_interval > product.maturity) {
             throw std::invalid_argument(
                 prefix
-                + "observation_interval must be finite, positive, and at most maturity."
+                + "observation_interval must be positive and at most maturity."
             );
         }
-        const float raw_observation_count =
-            product.maturity / product.observation_interval;
-        const float nearest_observation_count = roundf(raw_observation_count);
-        const float schedule_tolerance =
-            32.0f * std::numeric_limits<float>::epsilon()
-            * std::max(raw_observation_count, 1.0f);
-        if (fabsf(raw_observation_count - nearest_observation_count)
-            > schedule_tolerance) {
+        if (product.maturity % product.observation_interval != 0U) {
             throw std::invalid_argument(
                 prefix
                 + "maturity must be an integer multiple of observation_interval."

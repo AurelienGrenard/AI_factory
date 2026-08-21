@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 
 #include <cstddef>
+#include <cstdint>
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
@@ -13,28 +14,28 @@ namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
 // Return the logarithm of the affine bond prefactor A(t,T).
 __device__ __forceinline__ float log_A(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return the affine bond prefactor A(t,T).
 __device__ __forceinline__ float A(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return the affine state loading B(t,T).
 __device__ __forceinline__ float B(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return log P(valuation_time,maturity) = log A - B*state.
 __device__ __forceinline__ float log_zero_coupon_bond(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -52,7 +53,7 @@ __device__ __forceinline__ float discount_factor(
 
 // Return the model zero-coupon bond P(valuation_time, maturity).
 __device__ __forceinline__ float zero_coupon_bond(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -60,7 +61,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 
 // Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -70,7 +71,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 
 // Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -80,7 +81,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 
 // Return the simple forward rate observed at valuation_time over [start,end].
 __device__ __forceinline__ float forward_rate(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
@@ -90,13 +91,70 @@ __device__ __forceinline__ float forward_rate(
 
 // Return the par swap rate observed at valuation_time.
 __device__ __forceinline__ float swap_rate(
-    const OrnsteinUhlenbeckModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
+);
+
+// Return the unit-notional value of the payer swap before optional exercise.
+__device__ __forceinline__ float payer_swap_value(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float start_time,
+    float fixed_rate,
+    const float* __restrict__ payment_times,
+    const float* __restrict__ accrual_periods,
+    std::uint32_t payment_count
+);
+
+// Solve the unique one-factor Jamshidian state boundary at exercise.
+__device__ __forceinline__ float jamshidian_state_boundary(
+    const ModelParameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ accrual_periods,
+    float day_fraction,
+    std::uint32_t payment_count
+);
+
+// Return P(exercise,payment; boundary), the Jamshidian bond strike.
+__device__ __forceinline__ float jamshidian_bond_strike(
+    const ModelParameters& parameters,
+    float exercise_time,
+    float payment_time,
+    float state_boundary
+);
+
+// Price a unit-notional European payer swaption by Jamshidian decomposition.
+__device__ __forceinline__ float european_payer_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ accrual_periods,
+    float day_fraction,
+    std::uint32_t payment_count
+);
+
+// Price a unit-notional European receiver swaption by Jamshidian decomposition.
+__device__ __forceinline__ float european_receiver_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ accrual_periods,
+    float day_fraction,
+    std::uint32_t payment_count
 );
 
 }  // namespace ai_factory::workbench::model::ornstein_uhlenbeck

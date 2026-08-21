@@ -22,7 +22,8 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    NormalInverseGaussianPreparedParameters model;
+    PreparedModel model;
+    PreparedTransition transition;
     philox::PhiloxKey key;
     float autocall_barrier;
     float coupon_barrier;
@@ -34,19 +35,24 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const NormalInverseGaussianModelParameters& model,
+    const ModelParameters& model,
     const product::PhoenixMemoryAutocallParameters& product,
+    float day_fraction,
     std::uint32_t observation_count,
     std::uint64_t seed
 ) {
+    const float observation_years =
+        static_cast<float>(product.observation_interval) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     return {
-        prepare_model(model, product.observation_interval),
+        prepared_model,
+        prepare_transition(prepared_model, observation_years),
         philox::make_key(seed),
         product.autocall_barrier,
         product.coupon_barrier,
         product.protection_barrier,
-        product.annual_coupon_rate * product.observation_interval,
-        expf(-model.risk_free_rate * product.observation_interval),
+        product.annual_coupon_rate * observation_years,
+        expf(-model.risk_free_rate * observation_years),
         observation_count,
     };
 }
@@ -56,7 +62,7 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    NormalInverseGaussianState state = initial_state(row.model);
+    State state = initial_state(row.model);
     philox::UniformSequence uniforms(
         row.key, static_cast<std::uint64_t>(path)
     );
@@ -68,7 +74,9 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        simulate_one_step(row.model, uniforms, normal_cache, state);
+        simulate_one_step(
+            row.model, row.transition, uniforms, normal_cache, state
+        );
         discount *= row.discount_per_observation;
         remembered_coupon += row.coupon_per_observation;
         const float spot = expf(state.log_spot);
@@ -91,13 +99,14 @@ __device__ __forceinline__ float evaluate_path(
 
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void normal_inverse_gaussian_phoenix_memory_autocall_kernel(
-    const NormalInverseGaussianModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::PhoenixMemoryAutocallParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -119,12 +128,11 @@ __global__ void normal_inverse_gaussian_phoenix_memory_autocall_kernel(
             const product::PhoenixMemoryAutocallParameters product =
                 products[product_index];
             const std::uint32_t observation_count =
-                static_cast<std::uint32_t>(floorf(
-                    product.maturity / product.observation_interval + 0.5f
-                ));
+                product.maturity / product.observation_interval;
             prepared = prepare_row(
                 models[model_index],
                 product,
+                day_fraction,
                 observation_count,
                 base_seed + result_index
             );
@@ -166,7 +174,7 @@ __global__ void normal_inverse_gaussian_phoenix_memory_autocall_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
-    const NormalInverseGaussianModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::PhoenixMemoryAutocallParameters* device_products,
     std::size_t product_count,
@@ -175,6 +183,7 @@ void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -201,6 +210,7 @@ void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
 
     // The Monte Carlo path count must be valid.
     validate_monte_carlo_path_count(monte_carlo_paths_per_price);
+    validate_day_fraction(day_fraction);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -217,7 +227,7 @@ void validate_normal_inverse_gaussian_phoenix_memory_autocall_launch(
 
 // Validate and launch the pricing kernel on caller-owned device arrays.
 void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
-    const NormalInverseGaussianModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::PhoenixMemoryAutocallParameters* device_products,
     std::size_t product_count,
@@ -226,6 +236,7 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -242,6 +253,7 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         block_count,
         base_seed,
@@ -291,6 +303,7 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         base_seed,
         device_prices,
         device_standard_errors

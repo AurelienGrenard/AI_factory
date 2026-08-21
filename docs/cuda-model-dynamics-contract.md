@@ -75,87 +75,153 @@ cette entrée scalaire afin d'ajouter l'intégrale du shift déterministe.
 
 ## Types communs
 
-### Paramètres préparés
+### Compteurs et indices
 
-Un type tel que `HestonQeParameters`, `BatesQeParameters` ou
-`OrnsteinUhlenbeckExactTransition` contient les coefficients invariants d'une
-transition. Il est construit une fois par ligne et par intervalle temporel,
-puis partagé par les chemins concernés.
+Les nombres de pas, d'observations, d'exercices, de paiements et les indices
+des boucles device correspondantes utilisent `std::uint32_t`. Ils décrivent
+des calendriers ou des discrétisations bornés, pas des dimensions mémoire.
 
-Il ne contient ni paramètre produit, ni pointeur propriétaire, ni allocation
-dynamique.
+`std::size_t` reste réservé aux tailles d'allocation et de workspace, aux
+dimensions globales, aux strides, aux offsets et aux indices de tableaux
+globaux. Lorsqu'un planning hôte en `std::size_t` produit un compteur consommé
+comme tel sur le device, le launcher valide d'abord sa plage puis le convertit
+explicitement en `std::uint32_t`.
+
+Les composantes de géométrie CUDA effectivement transmises à `dim3`, ainsi que
+les indices ou dimensions directement issus de `threadIdx` et `blockDim`,
+utilisent `unsigned int`.
+
+### Modèle, transition et état
+
+Dans un namespace propre au modèle, les types ne répètent pas son nom : la
+ligne brute est `ModelParameters` ou `ProcessParameters`, le modèle préparé est
+`PreparedModel`, la transition exacte préparée est `PreparedTransition` et
+l'état mutable est `State`. Leur qualification (`kou::PreparedTransition`,
+`model::g2::State`) apporte l'information du modèle sans produire des noms tels
+que `kou::KouPreparedTransition`.
+
+Pour un processus à transition directe, `PreparedModel` contient exactement
+l'information du modèle nécessaire pour préparer n'importe quelle transition ;
+`PreparedTransition` contient exactement les coefficients nécessaires pour
+faire avancer ce modèle sur un intervalle `delta_t` donné. Le premier est
+invariant par rapport au temps, construit une fois par ligne et partagé par les
+chemins. Le second est construit une fois par intervalle distinct.
+
+Pour un schéma numérique à pas fixe, `PreparedModel` contient directement les
+coefficients de la transition élémentaire de durée `delta_t`. Ajouter un
+`PreparedTransition` identique n'apporterait aucune séparation réelle : tous
+les pas du chemin utilisent le même intervalle numérique.
+
+Ces structures ne contiennent ni paramètre produit, ni pointeur propriétaire,
+ni allocation dynamique. Une transition exacte de taux state-only et sa
+transition jointe état-intégrale peuvent partager le même `PreparedModel` tout
+en définissant chacune leur propre `PreparedTransition`.
 
 ### État de chemin
 
-Un type `<Model>State` contient uniquement les variables mutables d'un chemin.
+Le type `State` contient uniquement les variables mutables d'un chemin.
 Il reste dans les registres lorsque cela est possible. Un modèle dérivé peut
 réutiliser l'état de son modèle de base lorsque cela reflète sa construction
 mathématique, comme Bates réutilise l'état log-spot/variance de Heston.
 
 ### Résultats de chemin
 
-Un type spécialisé tel que `<Model>MeanPathResult`,
-`<Model>TwoTimePathResult` ou `<Model>MaximumPathResult` ne contient que les
-observables demandés. En particulier, les moyennes et maxima ne conservent pas
-l'état terminal, et `TwoTimePathResult` ne conserve que les deux spots de
-frontière, jamais les variables latentes. Il n'est ajouté que si plusieurs
-produits peuvent le réutiliser sans introduire de logique produit dans la
-dynamique.
+Un type spécialisé tel que `MeanPathResult`, `GeometricMeanPathResult` ou
+`MaximumPathResult` ne contient que les observables demandés. Il n'est ajouté
+que si plusieurs produits peuvent le réutiliser sans introduire de logique
+produit dans la dynamique. Un résultat à deux dates n'est pas exposé : il est
+le cas particulier d'un calendrier de deux observations.
 
 ## Fonctions fondamentales
 
 Les déclarations publiques apparaissent dans cet ordre dans `dynamics.cuh`.
-Pour les modèles fixed income, les interfaces state-only et `joint` partagent
-exactement les quatre noms `prepare_model`, `one_step_transition`,
-`simulate_terminal_state` et `simulate_on_regular_grid`. Les éventuels helpers
-de moments propres au modèle sont regroupés visuellement au-dessus de cette
-section commune.
+Les noms communs sont conservés lorsqu'ils désignent la même responsabilité :
+`prepare_model`, `prepare_transition`, `prepare_calendar`, `initial_state`,
+`one_step_transition`, `simulate_terminal_state`, `simulate_on_calendar` et
+`simulate_on_regular_grid`. Une signature de variates n'est jamais artificiellement
+uniformisée lorsqu'une loi exige une consommation différente.
 
 ### `prepare_model`
 
 Attribut : `__device__ __forceinline__`.
 
-Pour un schéma discrétisé dont les coefficients dépendent du nombre de pas :
+Pour une transition exacte ou directe :
 
 ```cpp
-PreparedParameters prepare_model(
+PreparedModel prepare_model(
+    const ModelParameters& parameters
+);
+```
+
+Elle prépare uniquement les coefficients invariants par rapport à la durée de
+transition. Elle ne reçoit ni maturité, ni `delta_t`, ni nombre de pas.
+
+Pour un schéma discrétisé :
+
+```cpp
+PreparedModel prepare_model(
     const ModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+    float delta_t
 );
 ```
 
-Pour une transition exacte sur un intervalle fixé :
+Elle prépare exactement la transition élémentaire de durée `delta_t` sous les
+paramètres fournis. CEV, Heston, Bates et Schöbel-Zhu suivent cette convention ;
+`num_steps` reste uniquement le nombre d'appels successifs à cette transition.
+
+Dans les deux cas, `prepare_model` ne génère aucun aléa et ne construit aucun
+état de chemin.
+
+### `prepare_transition`
+
+Attribut : `__device__ __forceinline__`. Cette fonction appartient aux modèles
+à transition exacte ou directe :
 
 ```cpp
-ExactTransition prepare_model(
-    const ProcessParameters& parameters,
-    float time_interval
+PreparedTransition prepare_transition(
+    const PreparedModel& prepared_model,
+    float delta_t
 );
 ```
 
-VG et NIG exposent les deux surcharges. La surcharge à deux arguments prépare
-directement la loi exacte de l'intervalle demandé ; la surcharge avec
-`num_steps` ne sert qu'aux produits qui observent réellement chaque sous-pas.
-Un pricer terminal, forward-start ou à dates d'observation fixées ne fabrique
-donc jamais un `target_dt` artificiel pour ces modèles.
+Elle combine le modèle invariant avec une durée strictement positive et produit
+les seuls coefficients nécessaires à un saut exact sur cet intervalle. Un
+payoff terminal prépare directement sa durée contractuelle. Une barrière ou une
+moyenne prépare au contraire une transition fine uniquement parce qu'elle
+observe réellement le chemin à cette fréquence.
 
-Black-Scholes expose également ces deux surcharges, mais toutes ses transitions
-restent exactes : la seconde ne fait que convertir `maturity / num_steps` en
-intervalle régulier. Les produits terminaux et à deux dates tirent directement
-les lois aux dates utiles. Les moyennes, maxima et barrières parcourent la
-grille uniquement parce que leur payoff observe réellement ces points.
+Black-Scholes, Merton, Kou, Variance-Gamma et NIG suivent ce découpage pour le
+log-spot. OU, Vasicek, CIR et G2 le suivent pour leurs facteurs de taux. Les
+dynamiques jointes OU, Vasicek et G2 réutilisent le `PreparedModel` state-only,
+mais préparent une transition plus riche qui contient aussi les moments de
+l'intégrale.
 
-La fonction pré-calcule tous les coefficients réutilisés par les transitions.
-Elle ne génère aucun aléa et ne construit aucun état de chemin. Les valeurs de
-temps et le nombre de pas sont validés par le launcher avant son appel.
+### `prepare_calendar`
+
+Pour un modèle exact, le helper optionnel
+
+```cpp
+void prepare_calendar(
+    const PreparedModel& prepared_model,
+    const std::uint32_t* interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* transitions
+);
+```
+
+convertit les écarts entiers entre observations en transitions exactes. Chaque
+entrée vaut `prepare_transition(prepared_model, interval_steps[i] * delta_t)`.
+Le tableau de transitions est préparé une fois par ligne, jamais une fois par
+chemin. Un schéma à pas fixe conserve au contraire le tableau des nombres de
+pas et réutilise son unique `PreparedModel`.
 
 ### `initial_state`
 
 Attribut : `__device__ __forceinline__`.
 
 ```cpp
-State initial_state(const PreparedParameters& model);
+State initial_state(const PreparedModel& prepared_model);
 ```
 
 La fonction construit l'état en temps zéro lorsque celui-ci est porté par les
@@ -168,22 +234,24 @@ Attribut : `__device__ __forceinline__`.
 
 ```cpp
 void one_step_transition(
-    const PreparedParameters& model,
-    /* variates explicites propres au schéma */,
+    /* PreparedModel si la loi en a besoin */,
+    const PreparedTransition& prepared_transition,
+    /* variates explicites ou suite adaptative propres au modèle */,
     State& state
 );
 ```
 
-Pour un schéma à consommation fixe, cette fonction est la transformation
-numérique déterministe d'un état : les variates apparaissent explicitement dans
-sa signature et elle ne connaît ni la seed, ni l'indice du chemin.
+Pour une consommation fixe, cette fonction est la transformation déterministe
+d'un état : les variates apparaissent explicitement et elle ne connaît ni la
+seed, ni l'indice du chemin. Son arité est volontairement propre au modèle : une
+normale sous Black-Scholes, une normale et une somme de sauts sous Kou, deux
+innovations corrélées sous G2, etc.
 
 Une loi exacte à consommation adaptative peut recevoir directement
 `philox::UniformSequence&` et `philox::NormalPairCache&`. C'est le cas de CIR :
 `one_step_transition` effectue le mélange Poisson-Gamma de la chi-deux
 décentrée. La fonction utilise uniquement la suite continue du chemin courant ;
-elle ne construit ni clé, ni sous-suite, et évite un `simulate_one_step` qui ne
-ferait que relayer les deux objets.
+elle ne construit ni clé, ni sous-suite.
 
 ### `simulate_one_step`
 
@@ -191,75 +259,54 @@ Attribut : `__device__ __forceinline__`, fonction privée au `.cu`.
 
 ```cpp
 void simulate_one_step(
-    const PreparedParameters& model,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,  // si nécessaire
+    /* caches aléatoires optionnels */,
     State& state
 );
 ```
 
-Cette fonction optionnelle est utilisée lorsqu'une transition à consommation
-fixe doit transformer des uniformes, effectuer des tirages conditionnels ou
-partager la même logique aléatoire entre plusieurs simulateurs de chemins. Elle
-consomme les uniformes dans un ordre explicite, construit les variates
-nécessaires, puis appelle `one_step_transition`.
-
-Une transition exacte qui reçoit déjà ses normales peut appeler directement
-`one_step_transition` sans ajouter un wrapper artificiel.
+Cette fonction privée est la frontière commune entre les simulateurs de chemin
+et la consommation propre au modèle. Sa signature ne contient que le modèle,
+la transition, la suite Philox, les éventuels caches et l'état. Elle consomme
+les uniformes dans un ordre explicite, construit les variates nécessaires, puis
+appelle `one_step_transition`. Un argument `PreparedModel` peut être inutilisé
+pour une loi simple ; il est conservé ici parce que d'autres lois, comme VG,
+NIG ou CIR, en ont réellement besoin.
 
 ### `simulate_terminal_state`
 
 Attribut : `__device__ __forceinline__`.
 
-Pour une simulation complète qui possède sa suite aléatoire :
+Pour un schéma à pas fixe :
 
 ```cpp
 State simulate_terminal_state(
-    const PreparedParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 ```
 
-Pour un processus de Lévy préparé directement sur l'intervalle terminal :
+Pour une transition directe :
 
 ```cpp
 State simulate_terminal_state(
-    const PreparedParameters& model,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     philox::PhiloxKey key,
     std::size_t path
 );
 ```
 
-Pour une transition exacte alimentée par des variates externes :
-
-```cpp
-State simulate_terminal_state(
-    const ExactTransition& model,
-    State initial_state,
-    /* normales explicites */
-);
-```
-
 La fonction retourne l'état terminal sans écriture en mémoire globale. La
-version multi-pas construit exactement une `UniformSequence` pour tout le
-chemin. Un processus de Lévy à incréments indépendants peut sommer exactement
-la loi des sous-pas et ne tirer qu'un incrément terminal ; un schéma réellement
-pathwise transmet la suite à chaque transition.
-
-Pour Bates, le schéma QE-M de Heston reste discrétisé. Lorsque le payoff
-n'observe que la fin d'un intervalle, les pas Heston sont simulés normalement,
-puis le compound-Poisson indépendant est tiré une seule fois sur l'intervalle
-complet. `simulate_one_step` conserve au contraire un tirage de saut par pas
-pour les produits qui observent le chemin intermédiaire.
-
-Merton et Kou suivent la même distinction entre observation terminale et
-observation de chemin. Une échéance terminale consomme un unique incrément
-exact. Merton agrège exactement les tailles de sauts gaussiennes conditionnelles
-au compte de Poisson. Kou consomme deux uniformes par saut réalisé afin de tirer
-le signe puis la magnitude exponentielle; la longueur variable reste confinée
-à l'unique `UniformSequence` du chemin.
+version à schéma construit une seule `UniformSequence` pour tout le chemin et
+répète sa transition `num_steps` fois. La version directe appelle une seule fois
+la transition préparée. Merton et Kou consomment ainsi un seul incrément
+compound-Poisson sur la durée préparée ; VG et NIG consomment directement leur
+incrément de Lévy terminal.
 
 CEV ne possède pas ici de transition trajectorielle exacte. Sa loi marginale
 peut se ramener à une loi du chi carré non centrale, mais, sur le domaine
@@ -279,9 +326,15 @@ log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc 
 
 Attribut : `__device__ __forceinline__`.
 
-La signature contient, dans cet ordre logique : modèle du stub initial, modèle
-de l'intervalle régulier, état ou clé de départ, indice du chemin, dimensions
-de la grille, `path_count`, puis tableaux d'états observés.
+Pour un modèle à schéma, la signature contient un unique `PreparedModel`, la
+clé et l'indice du chemin, `initial_stub_steps`, `steps_per_observation`,
+`observation_count`, `observation_stride`, puis les tableaux d'états observés.
+Le stub et les intervalles réguliers utilisent strictement le même `delta_t`
+préparé.
+
+Pour un modèle exact, les deux compteurs de pas sont remplacés par
+`initial_stub_transition` et `regular_transition`. Un intervalle d'observation
+consomme ainsi un seul incrément exact, quelle que soit sa longueur.
 
 La fonction :
 
@@ -291,18 +344,56 @@ La fonction :
 4. stocke les observations en SoA date-major ;
 5. retourne directement l'état terminal.
 
-Lorsque seuls les points de la grille d'exercice sont observés, une dynamique
-de Lévy exacte agrège les sous-pas de chaque intervalle avant le tirage. Cette
-optimisation ne s'applique jamais à un résumé qui observe chacun des sous-pas,
-comme une moyenne, un maximum ou une barrière quotidienne.
-
-Pour VG et NIG, le stub et l'intervalle régulier sont préparés directement et
-chacun consomme un unique incrément par date. Pour Bates, chaque intervalle
-conserve ses pas QE-M Heston et agrège seulement sa composante de sauts.
+Cette agrégation exacte ne s'applique jamais à un résumé qui observe chacun des
+pas, comme une moyenne, un maximum ou une barrière quotidienne. Dans ce cas,
+le pricer prépare explicitement une transition fine et la répète.
 
 Pour une date donnée, deux chemins consécutifs écrivent à des adresses
 consécutives. La maturité n'est pas écrite si elle peut être consommée
 directement par le payoff.
+
+`observation_stride` est la distance entre deux observations successives du
+même chemin. Il vaut le nombre de chemins pour une sortie SoA date-major et
+`1` pour une sortie contiguë propre à un sample.
+Chaque pointeur d'observation doit déjà viser le premier emplacement du chemin
+courant : `base + path` en date-major, ou le début du tableau local pour un
+sample. L'indice `path` reste ainsi réservé à la suite Philox et n'est jamais
+réutilisé implicitement comme offset de sortie.
+
+### `simulate_on_calendar`
+
+Attribut : `__device__ __forceinline__`.
+
+```cpp
+State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    const PreparedTransition* prepared_transitions,
+    std::uint32_t observation_count,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::size_t observation_stride,
+    /* tableaux d'observations */
+);
+```
+
+Sous transition exacte, le tableau contient une transition préparée entre zéro
+et `t1`, puis entre chaque paire `t_i` et `t_{i+1}`. Sous schéma, ce même rôle
+est tenu par `steps_between_observations`, qui indique combien de fois appeler
+la transition élémentaire. Un pointeur CUDA brut ne portant pas sa taille,
+`observation_count` reste explicite. La fonction conserve une unique suite
+Philox, écrit les états pré-terminaux selon `observation_stride` et retourne
+l'état terminal. Les pointeurs suivent la même convention d'ancrage que la
+grille régulière. `simulate_at_two_times` n'est pas exposé : un calendrier de
+deux observations couvre ce cas sans dupliquer la logique aléatoire.
+
+## Limites d'uniformisation
+
+Rough Bergomi n'est pas forcé dans ce contrat Markovien : son historique de
+Volterra, son workspace et sa consommation aléatoire exigent une interface
+spécifique qui sera refondue avec son propre contrat. De même, CIR n'expose pas
+une fausse transition jointe état-intégrale tant qu'une méthode justifiée n'est
+pas implémentée. L'uniformité porte sur les responsabilités réellement
+communes, pas sur le nombre de champs, de normales ou de caches.
 
 ## Simulateurs de résumés optionnels
 
@@ -311,7 +402,6 @@ seule suite aléatoire par chemin et réutilisent `simulate_one_step` :
 
 - `simulate_mean_state` : moyenne arithmétique des états observables ;
 - `simulate_geometric_mean_state` : moyenne des logarithmes puis exponentielle ;
-- `simulate_at_two_times` : spots aux frontières de deux intervalles successifs ;
 - `simulate_maximum_state` : maximum observé sur la grille.
 
 Les accumulations de moyennes sont effectuées en FP64. Un résumé dépendant
@@ -449,9 +539,10 @@ fonctions réutilisables ne les répètent donc pas : `heston::prepare_model`,
 `model::hull_white::nelson_siegel::compose_model` sont les formes attendues.
 
 Employer les mêmes noms de contrôle lorsque leur sens est identique : `path`,
-`step_index`, `exercise`, `output_index`, `uniforms`, `normals` et `state`.
-Employer `initial_stub_model` et `regular_model` lorsqu'une première période
-diffère des périodes régulières suivantes. Les noms spécifiques tels que
+`step_index`, `observation`, `output_index`, `uniforms`, `normals` et `state`.
+Pour un schéma à pas fixe, employer `prepared_model`, `initial_stub_steps`,
+`steps_per_observation`, `observation_count` et `observation_stride`. Les noms
+spécifiques tels que
 `observed_variances` ou `observed_integrated_states` sont réservés à des données
 réellement différentes.
 

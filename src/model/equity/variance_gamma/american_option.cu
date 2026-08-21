@@ -4,7 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/result_index.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/longstaff_schwartz/basis.cu"
+#include "common/longstaff_schwartz/laguerre.cuh"
 #include "common/longstaff_schwartz/exercise_schedule.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/longstaff_schwartz/regression.cu"
@@ -50,8 +50,9 @@ __device__ __forceinline__ float immediate_payoff(float spot, float strike) {
 
 // Prepared model, schedule, and memory location for one batch price.
 struct PreparedRow {
-    VarianceGammaPreparedParameters initial_stub_model;
-    VarianceGammaPreparedParameters regular_model;
+    PreparedModel model;
+    PreparedTransition initial_stub_transition;
+    PreparedTransition regular_transition;
     philox::PhiloxKey key;
     std::size_t result_index;
     std::size_t state_offset;
@@ -64,7 +65,7 @@ struct PreparedRow {
 };
 
 // Name the single model state region returned by the generic layout.
-struct VarianceGammaStateRegions {
+struct StateRegions {
     lsm::WorkspaceRegion spots;
 };
 
@@ -80,7 +81,7 @@ lsm::WorkspaceDescriptor workspace_descriptor() {
     };
 }
 
-VarianceGammaStateRegions variance_gamma_state_regions(const lsm::WorkspaceLayout& layout) {
+StateRegions variance_gamma_state_regions(const lsm::WorkspaceLayout& layout) {
     if (layout.state_fields.size() != 1U) {
         throw std::logic_error(
             "Variance-Gamma American options require one state field."
@@ -124,11 +125,12 @@ std::vector<lsm::EarlyExerciseRowPlan> make_row_plans(
 
 // Prepare each batch row once before thousands of path blocks consume it.
 __global__ void prepare_rows_kernel(
-    const VarianceGammaModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::AmericanOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t batch_size,
+    float day_fraction,
     std::uint64_t base_seed,
     std::size_t result_offset,
     const std::uint32_t* __restrict__ exercise_counts,
@@ -146,25 +148,28 @@ __global__ void prepare_rows_kernel(
         );
     const std::size_t model_index = indices.model_index;
     const std::size_t product_index = indices.product_index;
-    const VarianceGammaModelParameters model = models[model_index];
+    const ModelParameters model = models[model_index];
     const product::AmericanOptionParameters product = products[product_index];
     const std::uint32_t row_exercise_count =
         exercise_counts[batch_price];
-    const float first_exercise_time = fmaf(
-        -static_cast<float>(row_exercise_count - 1U),
-        product.exercise_interval,
-        product.maturity
-    );
+    const std::uint32_t first_exercise_days = product.maturity
+        - (row_exercise_count - 1U) * product.exercise_interval;
+    const float first_exercise_time =
+        static_cast<float>(first_exercise_days) * day_fraction;
+    const float exercise_interval =
+        static_cast<float>(product.exercise_interval) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     prepared_rows[batch_price] = {
-        prepare_model(model, first_exercise_time),
-        prepare_model(model, product.exercise_interval),
+        prepared_model,
+        prepare_transition(prepared_model, first_exercise_time),
+        prepare_transition(prepared_model, exercise_interval),
         philox::make_key(base_seed + result_index),
         result_index,
         state_offsets[batch_price],
         product.strike,
         model.spot,
         1.0f / product.strike,
-        expf(-model.risk_free_rate * product.exercise_interval),
+        expf(-model.risk_free_rate * exercise_interval),
         expf(-model.risk_free_rate * first_exercise_time),
         row_exercise_count,
     };
@@ -194,14 +199,15 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        const VarianceGammaState terminal = simulate_on_regular_grid(
-            row.initial_stub_model,
-            row.regular_model,
+        const State terminal = simulate_on_regular_grid(
+            row.model,
+            row.initial_stub_transition,
+            row.regular_transition,
             row.key,
             path,
             row.exercise_count,
             paths_per_price,
-            row_spots
+            row_spots + path
         );
         const float terminal_spot = expf(terminal.log_spot);
         row_cashflows[path] = immediate_payoff<Side>(terminal_spot, row.strike);
@@ -452,7 +458,7 @@ __global__ void finalize_prices_kernel(
 
 // Validate pointers, construction, Monte Carlo dimensions, and the 2D grid.
 void validate_variance_gamma_american_option_launch(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -460,6 +466,7 @@ void validate_variance_gamma_american_option_launch(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -477,6 +484,7 @@ void validate_variance_gamma_american_option_launch(
         model_count, product_count, cartesian_product, result_count
     );
     validate_monte_carlo_path_count(paths_per_price);
+    validate_day_fraction(day_fraction);
     validate_reduction_block_size(threads_per_block);
     validate_row_seed_range(result_count, base_seed);
 
@@ -501,7 +509,7 @@ void validate_variance_gamma_american_option_launch(
 // Price every row with one persistent workspace and memory-aware batches.
 template <OptionSide Side>
 lsm::LaunchResult launch_variance_gamma_american_option_cuda(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -509,6 +517,7 @@ lsm::LaunchResult launch_variance_gamma_american_option_cuda(
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -524,6 +533,7 @@ lsm::LaunchResult launch_variance_gamma_american_option_cuda(
         cartesian_product,
         result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         blocks_per_price,
         base_seed,
@@ -604,7 +614,7 @@ lsm::LaunchResult launch_variance_gamma_american_option_cuda(
             launched_blocks_per_price,
             name
         );
-        const VarianceGammaStateRegions states = variance_gamma_state_regions(layout);
+        const StateRegions states = variance_gamma_state_regions(layout);
         unsigned char* const device_workspace = resources.workspace();
         PreparedRow* const prepared_rows =
             lsm::workspace_pointer<PreparedRow>(
@@ -687,6 +697,7 @@ lsm::LaunchResult launch_variance_gamma_american_option_cuda(
                 product_count,
                 cartesian_product,
                 batch.result_count,
+                day_fraction,
                 base_seed,
                 batch.result_offset,
                 device_exercise_counts,

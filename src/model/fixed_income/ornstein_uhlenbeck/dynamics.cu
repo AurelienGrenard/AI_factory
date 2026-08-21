@@ -4,16 +4,8 @@
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics.cuh"
 #include "model/fixed_income/common/mean_reverting_gaussian.cuh"
 
-#include <cuda_runtime.h>
-
-#include <cstddef>
-#include <cstdint>
-
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
-// ======================== Model-specific dynamics =========================
-
-// Evaluate the exact loading of the current state in its future integral.
 __device__ __forceinline__ float integral_state_loading(
     float mean_reversion,
     float delta
@@ -23,9 +15,8 @@ __device__ __forceinline__ float integral_state_loading(
     );
 }
 
-// Evaluate the integral variance stably near zero mean reversion.
 __device__ __forceinline__ float integral_variance(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
+    const ProcessParameters& parameters,
     float delta
 ) {
     return mean_reverting_gaussian::integral_variance(
@@ -33,131 +24,175 @@ __device__ __forceinline__ float integral_variance(
     );
 }
 
-// Share one decay evaluation between the loading and integral variance.
-__device__ __forceinline__ OrnsteinUhlenbeckIntegralMoments integral_moments(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
+__device__ __forceinline__ IntegralMoments integral_moments(
+    const ProcessParameters& parameters,
     float delta
 ) {
     const mean_reverting_gaussian::IntegralMoments moments =
         mean_reverting_gaussian::integral_moments(
             parameters.mean_reversion, parameters.volatility, delta
         );
-    return {
-        moments.state_loading,
-        moments.variance,
-    };
+    return {moments.state_loading, moments.variance};
 }
 
-// ======================= Common state-only dynamics ========================
-
-// Prepare one exact Gaussian transition for the OU state alone.
-__device__ __forceinline__ OrnsteinUhlenbeckExactTransition prepare_model(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ProcessParameters& parameters
 ) {
-    const float a = parameters.mean_reversion;
-    const float volatility_squared =
-        parameters.volatility * parameters.volatility;
-    const float one_minus_decay = -expm1f(-a * time_interval);
-    const float decay = 1.0f - one_minus_decay;
-    const float state_variance =
-        mean_reverting_gaussian::state_variance_from_decay(
-            a, volatility_squared, decay, one_minus_decay
-        );
     return {
-        decay,
-        sqrtf(state_variance),
+        parameters.mean_reversion,
+        parameters.volatility * parameters.volatility,
     };
 }
 
-// Simulate one exact Gaussian OU-state transition.
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+) {
+    const float one_minus_decay = -expm1f(-model.mean_reversion * delta_t);
+    const float decay = 1.0f - one_minus_decay;
+    const float variance = mean_reverting_gaussian::state_variance_from_decay(
+        model.mean_reversion,
+        model.volatility_squared,
+        decay,
+        one_minus_decay
+    );
+    return {decay, sqrtf(fmaxf(variance, 0.0f))};
+}
+
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+) {
+    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
+        transitions[interval] = ornstein_uhlenbeck::prepare_transition(
+            model, static_cast<float>(interval_steps[interval]) * delta_t
+        );
+    }
+}
+
 __device__ __forceinline__ void one_step_transition(
-    const OrnsteinUhlenbeckExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float& state
 ) {
     state = fmaf(
-        model.decay,
+        transition.decay,
         state,
-        model.state_standard_deviation * state_normal
+        transition.state_standard_deviation * state_normal
     );
 }
 
-// Apply one exact transition from time zero to the requested maturity.
-__device__ __forceinline__ float simulate_terminal_state(
-    const OrnsteinUhlenbeckExactTransition& model,
-    float initial_state,
-    float state_normal
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const PreparedModel&,
+    const PreparedTransition& transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normals,
+    float& state
 ) {
-    one_step_transition(model, state_normal, initial_state);
+    one_step_transition(
+        transition, philox::next_normal(uniforms, normals), state
+    );
+}
+
+}  // namespace
+
+__device__ __forceinline__ float simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path
+) {
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    simulate_one_step(model, transition, uniforms, normals, initial_state);
     return initial_state;
 }
 
-// Write simple states in a date-major grid and return the terminal one.
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const OrnsteinUhlenbeckExactTransition& initial_stub_model,
-    const OrnsteinUhlenbeckExactTransition& regular_model,
+__device__ __forceinline__ float simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states
 ) {
     float state = initial_state;
     if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    for (std::uint32_t observation = 0U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_one_step(
+            model, transitions[observation], uniforms, normals, state
+        );
+        observed_states[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = state;
+    }
+    simulate_one_step(
+        model, transitions[observation_count - 1U], uniforms, normals, state
     );
-    philox::NormalPairCache normal_cache;
+    return state;
+}
 
-    // Reach the first observation through its possibly shorter stub.
-    const float first_state_normal =
-        philox::next_normal(uniforms, normal_cache);
-    one_step_transition(initial_stub_model, first_state_normal, state);
+__device__ __forceinline__ float simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states
+) {
+    float state = initial_state;
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    simulate_one_step(
+        model, initial_stub_transition, uniforms, normals, state
+    );
     if (observation_count == 1U) return state;
-    std::size_t output_index = path;
-    observed_states[output_index] = state;
-
-    // Store only pre-terminal states with one running date-major offset.
+    observed_states[0U] = state;
     for (std::uint32_t observation = 1U;
          observation + 1U < observation_count;
          ++observation) {
-        const float state_normal =
-            philox::next_normal(uniforms, normal_cache);
-        one_step_transition(regular_model, state_normal, state);
-        output_index += path_count;
-        observed_states[output_index] = state;
+        simulate_one_step(model, regular_transition, uniforms, normals, state);
+        observed_states[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = state;
     }
-
-    // The last transition is returned without a global-memory write.
-    const float terminal_state_normal =
-        philox::next_normal(uniforms, normal_cache);
-    one_step_transition(regular_model, terminal_state_normal, state);
+    simulate_one_step(model, regular_transition, uniforms, normals, state);
     return state;
 }
 
 namespace joint {
 
-// ========================= Common joint dynamics ===========================
-
-// Prepare one exact joint Gaussian transition for the state and its integral.
-__device__ __forceinline__ OrnsteinUhlenbeckJointExactTransition prepare_model(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    float delta_t
 ) {
-    const float a = parameters.mean_reversion;
-    const float sigma2 = parameters.volatility * parameters.volatility;
-    const float one_minus_decay = -expm1f(-a * time_interval);
+    const float a = model.mean_reversion;
+    const float one_minus_decay = -expm1f(-a * delta_t);
     const float decay = 1.0f - one_minus_decay;
     const float state_variance =
         mean_reverting_gaussian::state_variance_from_decay(
-            a, sigma2, decay, one_minus_decay
+            a, model.volatility_squared, decay, one_minus_decay
         );
-    const float state_standard_deviation = sqrtf(state_variance);
+    const float state_standard_deviation = sqrtf(fmaxf(state_variance, 0.0f));
     const float covariance =
         mean_reverting_gaussian::state_integral_covariance_from_decay(
-            a, sigma2, one_minus_decay
+            a, model.volatility_squared, one_minus_decay
         );
     const float integral_state_normal_loading =
         state_standard_deviation > 0.0f
@@ -166,16 +201,13 @@ __device__ __forceinline__ OrnsteinUhlenbeckJointExactTransition prepare_model(
     const float independent_variance = fmaxf(
         mean_reverting_gaussian::integral_variance_from_decay(
             a,
-            sigma2,
-            time_interval,
+            model.volatility_squared,
+            delta_t,
             decay,
             one_minus_decay
-        )
-            - integral_state_normal_loading
-                * integral_state_normal_loading,
+        ) - integral_state_normal_loading * integral_state_normal_loading,
         0.0f
     );
-
     return {
         decay,
         state_standard_deviation,
@@ -185,105 +217,137 @@ __device__ __forceinline__ OrnsteinUhlenbeckJointExactTransition prepare_model(
     };
 }
 
-// Simulate the exact correlated state and state-integral transition.
+__device__ __forceinline__ void prepare_calendar(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+) {
+    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
+        transitions[interval] = ornstein_uhlenbeck::joint::prepare_transition(
+            model, static_cast<float>(interval_steps[interval]) * delta_t
+        );
+    }
+}
+
 __device__ __forceinline__ void one_step_transition(
-    const OrnsteinUhlenbeckJointExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float integral_normal,
-    OrnsteinUhlenbeckJointState& joint_state
+    State& state
 ) {
-    const float previous_state = joint_state.state;
+    const float previous_state = state.state;
     const float state_noise =
-        model.state_standard_deviation * state_normal;
+        transition.state_standard_deviation * state_normal;
     const float integral_noise = fmaf(
-        model.integral_state_normal_loading,
+        transition.integral_state_normal_loading,
         state_normal,
-        model.integral_independent_standard_deviation * integral_normal
+        transition.integral_independent_standard_deviation * integral_normal
     );
-
-    joint_state.state = fmaf(model.decay, previous_state, state_noise);
-    joint_state.state_integral = fmaf(
-        model.integral_state_loading,
+    state.state = fmaf(transition.decay, previous_state, state_noise);
+    state.state_integral = fmaf(
+        transition.integral_state_loading,
         previous_state,
-        joint_state.state_integral + integral_noise
+        state.state_integral + integral_noise
     );
 }
 
-// Apply one exact joint transition from time zero to maturity.
-__device__ __forceinline__ OrnsteinUhlenbeckJointState simulate_terminal_state(
-    const OrnsteinUhlenbeckJointExactTransition& model,
-    float initial_state,
-    float state_normal,
-    float integral_normal
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const ornstein_uhlenbeck::PreparedModel&,
+    const PreparedTransition& transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normals,
+    State& state
 ) {
-    OrnsteinUhlenbeckJointState joint_state{initial_state, 0.0f};
-    one_step_transition(model, state_normal, integral_normal, joint_state);
-    return joint_state;
+    const float state_normal = philox::next_normal(uniforms, normals);
+    const float integral_normal = philox::next_normal(uniforms, normals);
+    one_step_transition(transition, state_normal, integral_normal, state);
 }
 
-// Write joint states in a date-major grid and return the terminal one.
-__device__ __forceinline__ OrnsteinUhlenbeckJointState simulate_on_regular_grid(
-    const OrnsteinUhlenbeckJointExactTransition& initial_stub_model,
-    const OrnsteinUhlenbeckJointExactTransition& regular_model,
+}  // namespace
+
+__device__ __forceinline__ State simulate_terminal_state(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition& transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path
+) {
+    State state{initial_state, 0.0f};
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    simulate_one_step(model, transition, uniforms, normals, state);
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_calendar(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states,
     float* __restrict__ observed_integrated_states
 ) {
-    OrnsteinUhlenbeckJointState joint_state{initial_state, 0.0f};
-    if (observation_count == 0U) return joint_state;
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
+    State state{initial_state, 0.0f};
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    for (std::uint32_t observation = 0U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_one_step(
+            model, transitions[observation], uniforms, normals, state
+        );
+        const std::size_t output =
+            static_cast<std::size_t>(observation) * observation_stride;
+        observed_states[output] = state.state;
+        observed_integrated_states[output] = state.state_integral;
+    }
+    simulate_one_step(
+        model, transitions[observation_count - 1U], uniforms, normals, state
     );
-    philox::NormalPairCache normal_cache;
+    return state;
+}
 
-    // Reach the first observation through its possibly shorter stub.
-    const float first_state_normal =
-        philox::next_normal(uniforms, normal_cache);
-    const float first_integral_normal =
-        philox::next_normal(uniforms, normal_cache);
-    one_step_transition(
-        initial_stub_model,
-        first_state_normal,
-        first_integral_normal,
-        joint_state
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states,
+    float* __restrict__ observed_integrated_states
+) {
+    State state{initial_state, 0.0f};
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normals;
+    simulate_one_step(
+        model, initial_stub_transition, uniforms, normals, state
     );
-    if (observation_count == 1U) return joint_state;
-    std::size_t output_index = path;
-    observed_states[output_index] = joint_state.state;
-    observed_integrated_states[output_index] = joint_state.state_integral;
-
-    // Store only pre-terminal states with one running date-major offset.
+    if (observation_count == 1U) return state;
+    observed_states[0U] = state.state;
+    observed_integrated_states[0U] = state.state_integral;
     for (std::uint32_t observation = 1U;
          observation + 1U < observation_count;
          ++observation) {
-        const float state_normal = philox::next_normal(uniforms, normal_cache);
-        const float integral_normal =
-            philox::next_normal(uniforms, normal_cache);
-        one_step_transition(
-            regular_model, state_normal, integral_normal, joint_state
-        );
-        output_index += path_count;
-        observed_states[output_index] = joint_state.state;
-        observed_integrated_states[output_index] =
-            joint_state.state_integral;
+        simulate_one_step(model, regular_transition, uniforms, normals, state);
+        const std::size_t output =
+            static_cast<std::size_t>(observation) * observation_stride;
+        observed_states[output] = state.state;
+        observed_integrated_states[output] = state.state_integral;
     }
-
-    // Consume the final pair without writing the maturity state globally.
-    const float terminal_state_normal =
-        philox::next_normal(uniforms, normal_cache);
-    const float terminal_integral_normal =
-        philox::next_normal(uniforms, normal_cache);
-    one_step_transition(
-        regular_model,
-        terminal_state_normal,
-        terminal_integral_normal,
-        joint_state
-    );
-    return joint_state;
+    simulate_one_step(model, regular_transition, uniforms, normals, state);
+    return state;
 }
 
 }  // namespace joint

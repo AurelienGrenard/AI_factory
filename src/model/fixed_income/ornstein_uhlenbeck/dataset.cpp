@@ -11,7 +11,7 @@
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
 // Parse and validate OU rows while preserving their dataset order.
-std::vector<OrnsteinUhlenbeckModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 ) {
     std::ifstream stream(dataset_path);
@@ -34,12 +34,12 @@ std::vector<OrnsteinUhlenbeckModelParameters> load_models(
 
     datasets::validate_model_dataset(document);
     const auto& rows = document.at("models");
-    std::vector<OrnsteinUhlenbeckModelParameters> models;
+    std::vector<ModelParameters> models;
     models.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
-        const OrnsteinUhlenbeckModelParameters model = {
+        const ModelParameters model = {
             {
                 parameters.at("mean_reversion").get<float>(),
                 parameters.at("volatility").get<float>(),

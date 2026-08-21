@@ -1,10 +1,7 @@
 // Exact Black-Scholes preparation and path simulation.
 #include "model/equity/black_scholes/dynamics.cuh"
 
-#include "common/philox.cuh"
-
-#include <cuda_runtime.h>
-
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 
@@ -12,44 +9,60 @@ namespace ai_factory::workbench::black_scholes {
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ BlackScholesPreparedParameters prepare_model(
-    const BlackScholesModelParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters
 ) {
     const float variance = parameters.volatility * parameters.volatility;
     return {
         logf(parameters.spot),
-        (parameters.risk_free_rate - parameters.dividend_yield
-            - 0.5f * variance) * time_interval,
-        parameters.volatility * sqrtf(time_interval),
+        parameters.risk_free_rate - parameters.dividend_yield
+            - 0.5f * variance,
+        parameters.volatility,
     };
 }
 
-__device__ __forceinline__ BlackScholesPreparedParameters prepare_model(
-    const BlackScholesModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
 ) {
-    return prepare_model(
-        parameters, maturity / static_cast<float>(num_steps)
-    );
+    return {
+        model.drift_rate * delta_t,
+        model.volatility * sqrtf(delta_t),
+    };
 }
 
-__device__ __forceinline__ BlackScholesState initial_state(
-    const BlackScholesPreparedParameters& model
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+) {
+    for (std::uint32_t interval = 0U;
+         interval < interval_count;
+         ++interval) {
+        transitions[interval] = prepare_transition(
+            model,
+            static_cast<float>(interval_steps[interval]) * delta_t
+        );
+    }
+}
+
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& model
 ) {
     return {model.initial_log_spot};
 }
 
 __device__ __forceinline__ void one_step_transition(
-    const BlackScholesPreparedParameters& model,
+    const PreparedTransition& transition,
     float brownian_normal,
-    BlackScholesState& state
+    State& state
 ) {
     state.log_spot = fmaf(
-        model.standard_deviation,
+        transition.standard_deviation,
         brownian_normal,
-        state.log_spot + model.drift
+        state.log_spot + transition.drift
     );
 }
 
@@ -58,13 +71,14 @@ __device__ __forceinline__ void one_step_transition(
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
-    const BlackScholesPreparedParameters& model,
+    const PreparedModel&,
+    const PreparedTransition& transition,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
-    BlackScholesState& state
+    philox::NormalPairCache& normals,
+    State& state
 ) {
     one_step_transition(
-        model, philox::next_normal(uniforms, normal_cache), state
+        transition, philox::next_normal(uniforms, normals), state
     );
 }
 
@@ -72,123 +86,152 @@ __device__ __forceinline__ void simulate_one_step(
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ BlackScholesState simulate_terminal_state(
-    const BlackScholesPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path
 ) {
-    BlackScholesState state = initial_state(model);
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    simulate_one_step(model, uniforms, normal_cache, state);
+    State state = initial_state(model);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    simulate_one_step(model, transition, uniforms, normals, state);
     return state;
 }
 
-__device__ __forceinline__ BlackScholesMeanPathResult simulate_mean_state(
-    const BlackScholesPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 ) {
-    BlackScholesState state = initial_state(model);
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    double spot_sum = static_cast<double>(expf(state.log_spot));
-    for (std::size_t step_index = 0U; step_index < num_steps; ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
-        spot_sum += static_cast<double>(expf(state.log_spot));
+    State state = initial_state(model);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    double sum = expf(state.log_spot);
+    for (std::uint32_t interval = 0U;
+         interval < interval_count;
+         ++interval) {
+        simulate_one_step(model, transition, uniforms, normals, state);
+        sum += expf(state.log_spot);
     }
-    return {
-        static_cast<float>(spot_sum / (static_cast<double>(num_steps) + 1.0)),
-    };
+    const double observation_count =
+        static_cast<double>(interval_count) + 1.0;
+    return {static_cast<float>(sum / observation_count)};
 }
 
-// Simulate the discrete average log-price directly; no intermediate grid
-// points are constructed.
-__device__ __forceinline__ BlackScholesGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const BlackScholesPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 ) {
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    const float terminal_normal = philox::next_normal(uniforms, normal_cache);
-    const float residual_normal = philox::next_normal(uniforms, normal_cache);
-    const float step_count = static_cast<float>(num_steps);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    const float terminal_normal = philox::next_normal(uniforms, normals);
+    const float residual_normal = philox::next_normal(uniforms, normals);
+    const float count = static_cast<float>(interval_count);
     const float terminal_standard_deviation =
-        model.standard_deviation * sqrtf(step_count);
+        transition.standard_deviation * sqrtf(count);
     const float shared_coefficient = 0.5f * terminal_standard_deviation;
-    // This positive form avoids cancelling average_variance against the
-    // shared terminal component; it is exactly zero for a one-step grid.
-    const float residual_variance = model.standard_deviation
-        * model.standard_deviation * step_count * (step_count - 1.0f)
-        / (12.0f * (step_count + 1.0f));
-    const float residual_standard_deviation = sqrtf(residual_variance);
+    const float residual_variance = transition.standard_deviation
+        * transition.standard_deviation * count * (count - 1.0f)
+        / (12.0f * (count + 1.0f));
     const float average_log_spot = model.initial_log_spot
-        + 0.5f * step_count * model.drift
+        + 0.5f * count * transition.drift
         + shared_coefficient * terminal_normal
-        + residual_standard_deviation * residual_normal;
+        + sqrtf(residual_variance) * residual_normal;
     return {expf(average_log_spot)};
 }
 
-__device__ __forceinline__ BlackScholesTwoTimePathResult simulate_at_two_times(
-    const BlackScholesPreparedParameters& first_model,
-    const BlackScholesPreparedParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path
-) {
-    BlackScholesState state = initial_state(first_model);
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    simulate_one_step(first_model, uniforms, normal_cache, state);
-    const float first_spot = expf(state.log_spot);
-    simulate_one_step(second_model, uniforms, normal_cache, state);
-    return {first_spot, expf(state.log_spot)};
-}
-
-__device__ __forceinline__ BlackScholesMaximumPathResult simulate_maximum_state(
-    const BlackScholesPreparedParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 ) {
-    BlackScholesState state = initial_state(model);
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    float maximum_spot = expf(state.log_spot);
-    for (std::size_t step_index = 0U; step_index < num_steps; ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
-        maximum_spot = fmaxf(maximum_spot, expf(state.log_spot));
+    State state = initial_state(model);
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    float maximum = expf(state.log_spot);
+    for (std::uint32_t interval = 0U;
+         interval < interval_count;
+         ++interval) {
+        simulate_one_step(model, transition, uniforms, normals, state);
+        maximum = fmaxf(maximum, expf(state.log_spot));
     }
-    return {maximum_spot};
+    return {maximum};
 }
 
-__device__ __forceinline__ BlackScholesState simulate_on_regular_grid(
-    const BlackScholesPreparedParameters& initial_stub_model,
-    const BlackScholesPreparedParameters& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    std::uint32_t observation_count,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_spots
 ) {
-    BlackScholesState state = initial_state(initial_stub_model);
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    simulate_one_step(initial_stub_model, uniforms, normal_cache, state);
-    if (exercise_count == 1U) return state;
-    std::size_t output_index = path;
-    observed_spots[output_index] = expf(state.log_spot);
-    for (std::uint32_t exercise = 1U;
-         exercise + 1U < exercise_count;
-         ++exercise) {
-        simulate_one_step(regular_model, uniforms, normal_cache, state);
-        output_index += path_count;
-        observed_spots[output_index] = expf(state.log_spot);
+    State state = initial_state(model);
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    for (std::uint32_t observation = 0U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_one_step(
+            model, transitions[observation], uniforms, normals, state
+        );
+        observed_spots[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = expf(state.log_spot);
     }
-    simulate_one_step(regular_model, uniforms, normal_cache, state);
+    simulate_one_step(
+        model,
+        transitions[observation_count - 1U],
+        uniforms,
+        normals,
+        state
+    );
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+) {
+    State state = initial_state(model);
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, path);
+    philox::NormalPairCache normals;
+    simulate_one_step(
+        model, initial_stub_transition, uniforms, normals, state
+    );
+    if (observation_count == 1U) return state;
+    observed_spots[0U] = expf(state.log_spot);
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_one_step(
+            model, regular_transition, uniforms, normals, state
+        );
+        observed_spots[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = expf(state.log_spot);
+    }
+    simulate_one_step(
+        model, regular_transition, uniforms, normals, state
+    );
     return state;
 }
 

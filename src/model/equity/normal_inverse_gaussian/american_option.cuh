@@ -13,7 +13,7 @@ namespace ai_factory::workbench::normal_inverse_gaussian {
 
 template<OptionSide Side>
 longstaff_schwartz::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
-    const NormalInverseGaussianModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::AmericanOptionParameters* host_products,
     const product::AmericanOptionParameters* device_products,
@@ -21,6 +21,7 @@ longstaff_schwartz::LaunchResult launch_normal_inverse_gaussian_american_option_
     bool cartesian_product,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,

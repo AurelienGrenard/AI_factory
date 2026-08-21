@@ -3,31 +3,8 @@
 #include "tools/datasets/dataset_validation.hpp"
 
 #include <filesystem>
-#include <cmath>
 #include <string>
 #include <utility>
-
-namespace {
-
-std::vector<float> actual_360_grid(
-    int first_day,
-    int last_day,
-    std::size_t point_count
-) {
-    std::vector<float> times;
-    times.reserve(point_count);
-    for (std::size_t index = 0U; index < point_count; ++index) {
-        const double weight = static_cast<double>(index)
-            / static_cast<double>(point_count - 1U);
-        const int day = static_cast<int>(std::lround(
-            first_day + weight * (last_day - first_day)
-        ));
-        times.push_back(static_cast<float>(day) / 360.0f);
-    }
-    return times;
-}
-
-}  // namespace
 
 // Generate the zero-coupon bond option dataset and catalog entry.
 int main() {
@@ -52,13 +29,14 @@ int main() {
                               : 0.97f + 0.13f * cube
         );
     }
-    const auto regime = [](const std::vector<float>& option_expiries,
-                           const std::vector<float>& bond_tenors,
+    const auto regime = [](
+        const std::vector<std::uint32_t>& option_expiries,
+        const std::vector<std::uint32_t>& bond_tenors,
                            const std::vector<float>& strikes,
                            const std::string& description) {
         GeneratedRows generated;
-        for (const float option_expiry : option_expiries) {
-            for (const float bond_tenor : bond_tenors) {
+        for (const std::uint32_t option_expiry : option_expiries) {
+            for (const std::uint32_t bond_tenor : bond_tenors) {
                 for (const float strike : strikes) {
                     generated.rows.push_back({
                     {"notional", 1.0f},
@@ -81,14 +59,14 @@ int main() {
         return generated;
     };
     GeneratedRows core = regime(
-        actual_360_grid(90, 1800, 18U),
-        {0.5f, 1.0f},
+        linear_business_day_grid(63U, 1260U, 18U),
+        {126U, 252U},
         core_strikes,
         "Representative expiries and strikes concentrated around 0.97."
     );
     GeneratedRows stress = regime(
-        actual_360_grid(7, 5400, 10U),
-        {30.0f / 360.0f, 10.0f},
+        linear_business_day_grid(5U, 3780U, 10U),
+        {21U, 2520U},
         {0.20f, 0.60f, 0.97f, 1.25f, 1.75f},
         "Very short/long expiries and tenors with unusually wide bond strikes."
     );
@@ -105,8 +83,8 @@ int main() {
         {
             {"notional", "Normalized contract notional."},
             {"strike", "Strike expressed as a zero-coupon bond price."},
-            {"option_expiry", "Option expiry S in years."},
-            {"bond_maturity", "Underlying bond maturity T > S in years."},
+            {"option_expiry", "Option expiry S in business days."},
+            {"bond_maturity", "Underlying bond maturity T > S in business days."},
         },
         {
             {"expression", "N * max(side * (P(S,T) - K), 0), side = +1 call / -1 put"},

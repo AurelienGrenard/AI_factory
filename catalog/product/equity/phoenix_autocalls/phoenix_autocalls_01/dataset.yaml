@@ -4,9 +4,12 @@ product_family: "Phoenix Autocalls"
 catalog: "catalog/product/equity/phoenix_autocalls/phoenix_autocalls_01"
 url: "https://datasets.ai-factory.example/v1/product/phoenix_autocalls/phoenix_autocalls_01.json"
 row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
 parameters:
-  maturity: "Time from issuance to final redemption in years."
-  observation_interval: "Time in years between observation dates."
+  maturity: "Time from issuance to final redemption in business days."
+  observation_interval: "Business days between observation dates."
   autocall_barrier: "Spot level triggering early redemption."
   coupon_barrier: "Spot level triggering the current coupon."
   protection_barrier: "Final spot level protecting the normalized nominal."
@@ -43,11 +46,11 @@ construction:
     core:
       row_count: 900
       maturity:
-        - "1 year"
-        - "5 years"
+        - 252
+        - 1260
       observation_interval:
-        - "1 / 12"
-        - "1 / 4"
+        - 21
+        - 63
       autocall_barrier:
         - 0.95
         - 1.1
@@ -63,12 +66,12 @@ construction:
     stress:
       row_count: 100
       maturity:
-        - "0.5 year"
-        - "7 years"
+        - 126
+        - 1764
       observation_interval:
-        - "1 / 52"
-        - "1 / 2"
-        - "1"
+        - 5
+        - 126
+        - 252
       autocall_barrier:
         - 0.8
         - 1.3

@@ -22,7 +22,8 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    VarianceGammaPreparedParameters model;
+    PreparedModel model;
+    PreparedTransition transition;
     philox::PhiloxKey key;
     float trigger_strike;
     float payoff_strike;
@@ -31,17 +32,21 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const VarianceGammaModelParameters& model,
+    const ModelParameters& model,
     const product::GapOptionParameters& product,
+    float day_fraction,
     std::uint64_t seed
 ) {
-    const float maturity = product.maturity;
+    const float maturity_years =
+        static_cast<float>(product.maturity) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     return {
-        prepare_model(model, maturity),
+        prepared_model,
+        prepare_transition(prepared_model, maturity_years),
         philox::make_key(seed),
         product.trigger_strike,
         product.payoff_strike,
-        expf(-model.risk_free_rate * maturity),
+        expf(-model.risk_free_rate * maturity_years),
     };
 }
 
@@ -51,8 +56,10 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    const VarianceGammaState terminal =
-        simulate_terminal_state(row.model, row.key, path);
+    const State terminal =
+        simulate_terminal_state(
+            row.model, row.transition, row.key, path
+        );
     const float terminal_spot = expf(terminal.log_spot);
     if constexpr (Side == OptionSide::call) {
         const bool pays = terminal_spot > row.trigger_strike;
@@ -68,13 +75,14 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 template<OptionSide Side>
 __global__ void variance_gamma_gap_option_kernel(
-    const VarianceGammaModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::GapOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -98,6 +106,7 @@ __global__ void variance_gamma_gap_option_kernel(
             prepared = prepare_row(
                 models[model_index],
                 product,
+                day_fraction,
                 base_seed + result_index
             );
         }
@@ -138,7 +147,7 @@ __global__ void variance_gamma_gap_option_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_variance_gamma_gap_option_launch(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::GapOptionParameters* device_products,
     std::size_t product_count,
@@ -147,6 +156,7 @@ void validate_variance_gamma_gap_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -173,6 +183,7 @@ void validate_variance_gamma_gap_option_launch(
 
     // The Monte Carlo path count must be valid.
     validate_monte_carlo_path_count(monte_carlo_paths_per_price);
+    validate_day_fraction(day_fraction);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -190,7 +201,7 @@ void validate_variance_gamma_gap_option_launch(
 // Validate and launch the pricing kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_variance_gamma_gap_option_cuda(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::GapOptionParameters* device_products,
     std::size_t product_count,
@@ -199,6 +210,7 @@ void launch_variance_gamma_gap_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -215,6 +227,7 @@ void launch_variance_gamma_gap_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         block_count,
         base_seed,
@@ -264,6 +277,7 @@ void launch_variance_gamma_gap_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         base_seed,
         device_prices,
         device_standard_errors

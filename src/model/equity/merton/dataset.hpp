@@ -7,7 +7,7 @@
 
 namespace ai_factory::workbench::merton {
 
-struct MertonModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -17,9 +17,9 @@ struct MertonModelParameters {
     float jump_log_volatility;
 };
 
-static_assert(std::is_trivially_copyable_v<MertonModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-std::vector<MertonModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

@@ -34,10 +34,10 @@ int main() {
         catalog_path,
         url,
         {
-            {"maturity", "Time from issuance to final payment in years."},
+            {"maturity", "Time from issuance to final payment in business days."},
             {
                 "observation_interval",
-                "Time in years between consecutive spot observations."
+                "Business days between consecutive spot observations."
             },
             {"lower_barrier", "Lower normalized spot observation bound."},
             {"upper_barrier", "Upper normalized spot observation bound."},

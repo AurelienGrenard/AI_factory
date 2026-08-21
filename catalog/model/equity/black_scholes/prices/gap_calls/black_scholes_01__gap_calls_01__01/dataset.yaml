@@ -1,0 +1,39 @@
+title: "black_scholes_01__gap_calls_01__01"
+database_id: "black_scholes_01__gap_calls_01__01"
+catalog: "catalog/model/equity/black_scholes/prices/gap_calls/black_scholes_01__gap_calls_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/black_scholes/prices/gap_calls/black_scholes_01__gap_calls_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Closed-form"
+  model: "Black-Scholes"
+  numerical_method: "Black-Scholes closed-form gap call"
+  payoff: "Gap Calls"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 4
+  threads_per_block: 256
+  kernel_launch_count: 1
+  work_distribution: "one price per thread"
+validation:
+  status: "available"
+  verified: true
+  dataset: "validation/datasets/price/equity/black_scholes/gap_calls/black_scholes_01__gap_calls_01__01.json"
+outputs:
+  price:
+    estimator: "closed-form price"
+model_dataset:
+  id: "black_scholes_01"
+  catalog: "catalog/model/equity/black_scholes/parameters/black_scholes_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/black_scholes/parameters/black_scholes_01.json"
+product_dataset:
+  id: "gap_call_options_01"
+  catalog: "catalog/product/equity/gap_options/gap_call_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/gap_options/gap_call_options_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "0.215751551 s"
+  kernel_seconds: "0.00004608 s"

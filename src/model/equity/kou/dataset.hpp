@@ -7,7 +7,7 @@
 
 namespace ai_factory::workbench::kou {
 
-struct KouModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -18,9 +18,9 @@ struct KouModelParameters {
     float negative_jump_rate;
 };
 
-static_assert(std::is_trivially_copyable_v<KouModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-std::vector<KouModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

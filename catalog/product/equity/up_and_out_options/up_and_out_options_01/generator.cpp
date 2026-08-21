@@ -20,18 +20,20 @@ int main() {
 
     constexpr float log_moneyness_slope = 0.2f;
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         log_moneyness_slope
     );
     for (auto& row : rows.rows) {
         const float strike = row.at("strike").get<float>();
-        const float maturity = row.at("maturity").get<float>();
+        const std::uint32_t maturity =
+            row.at("maturity").get<std::uint32_t>();
+        const float maturity_years = business_days_to_years(maturity);
         row["barrier"] = fmaxf(
-            1.05f, strike * expf(0.15f * sqrtf(maturity / 3.0f))
+            1.05f, strike * expf(0.15f * sqrtf(maturity_years / 3.0f))
         );
     }
     // Preserve the exact lower maturity bound in human-readable metadata.
@@ -45,7 +47,7 @@ int main() {
         {
             {"strike", "Strike in normalized spot units."},
             {"barrier", "Upper knock-out level monitored on the simulation grid."},
-            {"maturity", "Maturity in years."},
+            {"maturity", "Maturity in business days."},
         },
         {
             {"expression", "max(side * (S_T - K), 0) if max(S_[0,T]) < barrier; side = +1 call / -1 put"},

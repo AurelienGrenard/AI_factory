@@ -18,10 +18,10 @@ int main() {
         "digital_options_01.json";
 
     GeneratedRows rows = core_stress_exponential_strike_grid(
-        linear_grid(1.0f / 12.0f, 3.0f, 45U),
+        linear_business_day_grid(21U, 756U, 45U),
         20U,
         0.2f,
-        linear_grid(1.0f / 52.0f, 7.0f, 10U),
+        linear_business_day_grid(5U, 1764U, 10U),
         10U,
         0.2f
     );
@@ -39,7 +39,7 @@ int main() {
         url,
         {
             {"strike", "Trigger strike in normalized spot units."},
-            {"maturity", "Maturity in years."},
+            {"maturity", "Maturity in business days."},
             {"cash_payoff", "Cash amount paid when the side-oriented trigger is met."},
         },
         {

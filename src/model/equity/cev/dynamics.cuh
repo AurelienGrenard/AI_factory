@@ -9,100 +9,98 @@
 
 namespace ai_factory::workbench::cev {
 
-struct CevPreparedParameters {
+struct PreparedModel {
     float initial_spot;
     float drift_dt;
     float diffusion_scale;
     float milstein_scale;
     float beta;
 };
-struct CevState {
+struct State {
     float spot;
 };
 
-struct CevMeanPathResult {
+struct MeanPathResult {
     float arithmetic_mean;
 };
 
-struct CevGeometricMeanPathResult {
+struct GeometricMeanPathResult {
     float geometric_mean;
 };
 
-struct CevTwoTimePathResult {
-    float first_spot;
-    float terminal_spot;
-};
-
-struct CevMaximumPathResult {
+struct MaximumPathResult {
     float maximum_spot;
 };
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ CevPreparedParameters prepare_model(
-    const CevModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters,
+    float delta_t
 );
 
-__device__ __forceinline__ CevState initial_state(
-    const CevPreparedParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const CevPreparedParameters& model,
+    const PreparedModel& prepared_model,
     float normal,
-    CevState& state
+    State& state
 );
 
-__device__ __forceinline__ CevState simulate_terminal_state(
-    const CevPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
-__device__ __forceinline__ CevMeanPathResult simulate_mean_state(
-    const CevPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
-__device__ __forceinline__ CevGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const CevPreparedParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
-__device__ __forceinline__ CevTwoTimePathResult simulate_at_two_times(
-    const CevPreparedParameters& first_model,
-    const CevPreparedParameters& second_model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
+    std::uint32_t num_steps
 );
 
-__device__ __forceinline__ CevMaximumPathResult simulate_maximum_state(
-    const CevPreparedParameters& model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t num_steps
-);
-
-__device__ __forceinline__ CevState simulate_on_regular_grid(
-    const CevPreparedParameters& initial_stub_model,
-    const CevPreparedParameters& regular_model,
+// Each output pointer addresses this path's first pre-terminal observation.
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
-    float* observed_spots
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+);
+
+// Each output pointer addresses this path's first pre-terminal observation.
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
 );
 
 }  // namespace ai_factory::workbench::cev

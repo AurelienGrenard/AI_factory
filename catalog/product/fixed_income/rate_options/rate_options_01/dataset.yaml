@@ -4,12 +4,15 @@ product_family: "Forward Rate Options"
 catalog: "catalog/product/fixed_income/rate_options/rate_options_01"
 url: "https://datasets.ai-factory.example/v1/product/rate_options/rate_options_01.json"
 row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
 parameters:
   notional: "Normalized contract notional."
   strike: "Simple annualized forward rate option strike."
-  fixing_time: "Forward-rate fixing time T1 in years."
-  payment_time: "Cashflow payment time T2 in years."
-  accrual_period: "Year fraction delta for [T1, T2]."
+  fixing_time: "Forward-rate fixing time T1 in business days."
+  payment_time: "Cashflow payment time T2 in business days."
+  accrual_period: "Business days in the interval [T1, T2]."
 payoff:
   expression: "N * delta * max(side * (L(T1; T1, T2) - K), 0), side = +1 caplet / -1 floorlet"
   payment_time: "T2"
@@ -28,27 +31,27 @@ construction:
       rule: "Every fixing, accrual period, and strike combination."
       description: "Representative fixing dates and strikes concentrated around 4%."
       fixing_times:
-        - 0.25
-        - 0.5305555462837219
-        - 0.8083333373069763
-        - 1.0888888835906982
-        - 1.3666666746139526
-        - 1.6472222805023193
-        - 1.9277777671813965
-        - 2.2055554389953613
-        - 2.4861111640930176
-        - 2.7638888359069824
-        - 3.0444445610046387
-        - 3.3222222328186035
-        - 3.6027777194976807
-        - 3.883333444595337
-        - 4.161110877990723
-        - 4.441666603088379
-        - 4.719444274902344
-        - 5.0
+        - 63
+        - 133
+        - 204
+        - 274
+        - 345
+        - 415
+        - 485
+        - 556
+        - 626
+        - 697
+        - 767
+        - 838
+        - 908
+        - 978
+        - 1049
+        - 1119
+        - 1190
+        - 1260
       accrual_periods:
-        - 0.25
-        - 0.5
+        - 63
+        - 126
       strikes:
         - 0.0
         - 0.00918981246650219
@@ -83,19 +86,19 @@ construction:
       rule: "Every fixing, accrual period, and strike combination."
       description: "Very short/long dates, short/long accruals, and negative/high strikes."
       fixing_times:
-        - 0.01944444514811039
-        - 1.6833332777023315
-        - 3.347222328186035
-        - 5.013888835906982
-        - 6.6777777671813965
-        - 8.341666221618652
-        - 10.005555152893066
-        - 11.672222137451172
-        - 13.336111068725586
-        - 15.0
+        - 5
+        - 424
+        - 844
+        - 1263
+        - 1683
+        - 2102
+        - 2522
+        - 2941
+        - 3361
+        - 3780
       accrual_periods:
-        - 0.01944444514811039
-        - 2.0
+        - 5
+        - 504
       strikes:
         - -0.10000000149011612
         - -0.019999999552965164

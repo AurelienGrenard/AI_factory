@@ -43,7 +43,7 @@ std::vector<DoubleKnockOutOptionParameters> load_double_knock_out_options(
             parameters.at("strike").get<float>(),
             parameters.at("lower_barrier").get<float>(),
             parameters.at("upper_barrier").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
         };
         const std::string prefix =
             "Double-knock-out option row id '" + row_id + "': ";
@@ -61,8 +61,8 @@ std::vector<DoubleKnockOutOptionParameters> load_double_knock_out_options(
             && product.strike < product.upper_barrier)) {
             throw std::invalid_argument(prefix + "strike must lie between both barriers.");
         }
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         products.push_back(product);
     }
     return products;

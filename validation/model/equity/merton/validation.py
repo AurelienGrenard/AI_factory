@@ -47,10 +47,14 @@ _PREMIA_METHODS = {
     ),
     "gap_call": "CF_Call_Merton + MC_Merton (static replication)",
     "gap_put": "CF_Put_Merton + MC_Merton (static replication)",
-    "asian_call": "AP_Asian_FMM_Mer (52 monitoring dates; 1,024 integration points)",
+    "asian_call": (
+        "AP_Asian_FMM_Mer (52 monitoring dates; 1,024 integration points, "
+        "4,096-point deterministic refinement when required)"
+    ),
     "asian_put": (
         "AP_Asian_FMM_Mer call + arithmetic-average put-call parity "
-        "(52 monitoring dates; 1,024 integration points)"
+        "(52 monitoring dates; 1,024 integration points, 4,096-point "
+        "deterministic refinement when required)"
     ),
     "lookback_option": "MC_Merton_FixedLookback (4,096 paths; 256 steps)",
     "up_and_out_call": "FD_ImpExpUpOut (256 time steps)",
@@ -64,8 +68,8 @@ _PREMIA_METHODS = {
 }
 
 _BIAS_EXPLANATIONS = {
-    "asian_call": "expected; CUDA uses daily discrete averaging while Premia uses its fixed-Asian monitoring convention",
-    "asian_put": "expected; CUDA uses daily discrete averaging while Premia uses its fixed-Asian monitoring convention",
+    "asian_call": "expected; CUDA uses daily discrete averaging while Premia uses its 52-date fixed-Asian grid",
+    "asian_put": "expected; CUDA uses daily discrete averaging while Premia uses its 52-date fixed-Asian grid",
     "lookback_option": "expected; CUDA and Premia use independent discrete-grid Monte Carlo schemes",
     "up_and_out_call": "expected; discrete monitoring knocks out fewer paths than continuous monitoring",
     "up_and_in_call": "expected; discrete monitoring activates fewer paths than continuous monitoring",

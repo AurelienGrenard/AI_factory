@@ -22,7 +22,7 @@ from validation.quantlib.price_validation import (
 )
 
 
-_TARGET_DT = 1.0 / 360.0
+_TARGET_DT = 1.0 / 504.0
 _FLOAT32_EPSILON = 1.1920928955078125e-7
 _ASIAN_REFERENCE_SAMPLES = 4096
 _PATH_REFERENCE_PAIRS = 1024
@@ -244,56 +244,75 @@ def _range_accrual_price(
     )
 
 
-def _asian_fixing_dates(maturity: float, step_count: int) -> list[ql.Date]:
-    """Match the workbench arithmetic average after time-zero spot."""
-
-    from validation.quantlib.term_structure import REFERENCE_DATE, nearest_date_from_time
-
-    maturity_date = nearest_date_from_time(maturity)
-    maturity_days = maturity_date - REFERENCE_DATE
-    dates = [
-        REFERENCE_DATE + round(maturity_days * step / step_count)
-        for step in range(1, step_count + 1)
-    ]
-    if any(current <= previous for previous, current in zip(dates, dates[1:])):
-        raise ValueError("Asian fixing dates must be strictly increasing.")
-    return dates
-
-
 def _asian_price(
     reference: BlackScholesReference,
     product: Mapping[str, Any],
     row: PriceResultRow,
     option_type: int,
 ) -> tuple[float, float]:
-    """Price the discretely sampled arithmetic average with QuantLib MC."""
+    """Price the twice-daily arithmetic average with QuantLib MC.
 
-    from validation.quantlib.term_structure import nearest_date_from_time
+    QuantLib's Asian instrument accepts dates, not intraday times.  Use one
+    synthetic calendar day per CUDA transition and rescale rates and variance
+    so that an Actual/365 model day represents exactly `1 / 504` year.  This
+    preserves the full joint Black-Scholes law on the CUDA observation grid
+    while keeping the simulation inside QuantLib's compiled engine.
+    """
+
+    from validation.quantlib.term_structure import REFERENCE_DATE
 
     maturity = positive_number(product, "maturity", "Asian option")
+    strike = positive_number(product, "strike", "Asian option")
     step_count = max(1, math.floor(maturity / _TARGET_DT + 0.5))
-    fixing_dates = _asian_fixing_dates(maturity, step_count)
+    synthetic_day_counter = ql.Actual365Fixed()
+    parameter_time_scale = 365.0 / 504.0
+    synthetic_process = ql.BlackScholesMertonProcess(
+        ql.QuoteHandle(ql.SimpleQuote(reference.spot)),
+        ql.YieldTermStructureHandle(
+            ql.FlatForward(
+                REFERENCE_DATE,
+                reference.dividend_yield * parameter_time_scale,
+                synthetic_day_counter,
+                ql.Continuous,
+                ql.NoFrequency,
+            )
+        ),
+        ql.YieldTermStructureHandle(
+            ql.FlatForward(
+                REFERENCE_DATE,
+                reference.risk_free_rate * parameter_time_scale,
+                synthetic_day_counter,
+                ql.Continuous,
+                ql.NoFrequency,
+            )
+        ),
+        ql.BlackVolTermStructureHandle(
+            ql.BlackConstantVol(
+                REFERENCE_DATE,
+                ql.NullCalendar(),
+                reference.volatility * math.sqrt(parameter_time_scale),
+                synthetic_day_counter,
+            )
+        ),
+    )
+    fixing_dates = [
+        REFERENCE_DATE + step for step in range(1, step_count + 1)
+    ]
     option = ql.DiscreteAveragingAsianOption(
         ql.Average.Arithmetic,
         reference.spot,
         1,
         fixing_dates,
-        ql.PlainVanillaPayoff(
-            option_type, positive_number(product, "strike", "Asian option")
-        ),
-        ql.EuropeanExercise(nearest_date_from_time(maturity)),
+        ql.PlainVanillaPayoff(option_type, strike),
+        ql.EuropeanExercise(fixing_dates[-1]),
     )
     option.setPricingEngine(
         ql.MCDiscreteArithmeticAPEngine(
-            reference.process,
+            synthetic_process,
             "pseudorandom",
             antitheticVariate=True,
             requiredSamples=_ASIAN_REFERENCE_SAMPLES,
             seed=810000000 + int(row.row_id),
-            # QuantLib 1.43's arithmetic-Asian control variate is not
-            # side-neutral for the running-average convention used here.
-            # Keep the independent reference unbiased and account for its
-            # larger uncertainty through errorEstimate().
             controlVariate=False,
         )
     )

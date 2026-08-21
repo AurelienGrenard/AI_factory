@@ -23,12 +23,12 @@ void require(bool condition, const char* message) {
 
 template <typename Product, typename Launcher>
 std::vector<float> launch_prices(
-    const std::vector<cir::CirModelParameters>& models,
+    const std::vector<cir::ModelParameters>& models,
     const std::vector<Product>& products,
     Launcher launcher
 ) {
     using ai_factory::workbench::check_cuda;
-    cir::CirModelParameters* device_models = nullptr;
+    cir::ModelParameters* device_models = nullptr;
     Product* device_products = nullptr;
     float* device_prices = nullptr;
     std::vector<float> prices(models.size());
@@ -76,6 +76,7 @@ std::vector<float> launch_prices(
             prices.size(),
             0U,
             prices.size(),
+            1.0f / 252.0f,
             32U,
             1U,
             device_prices
@@ -150,20 +151,20 @@ int main() {
     check_cuda(availability, "CIR rate-option test cudaGetDeviceCount");
 
     // Row two deliberately violates Feller; row three has a narrow diffusion.
-    const std::vector<cir::CirModelParameters> models = {
+    const std::vector<cir::ModelParameters> models = {
         {{0.60f, 0.04f, 0.15f}, 0.03f},
         {{0.05f, 0.015f, 0.12f}, 0.001f},
         {{1.50f, 0.10f, 0.05f}, 0.20f},
     };
     const std::vector<product::ZeroCouponBondOptionParameters> bond_options = {
-        {1.0f, 0.97f, 0.5f, 2.0f},
-        {2.0f, 0.97f, 2.0f, 5.0f},
-        {1.5f, 0.95f, 1.0f, 2.0f},
+        {1.0f, 0.97f, 126U, 504U},
+        {2.0f, 0.97f, 504U, 1260U},
+        {1.5f, 0.95f, 252U, 504U},
     };
     const std::vector<product::RateOptionParameters> rate_options = {
-        {1.0f, 0.04f, 0.5f, 1.0f, 0.5f},
-        {2.0f, 0.02f, 2.0f, 3.0f, 0.5f},
-        {1.5f, 0.15f, 1.0f, 2.0f, 1.0f},
+        {1.0f, 0.04f, 126U, 252U, 126U},
+        {2.0f, 0.02f, 504U, 756U, 126U},
+        {1.5f, 0.15f, 252U, 504U, 252U},
     };
 
     const std::vector<float> calls = launch_prices(

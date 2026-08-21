@@ -1,12 +1,12 @@
 {
   "database_id": "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01",
-  "catalog": "catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01",
+  "catalog": "catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01",
   "url": "https://datasets.ai-factory.example/v1/validation/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01.json",
   "row_count": 1000,
   "model_dataset": {
     "id": "hull_white_01",
-    "catalog": "catalog/model/fixed_income/hull_white/hull_white_01",
-    "url": "https://datasets.ai-factory.example/v1/model/fixed_income/hull_white/hull_white_01.json"
+    "catalog": "catalog/model/fixed_income/hull_white/parameters/hull_white_01",
+    "url": "https://datasets.ai-factory.example/v1/model/fixed_income/hull_white/parameters/hull_white_01.json"
   },
   "product_dataset": {
     "id": "zero_coupon_bond_options_01",
@@ -19,9 +19,9 @@
     "url": "https://datasets.ai-factory.example/v1/curve/nelson_siegel/nelson_siegel_01.json"
   },
   "source_fingerprints": {
-    "price_results": "sha256:dd3fed33ce3dced7e1e4112d444ac7d189f457d5e31ca3f738a07c9b9bce7ca2",
+    "price_results": "sha256:527ea0c355b297e851e3fe8032b767ec44e7558eef26070f8969b76ffd046d50",
     "model_parameters": "sha256:c0d85cc0d4856d8c66c3e6877eb77deee97ae9f6726f57565c9e9371133ca8f2",
-    "product_parameters": "sha256:e6b4644dbcf9fb3617250f9a4c82cf99ab6b6500fe9a993f4370bae3bfa6a214",
+    "product_parameters": "sha256:71b01daf3df6e58f7a18ed814f481f8f7768d13108304105e1c00fc38d7975a7",
     "curve_parameters": "sha256:5d7787b656e6ffa35b04f63f494ddc2170b39b1f6335b0ff315620e1b5c82ba1"
   },
   "reference_pricers": {
@@ -76,9 +76,9 @@
       "row_count": 900,
       "passed_row_count": 900,
       "failed_row_count": 0,
-      "maximum_absolute_error": 1.6470215591368742e-07,
-      "maximum_absolute_error_row_id": "000492",
-      "mean_signed_error": 1.051201117922723e-09,
+      "maximum_absolute_error": 1.9634498193976668e-07,
+      "maximum_absolute_error_row_id": "000623",
+      "mean_signed_error": -9.217614603844973e-11,
       "systematic_bias": false
     },
     "stress": {
@@ -86,14 +86,14 @@
       "row_count": 100,
       "passed_row_count": 100,
       "failed_row_count": 0,
-      "maximum_absolute_error": 2.2337722793697168e-07,
-      "maximum_absolute_error_row_id": "000990",
-      "mean_signed_error": 7.84588321581278e-09,
+      "maximum_absolute_error": 1.500736451220952e-07,
+      "maximum_absolute_error_row_id": "000938",
+      "mean_signed_error": 5.865295421002278e-09,
       "systematic_bias": false
     }
   },
   "timing": {
-    "wall_seconds": 2.053301775998989
+    "wall_seconds": 1.5448425950016826
   },
   "results": [
     {
@@ -672,7 +672,7 @@
       "product_id": "000058",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.180215842160669e-07
+        "price": 2.0547433683302477e-07
       },
       "curve_id": "000058"
     },
@@ -702,7 +702,7 @@
       "product_id": "000061",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.141979925855043e-06
+        "price": 4.85538283024993e-06
       },
       "curve_id": "000061"
     },
@@ -712,7 +712,7 @@
       "product_id": "000062",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00218773431137248
+        "price": 0.0021903144997638124
       },
       "curve_id": "000062"
     },
@@ -732,7 +732,7 @@
       "product_id": "000064",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.768429809558655e-16
+        "price": 4.633024461664032e-16
       },
       "curve_id": "000064"
     },
@@ -742,7 +742,7 @@
       "product_id": "000065",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005119998778963186
+        "price": 0.005109910201500756
       },
       "curve_id": "000065"
     },
@@ -752,7 +752,7 @@
       "product_id": "000066",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.412534024373336e-05
+        "price": 8.367489492520919e-05
       },
       "curve_id": "000066"
     },
@@ -762,7 +762,7 @@
       "product_id": "000067",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0021513752944498643
+        "price": 0.0021726839997899816
       },
       "curve_id": "000067"
     },
@@ -772,7 +772,7 @@
       "product_id": "000068",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0013901915608601767
+        "price": 0.0013773420131295566
       },
       "curve_id": "000068"
     },
@@ -782,7 +782,7 @@
       "product_id": "000069",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.839030437147265e-06
+        "price": 6.061852172484401e-06
       },
       "curve_id": "000069"
     },
@@ -792,7 +792,7 @@
       "product_id": "000070",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.014153898716572688
+        "price": 0.014181788696098652
       },
       "curve_id": "000070"
     },
@@ -802,7 +802,7 @@
       "product_id": "000071",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.026615323257218826
+        "price": 0.026580470613348006
       },
       "curve_id": "000071"
     },
@@ -812,7 +812,7 @@
       "product_id": "000072",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03946786039601802
+        "price": 0.03950088099221161
       },
       "curve_id": "000072"
     },
@@ -822,7 +822,7 @@
       "product_id": "000073",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06169032234952265
+        "price": 0.061656465391940474
       },
       "curve_id": "000073"
     },
@@ -832,7 +832,7 @@
       "product_id": "000074",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08168101448899656
+        "price": 0.08169063660722575
       },
       "curve_id": "000074"
     },
@@ -842,7 +842,7 @@
       "product_id": "000075",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.12472899983286068
+        "price": 0.12472858324209057
       },
       "curve_id": "000075"
     },
@@ -892,7 +892,7 @@
       "product_id": "000080",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.469774034396068e-11
+        "price": 9.237642785362561e-11
       },
       "curve_id": "000080"
     },
@@ -902,7 +902,7 @@
       "product_id": "000081",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.2245587233161249e-17
+        "price": 6.282922765866598e-17
       },
       "curve_id": "000081"
     },
@@ -922,7 +922,7 @@
       "product_id": "000083",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.024832057632194537
+        "price": 0.024856791323026872
       },
       "curve_id": "000083"
     },
@@ -932,7 +932,7 @@
       "product_id": "000084",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00014666163101962476
+        "price": 0.00014522787285805444
       },
       "curve_id": "000084"
     },
@@ -942,7 +942,7 @@
       "product_id": "000085",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.040169795059707636
+        "price": 0.0401765917036111
       },
       "curve_id": "000085"
     },
@@ -952,7 +952,7 @@
       "product_id": "000086",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.029609981395633755
+        "price": 0.029539271556192293
       },
       "curve_id": "000086"
     },
@@ -962,7 +962,7 @@
       "product_id": "000087",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0030536716044055057
+        "price": 0.0030887627304635457
       },
       "curve_id": "000087"
     },
@@ -972,7 +972,7 @@
       "product_id": "000088",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02648822274982543
+        "price": 0.026546029006891847
       },
       "curve_id": "000088"
     },
@@ -982,7 +982,7 @@
       "product_id": "000089",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02041993626897387
+        "price": 0.020436808063073353
       },
       "curve_id": "000089"
     },
@@ -992,7 +992,7 @@
       "product_id": "000090",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010072642293250555
+        "price": 0.010027245814452024
       },
       "curve_id": "000090"
     },
@@ -1002,7 +1002,7 @@
       "product_id": "000091",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.146826885890295e-06
+        "price": 8.957361458868454e-06
       },
       "curve_id": "000091"
     },
@@ -1012,7 +1012,7 @@
       "product_id": "000092",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00010494350457460055
+        "price": 0.0001027167943412205
       },
       "curve_id": "000092"
     },
@@ -1022,7 +1022,7 @@
       "product_id": "000093",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.030197129721771687
+        "price": 0.03023424669643404
       },
       "curve_id": "000093"
     },
@@ -1032,7 +1032,7 @@
       "product_id": "000094",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.038366108312890224
+        "price": 0.03841506161299457
       },
       "curve_id": "000094"
     },
@@ -1042,7 +1042,7 @@
       "product_id": "000095",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05700424593698805
+        "price": 0.05699182673257741
       },
       "curve_id": "000095"
     },
@@ -1052,7 +1052,7 @@
       "product_id": "000096",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.058398437467009234
+        "price": 0.058393226100376006
       },
       "curve_id": "000096"
     },
@@ -1062,7 +1062,7 @@
       "product_id": "000097",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08635427209837898
+        "price": 0.08630409143455964
       },
       "curve_id": "000097"
     },
@@ -1072,7 +1072,7 @@
       "product_id": "000098",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06153253027345651
+        "price": 0.061501093268593765
       },
       "curve_id": "000098"
     },
@@ -1082,7 +1082,7 @@
       "product_id": "000099",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08882925286113486
+        "price": 0.08890762047724077
       },
       "curve_id": "000099"
     },
@@ -1092,7 +1092,7 @@
       "product_id": "000100",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.128336885924885
+        "price": 0.1283706376061745
       },
       "curve_id": "000100"
     },
@@ -1162,7 +1162,7 @@
       "product_id": "000107",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.083756772240463e-09
+        "price": 2.1064318690859605e-09
       },
       "curve_id": "000107"
     },
@@ -1182,7 +1182,7 @@
       "product_id": "000109",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.1719720190006486e-11
+        "price": 2.21052045654271e-11
       },
       "curve_id": "000109"
     },
@@ -1192,7 +1192,7 @@
       "product_id": "000110",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.5761484031856492e-12
+        "price": 1.5853425733135097e-12
       },
       "curve_id": "000110"
     },
@@ -1212,7 +1212,7 @@
       "product_id": "000112",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005315111256735672
+        "price": 0.0053145754379043675
       },
       "curve_id": "000112"
     },
@@ -1222,7 +1222,7 @@
       "product_id": "000113",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.685487579614891e-05
+        "price": 2.7019213488091443e-05
       },
       "curve_id": "000113"
     },
@@ -1232,7 +1232,7 @@
       "product_id": "000114",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0024563971635050974
+        "price": 0.0024608234519445382
       },
       "curve_id": "000114"
     },
@@ -1242,7 +1242,7 @@
       "product_id": "000115",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.4994509802250706e-05
+        "price": 1.5102174162259611e-05
       },
       "curve_id": "000115"
     },
@@ -1252,7 +1252,7 @@
       "product_id": "000116",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008563535221103868
+        "price": 0.008559675374155806
       },
       "curve_id": "000116"
     },
@@ -1262,7 +1262,7 @@
       "product_id": "000117",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.275710399561112e-08
+        "price": 9.279339764510692e-08
       },
       "curve_id": "000117"
     },
@@ -1272,7 +1272,7 @@
       "product_id": "000118",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.004451451607737633
+        "price": 0.004453144787326502
       },
       "curve_id": "000118"
     },
@@ -1282,7 +1282,7 @@
       "product_id": "000119",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005078746522393929
+        "price": 0.005068518431544655
       },
       "curve_id": "000119"
     },
@@ -1292,7 +1292,7 @@
       "product_id": "000120",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009657574245300782
+        "price": 0.009653762864594961
       },
       "curve_id": "000120"
     },
@@ -1302,7 +1302,7 @@
       "product_id": "000121",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.029708631757137227
+        "price": 0.029719653366534482
       },
       "curve_id": "000121"
     },
@@ -1312,7 +1312,7 @@
       "product_id": "000122",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.040127681094318524
+        "price": 0.04012261432219921
       },
       "curve_id": "000122"
     },
@@ -1322,7 +1322,7 @@
       "product_id": "000123",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07348315489776003
+        "price": 0.0734762560318174
       },
       "curve_id": "000123"
     },
@@ -1332,7 +1332,7 @@
       "product_id": "000124",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08151351792886363
+        "price": 0.08150681961721751
       },
       "curve_id": "000124"
     },
@@ -1342,7 +1342,7 @@
       "product_id": "000125",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.12556483334569912
+        "price": 0.12556665487642604
       },
       "curve_id": "000125"
     },
@@ -1382,7 +1382,7 @@
       "product_id": "000129",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -4.693690179185741e-17
+        "price": 5.184011219025283e-17
       },
       "curve_id": "000129"
     },
@@ -1392,7 +1392,7 @@
       "product_id": "000130",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.7280307616865685e-09
+        "price": 2.7818356988975406e-09
       },
       "curve_id": "000130"
     },
@@ -1402,7 +1402,7 @@
       "product_id": "000131",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.9191258491137566e-06
+        "price": 1.911728689601988e-06
       },
       "curve_id": "000131"
     },
@@ -1412,7 +1412,7 @@
       "product_id": "000132",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.9223737663056223e-08
+        "price": 2.925479466829036e-08
       },
       "curve_id": "000132"
     },
@@ -1422,7 +1422,7 @@
       "product_id": "000133",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002464077998919567
+        "price": 0.0024677710034138878
       },
       "curve_id": "000133"
     },
@@ -1432,7 +1432,7 @@
       "product_id": "000134",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00019281675383736596
+        "price": 0.00019069043630426386
       },
       "curve_id": "000134"
     },
@@ -1442,7 +1442,7 @@
       "product_id": "000135",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011836373555499935
+        "price": 0.011847729499639303
       },
       "curve_id": "000135"
     },
@@ -1452,7 +1452,7 @@
       "product_id": "000136",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005639517192136623
+        "price": 0.005627973258141128
       },
       "curve_id": "000136"
     },
@@ -1462,7 +1462,7 @@
       "product_id": "000137",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009966718918084094
+        "price": 0.009962538163666212
       },
       "curve_id": "000137"
     },
@@ -1472,7 +1472,7 @@
       "product_id": "000138",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02903011201796668
+        "price": 0.029046252800506767
       },
       "curve_id": "000138"
     },
@@ -1482,7 +1482,7 @@
       "product_id": "000139",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.016355246513215516
+        "price": 0.01635352871413931
       },
       "curve_id": "000139"
     },
@@ -1492,7 +1492,7 @@
       "product_id": "000140",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013839705037749672
+        "price": 0.013854982694048279
       },
       "curve_id": "000140"
     },
@@ -1502,7 +1502,7 @@
       "product_id": "000141",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009635825827517652
+        "price": 0.009616617272745986
       },
       "curve_id": "000141"
     },
@@ -1512,7 +1512,7 @@
       "product_id": "000142",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.016740832898360036
+        "price": 0.01672387865366043
       },
       "curve_id": "000142"
     },
@@ -1522,7 +1522,7 @@
       "product_id": "000143",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0028958069005088904
+        "price": 0.0029006943385896933
       },
       "curve_id": "000143"
     },
@@ -1532,7 +1532,7 @@
       "product_id": "000144",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.014766272749831555
+        "price": 0.014754074978319487
       },
       "curve_id": "000144"
     },
@@ -1542,7 +1542,7 @@
       "product_id": "000145",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03736935480615422
+        "price": 0.037379780220031744
       },
       "curve_id": "000145"
     },
@@ -1552,7 +1552,7 @@
       "product_id": "000146",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05323782250844966
+        "price": 0.05319962152076796
       },
       "curve_id": "000146"
     },
@@ -1562,7 +1562,7 @@
       "product_id": "000147",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0519148533420134
+        "price": 0.05192658155804408
       },
       "curve_id": "000147"
     },
@@ -1572,7 +1572,7 @@
       "product_id": "000148",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09797710068097232
+        "price": 0.09797331154435474
       },
       "curve_id": "000148"
     },
@@ -1582,7 +1582,7 @@
       "product_id": "000149",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08482190553609237
+        "price": 0.08480952322286872
       },
       "curve_id": "000149"
     },
@@ -1592,7 +1592,7 @@
       "product_id": "000150",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.14038723556425192
+        "price": 0.1403810144500346
       },
       "curve_id": "000150"
     },
@@ -1662,7 +1662,7 @@
       "product_id": "000157",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.642436329155344e-12
+        "price": 9.521972486227063e-12
       },
       "curve_id": "000157"
     },
@@ -1682,7 +1682,7 @@
       "product_id": "000159",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.285650454137487e-07
+        "price": 7.239936058155714e-07
       },
       "curve_id": "000159"
     },
@@ -1692,7 +1692,7 @@
       "product_id": "000160",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0029960269142557117
+        "price": 0.0029981611358723126
       },
       "curve_id": "000160"
     },
@@ -1702,7 +1702,7 @@
       "product_id": "000161",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00013353840761877456
+        "price": 0.0001337424555822725
       },
       "curve_id": "000161"
     },
@@ -1712,7 +1712,7 @@
       "product_id": "000162",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.006075205873748546
+        "price": 0.006072287477998151
       },
       "curve_id": "000162"
     },
@@ -1722,7 +1722,7 @@
       "product_id": "000163",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0018733176930866846
+        "price": 0.0018690753386343406
       },
       "curve_id": "000163"
     },
@@ -1732,7 +1732,7 @@
       "product_id": "000164",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003209890517004599
+        "price": 0.0031990319439269
       },
       "curve_id": "000164"
     },
@@ -1742,7 +1742,7 @@
       "product_id": "000165",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003141625052671959
+        "price": 0.0003141506224269841
       },
       "curve_id": "000165"
     },
@@ -1752,7 +1752,7 @@
       "product_id": "000166",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008781475777556391
+        "price": 0.00879009909969275
       },
       "curve_id": "000166"
     },
@@ -1762,7 +1762,7 @@
       "product_id": "000167",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005432675095893291
+        "price": 0.0054313031719291915
       },
       "curve_id": "000167"
     },
@@ -1772,7 +1772,7 @@
       "product_id": "000168",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00012103368857711849
+        "price": 0.00012209137506868917
       },
       "curve_id": "000168"
     },
@@ -1782,7 +1782,7 @@
       "product_id": "000169",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010538752166980858
+        "price": 0.010523253846933533
       },
       "curve_id": "000169"
     },
@@ -1792,7 +1792,7 @@
       "product_id": "000170",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011921166023453611
+        "price": 0.011925405930781396
       },
       "curve_id": "000170"
     },
@@ -1802,7 +1802,7 @@
       "product_id": "000171",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03253617135839937
+        "price": 0.03253344068691799
       },
       "curve_id": "000171"
     },
@@ -1812,7 +1812,7 @@
       "product_id": "000172",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03569090221902471
+        "price": 0.03570362080081102
       },
       "curve_id": "000172"
     },
@@ -1822,7 +1822,7 @@
       "product_id": "000173",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06799911403009351
+        "price": 0.06801371401354483
       },
       "curve_id": "000173"
     },
@@ -1832,7 +1832,7 @@
       "product_id": "000174",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08719994944784426
+        "price": 0.0872131684663271
       },
       "curve_id": "000174"
     },
@@ -1842,7 +1842,7 @@
       "product_id": "000175",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11417556479596291
+        "price": 0.11419017792341468
       },
       "curve_id": "000175"
     },
@@ -1882,7 +1882,7 @@
       "product_id": "000179",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.935416163707977e-07
+        "price": 5.882068011188338e-07
       },
       "curve_id": "000179"
     },
@@ -1892,7 +1892,7 @@
       "product_id": "000180",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.8023709777277167e-05
+        "price": 2.795433559907648e-05
       },
       "curve_id": "000180"
     },
@@ -1902,7 +1902,7 @@
       "product_id": "000181",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0317454469898778e-11
+        "price": 1.0011117854694337e-11
       },
       "curve_id": "000181"
     },
@@ -1912,7 +1912,7 @@
       "product_id": "000182",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00038877371668180616
+        "price": 0.0003876414398987643
       },
       "curve_id": "000182"
     },
@@ -1932,7 +1932,7 @@
       "product_id": "000184",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.658054366565021e-13
+        "price": 5.560972073188731e-13
       },
       "curve_id": "000184"
     },
@@ -1942,7 +1942,7 @@
       "product_id": "000185",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.019179538868810964
+        "price": 0.01919318306996176
       },
       "curve_id": "000185"
     },
@@ -1952,7 +1952,7 @@
       "product_id": "000186",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.004094302335301003
+        "price": 0.004102967703467408
       },
       "curve_id": "000186"
     },
@@ -1962,7 +1962,7 @@
       "product_id": "000187",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010205084121924113
+        "price": 0.01021998820545067
       },
       "curve_id": "000187"
     },
@@ -1972,7 +1972,7 @@
       "product_id": "000188",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0016619700454451602
+        "price": 0.0016698003581872567
       },
       "curve_id": "000188"
     },
@@ -1982,7 +1982,7 @@
       "product_id": "000189",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.702244646998414e-07
+        "price": 5.637768764311067e-07
       },
       "curve_id": "000189"
     },
@@ -1992,7 +1992,7 @@
       "product_id": "000190",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.004036202552162749
+        "price": 0.004035202848044317
       },
       "curve_id": "000190"
     },
@@ -2002,7 +2002,7 @@
       "product_id": "000191",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03664014465473231
+        "price": 0.03665309144867923
       },
       "curve_id": "000191"
     },
@@ -2012,7 +2012,7 @@
       "product_id": "000192",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00010482842711401208
+        "price": 0.0001039343660343417
       },
       "curve_id": "000192"
     },
@@ -2022,7 +2022,7 @@
       "product_id": "000193",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.063461698271489e-06
+        "price": 7.014236872788376e-06
       },
       "curve_id": "000193"
     },
@@ -2032,7 +2032,7 @@
       "product_id": "000194",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003570334228980565
+        "price": 0.0035729083171336384
       },
       "curve_id": "000194"
     },
@@ -2042,7 +2042,7 @@
       "product_id": "000195",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002506847725606498
+        "price": 0.002517042104478562
       },
       "curve_id": "000195"
     },
@@ -2052,7 +2052,7 @@
       "product_id": "000196",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06604799564406993
+        "price": 0.06603232568302819
       },
       "curve_id": "000196"
     },
@@ -2062,7 +2062,7 @@
       "product_id": "000197",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08351001323890506
+        "price": 0.08354993083991036
       },
       "curve_id": "000197"
     },
@@ -2072,7 +2072,7 @@
       "product_id": "000198",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07969042791726266
+        "price": 0.07968773629872539
       },
       "curve_id": "000198"
     },
@@ -2082,7 +2082,7 @@
       "product_id": "000199",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11306835356573519
+        "price": 0.11307682171316646
       },
       "curve_id": "000199"
     },
@@ -2092,7 +2092,7 @@
       "product_id": "000200",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.14056978079906557
+        "price": 0.14056633779530991
       },
       "curve_id": "000200"
     },
@@ -2132,7 +2132,7 @@
       "product_id": "000204",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.563613339284293e-17
+        "price": 1.8382338532734974e-18
       },
       "curve_id": "000204"
     },
@@ -2142,7 +2142,7 @@
       "product_id": "000205",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.3703635237279605e-17
+        "price": 2.3687100450923864e-17
       },
       "curve_id": "000205"
     },
@@ -2152,7 +2152,7 @@
       "product_id": "000206",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.477985692108032e-08
+        "price": 4.476245018650811e-08
       },
       "curve_id": "000206"
     },
@@ -2162,7 +2162,7 @@
       "product_id": "000207",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.3172889031751403e-08
+        "price": 1.3472616913589978e-08
       },
       "curve_id": "000207"
     },
@@ -2172,7 +2172,7 @@
       "product_id": "000208",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0014397831551233e-09
+        "price": 1.006839322602029e-09
       },
       "curve_id": "000208"
     },
@@ -2182,7 +2182,7 @@
       "product_id": "000209",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00010985200866314715
+        "price": 0.00011023857060209197
       },
       "curve_id": "000209"
     },
@@ -2192,7 +2192,7 @@
       "product_id": "000210",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.5720829510755378e-07
+        "price": 1.5784342347833482e-07
       },
       "curve_id": "000210"
     },
@@ -2202,7 +2202,7 @@
       "product_id": "000211",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.3282094476758056e-16
+        "price": 6.492101549135315e-17
       },
       "curve_id": "000211"
     },
@@ -2212,7 +2212,7 @@
       "product_id": "000212",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.875442309158287e-06
+        "price": 5.89223204939095e-06
       },
       "curve_id": "000212"
     },
@@ -2222,7 +2222,7 @@
       "product_id": "000213",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.6992192678702435e-05
+        "price": 3.729649208738042e-05
       },
       "curve_id": "000213"
     },
@@ -2232,7 +2232,7 @@
       "product_id": "000214",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0069342949952126975
+        "price": 0.006930665406043479
       },
       "curve_id": "000214"
     },
@@ -2242,7 +2242,7 @@
       "product_id": "000215",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.489781788986514e-05
+        "price": 5.50191458946539e-05
       },
       "curve_id": "000215"
     },
@@ -2252,7 +2252,7 @@
       "product_id": "000216",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0032352164752428303
+        "price": 0.003231281498170868
       },
       "curve_id": "000216"
     },
@@ -2262,7 +2262,7 @@
       "product_id": "000217",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003636099384042579
+        "price": 0.00036562015740644604
       },
       "curve_id": "000217"
     },
@@ -2272,7 +2272,7 @@
       "product_id": "000218",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005974520817030093
+        "price": 0.0059755107356321835
       },
       "curve_id": "000218"
     },
@@ -2282,7 +2282,7 @@
       "product_id": "000219",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0017238741472472285
+        "price": 0.0017223309274763676
       },
       "curve_id": "000219"
     },
@@ -2292,7 +2292,7 @@
       "product_id": "000220",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0039174816943654545
+        "price": 0.003913549322980825
       },
       "curve_id": "000220"
     },
@@ -2302,7 +2302,7 @@
       "product_id": "000221",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.030669208570867856
+        "price": 0.030684134916006967
       },
       "curve_id": "000221"
     },
@@ -2312,7 +2312,7 @@
       "product_id": "000222",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.041241356186302425
+        "price": 0.041251304499157815
       },
       "curve_id": "000222"
     },
@@ -2322,7 +2322,7 @@
       "product_id": "000223",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06177447004787062
+        "price": 0.06178293444146088
       },
       "curve_id": "000223"
     },
@@ -2332,7 +2332,7 @@
       "product_id": "000224",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07451439564834594
+        "price": 0.0745135155898593
       },
       "curve_id": "000224"
     },
@@ -2342,7 +2342,7 @@
       "product_id": "000225",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.1233986657088797
+        "price": 0.12338059386354971
       },
       "curve_id": "000225"
     },
@@ -2382,7 +2382,7 @@
       "product_id": "000229",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.518747175579768e-09
+        "price": 9.475585852614393e-09
       },
       "curve_id": "000229"
     },
@@ -2402,7 +2402,7 @@
       "product_id": "000231",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.146943789848655e-10
+        "price": 6.146618667563976e-10
       },
       "curve_id": "000231"
     },
@@ -2412,7 +2412,7 @@
       "product_id": "000232",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.264723058860359e-05
+        "price": 4.273605150102722e-05
       },
       "curve_id": "000232"
     },
@@ -2422,7 +2422,7 @@
       "product_id": "000233",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.57098709556091e-05
+        "price": 9.587877697253208e-05
       },
       "curve_id": "000233"
     },
@@ -2432,7 +2432,7 @@
       "product_id": "000234",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.015428649834218211
+        "price": 0.015427057258819654
       },
       "curve_id": "000234"
     },
@@ -2442,7 +2442,7 @@
       "product_id": "000235",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0021132618150951354
+        "price": 0.0021169816110069295
       },
       "curve_id": "000235"
     },
@@ -2452,7 +2452,7 @@
       "product_id": "000236",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02120399183561572
+        "price": 0.021177125568872746
       },
       "curve_id": "000236"
     },
@@ -2462,7 +2462,7 @@
       "product_id": "000237",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.075499755489212e-06
+        "price": 7.075291347004298e-06
       },
       "curve_id": "000237"
     },
@@ -2472,7 +2472,7 @@
       "product_id": "000238",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.040530063997107124
+        "price": 0.04052023690383788
       },
       "curve_id": "000238"
     },
@@ -2482,7 +2482,7 @@
       "product_id": "000239",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008778694277085552
+        "price": 0.00877343389300711
       },
       "curve_id": "000239"
     },
@@ -2492,7 +2492,7 @@
       "product_id": "000240",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0001100781183296512
+        "price": 0.00011045480559381676
       },
       "curve_id": "000240"
     },
@@ -2502,7 +2502,7 @@
       "product_id": "000241",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.810238117999895e-05
+        "price": 3.816293095973422e-05
       },
       "curve_id": "000241"
     },
@@ -2512,7 +2512,7 @@
       "product_id": "000242",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0290817509380642
+        "price": 0.029065240815249194
       },
       "curve_id": "000242"
     },
@@ -2522,7 +2522,7 @@
       "product_id": "000243",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011559535203356841
+        "price": 0.011578171846228558
       },
       "curve_id": "000243"
     },
@@ -2532,7 +2532,7 @@
       "product_id": "000244",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.017676334572732433
+        "price": 0.017687725682387856
       },
       "curve_id": "000244"
     },
@@ -2542,7 +2542,7 @@
       "product_id": "000245",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.030319528092848547
+        "price": 0.030341588531456964
       },
       "curve_id": "000245"
     },
@@ -2552,7 +2552,7 @@
       "product_id": "000246",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06741270948430511
+        "price": 0.06737139407107495
       },
       "curve_id": "000246"
     },
@@ -2562,7 +2562,7 @@
       "product_id": "000247",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03827394839285858
+        "price": 0.03826365743933746
       },
       "curve_id": "000247"
     },
@@ -2572,7 +2572,7 @@
       "product_id": "000248",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10147470702809958
+        "price": 0.10147312217819693
       },
       "curve_id": "000248"
     },
@@ -2582,7 +2582,7 @@
       "product_id": "000249",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11358286288398378
+        "price": 0.11356257554276505
       },
       "curve_id": "000249"
     },
@@ -2592,7 +2592,7 @@
       "product_id": "000250",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.12823008398801117
+        "price": 0.1282410679944388
       },
       "curve_id": "000250"
     },
@@ -2662,7 +2662,7 @@
       "product_id": "000257",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.276010893009278e-15
+        "price": 5.2741237041860225e-15
       },
       "curve_id": "000257"
     },
@@ -2672,7 +2672,7 @@
       "product_id": "000258",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.04592732892334e-05
+        "price": 7.04495187580853e-05
       },
       "curve_id": "000258"
     },
@@ -2682,7 +2682,7 @@
       "product_id": "000259",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.215428112749716e-13
+        "price": 4.1968332136891055e-13
       },
       "curve_id": "000259"
     },
@@ -2692,7 +2692,7 @@
       "product_id": "000260",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.340435170107712e-05
+        "price": 7.339700032611349e-05
       },
       "curve_id": "000260"
     },
@@ -2702,7 +2702,7 @@
       "product_id": "000261",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0038368330070135404
+        "price": 0.003837513684083471
       },
       "curve_id": "000261"
     },
@@ -2712,7 +2712,7 @@
       "product_id": "000262",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00031303330981535815
+        "price": 0.0003131531487057526
       },
       "curve_id": "000262"
     },
@@ -2722,7 +2722,7 @@
       "product_id": "000263",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.446516690055963e-08
+        "price": 5.3989604767022865e-08
       },
       "curve_id": "000263"
     },
@@ -2732,7 +2732,7 @@
       "product_id": "000264",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0007068837161270658
+        "price": 0.0007064438586247002
       },
       "curve_id": "000264"
     },
@@ -2742,7 +2742,7 @@
       "product_id": "000265",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.262008681673839e-05
+        "price": 3.264214068083096e-05
       },
       "curve_id": "000265"
     },
@@ -2752,7 +2752,7 @@
       "product_id": "000266",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0006415734736756051
+        "price": 0.0006414942534320456
       },
       "curve_id": "000266"
     },
@@ -2762,7 +2762,7 @@
       "product_id": "000267",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.001110390687649232
+        "price": 0.0011103205111762382
       },
       "curve_id": "000267"
     },
@@ -2772,7 +2772,7 @@
       "product_id": "000268",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.006211405212136811
+        "price": 0.006211337723807109
       },
       "curve_id": "000268"
     },
@@ -2782,7 +2782,7 @@
       "product_id": "000269",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003767204495545018
+        "price": 0.0037687823461328707
       },
       "curve_id": "000269"
     },
@@ -2792,7 +2792,7 @@
       "product_id": "000270",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005030129197264976
+        "price": 0.005030225140797873
       },
       "curve_id": "000270"
     },
@@ -2802,7 +2802,7 @@
       "product_id": "000271",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.015238632196953539
+        "price": 0.015238366424111471
       },
       "curve_id": "000271"
     },
@@ -2812,7 +2812,7 @@
       "product_id": "000272",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05263308820011736
+        "price": 0.05263510003766558
       },
       "curve_id": "000272"
     },
@@ -2822,7 +2822,7 @@
       "product_id": "000273",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06858741068869234
+        "price": 0.06858701309830717
       },
       "curve_id": "000273"
     },
@@ -2832,7 +2832,7 @@
       "product_id": "000274",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0812283515787191
+        "price": 0.08122518497524811
       },
       "curve_id": "000274"
     },
@@ -2842,7 +2842,7 @@
       "product_id": "000275",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10747174930150916
+        "price": 0.10747493115583973
       },
       "curve_id": "000275"
     },
@@ -2882,7 +2882,7 @@
       "product_id": "000279",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.2719819009483365e-18
+        "price": 6.281357487763907e-18
       },
       "curve_id": "000279"
     },
@@ -2892,7 +2892,7 @@
       "product_id": "000280",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.581596782278602e-07
+        "price": 3.5815624445183734e-07
       },
       "curve_id": "000280"
     },
@@ -2902,7 +2902,7 @@
       "product_id": "000281",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.4133297520836386e-07
+        "price": 1.4118532017253524e-07
       },
       "curve_id": "000281"
     },
@@ -2912,7 +2912,7 @@
       "product_id": "000282",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.364764532717368e-17
+        "price": 2.6823782989961133e-17
       },
       "curve_id": "000282"
     },
@@ -2922,7 +2922,7 @@
       "product_id": "000283",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.022796713644694044
+        "price": 0.022799127214689352
       },
       "curve_id": "000283"
     },
@@ -2932,7 +2932,7 @@
       "product_id": "000284",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0016237197298835382
+        "price": 0.0016229337327993698
       },
       "curve_id": "000284"
     },
@@ -2942,7 +2942,7 @@
       "product_id": "000285",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -6.321000031717967e-18
+        "price": -6.321063328463969e-18
       },
       "curve_id": "000285"
     },
@@ -2952,7 +2952,7 @@
       "product_id": "000286",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007976373587521457
+        "price": 0.007975127796208237
       },
       "curve_id": "000286"
     },
@@ -2962,7 +2962,7 @@
       "product_id": "000287",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00840486832314924
+        "price": 0.008406161320902439
       },
       "curve_id": "000287"
     },
@@ -2972,7 +2972,7 @@
       "product_id": "000288",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.015370668154169542
+        "price": 0.015369578491476354
       },
       "curve_id": "000288"
     },
@@ -2982,7 +2982,7 @@
       "product_id": "000289",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.861667891336907e-06
+        "price": 2.8674543249183285e-06
       },
       "curve_id": "000289"
     },
@@ -2992,7 +2992,7 @@
       "product_id": "000290",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0017638400533152576
+        "price": 0.0017662543280083098
       },
       "curve_id": "000290"
     },
@@ -3002,7 +3002,7 @@
       "product_id": "000291",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02905441991313429
+        "price": 0.02905589909652395
       },
       "curve_id": "000291"
     },
@@ -3012,7 +3012,7 @@
       "product_id": "000292",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03319630261866757
+        "price": 0.03319554538459257
       },
       "curve_id": "000292"
     },
@@ -3022,7 +3022,7 @@
       "product_id": "000293",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.023899652726062315
+        "price": 0.0238985141929835
       },
       "curve_id": "000293"
     },
@@ -3032,7 +3032,7 @@
       "product_id": "000294",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04147959114352995
+        "price": 0.041477128413774045
       },
       "curve_id": "000294"
     },
@@ -3042,7 +3042,7 @@
       "product_id": "000295",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008731602715173481
+        "price": 0.00873133937080528
       },
       "curve_id": "000295"
     },
@@ -3052,7 +3052,7 @@
       "product_id": "000296",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02544834689692177
+        "price": 0.025447383901551768
       },
       "curve_id": "000296"
     },
@@ -3062,7 +3062,7 @@
       "product_id": "000297",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08859190607736145
+        "price": 0.08859499809214877
       },
       "curve_id": "000297"
     },
@@ -3072,7 +3072,7 @@
       "product_id": "000298",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09118526675657512
+        "price": 0.09118635543501907
       },
       "curve_id": "000298"
     },
@@ -3082,7 +3082,7 @@
       "product_id": "000299",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10585048050375157
+        "price": 0.10585332819618709
       },
       "curve_id": "000299"
     },
@@ -3092,7 +3092,7 @@
       "product_id": "000300",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.1271301966987849
+        "price": 0.12712886952258495
       },
       "curve_id": "000300"
     },
@@ -3152,7 +3152,7 @@
       "product_id": "000306",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.24629431651853e-08
+        "price": 9.252195969897847e-08
       },
       "curve_id": "000306"
     },
@@ -3162,7 +3162,7 @@
       "product_id": "000307",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.3138094978713138e-13
+        "price": 1.3188156335357661e-13
       },
       "curve_id": "000307"
     },
@@ -3172,7 +3172,7 @@
       "product_id": "000308",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.2976047782804696e-06
+        "price": 2.2777565784323555e-06
       },
       "curve_id": "000308"
     },
@@ -3192,7 +3192,7 @@
       "product_id": "000310",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.16008871679548e-05
+        "price": 8.189497533091922e-05
       },
       "curve_id": "000310"
     },
@@ -3202,7 +3202,7 @@
       "product_id": "000311",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.4747862780646783e-09
+        "price": 3.5093503211689343e-09
       },
       "curve_id": "000311"
     },
@@ -3212,7 +3212,7 @@
       "product_id": "000312",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0904039962090443e-05
+        "price": 1.0942351765941358e-05
       },
       "curve_id": "000312"
     },
@@ -3222,7 +3222,7 @@
       "product_id": "000313",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.423939133602661e-06
+        "price": 1.4119326717219622e-06
       },
       "curve_id": "000313"
     },
@@ -3232,7 +3232,7 @@
       "product_id": "000314",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00022639121506456972
+        "price": 0.0002263012680724652
       },
       "curve_id": "000314"
     },
@@ -3242,7 +3242,7 @@
       "product_id": "000315",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.126679763935697e-09
+        "price": 5.082807567584239e-09
       },
       "curve_id": "000315"
     },
@@ -3252,7 +3252,7 @@
       "product_id": "000316",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.499373903955768e-09
+        "price": 7.384333944571278e-09
       },
       "curve_id": "000316"
     },
@@ -3262,7 +3262,7 @@
       "product_id": "000317",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00034907823170352015
+        "price": 0.00034998767384306073
       },
       "curve_id": "000317"
     },
@@ -3272,7 +3272,7 @@
       "product_id": "000318",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003085514401914846
+        "price": 0.0030898479194420014
       },
       "curve_id": "000318"
     },
@@ -3282,7 +3282,7 @@
       "product_id": "000319",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0014613930801920527
+        "price": 0.001460843696809655
       },
       "curve_id": "000319"
     },
@@ -3292,7 +3292,7 @@
       "product_id": "000320",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.026150500465102477
+        "price": 0.026148307604760723
       },
       "curve_id": "000320"
     },
@@ -3302,7 +3302,7 @@
       "product_id": "000321",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03374142781540668
+        "price": 0.03373204852547529
       },
       "curve_id": "000321"
     },
@@ -3312,7 +3312,7 @@
       "product_id": "000322",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.045515910032870255
+        "price": 0.0455075227055135
       },
       "curve_id": "000322"
     },
@@ -3322,7 +3322,7 @@
       "product_id": "000323",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06242071440168895
+        "price": 0.06244029253617167
       },
       "curve_id": "000323"
     },
@@ -3332,7 +3332,7 @@
       "product_id": "000324",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08266097461433097
+        "price": 0.08268021338969966
       },
       "curve_id": "000324"
     },
@@ -3342,7 +3342,7 @@
       "product_id": "000325",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.1142112697991915
+        "price": 0.11422629800988005
       },
       "curve_id": "000325"
     },
@@ -3372,7 +3372,7 @@
       "product_id": "000328",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.742592823071139e-10
+        "price": 9.68642130503781e-10
       },
       "curve_id": "000328"
     },
@@ -3382,7 +3382,7 @@
       "product_id": "000329",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.36888320506403e-16
+        "price": 1.0101095553949198e-16
       },
       "curve_id": "000329"
     },
@@ -3392,7 +3392,7 @@
       "product_id": "000330",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.345480247279752e-09
+        "price": 4.285976977227055e-09
       },
       "curve_id": "000330"
     },
@@ -3402,7 +3402,7 @@
       "product_id": "000331",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.3186994710581825e-06
+        "price": 2.3307298144333195e-06
       },
       "curve_id": "000331"
     },
@@ -3412,7 +3412,7 @@
       "product_id": "000332",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.448950322318736e-07
+        "price": 7.408262884979607e-07
       },
       "curve_id": "000332"
     },
@@ -3422,7 +3422,7 @@
       "product_id": "000333",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0011206168654819548
+        "price": 0.0011200524657543898
       },
       "curve_id": "000333"
     },
@@ -3432,7 +3432,7 @@
       "product_id": "000334",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0014632368094353865
+        "price": 0.0014611306797351342
       },
       "curve_id": "000334"
     },
@@ -3442,7 +3442,7 @@
       "product_id": "000335",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0008422249351671962
+        "price": 0.0008458237122104528
       },
       "curve_id": "000335"
     },
@@ -3452,7 +3452,7 @@
       "product_id": "000336",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.028384055113818474
+        "price": 0.028410698442927096
       },
       "curve_id": "000336"
     },
@@ -3462,7 +3462,7 @@
       "product_id": "000337",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004177103846891572
+        "price": 0.0004186428513520135
       },
       "curve_id": "000337"
     },
@@ -3472,7 +3472,7 @@
       "product_id": "000338",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.032937421400708655
+        "price": 0.03294875364616967
       },
       "curve_id": "000338"
     },
@@ -3482,7 +3482,7 @@
       "product_id": "000339",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0075645449671796205
+        "price": 0.007589054336914813
       },
       "curve_id": "000339"
     },
@@ -3492,7 +3492,7 @@
       "product_id": "000340",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020777280544973853
+        "price": 0.020786454828753187
       },
       "curve_id": "000340"
     },
@@ -3502,7 +3502,7 @@
       "product_id": "000341",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.1946530788281323e-10
+        "price": 1.1763249269496794e-10
       },
       "curve_id": "000341"
     },
@@ -3512,7 +3512,7 @@
       "product_id": "000342",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.046129058679676316
+        "price": 0.046141389047859915
       },
       "curve_id": "000342"
     },
@@ -3522,7 +3522,7 @@
       "product_id": "000343",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.006790657259638011
+        "price": 0.006780837725670064
       },
       "curve_id": "000343"
     },
@@ -3532,7 +3532,7 @@
       "product_id": "000344",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.012038795687061787
+        "price": 0.01205611608202739
       },
       "curve_id": "000344"
     },
@@ -3542,7 +3542,7 @@
       "product_id": "000345",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02567361049805017
+        "price": 0.025682216026694515
       },
       "curve_id": "000345"
     },
@@ -3552,7 +3552,7 @@
       "product_id": "000346",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04428084883332517
+        "price": 0.044291487440968336
       },
       "curve_id": "000346"
     },
@@ -3562,7 +3562,7 @@
       "product_id": "000347",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05415400858641317
+        "price": 0.05414828297172081
       },
       "curve_id": "000347"
     },
@@ -3572,7 +3572,7 @@
       "product_id": "000348",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.056839736183253775
+        "price": 0.05683039873060225
       },
       "curve_id": "000348"
     },
@@ -3582,7 +3582,7 @@
       "product_id": "000349",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10286417621571575
+        "price": 0.102897228371293
       },
       "curve_id": "000349"
     },
@@ -3592,7 +3592,7 @@
       "product_id": "000350",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11337993216439346
+        "price": 0.11337762486921099
       },
       "curve_id": "000350"
     },
@@ -3652,7 +3652,7 @@
       "product_id": "000356",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.19624671930981e-10
+        "price": 5.194894365800046e-10
       },
       "curve_id": "000356"
     },
@@ -3662,7 +3662,7 @@
       "product_id": "000357",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.1786883101594952e-12
+        "price": 1.1817921969825065e-12
       },
       "curve_id": "000357"
     },
@@ -3672,7 +3672,7 @@
       "product_id": "000358",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.3253070710400198e-05
+        "price": 2.3247326220087947e-05
       },
       "curve_id": "000358"
     },
@@ -3682,7 +3682,7 @@
       "product_id": "000359",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.4674176629711414e-12
+        "price": 2.4777088534239733e-12
       },
       "curve_id": "000359"
     },
@@ -3692,7 +3692,7 @@
       "product_id": "000360",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.707607534980181e-10
+        "price": 4.670515842291697e-10
       },
       "curve_id": "000360"
     },
@@ -3702,7 +3702,7 @@
       "product_id": "000361",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.568302913064928e-05
+        "price": 7.572334688783072e-05
       },
       "curve_id": "000361"
     },
@@ -3712,7 +3712,7 @@
       "product_id": "000362",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002817287272686375
+        "price": 0.002813038670511414
       },
       "curve_id": "000362"
     },
@@ -3722,7 +3722,7 @@
       "product_id": "000363",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.43340962604489e-06
+        "price": 5.423023579555902e-06
       },
       "curve_id": "000363"
     },
@@ -3732,7 +3732,7 @@
       "product_id": "000364",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0350814477197608e-05
+        "price": 1.036740317740363e-05
       },
       "curve_id": "000364"
     },
@@ -3742,7 +3742,7 @@
       "product_id": "000365",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.000173224566025032
+        "price": 0.00017315778693752226
       },
       "curve_id": "000365"
     },
@@ -3752,7 +3752,7 @@
       "product_id": "000366",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005040512015371812
+        "price": 0.005036618386046077
       },
       "curve_id": "000366"
     },
@@ -3762,7 +3762,7 @@
       "product_id": "000367",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.5970949490372714e-17
+        "price": 2.162422886519102e-17
       },
       "curve_id": "000367"
     },
@@ -3772,7 +3772,7 @@
       "product_id": "000368",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0007845189160941568
+        "price": 0.0007854556202637475
       },
       "curve_id": "000368"
     },
@@ -3782,7 +3782,7 @@
       "product_id": "000369",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003227882772327273
+        "price": 0.0003228876560645577
       },
       "curve_id": "000369"
     },
@@ -3792,7 +3792,7 @@
       "product_id": "000370",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.018805883960671843
+        "price": 0.018805635558856393
       },
       "curve_id": "000370"
     },
@@ -3802,7 +3802,7 @@
       "product_id": "000371",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020170328544806826
+        "price": 0.02016777468229569
       },
       "curve_id": "000371"
     },
@@ -3812,7 +3812,7 @@
       "product_id": "000372",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05117144862784173
+        "price": 0.05116963597069568
       },
       "curve_id": "000372"
     },
@@ -3822,7 +3822,7 @@
       "product_id": "000373",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04969289794532994
+        "price": 0.04969170644286791
       },
       "curve_id": "000373"
     },
@@ -3832,7 +3832,7 @@
       "product_id": "000374",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08297304489714907
+        "price": 0.08296331830376336
       },
       "curve_id": "000374"
     },
@@ -3842,7 +3842,7 @@
       "product_id": "000375",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10914986992223408
+        "price": 0.10914306771462678
       },
       "curve_id": "000375"
     },
@@ -3872,7 +3872,7 @@
       "product_id": "000378",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.8577770102242465e-13
+        "price": 1.8595615050399366e-13
       },
       "curve_id": "000378"
     },
@@ -3882,7 +3882,7 @@
       "product_id": "000379",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.2040208793649304e-12
+        "price": 1.2055445551265972e-12
       },
       "curve_id": "000379"
     },
@@ -3892,7 +3892,7 @@
       "product_id": "000380",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.7301634411003713e-05
+        "price": 1.7318359198277566e-05
       },
       "curve_id": "000380"
     },
@@ -3902,7 +3902,7 @@
       "product_id": "000381",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0032175163304833942
+        "price": 0.003221906384373141
       },
       "curve_id": "000381"
     },
@@ -3912,7 +3912,7 @@
       "product_id": "000382",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.017285060029609278
+        "price": 0.01728693913887769
       },
       "curve_id": "000382"
     },
@@ -3922,7 +3922,7 @@
       "product_id": "000383",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0012034421563144049
+        "price": 0.0012038574616723974
       },
       "curve_id": "000383"
     },
@@ -3932,7 +3932,7 @@
       "product_id": "000384",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.016882582138071256
+        "price": 0.016884474418890516
       },
       "curve_id": "000384"
     },
@@ -3942,7 +3942,7 @@
       "product_id": "000385",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013408563664959128
+        "price": 0.013407309765382402
       },
       "curve_id": "000385"
     },
@@ -3952,7 +3952,7 @@
       "product_id": "000386",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.031865560327434816
+        "price": 0.03186190670384015
       },
       "curve_id": "000386"
     },
@@ -3962,7 +3962,7 @@
       "product_id": "000387",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.030380800065056945
+        "price": 0.03038422407646202
       },
       "curve_id": "000387"
     },
@@ -3972,7 +3972,7 @@
       "product_id": "000388",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02480833768540347
+        "price": 0.024807114244367212
       },
       "curve_id": "000388"
     },
@@ -3982,7 +3982,7 @@
       "product_id": "000389",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -1.7157706680023892e-18
+        "price": -1.7164331759857148e-18
       },
       "curve_id": "000389"
     },
@@ -3992,7 +3992,7 @@
       "product_id": "000390",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.7725368856800474e-07
+        "price": 1.7466291014808224e-07
       },
       "curve_id": "000390"
     },
@@ -4002,7 +4002,7 @@
       "product_id": "000391",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03801793444283319
+        "price": 0.03801863350427992
       },
       "curve_id": "000391"
     },
@@ -4012,7 +4012,7 @@
       "product_id": "000392",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00749806644495532
+        "price": 0.007500919364164527
       },
       "curve_id": "000392"
     },
@@ -4022,7 +4022,7 @@
       "product_id": "000393",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.833064386608685e-06
+        "price": 5.838009890732094e-06
       },
       "curve_id": "000393"
     },
@@ -4032,7 +4032,7 @@
       "product_id": "000394",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0012494511110718587
+        "price": 0.0012487871066801104
       },
       "curve_id": "000394"
     },
@@ -4042,7 +4042,7 @@
       "product_id": "000395",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02900550278959446
+        "price": 0.028993522411839723
       },
       "curve_id": "000395"
     },
@@ -4052,7 +4052,7 @@
       "product_id": "000396",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04298255394135164
+        "price": 0.04297996824633199
       },
       "curve_id": "000396"
     },
@@ -4062,7 +4062,7 @@
       "product_id": "000397",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04897721758858353
+        "price": 0.0489802527376193
       },
       "curve_id": "000397"
     },
@@ -4072,7 +4072,7 @@
       "product_id": "000398",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06725163175152471
+        "price": 0.06724842995922786
       },
       "curve_id": "000398"
     },
@@ -4082,7 +4082,7 @@
       "product_id": "000399",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07276756463016587
+        "price": 0.07276195503368266
       },
       "curve_id": "000399"
     },
@@ -4092,7 +4092,7 @@
       "product_id": "000400",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.1174848005945921
+        "price": 0.11747967235280798
       },
       "curve_id": "000400"
     },
@@ -4152,7 +4152,7 @@
       "product_id": "000406",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -1.589605139930745e-17
+        "price": -1.589775663883963e-17
       },
       "curve_id": "000406"
     },
@@ -4162,7 +4162,7 @@
       "product_id": "000407",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.521460061792369e-09
+        "price": 4.536435477484594e-09
       },
       "curve_id": "000407"
     },
@@ -4182,7 +4182,7 @@
       "product_id": "000409",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.868123175141102e-07
+        "price": 9.886260082765186e-07
       },
       "curve_id": "000409"
     },
@@ -4192,7 +4192,7 @@
       "product_id": "000410",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0035608987506764445
+        "price": 0.0035610761900906063
       },
       "curve_id": "000410"
     },
@@ -4202,7 +4202,7 @@
       "product_id": "000411",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0048630440848304035
+        "price": 0.004867663192192673
       },
       "curve_id": "000411"
     },
@@ -4212,7 +4212,7 @@
       "product_id": "000412",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005096087505542579
+        "price": 0.005098095114685064
       },
       "curve_id": "000412"
     },
@@ -4222,7 +4222,7 @@
       "product_id": "000413",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.901834931271125e-05
+        "price": 6.922217869858444e-05
       },
       "curve_id": "000413"
     },
@@ -4232,7 +4232,7 @@
       "product_id": "000414",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0604112315596922e-05
+        "price": 1.0579665813349043e-05
       },
       "curve_id": "000414"
     },
@@ -4242,7 +4242,7 @@
       "product_id": "000415",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0019014892932178729
+        "price": 0.0019001576849737578
       },
       "curve_id": "000415"
     },
@@ -4252,7 +4252,7 @@
       "product_id": "000416",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0009940245430524741
+        "price": 0.000994296128650346
       },
       "curve_id": "000416"
     },
@@ -4262,7 +4262,7 @@
       "product_id": "000417",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005970353968022257
+        "price": 0.005969106386713996
       },
       "curve_id": "000417"
     },
@@ -4272,7 +4272,7 @@
       "product_id": "000418",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.506514718674112e-10
+        "price": 5.446555073678932e-10
       },
       "curve_id": "000418"
     },
@@ -4282,7 +4282,7 @@
       "product_id": "000419",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00017178172030443695
+        "price": 0.00017147860276371663
       },
       "curve_id": "000419"
     },
@@ -4292,7 +4292,7 @@
       "product_id": "000420",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02949517904777954
+        "price": 0.029494616770782356
       },
       "curve_id": "000420"
     },
@@ -4302,7 +4302,7 @@
       "product_id": "000421",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01991581027516076
+        "price": 0.01991920034280037
       },
       "curve_id": "000421"
     },
@@ -4312,7 +4312,7 @@
       "product_id": "000422",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04491480455576702
+        "price": 0.04492439611677068
       },
       "curve_id": "000422"
     },
@@ -4322,7 +4322,7 @@
       "product_id": "000423",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06299330733895647
+        "price": 0.06300974939169213
       },
       "curve_id": "000423"
     },
@@ -4332,7 +4332,7 @@
       "product_id": "000424",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0860055891103515
+        "price": 0.08602252362684981
       },
       "curve_id": "000424"
     },
@@ -4342,7 +4342,7 @@
       "product_id": "000425",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09775277712914798
+        "price": 0.09775567921939365
       },
       "curve_id": "000425"
     },
@@ -4382,7 +4382,7 @@
       "product_id": "000429",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.11917245614759e-17
+        "price": 9.371206527255077e-17
       },
       "curve_id": "000429"
     },
@@ -4392,7 +4392,7 @@
       "product_id": "000430",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.430463260872001e-08
+        "price": 2.4195680556953085e-08
       },
       "curve_id": "000430"
     },
@@ -4402,7 +4402,7 @@
       "product_id": "000431",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.8856709077944185e-05
+        "price": 1.8880615334548705e-05
       },
       "curve_id": "000431"
     },
@@ -4412,7 +4412,7 @@
       "product_id": "000432",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.796966371501382e-17
+        "price": 2.794740727658913e-17
       },
       "curve_id": "000432"
     },
@@ -4422,7 +4422,7 @@
       "product_id": "000433",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.292787598750113e-08
+        "price": 4.288603371530375e-08
       },
       "curve_id": "000433"
     },
@@ -4432,7 +4432,7 @@
       "product_id": "000434",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0033411221322359186
+        "price": 0.0033517244144972147
       },
       "curve_id": "000434"
     },
@@ -4442,7 +4442,7 @@
       "product_id": "000435",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02813313587450539
+        "price": 0.02814798632724147
       },
       "curve_id": "000435"
     },
@@ -4452,7 +4452,7 @@
       "product_id": "000436",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.026387429968343534
+        "price": 0.02639545119457254
       },
       "curve_id": "000436"
     },
@@ -4462,7 +4462,7 @@
       "product_id": "000437",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.394662678619798e-05
+        "price": 2.3861447765441066e-05
       },
       "curve_id": "000437"
     },
@@ -4472,7 +4472,7 @@
       "product_id": "000438",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0029518146186124916
+        "price": 0.0029506125578636633
       },
       "curve_id": "000438"
     },
@@ -4482,7 +4482,7 @@
       "product_id": "000439",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.039941405503127e-05
+        "price": 9.074470368114484e-05
       },
       "curve_id": "000439"
     },
@@ -4492,7 +4492,7 @@
       "product_id": "000440",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0016981453989776685
+        "price": 0.001700765585600561
       },
       "curve_id": "000440"
     },
@@ -4502,7 +4502,7 @@
       "product_id": "000441",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.019941169905412615
+        "price": 0.019942189673091915
       },
       "curve_id": "000441"
     },
@@ -4512,7 +4512,7 @@
       "product_id": "000442",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005284998496561333
+        "price": 0.005287395023092278
       },
       "curve_id": "000442"
     },
@@ -4522,7 +4522,7 @@
       "product_id": "000443",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04068884447669252
+        "price": 0.04068711017017679
       },
       "curve_id": "000443"
     },
@@ -4532,7 +4532,7 @@
       "product_id": "000444",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.023373194522631202
+        "price": 0.023366316451570945
       },
       "curve_id": "000444"
     },
@@ -4542,7 +4542,7 @@
       "product_id": "000445",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02650934118778947
+        "price": 0.026498336199894057
       },
       "curve_id": "000445"
     },
@@ -4552,7 +4552,7 @@
       "product_id": "000446",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.029634005190258383
+        "price": 0.029646835385312542
       },
       "curve_id": "000446"
     },
@@ -4562,7 +4562,7 @@
       "product_id": "000447",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05012237778426809
+        "price": 0.05013720324463311
       },
       "curve_id": "000447"
     },
@@ -4572,7 +4572,7 @@
       "product_id": "000448",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08677806291832724
+        "price": 0.08678926419164612
       },
       "curve_id": "000448"
     },
@@ -4582,7 +4582,7 @@
       "product_id": "000449",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09706498417240073
+        "price": 0.09707855378818653
       },
       "curve_id": "000449"
     },
@@ -4592,7 +4592,7 @@
       "product_id": "000450",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.13334588612478848
+        "price": 0.13335365126459597
       },
       "curve_id": "000450"
     },
@@ -4652,7 +4652,7 @@
       "product_id": "000456",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0526213344626883e-15
+        "price": 2.130504834918136e-15
       },
       "curve_id": "000456"
     },
@@ -4682,7 +4682,7 @@
       "product_id": "000459",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.8043987696689766e-09
+        "price": 1.8130586482038905e-09
       },
       "curve_id": "000459"
     },
@@ -4692,7 +4692,7 @@
       "product_id": "000460",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.0548604831940694e-05
+        "price": 5.05599748928387e-05
       },
       "curve_id": "000460"
     },
@@ -4702,7 +4702,7 @@
       "product_id": "000461",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0009016395988418191
+        "price": 0.0008963142598439333
       },
       "curve_id": "000461"
     },
@@ -4712,7 +4712,7 @@
       "product_id": "000462",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002935819680788543
+        "price": 0.002934510758784037
       },
       "curve_id": "000462"
     },
@@ -4722,7 +4722,7 @@
       "product_id": "000463",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.144998383367988e-07
+        "price": 2.1655238875332257e-07
       },
       "curve_id": "000463"
     },
@@ -4742,7 +4742,7 @@
       "product_id": "000465",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.758012340690159e-06
+        "price": 2.754295763225537e-06
       },
       "curve_id": "000465"
     },
@@ -4752,7 +4752,7 @@
       "product_id": "000466",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.844358319442733e-05
+        "price": 8.853777424134429e-05
       },
       "curve_id": "000466"
     },
@@ -4762,7 +4762,7 @@
       "product_id": "000467",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0039038580732776995
+        "price": 0.0039046340353165454
       },
       "curve_id": "000467"
     },
@@ -4772,7 +4772,7 @@
       "product_id": "000468",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.8914650940802028e-12
+        "price": 2.9567864154009542e-12
       },
       "curve_id": "000468"
     },
@@ -4782,7 +4782,7 @@
       "product_id": "000469",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0006300331841311846
+        "price": 0.0006297671926291382
       },
       "curve_id": "000469"
     },
@@ -4792,7 +4792,7 @@
       "product_id": "000470",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00493467789580726
+        "price": 0.004934126025056718
       },
       "curve_id": "000470"
     },
@@ -4802,7 +4802,7 @@
       "product_id": "000471",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.030421743997334993
+        "price": 0.03041480968246124
       },
       "curve_id": "000471"
     },
@@ -4812,7 +4812,7 @@
       "product_id": "000472",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.039073726770803785
+        "price": 0.03907998605273855
       },
       "curve_id": "000472"
     },
@@ -4822,7 +4822,7 @@
       "product_id": "000473",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.060365896194152
+        "price": 0.06035642776858374
       },
       "curve_id": "000473"
     },
@@ -4832,7 +4832,7 @@
       "product_id": "000474",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08393275584473547
+        "price": 0.08391938802116883
       },
       "curve_id": "000474"
     },
@@ -4842,7 +4842,7 @@
       "product_id": "000475",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10460605023900538
+        "price": 0.10460818013766782
       },
       "curve_id": "000475"
     },
@@ -4882,7 +4882,7 @@
       "product_id": "000479",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -7.269894506547979e-18
+        "price": -7.268863921657329e-18
       },
       "curve_id": "000479"
     },
@@ -4892,7 +4892,7 @@
       "product_id": "000480",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -1.06068349302479e-17
+        "price": -1.0605148941513956e-17
       },
       "curve_id": "000480"
     },
@@ -4902,7 +4902,7 @@
       "product_id": "000481",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.101419521087904e-17
+        "price": 4.8336721801020044e-17
       },
       "curve_id": "000481"
     },
@@ -4912,7 +4912,7 @@
       "product_id": "000482",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.591541425880679e-10
+        "price": 8.489900639086359e-10
       },
       "curve_id": "000482"
     },
@@ -4922,7 +4922,7 @@
       "product_id": "000483",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.566881526935217e-05
+        "price": 9.558133876989838e-05
       },
       "curve_id": "000483"
     },
@@ -4932,7 +4932,7 @@
       "product_id": "000484",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.75689978987636e-05
+        "price": 3.7588950899522175e-05
       },
       "curve_id": "000484"
     },
@@ -4942,7 +4942,7 @@
       "product_id": "000485",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.015067939138720843
+        "price": 0.015059122124459257
       },
       "curve_id": "000485"
     },
@@ -4952,7 +4952,7 @@
       "product_id": "000486",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0015330728698739748
+        "price": 0.0015325750730491028
       },
       "curve_id": "000486"
     },
@@ -4962,7 +4962,7 @@
       "product_id": "000487",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00023434073772434644
+        "price": 0.00023445761109482793
       },
       "curve_id": "000487"
     },
@@ -4972,7 +4972,7 @@
       "product_id": "000488",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02626384390053571
+        "price": 0.026258533942767892
       },
       "curve_id": "000488"
     },
@@ -4982,7 +4982,7 @@
       "product_id": "000489",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03352866411091859
+        "price": 0.03352875313341919
       },
       "curve_id": "000489"
     },
@@ -4992,7 +4992,7 @@
       "product_id": "000490",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.029127369835138417
+        "price": 0.029121608482306938
       },
       "curve_id": "000490"
     },
@@ -5002,7 +5002,7 @@
       "product_id": "000491",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0001408853057522086
+        "price": 0.00014069749721382085
       },
       "curve_id": "000491"
     },
@@ -5012,7 +5012,7 @@
       "product_id": "000492",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.028889165117957916
+        "price": 0.028891507049769505
       },
       "curve_id": "000492"
     },
@@ -5022,7 +5022,7 @@
       "product_id": "000493",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0062741346378034635
+        "price": 0.006271330238101003
       },
       "curve_id": "000493"
     },
@@ -5032,7 +5032,7 @@
       "product_id": "000494",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011499769471335353
+        "price": 0.011500965423047016
       },
       "curve_id": "000494"
     },
@@ -5042,7 +5042,7 @@
       "product_id": "000495",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010774763228026618
+        "price": 0.010776201333914104
       },
       "curve_id": "000495"
     },
@@ -5052,7 +5052,7 @@
       "product_id": "000496",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06675979784595143
+        "price": 0.0667505301703043
       },
       "curve_id": "000496"
     },
@@ -5062,7 +5062,7 @@
       "product_id": "000497",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0727590852283605
+        "price": 0.07276438148492215
       },
       "curve_id": "000497"
     },
@@ -5072,7 +5072,7 @@
       "product_id": "000498",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05078491025609089
+        "price": 0.05077768547876671
       },
       "curve_id": "000498"
     },
@@ -5082,7 +5082,7 @@
       "product_id": "000499",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09385146367279196
+        "price": 0.09384928139350412
       },
       "curve_id": "000499"
     },
@@ -5092,7 +5092,7 @@
       "product_id": "000500",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10983157247014974
+        "price": 0.10982478518343008
       },
       "curve_id": "000500"
     },
@@ -5172,7 +5172,7 @@
       "product_id": "000508",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0491934493906415e-08
+        "price": 2.0470206981872734e-08
       },
       "curve_id": "000508"
     },
@@ -5182,7 +5182,7 @@
       "product_id": "000509",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0011396990424331621
+        "price": 0.0011400524239764398
       },
       "curve_id": "000509"
     },
@@ -5192,7 +5192,7 @@
       "product_id": "000510",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.189601161777313e-05
+        "price": 2.1912859880430548e-05
       },
       "curve_id": "000510"
     },
@@ -5202,7 +5202,7 @@
       "product_id": "000511",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.507541823149471e-07
+        "price": 5.51165076422206e-07
       },
       "curve_id": "000511"
     },
@@ -5212,7 +5212,7 @@
       "product_id": "000512",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.2398244794739923e-06
+        "price": 3.24141130590358e-06
       },
       "curve_id": "000512"
     },
@@ -5222,7 +5222,7 @@
       "product_id": "000513",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.862438243965564e-07
+        "price": 5.865158631705508e-07
       },
       "curve_id": "000513"
     },
@@ -5232,7 +5232,7 @@
       "product_id": "000514",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.117023434366699e-08
+        "price": 9.118839860110511e-08
       },
       "curve_id": "000514"
     },
@@ -5242,7 +5242,7 @@
       "product_id": "000515",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003181375610420978
+        "price": 0.00031798230274812656
       },
       "curve_id": "000515"
     },
@@ -5252,7 +5252,7 @@
       "product_id": "000516",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.006167195439293671
+        "price": 0.006166328403771626
       },
       "curve_id": "000516"
     },
@@ -5262,7 +5262,7 @@
       "product_id": "000517",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0018598158628372885
+        "price": 0.0018604423735461562
       },
       "curve_id": "000517"
     },
@@ -5272,7 +5272,7 @@
       "product_id": "000518",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003874016728633717
+        "price": 0.0003876218250592339
       },
       "curve_id": "000518"
     },
@@ -5282,7 +5282,7 @@
       "product_id": "000519",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010705537647656804
+        "price": 0.010707361190420928
       },
       "curve_id": "000519"
     },
@@ -5292,7 +5292,7 @@
       "product_id": "000520",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013206368307957628
+        "price": 0.013207340959570768
       },
       "curve_id": "000520"
     },
@@ -5302,7 +5302,7 @@
       "product_id": "000521",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.027953261320605383
+        "price": 0.027953831468590762
       },
       "curve_id": "000521"
     },
@@ -5312,7 +5312,7 @@
       "product_id": "000522",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03547746488334225
+        "price": 0.03547779964171893
       },
       "curve_id": "000522"
     },
@@ -5322,7 +5322,7 @@
       "product_id": "000523",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04970793046792432
+        "price": 0.04970668839693282
       },
       "curve_id": "000523"
     },
@@ -5332,7 +5332,7 @@
       "product_id": "000524",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07152980586968516
+        "price": 0.07152758675018922
       },
       "curve_id": "000524"
     },
@@ -5342,7 +5342,7 @@
       "product_id": "000525",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09494518887463155
+        "price": 0.09494511261429484
       },
       "curve_id": "000525"
     },
@@ -5372,7 +5372,7 @@
       "product_id": "000528",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.424571879819806e-15
+        "price": 5.5116966322522916e-15
       },
       "curve_id": "000528"
     },
@@ -5392,7 +5392,7 @@
       "product_id": "000530",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.271199772409436e-06
+        "price": 7.269360584686527e-06
       },
       "curve_id": "000530"
     },
@@ -5402,7 +5402,7 @@
       "product_id": "000531",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.340198603121657e-06
+        "price": 6.3343334150193185e-06
       },
       "curve_id": "000531"
     },
@@ -5422,7 +5422,7 @@
       "product_id": "000533",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.017023299062888464
+        "price": 0.017026527581432527
       },
       "curve_id": "000533"
     },
@@ -5432,7 +5432,7 @@
       "product_id": "000534",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013593398315561389
+        "price": 0.013599378315639066
       },
       "curve_id": "000534"
     },
@@ -5442,7 +5442,7 @@
       "product_id": "000535",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020176932526372315
+        "price": 0.020176268832962196
       },
       "curve_id": "000535"
     },
@@ -5452,7 +5452,7 @@
       "product_id": "000536",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02482880236909657
+        "price": 0.024832300028751253
       },
       "curve_id": "000536"
     },
@@ -5462,7 +5462,7 @@
       "product_id": "000537",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0015490266398458241
+        "price": 0.0015492351376333313
       },
       "curve_id": "000537"
     },
@@ -5472,7 +5472,7 @@
       "product_id": "000538",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.018928554078152082
+        "price": 0.018926983275015075
       },
       "curve_id": "000538"
     },
@@ -5482,7 +5482,7 @@
       "product_id": "000539",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008671933493127226
+        "price": 0.00867088644635583
       },
       "curve_id": "000539"
     },
@@ -5492,7 +5492,7 @@
       "product_id": "000540",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007992323313572025
+        "price": 0.007991901843587002
       },
       "curve_id": "000540"
     },
@@ -5502,7 +5502,7 @@
       "product_id": "000541",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.028426107428057512
+        "price": 0.028430706487340585
       },
       "curve_id": "000541"
     },
@@ -5512,7 +5512,7 @@
       "product_id": "000542",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0027821866312029986
+        "price": 0.002783372409349616
       },
       "curve_id": "000542"
     },
@@ -5522,7 +5522,7 @@
       "product_id": "000543",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002830553810400094
+        "price": 0.002833267762725744
       },
       "curve_id": "000543"
     },
@@ -5532,7 +5532,7 @@
       "product_id": "000544",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007555603796060684
+        "price": 0.007554003394268705
       },
       "curve_id": "000544"
     },
@@ -5542,7 +5542,7 @@
       "product_id": "000545",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06047554738310812
+        "price": 0.06047864783925572
       },
       "curve_id": "000545"
     },
@@ -5552,7 +5552,7 @@
       "product_id": "000546",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.036348371996759554
+        "price": 0.03635181297145995
       },
       "curve_id": "000546"
     },
@@ -5562,7 +5562,7 @@
       "product_id": "000547",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05488153754157943
+        "price": 0.054880038072611104
       },
       "curve_id": "000547"
     },
@@ -5572,7 +5572,7 @@
       "product_id": "000548",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05637177115450731
+        "price": 0.056371266853273094
       },
       "curve_id": "000548"
     },
@@ -5582,7 +5582,7 @@
       "product_id": "000549",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11158667863994687
+        "price": 0.11159253578327677
       },
       "curve_id": "000549"
     },
@@ -5592,7 +5592,7 @@
       "product_id": "000550",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.13285454320050738
+        "price": 0.1328605697710188
       },
       "curve_id": "000550"
     },
@@ -5662,7 +5662,7 @@
       "product_id": "000557",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.5860071794133745e-12
+        "price": 1.5917137126754394e-12
       },
       "curve_id": "000557"
     },
@@ -5672,7 +5672,7 @@
       "product_id": "000558",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.394529740345549e-15
+        "price": 1.3625754737941292e-15
       },
       "curve_id": "000558"
     },
@@ -5682,7 +5682,7 @@
       "product_id": "000559",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0008909084788028543
+        "price": 0.0008889207453817161
       },
       "curve_id": "000559"
     },
@@ -5692,7 +5692,7 @@
       "product_id": "000560",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.2477635485100627e-05
+        "price": 1.2504402432314023e-05
       },
       "curve_id": "000560"
     },
@@ -5702,7 +5702,7 @@
       "product_id": "000561",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0820423394926277e-05
+        "price": 2.0799115468247975e-05
       },
       "curve_id": "000561"
     },
@@ -5712,7 +5712,7 @@
       "product_id": "000562",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00011116540890285243
+        "price": 0.00011158367940761194
       },
       "curve_id": "000562"
     },
@@ -5732,7 +5732,7 @@
       "product_id": "000564",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0008391195059574974
+        "price": 0.0008416538474393942
       },
       "curve_id": "000564"
     },
@@ -5742,7 +5742,7 @@
       "product_id": "000565",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004571651747360961
+        "price": 0.00045656244783144617
       },
       "curve_id": "000565"
     },
@@ -5752,7 +5752,7 @@
       "product_id": "000566",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.546167250566504e-05
+        "price": 6.495668661443688e-05
       },
       "curve_id": "000566"
     },
@@ -5762,7 +5762,7 @@
       "product_id": "000567",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.001898368530157346
+        "price": 0.0018998238416582658
       },
       "curve_id": "000567"
     },
@@ -5772,7 +5772,7 @@
       "product_id": "000568",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0016392716837142496
+        "price": 0.0016426055596358013
       },
       "curve_id": "000568"
     },
@@ -5782,7 +5782,7 @@
       "product_id": "000569",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0057844564364141204
+        "price": 0.0057917811557473
       },
       "curve_id": "000569"
     },
@@ -5792,7 +5792,7 @@
       "product_id": "000570",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.021512709234181915
+        "price": 0.02149691897707584
       },
       "curve_id": "000570"
     },
@@ -5802,7 +5802,7 @@
       "product_id": "000571",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020458436797645918
+        "price": 0.02046002488689469
       },
       "curve_id": "000571"
     },
@@ -5812,7 +5812,7 @@
       "product_id": "000572",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04939327281957673
+        "price": 0.04939088057470831
       },
       "curve_id": "000572"
     },
@@ -5822,7 +5822,7 @@
       "product_id": "000573",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05852751612804785
+        "price": 0.058515455817962914
       },
       "curve_id": "000573"
     },
@@ -5832,7 +5832,7 @@
       "product_id": "000574",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07652117380457069
+        "price": 0.0765129497480036
       },
       "curve_id": "000574"
     },
@@ -5842,7 +5842,7 @@
       "product_id": "000575",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10242270075472848
+        "price": 0.10241506856480431
       },
       "curve_id": "000575"
     },
@@ -5872,7 +5872,7 @@
       "product_id": "000578",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.6506484941550246e-16
+        "price": 1.7202364859735573e-16
       },
       "curve_id": "000578"
     },
@@ -5882,7 +5882,7 @@
       "product_id": "000579",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.158557446139253e-06
+        "price": 4.168172282329819e-06
       },
       "curve_id": "000579"
     },
@@ -5892,7 +5892,7 @@
       "product_id": "000580",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00038390230271447695
+        "price": 0.0003832103304848844
       },
       "curve_id": "000580"
     },
@@ -5912,7 +5912,7 @@
       "product_id": "000582",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0011402220513751504
+        "price": 0.0011336066990365046
       },
       "curve_id": "000582"
     },
@@ -5922,7 +5922,7 @@
       "product_id": "000583",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.4834812365531426e-06
+        "price": 1.4733680713051962e-06
       },
       "curve_id": "000583"
     },
@@ -5932,7 +5932,7 @@
       "product_id": "000584",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007758086412488208
+        "price": 0.007760478469640897
       },
       "curve_id": "000584"
     },
@@ -5942,7 +5942,7 @@
       "product_id": "000585",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007892800423260016
+        "price": 0.007888856429456581
       },
       "curve_id": "000585"
     },
@@ -5952,7 +5952,7 @@
       "product_id": "000586",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0014479736028121248
+        "price": 0.0014482715868149587
       },
       "curve_id": "000586"
     },
@@ -5962,7 +5962,7 @@
       "product_id": "000587",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02997314455980804
+        "price": 0.0299718822977183
       },
       "curve_id": "000587"
     },
@@ -5972,7 +5972,7 @@
       "product_id": "000588",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00016362558509278036
+        "price": 0.00016374150498206508
       },
       "curve_id": "000588"
     },
@@ -5982,7 +5982,7 @@
       "product_id": "000589",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.001212784477073181
+        "price": 0.001215425942817483
       },
       "curve_id": "000589"
     },
@@ -5992,7 +5992,7 @@
       "product_id": "000590",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0030163652472181
+        "price": 0.003017144145045614
       },
       "curve_id": "000590"
     },
@@ -6002,7 +6002,7 @@
       "product_id": "000591",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010107520618238941
+        "price": 0.010113443285744261
       },
       "curve_id": "000591"
     },
@@ -6012,7 +6012,7 @@
       "product_id": "000592",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0026261591437413134
+        "price": 0.002629057484037467
       },
       "curve_id": "000592"
     },
@@ -6022,7 +6022,7 @@
       "product_id": "000593",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.036840755174073925
+        "price": 0.03683469041768095
       },
       "curve_id": "000593"
     },
@@ -6032,7 +6032,7 @@
       "product_id": "000594",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0023238219045330077
+        "price": 0.0023243326190760805
       },
       "curve_id": "000594"
     },
@@ -6042,7 +6042,7 @@
       "product_id": "000595",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.004197210722759026
+        "price": 0.00419434215304193
       },
       "curve_id": "000595"
     },
@@ -6052,7 +6052,7 @@
       "product_id": "000596",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.012473761475990774
+        "price": 0.01248213084797134
       },
       "curve_id": "000596"
     },
@@ -6062,7 +6062,7 @@
       "product_id": "000597",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03171412074956215
+        "price": 0.0317224492953756
       },
       "curve_id": "000597"
     },
@@ -6072,7 +6072,7 @@
       "product_id": "000598",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05171267401285673
+        "price": 0.051712577412455385
       },
       "curve_id": "000598"
     },
@@ -6082,7 +6082,7 @@
       "product_id": "000599",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11431909215413871
+        "price": 0.11427526016648226
       },
       "curve_id": "000599"
     },
@@ -6092,7 +6092,7 @@
       "product_id": "000600",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.13493911392525826
+        "price": 0.13490401340236113
       },
       "curve_id": "000600"
     },
@@ -6152,7 +6152,7 @@
       "product_id": "000606",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.3950855076938263e-13
+        "price": 1.397432011452245e-13
       },
       "curve_id": "000606"
     },
@@ -6162,7 +6162,7 @@
       "product_id": "000607",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.639228625525281e-10
+        "price": 4.6375297282056633e-10
       },
       "curve_id": "000607"
     },
@@ -6182,7 +6182,7 @@
       "product_id": "000609",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0031776714159637565
+        "price": 0.003178174643824472
       },
       "curve_id": "000609"
     },
@@ -6192,7 +6192,7 @@
       "product_id": "000610",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.6947658053882718e-08
+        "price": 2.6954014722522666e-08
       },
       "curve_id": "000610"
     },
@@ -6202,7 +6202,7 @@
       "product_id": "000611",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.689613501502287e-12
+        "price": 8.69166914065043e-12
       },
       "curve_id": "000611"
     },
@@ -6212,7 +6212,7 @@
       "product_id": "000612",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.978378573108205e-05
+        "price": 4.978549201401297e-05
       },
       "curve_id": "000612"
     },
@@ -6222,7 +6222,7 @@
       "product_id": "000613",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.961581652497082e-11
+        "price": 6.96989488196157e-11
       },
       "curve_id": "000613"
     },
@@ -6232,7 +6232,7 @@
       "product_id": "000614",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0144653877549913e-05
+        "price": 2.015002575555397e-05
       },
       "curve_id": "000614"
     },
@@ -6242,7 +6242,7 @@
       "product_id": "000615",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.006859522617891911
+        "price": 0.006858774886190799
       },
       "curve_id": "000615"
     },
@@ -6252,7 +6252,7 @@
       "product_id": "000616",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.8698646596655277e-06
+        "price": 1.8697618829083707e-06
       },
       "curve_id": "000616"
     },
@@ -6262,7 +6262,7 @@
       "product_id": "000617",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.274581022531293e-07
+        "price": 5.276282896788049e-07
       },
       "curve_id": "000617"
     },
@@ -6272,7 +6272,7 @@
       "product_id": "000618",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0008474680222000652
+        "price": 0.0008474029491647994
       },
       "curve_id": "000618"
     },
@@ -6282,7 +6282,7 @@
       "product_id": "000619",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003839339131838093
+        "price": 0.003838891575177472
       },
       "curve_id": "000619"
     },
@@ -6292,7 +6292,7 @@
       "product_id": "000620",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.023704175817003126
+        "price": 0.023703982960095238
       },
       "curve_id": "000620"
     },
@@ -6302,7 +6302,7 @@
       "product_id": "000621",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.017683109065119273
+        "price": 0.017683048505350407
       },
       "curve_id": "000621"
     },
@@ -6312,7 +6312,7 @@
       "product_id": "000622",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.034622891700791913
+        "price": 0.034623873874392475
       },
       "curve_id": "000622"
     },
@@ -6322,7 +6322,7 @@
       "product_id": "000623",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0625928366083498
+        "price": 0.06259073580039576
       },
       "curve_id": "000623"
     },
@@ -6332,7 +6332,7 @@
       "product_id": "000624",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07328754570613594
+        "price": 0.07328669052078285
       },
       "curve_id": "000624"
     },
@@ -6342,7 +6342,7 @@
       "product_id": "000625",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10026719564884634
+        "price": 0.10026697992148037
       },
       "curve_id": "000625"
     },
@@ -6372,7 +6372,7 @@
       "product_id": "000628",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0268648549314534e-16
+        "price": 1.6834876468175841e-16
       },
       "curve_id": "000628"
     },
@@ -6382,7 +6382,7 @@
       "product_id": "000629",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.249199802408524e-07
+        "price": 9.248518864877228e-07
       },
       "curve_id": "000629"
     },
@@ -6392,7 +6392,7 @@
       "product_id": "000630",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.242061226380575e-05
+        "price": 7.243248206146441e-05
       },
       "curve_id": "000630"
     },
@@ -6402,7 +6402,7 @@
       "product_id": "000631",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.17732057345971e-06
+        "price": 6.1740822476391045e-06
       },
       "curve_id": "000631"
     },
@@ -6412,7 +6412,7 @@
       "product_id": "000632",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004036055266938704
+        "price": 0.0004036572279984968
       },
       "curve_id": "000632"
     },
@@ -6422,7 +6422,7 @@
       "product_id": "000633",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.004629029589075295
+        "price": 0.004628244621866506
       },
       "curve_id": "000633"
     },
@@ -6432,7 +6432,7 @@
       "product_id": "000634",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005349818279362428
+        "price": 0.005349501025493142
       },
       "curve_id": "000634"
     },
@@ -6442,7 +6442,7 @@
       "product_id": "000635",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00010844726804466048
+        "price": 0.00010843527931221272
       },
       "curve_id": "000635"
     },
@@ -6452,7 +6452,7 @@
       "product_id": "000636",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.012223117714119436
+        "price": 0.012224054779226834
       },
       "curve_id": "000636"
     },
@@ -6462,7 +6462,7 @@
       "product_id": "000637",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.080258700009224e-05
+        "price": 8.077804811333633e-05
       },
       "curve_id": "000637"
     },
@@ -6472,7 +6472,7 @@
       "product_id": "000638",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0026869974731849045
+        "price": 0.0026875838699033094
       },
       "curve_id": "000638"
     },
@@ -6482,7 +6482,7 @@
       "product_id": "000639",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.025669559564615363
+        "price": 0.02566836941802708
       },
       "curve_id": "000639"
     },
@@ -6492,7 +6492,7 @@
       "product_id": "000640",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01570852488585217
+        "price": 0.01570785137103925
       },
       "curve_id": "000640"
     },
@@ -6502,7 +6502,7 @@
       "product_id": "000641",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003685218052747463
+        "price": 0.00036845075294433816
       },
       "curve_id": "000641"
     },
@@ -6512,7 +6512,7 @@
       "product_id": "000642",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010731878228386615
+        "price": 0.010733200976224544
       },
       "curve_id": "000642"
     },
@@ -6522,7 +6522,7 @@
       "product_id": "000643",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0012373324586297807
+        "price": 0.0012375380277934722
       },
       "curve_id": "000643"
     },
@@ -6532,7 +6532,7 @@
       "product_id": "000644",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.042297293988719176
+        "price": 0.04229579815660034
       },
       "curve_id": "000644"
     },
@@ -6542,7 +6542,7 @@
       "product_id": "000645",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00939834167488518
+        "price": 0.009398270015057997
       },
       "curve_id": "000645"
     },
@@ -6552,7 +6552,7 @@
       "product_id": "000646",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01514319308529688
+        "price": 0.015143770313968186
       },
       "curve_id": "000646"
     },
@@ -6562,7 +6562,7 @@
       "product_id": "000647",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06484854452684219
+        "price": 0.06484463292167775
       },
       "curve_id": "000647"
     },
@@ -6572,7 +6572,7 @@
       "product_id": "000648",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07116496187780452
+        "price": 0.07116293013713793
       },
       "curve_id": "000648"
     },
@@ -6582,7 +6582,7 @@
       "product_id": "000649",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07650481484056526
+        "price": 0.07650378319161788
       },
       "curve_id": "000649"
     },
@@ -6592,7 +6592,7 @@
       "product_id": "000650",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.1381596723786923
+        "price": 0.13815658497830463
       },
       "curve_id": "000650"
     },
@@ -6672,7 +6672,7 @@
       "product_id": "000658",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.802155781368131e-14
+        "price": 3.768366081001588e-14
       },
       "curve_id": "000658"
     },
@@ -6682,7 +6682,7 @@
       "product_id": "000659",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004234699018293292
+        "price": 0.0004244642009906263
       },
       "curve_id": "000659"
     },
@@ -6692,7 +6692,7 @@
       "product_id": "000660",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0006955183642560203
+        "price": 0.0006955444700876418
       },
       "curve_id": "000660"
     },
@@ -6702,7 +6702,7 @@
       "product_id": "000661",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0056200427376630335
+        "price": 0.005621888952823895
       },
       "curve_id": "000661"
     },
@@ -6712,7 +6712,7 @@
       "product_id": "000662",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.2058713313482265e-05
+        "price": 4.2107142403284906e-05
       },
       "curve_id": "000662"
     },
@@ -6722,7 +6722,7 @@
       "product_id": "000663",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.8151194532725806e-08
+        "price": 3.832774211752515e-08
       },
       "curve_id": "000663"
     },
@@ -6732,7 +6732,7 @@
       "product_id": "000664",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0034045006484192397
+        "price": 0.0034045533166890962
       },
       "curve_id": "000664"
     },
@@ -6742,7 +6742,7 @@
       "product_id": "000665",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0003145108265449059
+        "price": 0.00031580367820743804
       },
       "curve_id": "000665"
     },
@@ -6752,7 +6752,7 @@
       "product_id": "000666",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.923875720099161e-06
+        "price": 3.9186535188140414e-06
       },
       "curve_id": "000666"
     },
@@ -6762,7 +6762,7 @@
       "product_id": "000667",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0016778746671411437
+        "price": 0.0016763942163813828
       },
       "curve_id": "000667"
     },
@@ -6772,7 +6772,7 @@
       "product_id": "000668",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0050552565655617165
+        "price": 0.005055273380244696
       },
       "curve_id": "000668"
     },
@@ -6782,7 +6782,7 @@
       "product_id": "000669",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013261523364862304
+        "price": 0.013268692520634784
       },
       "curve_id": "000669"
     },
@@ -6792,7 +6792,7 @@
       "product_id": "000670",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01791099040312194
+        "price": 0.01791160135777614
       },
       "curve_id": "000670"
     },
@@ -6802,7 +6802,7 @@
       "product_id": "000671",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011855569781074271
+        "price": 0.011859360366118898
       },
       "curve_id": "000671"
     },
@@ -6812,7 +6812,7 @@
       "product_id": "000672",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0453795984233778
+        "price": 0.045386351441222716
       },
       "curve_id": "000672"
     },
@@ -6822,7 +6822,7 @@
       "product_id": "000673",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0494374453862918
+        "price": 0.049445493018166364
       },
       "curve_id": "000673"
     },
@@ -6832,7 +6832,7 @@
       "product_id": "000674",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07999921093046469
+        "price": 0.08000893124629538
       },
       "curve_id": "000674"
     },
@@ -6842,7 +6842,7 @@
       "product_id": "000675",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10388235664374024
+        "price": 0.10389412281832244
       },
       "curve_id": "000675"
     },
@@ -6882,7 +6882,7 @@
       "product_id": "000679",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.0809349297850946e-13
+        "price": 2.0772468034737785e-13
       },
       "curve_id": "000679"
     },
@@ -6892,7 +6892,7 @@
       "product_id": "000680",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.1919165183024369e-06
+        "price": 1.1905409092136132e-06
       },
       "curve_id": "000680"
     },
@@ -6902,7 +6902,7 @@
       "product_id": "000681",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0010919556538605546
+        "price": 0.0010944335151225615
       },
       "curve_id": "000681"
     },
@@ -6912,7 +6912,7 @@
       "product_id": "000682",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002263873235440611
+        "price": 0.0022642665110769455
       },
       "curve_id": "000682"
     },
@@ -6922,7 +6922,7 @@
       "product_id": "000683",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.015757671156296893
+        "price": 0.01575601550398542
       },
       "curve_id": "000683"
     },
@@ -6932,7 +6932,7 @@
       "product_id": "000684",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0176438334830763
+        "price": 0.01764994863846192
       },
       "curve_id": "000684"
     },
@@ -6942,7 +6942,7 @@
       "product_id": "000685",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008037969353816399
+        "price": 0.00804285471353805
       },
       "curve_id": "000685"
     },
@@ -6952,7 +6952,7 @@
       "product_id": "000686",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0022578607272472073
+        "price": 0.002258112036011395
       },
       "curve_id": "000686"
     },
@@ -6962,7 +6962,7 @@
       "product_id": "000687",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.037351061535654595
+        "price": 0.03735416134880443
       },
       "curve_id": "000687"
     },
@@ -6972,7 +6972,7 @@
       "product_id": "000688",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020282764430170297
+        "price": 0.020288456056886672
       },
       "curve_id": "000688"
     },
@@ -6982,7 +6982,7 @@
       "product_id": "000689",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.035847342876673016
+        "price": 0.0358500301062149
       },
       "curve_id": "000689"
     },
@@ -6992,7 +6992,7 @@
       "product_id": "000690",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.03267097640920835
+        "price": 0.03267772336412256
       },
       "curve_id": "000690"
     },
@@ -7002,7 +7002,7 @@
       "product_id": "000691",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0006291546487257882
+        "price": 0.0006329570600489276
       },
       "curve_id": "000691"
     },
@@ -7012,7 +7012,7 @@
       "product_id": "000692",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009869961832546181
+        "price": 0.009870822662035983
       },
       "curve_id": "000692"
     },
@@ -7022,7 +7022,7 @@
       "product_id": "000693",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0024645637094392603
+        "price": 0.0024676415577177813
       },
       "curve_id": "000693"
     },
@@ -7032,7 +7032,7 @@
       "product_id": "000694",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.019427640356892262
+        "price": 0.019433925502410854
       },
       "curve_id": "000694"
     },
@@ -7042,7 +7042,7 @@
       "product_id": "000695",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0050286046623860825
+        "price": 0.0050267595388237
       },
       "curve_id": "000695"
     },
@@ -7052,7 +7052,7 @@
       "product_id": "000696",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05815110052877226
+        "price": 0.058162252875542664
       },
       "curve_id": "000696"
     },
@@ -7062,7 +7062,7 @@
       "product_id": "000697",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06585465620095488
+        "price": 0.06586122915047143
       },
       "curve_id": "000697"
     },
@@ -7072,7 +7072,7 @@
       "product_id": "000698",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07720024649362667
+        "price": 0.07721018774801025
       },
       "curve_id": "000698"
     },
@@ -7082,7 +7082,7 @@
       "product_id": "000699",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10476023782383315
+        "price": 0.10476788081701771
       },
       "curve_id": "000699"
     },
@@ -7092,7 +7092,7 @@
       "product_id": "000700",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11592472361100448
+        "price": 0.11593012719746332
       },
       "curve_id": "000700"
     },
@@ -7162,7 +7162,7 @@
       "product_id": "000707",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.152333993361285e-08
+        "price": 4.17257175336663e-08
       },
       "curve_id": "000707"
     },
@@ -7172,7 +7172,7 @@
       "product_id": "000708",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.106005552457932e-09
+        "price": 4.102110466111135e-09
       },
       "curve_id": "000708"
     },
@@ -7182,7 +7182,7 @@
       "product_id": "000709",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.0427557628817281e-07
+        "price": 1.0406904313517971e-07
       },
       "curve_id": "000709"
     },
@@ -7192,7 +7192,7 @@
       "product_id": "000710",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0012977802023586005
+        "price": 0.0012981438524967137
       },
       "curve_id": "000710"
     },
@@ -7212,7 +7212,7 @@
       "product_id": "000712",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.3066152456788459e-05
+        "price": 1.3074689788211864e-05
       },
       "curve_id": "000712"
     },
@@ -7222,7 +7222,7 @@
       "product_id": "000713",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.02214655825674e-05
+        "price": 8.02593073694173e-05
       },
       "curve_id": "000713"
     },
@@ -7242,7 +7242,7 @@
       "product_id": "000715",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.591695348695642e-17
+        "price": 3.666941815296972e-17
       },
       "curve_id": "000715"
     },
@@ -7252,7 +7252,7 @@
       "product_id": "000716",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00043548638211210466
+        "price": 0.00043425621248308066
       },
       "curve_id": "000716"
     },
@@ -7262,7 +7262,7 @@
       "product_id": "000717",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0007590758812365261
+        "price": 0.000758869398949702
       },
       "curve_id": "000717"
     },
@@ -7272,7 +7272,7 @@
       "product_id": "000718",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0018839280940602388
+        "price": 0.0018831256231037208
       },
       "curve_id": "000718"
     },
@@ -7282,7 +7282,7 @@
       "product_id": "000719",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00396387505751028
+        "price": 0.003964047807710924
       },
       "curve_id": "000719"
     },
@@ -7292,7 +7292,7 @@
       "product_id": "000720",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.019179481122927222
+        "price": 0.019177998223533388
       },
       "curve_id": "000720"
     },
@@ -7302,7 +7302,7 @@
       "product_id": "000721",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.02809775164075279
+        "price": 0.028097400376813964
       },
       "curve_id": "000721"
     },
@@ -7312,7 +7312,7 @@
       "product_id": "000722",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0443686125677315
+        "price": 0.044364019471255234
       },
       "curve_id": "000722"
     },
@@ -7322,7 +7322,7 @@
       "product_id": "000723",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.05448904998808046
+        "price": 0.05448539735528901
       },
       "curve_id": "000723"
     },
@@ -7332,7 +7332,7 @@
       "product_id": "000724",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07455440556326753
+        "price": 0.07454746934228296
       },
       "curve_id": "000724"
     },
@@ -7342,7 +7342,7 @@
       "product_id": "000725",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10194558424598654
+        "price": 0.10193223144538088
       },
       "curve_id": "000725"
     },
@@ -7392,7 +7392,7 @@
       "product_id": "000730",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -1.0886505536944292e-17
+        "price": -1.0886257140740466e-17
       },
       "curve_id": "000730"
     },
@@ -7402,7 +7402,7 @@
       "product_id": "000731",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0017825583241622145
+        "price": 0.001781501202096969
       },
       "curve_id": "000731"
     },
@@ -7412,7 +7412,7 @@
       "product_id": "000732",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004280348646216736
+        "price": 0.00042771807438324316
       },
       "curve_id": "000732"
     },
@@ -7422,7 +7422,7 @@
       "product_id": "000733",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.007363300025329922
+        "price": 0.007363487327192608
       },
       "curve_id": "000733"
     },
@@ -7442,7 +7442,7 @@
       "product_id": "000735",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.008382537593546902
+        "price": 0.008383125635197941
       },
       "curve_id": "000735"
     },
@@ -7452,7 +7452,7 @@
       "product_id": "000736",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.025102640019994737
+        "price": 0.02509639514321682
       },
       "curve_id": "000736"
     },
@@ -7462,7 +7462,7 @@
       "product_id": "000737",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003533080082301465
+        "price": 0.0035272523512405174
       },
       "curve_id": "000737"
     },
@@ -7472,7 +7472,7 @@
       "product_id": "000738",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.011160937283196226
+        "price": 0.011165455808412772
       },
       "curve_id": "000738"
     },
@@ -7482,7 +7482,7 @@
       "product_id": "000739",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00024678447435817763
+        "price": 0.0002467420054901859
       },
       "curve_id": "000739"
     },
@@ -7492,7 +7492,7 @@
       "product_id": "000740",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.644476527450539e-06
+        "price": 7.627436051288461e-06
       },
       "curve_id": "000740"
     },
@@ -7502,7 +7502,7 @@
       "product_id": "000741",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.022234104566611013
+        "price": 0.0222314422021076
       },
       "curve_id": "000741"
     },
@@ -7512,7 +7512,7 @@
       "product_id": "000742",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01875342381010303
+        "price": 0.018742433502406786
       },
       "curve_id": "000742"
     },
@@ -7522,7 +7522,7 @@
       "product_id": "000743",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.014076307112895425
+        "price": 0.01408013882597603
       },
       "curve_id": "000743"
     },
@@ -7532,7 +7532,7 @@
       "product_id": "000744",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00748891373602889
+        "price": 0.007488311682366633
       },
       "curve_id": "000744"
     },
@@ -7542,7 +7542,7 @@
       "product_id": "000745",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04413821918028482
+        "price": 0.04413101243996864
       },
       "curve_id": "000745"
     },
@@ -7552,7 +7552,7 @@
       "product_id": "000746",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.044811643695172876
+        "price": 0.04480515176312594
       },
       "curve_id": "000746"
     },
@@ -7562,7 +7562,7 @@
       "product_id": "000747",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07088041865694272
+        "price": 0.07087211389798664
       },
       "curve_id": "000747"
     },
@@ -7572,7 +7572,7 @@
       "product_id": "000748",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07558094145477035
+        "price": 0.07557340100496979
       },
       "curve_id": "000748"
     },
@@ -7582,7 +7582,7 @@
       "product_id": "000749",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10141771726797788
+        "price": 0.10140240333585848
       },
       "curve_id": "000749"
     },
@@ -7592,7 +7592,7 @@
       "product_id": "000750",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.13081440826324398
+        "price": 0.13079234028209208
       },
       "curve_id": "000750"
     },
@@ -7642,7 +7642,7 @@
       "product_id": "000755",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.0909262557095e-17
+        "price": -3.7808307005921847e-17
       },
       "curve_id": "000755"
     },
@@ -7652,7 +7652,7 @@
       "product_id": "000756",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.255303893060713e-07
+        "price": 6.258386637842273e-07
       },
       "curve_id": "000756"
     },
@@ -7672,7 +7672,7 @@
       "product_id": "000758",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.474637663240768e-09
+        "price": 5.510807813288124e-09
       },
       "curve_id": "000758"
     },
@@ -7682,7 +7682,7 @@
       "product_id": "000759",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0021766394578461856
+        "price": 0.0021761462982334834
       },
       "curve_id": "000759"
     },
@@ -7692,7 +7692,7 @@
       "product_id": "000760",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.044209476716074e-07
+        "price": 9.04604708874151e-07
       },
       "curve_id": "000760"
     },
@@ -7702,7 +7702,7 @@
       "product_id": "000761",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.192824054785363e-08
+        "price": 4.19375228423132e-08
       },
       "curve_id": "000761"
     },
@@ -7712,7 +7712,7 @@
       "product_id": "000762",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00019094217936768687
+        "price": 0.00019095256829518292
       },
       "curve_id": "000762"
     },
@@ -7722,7 +7722,7 @@
       "product_id": "000763",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0007614341569076866
+        "price": 0.0007614389181454795
       },
       "curve_id": "000763"
     },
@@ -7732,7 +7732,7 @@
       "product_id": "000764",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.173365095339789e-06
+        "price": 3.1796376338691715e-06
       },
       "curve_id": "000764"
     },
@@ -7742,7 +7742,7 @@
       "product_id": "000765",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.2127560392667884e-05
+        "price": 3.216417280396677e-05
       },
       "curve_id": "000765"
     },
@@ -7752,7 +7752,7 @@
       "product_id": "000766",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.465547524079e-05
+        "price": 1.466770874911788e-05
       },
       "curve_id": "000766"
     },
@@ -7762,7 +7762,7 @@
       "product_id": "000767",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.765627679006502e-05
+        "price": 8.767477925861189e-05
       },
       "curve_id": "000767"
     },
@@ -7772,7 +7772,7 @@
       "product_id": "000768",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0067617011048881626
+        "price": 0.006764496417992261
       },
       "curve_id": "000768"
     },
@@ -7782,7 +7782,7 @@
       "product_id": "000769",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.6415988666742396e-07
+        "price": 4.630975219675239e-07
       },
       "curve_id": "000769"
     },
@@ -7792,7 +7792,7 @@
       "product_id": "000770",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.010232913153880863
+        "price": 0.010236007336310471
       },
       "curve_id": "000770"
     },
@@ -7802,7 +7802,7 @@
       "product_id": "000771",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0256717561454588
+        "price": 0.025675724190936333
       },
       "curve_id": "000771"
     },
@@ -7812,7 +7812,7 @@
       "product_id": "000772",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0438903905871012
+        "price": 0.04389475024363154
       },
       "curve_id": "000772"
     },
@@ -7822,7 +7822,7 @@
       "product_id": "000773",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.058896695036894875
+        "price": 0.058896462033880326
       },
       "curve_id": "000773"
     },
@@ -7832,7 +7832,7 @@
       "product_id": "000774",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07024658652291182
+        "price": 0.07024913622632079
       },
       "curve_id": "000774"
     },
@@ -7842,7 +7842,7 @@
       "product_id": "000775",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10063621943567203
+        "price": 0.10063698888984818
       },
       "curve_id": "000775"
     },
@@ -7862,7 +7862,7 @@
       "product_id": "000777",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.097068356698896e-13
+        "price": 4.091112993628795e-13
       },
       "curve_id": "000777"
     },
@@ -7882,7 +7882,7 @@
       "product_id": "000779",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": -3.1014948309422547e-17
+        "price": -3.1018275661848555e-17
       },
       "curve_id": "000779"
     },
@@ -7902,7 +7902,7 @@
       "product_id": "000781",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 3.57702658032599e-07
+        "price": 3.5679797996714655e-07
       },
       "curve_id": "000781"
     },
@@ -7912,7 +7912,7 @@
       "product_id": "000782",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0007314712716880722
+        "price": 0.0007308137996581976
       },
       "curve_id": "000782"
     },
@@ -7922,7 +7922,7 @@
       "product_id": "000783",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.023132979139143695
+        "price": 0.02313565577661114
       },
       "curve_id": "000783"
     },
@@ -7932,7 +7932,7 @@
       "product_id": "000784",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 6.801782569685125e-06
+        "price": 6.780511513025146e-06
       },
       "curve_id": "000784"
     },
@@ -7942,7 +7942,7 @@
       "product_id": "000785",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020530200495481155
+        "price": 0.020532400729996958
       },
       "curve_id": "000785"
     },
@@ -7952,7 +7952,7 @@
       "product_id": "000786",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002879662439094266
+        "price": 0.00288005587014456
       },
       "curve_id": "000786"
     },
@@ -7962,7 +7962,7 @@
       "product_id": "000787",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0005974874939723707
+        "price": 0.0005976515143448491
       },
       "curve_id": "000787"
     },
@@ -7972,7 +7972,7 @@
       "product_id": "000788",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.025953891661238848
+        "price": 0.025957155694483536
       },
       "curve_id": "000788"
     },
@@ -7982,7 +7982,7 @@
       "product_id": "000789",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0027012580032884648
+        "price": 0.002702233398052034
       },
       "curve_id": "000789"
     },
@@ -7992,7 +7992,7 @@
       "product_id": "000790",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004972566104981396
+        "price": 0.0004974477482452971
       },
       "curve_id": "000790"
     },
@@ -8002,7 +8002,7 @@
       "product_id": "000791",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 7.261710396118805e-12
+        "price": 7.251456971907921e-12
       },
       "curve_id": "000791"
     },
@@ -8012,7 +8012,7 @@
       "product_id": "000792",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.014756950889807552
+        "price": 0.01475936197637262
       },
       "curve_id": "000792"
     },
@@ -8022,7 +8022,7 @@
       "product_id": "000793",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0026334584836891217
+        "price": 0.0026345912150058104
       },
       "curve_id": "000793"
     },
@@ -8032,7 +8032,7 @@
       "product_id": "000794",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009037823751628093
+        "price": 0.009037727466171597
       },
       "curve_id": "000794"
     },
@@ -8042,7 +8042,7 @@
       "product_id": "000795",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.042779420090221065
+        "price": 0.04278305288404238
       },
       "curve_id": "000795"
     },
@@ -8052,7 +8052,7 @@
       "product_id": "000796",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.057528822509183786
+        "price": 0.05753462499583206
       },
       "curve_id": "000796"
     },
@@ -8062,7 +8062,7 @@
       "product_id": "000797",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.052182838367330286
+        "price": 0.05218465698071262
       },
       "curve_id": "000797"
     },
@@ -8072,7 +8072,7 @@
       "product_id": "000798",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.08085466466755153
+        "price": 0.08086166604379275
       },
       "curve_id": "000798"
     },
@@ -8082,7 +8082,7 @@
       "product_id": "000799",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.07998224865450365
+        "price": 0.07998781160245438
       },
       "curve_id": "000799"
     },
@@ -8092,7 +8092,7 @@
       "product_id": "000800",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.11400592859090963
+        "price": 0.11400851654055866
       },
       "curve_id": "000800"
     },
@@ -8142,7 +8142,7 @@
       "product_id": "000805",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.5353613630492704e-16
+        "price": 1.6525393504298124e-16
       },
       "curve_id": "000805"
     },
@@ -8152,7 +8152,7 @@
       "product_id": "000806",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.1180798951089375e-10
+        "price": 2.116572347363898e-10
       },
       "curve_id": "000806"
     },
@@ -8162,7 +8162,7 @@
       "product_id": "000807",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.907990101008658e-09
+        "price": 2.9135063545172526e-09
       },
       "curve_id": "000807"
     },
@@ -8182,7 +8182,7 @@
       "product_id": "000809",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.2619985534593009e-16
+        "price": 4.795977202560877e-17
       },
       "curve_id": "000809"
     },
@@ -8192,7 +8192,7 @@
       "product_id": "000810",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.375792607625635e-06
+        "price": 9.362610397040377e-06
       },
       "curve_id": "000810"
     },
@@ -8202,7 +8202,7 @@
       "product_id": "000811",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.003694575586907778
+        "price": 0.003694203530318463
       },
       "curve_id": "000811"
     },
@@ -8212,7 +8212,7 @@
       "product_id": "000812",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.252173206710362e-10
+        "price": 5.248080840696394e-10
       },
       "curve_id": "000812"
     },
@@ -8222,7 +8222,7 @@
       "product_id": "000813",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0004335815095181106
+        "price": 0.0004329447612739096
       },
       "curve_id": "000813"
     },
@@ -8232,7 +8232,7 @@
       "product_id": "000814",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.294741805697559e-07
+        "price": 2.291164648783508e-07
       },
       "curve_id": "000814"
     },
@@ -8242,7 +8242,7 @@
       "product_id": "000815",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.000510596752509751
+        "price": 0.0005108628089730838
       },
       "curve_id": "000815"
     },
@@ -8252,7 +8252,7 @@
       "product_id": "000816",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.000769149879480957
+        "price": 0.000766736263120682
       },
       "curve_id": "000816"
     },
@@ -8262,7 +8262,7 @@
       "product_id": "000817",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.335223745229366e-09
+        "price": 9.370653905567606e-09
       },
       "curve_id": "000817"
     },
@@ -8272,7 +8272,7 @@
       "product_id": "000818",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.005971040126420468
+        "price": 0.005970192741156732
       },
       "curve_id": "000818"
     },
@@ -8282,7 +8282,7 @@
       "product_id": "000819",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01568113040159358
+        "price": 0.01567781671208457
       },
       "curve_id": "000819"
     },
@@ -8292,7 +8292,7 @@
       "product_id": "000820",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013991204667656354
+        "price": 0.013987494150194846
       },
       "curve_id": "000820"
     },
@@ -8302,7 +8302,7 @@
       "product_id": "000821",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.009626034120636895
+        "price": 0.009627359594402751
       },
       "curve_id": "000821"
     },
@@ -8312,7 +8312,7 @@
       "product_id": "000822",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0423119077405788
+        "price": 0.04230349410284351
       },
       "curve_id": "000822"
     },
@@ -8322,7 +8322,7 @@
       "product_id": "000823",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.057416036063038134
+        "price": 0.057402841895876855
       },
       "curve_id": "000823"
     },
@@ -8332,7 +8332,7 @@
       "product_id": "000824",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06843885507005176
+        "price": 0.06842586206488077
       },
       "curve_id": "000824"
     },
@@ -8342,7 +8342,7 @@
       "product_id": "000825",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10726664999401458
+        "price": 0.1072655411711918
       },
       "curve_id": "000825"
     },
@@ -8382,7 +8382,7 @@
       "product_id": "000829",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 8.393454364408258e-10
+        "price": 8.387861302004417e-10
       },
       "curve_id": "000829"
     },
@@ -8392,7 +8392,7 @@
       "product_id": "000830",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0031826181752030447
+        "price": 0.003180775200255004
       },
       "curve_id": "000830"
     },
@@ -8412,7 +8412,7 @@
       "product_id": "000832",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.829528326307437e-09
+        "price": 9.84203732829326e-09
       },
       "curve_id": "000832"
     },
@@ -8422,7 +8422,7 @@
       "product_id": "000833",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.8404911740235686e-06
+        "price": 1.8394335951744207e-06
       },
       "curve_id": "000833"
     },
@@ -8432,7 +8432,7 @@
       "product_id": "000834",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0012106051734661616
+        "price": 0.0012084166065953472
       },
       "curve_id": "000834"
     },
@@ -8442,7 +8442,7 @@
       "product_id": "000835",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.013718182659842149
+        "price": 0.013715575596935148
       },
       "curve_id": "000835"
     },
@@ -8452,7 +8452,7 @@
       "product_id": "000836",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.020225238062633766
+        "price": 0.020212649304162
       },
       "curve_id": "000836"
     },
@@ -8462,7 +8462,7 @@
       "product_id": "000837",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.022025958525462852
+        "price": 0.02202266601981684
       },
       "curve_id": "000837"
     },
@@ -8472,7 +8472,7 @@
       "product_id": "000838",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.00041166751701340876
+        "price": 0.00041258313217121256
       },
       "curve_id": "000838"
     },
@@ -8482,7 +8482,7 @@
       "product_id": "000839",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002048254522384607
+        "price": 0.00204755378748106
       },
       "curve_id": "000839"
     },
@@ -8492,7 +8492,7 @@
       "product_id": "000840",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.002903440197446483
+        "price": 0.002906931444581984
       },
       "curve_id": "000840"
     },
@@ -8502,7 +8502,7 @@
       "product_id": "000841",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.022652451125330764
+        "price": 0.022647795657979142
       },
       "curve_id": "000841"
     },
@@ -8512,7 +8512,7 @@
       "product_id": "000842",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0077251351316834915
+        "price": 0.007710908300421648
       },
       "curve_id": "000842"
     },
@@ -8522,7 +8522,7 @@
       "product_id": "000843",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 2.097404696080633e-06
+        "price": 2.1250676697939872e-06
       },
       "curve_id": "000843"
     },
@@ -8532,7 +8532,7 @@
       "product_id": "000844",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.01659350828062678
+        "price": 0.016595219101674274
       },
       "curve_id": "000844"
     },
@@ -8542,7 +8542,7 @@
       "product_id": "000845",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04763434548243706
+        "price": 0.04761467876863745
       },
       "curve_id": "000845"
     },
@@ -8552,7 +8552,7 @@
       "product_id": "000846",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04591564877844201
+        "price": 0.045909934299272814
       },
       "curve_id": "000846"
     },
@@ -8562,7 +8562,7 @@
       "product_id": "000847",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.04640954782778817
+        "price": 0.04639930527787517
       },
       "curve_id": "000847"
     },
@@ -8572,7 +8572,7 @@
       "product_id": "000848",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.06920777211741003
+        "price": 0.06919504585103453
       },
       "curve_id": "000848"
     },
@@ -8582,7 +8582,7 @@
       "product_id": "000849",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.09279872459397498
+        "price": 0.09278225447435262
       },
       "curve_id": "000849"
     },
@@ -8592,7 +8592,7 @@
       "product_id": "000850",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10543229326648995
+        "price": 0.10541553209476728
       },
       "curve_id": "000850"
     },
@@ -9132,7 +9132,7 @@
       "product_id": "000904",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.2544313472484647
+        "price": 0.2544260884920635
       },
       "curve_id": "000904"
     },
@@ -9142,7 +9142,7 @@
       "product_id": "000905",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.7527063805503814
+        "price": 0.7526902325396825
       },
       "curve_id": "000905"
     },
@@ -9162,7 +9162,7 @@
       "product_id": "000907",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.019857037656620502
+        "price": 0.019858741923556855
       },
       "curve_id": "000907"
     },
@@ -9172,7 +9172,7 @@
       "product_id": "000908",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.25520920357971355
+        "price": 0.25519923441938064
       },
       "curve_id": "000908"
     },
@@ -9182,7 +9182,7 @@
       "product_id": "000909",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.46696457013693426
+        "price": 0.4669503876984129
       },
       "curve_id": "000909"
     },
@@ -9192,7 +9192,7 @@
       "product_id": "000910",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 1.2352387366202546
+        "price": 1.2352253674603175
       },
       "curve_id": "000910"
     },
@@ -9222,7 +9222,7 @@
       "product_id": "000913",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 9.03375600396583e-15
+        "price": 9.102943662936327e-15
       },
       "curve_id": "000913"
     },
@@ -9232,7 +9232,7 @@
       "product_id": "000914",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.23361695284314143
+        "price": 0.23362749087301593
       },
       "curve_id": "000914"
     },
@@ -9242,7 +9242,7 @@
       "product_id": "000915",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.6963661714727878
+        "price": 0.6964004301587301
       },
       "curve_id": "000915"
     },
@@ -9272,7 +9272,7 @@
       "product_id": "000918",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.18495876378450404
+        "price": 0.18496248133245297
       },
       "curve_id": "000918"
     },
@@ -9282,7 +9282,7 @@
       "product_id": "000919",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.36677221919260306
+        "price": 0.3667630865463768
       },
       "curve_id": "000919"
     },
@@ -9292,7 +9292,7 @@
       "product_id": "000920",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.9919570780457974
+        "price": 0.9919528083333335
       },
       "curve_id": "000920"
     },
@@ -9322,7 +9322,7 @@
       "product_id": "000923",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 4.657741668114042e-17
+        "price": 5.1269336699796324e-17
       },
       "curve_id": "000923"
     },
@@ -9332,7 +9332,7 @@
       "product_id": "000924",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.21162245396232593
+        "price": 0.21160179484126973
       },
       "curve_id": "000924"
     },
@@ -9342,7 +9342,7 @@
       "product_id": "000925",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.64944774666214
+        "price": 0.6494148249999998
       },
       "curve_id": "000925"
     },
@@ -9372,7 +9372,7 @@
       "product_id": "000928",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.283425141670958
+        "price": 0.2834007239997466
       },
       "curve_id": "000928"
     },
@@ -9382,7 +9382,7 @@
       "product_id": "000929",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.4569767971881864
+        "price": 0.4568728384920634
       },
       "curve_id": "000929"
     },
@@ -9392,7 +9392,7 @@
       "product_id": "000930",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.9328264892219541
+        "price": 0.9326779706349205
       },
       "curve_id": "000930"
     },
@@ -9432,7 +9432,7 @@
       "product_id": "000934",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.2066463207992555
+        "price": 0.20665837142857135
       },
       "curve_id": "000934"
     },
@@ -9442,7 +9442,7 @@
       "product_id": "000935",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.6824428617109299
+        "price": 0.682467314285714
       },
       "curve_id": "000935"
     },
@@ -9472,7 +9472,7 @@
       "product_id": "000938",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.300401233484753
+        "price": 0.30045080078733205
       },
       "curve_id": "000938"
     },
@@ -9482,7 +9482,7 @@
       "product_id": "000939",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.33730260863227857
+        "price": 0.3373277952380953
       },
       "curve_id": "000939"
     },
@@ -9492,7 +9492,7 @@
       "product_id": "000940",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.780030797895813
+        "price": 0.7800813559523809
       },
       "curve_id": "000940"
     },
@@ -9532,7 +9532,7 @@
       "product_id": "000944",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.2183388527164457
+        "price": 0.21833220119047603
       },
       "curve_id": "000944"
     },
@@ -9542,7 +9542,7 @@
       "product_id": "000945",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.6428888798398975
+        "price": 0.6428722083333335
       },
       "curve_id": "000945"
     },
@@ -9572,7 +9572,7 @@
       "product_id": "000948",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.10958875929655287
+        "price": 0.1095966556677177
       },
       "curve_id": "000948"
     },
@@ -9582,7 +9582,7 @@
       "product_id": "000949",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.4690637000892639
+        "price": 0.4690460392857143
       },
       "curve_id": "000949"
     },
@@ -9592,7 +9592,7 @@
       "product_id": "000950",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.8828834891874311
+        "price": 0.8828503678571429
       },
       "curve_id": "000950"
     },
@@ -9632,7 +9632,7 @@
       "product_id": "000954",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.15388997686424266
+        "price": 0.15389343968253955
       },
       "curve_id": "000954"
     },
@@ -9642,7 +9642,7 @@
       "product_id": "000955",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.4975666086353304
+        "price": 0.49757251309523787
       },
       "curve_id": "000955"
     },
@@ -9662,7 +9662,7 @@
       "product_id": "000957",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0033474206686741337
+        "price": 0.003348599450119949
       },
       "curve_id": "000957"
     },
@@ -9672,7 +9672,7 @@
       "product_id": "000958",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.13881983593023295
+        "price": 0.13882157931788308
       },
       "curve_id": "000958"
     },
@@ -9682,7 +9682,7 @@
       "product_id": "000959",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.5123125821388246
+        "price": 0.5123193226190474
       },
       "curve_id": "000959"
     },
@@ -9692,7 +9692,7 @@
       "product_id": "000960",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.8081732234127043
+        "price": 0.8081768940476189
       },
       "curve_id": "000960"
     },
@@ -9732,7 +9732,7 @@
       "product_id": "000964",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.14361187681655874
+        "price": 0.14359365119047607
       },
       "curve_id": "000964"
     },
@@ -9742,7 +9742,7 @@
       "product_id": "000965",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.5452065497615814
+        "price": 0.5451786892857142
       },
       "curve_id": "000965"
     },
@@ -9772,7 +9772,7 @@
       "product_id": "000968",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.24498918840082506
+        "price": 0.24496114948357706
       },
       "curve_id": "000968"
     },
@@ -9782,7 +9782,7 @@
       "product_id": "000969",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.3169074257675172
+        "price": 0.316879811904762
       },
       "curve_id": "000969"
     },
@@ -9792,7 +9792,7 @@
       "product_id": "000970",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.6899700051731386
+        "price": 0.6899039285077863
       },
       "curve_id": "000970"
     },
@@ -9832,7 +9832,7 @@
       "product_id": "000974",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.14091162443237293
+        "price": 0.14092391944444438
       },
       "curve_id": "000974"
     },
@@ -9842,7 +9842,7 @@
       "product_id": "000975",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.5293890423706056
+        "price": 0.529424171031746
       },
       "curve_id": "000975"
     },
@@ -9872,7 +9872,7 @@
       "product_id": "000978",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.0964687595349078
+        "price": 0.09647456306600721
       },
       "curve_id": "000978"
     },
@@ -9882,7 +9882,7 @@
       "product_id": "000979",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.26934543931274413
+        "price": 0.2693525503968257
       },
       "curve_id": "000979"
     },
@@ -9892,7 +9892,7 @@
       "product_id": "000980",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.5646146256058189
+        "price": 0.5646541469741224
       },
       "curve_id": "000980"
     },
@@ -9922,7 +9922,7 @@
       "product_id": "000983",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 5.102717274005987e-17
+        "price": 5.102503578228371e-17
       },
       "curve_id": "000983"
     },
@@ -9932,7 +9932,7 @@
       "product_id": "000984",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.16169293797912598
+        "price": 0.16168919325396813
       },
       "curve_id": "000984"
     },
@@ -9942,7 +9942,7 @@
       "product_id": "000985",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.47310521593704224
+        "price": 0.47309463571428556
       },
       "curve_id": "000985"
     },
@@ -9972,7 +9972,7 @@
       "product_id": "000988",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.21407890643559313
+        "price": 0.21406615848141886
       },
       "curve_id": "000988"
     },
@@ -9982,7 +9982,7 @@
       "product_id": "000989",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.3786287421752929
+        "price": 0.37861343095238087
       },
       "curve_id": "000989"
     },
@@ -9992,7 +9992,7 @@
       "product_id": "000990",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.73463936164093
+        "price": 0.7346241551587301
       },
       "curve_id": "000990"
     },
@@ -10032,7 +10032,7 @@
       "product_id": "000994",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.12356794943237293
+        "price": 0.12356795833333334
       },
       "curve_id": "000994"
     },
@@ -10042,7 +10042,7 @@
       "product_id": "000995",
       "reference_pricer_id": "premia_cf_hull_white_1d_zb_put",
       "outputs": {
-        "price": 0.31702960038604744
+        "price": 0.31702960833333343
       },
       "curve_id": "000995"
     },

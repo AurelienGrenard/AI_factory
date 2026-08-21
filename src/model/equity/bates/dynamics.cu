@@ -16,14 +16,13 @@ namespace ai_factory::workbench::bates {
 
 // ======================== Common equity dynamics =========================
 
-// Prepare coefficients that are constant across all paths of one result row.
-__device__ __forceinline__ BatesQeParameters prepare_model(
-    const BatesModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+// Prepare the coefficients defining one transition of duration delta_t
+// under the supplied model parameters.
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters,
+    float delta_t
 ) {
-    const float dt = maturity / static_cast<float>(num_steps);
-    const heston::HestonModelParameters heston_parameters = {
+    const heston::ModelParameters heston_parameters = {
         parameters.spot,
         parameters.risk_free_rate,
         parameters.dividend_yield,
@@ -33,7 +32,7 @@ __device__ __forceinline__ BatesQeParameters prepare_model(
         parameters.gamma,
         parameters.rho,
     };
-    const float poisson_mean = parameters.jump_intensity * dt;
+    const float poisson_mean = parameters.jump_intensity * delta_t;
     const float expected_relative_jump = expm1f(
         fmaf(
             0.5f * parameters.jump_log_volatility,
@@ -43,20 +42,20 @@ __device__ __forceinline__ BatesQeParameters prepare_model(
     );
 
     return {
-        heston::prepare_model(heston_parameters, maturity, num_steps),
+        heston::prepare_model(heston_parameters, delta_t),
         poisson_mean,
         expf(-poisson_mean),
         parameters.jump_log_mean,
         parameters.jump_log_volatility,
-        parameters.jump_intensity * expected_relative_jump * dt,
+        parameters.jump_intensity * expected_relative_jump * delta_t,
     };
 }
 
 // Construct the time-zero state stored in the prepared QE parameters.
-__device__ __forceinline__ BatesState initial_state(
-    const BatesQeParameters& model
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    return heston::initial_state(model.heston);
+    return heston::initial_state(prepared_model.heston);
 }
 
 // ==================== Model-specific implementation =======================
@@ -65,18 +64,18 @@ namespace {
 
 // Add one already-sampled compound-Poisson increment to the log spot.
 __device__ __forceinline__ void apply_jump_transition(
-    const BatesQeParameters& model,
+    const PreparedModel& prepared_model,
     float jump_compensator,
     std::uint32_t jump_count,
     float jump_normal,
-    BatesState& state
+    State& state
 ) {
     float jump_increment = -jump_compensator;
     if (jump_count != 0U) {
         const float count = static_cast<float>(jump_count);
-        jump_increment = fmaf(count, model.jump_log_mean, jump_increment);
+        jump_increment = fmaf(count, prepared_model.jump_log_mean, jump_increment);
         jump_increment = fmaf(
-            model.jump_log_volatility * sqrtf(count),
+            prepared_model.jump_log_volatility * sqrtf(count),
             jump_normal,
             jump_increment
         );
@@ -96,23 +95,23 @@ __device__ __forceinline__ void apply_jump_transition(
 // dates.  This equivalence does not reconstruct the path inside the time step;
 // continuously monitored or jump-time-dependent products need extra handling.
 __device__ __forceinline__ void one_step_transition(
-    const BatesQeParameters& model,
+    const PreparedModel& prepared_model,
     float variance_normal,
     float variance_uniform,
     float stock_normal,
     std::uint32_t jump_count,
     float jump_normal,
-    BatesState& state
+    State& state
 ) {
     heston::one_step_transition(
-        model.heston,
+        prepared_model.heston,
         variance_normal,
         variance_uniform,
         stock_normal,
         state
     );
     apply_jump_transition(
-        model, model.jump_compensator, jump_count, jump_normal, state
+        prepared_model, prepared_model.jump_compensator, jump_count, jump_normal, state
     );
 }
 
@@ -122,10 +121,10 @@ namespace {
 
 // Advance only the Heston component by one QE-M numerical step.
 __device__ __forceinline__ void simulate_heston_one_step(
-    const BatesQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    BatesState& state
+    State& state
 ) {
     const float variance_normal = philox::next_normal(
         uniforms, normal_cache
@@ -135,7 +134,7 @@ __device__ __forceinline__ void simulate_heston_one_step(
     );
     const float variance_uniform = uniforms.next();
     heston::one_step_transition(
-        model.heston,
+        prepared_model.heston,
         variance_normal,
         variance_uniform,
         stock_normal,
@@ -148,18 +147,18 @@ __device__ __forceinline__ void simulate_heston_one_step(
 // on spot, so the jump sum may be applied after the Heston interval whenever
 // the payoff observes only the interval boundary.
 __device__ __forceinline__ void simulate_jump_interval(
-    const BatesQeParameters& model,
-    std::size_t step_count,
+    const PreparedModel& prepared_model,
+    std::uint32_t step_count,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    BatesState& state
+    State& state
 ) {
     const float count = static_cast<float>(step_count);
-    const float poisson_mean = model.poisson_mean * count;
+    const float poisson_mean = prepared_model.poisson_mean * count;
     const float poisson_zero_probability = step_count == 1U
-        ? model.poisson_zero_probability
+        ? prepared_model.poisson_zero_probability
         : expf(-poisson_mean);
-    const float jump_compensator = model.jump_compensator * count;
+    const float jump_compensator = prepared_model.jump_compensator * count;
 
     const float poisson_uniform = uniforms.next();
     const std::uint32_t jump_count = philox::poisson_from_uniform(
@@ -172,38 +171,38 @@ __device__ __forceinline__ void simulate_jump_interval(
         jump_normal = philox::next_normal(uniforms, normal_cache);
     }
     apply_jump_transition(
-        model, jump_compensator, jump_count, jump_normal, state
+        prepared_model, jump_compensator, jump_count, jump_normal, state
     );
 }
 
 // Simulate a boundary-only interval: daily Heston QE-M, then one exact jump sum.
 __device__ __forceinline__ void simulate_interval(
-    const BatesQeParameters& model,
-    std::size_t step_count,
+    const PreparedModel& prepared_model,
+    std::uint32_t step_count,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    BatesState& state
+    State& state
 ) {
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < step_count;
          ++step_index) {
-        simulate_heston_one_step(model, uniforms, normal_cache, state);
+        simulate_heston_one_step(prepared_model, uniforms, normal_cache, state);
     }
     simulate_jump_interval(
-        model, step_count, uniforms, normal_cache, state
+        prepared_model, step_count, uniforms, normal_cache, state
     );
 }
 
 // Draw one Bates transition from the continuous path-local uniform sequence.
 // Conditional jump draws advance the same scalar stream without reservations.
 __device__ __forceinline__ void simulate_one_step(
-    const BatesQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    BatesState& state
+    State& state
 ) {
-    simulate_heston_one_step(model, uniforms, normal_cache, state);
-    simulate_jump_interval(model, 1U, uniforms, normal_cache, state);
+    simulate_heston_one_step(prepared_model, uniforms, normal_cache, state);
+    simulate_jump_interval(prepared_model, 1U, uniforms, normal_cache, state);
 }
 
 }  // namespace
@@ -211,39 +210,39 @@ __device__ __forceinline__ void simulate_one_step(
 // ======================== Common equity dynamics =========================
 
 // Generate all random variates for one path and return its terminal state.
-__device__ __forceinline__ BatesState simulate_terminal_state(
-    const BatesQeParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    BatesState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
-    simulate_interval(model, num_steps, uniforms, normal_cache, state);
+    simulate_interval(prepared_model, num_steps, uniforms, normal_cache, state);
     return state;
 }
 
 // Accumulate spots from time zero to maturity and return their arithmetic mean.
-__device__ __forceinline__ BatesMeanPathResult simulate_mean_state(
-    const BatesQeParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    BatesState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
     double spot_sum = static_cast<double>(expf(state.log_spot));
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         spot_sum += static_cast<double>(expf(state.log_spot));
     }
 
@@ -255,24 +254,24 @@ __device__ __forceinline__ BatesMeanPathResult simulate_mean_state(
 }
 
 // Average log-spots in FP64 and exponentiate only the completed mean.
-__device__ __forceinline__ BatesGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const BatesQeParameters& model,
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    BatesState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
     philox::NormalPairCache normal_cache;
     double log_spot_sum = static_cast<double>(state.log_spot);
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         log_spot_sum += static_cast<double>(state.log_spot);
     }
 
@@ -282,40 +281,14 @@ simulate_geometric_mean_state(
     };
 }
 
-// Reuse one Philox sequence across two exact QE-M interval preparations.
-__device__ __forceinline__ BatesTwoTimePathResult simulate_at_two_times(
-    const BatesQeParameters& first_model,
-    const BatesQeParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t first_num_steps,
-    std::size_t second_num_steps
-) {
-    BatesState state = initial_state(first_model);
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
-    philox::NormalPairCache normal_cache;
-
-    simulate_interval(
-        first_model, first_num_steps, uniforms, normal_cache, state
-    );
-    const float first_spot = expf(state.log_spot);
-
-    simulate_interval(
-        second_model, second_num_steps, uniforms, normal_cache, state
-    );
-    return {first_spot, expf(state.log_spot)};
-}
-
 // Track the maximum spot at time zero and after every simulated transition.
-__device__ __forceinline__ BatesMaximumPathResult simulate_maximum_state(
-    const BatesQeParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
-    BatesState state = initial_state(model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
@@ -323,10 +296,10 @@ __device__ __forceinline__ BatesMaximumPathResult simulate_maximum_state(
     const float initial_spot = expf(state.log_spot);
     float maximum_spot = initial_spot;
 
-    for (std::size_t step_index = 0U;
+    for (std::uint32_t step_index = 0U;
          step_index < num_steps;
          ++step_index) {
-        simulate_one_step(model, uniforms, normal_cache, state);
+        simulate_one_step(prepared_model, uniforms, normal_cache, state);
         const float spot = expf(state.log_spot);
         maximum_spot = fmaxf(maximum_spot, spot);
     }
@@ -335,19 +308,18 @@ __device__ __forceinline__ BatesMaximumPathResult simulate_maximum_state(
 }
 
 // Write pre-maturity states in a date-major grid and return terminal state.
-__device__ __forceinline__ BatesState simulate_on_regular_grid(
-    const BatesQeParameters& initial_stub_model,
-    const BatesQeParameters& regular_model,
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& prepared_model,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t initial_stub_steps,
-    std::uint32_t steps_per_exercise,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
+    std::uint32_t steps_per_observation,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_spots,
     float* __restrict__ observed_variances
 ) {
-    BatesState state = initial_state(initial_stub_model);
+    State state = initial_state(prepared_model);
     philox::UniformSequence uniforms(
         key, static_cast<std::uint64_t>(path)
     );
@@ -355,41 +327,76 @@ __device__ __forceinline__ BatesState simulate_on_regular_grid(
 
     // Reach the first exercise date through its possibly shorter stub.
     simulate_interval(
-        initial_stub_model,
+        prepared_model,
         initial_stub_steps,
         uniforms,
         normal_cache,
         state
     );
-    if (exercise_count == 1U) return state;
-    std::size_t output_index = path;
+    if (observation_count == 1U) return state;
+    std::size_t output_index = 0U;
     observed_spots[output_index] = expf(state.log_spot);
     observed_variances[output_index] = state.variance;
 
     // Store only pre-terminal states with one running date-major offset.
-    for (std::uint32_t exercise = 1U;
-         exercise + 1U < exercise_count;
-         ++exercise) {
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
         simulate_interval(
-            regular_model,
-            steps_per_exercise,
+            prepared_model,
+            steps_per_observation,
             uniforms,
             normal_cache,
             state
         );
-        output_index += path_count;
+        output_index += observation_stride;
         observed_spots[output_index] = expf(state.log_spot);
         observed_variances[output_index] = state.variance;
     }
 
     // Simulate the maturity interval without a global-memory write.
     simulate_interval(
-        regular_model,
-        steps_per_exercise,
+        prepared_model,
+        steps_per_observation,
         uniforms,
         normal_cache,
         state
     );
+    return state;
+}
+
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& prepared_model,
+    philox::PhiloxKey key,
+    std::size_t path,
+    const std::uint32_t* __restrict__ steps_between_observations,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots,
+    float* __restrict__ observed_variances
+) {
+    State state = initial_state(prepared_model);
+    philox::UniformSequence uniforms(
+        key, static_cast<std::uint64_t>(path)
+    );
+    philox::NormalPairCache normal_cache;
+    std::size_t output_index = 0U;
+    for (std::uint32_t observation = 0U;
+         observation < observation_count;
+         ++observation) {
+        simulate_interval(
+            prepared_model,
+            steps_between_observations[observation],
+            uniforms,
+            normal_cache,
+            state
+        );
+        if (observation + 1U < observation_count) {
+            observed_spots[output_index] = expf(state.log_spot);
+            observed_variances[output_index] = state.variance;
+            output_index += observation_stride;
+        }
+    }
     return state;
 }
 

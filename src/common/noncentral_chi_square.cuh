@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 
 #include <cmath>
+#include <cstdint>
 
 namespace ai_factory::workbench {
 
@@ -15,256 +16,362 @@ struct DistributionProbabilities {
 
 namespace noncentral_chi_square_detail {
 
-constexpr double kInverseSqrtTwo = 0.70710678118654752440084436210485;
-constexpr double kInverseSqrtTwoPi = 0.39894228040143267793994605993438;
-constexpr double kSeriesTolerance = 2.0e-14;
-constexpr int kMaximumGammaIterations = 10000;
-constexpr int kMaximumPoissonIterations = 10000;
-constexpr double kSaddlepointThreshold = 1024.0;
+constexpr float kInverseSqrtTwo = 0.70710678118654752440f;
+constexpr float kInverseSqrtTwoPi = 0.39894228040143267794f;
+constexpr float kTwoPi = 6.28318530717958647693f;
+// Compensated sums can still collect terms below one ulp of the running sum.
+constexpr float kSeriesTolerance = 1.0e-8f;
+constexpr float kContinuedFractionTolerance = 1.0e-7f;
+constexpr float kLentzTiny = 1.17549435082228750797e-38f;
+constexpr std::uint32_t kMaximumGammaIterations = 10000U;
+constexpr std::uint32_t kMaximumPoissonIterations = 10000U;
+constexpr float kSaddlepointThreshold = 1024.0f;
+constexpr float kNearSaddlepointCenter = 1.0e-3f;
 
-__device__ __forceinline__ double clamp_probability(double value) {
-    return fmin(1.0, fmax(0.0, value));
+__device__ __forceinline__ float clamp_probability(float value) {
+    return fminf(1.0f, fmaxf(0.0f, value));
+}
+
+// Kahan accumulation retains small positive series terms in FP32.
+struct CompensatedSum {
+    float sum;
+    float correction;
+
+    __device__ __forceinline__ explicit CompensatedSum(float initial)
+        : sum(initial), correction(0.0f) {}
+
+    __device__ __forceinline__ void add(float value) {
+        const float adjusted = value - correction;
+        const float updated = sum + adjusted;
+        correction = (updated - sum) - adjusted;
+        sum = updated;
+    }
+};
+
+// Evaluate log(1+x)-x without cancellation around x=0.
+__device__ __forceinline__ float log_one_plus_minus_argument(float value) {
+    if (fabsf(value) > 0.25f) return log1pf(value) - value;
+
+    float power = value * value;
+    CompensatedSum series(-0.5f * power);
+    for (std::uint32_t order = 3U; order <= 18U; ++order) {
+        power *= value;
+        const float sign = (order & 1U) == 0U ? -1.0f : 1.0f;
+        series.add(sign * power / static_cast<float>(order));
+    }
+    return series.sum;
+}
+
+// Stirling remainder in log-Gamma, accurate once the shape reaches eight.
+__device__ __forceinline__ float stirling_correction(float shape) {
+    const float inverse_shape = 1.0f / shape;
+    const float inverse_shape_squared = inverse_shape * inverse_shape;
+    const float polynomial = fmaf(
+        inverse_shape_squared,
+        fmaf(
+            inverse_shape_squared,
+            fmaf(
+                inverse_shape_squared,
+                -1.0f / 1680.0f,
+                1.0f / 1260.0f
+            ),
+            -1.0f / 360.0f
+        ),
+        1.0f / 12.0f
+    );
+    return inverse_shape * polynomial;
+}
+
+// Compute -x + a*log(x) - log(Gamma(a)) without large-term cancellation.
+__device__ __forceinline__ float gamma_log_scale(
+    float shape,
+    float value
+) {
+    if (shape < 8.0f) {
+        return -value + shape * logf(value) - lgammaf(shape);
+    }
+
+    const float relative_distance = (value - shape) / shape;
+    return fmaf(
+        shape,
+        log_one_plus_minus_argument(relative_distance),
+        0.5f * logf(shape / kTwoPi) - stirling_correction(shape)
+    );
 }
 
 // Evaluate P(a,x) directly when x is left of the Gamma transition region.
-__device__ __forceinline__ double regularized_gamma_series(
-    double shape,
-    double value
+__device__ __forceinline__ float regularized_gamma_series(
+    float shape,
+    float value
 ) {
-    double term = 1.0 / shape;
-    double sum = term;
-    double denominator = shape;
-    for (int iteration = 1;
+    float term = 1.0f / shape;
+    CompensatedSum series(term);
+    float denominator = shape;
+    for (std::uint32_t iteration = 1U;
          iteration <= kMaximumGammaIterations;
          ++iteration) {
-        denominator += 1.0;
+        denominator += 1.0f;
         term *= value / denominator;
-        sum += term;
-        if (fabs(term) <= fabs(sum) * kSeriesTolerance) break;
+        series.add(term);
+        if (fabsf(term) <= fabsf(series.sum) * kSeriesTolerance) break;
     }
-    const double log_scale = -value + shape * log(value) - lgamma(shape);
-    return clamp_probability(sum * exp(log_scale));
+    return clamp_probability(series.sum * expf(gamma_log_scale(shape, value)));
 }
 
 // Evaluate Q(a,x) directly through the modified-Lentz continued fraction.
-__device__ __forceinline__ double regularized_gamma_continued_fraction(
-    double shape,
-    double value
+__device__ __forceinline__ float regularized_gamma_continued_fraction(
+    float shape,
+    float value
 ) {
-    constexpr double tiny = 1.0e-300;
-    double b = value + 1.0 - shape;
-    double c = 1.0 / tiny;
-    double d = 1.0 / fmax(fabs(b), tiny);
-    if (b < 0.0) d = -d;
-    double fraction = d;
-    for (int iteration = 1;
+    float offset = value + 1.0f - shape;
+    float numerator_scale = 1.0f / kLentzTiny;
+    float denominator_scale = 1.0f / fmaxf(fabsf(offset), kLentzTiny);
+    if (offset < 0.0f) denominator_scale = -denominator_scale;
+    float fraction = denominator_scale;
+
+    for (std::uint32_t iteration = 1U;
          iteration <= kMaximumGammaIterations;
          ++iteration) {
-        const double index = static_cast<double>(iteration);
-        const double numerator = -index * (index - shape);
-        b += 2.0;
-        d = numerator * d + b;
-        if (fabs(d) < tiny) d = copysign(tiny, d);
-        c = b + numerator / c;
-        if (fabs(c) < tiny) c = copysign(tiny, c);
-        d = 1.0 / d;
-        const double increment = d * c;
+        const float index = static_cast<float>(iteration);
+        const float numerator = -index * (index - shape);
+        offset += 2.0f;
+
+        denominator_scale = fmaf(numerator, denominator_scale, offset);
+        if (fabsf(denominator_scale) < kLentzTiny) {
+            denominator_scale = copysignf(kLentzTiny, denominator_scale);
+        }
+        numerator_scale = offset + numerator / numerator_scale;
+        if (fabsf(numerator_scale) < kLentzTiny) {
+            numerator_scale = copysignf(kLentzTiny, numerator_scale);
+        }
+
+        denominator_scale = 1.0f / denominator_scale;
+        const float increment = denominator_scale * numerator_scale;
         fraction *= increment;
-        if (fabs(increment - 1.0) <= kSeriesTolerance) break;
+        if (fabsf(increment - 1.0f) <= kContinuedFractionTolerance) break;
     }
-    const double log_scale = -value + shape * log(value) - lgamma(shape);
-    return clamp_probability(exp(log_scale) * fraction);
+
+    return clamp_probability(
+        expf(gamma_log_scale(shape, value)) * fraction
+    );
 }
 
-__device__ __forceinline__ void regularized_gamma_probabilities_double(
-    double shape,
-    double value,
-    double& cdf,
-    double& survival
+// Select the stable direct Gamma tail, then derive its non-critical complement.
+__device__ __forceinline__ DistributionProbabilities
+regularized_gamma_probability_pair(float shape, float value) {
+    if (value <= 0.0f) return {0.0f, 1.0f};
+
+    if (value < shape + 1.0f) {
+        const float cdf = regularized_gamma_series(shape, value);
+        return {cdf, clamp_probability(1.0f - cdf)};
+    }
+
+    const float survival = regularized_gamma_continued_fraction(shape, value);
+    return {clamp_probability(1.0f - survival), survival};
+}
+
+// Logarithm of the modal Poisson weight without subtracting large terms.
+__device__ __forceinline__ float poisson_mode_log_weight(
+    float poisson_mean,
+    std::uint32_t mode
 ) {
-    if (value <= 0.0) {
-        cdf = 0.0;
-        survival = 1.0;
-        return;
+    if (mode == 0U) return -poisson_mean;
+
+    const float mode_as_float = static_cast<float>(mode);
+    if (mode < 8U) {
+        return -poisson_mean
+            + mode_as_float * logf(poisson_mean)
+            - lgammaf(mode_as_float + 1.0f);
     }
-    if (value < shape + 1.0) {
-        cdf = regularized_gamma_series(shape, value);
-        survival = clamp_probability(1.0 - cdf);
-        return;
-    }
-    survival = regularized_gamma_continued_fraction(shape, value);
-    cdf = clamp_probability(1.0 - survival);
+
+    const float relative_distance =
+        (poisson_mean - mode_as_float) / mode_as_float;
+    return fmaf(
+        mode_as_float,
+        log_one_plus_minus_argument(relative_distance),
+        -0.5f * logf(kTwoPi * mode_as_float)
+            - stirling_correction(mode_as_float)
+    );
 }
 
-// Use the Poisson mixture, centered at its modal term, while it remains cheap.
+// Use the exact Poisson-Gamma mixture, centered at its modal Poisson term.
 __device__ __forceinline__ DistributionProbabilities poisson_gamma_mixture(
-    double degrees_of_freedom,
-    double noncentrality,
-    double value
+    float degrees_of_freedom,
+    float noncentrality,
+    float value
 ) {
-    const double gamma_value = 0.5 * value;
-    const double gamma_shape = 0.5 * degrees_of_freedom;
-    if (noncentrality == 0.0) {
-        double cdf = 0.0;
-        double survival = 0.0;
-        regularized_gamma_probabilities_double(
-            gamma_shape, gamma_value, cdf, survival
-        );
-        return {
-            static_cast<float>(cdf),
-            static_cast<float>(survival),
-        };
+    const float gamma_value = 0.5f * value;
+    const float gamma_shape = 0.5f * degrees_of_freedom;
+    if (noncentrality == 0.0f) {
+        return regularized_gamma_probability_pair(gamma_shape, gamma_value);
     }
 
-    const double poisson_mean = 0.5 * noncentrality;
-    const int mode = static_cast<int>(floor(poisson_mean));
-    const double mode_as_double = static_cast<double>(mode);
-    const double mode_weight = exp(
-        -poisson_mean
-        + mode_as_double * log(poisson_mean)
-        - lgamma(mode_as_double + 1.0)
+    const float poisson_mean = 0.5f * noncentrality;
+    const std::uint32_t mode =
+        static_cast<std::uint32_t>(floorf(poisson_mean));
+    const float mode_as_float = static_cast<float>(mode);
+    const float mode_weight = expf(
+        poisson_mode_log_weight(poisson_mean, mode)
     );
-    double shape = gamma_shape + mode_as_double;
-    double gamma_cdf = 0.0;
-    double gamma_survival = 0.0;
-    regularized_gamma_probabilities_double(
-        shape, gamma_value, gamma_cdf, gamma_survival
-    );
+    const float shape = gamma_shape + mode_as_float;
+    const DistributionProbabilities gamma_probabilities =
+        regularized_gamma_probability_pair(shape, gamma_value);
 
-    // This derivative supplies both stable Gamma-shape recurrences.
-    double derivative = exp(
-        shape * log(gamma_value) - gamma_value - lgamma(shape + 1.0)
+    // x^a exp(-x) / Gamma(a+1) drives both Gamma-shape recurrences.
+    const float derivative = expf(
+        gamma_log_scale(shape, gamma_value) - logf(shape)
     );
-    double cdf_sum = mode_weight * gamma_cdf;
-    double survival_sum = mode_weight * gamma_survival;
-    double probability_mass = mode_weight;
+    CompensatedSum cdf_sum(mode_weight * gamma_probabilities.cdf);
+    CompensatedSum survival_sum(
+        mode_weight * gamma_probabilities.survival
+    );
+    CompensatedSum probability_mass(mode_weight);
 
     // Sum every lower Poisson term; the modal index is at most 512 here.
-    double lower_weight = mode_weight;
-    double lower_cdf = gamma_cdf;
-    double lower_survival = gamma_survival;
-    double lower_derivative = derivative;
-    double lower_shape = shape;
-    for (int index = mode; index > 0; --index) {
-        const double previous_derivative = lower_derivative
-            * lower_shape / gamma_value;
+    float lower_weight = mode_weight;
+    float lower_cdf = gamma_probabilities.cdf;
+    float lower_survival = gamma_probabilities.survival;
+    float lower_derivative = derivative;
+    float lower_shape = shape;
+    for (std::uint32_t index = mode; index > 0U; --index) {
+        const float previous_derivative =
+            lower_derivative * lower_shape / gamma_value;
         lower_cdf = clamp_probability(lower_cdf + previous_derivative);
         lower_survival = clamp_probability(
             lower_survival - previous_derivative
         );
-        lower_weight *= static_cast<double>(index) / poisson_mean;
-        cdf_sum += lower_weight * lower_cdf;
-        survival_sum += lower_weight * lower_survival;
-        probability_mass += lower_weight;
+        lower_weight *= static_cast<float>(index) / poisson_mean;
+        cdf_sum.add(lower_weight * lower_cdf);
+        survival_sum.add(lower_weight * lower_survival);
+        probability_mass.add(lower_weight);
         lower_derivative = previous_derivative;
-        lower_shape -= 1.0;
+        lower_shape -= 1.0f;
     }
 
-    // Sum the infinite upper tail until a geometric bound is negligible.
-    double upper_weight = mode_weight;
-    double upper_cdf = gamma_cdf;
-    double upper_survival = gamma_survival;
-    double upper_derivative = derivative;
-    double upper_shape = shape;
-    for (int index = mode + 1;
-         index <= mode + kMaximumPoissonIterations;
-         ++index) {
+    // Sum the infinite upper tail until its geometric bound is negligible.
+    float upper_weight = mode_weight;
+    float upper_cdf = gamma_probabilities.cdf;
+    float upper_survival = gamma_probabilities.survival;
+    float upper_derivative = derivative;
+    float upper_shape = shape;
+    for (std::uint32_t offset = 1U;
+         offset <= kMaximumPoissonIterations;
+         ++offset) {
+        const std::uint32_t index = mode + offset;
         upper_cdf = clamp_probability(upper_cdf - upper_derivative);
         upper_survival = clamp_probability(
             upper_survival + upper_derivative
         );
-        upper_shape += 1.0;
+        upper_shape += 1.0f;
         upper_derivative *= gamma_value / upper_shape;
-        upper_weight *= poisson_mean / static_cast<double>(index);
-        cdf_sum += upper_weight * upper_cdf;
-        survival_sum += upper_weight * upper_survival;
-        probability_mass += upper_weight;
+        upper_weight *= poisson_mean / static_cast<float>(index);
+        cdf_sum.add(upper_weight * upper_cdf);
+        survival_sum.add(upper_weight * upper_survival);
+        probability_mass.add(upper_weight);
 
-        const double next_ratio = poisson_mean
-            / static_cast<double>(index + 1);
-        if (next_ratio < 1.0) {
-            const double remaining_bound = upper_weight * next_ratio
-                / (1.0 - next_ratio);
-            if (remaining_bound <= kSeriesTolerance) break;
+        const float next_ratio = poisson_mean
+            / static_cast<float>(index + 1U);
+        if (next_ratio < 1.0f) {
+            const float remaining_bound = upper_weight * next_ratio
+                / (1.0f - next_ratio);
+            if (remaining_bound
+                <= kSeriesTolerance * probability_mass.sum) {
+                break;
+            }
         }
     }
 
-    const double inverse_mass = 1.0 / probability_mass;
+    const float inverse_mass = 1.0f / probability_mass.sum;
     return {
-        static_cast<float>(clamp_probability(cdf_sum * inverse_mass)),
-        static_cast<float>(
-            clamp_probability(survival_sum * inverse_mass)
-        ),
+        clamp_probability(cdf_sum.sum * inverse_mass),
+        clamp_probability(survival_sum.sum * inverse_mass),
     };
 }
 
-// Lugannani-Rice is uniformly accurate once the Poisson center is too large.
-__device__ __forceinline__ DistributionProbabilities saddlepoint_probabilities(
-    double degrees_of_freedom,
-    double noncentrality,
-    double value
-) {
-    const double mean = degrees_of_freedom + noncentrality;
-    const double variance = 2.0 * (
-        degrees_of_freedom + 2.0 * noncentrality
-    );
-    const double standardized = (value - mean) / sqrt(variance);
-    const double skewness = 8.0 * (
-        degrees_of_freedom + 3.0 * noncentrality
-    ) / (variance * sqrt(variance));
+// Evaluate log(1+d)-d/(1+d) stably for the saddlepoint deviance.
+__device__ __forceinline__ float log_one_plus_minus_ratio(float delta) {
+    return log_one_plus_minus_argument(delta)
+        + delta * delta / (1.0f + delta);
+}
 
-    const double discriminant = sqrt(
-        degrees_of_freedom * degrees_of_freedom
-        + 4.0 * noncentrality * value
+// Lugannani-Rice remains cheap when the exact Poisson center is too large.
+__device__ __forceinline__ DistributionProbabilities saddlepoint_probabilities(
+    float degrees_of_freedom,
+    float noncentrality,
+    float value
+) {
+    // This ordering retains a small degrees-of-freedom correction next to a
+    // large, nearly equal value and noncentrality.
+    const float centered_value =
+        (value - noncentrality) - degrees_of_freedom;
+    const float mean = degrees_of_freedom + noncentrality;
+    const float variance = 2.0f * (
+        degrees_of_freedom + 2.0f * noncentrality
     );
-    double y;
-    double delta;
-    if (fabs(value - mean) <= 0.5 * mean) {
-        delta = -2.0 * (value - mean)
-            / (2.0 * value - degrees_of_freedom + discriminant);
-        y = 1.0 + delta;
+    const float standard_deviation = sqrtf(variance);
+    const float standardized = centered_value / standard_deviation;
+    const float skewness = 8.0f * (
+        degrees_of_freedom + 3.0f * noncentrality
+    ) / (variance * standard_deviation);
+
+    const float discriminant = sqrtf(fmaf(
+        4.0f * noncentrality,
+        value,
+        degrees_of_freedom * degrees_of_freedom
+    ));
+    float transformed;
+    float delta;
+    if (fabsf(centered_value) <= 0.5f * mean) {
+        delta = -2.0f * centered_value
+            / (2.0f * value - degrees_of_freedom + discriminant);
+        transformed = 1.0f + delta;
     } else {
-        y = (degrees_of_freedom + discriminant) / (2.0 * value);
-        delta = y - 1.0;
+        transformed = (degrees_of_freedom + discriminant)
+            / (2.0f * value);
+        delta = transformed - 1.0f;
     }
 
-    double cdf;
-    double survival;
-    if (fabs(delta) <= 1.0e-4) {
-        const double density = kInverseSqrtTwoPi
-            * exp(-0.5 * standardized * standardized);
-        const double correction = skewness
-            * (1.0 - standardized * standardized) * density / 6.0;
-        cdf = 0.5 * erfc(-standardized * kInverseSqrtTwo)
+    float cdf;
+    float survival;
+    if (fabsf(delta) <= kNearSaddlepointCenter) {
+        const float density = kInverseSqrtTwoPi
+            * expf(-0.5f * standardized * standardized);
+        const float correction = skewness
+            * (1.0f - standardized * standardized) * density / 6.0f;
+        cdf = 0.5f * erfcf(-standardized * kInverseSqrtTwo)
             + correction;
-        survival = 0.5 * erfc(standardized * kInverseSqrtTwo)
+        survival = 0.5f * erfcf(standardized * kInverseSqrtTwo)
             - correction;
     } else {
-        const double log_y = fabs(delta) < 0.5
-            ? log1p(delta)
-            : log(y);
-        const double scaled_delta = delta / y;
-        const double deviance = degrees_of_freedom
-                * (log_y - scaled_delta)
-            + noncentrality * scaled_delta * scaled_delta;
-        const double signed_root = copysign(
-            sqrt(fmax(deviance, 0.0)), -delta
+        const float scaled_delta = delta / transformed;
+        const float deviance = fmaf(
+            noncentrality,
+            scaled_delta * scaled_delta,
+            degrees_of_freedom * log_one_plus_minus_ratio(delta)
         );
-        const double curvature = 2.0 * degrees_of_freedom / (y * y)
-            + 4.0 * noncentrality / (y * y * y);
-        const double standardized_saddlepoint =
-            -0.5 * delta * sqrt(curvature);
-        const double density = kInverseSqrtTwoPi
-            * exp(-0.5 * signed_root * signed_root);
-        const double correction = density * (
-            1.0 / signed_root - 1.0 / standardized_saddlepoint
+        const float signed_root = copysignf(
+            sqrtf(fmaxf(deviance, 0.0f)), -delta
         );
-        cdf = 0.5 * erfc(-signed_root * kInverseSqrtTwo) + correction;
-        survival = 0.5 * erfc(signed_root * kInverseSqrtTwo) - correction;
+        const float transformed_squared = transformed * transformed;
+        const float curvature =
+            2.0f * degrees_of_freedom / transformed_squared
+            + 4.0f * noncentrality
+                / (transformed_squared * transformed);
+        const float standardized_saddlepoint =
+            -0.5f * delta * sqrtf(curvature);
+        const float density = kInverseSqrtTwoPi
+            * expf(-0.5f * signed_root * signed_root);
+        const float correction = density * (
+            (standardized_saddlepoint - signed_root)
+            / (signed_root * standardized_saddlepoint)
+        );
+        cdf = 0.5f * erfcf(-signed_root * kInverseSqrtTwo) + correction;
+        survival = 0.5f * erfcf(signed_root * kInverseSqrtTwo) - correction;
     }
+
     return {
-        static_cast<float>(clamp_probability(cdf)),
-        static_cast<float>(clamp_probability(survival)),
+        clamp_probability(cdf),
+        clamp_probability(survival),
     };
 }
 
@@ -273,18 +380,9 @@ __device__ __forceinline__ DistributionProbabilities saddlepoint_probabilities(
 // Return both regularized incomplete-Gamma tails P(shape,value) and Q.
 __device__ __forceinline__ DistributionProbabilities
 regularized_gamma_probabilities(float shape, float value) {
-    double cdf = 0.0;
-    double survival = 0.0;
-    noncentral_chi_square_detail::regularized_gamma_probabilities_double(
-        static_cast<double>(shape),
-        static_cast<double>(value),
-        cdf,
-        survival
+    return noncentral_chi_square_detail::regularized_gamma_probability_pair(
+        shape, value
     );
-    return {
-        static_cast<float>(cdf),
-        static_cast<float>(survival),
-    };
 }
 
 // Return both tails of chi-square(df, noncentrality) at value.
@@ -295,18 +393,13 @@ noncentral_chi_square_probabilities(
     float value
 ) {
     if (value <= 0.0f) return {0.0f, 1.0f};
-    if (static_cast<double>(noncentrality)
-        <= noncentral_chi_square_detail::kSaddlepointThreshold) {
+    if (noncentrality <= noncentral_chi_square_detail::kSaddlepointThreshold) {
         return noncentral_chi_square_detail::poisson_gamma_mixture(
-            static_cast<double>(degrees_of_freedom),
-            static_cast<double>(noncentrality),
-            static_cast<double>(value)
+            degrees_of_freedom, noncentrality, value
         );
     }
     return noncentral_chi_square_detail::saddlepoint_probabilities(
-        static_cast<double>(degrees_of_freedom),
-        static_cast<double>(noncentrality),
-        static_cast<double>(value)
+        degrees_of_freedom, noncentrality, value
     );
 }
 

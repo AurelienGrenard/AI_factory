@@ -15,13 +15,13 @@ namespace {
 namespace ou =
     ai_factory::workbench::model::ornstein_uhlenbeck;
 
-constexpr std::size_t kOutputCount = 24U;
+constexpr std::size_t kOutputCount = 28U;
 
 // Evaluate analytical identities and exact transitions on one CUDA thread.
 __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
 
-    const ou::OrnsteinUhlenbeckModelParameters model = {
+    const ou::ModelParameters model = {
         {0.15f, 0.01f},
         0.03f,
     };
@@ -32,6 +32,9 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     constexpr float strike = 0.98f;
     constexpr float payment_times[] = {1.0f, 1.5f, 2.0f};
     constexpr float accrual_periods[] = {0.5f, 0.5f, 0.5f};
+    constexpr std::uint32_t payment_days[] = {252U, 378U, 504U};
+    constexpr std::uint32_t accrual_days[] = {126U, 126U, 126U};
+    constexpr float day_fraction = 1.0f / 252.0f;
 
     outputs[0] = ou::zero_coupon_bond(
         model, state, valuation_time, valuation_time
@@ -93,7 +96,7 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     outputs[7] = outputs[5] - outputs[6]
         - (underlying_bond - strike * expiry_bond);
 
-    const ou::OrnsteinUhlenbeckModelParameters deterministic = {
+    const ou::ModelParameters deterministic = {
         {0.15f, 0.0f},
         0.03f,
     };
@@ -106,23 +109,26 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     outputs[10] = ou::integral_state_loading(1.0e-6f, 1.0e-4f);
     outputs[11] = 1.0e-4f;
 
-    const ou::OrnsteinUhlenbeckExactTransition exact =
-        ou::prepare_model(model.process, 0.25f);
-    outputs[12] = ou::simulate_terminal_state(exact, state, 0.75f);
+    const ou::PreparedModel prepared_model = ou::prepare_model(model.process);
+    const ou::PreparedTransition exact =
+        ou::prepare_transition(prepared_model, 0.25f);
+    float terminal_state = state;
+    ou::one_step_transition(exact, 0.75f, terminal_state);
+    outputs[12] = terminal_state;
     outputs[13] = fmaf(
         exact.decay, state, exact.state_standard_deviation * 0.75f
     );
-    const ou::joint::OrnsteinUhlenbeckJointExactTransition joint_exact =
-        ou::joint::prepare_model(model.process, 0.25f);
-    const ou::joint::OrnsteinUhlenbeckJointState joint_terminal =
-        ou::joint::simulate_terminal_state(
-            joint_exact, state, 0.75f, -0.25f
-        );
+    const ou::joint::PreparedTransition joint_exact =
+        ou::joint::prepare_transition(prepared_model, 0.25f);
+    ou::joint::State joint_terminal = {state, 0.0f};
+    ou::joint::one_step_transition(
+        joint_exact, 0.75f, -0.25f, joint_terminal
+    );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
     outputs[16] = ou::log_discount_factor(joint_terminal.state_integral);
     outputs[17] = ou::discount_factor(joint_terminal.state_integral);
-    const ou::OrnsteinUhlenbeckIntegralMoments moments =
+    const ou::IntegralMoments moments =
         ou::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading
         - ou::integral_state_loading(model.process.mean_reversion, 0.75f);
@@ -135,6 +141,40 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     );
     outputs[23] = ou::log_A(model, valuation_time, bond_maturity)
         - outputs[21] * state;
+    constexpr float swap_strike = 0.04f;
+    outputs[24] = ou::jamshidian_state_boundary(
+        model,
+        valuation_time,
+        swap_strike,
+        payment_days,
+        accrual_days,
+        day_fraction,
+        3U
+    );
+    outputs[25] =
+        swap_strike * 0.5f
+            * ou::zero_coupon_bond(
+                model, outputs[24], valuation_time, payment_times[0]
+            )
+        + swap_strike * 0.5f
+            * ou::zero_coupon_bond(
+                model, outputs[24], valuation_time, payment_times[1]
+            )
+        + (1.0f + swap_strike * 0.5f)
+            * ou::zero_coupon_bond(
+                model, outputs[24], valuation_time, payment_times[2]
+            );
+    outputs[26] = ou::payer_swap_value(
+        model,
+        state,
+        valuation_time,
+        valuation_time,
+        swap_strike,
+        payment_times,
+        accrual_periods,
+        3U
+    );
+    outputs[27] = 1.0f - swap_end_bond - swap_strike * annuity;
 }
 
 // Stop immediately with a readable invariant name.
@@ -223,5 +263,14 @@ int main() {
         outputs[20] > 0.0f && outputs[21] > 0.0f
             && std::fabs(outputs[22] - outputs[23]) < 2.0e-7f,
         "OU affine A/B decomposition is incorrect"
+    );
+    require(
+        std::isfinite(outputs[24])
+            && std::fabs(outputs[25] - 1.0f) < 2.0e-6f,
+        "OU Jamshidian boundary does not price the coupon bond at par"
+    );
+    require(
+        std::fabs(outputs[26] - outputs[27]) < 2.0e-6f,
+        "OU payer swap value is inconsistent with the leg decomposition"
     );
 }

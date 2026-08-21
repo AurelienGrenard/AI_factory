@@ -13,7 +13,9 @@
 
 namespace {
 
-using Model = ai_factory::workbench::model::g2_plus_plus::G2PlusPlusModelParameters;
+constexpr double kDayFraction = 1.0 / 252.0;
+
+using Model = ai_factory::workbench::model::g2_plus_plus::ModelParameters;
 using Curve = ai_factory::workbench::curve::nelson_siegel::
     NelsonSiegelParameters;
 
@@ -158,6 +160,7 @@ void check_launcher(
             aligned_count,
             0U,
             aligned_count,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -195,6 +198,7 @@ void check_launcher(
             cartesian_count,
             0U,
             5U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -210,6 +214,7 @@ void check_launcher(
             cartesian_count,
             5U,
             cartesian_count - 5U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -294,19 +299,19 @@ int main() {
         {0.025f, 0.005f, -0.01f, 3.0f},
     };
     const std::vector<product::RateOptionParameters> floorlets = {
-        {1.0f, 0.00f, 0.5f, 1.0f, 0.5f},
-        {2.0f, 0.04f, 1.0f, 1.5f, 0.5f},
-        {1.5f, 0.08f, 2.0f, 2.25f, 0.25f},
+        {1.0f, 0.00f, 126U, 252U, 126U},
+        {2.0f, 0.04f, 252U, 378U, 126U},
+        {1.5f, 0.08f, 504U, 567U, 63U},
     };
     const std::vector<product::ZeroCouponBondOptionParameters> calls = {
-        {1.0f, 0.90f, 0.5f, 1.0f},
-        {2.0f, 0.97f, 1.0f, 1.5f},
-        {1.5f, 1.05f, 2.0f, 3.0f},
+        {1.0f, 0.90f, 126U, 252U},
+        {2.0f, 0.97f, 252U, 378U},
+        {1.5f, 1.05f, 504U, 756U},
     };
     const std::vector<product::ZeroCouponBondOptionParameters> puts = {
-        {1.0f, 0.90f, 0.5f, 1.0f},
-        {2.0f, 0.97f, 1.0f, 1.5f},
-        {1.5f, 1.05f, 2.0f, 3.0f},
+        {1.0f, 0.90f, 126U, 252U},
+        {2.0f, 0.97f, 252U, 378U},
+        {1.5f, 1.05f, 504U, 756U},
     };
 
     check_launcher(
@@ -320,13 +325,13 @@ int main() {
            const Curve& curve,
            const product::RateOptionParameters& product) {
             const double strike_factor =
-                1.0 + product.accrual_period * product.strike;
+                1.0 + product.accrual_period * kDayFraction * product.strike;
             return product.notional * strike_factor * bond_option_price(
                 model,
                 curve,
                 1.0,
-                product.fixing_time,
-                product.payment_time,
+                product.fixing_time * kDayFraction,
+                product.payment_time * kDayFraction,
                 1.0 / strike_factor
             );
         },
@@ -346,8 +351,8 @@ int main() {
                 model,
                 curve,
                 1.0,
-                product.option_expiry,
-                product.bond_maturity,
+                product.option_expiry * kDayFraction,
+                product.bond_maturity * kDayFraction,
                 product.strike
             );
         },
@@ -367,8 +372,8 @@ int main() {
                 model,
                 curve,
                 -1.0,
-                product.option_expiry,
-                product.bond_maturity,
+                product.option_expiry * kDayFraction,
+                product.bond_maturity * kDayFraction,
                 product.strike
             );
         },

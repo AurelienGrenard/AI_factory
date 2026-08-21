@@ -26,16 +26,17 @@ struct PreparedRow {
 
 // Prepare one option on a zero-coupon bond.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const G2PlusPlusModelParameters& model,
+    const ModelParameters& model,
     const curve::svensson::SvenssonParameters& initial_curve,
-    const product::ZeroCouponBondOptionParameters& product
+    const product::ZeroCouponBondOptionParameters& product,
+    float day_fraction
 ) {
     return {
         compose_model(model, initial_curve),
         product.notional,
         product.strike,
-        product.option_expiry,
-        product.bond_maturity,
+        static_cast<float>(product.option_expiry) * day_fraction,
+        static_cast<float>(product.bond_maturity) * day_fraction,
     };
 }
 
@@ -45,7 +46,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
     if constexpr (Side == OptionSide::call)
     return row.notional * zero_coupon_bond_call_price(
         row.model,
-        model::g2::G2State{0.0f, 0.0f},
+        model::g2::State{0.0f, 0.0f},
         0.0f,
         row.option_expiry,
         row.bond_maturity,
@@ -54,7 +55,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
     else
     return row.notional * zero_coupon_bond_put_price(
         row.model,
-        model::g2::G2State{0.0f, 0.0f},
+        model::g2::State{0.0f, 0.0f},
         0.0f,
         row.option_expiry,
         row.bond_maturity,
@@ -65,7 +66,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
 // Price one independent row per CUDA thread with coalesced array access.
 template<OptionSide Side>
 __global__ void g2_plus_plus_svensson_zero_coupon_bond_option_kernel(
-    const G2PlusPlusModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const curve::svensson::SvenssonParameters* __restrict__ curves,
     const product::ZeroCouponBondOptionParameters* __restrict__ products,
     std::size_t curve_count,
@@ -73,6 +74,7 @@ __global__ void g2_plus_plus_svensson_zero_coupon_bond_option_kernel(
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     float* __restrict__ prices
 ) {
     const std::size_t launch_index =
@@ -92,14 +94,14 @@ __global__ void g2_plus_plus_svensson_zero_coupon_bond_option_kernel(
     }
 
     const PreparedRow row = prepare_row(
-        models[model_index], curves[curve_index], products[product_index]
+        models[model_index], curves[curve_index], products[product_index], day_fraction
     );
     prices[result_index] = evaluate_price<Side>(row);
 }
 
 // Compose the common checks required by this analytical launcher.
 void validate_g2_plus_plus_svensson_zero_coupon_bond_option_launch(
-    const G2PlusPlusModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const curve::svensson::SvenssonParameters* device_curves,
     std::size_t curve_count,
@@ -109,6 +111,7 @@ void validate_g2_plus_plus_svensson_zero_coupon_bond_option_launch(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -124,6 +127,7 @@ void validate_g2_plus_plus_svensson_zero_coupon_bond_option_launch(
         cartesian_product,
         result_count
     );
+    validate_day_fraction(day_fraction);
     if (result_offset >= result_count
         || launch_result_count == 0U
         || launch_result_count > result_count - result_offset) {
@@ -151,7 +155,7 @@ void validate_g2_plus_plus_svensson_zero_coupon_bond_option_launch(
 // Validate and launch the analytical kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_g2_plus_plus_svensson_zero_coupon_bond_option_cuda(
-    const G2PlusPlusModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const curve::svensson::SvenssonParameters* device_curves,
     std::size_t curve_count,
@@ -161,6 +165,7 @@ void launch_g2_plus_plus_svensson_zero_coupon_bond_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices
@@ -176,6 +181,7 @@ void launch_g2_plus_plus_svensson_zero_coupon_bond_option_cuda(
         result_count,
         result_offset,
         launch_result_count,
+        day_fraction,
         threads_per_block,
         block_count,
         device_prices
@@ -200,6 +206,7 @@ void launch_g2_plus_plus_svensson_zero_coupon_bond_option_cuda(
         cartesian_product,
         result_offset,
         launch_result_count,
+        day_fraction,
         device_prices
     );
     check_cuda(cudaGetLastError(), "G2++ zero-coupon bond option kernel");

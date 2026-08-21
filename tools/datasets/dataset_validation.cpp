@@ -128,6 +128,86 @@ void validate_parameter_dataset(
     require_rows(document, row_field, family, id);
 }
 
+void validate_time_convention(
+    const nlohmann::json& document,
+    const char* family,
+    const std::string& id
+) {
+    if (!document.contains("time_convention")
+        || !document.at("time_convention").is_object()) {
+        reject(family, id, "time_convention must be an object.");
+    }
+    const auto& convention = document.at("time_convention");
+    require_string(convention, "unit", family, id);
+    if (!convention.contains("days_per_year")
+        || !convention.at("days_per_year").is_number_unsigned()
+        || convention.at("days_per_year").get<std::uint32_t>() == 0U) {
+        reject(
+            family, id,
+            "time_convention.days_per_year must be a positive integer."
+        );
+    }
+}
+
+bool is_business_day_field(const std::string& name) {
+    return name == "maturity"
+        || name == "exercise_time"
+        || name == "exercise_interval"
+        || name == "reset_time"
+        || name == "observation_interval"
+        || name == "fixing_time"
+        || name == "payment_time"
+        || name == "accrual_period"
+        || name == "option_expiry"
+        || name == "bond_maturity";
+}
+
+bool is_business_day_array_field(const std::string& name) {
+    return name == "payment_times"
+        || name == "accrual_periods"
+        || name == "fixing_times"
+        || name == "option_expiries"
+        || name == "bond_tenors";
+}
+
+void validate_business_day_fields(
+    const nlohmann::json& document,
+    const std::string& id
+) {
+    for (const auto& row : document.at("products")) {
+        const std::string& row_id = row.at("id").get_ref<const std::string&>();
+        for (const auto& [name, value] : row.at("parameters").items()) {
+            if (is_business_day_field(name) && !value.is_number_unsigned()) {
+                reject(
+                    "Product", id,
+                    "row id '" + row_id + "': " + name
+                        + " must be an unsigned business-day count."
+                );
+            }
+            if (is_business_day_array_field(name)) {
+                if (!value.is_array()) {
+                    reject(
+                        "Product", id,
+                        "row id '" + row_id + "': " + name
+                            + " must be an array of unsigned business-day "
+                              "counts."
+                    );
+                }
+                for (const auto& day : value) {
+                    if (!day.is_number_unsigned()) {
+                        reject(
+                            "Product", id,
+                            "row id '" + row_id + "': " + name
+                                + " must contain only unsigned business-day "
+                                  "counts."
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Validate one referenced model, curve, or product dataset.
 void validate_dataset_reference(
     const nlohmann::json& document,
@@ -200,6 +280,8 @@ void validate_product_dataset(const nlohmann::json& document) {
     validate_parameter_dataset(
         document, "Product", "product_family", "products"
     );
+    validate_time_convention(document, "Product", database_id(document));
+    validate_business_day_fields(document, database_id(document));
 }
 
 // Validate one price dataset with an optional curve reference.
@@ -210,6 +292,7 @@ void validate_price_dataset(const nlohmann::json& document) {
     require_string(document, "database_id", "Price", id);
     require_string(document, "catalog", "Price", id);
     require_url(document, "url", "Price", id);
+    validate_time_convention(document, "Price", id);
     validate_dataset_reference(document, "model_dataset", id);
     validate_dataset_reference(document, "product_dataset", id);
     const bool has_curve = document.contains("curve_dataset");

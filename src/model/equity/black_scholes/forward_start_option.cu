@@ -22,10 +22,15 @@ struct PreparedRow {
 };
 
 __device__ __forceinline__ PreparedRow prepare_row(
-    const BlackScholesModelParameters& model,
-    const product::ForwardStartOptionParameters& product
+    const ModelParameters& model,
+    const product::ForwardStartOptionParameters& product,
+    float day_fraction
 ) {
-    const float remaining_time = product.maturity - product.reset_time;
+    const float reset_time =
+        static_cast<float>(product.reset_time) * day_fraction;
+    const float maturity =
+        static_cast<float>(product.maturity) * day_fraction;
+    const float remaining_time = maturity - reset_time;
     const float volatility_sqrt_maturity =
         model.volatility * sqrtf(remaining_time);
     const float variance = model.volatility * model.volatility;
@@ -35,9 +40,9 @@ __device__ __forceinline__ PreparedRow prepare_row(
             * remaining_time
     ) / volatility_sqrt_maturity;
     return {
-        model.spot * expf(-model.dividend_yield * product.maturity),
+        model.spot * expf(-model.dividend_yield * maturity),
         model.spot * product.moneyness
-            * expf(-model.dividend_yield * product.reset_time
+            * expf(-model.dividend_yield * reset_time
                 - model.risk_free_rate * remaining_time),
         d1,
         d1 - volatility_sqrt_maturity,
@@ -57,12 +62,13 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
 
 template<OptionSide Side>
 __global__ void black_scholes_forward_start_option_kernel(
-    const BlackScholesModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::ForwardStartOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     float* __restrict__ prices
 ) {
     const std::size_t launch_index =
@@ -73,13 +79,13 @@ __global__ void black_scholes_forward_start_option_kernel(
         result_index, product_count, cartesian_product
     );
     const PreparedRow row = prepare_row(
-        models[indices.model_index], products[indices.product_index]
+        models[indices.model_index], products[indices.product_index], day_fraction
     );
     prices[result_index] = evaluate_price<Side>(row);
 }
 
 void validate_black_scholes_forward_start_option_launch(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -87,6 +93,7 @@ void validate_black_scholes_forward_start_option_launch(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -97,6 +104,7 @@ void validate_black_scholes_forward_start_option_launch(
     validate_model_product_construction(
         model_count, product_count, cartesian_product, result_count
     );
+    validate_day_fraction(day_fraction);
     if (result_offset >= result_count
         || launch_result_count == 0U
         || launch_result_count > result_count - result_offset) {
@@ -123,7 +131,7 @@ void validate_black_scholes_forward_start_option_launch(
 
 template<OptionSide Side>
 void launch_black_scholes_forward_start_option_cuda(
-    const BlackScholesModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -131,6 +139,7 @@ void launch_black_scholes_forward_start_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices
@@ -138,6 +147,7 @@ void launch_black_scholes_forward_start_option_cuda(
     validate_black_scholes_forward_start_option_launch(
         device_models, model_count, device_products, product_count,
         cartesian_product, result_count, result_offset, launch_result_count,
+        day_fraction,
         threads_per_block, block_count, device_prices
     );
     report_cuda_kernel_launch_if_enabled(
@@ -151,7 +161,7 @@ void launch_black_scholes_forward_start_option_cuda(
         static_cast<unsigned int>(block_count), threads_per_block
     >>>(
         device_models, device_products, product_count, cartesian_product,
-        result_offset, launch_result_count, device_prices
+        result_offset, launch_result_count, day_fraction, device_prices
     );
     check_cuda(cudaGetLastError(), "Black-Scholes ForwardStartOption kernel");
 }

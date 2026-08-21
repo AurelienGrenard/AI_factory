@@ -35,8 +35,8 @@ int main() {
         catalog_path,
         url,
         {
-            {"maturity", "Time from issuance to final redemption in years."},
-            {"observation_interval", "Time in years between observation dates."},
+            {"maturity", "Time from issuance to final redemption in business days."},
+            {"observation_interval", "Business days between observation dates."},
             {"autocall_barrier", "Spot level triggering early redemption."},
             {
                 "protection_barrier",

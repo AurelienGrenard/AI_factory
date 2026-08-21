@@ -199,6 +199,7 @@ add_library(cuda_workbench STATIC
     src/model/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_option.cu
     src/model/fixed_income/hull_white/svensson/rate_option.cu
     src/model/fixed_income/hull_white/svensson/zero_coupon_bond_option.cu
+    src/model/fixed_income/ornstein_uhlenbeck/european_swaption.cu
     src/model/fixed_income/ornstein_uhlenbeck/rate_option.cu
     src/model/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_option.cu
     src/model/fixed_income/ornstein_uhlenbeck/dataset.cpp
@@ -216,6 +217,7 @@ add_library(cuda_workbench STATIC
     src/product/down_and_in_option/dataset.cpp
     src/product/down_and_out_option/dataset.cpp
     src/product/european_option/dataset.cpp
+    src/product/european_swaption/dataset.cpp
     src/product/rate_option/dataset.cpp
     src/product/gap_option/dataset.cpp
     src/product/forward_start_option/dataset.cpp
@@ -229,6 +231,28 @@ add_library(cuda_workbench STATIC
     src/product/up_one_touch/dataset.cpp
     src/product/up_and_out_option/dataset.cpp
     src/product/zero_coupon_bond_option/dataset.cpp
+)
+
+# Model-sample launchers share one persistent-grid contract. Exact models,
+# time-stepped Markov models, and rough Bergomi expose the same terminal and
+# regular-calendar surfaces while retaining their specialized dynamics.
+target_sources(cuda_workbench PRIVATE
+    src/model/equity/bates/sample.cu
+    src/model/equity/black_scholes/sample.cu
+    src/model/equity/cev/sample.cu
+    src/model/equity/heston/sample.cu
+    src/model/equity/kou/sample.cu
+    src/model/equity/merton/sample.cu
+    src/model/equity/normal_inverse_gaussian/sample.cu
+    src/model/equity/rough_bergomi/sample.cu
+    src/model/equity/schobel_zhu/sample.cu
+    src/model/equity/variance_gamma/sample.cu
+    src/model/fixed_income/cir/sample.cu
+    src/model/fixed_income/g2/sample.cu
+    src/model/fixed_income/g2_plus_plus/sample.cu
+    src/model/fixed_income/hull_white/sample.cu
+    src/model/fixed_income/ornstein_uhlenbeck/sample.cu
+    src/model/fixed_income/vasicek/sample.cu
 )
 
 # New equity models deliberately reuse the explicit product-specialized Monte
@@ -290,6 +314,7 @@ target_compile_options(cuda_workbench PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-O3>
     $<$<COMPILE_LANGUAGE:CXX>:-O3>
 )
+
 # Register one host-only parameter generator with shared build settings.
 function(add_parameter_generator target source)
     add_executable(${target} ${source})
@@ -309,307 +334,307 @@ endfunction()
 
 add_price_generator(
     generate_heston_european_calls_01
-    catalog/price/equity/heston/european_calls/heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_european_puts_01
-    catalog/price/equity/heston/european_puts/heston_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/european_puts/heston_01__european_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_rough_bergomi_european_calls_01
-    catalog/price/equity/rough_bergomi/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_rough_bergomi_european_puts_01
-    catalog/price/equity/rough_bergomi/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough_bergomi/prices/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_asian_puts_01
-    catalog/price/equity/heston/asian_puts/heston_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/asian_puts/heston_01__asian_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_digital_calls_01
-    catalog/price/equity/heston/digital_calls/heston_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/digital_calls/heston_01__digital_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_digital_puts_01
-    catalog/price/equity/heston/digital_puts/heston_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/digital_puts/heston_01__digital_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_asset_or_nothing_calls_01
-    catalog/price/equity/heston/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_asset_or_nothing_puts_01
-    catalog/price/equity/heston/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_gap_calls_01
-    catalog/price/equity/heston/gap_calls/heston_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/gap_calls/heston_01__gap_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_gap_puts_01
-    catalog/price/equity/heston/gap_puts/heston_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/gap_puts/heston_01__gap_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_straddles_01
-    catalog/price/equity/heston/straddles/heston_01__straddles_01__01/generator.cpp
+    catalog/model/equity/heston/prices/straddles/heston_01__straddles_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_caplets_01
-    catalog/price/fixed_income/g2/caplets/g2_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_floorlets_01
-    catalog/price/fixed_income/g2/floorlets/g2_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/floorlets/g2_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/g2/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/g2/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_nelson_siegel_caplets_01
-    catalog/price/fixed_income/g2_plus_plus/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_nelson_siegel_floorlets_01
-    catalog/price/fixed_income/g2_plus_plus/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_svensson_caplets_01
-    catalog/price/fixed_income/g2_plus_plus/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_svensson_floorlets_01
-    catalog/price/fixed_income/g2_plus_plus/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_asian_calls_01
-    catalog/price/equity/heston/asian_calls/heston_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/asian_calls/heston_01__asian_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_athena_autocalls_01
-    catalog/price/equity/heston/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_phoenix_autocalls_01
-    catalog/price/equity/heston/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_phoenix_memory_autocalls_01
-    catalog/price/equity/heston/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_cliquets_01
-    catalog/price/equity/heston/cliquets/heston_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/heston/prices/cliquets/heston_01__cliquets_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_range_accruals_01
-    catalog/price/equity/heston/range_accruals/heston_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/heston/prices/range_accruals/heston_01__range_accruals_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_lookback_options_01
-    catalog/price/equity/heston/lookback_options/heston_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/heston/prices/lookback_options/heston_01__lookback_options_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_american_puts_01
-    catalog/price/equity/heston/american_puts/heston_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_geometric_asian_calls_01
-    catalog/price/equity/heston/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_geometric_asian_puts_01
-    catalog/price/equity/heston/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_forward_start_calls_01
-    catalog/price/equity/heston/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_forward_start_puts_01
-    catalog/price/equity/heston/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_up_and_out_calls_01
-    catalog/price/equity/heston/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_down_and_out_puts_01
-    catalog/price/equity/heston/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_up_and_in_calls_01
-    catalog/price/equity/heston/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_down_and_in_puts_01
-    catalog/price/equity/heston/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_up_one_touches_01
-    catalog/price/equity/heston/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_up_no_touches_01
-    catalog/price/equity/heston/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/heston/prices/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_double_knock_out_calls_01
-    catalog/price/equity/heston/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_double_knock_out_puts_01
-    catalog/price/equity/heston/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_heston_american_calls_01
-    catalog/price/equity/heston/american_calls/heston_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/heston/prices/american_calls/heston_01__american_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_european_calls_01
-    catalog/price/equity/bates/european_calls/bates_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/european_calls/bates_01__european_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_european_puts_01
-    catalog/price/equity/bates/european_puts/bates_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/european_puts/bates_01__european_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_asian_puts_01
-    catalog/price/equity/bates/asian_puts/bates_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/asian_puts/bates_01__asian_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_digital_calls_01
-    catalog/price/equity/bates/digital_calls/bates_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/digital_calls/bates_01__digital_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_digital_puts_01
-    catalog/price/equity/bates/digital_puts/bates_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/digital_puts/bates_01__digital_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_asset_or_nothing_calls_01
-    catalog/price/equity/bates/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_asset_or_nothing_puts_01
-    catalog/price/equity/bates/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_gap_calls_01
-    catalog/price/equity/bates/gap_calls/bates_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/gap_calls/bates_01__gap_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_gap_puts_01
-    catalog/price/equity/bates/gap_puts/bates_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/gap_puts/bates_01__gap_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_straddles_01
-    catalog/price/equity/bates/straddles/bates_01__straddles_01__01/generator.cpp
+    catalog/model/equity/bates/prices/straddles/bates_01__straddles_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_asian_calls_01
-    catalog/price/equity/bates/asian_calls/bates_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/asian_calls/bates_01__asian_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_athena_autocalls_01
-    catalog/price/equity/bates/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_phoenix_autocalls_01
-    catalog/price/equity/bates/phoenix_autocalls/bates_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/phoenix_autocalls/bates_01__phoenix_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_phoenix_memory_autocalls_01
-    catalog/price/equity/bates/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_cliquets_01
-    catalog/price/equity/bates/cliquets/bates_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/bates/prices/cliquets/bates_01__cliquets_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_range_accruals_01
-    catalog/price/equity/bates/range_accruals/bates_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/bates/prices/range_accruals/bates_01__range_accruals_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_lookback_options_01
-    catalog/price/equity/bates/lookback_options/bates_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/bates/prices/lookback_options/bates_01__lookback_options_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_american_puts_01
-    catalog/price/equity/bates/american_puts/bates_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/american_puts/bates_01__american_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_geometric_asian_calls_01
-    catalog/price/equity/bates/geometric_asian_calls/bates_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/geometric_asian_calls/bates_01__geometric_asian_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_geometric_asian_puts_01
-    catalog/price/equity/bates/geometric_asian_puts/bates_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/geometric_asian_puts/bates_01__geometric_asian_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_forward_start_calls_01
-    catalog/price/equity/bates/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_forward_start_puts_01
-    catalog/price/equity/bates/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_up_and_out_calls_01
-    catalog/price/equity/bates/up_and_out_calls/bates_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/up_and_out_calls/bates_01__up_and_out_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_down_and_out_puts_01
-    catalog/price/equity/bates/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_up_and_in_calls_01
-    catalog/price/equity/bates/up_and_in_calls/bates_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/up_and_in_calls/bates_01__up_and_in_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_down_and_in_puts_01
-    catalog/price/equity/bates/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_up_one_touches_01
-    catalog/price/equity/bates/up_one_touches/bates_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/bates/prices/up_one_touches/bates_01__up_one_touches_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_up_no_touches_01
-    catalog/price/equity/bates/up_no_touches/bates_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/bates/prices/up_no_touches/bates_01__up_no_touches_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_double_knock_out_calls_01
-    catalog/price/equity/bates/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_double_knock_out_puts_01
-    catalog/price/equity/bates/double_knock_out_puts/bates_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/bates/prices/double_knock_out_puts/bates_01__double_knock_out_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_bates_american_calls_01
-    catalog/price/equity/bates/american_calls/bates_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/bates/prices/american_calls/bates_01__american_calls_01__01/generator.cpp
 )
 
 # VG and NIG expose the same product-specialized launcher surface as Heston.
@@ -627,7 +652,7 @@ foreach(_levy_model IN ITEMS variance_gamma normal_inverse_gaussian)
     foreach(_price_family IN LISTS _levy_equity_price_families)
         add_price_generator(
             generate_${_levy_model}_${_price_family}_01
-            catalog/price/equity/${_levy_model}/${_price_family}/${_levy_model}_01__${_price_family}_01__01/generator.cpp
+            catalog/model/equity/${_levy_model}/prices/${_price_family}/${_levy_model}_01__${_price_family}_01__01/generator.cpp
         )
     endforeach()
 endforeach()
@@ -644,7 +669,7 @@ set(_black_scholes_monte_carlo_price_families
 foreach(_price_family IN LISTS _black_scholes_monte_carlo_price_families)
     add_price_generator(
         generate_black_scholes_${_price_family}_01
-        catalog/price/equity/black_scholes/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
+        catalog/model/equity/black_scholes/prices/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
     )
 endforeach()
 set(_black_scholes_analytical_price_families
@@ -656,7 +681,7 @@ set(_black_scholes_analytical_price_families
 foreach(_price_family IN LISTS _black_scholes_analytical_price_families)
     add_price_generator(
         generate_black_scholes_${_price_family}_01
-        catalog/price/equity/black_scholes/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
+        catalog/model/equity/black_scholes/prices/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
     )
 endforeach()
 
@@ -676,147 +701,147 @@ foreach(_equity_model IN ITEMS merton kou cev schobel_zhu)
     foreach(_price_family IN LISTS _new_equity_monte_carlo_price_families)
         add_price_generator(
             generate_${_equity_model}_${_price_family}_01
-            catalog/price/equity/${_equity_model}/${_price_family}/${_equity_model}_01__${_price_family}_01__01/generator.cpp
+            catalog/model/equity/${_equity_model}/prices/${_price_family}/${_equity_model}_01__${_price_family}_01__01/generator.cpp
         )
     endforeach()
 endforeach()
 add_price_generator(
     generate_hull_white_nelson_siegel_caplets_01
-    catalog/price/fixed_income/hull_white/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_nelson_siegel_floorlets_01
-    catalog/price/fixed_income/hull_white/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_svensson_caplets_01
-    catalog/price/fixed_income/hull_white/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_svensson_floorlets_01
-    catalog/price/fixed_income/hull_white/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_svensson_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/hull_white/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_hull_white_svensson_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/hull_white/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_cir_caplets_01
-    catalog/price/fixed_income/cir/caplets/cir_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_cir_floorlets_01
-    catalog/price/fixed_income/cir/floorlets/cir_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_cir_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/cir/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_cir_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/cir/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_ornstein_uhlenbeck_caplets_01
-    catalog/price/fixed_income/ornstein_uhlenbeck/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_ornstein_uhlenbeck_floorlets_01
-    catalog/price/fixed_income/ornstein_uhlenbeck/floorlets/ornstein_uhlenbeck_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/ornstein_uhlenbeck_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 add_price_generator(
     generate_vasicek_caplets_01
-    catalog/price/fixed_income/vasicek/caplets/vasicek_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/generator.cpp
 )
 add_price_generator(
     generate_vasicek_floorlets_01
-    catalog/price/fixed_income/vasicek/floorlets/vasicek_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/generator.cpp
 )
 add_price_generator(
     generate_vasicek_zero_coupon_bond_calls_01
-    catalog/price/fixed_income/vasicek/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01/generator.cpp
 )
 add_price_generator(
     generate_vasicek_zero_coupon_bond_puts_01
-    catalog/price/fixed_income/vasicek/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
 
 add_parameter_generator(
-    generate_heston_01 catalog/model/equity/heston/heston_01/generator.cpp
+    generate_heston_01 catalog/model/equity/heston/parameters/heston_01/generator.cpp
 )
 add_parameter_generator(
     generate_black_scholes_01
-    catalog/model/equity/black_scholes/black_scholes_01/generator.cpp
+    catalog/model/equity/black_scholes/parameters/black_scholes_01/generator.cpp
 )
 add_parameter_generator(
-    generate_bates_01 catalog/model/equity/bates/bates_01/generator.cpp
+    generate_bates_01 catalog/model/equity/bates/parameters/bates_01/generator.cpp
 )
 add_parameter_generator(
     generate_variance_gamma_01
-    catalog/model/equity/variance_gamma/variance_gamma_01/generator.cpp
+    catalog/model/equity/variance_gamma/parameters/variance_gamma_01/generator.cpp
 )
 add_parameter_generator(
     generate_normal_inverse_gaussian_01
-    catalog/model/equity/normal_inverse_gaussian/normal_inverse_gaussian_01/generator.cpp
+    catalog/model/equity/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01/generator.cpp
 )
 add_parameter_generator(
-    generate_merton_01 catalog/model/equity/merton/merton_01/generator.cpp
+    generate_merton_01 catalog/model/equity/merton/parameters/merton_01/generator.cpp
 )
 add_parameter_generator(
-    generate_kou_01 catalog/model/equity/kou/kou_01/generator.cpp
+    generate_kou_01 catalog/model/equity/kou/parameters/kou_01/generator.cpp
 )
 add_parameter_generator(
-    generate_cev_01 catalog/model/equity/cev/cev_01/generator.cpp
+    generate_cev_01 catalog/model/equity/cev/parameters/cev_01/generator.cpp
 )
 add_parameter_generator(
     generate_schobel_zhu_01
-    catalog/model/equity/schobel_zhu/schobel_zhu_01/generator.cpp
+    catalog/model/equity/schobel_zhu/parameters/schobel_zhu_01/generator.cpp
 )
 add_parameter_generator(
     generate_rough_bergomi_01
-    catalog/model/equity/rough_bergomi/rough_bergomi_01/generator.cpp
+    catalog/model/equity/rough_bergomi/parameters/rough_bergomi_01/generator.cpp
 )
 add_parameter_generator(
-    generate_g2_01 catalog/model/fixed_income/g2/g2_01/generator.cpp
+    generate_g2_01 catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
 )
 add_parameter_generator(
     generate_g2_plus_plus_01
-    catalog/model/fixed_income/g2_plus_plus/g2_plus_plus_01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01/generator.cpp
 )
 add_parameter_generator(
-    generate_hull_white_01 catalog/model/fixed_income/hull_white/hull_white_01/generator.cpp
+    generate_hull_white_01 catalog/model/fixed_income/hull_white/parameters/hull_white_01/generator.cpp
 )
 add_parameter_generator(
     generate_ornstein_uhlenbeck_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/ornstein_uhlenbeck_01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/generator.cpp
 )
 add_parameter_generator(
     generate_vasicek_01
-    catalog/model/fixed_income/vasicek/vasicek_01/generator.cpp
+    catalog/model/fixed_income/vasicek/parameters/vasicek_01/generator.cpp
 )
 add_parameter_generator(
     generate_cir_01
-    catalog/model/fixed_income/cir/cir_01/generator.cpp
+    catalog/model/fixed_income/cir/parameters/cir_01/generator.cpp
 )
 add_parameter_generator(
     generate_nelson_siegel_01
@@ -1027,49 +1052,49 @@ if(BUILD_TESTING)
                     add_quantlib_validation_test(
                         ornstein_uhlenbeck_${product}
                         validation.quantlib.model.fixed_income.ornstein_uhlenbeck.${product}
-                        datasets/price/fixed_income/ornstein_uhlenbeck/${product_folder}/ornstein_uhlenbeck_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/ornstein_uhlenbeck/prices/${product_folder}/ornstein_uhlenbeck_01__${product_folder}_01__01.json
                         ornstein_uhlenbeck
                     )
                     add_quantlib_validation_test(
                         vasicek_${product}
                         validation.quantlib.model.fixed_income.vasicek.${product}
-                        datasets/price/fixed_income/vasicek/${product_folder}/vasicek_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/vasicek/prices/${product_folder}/vasicek_01__${product_folder}_01__01.json
                         vasicek
                     )
                     add_quantlib_validation_test(
                         cir_${product}
                         validation.quantlib.model.fixed_income.cir.${product}
-                        datasets/price/fixed_income/cir/${product_folder}/cir_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/cir/prices/${product_folder}/cir_01__${product_folder}_01__01.json
                         cir
                     )
                     add_quantlib_validation_test(
                         hull_white_nelson_siegel_${product}
                         validation.quantlib.model.fixed_income.hull_white.nelson_siegel.${product}
-                        datasets/price/fixed_income/hull_white/nelson_siegel/${product_folder}/hull_white_01__nelson_siegel_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/hull_white/prices/nelson_siegel/${product_folder}/hull_white_01__nelson_siegel_01__${product_folder}_01__01.json
                         hull_white
                     )
                     add_quantlib_validation_test(
                         hull_white_svensson_${product}
                         validation.quantlib.model.fixed_income.hull_white.svensson.${product}
-                        datasets/price/fixed_income/hull_white/svensson/${product_folder}/hull_white_01__svensson_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/hull_white/prices/svensson/${product_folder}/hull_white_01__svensson_01__${product_folder}_01__01.json
                         hull_white
                     )
                     add_quantlib_validation_test(
                         g2_${product}
                         validation.quantlib.model.fixed_income.g2.${product}
-                        datasets/price/fixed_income/g2/${product_folder}/g2_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/g2/prices/${product_folder}/g2_01__${product_folder}_01__01.json
                         g2
                     )
                     add_quantlib_validation_test(
                         g2_plus_plus_nelson_siegel_${product}
                         validation.quantlib.model.fixed_income.g2_plus_plus.nelson_siegel.${product}
-                        datasets/price/fixed_income/g2_plus_plus/nelson_siegel/${product_folder}/g2_plus_plus_01__nelson_siegel_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/g2_plus_plus/prices/nelson_siegel/${product_folder}/g2_plus_plus_01__nelson_siegel_01__${product_folder}_01__01.json
                         g2_plus_plus
                     )
                     add_quantlib_validation_test(
                         g2_plus_plus_svensson_${product}
                         validation.quantlib.model.fixed_income.g2_plus_plus.svensson.${product}
-                        datasets/price/fixed_income/g2_plus_plus/svensson/${product_folder}/g2_plus_plus_01__svensson_01__${product_folder}_01__01.json
+                        datasets/model/fixed_income/g2_plus_plus/prices/svensson/${product_folder}/g2_plus_plus_01__svensson_01__${product_folder}_01__01.json
                         g2_plus_plus
                     )
                 endforeach()
@@ -1077,67 +1102,67 @@ if(BUILD_TESTING)
                 add_quantlib_validation_test(
                     heston_european_call
                     validation.quantlib.model.equity.heston.european_call
-                    datasets/price/equity/heston/european_calls/heston_01__european_calls_01__01.json
+                    datasets/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_european_put
                     validation.quantlib.model.equity.heston.european_put
-                    datasets/price/equity/heston/european_puts/heston_01__european_puts_01__01.json
+                    datasets/model/equity/heston/prices/european_puts/heston_01__european_puts_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_straddle
                     validation.quantlib.model.equity.heston.straddle
-                    datasets/price/equity/heston/straddles/heston_01__straddles_01__01.json
+                    datasets/model/equity/heston/prices/straddles/heston_01__straddles_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_digital_call
                     validation.quantlib.model.equity.heston.digital_call
-                    datasets/price/equity/heston/digital_calls/heston_01__digital_calls_01__01.json
+                    datasets/model/equity/heston/prices/digital_calls/heston_01__digital_calls_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_digital_put
                     validation.quantlib.model.equity.heston.digital_put
-                    datasets/price/equity/heston/digital_puts/heston_01__digital_puts_01__01.json
+                    datasets/model/equity/heston/prices/digital_puts/heston_01__digital_puts_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_asset_or_nothing_call
                     validation.quantlib.model.equity.heston.asset_or_nothing_call
-                    datasets/price/equity/heston/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01.json
+                    datasets/model/equity/heston/prices/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_asset_or_nothing_put
                     validation.quantlib.model.equity.heston.asset_or_nothing_put
-                    datasets/price/equity/heston/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01.json
+                    datasets/model/equity/heston/prices/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_gap_call
                     validation.quantlib.model.equity.heston.gap_call
-                    datasets/price/equity/heston/gap_calls/heston_01__gap_calls_01__01.json
+                    datasets/model/equity/heston/prices/gap_calls/heston_01__gap_calls_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     heston_gap_put
                     validation.quantlib.model.equity.heston.gap_put
-                    datasets/price/equity/heston/gap_puts/heston_01__gap_puts_01__01.json
+                    datasets/model/equity/heston/prices/gap_puts/heston_01__gap_puts_01__01.json
                     heston
                 )
                 add_quantlib_validation_test(
                     cev_european_call
                     validation.quantlib.model.equity.cev.european_call
-                    datasets/price/equity/cev/european_calls/cev_01__european_calls_01__01.json
+                    datasets/model/equity/cev/prices/european_calls/cev_01__european_calls_01__01.json
                     cev
                 )
                 add_quantlib_validation_test(
                     cev_european_put
                     validation.quantlib.model.equity.cev.european_put
-                    datasets/price/equity/cev/european_puts/cev_01__european_puts_01__01.json
+                    datasets/model/equity/cev/prices/european_puts/cev_01__european_puts_01__01.json
                     cev
                 )
 
@@ -1145,7 +1170,7 @@ if(BUILD_TESTING)
                     add_quantlib_validation_test(
                         bates_${product}
                         validation.quantlib.model.equity.bates.${product}
-                        datasets/price/equity/bates/${folder}/bates_01__${folder}_01__01.json
+                        datasets/model/equity/bates/prices/${folder}/bates_01__${folder}_01__01.json
                         bates
                     )
                 endfunction()
@@ -1173,7 +1198,7 @@ if(BUILD_TESTING)
                 if(_scipy_python_status EQUAL 0)
                     function(add_variance_gamma_validation_test product folder)
                         set(_vg_dataset
-                            datasets/price/equity/variance_gamma/${folder}/variance_gamma_01__${folder}_01__01.json
+                            datasets/model/equity/variance_gamma/prices/${folder}/variance_gamma_01__${folder}_01__01.json
                         )
                         if(EXISTS "${CMAKE_SOURCE_DIR}/${_vg_dataset}")
                             add_quantlib_validation_test(
@@ -1210,103 +1235,103 @@ if(BUILD_TESTING)
                     add_quantlib_validation_test(
                         heston_geometric_asian_call
                         validation.quantlib.model.equity.heston.geometric_asian_call
-                        datasets/price/equity/heston/geometric_asian_calls/heston_01__geometric_asian_calls_01__01.json
+                        datasets/model/equity/heston/prices/geometric_asian_calls/heston_01__geometric_asian_calls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_geometric_asian_put
                         validation.quantlib.model.equity.heston.geometric_asian_put
-                        datasets/price/equity/heston/geometric_asian_puts/heston_01__geometric_asian_puts_01__01.json
+                        datasets/model/equity/heston/prices/geometric_asian_puts/heston_01__geometric_asian_puts_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_asian_call
                         validation.quantlib.model.equity.heston.asian_call
-                        datasets/price/equity/heston/asian_calls/heston_01__asian_calls_01__01.json
+                        datasets/model/equity/heston/prices/asian_calls/heston_01__asian_calls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_asian_put
                         validation.quantlib.model.equity.heston.asian_put
-                        datasets/price/equity/heston/asian_puts/heston_01__asian_puts_01__01.json
+                        datasets/model/equity/heston/prices/asian_puts/heston_01__asian_puts_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_up_and_out_call
                         validation.quantlib.model.equity.heston.up_and_out_call
-                        datasets/price/equity/heston/up_and_out_calls/heston_01__up_and_out_calls_01__01.json
+                        datasets/model/equity/heston/prices/up_and_out_calls/heston_01__up_and_out_calls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_down_and_out_put
                         validation.quantlib.model.equity.heston.down_and_out_put
-                        datasets/price/equity/heston/down_and_out_puts/heston_01__down_and_out_puts_01__01.json
+                        datasets/model/equity/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_up_and_in_call
                         validation.quantlib.model.equity.heston.up_and_in_call
-                        datasets/price/equity/heston/up_and_in_calls/heston_01__up_and_in_calls_01__01.json
+                        datasets/model/equity/heston/prices/up_and_in_calls/heston_01__up_and_in_calls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_down_and_in_put
                         validation.quantlib.model.equity.heston.down_and_in_put
-                        datasets/price/equity/heston/down_and_in_puts/heston_01__down_and_in_puts_01__01.json
+                        datasets/model/equity/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_up_one_touch
                         validation.quantlib.model.equity.heston.up_one_touch
-                        datasets/price/equity/heston/up_one_touches/heston_01__up_one_touches_01__01.json
+                        datasets/model/equity/heston/prices/up_one_touches/heston_01__up_one_touches_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_up_no_touch
                         validation.quantlib.model.equity.heston.up_no_touch
-                        datasets/price/equity/heston/up_no_touches/heston_01__up_no_touches_01__01.json
+                        datasets/model/equity/heston/prices/up_no_touches/heston_01__up_no_touches_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_double_knock_out_call
                         validation.quantlib.model.equity.heston.double_knock_out_call
-                        datasets/price/equity/heston/double_knock_out_calls/heston_01__double_knock_out_calls_01__01.json
+                        datasets/model/equity/heston/prices/double_knock_out_calls/heston_01__double_knock_out_calls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_double_knock_out_put
                         validation.quantlib.model.equity.heston.double_knock_out_put
-                        datasets/price/equity/heston/double_knock_out_puts/heston_01__double_knock_out_puts_01__01.json
+                        datasets/model/equity/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_athena_autocall
                         validation.quantlib.model.equity.heston.athena_autocall
-                        datasets/price/equity/heston/athena_autocalls/heston_01__athena_autocalls_01__01.json
+                        datasets/model/equity/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_phoenix_autocall
                         validation.quantlib.model.equity.heston.phoenix_autocall
-                        datasets/price/equity/heston/phoenix_autocalls/heston_01__phoenix_autocalls_01__01.json
+                        datasets/model/equity/heston/prices/phoenix_autocalls/heston_01__phoenix_autocalls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_phoenix_memory_autocall
                         validation.quantlib.model.equity.heston.phoenix_memory_autocall
-                        datasets/price/equity/heston/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01.json
+                        datasets/model/equity/heston/prices/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_cliquet
                         validation.quantlib.model.equity.heston.cliquet
-                        datasets/price/equity/heston/cliquets/heston_01__cliquets_01__01.json
+                        datasets/model/equity/heston/prices/cliquets/heston_01__cliquets_01__01.json
                         heston
                     )
                     add_quantlib_validation_test(
                         heston_range_accrual
                         validation.quantlib.model.equity.heston.range_accrual
-                        datasets/price/equity/heston/range_accruals/heston_01__range_accruals_01__01.json
+                        datasets/model/equity/heston/prices/range_accruals/heston_01__range_accruals_01__01.json
                         heston
                     )
                     add_bates_validation_test(
@@ -1393,7 +1418,7 @@ if(BUILD_TESTING)
                     COMMAND
                         ${Python3_EXECUTABLE} -m
                         validation.model.equity.${model}.${product}
-                        ${CMAKE_SOURCE_DIR}/datasets/price/equity/${model}/${folder}/${model}_01__${folder}_01__01.json
+                        ${CMAKE_SOURCE_DIR}/datasets/model/equity/${model}/prices/${folder}/${model}_01__${folder}_01__01.json
                         ${CMAKE_CURRENT_BINARY_DIR}/validation-reports/${model}_${product}.json
                 )
                 set_tests_properties(
@@ -1458,7 +1483,7 @@ if(BUILD_TESTING)
                 COMMAND
                     ${Python3_EXECUTABLE} -m
                     validation.model.equity.black_scholes.${product}
-                    ${CMAKE_SOURCE_DIR}/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/datasets/model/equity/black_scholes/prices/${folder}/black_scholes_01__${folder}_01__01.json
                     ${CMAKE_SOURCE_DIR}/validation/datasets/price/equity/black_scholes/${folder}/black_scholes_01__${folder}_01__01.json
                     --require-verified
             )
@@ -1494,7 +1519,7 @@ if(BUILD_TESTING)
                 COMMAND
                     ${Python3_EXECUTABLE} -m
                     validation.model.fixed_income.${model}.${product}
-                    ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/datasets/model/fixed_income/${model}/prices/${folder}/${model}_01__${folder}_01__01.json
                     ${CMAKE_SOURCE_DIR}/validation/datasets/price/fixed_income/${model}/${folder}/${model}_01__${folder}_01__01.json
                     --require-verified
             )
@@ -1531,7 +1556,7 @@ if(BUILD_TESTING)
                 COMMAND
                     ${Python3_EXECUTABLE} -m
                     validation.model.fixed_income.${model}.${curve}.${product}
-                    ${CMAKE_SOURCE_DIR}/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
+                    ${CMAKE_SOURCE_DIR}/datasets/model/fixed_income/${model}/prices/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
                     ${CMAKE_SOURCE_DIR}/validation/datasets/price/fixed_income/${model}/${curve}/${folder}/${model}_01__${curve}_01__${folder}_01__01.json
                     --require-verified
             )
@@ -1676,6 +1701,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        ornstein_uhlenbeck_european_swaptions_cuda
+        tests/ornstein_uhlenbeck_european_swaptions_cuda_test.cu
+        european_swaptions
+        30
+    )
+    add_cuda_workbench_test(
         ornstein_uhlenbeck_cuda
         tests/ornstein_uhlenbeck_cuda_test.cu
         ornstein_uhlenbeck
@@ -1753,6 +1784,12 @@ if(BUILD_TESTING)
         black_scholes_cuda
         tests/black_scholes_cuda_test.cu
         black_scholes
+        30
+    )
+    add_cuda_workbench_test(
+        black_scholes_samples_cuda
+        tests/black_scholes_samples_cuda_test.cu
+        samples
         30
     )
     add_cuda_workbench_test(

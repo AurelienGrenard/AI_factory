@@ -21,7 +21,7 @@ constexpr std::size_t kOutputCount = 25U;
 __global__ void vasicek_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
 
-    const vasicek::VasicekModelParameters model = {
+    const vasicek::ModelParameters model = {
         {0.15f, 0.04f, 0.01f},
         0.03f,
     };
@@ -93,7 +93,7 @@ __global__ void vasicek_test_kernel(float* outputs) {
     outputs[7] = outputs[5] - outputs[6]
         - (underlying_bond - strike * expiry_bond);
 
-    const vasicek::VasicekModelParameters deterministic = {
+    const vasicek::ModelParameters deterministic = {
         {0.15f, 0.04f, 0.0f},
         0.03f,
     };
@@ -110,25 +110,29 @@ __global__ void vasicek_test_kernel(float* outputs) {
     outputs[10] = vasicek::integral_state_loading(1.0e-6f, 1.0e-4f);
     outputs[11] = 1.0e-4f;
 
-    const vasicek::VasicekExactTransition exact =
-        vasicek::prepare_model(model.process, 0.25f);
-    outputs[12] = vasicek::simulate_terminal_state(exact, state, 0.75f);
+    const vasicek::PreparedModel prepared_model =
+        vasicek::prepare_model(model.process);
+    const vasicek::PreparedTransition exact =
+        vasicek::prepare_transition(prepared_model, 0.25f);
+    float terminal_state = state;
+    vasicek::one_step_transition(exact, 0.75f, terminal_state);
+    outputs[12] = terminal_state;
     outputs[13] = fmaf(
         exact.decay,
         state,
         exact.mean_increment + exact.state_standard_deviation * 0.75f
     );
-    const vasicek::joint::VasicekJointExactTransition joint_exact =
-        vasicek::joint::prepare_model(model.process, 0.25f);
-    const vasicek::joint::VasicekJointState joint_terminal =
-        vasicek::joint::simulate_terminal_state(
-            joint_exact, state, 0.75f, -0.25f
-        );
+    const vasicek::joint::PreparedTransition joint_exact =
+        vasicek::joint::prepare_transition(prepared_model, 0.25f);
+    vasicek::joint::State joint_terminal = {state, 0.0f};
+    vasicek::joint::one_step_transition(
+        joint_exact, 0.75f, -0.25f, joint_terminal
+    );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
     outputs[16] = vasicek::log_discount_factor(joint_terminal.state_integral);
     outputs[17] = vasicek::discount_factor(joint_terminal.state_integral);
-    const vasicek::VasicekIntegralMoments moments =
+    const vasicek::IntegralMoments moments =
         vasicek::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading
         - vasicek::integral_state_loading(model.process.mean_reversion, 0.75f);

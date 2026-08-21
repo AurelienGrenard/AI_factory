@@ -182,8 +182,8 @@ _QUANTLIB_SPECIALIZED_PRICING_METHODS = {
 }
 
 _QUANTLIB_MONTE_CARLO_PRICING_METHODS = {
-    "asian_call": "MCDiscreteArithmeticAPEngine (antithetic pseudorandom)",
-    "asian_put": "MCDiscreteArithmeticAPEngine (antithetic pseudorandom)",
+    "asian_call": "MCDiscreteArithmeticAPEngine (synthetic 1/504 date grid)",
+    "asian_put": "MCDiscreteArithmeticAPEngine (synthetic 1/504 date grid)",
     **{
         product: "_antithetic_path_price (GaussianPathGenerator)"
         for product in QUANTLIB_MONTE_CARLO_PRODUCTS - {"asian_call", "asian_put"}

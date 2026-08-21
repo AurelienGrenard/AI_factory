@@ -48,7 +48,7 @@ class BlackScholesReferencePipelineTest(unittest.TestCase):
         stem = f"black_scholes_01__{folder}_01__01"
         source = (
             ROOT
-            / "datasets/price/equity/black_scholes"
+            / "datasets/model/equity/black_scholes/prices"
             / folder
             / f"{stem}.json"
         )
@@ -58,7 +58,12 @@ class BlackScholesReferencePipelineTest(unittest.TestCase):
             / folder
             / f"{stem}.json"
         )
-        catalog = ROOT / "catalog/price/equity/black_scholes" / folder / stem
+        catalog = (
+            ROOT
+            / "catalog/model/equity/black_scholes/prices"
+            / folder
+            / stem
+        )
         return source, reference, catalog
 
     def test_all_29_catalogs_publish_only_a_verified_cache(self) -> None:

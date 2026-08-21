@@ -151,7 +151,7 @@ __global__ void prepare_fft_row_kernel(
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_index,
-    std::size_t step_count,
+    std::uint32_t step_count,
     std::uint64_t base_seed,
     float2* __restrict__ kernel_spectrum,
     float* __restrict__ log_variance_corrections,
@@ -224,7 +224,7 @@ template<unsigned int Length, class Forward, class Inverse>
 __global__ void rough_bergomi_fft_convolution_kernel(
     std::size_t global_path_offset,
     std::size_t chunk_path_count,
-    std::size_t step_count,
+    std::uint32_t step_count,
     const PreparedFftRow* __restrict__ prepared_row,
     const float2* __restrict__ kernel_spectrum,
     float2* __restrict__ convolutions
@@ -304,7 +304,7 @@ __global__ void rough_bergomi_fft_payoff_kernel(
     const PreparedFftRow* __restrict__ prepared_row,
     std::size_t global_path_offset,
     std::size_t chunk_path_count,
-    std::size_t step_count,
+    std::uint32_t step_count,
     const float* __restrict__ log_variance_corrections,
     const float2* __restrict__ convolutions,
     PartialMoments* __restrict__ partial_moments
@@ -322,7 +322,7 @@ __global__ void rough_bergomi_fft_payoff_kernel(
         float variance = row.model.initial_variance;
         philox::UniformSequence uniforms(row.key, global_path);
         philox::NormalPairCache normal_cache;
-        for (std::size_t step = 0U; step < step_count; ++step) {
+        for (std::uint32_t step = 0U; step < step_count; ++step) {
             const float rough_normal =
                 philox::next_normal(uniforms, normal_cache);
             const float singular_normal =
@@ -416,7 +416,7 @@ void launch_fft_length(
     bool cartesian_product,
     std::size_t result_index,
     std::size_t path_count,
-    std::size_t step_count,
+    std::uint32_t step_count,
     std::size_t path_chunk_size,
     float2* kernel_spectrum,
     float* corrections,
@@ -724,11 +724,13 @@ void launch_rough_bergomi_european_option_fft_cuda(
         workspace + kConvolutionOffset
             + convolution_bytes(step_count, path_chunk_size)
     );
+    const std::uint32_t device_step_count =
+        static_cast<std::uint32_t>(step_count);
 
     if (step_count <= 8U) {
         launch_fft_length<Side, 16U, 8U, 16U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -736,7 +738,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 32U) {
         launch_fft_length<Side, 64U, 8U, 8U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -744,7 +746,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 64U) {
         launch_fft_length<Side, 128U, 8U, 8U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -752,7 +754,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 128U) {
         launch_fft_length<Side, 256U, 16U, 8U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -760,7 +762,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 256U) {
         launch_fft_length<Side, 512U, 8U, 2U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -768,7 +770,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 512U) {
         launch_fft_length<Side, 1024U, 16U, 1U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -776,7 +778,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 1024U) {
         launch_fft_length<Side, 2048U, 16U, 1U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -784,7 +786,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else if (step_count <= 2048U) {
         launch_fft_length<Side, 4096U, 16U, 1U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors
@@ -792,7 +794,7 @@ void launch_rough_bergomi_european_option_fft_cuda(
     } else {
         launch_fft_length<Side, 8192U, 32U, 1U>(
             device_models, device_products, product_count, cartesian_product,
-            result_index, monte_carlo_paths_per_price, step_count,
+            result_index, monte_carlo_paths_per_price, device_step_count,
             path_chunk_size, spectrum, corrections, prepared_row,
             convolutions, partials, base_seed,
             device_prices, device_standard_errors

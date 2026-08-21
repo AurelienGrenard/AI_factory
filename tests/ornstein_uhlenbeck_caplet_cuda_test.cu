@@ -12,6 +12,8 @@
 
 namespace {
 
+constexpr double kDayFraction = 1.0 / 252.0;
+
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
@@ -34,13 +36,13 @@ double integral_variance(double a, double sigma, double delta) {
 // Price one OU caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
     const ai_factory::workbench::model::ornstein_uhlenbeck::
-        OrnsteinUhlenbeckModelParameters& model,
+        ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion;
     const double sigma = model.process.volatility;
-    const double t1 = product.fixing_time;
-    const double t2 = product.payment_time;
+    const double t1 = product.fixing_time * kDayFraction;
+    const double t2 = product.payment_time * kDayFraction;
     const auto zero_coupon = [&](double maturity) {
         return std::exp(
             -integral_loading(a, maturity) * model.initial_state
@@ -52,7 +54,7 @@ double caplet_price(
     const double volatility = sigma * integral_loading(a, t2 - t1)
         * std::sqrt(-std::expm1(-2.0 * a * t1) / (2.0 * a));
     const double strike_factor =
-        1.0 + product.accrual_period * product.strike;
+        1.0 + product.accrual_period * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     if (volatility <= 1.0e-14) {
         const double put = std::max(bond_strike * p01 - p02, 0.0);
@@ -87,20 +89,20 @@ int main() {
     }
     check_cuda(availability, "OU caplet test cudaGetDeviceCount");
 
-    const std::vector<ou::OrnsteinUhlenbeckModelParameters> models = {
+    const std::vector<ou::ModelParameters> models = {
         {{0.10f, 0.01f}, 0.03f},
         {{0.25f, 0.015f}, 0.04f},
         {{0.50f, 0.0f}, 0.025f},
     };
     const std::vector<product::RateOptionParameters> products = {
-        {1.0f, 0.0f, 0.5f, 1.0f, 0.5f},
-        {1.0f, 0.04f, 1.0f, 1.5f, 0.5f},
-        {1.0f, 0.06f, 2.0f, 2.25f, 0.25f},
+        {1.0f, 0.0f, 126U, 252U, 126U},
+        {1.0f, 0.04f, 252U, 378U, 126U},
+        {1.0f, 0.06f, 504U, 567U, 63U},
     };
     constexpr std::size_t row_count = 3U;
     constexpr std::size_t cartesian_count = 6U;
 
-    ou::OrnsteinUhlenbeckModelParameters* device_models = nullptr;
+    ou::ModelParameters* device_models = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
@@ -144,6 +146,7 @@ int main() {
             row_count,
             0U,
             row_count,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -182,6 +185,7 @@ int main() {
             cartesian_count,
             0U,
             2U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -195,6 +199,7 @@ int main() {
             cartesian_count,
             2U,
             cartesian_count - 2U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices

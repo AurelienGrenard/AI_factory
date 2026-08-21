@@ -35,14 +35,14 @@ std::vector<UpOneTouchParameters> load_up_one_touches(
     const auto& rows = document.at("products");
     std::vector<UpOneTouchParameters> products;
     products.reserve(rows.size());
-    // Keep only the three FP32 values consumed by the CUDA payoff.
+    // Keep only the three values consumed by the CUDA payoff.
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
         const auto& parameters = row.at("parameters");
         const UpOneTouchParameters product = {
             parameters.at("barrier").get<float>(),
             parameters.at("cash_payoff").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
         };
         const std::string prefix =
             "Up one-touch row id '" + row_id + "': ";
@@ -54,8 +54,8 @@ std::vector<UpOneTouchParameters> load_up_one_touches(
                 prefix + "cash_payoff must be finite and positive."
             );
         }
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         products.push_back(product);
     }
     return products;

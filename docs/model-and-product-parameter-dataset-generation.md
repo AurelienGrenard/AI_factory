@@ -64,9 +64,11 @@ draws subject to explicit ordering, cap/floor, and calendar constraints. Core
 rows precede stress rows. Fixed-income products use two Cartesian grids: a
 representative grid concentrated near ordinary rates or bond prices, followed
 by a sparse stress grid with unusually short and long dates, tenors, accruals,
-and strikes. Their contract times are generated on an Actual/360 day grid so
-the synthetic year fractions map exactly to QuantLib calendar dates up to FP32
-serialization precision.
+and strikes. All contractual dates are stored as positive integer business-day
+counts under the root convention `business_day / 252`. Pricing and validation
+adapters convert those counts to year fractions exactly once at their input
+boundary. A numerical grid such as `1 / 504` belongs only to a price dataset
+whose scheme or monitoring genuinely uses two transitions per business day.
 
 Price datasets remain distinct for call and put payoffs even when they share a
 single product-parameter dataset. The removed million-row Cartesian experiment

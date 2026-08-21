@@ -11,81 +11,95 @@
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
 
-// ======================== Model-specific dynamics =========================
-
-// For I = integral_t^{t+d} X_s ds: E[I|X_t] = state_loading * X_t,
-// while variance is Var[I|X_t].
-struct OrnsteinUhlenbeckIntegralMoments {
+struct IntegralMoments {
     float state_loading;
     float variance;
 };
 
-// Return B(delta), the loading of the current state in its future integral.
 __device__ __forceinline__ float integral_state_loading(
     float mean_reversion,
     float delta
 );
 
-// Return the variance of the future integral of the Gaussian state.
 __device__ __forceinline__ float integral_variance(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
+    const ProcessParameters& parameters,
     float delta
 );
 
-// Compute both integral moments while sharing their exponential decay.
-__device__ __forceinline__ OrnsteinUhlenbeckIntegralMoments integral_moments(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
+__device__ __forceinline__ IntegralMoments integral_moments(
+    const ProcessParameters& parameters,
     float delta
 );
 
-// ======================= Common state-only dynamics ========================
+// Time-invariant coefficients of one OU process.
+struct PreparedModel {
+    float mean_reversion;
+    float volatility_squared;
+};
 
-// Exact transition: X_next = decay * X + state_standard_deviation * Z.
-struct OrnsteinUhlenbeckExactTransition {
+// Coefficients required to advance the prepared model by one delta_t.
+struct PreparedTransition {
     float decay;
     float state_standard_deviation;
 };
 
-// Precompute the exact state transition reused at every equal time step.
-__device__ __forceinline__ OrnsteinUhlenbeckExactTransition prepare_model(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ProcessParameters& parameters
 );
 
-// Advance the OU state exactly over one time step.
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+);
+
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const OrnsteinUhlenbeckExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float& state
 );
 
-// Apply the prepared exact transition and return its terminal state.
 __device__ __forceinline__ float simulate_terminal_state(
-    const OrnsteinUhlenbeckExactTransition& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     float initial_state,
-    float state_normal
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store observation_count - 1 states; the terminal state is only returned.
-// The date-major output requires (observation_count - 1) * path_count values.
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const OrnsteinUhlenbeckExactTransition& initial_stub_model,
-    const OrnsteinUhlenbeckExactTransition& regular_model,
+__device__ __forceinline__ float simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states
+);
+
+__device__ __forceinline__ float simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states
 );
 
 namespace joint {
 
-// ========================= Common joint dynamics ===========================
-
-// X_next = decay*X + state_standard_deviation*Z1; I_next = I + integral_state_loading*X
-// + integral_state_normal_loading*Z1 + integral_independent_standard_deviation*Z2.
-struct OrnsteinUhlenbeckJointExactTransition {
+struct PreparedTransition {
     float decay;
     float state_standard_deviation;
     float integral_state_loading;
@@ -93,44 +107,60 @@ struct OrnsteinUhlenbeckJointExactTransition {
     float integral_independent_standard_deviation;
 };
 
-// Store X_t and state_integral = integral_0^t X_s ds for one path.
-struct OrnsteinUhlenbeckJointState {
+struct State {
     float state;
     float state_integral;
 };
 
-// Precompute the exact joint transition reused at every equal time step.
-__device__ __forceinline__ OrnsteinUhlenbeckJointExactTransition prepare_model(
-    const OrnsteinUhlenbeckProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    float delta_t
 );
 
-// Advance the OU state and its integral exactly over one time step.
+__device__ __forceinline__ void prepare_calendar(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const OrnsteinUhlenbeckJointExactTransition& model,
+    const PreparedTransition& transition,
     float state_normal,
     float integral_normal,
-    OrnsteinUhlenbeckJointState& joint_state
+    State& state
 );
 
-// Apply the prepared exact transition and return its state and integral.
-__device__ __forceinline__ OrnsteinUhlenbeckJointState simulate_terminal_state(
-    const OrnsteinUhlenbeckJointExactTransition& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition& transition,
     float initial_state,
-    float state_normal,
-    float integral_normal
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store observation_count - 1 joint states and return the terminal state.
-// Each date-major output needs (observation_count - 1) * path_count values.
-__device__ __forceinline__ OrnsteinUhlenbeckJointState simulate_on_regular_grid(
-    const OrnsteinUhlenbeckJointExactTransition& initial_stub_model,
-    const OrnsteinUhlenbeckJointExactTransition& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states,
+    float* __restrict__ observed_integrated_states
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const ornstein_uhlenbeck::PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states,
     float* __restrict__ observed_integrated_states
 );

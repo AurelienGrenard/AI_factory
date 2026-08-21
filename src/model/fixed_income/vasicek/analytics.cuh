@@ -5,7 +5,7 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
+#include <cstdint>
 
 namespace ai_factory::workbench::model::vasicek {
 
@@ -13,28 +13,28 @@ namespace ai_factory::workbench::model::vasicek {
 
 // Return the logarithm of the affine bond prefactor A(t,T).
 __device__ __forceinline__ float log_A(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return the affine bond prefactor A(t,T).
 __device__ __forceinline__ float A(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return the affine state loading B(t,T).
 __device__ __forceinline__ float B(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 );
 
 // Return log P(valuation_time,maturity) = log A - B*state.
 __device__ __forceinline__ float log_zero_coupon_bond(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -52,7 +52,7 @@ __device__ __forceinline__ float discount_factor(
 
 // Return the model zero-coupon bond P(valuation_time, maturity).
 __device__ __forceinline__ float zero_coupon_bond(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -60,7 +60,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 
 // Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -70,7 +70,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 
 // Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -80,7 +80,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 
 // Return the simple forward rate observed at valuation_time over [start,end].
 __device__ __forceinline__ float forward_rate(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
@@ -90,13 +90,13 @@ __device__ __forceinline__ float forward_rate(
 
 // Return the par swap rate observed at valuation_time.
 __device__ __forceinline__ float swap_rate(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 );
 
 }  // namespace ai_factory::workbench::model::vasicek

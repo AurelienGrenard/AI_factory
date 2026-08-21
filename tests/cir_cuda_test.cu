@@ -24,7 +24,7 @@ constexpr std::size_t kOutputCount = 16U;
 __global__ void cir_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
 
-    const cir::CirModelParameters model = {
+    const cir::ModelParameters model = {
         {0.60f, 0.04f, 0.15f},
         0.03f,
     };
@@ -78,31 +78,31 @@ __global__ void cir_test_kernel(float* outputs) {
     );
     outputs[9] = (swap_start_bond - swap_end_bond) / annuity;
 
-    const cir::CirExactTransition short_transition = cir::prepare_model(
-        model.process, 1.0e-4f
-    );
+    const cir::PreparedModel prepared_model = cir::prepare_model(model.process);
+    const cir::PreparedTransition short_transition =
+        cir::prepare_transition(prepared_model, 1.0e-4f);
     constexpr std::size_t path = 73U;
     const philox::PhiloxKey key = philox::make_key(900000301ULL);
     outputs[10] = cir::simulate_terminal_state(
-        short_transition, state, key, path
+        prepared_model, short_transition, state, key, path
     );
     outputs[11] = cir::simulate_terminal_state(
-        short_transition, state, key, path
+        prepared_model, short_transition, state, key, path
     );
-    const cir::CirExactTransition regular_transition = cir::prepare_model(
-        model.process, 0.25f
-    );
+    const cir::PreparedTransition regular_transition =
+        cir::prepare_transition(prepared_model, 0.25f);
     outputs[12] = cir::simulate_terminal_state(
-        regular_transition, 0.0f, key, path
+        prepared_model, regular_transition, 0.0f, key, path
     );
-    outputs[13] = regular_transition.degrees_of_freedom;
+    outputs[13] = prepared_model.degrees_of_freedom;
     outputs[14] = cir::log_discount_factor(0.25f);
     outputs[15] = cir::discount_factor(0.25f);
 }
 
 // Draw one exact endpoint per independent Philox path for moment checks.
 __global__ void sample_cir_kernel(
-    cir::CirExactTransition transition,
+    cir::PreparedModel model,
+    cir::PreparedTransition transition,
     float initial_state,
     std::uint64_t seed,
     std::size_t sample_count,
@@ -112,6 +112,7 @@ __global__ void sample_cir_kernel(
         static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     if (path >= sample_count) return;
     samples[path] = cir::simulate_terminal_state(
+        model,
         transition,
         initial_state,
         philox::make_key(seed),
@@ -196,7 +197,7 @@ int main() {
     constexpr unsigned int block_count = static_cast<unsigned int>(
         (sample_count + threads_per_block - 1U) / threads_per_block
     );
-    constexpr cir::CirProcessParameters process = {0.60f, 0.04f, 0.15f};
+    constexpr cir::ProcessParameters process = {0.60f, 0.04f, 0.15f};
     constexpr float initial_state = 0.03f;
     constexpr float time_interval = 0.75f;
 
@@ -224,15 +225,21 @@ int main() {
     std::vector<float> samples(sample_count);
     try {
         // The prepared values are deterministic functions of the row and dt.
-        cir::CirExactTransition host_transition = {
-            static_cast<float>(decay),
+        const cir::PreparedModel host_model = {
+            process.mean_reversion,
             4.0f * process.mean_reversion * process.long_term_mean
                 / (process.volatility * process.volatility),
+            process.volatility * process.volatility
+                / (4.0f * process.mean_reversion),
+        };
+        const cir::PreparedTransition host_transition = {
+            static_cast<float>(decay),
             process.volatility * process.volatility
                 * static_cast<float>(one_minus_decay)
                 / (4.0f * process.mean_reversion),
         };
         sample_cir_kernel<<<block_count, threads_per_block>>>(
+            host_model,
             host_transition,
             initial_state,
             900000401ULL,

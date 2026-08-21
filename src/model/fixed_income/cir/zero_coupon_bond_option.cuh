@@ -12,7 +12,7 @@ namespace ai_factory::workbench::model::cir {
 // Launch one closed-form zero-coupon bond option per CUDA thread.
 template<OptionSide Side>
 void launch_cir_zero_coupon_bond_option_cuda(
-    const CirModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ZeroCouponBondOptionParameters* device_products,
     std::size_t product_count,
@@ -20,6 +20,7 @@ void launch_cir_zero_coupon_bond_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices

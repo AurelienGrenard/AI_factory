@@ -22,8 +22,8 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    VarianceGammaPreparedParameters reset_model;
-    VarianceGammaPreparedParameters remaining_model;
+    PreparedModel model;
+    PreparedTransition transitions[2];
     philox::PhiloxKey key;
     float moneyness;
     float discount;
@@ -31,17 +31,28 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const VarianceGammaModelParameters& model,
+    const ModelParameters& model,
     const product::ForwardStartOptionParameters& product,
+    float day_fraction,
     std::uint64_t seed
 ) {
-    const float remaining_time = product.maturity - product.reset_time;
+    const float reset_time =
+        static_cast<float>(product.reset_time) * day_fraction;
+    const float remaining_time = static_cast<float>(
+        product.maturity - product.reset_time
+    ) * day_fraction;
+    const float maturity =
+        static_cast<float>(product.maturity) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     return {
-        prepare_model(model, product.reset_time),
-        prepare_model(model, remaining_time),
+        prepared_model,
+        {
+            prepare_transition(prepared_model, reset_time),
+            prepare_transition(prepared_model, remaining_time),
+        },
         philox::make_key(seed),
         product.moneyness,
-        expf(-model.risk_free_rate * product.maturity),
+        expf(-model.risk_free_rate * maturity),
     };
 }
 
@@ -51,14 +62,17 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    const VarianceGammaTwoTimePathResult simulated = simulate_at_two_times(
-        row.reset_model,
-        row.remaining_model,
+    float reset_spot = 0.0f;
+    const State terminal = simulate_on_calendar(
+        row.model,
+        row.transitions,
+        2U,
         row.key,
-        path
+        path,
+        1U,
+        &reset_spot
     );
-    const float reset_spot = simulated.first_spot;
-    const float terminal_spot = simulated.terminal_spot;
+    const float terminal_spot = expf(terminal.log_spot);
     if constexpr (Side == OptionSide::call)
         return row.discount
             * fmaxf(terminal_spot - row.moneyness * reset_spot, 0.0f);
@@ -70,13 +84,14 @@ __device__ __forceinline__ float evaluate_path(
 // Price rows through a bounded persistent grid and write FP32 result moments.
 template<OptionSide Side>
 __global__ void variance_gamma_forward_start_option_kernel(
-    const VarianceGammaModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::ForwardStartOptionParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -100,6 +115,7 @@ __global__ void variance_gamma_forward_start_option_kernel(
             prepared = prepare_row(
                 models[model_index],
                 product,
+                day_fraction,
                 base_seed + result_index
             );
         }
@@ -140,7 +156,7 @@ __global__ void variance_gamma_forward_start_option_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_variance_gamma_forward_start_option_launch(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -149,6 +165,7 @@ void validate_variance_gamma_forward_start_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -175,6 +192,7 @@ void validate_variance_gamma_forward_start_option_launch(
 
     // The Monte Carlo path count must be valid.
     validate_monte_carlo_path_count(monte_carlo_paths_per_price);
+    validate_day_fraction(day_fraction);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -192,7 +210,7 @@ void validate_variance_gamma_forward_start_option_launch(
 // Validate and launch the pricing kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_variance_gamma_forward_start_option_cuda(
-    const VarianceGammaModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
@@ -201,6 +219,7 @@ void launch_variance_gamma_forward_start_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -217,6 +236,7 @@ void launch_variance_gamma_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         block_count,
         base_seed,
@@ -266,6 +286,7 @@ void launch_variance_gamma_forward_start_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         base_seed,
         device_prices,
         device_standard_errors

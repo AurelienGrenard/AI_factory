@@ -28,10 +28,10 @@ struct AffineBondCoefficients {
 
 // Compute log(A) and B together from one shared set of integral moments.
 __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
-    const VasicekProcessParameters& parameters,
+    const ProcessParameters& parameters,
     float delta
 ) {
-    const VasicekIntegralMoments moments = integral_moments(
+    const IntegralMoments moments = integral_moments(
         parameters, delta
     );
     return {
@@ -42,7 +42,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
 
 // Price a call (+1) or put (-1) with one shared Black-style expression.
 __device__ __forceinline__ float zero_coupon_bond_option_price(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float option_sign,
     float valuation_time,
@@ -51,7 +51,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     float strike
 ) {
     const float time_to_expiry = option_expiry - valuation_time;
-    const VasicekIntegralMoments expiry_moments = integral_moments(
+    const IntegralMoments expiry_moments = integral_moments(
         parameters.process, time_to_expiry
     );
     const float expiry_log_bond = fmaf(
@@ -105,7 +105,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
 
 // Return the logarithm of the multiplicative affine prefactor.
 __device__ __forceinline__ float log_A(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -116,7 +116,7 @@ __device__ __forceinline__ float log_A(
 
 // Exponentiate the affine prefactor only for callers requesting A itself.
 __device__ __forceinline__ float A(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -125,7 +125,7 @@ __device__ __forceinline__ float A(
 
 // Return the current-rate loading in the affine bond expression.
 __device__ __forceinline__ float B(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float valuation_time,
     float maturity
 ) {
@@ -136,7 +136,7 @@ __device__ __forceinline__ float B(
 
 // Evaluate log(A)-B*r from one grouped coefficient calculation.
 __device__ __forceinline__ float log_zero_coupon_bond(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -163,7 +163,7 @@ __device__ __forceinline__ float discount_factor(
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
 __device__ __forceinline__ float zero_coupon_bond(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float maturity
@@ -175,7 +175,7 @@ __device__ __forceinline__ float zero_coupon_bond(
 
 // Apply the closed-form call formula to the conditional bond forward.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -195,7 +195,7 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 
 // Apply the closed-form put formula to the conditional bond forward.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float option_expiry,
@@ -215,7 +215,7 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 
 // Build one simple forward rate from two conditional zero-coupons.
 __device__ __forceinline__ float forward_rate(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
@@ -233,17 +233,17 @@ __device__ __forceinline__ float forward_rate(
 
 // Divide the conditional floating-leg value by the fixed-leg annuity.
 __device__ __forceinline__ float swap_rate(
-    const VasicekModelParameters& parameters,
+    const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 ) {
     float annuity = 0.0f;
     float end_bond = 0.0f;
-    for (std::size_t payment = 0U;
+    for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
         const float current_bond = zero_coupon_bond(

@@ -13,8 +13,10 @@
 
 namespace {
 
+constexpr double kDayFraction = 1.0 / 252.0;
+
 using Model = ai_factory::workbench::model::g2::
-    G2ModelParameters;
+    ModelParameters;
 
 // Stop immediately with a readable invariant name.
 void require(bool condition, const char* message) {
@@ -165,6 +167,7 @@ void check_launcher(
             row_count,
             0U,
             row_count,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -200,6 +203,7 @@ void check_launcher(
             cartesian_count,
             0U,
             2U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -213,6 +217,7 @@ void check_launcher(
             cartesian_count,
             2U,
             cartesian_count - 2U,
+            static_cast<float>(kDayFraction),
             32U,
             1U,
             device_prices
@@ -281,19 +286,19 @@ int main() {
         {{0.50f, 0.0f, 1.10f, 0.0f, 0.00f}, {0.02f, 0.005f}},
     };
     const std::vector<product::RateOptionParameters> floorlets = {
-        {1.0f, 0.00f, 0.5f, 1.0f, 0.5f},
-        {2.0f, 0.04f, 1.0f, 1.5f, 0.5f},
-        {1.5f, 0.08f, 2.0f, 2.25f, 0.25f},
+        {1.0f, 0.00f, 126U, 252U, 126U},
+        {2.0f, 0.04f, 252U, 378U, 126U},
+        {1.5f, 0.08f, 504U, 567U, 63U},
     };
     const std::vector<product::ZeroCouponBondOptionParameters> calls = {
-        {1.0f, 0.90f, 0.5f, 1.0f},
-        {2.0f, 0.97f, 1.0f, 1.5f},
-        {1.5f, 1.05f, 2.0f, 3.0f},
+        {1.0f, 0.90f, 126U, 252U},
+        {2.0f, 0.97f, 252U, 378U},
+        {1.5f, 1.05f, 504U, 756U},
     };
     const std::vector<product::ZeroCouponBondOptionParameters> puts = {
-        {1.0f, 0.90f, 0.5f, 1.0f},
-        {2.0f, 0.97f, 1.0f, 1.5f},
-        {1.5f, 1.05f, 2.0f, 3.0f},
+        {1.0f, 0.90f, 126U, 252U},
+        {2.0f, 0.97f, 252U, 378U},
+        {1.5f, 1.05f, 504U, 756U},
     };
 
     check_launcher(
@@ -302,12 +307,12 @@ int main() {
         g2::launch_g2_rate_option_cuda<OptionSide::put>,
         [](const Model& model, const product::RateOptionParameters& product) {
             const double strike_factor =
-                1.0 + product.accrual_period * product.strike;
+                1.0 + product.accrual_period * kDayFraction * product.strike;
             return product.notional * strike_factor * bond_option_price(
                 model,
                 1.0,
-                product.fixing_time,
-                product.payment_time,
+                product.fixing_time * kDayFraction,
+                product.payment_time * kDayFraction,
                 1.0 / strike_factor
             );
         },
@@ -322,8 +327,8 @@ int main() {
             return product.notional * bond_option_price(
                 model,
                 1.0,
-                product.option_expiry,
-                product.bond_maturity,
+                product.option_expiry * kDayFraction,
+                product.bond_maturity * kDayFraction,
                 product.strike
             );
         },
@@ -338,8 +343,8 @@ int main() {
             return product.notional * bond_option_price(
                 model,
                 -1.0,
-                product.option_expiry,
-                product.bond_maturity,
+                product.option_expiry * kDayFraction,
+                product.bond_maturity * kDayFraction,
                 product.strike
             );
         },

@@ -1,21 +1,22 @@
 // Asian-option dataset row and host-side JSON loader.
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::product {
 
-// AsianOptionParameters is the compact FP32 product row transferred to CUDA.
+// AsianOptionParameters is the compact product row transferred to CUDA.
 struct AsianOptionParameters {
     float strike;
-    float maturity;
+    std::uint32_t maturity;
 };
 
 static_assert(std::is_trivially_copyable_v<AsianOptionParameters>);
 
-// Load every Asian-option row into one contiguous FP32 vector.
+// Load every Asian-option row into one contiguous vector.
 std::vector<AsianOptionParameters> load_asian_options(
     const std::filesystem::path& dataset_path
 );

@@ -58,8 +58,9 @@ int main() {
     const RoughBergomiModelParameters model = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.5f, 0.10f, -0.70f,
     };
-    const product::EuropeanOptionParameters product = {1.0f, 1.0f};
-    const product::EuropeanOptionParameters planning_product = {1.0f, 7.0f};
+    const product::EuropeanOptionParameters product = {1.0f, 252U};
+    const product::EuropeanOptionParameters planning_product = {1.0f, 1764U};
+    constexpr float day_fraction = 1.0f / 252.0f;
     constexpr float target_dt = 1.0f / 360.0f;
     constexpr std::size_t step_count = 360U;
     constexpr std::size_t path_count = 32'768U;
@@ -69,7 +70,12 @@ int main() {
     constexpr std::uint64_t seed = 910000001ULL;
     const RoughBergomiWorkspacePlan direct_plan =
         plan_european_option_workspace(
-            &planning_product, 1U, target_dt, direct_threads, direct_blocks
+            &planning_product,
+            1U,
+            day_fraction,
+            target_dt,
+            direct_threads,
+            direct_blocks
         );
     const RoughBergomiFftWorkspacePlan fft_plan =
         plan_european_option_fft_workspace(
@@ -131,7 +137,7 @@ int main() {
             constexpr OptionSide side = decltype(side_tag)::value;
             launch_rough_bergomi_european_option_cuda<side>(
                 device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
-                path_count, target_dt, direct_threads, direct_blocks,
+                path_count, day_fraction, target_dt, direct_threads, direct_blocks,
                 direct_plan.maximum_step_count, device_history,
                 direct_plan.history_float_count, seed, device_direct_price,
                 device_direct_error
@@ -234,7 +240,7 @@ int main() {
                 constexpr OptionSide side = decltype(side_tag)::value;
                 launch_rough_bergomi_european_option_cuda<side>(
                     device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
-                    dispatch_path_count, target_dt, direct_threads,
+                    dispatch_path_count, day_fraction, target_dt, direct_threads,
                     direct_blocks, direct_plan.maximum_step_count,
                     device_history, direct_plan.history_float_count, seed,
                     device_direct_price, device_direct_error

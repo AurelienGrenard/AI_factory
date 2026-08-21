@@ -63,9 +63,9 @@ numérique.
 
 ### `validate_monte_carlo_parameters`
 
-Exige au moins deux chemins par résultat et un `target_dt` strictement positif
-et fini. Elle appelle d'abord `validate_monte_carlo_path_count`, puis ajoute la
-validation propre aux simulations discrétisées.
+Exige au moins deux chemins par résultat et un `dt` de transition strictement
+positif et fini. Elle appelle d'abord `validate_monte_carlo_path_count`, puis
+ajoute la validation propre aux simulations discrétisées.
 
 ### `validate_cuda_block_size`
 

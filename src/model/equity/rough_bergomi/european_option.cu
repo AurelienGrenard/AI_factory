@@ -27,7 +27,7 @@ struct PreparedRow {
     philox::PhiloxKey key;
     float strike;
     float discount;
-    std::size_t num_steps;
+    std::uint32_t num_steps;
 };
 
 std::size_t checked_product(
@@ -64,10 +64,11 @@ std::size_t hybrid_grid_shared_bytes(std::size_t maximum_step_count) {
 __device__ __forceinline__ PreparedRow prepare_row(
     const RoughBergomiModelParameters& model,
     const product::EuropeanOptionParameters& product,
-    std::size_t num_steps,
+    float day_fraction,
+    std::uint32_t num_steps,
     std::uint64_t seed
 ) {
-    const float maturity = product.maturity;
+    const float maturity = static_cast<float>(product.maturity) * day_fraction;
     return {
         prepare_model(model, maturity, num_steps),
         philox::make_key(seed),
@@ -110,6 +111,7 @@ __global__ void rough_bergomi_european_option_kernel(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     float target_dt,
     std::size_t maximum_step_count,
     float* __restrict__ history_workspace,
@@ -118,6 +120,7 @@ __global__ void rough_bergomi_european_option_kernel(
     float* __restrict__ standard_errors
 ) {
     __shared__ PreparedRow prepared;
+    __shared__ std::size_t prepared_step_count;
     extern __shared__ double dynamic_shared[];
     const std::size_t warp_count = blockDim.x / 32U;
     float* const far_weights = reinterpret_cast<float*>(
@@ -144,20 +147,23 @@ __global__ void rough_bergomi_european_option_kernel(
                 );
             const product::EuropeanOptionParameters product =
                 products[indices.product_index];
-            const std::size_t num_steps = static_cast<std::size_t>(
-                fmaxf(1.0f, floorf(product.maturity / target_dt + 0.5f))
+            const float maturity =
+                static_cast<float>(product.maturity) * day_fraction;
+            prepared_step_count = static_cast<std::size_t>(
+                fmaxf(1.0f, floorf(maturity / target_dt + 0.5f))
             );
             prepared = prepare_row(
                 models[indices.model_index],
                 product,
-                num_steps,
+                day_fraction,
+                static_cast<std::uint32_t>(prepared_step_count),
                 base_seed + result_index
             );
         }
         __syncthreads();
 
         // Protect the caller-owned buffers if its plan does not cover a row.
-        if (prepared.num_steps > maximum_step_count) {
+        if (prepared_step_count > maximum_step_count) {
             if (threadIdx.x == 0U) {
                 const float invalid = __int_as_float(0x7fffffff);
                 prices[result_index] = invalid;
@@ -223,6 +229,7 @@ void validate_rough_bergomi_european_option_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
@@ -254,6 +261,7 @@ void validate_rough_bergomi_european_option_launch(
     validate_monte_carlo_parameters(
         monte_carlo_paths_per_price, target_dt
     );
+    validate_day_fraction(day_fraction);
     validate_reduction_block_size(threads_per_block);
     validate_block_count(launch_result_count, block_count);
     validate_grid_x_size(block_count);
@@ -289,6 +297,7 @@ void validate_rough_bergomi_european_option_launch(
 RoughBergomiWorkspacePlan plan_european_option_workspace(
     const product::EuropeanOptionParameters* host_products,
     std::size_t product_count,
+    float day_fraction,
     float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count
@@ -303,6 +312,7 @@ RoughBergomiWorkspacePlan plan_european_option_workspace(
             "rough-Bergomi workspace target_dt must be finite and positive."
         );
     }
+    validate_day_fraction(day_fraction);
     validate_reduction_block_size(threads_per_block);
     if (block_count == 0U) {
         throw std::invalid_argument(
@@ -314,13 +324,15 @@ RoughBergomiWorkspacePlan plan_european_option_workspace(
     for (std::size_t product_index = 0U;
          product_index < product_count;
          ++product_index) {
-        const float maturity = host_products[product_index].maturity;
-        if (!std::isfinite(maturity) || !(maturity > 0.0f)) {
+        const std::uint32_t maturity_days =
+            host_products[product_index].maturity;
+        if (maturity_days == 0U) {
             throw std::invalid_argument(
-                "rough-Bergomi workspace maturities must be finite and "
-                "positive."
+                "rough-Bergomi workspace maturities must be positive."
             );
         }
+        const float maturity =
+            static_cast<float>(maturity_days) * day_fraction;
         maximum_step_count = std::max(
             maximum_step_count,
             rounded_step_count(maturity, target_dt)
@@ -370,6 +382,7 @@ void launch_rough_bergomi_european_option_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     float target_dt,
     unsigned int threads_per_block,
     std::size_t block_count,
@@ -390,6 +403,7 @@ void launch_rough_bergomi_european_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         target_dt,
         threads_per_block,
         block_count,
@@ -440,6 +454,7 @@ void launch_rough_bergomi_european_option_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         target_dt,
         maximum_step_count,
         device_history_workspace,

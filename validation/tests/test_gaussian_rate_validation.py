@@ -29,7 +29,12 @@ class GaussianRateValidationTest(unittest.TestCase):
     def _paths(model_name: str, folder: str) -> tuple[Path, Path]:
         name = f"{model_name}_01__{folder}_01__01.json"
         return (
-            ROOT / "datasets/price/fixed_income" / model_name / folder / name,
+            ROOT
+            / "datasets/model/fixed_income"
+            / model_name
+            / "prices"
+            / folder
+            / name,
             ROOT
             / "validation/datasets/price/fixed_income"
             / model_name

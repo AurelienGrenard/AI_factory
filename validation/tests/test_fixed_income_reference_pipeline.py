@@ -22,13 +22,27 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
     @staticmethod
     def _sources() -> tuple[Path, ...]:
         return tuple(
-            sorted((ROOT / "datasets/price/fixed_income").rglob("*.json"))
+            sorted(
+                path
+                for path in (ROOT / "datasets/model/fixed_income").rglob(
+                    "*.json"
+                )
+                if "prices" in path.parts
+            )
         )
 
     @staticmethod
     def _reference(source: Path) -> Path:
-        relative = source.relative_to(ROOT / "datasets")
-        return ROOT / "validation/datasets" / relative
+        relative = source.relative_to(ROOT / "datasets/model/fixed_income")
+        model_name, marker, *price_path = relative.parts
+        if marker != "prices":
+            raise ValueError(f"Unexpected price path: {source}")
+        return (
+            ROOT
+            / "validation/datasets/price/fixed_income"
+            / model_name
+            / Path(*price_path)
+        )
 
     def test_all_32_catalogs_publish_only_a_verified_cache(self) -> None:
         sources = self._sources()

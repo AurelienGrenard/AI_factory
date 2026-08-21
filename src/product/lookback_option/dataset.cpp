@@ -41,14 +41,14 @@ std::vector<LookbackOptionParameters> load_lookback_options(
         const auto& parameters = row.at("parameters");
         const LookbackOptionParameters product = {
             parameters.at("strike").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
         };
         const std::string prefix =
             "Lookback option row id '" + row_id + "': ";
         if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
             throw std::invalid_argument(prefix + "strike must be finite and positive.");
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         products.push_back(product);
     }
     return products;

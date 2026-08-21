@@ -3,44 +3,46 @@
 
 #include "model/fixed_income/cir/dynamics.cuh"
 
-#include "common/philox.cuh"
-
-#include <cuda_runtime.h>
-
-#include <cstddef>
-#include <cstdint>
-
 namespace ai_factory::workbench::model::cir {
 
-// ======================== Model-specific dynamics =========================
-
-// None: the adaptive exact law belongs directly in the common transition.
-
-// ======================= Common state-only dynamics ========================
-
-// Prepare the time-step constants shared by every state-dependent draw.
-__device__ __forceinline__ CirExactTransition prepare_model(
-    const CirProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ProcessParameters& parameters
 ) {
     const float volatility_squared =
         parameters.volatility * parameters.volatility;
-    const float one_minus_decay = -expm1f(
-        -parameters.mean_reversion * time_interval
-    );
-    const float decay = 1.0f - one_minus_decay;
     return {
-        decay,
+        parameters.mean_reversion,
         4.0f * parameters.mean_reversion * parameters.long_term_mean
             / volatility_squared,
-        volatility_squared * one_minus_decay
-            / (4.0f * parameters.mean_reversion),
+        volatility_squared / (4.0f * parameters.mean_reversion),
     };
 }
 
-// Draw and apply one exact endpoint from the current path-local stream.
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+) {
+    const float one_minus_decay = -expm1f(-model.mean_reversion * delta_t);
+    return {1.0f - one_minus_decay, model.scale_rate * one_minus_decay};
+}
+
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+) {
+    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
+        transitions[interval] = prepare_transition(
+            model, static_cast<float>(interval_steps[interval]) * delta_t
+        );
+    }
+}
+
 __device__ __forceinline__ void one_step_transition(
-    const CirExactTransition& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
     float& state
@@ -49,75 +51,108 @@ __device__ __forceinline__ void one_step_transition(
         uniforms,
         normal_cache,
         model.degrees_of_freedom,
-        model.decay * state / model.scale,
-        model.scale
+        transition.decay * state / transition.scale,
+        transition.scale
     );
 }
 
-// Reuse one row key and one path-local scalar sequence for the exact draw.
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    float& state
+) {
+    one_step_transition(model, transition, uniforms, normal_cache, state);
+}
+
+}  // namespace
+
 __device__ __forceinline__ float simulate_terminal_state(
-    const CirExactTransition& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path
 ) {
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
     philox::NormalPairCache normal_cache;
-    one_step_transition(model, uniforms, normal_cache, initial_state);
+    simulate_one_step(
+        model, transition, uniforms, normal_cache, initial_state
+    );
     return initial_state;
 }
 
-// Write exact boundary states in a date-major grid and return the terminal one.
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const CirExactTransition& initial_stub_model,
-    const CirExactTransition& regular_model,
+__device__ __forceinline__ float simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
     float initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states
 ) {
     float state = initial_state;
     if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
     philox::NormalPairCache normal_cache;
-
-    // Reach the first observation through its possibly shorter stub.
-    one_step_transition(
-        initial_stub_model, uniforms, normal_cache, state
-    );
-    if (observation_count == 1U) return state;
-    std::size_t output_index = path;
-    observed_states[output_index] = state;
-
-    // Store only pre-terminal states with one running date-major offset.
-    for (std::uint32_t observation = 1U;
+    for (std::uint32_t observation = 0U;
          observation + 1U < observation_count;
          ++observation) {
-        one_step_transition(
-            regular_model, uniforms, normal_cache, state
+        simulate_one_step(
+            model, transitions[observation], uniforms, normal_cache, state
         );
-        output_index += path_count;
-        observed_states[output_index] = state;
+        observed_states[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = state;
     }
-
-    // The last exact transition is returned without a global-memory write.
-    one_step_transition(regular_model, uniforms, normal_cache, state);
+    simulate_one_step(
+        model,
+        transitions[observation_count - 1U],
+        uniforms,
+        normal_cache,
+        state
+    );
     return state;
 }
 
-namespace joint {
-
-// ========================= Common joint dynamics ===========================
-
-// Signatures are declared in dynamics.cuh. Definitions remain intentionally
-// unavailable until the state-integral discretization has been validated.
-
-}  // namespace joint
+__device__ __forceinline__ float simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    float initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states
+) {
+    float state = initial_state;
+    if (observation_count == 0U) return state;
+    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
+    philox::NormalPairCache normal_cache;
+    simulate_one_step(
+        model, initial_stub_transition, uniforms, normal_cache, state
+    );
+    if (observation_count == 1U) return state;
+    observed_states[0U] = state;
+    for (std::uint32_t observation = 1U;
+         observation + 1U < observation_count;
+         ++observation) {
+        simulate_one_step(
+            model, regular_transition, uniforms, normal_cache, state
+        );
+        observed_states[
+            static_cast<std::size_t>(observation) * observation_stride
+        ] = state;
+    }
+    simulate_one_step(
+        model, regular_transition, uniforms, normal_cache, state
+    );
+    return state;
+}
 
 }  // namespace ai_factory::workbench::model::cir

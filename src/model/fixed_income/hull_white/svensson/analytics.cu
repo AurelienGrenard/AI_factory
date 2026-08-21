@@ -13,7 +13,7 @@ namespace ai_factory::workbench::model::hull_white::svensson {
 
 // Compose the curve-independent OU parameters with the fitted initial curve.
 __device__ __forceinline__ HullWhiteFittedParameters compose_model(
-    const HullWhiteModelParameters& parameters,
+    const ModelParameters& parameters,
     const curve::svensson::SvenssonParameters& initial_curve
 ) {
     return {
@@ -104,7 +104,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     float maturity
 ) {
     const float delta = maturity - valuation_time;
-    const model::ornstein_uhlenbeck::OrnsteinUhlenbeckIntegralMoments moments =
+    const model::ornstein_uhlenbeck::IntegralMoments moments =
         model::ornstein_uhlenbeck::integral_moments(
             parameters.process, delta
         );
@@ -322,11 +322,11 @@ __device__ __forceinline__ float swap_rate(
     float start_time,
     const float* __restrict__ payment_times,
     const float* __restrict__ accrual_periods,
-    std::size_t payment_count
+    std::uint32_t payment_count
 ) {
     float annuity = 0.0f;
     float end_bond = 0.0f;
-    for (std::size_t payment = 0U;
+    for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
         const float current_bond = zero_coupon_bond(

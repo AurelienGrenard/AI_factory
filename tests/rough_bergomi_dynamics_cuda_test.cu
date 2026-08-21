@@ -147,7 +147,7 @@ bool close(float left, float right, float tolerance = 5.0e-6f) {
 int main() {
     const auto models =
         ai_factory::workbench::rough_bergomi::load_models(
-            "datasets/model/equity/rough_bergomi/rough_bergomi_01.json"
+            "datasets/model/equity/rough_bergomi/parameters/rough_bergomi_01.json"
         );
     require(
         models.size() == 1000U,

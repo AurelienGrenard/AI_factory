@@ -9,104 +9,123 @@
 
 namespace ai_factory::workbench::merton {
 
-struct MertonPreparedParameters {
+struct PreparedModel {
     float initial_log_spot;
-    float drift_dt;
-    float diffusion_std;
-    float poisson_mean;
-    float zero_jump_probability;
+    float drift_rate;
+    float volatility;
+    float jump_intensity;
     float jump_log_mean;
     float jump_log_volatility;
 };
-struct MertonState {
+
+struct PreparedTransition {
+    float drift;
+    float diffusion_standard_deviation;
+    float poisson_mean;
+    float zero_jump_probability;
+};
+
+static_assert(sizeof(PreparedTransition) == 4U * sizeof(float));
+
+struct State {
     float log_spot;
 };
 
-struct MertonMeanPathResult {
+struct MeanPathResult {
     float arithmetic_mean;
 };
 
-struct MertonGeometricMeanPathResult {
+struct GeometricMeanPathResult {
     float geometric_mean;
 };
 
-struct MertonTwoTimePathResult {
-    float first_spot;
-    float terminal_spot;
-};
-
-struct MertonMaximumPathResult {
+struct MaximumPathResult {
     float maximum_spot;
 };
 
 // ======================== Common equity dynamics =========================
 
-__device__ __forceinline__ MertonPreparedParameters prepare_model(
-    const MertonModelParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ModelParameters& parameters
 );
 
-__device__ __forceinline__ MertonPreparedParameters prepare_model(
-    const MertonModelParameters& parameters,
-    float maturity,
-    std::size_t num_steps
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
 );
 
-__device__ __forceinline__ MertonState initial_state(
-    const MertonPreparedParameters& model
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const MertonPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     std::uint32_t jump_count,
     float diffusion_normal,
     float jump_normal,
-    MertonState& state
+    State& state
 );
 
-__device__ __forceinline__ MertonState simulate_terminal_state(
-    const MertonPreparedParameters& model,
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path
 );
 
-__device__ __forceinline__ MertonMeanPathResult simulate_mean_state(
-    const MertonPreparedParameters& model,
+__device__ __forceinline__ MeanPathResult simulate_mean_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ MertonGeometricMeanPathResult
+__device__ __forceinline__ GeometricMeanPathResult
 simulate_geometric_mean_state(
-    const MertonPreparedParameters& model,
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ MertonTwoTimePathResult simulate_at_two_times(
-    const MertonPreparedParameters& first_model,
-    const MertonPreparedParameters& second_model,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-__device__ __forceinline__ MertonMaximumPathResult simulate_maximum_state(
-    const MertonPreparedParameters& model,
+__device__ __forceinline__ MaximumPathResult simulate_maximum_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t interval_count
 );
 
-__device__ __forceinline__ MertonState simulate_on_regular_grid(
-    const MertonPreparedParameters& initial_stub_model,
-    const MertonPreparedParameters& regular_model,
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    std::uint32_t observation_count,
     philox::PhiloxKey key,
     std::size_t path,
-    std::uint32_t exercise_count,
-    std::size_t path_count,
-    float* observed_spots
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_spots
 );
 
 }  // namespace ai_factory::workbench::merton

@@ -38,7 +38,8 @@ int main() {
     const RoughBergomiModelParameters model = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.5f, 0.10f, -0.70f,
     };
-    const product::EuropeanOptionParameters product = {1.0f, 0.25f};
+    const product::EuropeanOptionParameters product = {1.0f, 63U};
+    constexpr float day_fraction = 1.0f / 252.0f;
     constexpr float target_dt = 1.0f / 64.0f;
     constexpr unsigned int threads_per_block = 128U;
     constexpr std::size_t block_count = 1U;
@@ -48,6 +49,7 @@ int main() {
         plan_european_option_workspace(
             &product,
             1U,
+            day_fraction,
             target_dt,
             threads_per_block,
             block_count
@@ -114,6 +116,7 @@ int main() {
                 0U,
                 1U,
                 path_count,
+                day_fraction,
                 target_dt,
                 threads_per_block,
                 block_count,
@@ -174,9 +177,13 @@ int main() {
             "rough-Bergomi European option statistics are invalid"
         );
         const float expected_parity =
-            std::exp(-model.dividend_yield * product.maturity)
+            std::exp(
+                -model.dividend_yield * product.maturity * day_fraction
+            )
             - product.strike
-                * std::exp(-model.risk_free_rate * product.maturity);
+                * std::exp(
+                    -model.risk_free_rate * product.maturity * day_fraction
+                );
         require(
             std::fabs((call_first.first - put.first) - expected_parity)
                 < 0.02f,

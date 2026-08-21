@@ -42,7 +42,7 @@ std::vector<DownAndOutOptionParameters> load_down_and_out_options(
         const DownAndOutOptionParameters product = {
             parameters.at("strike").get<float>(),
             parameters.at("barrier").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
         };
         const std::string prefix =
             "Down-and-out option row id '" + row_id + "': ";
@@ -52,8 +52,8 @@ std::vector<DownAndOutOptionParameters> load_down_and_out_options(
             throw std::invalid_argument(prefix + "barrier must be finite and positive.");
         if (!(product.barrier < product.strike))
             throw std::invalid_argument(prefix + "barrier must be below strike.");
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         products.push_back(product);
     }
     return products;

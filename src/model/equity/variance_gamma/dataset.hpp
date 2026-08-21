@@ -8,7 +8,7 @@
 namespace ai_factory::workbench::variance_gamma {
 
 // Risk-neutral exponential Variance-Gamma inputs in the Madan-Carr-Chang form.
-struct VarianceGammaModelParameters {
+struct ModelParameters {
     float spot;
     float risk_free_rate;
     float dividend_yield;
@@ -17,10 +17,10 @@ struct VarianceGammaModelParameters {
     float theta;
 };
 
-static_assert(std::is_trivially_copyable_v<VarianceGammaModelParameters>);
+static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
 // Load every model row from JSON into one contiguous FP32 vector.
-std::vector<VarianceGammaModelParameters> load_models(
+std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 

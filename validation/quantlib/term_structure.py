@@ -11,28 +11,36 @@ from validation.quantlib.parameters import finite_number, positive_number
 
 
 REFERENCE_DATE = ql.Date(1, ql.January, 2025)
-DAY_COUNTER = ql.Actual360()
+BUSINESS_DAYS_PER_YEAR = 252
+DAY_COUNTER = ql.Business252(ql.NullCalendar())
 
 
 def date_from_time(time: float) -> ql.Date:
-    """Map synthetic year fractions to exact Actual/360 calendar dates."""
+    """Map synthetic year fractions to exact business-day dates."""
 
-    day_count = round(360.0 * time)
+    day_count = round(BUSINESS_DAYS_PER_YEAR * time)
     if time < 0.0 or not math.isclose(
-        day_count / 360.0, time, rel_tol=0.0, abs_tol=2.0e-6
+        day_count / BUSINESS_DAYS_PER_YEAR,
+        time,
+        rel_tol=0.0,
+        abs_tol=2.0e-6,
     ):
-        raise ValueError(f"Time {time} is not representable on the Actual/360 grid.")
+        raise ValueError(
+            f"Time {time} is not representable on the business-day/252 grid."
+        )
     return REFERENCE_DATE + day_count
 
 
 def nearest_date_from_time(time: float) -> ql.Date:
-    """Map a maturity to its nearest Actual/360 date, with half-days up."""
+    """Map a maturity to its nearest business-day date, with half-days up."""
 
     if not math.isfinite(time) or time <= 0.0:
         raise ValueError("A QuantLib maturity must be finite and positive.")
-    # Match the CUDA grid convention floor(T / target_dt + 0.5).  Python's
+    # Match the contractual business-day convention with half-days up. Python's
     # round() uses ties-to-even and would disagree for exact half-day inputs.
-    return REFERENCE_DATE + math.floor(360.0 * time + 0.5)
+    return REFERENCE_DATE + math.floor(
+        BUSINESS_DAYS_PER_YEAR * time + 0.5
+    )
 
 
 def flat_curve(rate: float) -> ql.YieldTermStructureHandle:

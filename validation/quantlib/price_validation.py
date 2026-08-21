@@ -16,6 +16,30 @@ ValidationRegime = Literal["all", "core", "stress"]
 CORE_ROW_COUNT = 900
 STRESS_ROW_COUNT = 100
 
+_PRODUCT_TIME_FIELDS = frozenset(
+    {
+        "maturity",
+        "reset_time",
+        "observation_interval",
+        "exercise_interval",
+        "fixing_time",
+        "payment_time",
+        "accrual_period",
+        "option_expiry",
+        "bond_maturity",
+        "exercise_time",
+    }
+)
+_PRODUCT_TIME_ARRAY_FIELDS = frozenset(
+    {
+        "payment_times",
+        "accrual_periods",
+        "fixing_times",
+        "option_expiries",
+        "bond_tenors",
+    }
+)
+
 
 @dataclass(frozen=True)
 class ValidationTolerances:
@@ -362,11 +386,41 @@ def load_parameter_rows(
     dataset_path: str | Path,
     row_field: str,
 ) -> dict[str, Mapping[str, Any]]:
-    """Index one validated parameter dataset by stable row identifier."""
+    """Index parameters and expose product dates as year fractions.
+
+    Product JSON stores contractual dates as integer business-day counts.  The
+    external pricing adapters consume year fractions, so this loader performs
+    the conversion once at their common boundary.  Model and curve parameters
+    remain byte-for-byte unchanged.
+    """
 
     path = Path(dataset_path)
     document = _read_json(path)
     database_id = _required_string(document, "database_id", str(path))
+    days_per_year: int | None = None
+    if row_field == "products":
+        convention = document.get("time_convention")
+        if not isinstance(convention, dict):
+            raise ValueError(
+                f"Dataset '{database_id}': product time_convention is required."
+            )
+        unit = convention.get("unit")
+        days_per_year_value = convention.get("days_per_year")
+        if unit != "business_day":
+            raise ValueError(
+                f"Dataset '{database_id}': time_convention.unit must be "
+                "'business_day'."
+            )
+        if (
+            not isinstance(days_per_year_value, int)
+            or isinstance(days_per_year_value, bool)
+            or days_per_year_value <= 0
+        ):
+            raise ValueError(
+                f"Dataset '{database_id}': time_convention.days_per_year "
+                "must be a positive integer."
+            )
+        days_per_year = days_per_year_value
     rows = document.get(row_field)
     row_count = document.get("row_count")
     if not isinstance(rows, list) or not isinstance(row_count, int):
@@ -384,7 +438,37 @@ def load_parameter_rows(
             raise ValueError(f"Dataset '{database_id}' row '{row_id}': parameters required.")
         if row_id in indexed:
             raise ValueError(f"Dataset '{database_id}': duplicate row id '{row_id}'.")
-        indexed[row_id] = parameters
+        if days_per_year is None:
+            indexed[row_id] = parameters
+            continue
+
+        converted = dict(parameters)
+        for field in _PRODUCT_TIME_FIELDS.intersection(parameters):
+            value = parameters[field]
+            if (
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value <= 0
+            ):
+                raise ValueError(
+                    f"Dataset '{database_id}' row '{row_id}': {field} must "
+                    "be a positive integer business-day count."
+                )
+            converted[field] = value / days_per_year
+        for field in _PRODUCT_TIME_ARRAY_FIELDS.intersection(parameters):
+            values = parameters[field]
+            if not isinstance(values, list) or any(
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value <= 0
+                for value in values
+            ):
+                raise ValueError(
+                    f"Dataset '{database_id}' row '{row_id}': {field} must "
+                    "contain positive integer business-day counts."
+                )
+            converted[field] = [value / days_per_year for value in values]
+        indexed[row_id] = converted
     return indexed
 
 

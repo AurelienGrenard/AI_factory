@@ -70,7 +70,7 @@ struct RoughBergomiMaximumPathResult {
 __device__ __forceinline__ RoughBergomiPreparedParameters prepare_model(
     const RoughBergomiModelParameters& parameters,
     float maturity,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 // Fill the two caller-owned shared arrays cooperatively; synchronize afterwards.
@@ -79,8 +79,8 @@ __device__ __forceinline__ void prepare_hybrid_grid(
     std::uint32_t step_count,
     float* far_weights,
     float* log_variance_corrections,
-    std::uint32_t thread_index,
-    std::uint32_t thread_count
+    unsigned int thread_index,
+    unsigned int thread_count
 );
 
 // Construct the time-zero spot and flat forward variance state.
@@ -117,7 +117,7 @@ __device__ __forceinline__ RoughBergomiState simulate_terminal_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 __device__ __forceinline__ RoughBergomiMeanPathResult simulate_mean_state(
@@ -126,7 +126,7 @@ __device__ __forceinline__ RoughBergomiMeanPathResult simulate_mean_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 __device__ __forceinline__ RoughBergomiGeometricMeanPathResult
@@ -136,7 +136,7 @@ simulate_geometric_mean_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 // Observe two indices without restarting the non-Markovian history.
@@ -158,7 +158,7 @@ simulate_maximum_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 );
 
 // Store observation_count - 1 spots and return the maturity state directly.

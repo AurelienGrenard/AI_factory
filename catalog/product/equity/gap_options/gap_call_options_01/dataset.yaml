@@ -4,10 +4,13 @@ product_family: "Gap Calls"
 catalog: "catalog/product/equity/gap_options/gap_call_options_01"
 url: "https://datasets.ai-factory.example/v1/product/gap_options/gap_call_options_01.json"
 row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
 parameters:
   trigger_strike: "Strike that activates the terminal payoff."
   payoff_strike: "Strike subtracted from the terminal spot."
-  maturity: "Maturity in years."
+  maturity: "Maturity in business days."
 payoff:
   expression: "(S_T - payoff_strike) * 1{S_T > trigger_strike}"
 construction:
@@ -21,55 +24,55 @@ construction:
     row_count: 900
     generation:
       method: "maturity-dependent exponential grid"
-      rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+      rule: "For each T in business days, x is linearly spaced on [-aT/252, aT/252] and K = exp(x)."
       grid:
         maturity:
-          minimum: 0.0833333
-          maximum: 3.0
+          minimum: 21
+          maximum: 756
           count: 45
           spacing: "linear"
         strike:
           count_per_maturity: 20
           spacing: "linear in log-strike"
-          conditional_bounds: "[exp(-aT), exp(aT)]"
+          conditional_bounds: "[exp(-aT/252), exp(aT/252)]"
           a: 0.2
   stress:
     row_count: 100
     generation:
       method: "maturity-dependent exponential grid"
-      rule: "For each T, x is linearly spaced on [-aT, aT] and K = exp(x)."
+      rule: "For each T in business days, x is linearly spaced on [-aT/252, aT/252] and K = exp(x)."
       grid:
         maturity:
-          minimum: 0.0192308
-          maximum: 7.0
+          minimum: 5
+          maximum: 1764
           count: 10
           spacing: "linear"
         strike:
           count_per_maturity: 10
           spacing: "linear in log-strike"
-          conditional_bounds: "[exp(-aT), exp(aT)]"
+          conditional_bounds: "[exp(-aT/252), exp(aT/252)]"
           a: 0.2
   grid:
     maturity:
       core:
-        minimum: 0.0833333
-        maximum: 3.0
+        minimum: 21
+        maximum: 756
         count: 45
         spacing: "linear"
       stress:
-        minimum: 0.0192308
-        maximum: 7.0
+        minimum: 5
+        maximum: 1764
         count: 10
         spacing: "linear"
     trigger_strike:
       core:
         count_per_maturity: 20
-        conditional_bounds: "[exp(-aT), exp(aT)]"
+        conditional_bounds: "[exp(-aT/252), exp(aT/252)]"
         a: 0.2
       stress:
         count_per_maturity: 10
-        conditional_bounds: "[exp(-aT), exp(aT)]"
+        conditional_bounds: "[exp(-aT/252), exp(aT/252)]"
         a: 0.2
       spacing: "linear in log-strike"
   payoff_strike:
-    rule: "trigger_strike * exp(-0.05 * sqrt(T / 3))"
+    rule: "trigger_strike * exp(-0.05 * sqrt((T / 252) / 3))"

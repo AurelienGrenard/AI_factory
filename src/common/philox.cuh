@@ -155,6 +155,53 @@ private:
     std::uint32_t component_index_ = 0U;
 };
 
+// Expose one continuous stream of raw 32-bit Philox words.  Discrete sample
+// schedules use this stream instead of converting through FP32, so rejection
+// can make every integer in a bounded range exactly equiprobable.
+class Uint32Sequence {
+public:
+    __device__ __forceinline__ Uint32Sequence(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) : key_(key),
+        path_index_(path_index),
+        values_(random_bits(key_, path_index_, local_group_index_++)) {}
+
+    __device__ __forceinline__ std::uint32_t next() {
+        if (component_index_ == 4U) {
+            values_ = random_bits(
+                key_, path_index_, local_group_index_++
+            );
+            component_index_ = 0U;
+        }
+        const std::uint32_t component_index = component_index_++;
+        if (component_index == 0U) return values_.v0;
+        if (component_index == 1U) return values_.v1;
+        if (component_index == 2U) return values_.v2;
+        return values_.v3;
+    }
+
+private:
+    PhiloxKey key_;
+    std::uint64_t path_index_;
+    std::uint64_t local_group_index_ = 0ULL;
+    PhiloxCounter values_;
+    std::uint32_t component_index_ = 0U;
+};
+
+// Draw exactly uniformly from [0, bound).  The rejected prefix has size
+// 2^32 mod bound, leaving a multiple of bound accepted words.
+__device__ __forceinline__ std::uint32_t bounded_uint32(
+    Uint32Sequence& integers,
+    std::uint32_t bound
+) {
+    const std::uint32_t rejection_threshold = -bound % bound;
+    while (true) {
+        const std::uint32_t candidate = integers.next();
+        if (candidate >= rejection_threshold) return candidate % bound;
+    }
+}
+
 // Invert a Poisson CDF from one uniform without consuming a variable stream.
 // Pass exp(-poisson_mean) prepared outside the hot path as zero_probability.
 __device__ __forceinline__ std::uint32_t poisson_from_uniform(

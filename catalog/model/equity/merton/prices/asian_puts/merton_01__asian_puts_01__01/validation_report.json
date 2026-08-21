@@ -1,0 +1,186 @@
+{
+  "schema_version": 6,
+  "validation_fingerprint": "6c1d00874f6818eb9c9830478bfe6bc8a98a6aa85dc2799901666ffaf1684050",
+  "core": {
+    "title": "Core validation",
+    "status": "passed",
+    "dataset": "merton_01__asian_puts_01__01",
+    "reference": "Premia (specialized pricer)",
+    "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+    "tolerance": "2e-05 absolute + 0.002 relative + 5 combined standard errors",
+    "rows": 900,
+    "accepted_without_special_treatment": 900,
+    "special_row_count": 0,
+    "failed": 0,
+    "failed_row_ids": [],
+    "unvalidated": 0,
+    "mean_signed_price_gap": 0.00021896473622349367,
+    "mean_absolute_price_gap": 0.0006361403809058204,
+    "maximum_absolute_price_gap": 0.004212367383732096,
+    "maximum_absolute_price_gap_row_id": "000857",
+    "higher_price_count": 581,
+    "lower_price_count": 319,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; CUDA uses daily discrete averaging while Premia uses its 52-date fixed-Asian grid",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+        "requested_rows": 900,
+        "completed_rows": 900,
+        "failed_rows": 0,
+        "exceptions": []
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "pricing_method": null,
+        "available": false,
+        "unavailable_reason": "no compatible QuantLib specialized pricer matches this model/product contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
+        "available": false,
+        "unavailable_reason": "QuantLib Merton76Process does not implement the path evolution required by a generic Monte Carlo engine"
+      }
+    ],
+    "no_validation_reason": null
+  },
+  "stress": {
+    "title": "Stress validation",
+    "status": "failed",
+    "dataset": "merton_01__asian_puts_01__01",
+    "reference": "Premia (specialized pricer)",
+    "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+    "tolerance": "2e-05 absolute + 0.002 relative + 5 combined standard errors",
+    "rows": 100,
+    "accepted_without_special_treatment": 48,
+    "special_row_count": 0,
+    "failed": 48,
+    "failed_row_ids": [
+      "000901",
+      "000903",
+      "000904",
+      "000905",
+      "000906",
+      "000914",
+      "000916",
+      "000920",
+      "000922",
+      "000925",
+      "000928",
+      "000929",
+      "000937",
+      "000938",
+      "000939",
+      "000940",
+      "000943",
+      "000948",
+      "000950",
+      "000958",
+      "000959",
+      "000960",
+      "000963",
+      "000964",
+      "000965",
+      "000966",
+      "000967",
+      "000968",
+      "000969",
+      "000970",
+      "000975",
+      "000976",
+      "000977",
+      "000979",
+      "000980",
+      "000982",
+      "000983",
+      "000984",
+      "000985",
+      "000986",
+      "000988",
+      "000989",
+      "000990",
+      "000993",
+      "000997",
+      "000998",
+      "000999",
+      "001000"
+    ],
+    "unvalidated": 4,
+    "mean_signed_price_gap": 0.04174418689028666,
+    "mean_absolute_price_gap": 0.04196220968184323,
+    "maximum_absolute_price_gap": 0.4634019368328741,
+    "maximum_absolute_price_gap_row_id": "000989",
+    "higher_price_count": 82,
+    "lower_price_count": 14,
+    "equal_price_count": 0,
+    "systematic_bias": true,
+    "bias_explanation": "expected; CUDA uses daily discrete averaging while Premia uses its 52-date fixed-Asian grid",
+    "special_rows": [],
+    "fallbacks": [],
+    "engine_coverage": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+        "requested_rows": 100,
+        "completed_rows": 96,
+        "failed_rows": 48,
+        "exceptions": [
+          {
+            "row_id": "000902",
+            "status": 14,
+            "reason": "Premia row '000902' failed with status 14: Asian price violates analytic no-arbitrage bounds."
+          },
+          {
+            "row_id": "000972",
+            "status": 14,
+            "reason": "Premia row '000972' failed with status 14: Asian price violates analytic no-arbitrage bounds."
+          },
+          {
+            "row_id": "000991",
+            "status": 14,
+            "reason": "Premia row '000991' failed with status 14: Asian price violates analytic no-arbitrage bounds."
+          },
+          {
+            "row_id": "000992",
+            "status": 14,
+            "reason": "Premia row '000992' failed with status 14: Asian price violates analytic no-arbitrage bounds."
+          }
+        ]
+      }
+    ],
+    "engine_plan": [
+      {
+        "reference": "Premia (specialized pricer)",
+        "pricing_method": "AP_Asian_FMM_Mer call + arithmetic-average put-call parity (52 monitoring dates; 1,024 integration points, 4,096-point deterministic refinement when required)",
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "reference": "QuantLib (specialized pricer)",
+        "pricing_method": null,
+        "available": false,
+        "unavailable_reason": "no compatible QuantLib specialized pricer matches this model/product contract"
+      },
+      {
+        "reference": "QuantLib (Monte Carlo)",
+        "pricing_method": null,
+        "available": false,
+        "unavailable_reason": "QuantLib Merton76Process does not implement the path evolution required by a generic Monte Carlo engine"
+      }
+    ],
+    "no_validation_reason": null
+  }
+}

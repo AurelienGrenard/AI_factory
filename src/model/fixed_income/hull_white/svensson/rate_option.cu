@@ -26,19 +26,21 @@ struct PreparedRow {
 
 // Prepare the strike and scale shared by the caplet and floorlet transformations.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const HullWhiteModelParameters& model,
+    const ModelParameters& model,
     const curve::svensson::SvenssonParameters& initial_curve,
-    const product::RateOptionParameters& product
+    const product::RateOptionParameters& product,
+    float day_fraction
 ) {
     const float strike_factor = fmaf(
-        product.accrual_period, product.strike, 1.0f
+        static_cast<float>(product.accrual_period) * day_fraction,
+        product.strike, 1.0f
     );
     return {
         compose_model(model, initial_curve),
         product.notional * strike_factor,
         1.0f / strike_factor,
-        product.fixing_time,
-        product.payment_time,
+        static_cast<float>(product.fixing_time) * day_fraction,
+        static_cast<float>(product.payment_time) * day_fraction,
     };
 }
 
@@ -68,7 +70,7 @@ __device__ __forceinline__ float evaluate_price(const PreparedRow& row) {
 // Price one independent row per CUDA thread with coalesced array access.
 template<OptionSide Side>
 __global__ void hull_white_svensson_rate_option_kernel(
-    const HullWhiteModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const curve::svensson::SvenssonParameters* __restrict__ curves,
     const product::RateOptionParameters* __restrict__ products,
     std::size_t curve_count,
@@ -76,6 +78,7 @@ __global__ void hull_white_svensson_rate_option_kernel(
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     float* __restrict__ prices
 ) {
     const std::size_t launch_index =
@@ -95,14 +98,14 @@ __global__ void hull_white_svensson_rate_option_kernel(
     }
 
     const PreparedRow row = prepare_row(
-        models[model_index], curves[curve_index], products[product_index]
+        models[model_index], curves[curve_index], products[product_index], day_fraction
     );
     prices[result_index] = evaluate_price<Side>(row);
 }
 
 // Compose the common checks required by this analytical launcher.
 void validate_hull_white_svensson_rate_option_launch(
-    const HullWhiteModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const curve::svensson::SvenssonParameters* device_curves,
     std::size_t curve_count,
@@ -112,6 +115,7 @@ void validate_hull_white_svensson_rate_option_launch(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -127,6 +131,7 @@ void validate_hull_white_svensson_rate_option_launch(
         cartesian_product,
         result_count
     );
+    validate_day_fraction(day_fraction);
     if (result_offset >= result_count
         || launch_result_count == 0U
         || launch_result_count > result_count - result_offset) {
@@ -154,7 +159,7 @@ void validate_hull_white_svensson_rate_option_launch(
 // Validate and launch the analytical kernel on caller-owned device arrays.
 template<OptionSide Side>
 void launch_hull_white_svensson_rate_option_cuda(
-    const HullWhiteModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const curve::svensson::SvenssonParameters* device_curves,
     std::size_t curve_count,
@@ -164,6 +169,7 @@ void launch_hull_white_svensson_rate_option_cuda(
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices
@@ -179,6 +185,7 @@ void launch_hull_white_svensson_rate_option_cuda(
         result_count,
         result_offset,
         launch_result_count,
+        day_fraction,
         threads_per_block,
         block_count,
         device_prices
@@ -203,6 +210,7 @@ void launch_hull_white_svensson_rate_option_cuda(
         cartesian_product,
         result_offset,
         launch_result_count,
+        day_fraction,
         device_prices
     );
     check_cuda(cudaGetLastError(), "Hull-White rate_option kernel");

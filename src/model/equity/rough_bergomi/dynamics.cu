@@ -14,7 +14,7 @@ namespace ai_factory::workbench::rough_bergomi {
 __device__ __forceinline__ RoughBergomiPreparedParameters prepare_model(
     const RoughBergomiModelParameters& parameters,
     float maturity,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
     const float step_count = static_cast<float>(num_steps);
     const float time_step = maturity / step_count;
@@ -61,8 +61,8 @@ __device__ __forceinline__ void prepare_hybrid_grid(
     std::uint32_t step_count,
     float* far_weights,
     float* log_variance_corrections,
-    std::uint32_t thread_index,
-    std::uint32_t thread_count
+    unsigned int thread_index,
+    unsigned int thread_count
 ) {
     for (std::uint32_t index = thread_index;
          index < step_count;
@@ -193,7 +193,7 @@ __device__ __forceinline__ RoughBergomiState simulate_terminal_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
     RoughBergomiState state = initial_state(model);
     philox::UniformSequence uniforms(
@@ -216,7 +216,7 @@ __device__ __forceinline__ RoughBergomiMeanPathResult simulate_mean_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
     RoughBergomiState state = initial_state(model);
     philox::UniformSequence uniforms(
@@ -246,7 +246,7 @@ simulate_geometric_mean_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
     RoughBergomiState state = initial_state(model);
     philox::UniformSequence uniforms(
@@ -308,7 +308,7 @@ simulate_maximum_state(
     RoughBergomiHistoryView history,
     philox::PhiloxKey key,
     std::size_t path,
-    std::size_t num_steps
+    std::uint32_t num_steps
 ) {
     RoughBergomiState state = initial_state(model);
     philox::UniformSequence uniforms(

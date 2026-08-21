@@ -48,6 +48,13 @@ fermée utilise `evaluate_price` et généralement un thread par prix.
 coefficients de modèle, constantes de payoff, informations de simulation et
 index nécessaires à l'évaluation répétée d'un prix.
 
+Ses compteurs contractuels bornés (`num_steps`, `observation_count`,
+`payment_count`, etc.) utilisent `std::uint32_t`. Les tailles de workspaces,
+dimensions globales, offsets, strides et indices mémoire restent en
+`std::size_t`; les dimensions CUDA finales utilisent `unsigned int`. Un
+compteur calculé pendant un planning mémoire en `std::size_t` est validé puis
+converti explicitement avant d'entrer dans la ligne device.
+
 Pour un pricer Monte Carlo persistant, une instance est généralement partagée
 par les threads du bloc. Pour une formule fermée, elle peut rester locale au
 thread. Le type ne fait pas partie de l'API publique et peut être spécifique au
@@ -118,8 +125,8 @@ Cette fonction centralise toutes les préconditions avant le lancement :
 - construction alignée ou cartésienne valide ;
 - intervalle de batch inclus dans le tableau de résultats ;
 - nombre de chemins valide en Monte Carlo ;
-- `target_dt` strictement positif et fini uniquement lorsqu'un produit observe
-  une grille numérique discrétisée ;
+- `dt` strictement positif et fini lorsqu'un schéma utilise une transition
+  élémentaire fixe ;
 - taille de bloc compatible avec le device et les réductions ;
 - dimensions de grille compatibles avec le device ;
 - absence de débordement de `size_t` et de la plage de seeds.
@@ -172,30 +179,63 @@ Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
 | `result_count` | taille totale des tableaux de résultats |
 | `result_offset`, `launch_result_count` | sous-plage traitée par un batch Monte Carlo |
 | `monte_carlo_paths_per_price` | chemins indépendants par prix |
-| `target_dt` | pas cible présent uniquement si la simulation construit une grille numérique ; omis pour les incréments exacts aux dates du payoff |
+| `day_fraction` | fraction d'année représentée par un jour contractuel, par exemple `1 / 252` |
+| `dt` | durée fixe d'une transition élémentaire d'un schéma ; omise pour les incréments exacts aux dates du payoff |
+| `simulation_steps_per_day` | nombre de transitions numériques ou de points de monitoring par jour contractuel |
 | `threads_per_block` | nombre de threads CUDA par bloc |
 | `block_count` | nombre de blocs de la grille persistante ou analytique |
 | `base_seed` | origine de la clé déterministe `key = make_key(base_seed + result_index)` |
 | `device_prices` | prix FP32 écrits sur le device |
 | `device_standard_errors` | erreurs standards FP32, uniquement en Monte Carlo |
 
-## Temps, grilles et convention Actual/360
+## Temps, grilles et convention
 
-Les temps financiers du catalogue suivent `Actual/360`. Un pas cible quotidien
-est donc `target_dt = 1 / 360`, et non `1 / 252`. Ce pas ne doit apparaitre que
-lorsque le payoff ou le schema demande une vraie grille fine: observation
-quotidienne, integration numerique ou schema de discretisation.
+Un dataset produit porte ses dates et durées contractuelles comme des nombres
+entiers de jours. Sa racine JSON et son YAML déclarent une seule fois :
 
-Une transition exacte ne recoit pas de sous-pas artificiel. Si le produit porte
-ses propres dates d'observation, le pricer utilise directement ces dates. La
-convention de decompte, le pas numerique et le calendrier contractuel sont trois
-responsabilites distinctes.
+```yaml
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+```
+
+Cette section n'est pas une grille de simulation. Le launcher d'une formule ou
+d'une transition exacte reçoit `day_fraction = 1 / days_per_year`, convertit
+une date absolue ou un écart de dates en fraction d'année, puis prépare
+directement l'intervalle contractuel. Il ne reçoit aucun `num_steps` artificiel.
+
+Un dataset de prix réellement discrétisé déclare en plus, dans son propre YAML
+et jamais dans le produit :
+
+```yaml
+time_grid:
+  simulation_steps_per_day: 2
+  steps_per_year: 504
+  delta_t: "1 / 504"
+```
+
+Le générateur transmet alors `dt = 1 / steps_per_year` et
+`simulation_steps_per_day`. Pour une échéance de `maturity` jours, le kernel
+effectue exactement `simulation_steps_per_day * maturity` transitions. Les
+calendriers à schéma stockent de même les écarts comme des nombres entiers de
+pas. Changer la convention 252, 360 ou 365 revient à changer la métadonnée et
+les constantes du générateur, pas les signatures de dynamique.
+
+Une liste de dates contractuelles simulées par incréments exacts est décrite
+comme `observation_schedule`, pas comme `time_grid`. La convention de décompte,
+le pas numérique et le calendrier contractuel restent ainsi trois
+responsabilités distinctes.
 
 ## Invariants d'implémentation
 
 - Conserver l'ordre des lignes, le mapping des seeds et l'ordre des réductions.
 - Adresser chaque groupe Philox par `(path_index, local_group_index)` sans
   réservation `groups_per_path`.
+- Conserver en FP32 les états, paramètres, primitives analytiques et fonctions
+  spéciales du chemin device. Le FP64 device reste réservé aux longues
+  réductions Monte Carlo et aux équations de régression explicitement
+  documentées ; une série locale de distribution utilise une sommation
+  compensée FP32.
 - Conserver l'accumulation FP64 des moments Monte Carlo.
 - Ne pas introduire de dispatch runtime call/put dans le kernel.
 - Ne pas déplacer `PreparedRow` vers une représentation AoS globale des chemins.

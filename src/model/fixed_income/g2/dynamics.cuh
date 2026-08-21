@@ -11,25 +11,23 @@
 
 namespace ai_factory::workbench::model::g2 {
 
-// ======================== Model-specific dynamics =========================
-
-// Conditional moments of integral_t^{t+d}(X_s + Y_s) ds.
-struct G2IntegralMoments {
+struct IntegralMoments {
     float state_x_loading;
     float state_y_loading;
     float variance;
 };
 
-// Compute both state loadings and the variance of the future rate integral.
-__device__ __forceinline__ G2IntegralMoments integral_moments(
-    const G2ProcessParameters& parameters,
+__device__ __forceinline__ IntegralMoments integral_moments(
+    const ProcessParameters& parameters,
     float delta
 );
 
-// ======================= Common state-only dynamics ========================
+// Time-invariant coefficients of the correlated two-factor process.
+struct PreparedModel {
+    ProcessParameters process;
+};
 
-// Exact correlated transition of the two Gaussian factor states.
-struct G2ExactTransition {
+struct PreparedTransition {
     float decay_x;
     float state_x_standard_deviation;
     float decay_y;
@@ -37,47 +35,66 @@ struct G2ExactTransition {
     float state_y_independent_standard_deviation;
 };
 
-// Precompute one exact two-factor transition over a fixed interval.
-__device__ __forceinline__ G2ExactTransition prepare_model(
-    const G2ProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedModel prepare_model(
+    const ProcessParameters& parameters
 );
 
-// Advance both correlated Gaussian states exactly over one interval.
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+);
+
+__device__ __forceinline__ void prepare_calendar(
+    const PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const G2ExactTransition& model,
+    const PreparedTransition& transition,
     float state_x_normal,
     float state_y_normal,
-    G2State& state
+    State& state
 );
 
-// Apply one prepared exact transition and return both terminal states.
-__device__ __forceinline__ G2State simulate_terminal_state(
-    const G2ExactTransition& model,
-    G2State initial_state,
-    float state_x_normal,
-    float state_y_normal
+__device__ __forceinline__ State simulate_terminal_state(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    State initial_state,
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store observation_count - 1 states and return the terminal state.
-__device__ __forceinline__ G2State simulate_on_regular_grid(
-    const G2ExactTransition& initial_stub_model,
-    const G2ExactTransition& regular_model,
-    G2State initial_state,
+__device__ __forceinline__ State simulate_on_calendar(
+    const PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    State initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states_x,
+    float* __restrict__ observed_states_y
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    State initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states_x,
     float* __restrict__ observed_states_y
 );
 
 namespace joint {
 
-// ========================= Common joint dynamics ===========================
-
-// Cholesky coefficients for the exact joint transition of X, Y, and integral.
-struct G2JointExactTransition {
+struct PreparedTransition {
     float decay_x;
     float state_x_standard_deviation;
     float decay_y;
@@ -90,45 +107,62 @@ struct G2JointExactTransition {
     float integral_independent_standard_deviation;
 };
 
-// Store both factor states and integral_0^t (X_s + Y_s) ds.
-struct G2JointState {
-    G2State state;
+struct State {
+    g2::State state;
     float state_integral;
 };
 
-// Precompute the exact joint transition over one fixed interval.
-__device__ __forceinline__ G2JointExactTransition prepare_model(
-    const G2ProcessParameters& parameters,
-    float time_interval
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const g2::PreparedModel& model,
+    float delta_t
 );
 
-// Advance the two states and their accumulated integral exactly.
+__device__ __forceinline__ void prepare_calendar(
+    const g2::PreparedModel& model,
+    const std::uint32_t* __restrict__ interval_steps,
+    std::uint32_t interval_count,
+    float delta_t,
+    PreparedTransition* __restrict__ transitions
+);
+
 __device__ __forceinline__ void one_step_transition(
-    const G2JointExactTransition& model,
+    const PreparedTransition& transition,
     float state_x_normal,
     float state_y_normal,
     float integral_normal,
-    G2JointState& joint_state
+    State& state
 );
 
-// Apply one prepared joint transition and return its terminal state.
-__device__ __forceinline__ G2JointState simulate_terminal_state(
-    const G2JointExactTransition& model,
-    G2State initial_state,
-    float state_x_normal,
-    float state_y_normal,
-    float integral_normal
+__device__ __forceinline__ State simulate_terminal_state(
+    const g2::PreparedModel& model,
+    const PreparedTransition& transition,
+    g2::State initial_state,
+    philox::PhiloxKey key,
+    std::size_t path
 );
 
-// Store pre-terminal joint states and return the terminal state.
-__device__ __forceinline__ G2JointState simulate_on_regular_grid(
-    const G2JointExactTransition& initial_stub_model,
-    const G2JointExactTransition& regular_model,
-    G2State initial_state,
+__device__ __forceinline__ State simulate_on_calendar(
+    const g2::PreparedModel& model,
+    const PreparedTransition* __restrict__ transitions,
+    g2::State initial_state,
     philox::PhiloxKey key,
     std::size_t path,
     std::uint32_t observation_count,
-    std::size_t path_count,
+    std::size_t observation_stride,
+    float* __restrict__ observed_states_x,
+    float* __restrict__ observed_states_y,
+    float* __restrict__ observed_integrated_states
+);
+
+__device__ __forceinline__ State simulate_on_regular_grid(
+    const g2::PreparedModel& model,
+    const PreparedTransition& initial_stub_transition,
+    const PreparedTransition& regular_transition,
+    g2::State initial_state,
+    philox::PhiloxKey key,
+    std::size_t path,
+    std::uint32_t observation_count,
+    std::size_t observation_stride,
     float* __restrict__ observed_states_x,
     float* __restrict__ observed_states_y,
     float* __restrict__ observed_integrated_states

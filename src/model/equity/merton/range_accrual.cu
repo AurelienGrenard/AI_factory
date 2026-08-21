@@ -22,7 +22,8 @@ namespace {
 
 // Prepared model and payoff constants shared by one result block.
 struct PreparedRow {
-    MertonPreparedParameters model;
+    PreparedModel model;
+    PreparedTransition transition;
     philox::PhiloxKey key;
     float lower_log_spot;
     float upper_log_spot;
@@ -33,24 +34,30 @@ struct PreparedRow {
 
 // Precompute the model coefficients and payoff constants shared by one block.
 __device__ __forceinline__ PreparedRow prepare_row(
-    const MertonModelParameters& model,
+    const ModelParameters& model,
     const product::RangeAccrualParameters& product,
+    float day_fraction,
     std::uint32_t observation_count,
     std::uint64_t seed
 ) {
-    const MertonPreparedParameters prepared_model = prepare_model(model, product.observation_interval);
+    const float observation_years =
+        static_cast<float>(product.observation_interval) * day_fraction;
+    const float maturity_years =
+        static_cast<float>(product.maturity) * day_fraction;
+    const PreparedModel prepared_model = prepare_model(model);
     const float maturity_discount = expf(
-        -model.risk_free_rate * product.maturity
+        -model.risk_free_rate * maturity_years
     );
     return {
         prepared_model,
+        prepare_transition(prepared_model, observation_years),
         philox::make_key(seed),
         prepared_model.initial_log_spot + logf(product.lower_barrier),
         prepared_model.initial_log_spot + logf(product.upper_barrier),
         maturity_discount,
         maturity_discount
             * product.coupon_rate
-            * product.observation_interval,
+            * observation_years,
         observation_count,
     };
 }
@@ -60,7 +67,7 @@ __device__ __forceinline__ float evaluate_path(
     const PreparedRow& row,
     std::size_t path
 ) {
-    MertonState state = initial_state(row.model);
+    State state = initial_state(row.model);
     philox::UniformSequence uniforms(
         row.key, static_cast<std::uint64_t>(path)
     );
@@ -70,7 +77,9 @@ __device__ __forceinline__ float evaluate_path(
     for (std::uint32_t observation = 0U;
          observation < row.observation_count;
          ++observation) {
-        simulate_one_step(row.model, uniforms, normal_cache, state);
+        simulate_one_step(
+            row.model, row.transition, uniforms, normal_cache, state
+        );
         in_range_count += static_cast<std::uint32_t>(
             state.log_spot >= row.lower_log_spot
             && state.log_spot <= row.upper_log_spot
@@ -85,13 +94,14 @@ __device__ __forceinline__ float evaluate_path(
 
 // Price rows through a bounded persistent grid and write FP32 result moments.
 __global__ void merton_range_accrual_kernel(
-    const MertonModelParameters* __restrict__ models,
+    const ModelParameters* __restrict__ models,
     const product::RangeAccrualParameters* __restrict__ products,
     std::size_t product_count,
     bool cartesian_product,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
@@ -113,12 +123,11 @@ __global__ void merton_range_accrual_kernel(
             const product::RangeAccrualParameters product =
                 products[product_index];
             const std::uint32_t observation_count =
-                static_cast<std::uint32_t>(floorf(
-                    product.maturity / product.observation_interval + 0.5f
-                ));
+                product.maturity / product.observation_interval;
             prepared = prepare_row(
                 models[model_index],
                 product,
+                day_fraction,
                 observation_count,
                 base_seed + result_index
             );
@@ -160,7 +169,7 @@ __global__ void merton_range_accrual_kernel(
 
 // Compose the common checks required by this specific model/product launcher.
 void validate_merton_range_accrual_launch(
-    const MertonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
@@ -169,6 +178,7 @@ void validate_merton_range_accrual_launch(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -195,6 +205,7 @@ void validate_merton_range_accrual_launch(
 
     // The Monte Carlo path count must be valid.
     validate_monte_carlo_path_count(monte_carlo_paths_per_price);
+    validate_day_fraction(day_fraction);
 
     // The block must fit the GPU and contain a whole number of warps.
     validate_reduction_block_size(threads_per_block);
@@ -211,7 +222,7 @@ void validate_merton_range_accrual_launch(
 
 // Validate and launch the pricing kernel on caller-owned device arrays.
 void launch_merton_range_accrual_cuda(
-    const MertonModelParameters* device_models,
+    const ModelParameters* device_models,
     std::size_t model_count,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
@@ -220,6 +231,7 @@ void launch_merton_range_accrual_cuda(
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
+    float day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -236,6 +248,7 @@ void launch_merton_range_accrual_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         threads_per_block,
         block_count,
         base_seed,
@@ -285,6 +298,7 @@ void launch_merton_range_accrual_cuda(
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
+        day_fraction,
         base_seed,
         device_prices,
         device_standard_errors

@@ -136,7 +136,7 @@ nlohmann::json one_row(
     const std::string family_field = collection == "models"
         ? "model_family" : collection == "curves"
         ? "curve_family" : "product_family";
-    return {
+    nlohmann::json document = {
         {"database_id", "test_01"},
         {family_field, "Test family"},
         {"catalog", "catalog/test/test_01"},
@@ -147,6 +147,13 @@ nlohmann::json one_row(
             {"parameters", parameters},
         }}},
     };
+    if (collection == "products") {
+        document["time_convention"] = {
+            {"unit", "business_day"},
+            {"days_per_year", 252U},
+        };
+    }
+    return document;
 }
 
 }  // namespace
@@ -186,6 +193,11 @@ int main() {
     );
     check_missing_field(
         "Product", "product_family",
+        one_row("products", {{"value", 1.0f}}),
+        datasets::validate_product_dataset
+    );
+    check_missing_field(
+        "Product", "time_convention",
         one_row("products", {{"value", 1.0f}}),
         datasets::validate_product_dataset
     );
@@ -405,88 +417,88 @@ int main() {
     );
     check_loader(
         "European call", "products", "strike", 0.0f, "strike",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_european_options
     );
     check_loader(
         "European put", "products", "strike", 0.0f, "strike",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_european_options
     );
     check_loader(
-        "Asian call", "products", "maturity", 0.0f, "maturity",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        "Asian call", "products", "maturity",  0U, "maturity",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_asian_options
     );
     check_loader(
-        "Asian put", "products", "maturity", 0.0f, "maturity",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        "Asian put", "products", "maturity",  0U, "maturity",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_asian_options
     );
     check_loader(
         "Geometric Asian call", "products", "strike", 0.0f, "strike",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_geometric_asian_options
     );
     check_loader(
-        "Geometric Asian put", "products", "maturity", 0.0f, "maturity",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        "Geometric Asian put", "products", "maturity",  0U, "maturity",
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_geometric_asian_options
     );
     check_loader(
-        "Forward-start call", "products", "reset_time", 1.0f,
+        "Forward-start call", "products", "reset_time",  252U,
         "must precede",
         one_row("products", {
-            {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
+            {"moneyness", 1.0f}, {"reset_time", 126U}, {"maturity", 252U},
         }),
         product::load_forward_start_options
     );
     check_loader(
         "Forward-start put", "products", "moneyness", 0.0f, "moneyness",
         one_row("products", {
-            {"moneyness", 1.0f}, {"reset_time", 0.5f}, {"maturity", 1.0f},
+            {"moneyness", 1.0f}, {"reset_time", 126U}, {"maturity", 252U},
         }),
         product::load_forward_start_options
     );
     check_loader(
         "Up-and-out call", "products", "barrier", 0.9f, "exceed strike",
         one_row("products", {
-            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
+            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 252U},
         }),
         product::load_up_and_out_options
     );
     check_loader(
         "Down-and-out put", "products", "barrier", 1.1f, "below strike",
         one_row("products", {
-            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
+            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 252U},
         }),
         product::load_down_and_out_options
     );
     check_loader(
         "Up-and-in call", "products", "barrier", 0.9f, "exceed strike",
         one_row("products", {
-            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 1.0f},
+            {"strike", 1.0f}, {"barrier", 1.2f}, {"maturity", 252U},
         }),
         product::load_up_and_in_options
     );
     check_loader(
         "Down-and-in put", "products", "barrier", 1.1f, "below strike",
         one_row("products", {
-            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 1.0f},
+            {"strike", 1.0f}, {"barrier", 0.8f}, {"maturity", 252U},
         }),
         product::load_down_and_in_options
     );
     check_loader(
         "Up one-touch", "products", "cash_payoff", 0.0f, "cash_payoff",
         one_row("products", {
-            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 1.0f},
+            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 252U},
         }),
         product::load_up_one_touches
     );
     check_loader(
         "Up no-touch", "products", "barrier", 0.0f, "barrier",
         one_row("products", {
-            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 1.0f},
+            {"barrier", 1.2f}, {"cash_payoff", 1.0f}, {"maturity", 252U},
         }),
         product::load_up_no_touches
     );
@@ -495,7 +507,7 @@ int main() {
         "lie between",
         one_row("products", {
             {"strike", 1.0f}, {"lower_barrier", 0.8f},
-            {"upper_barrier", 1.2f}, {"maturity", 1.0f},
+            {"upper_barrier", 1.2f}, {"maturity", 252U},
         }),
         product::load_double_knock_out_options
     );
@@ -504,7 +516,7 @@ int main() {
         "lie between",
         one_row("products", {
             {"strike", 1.0f}, {"lower_barrier", 0.8f},
-            {"upper_barrier", 1.2f}, {"maturity", 1.0f},
+            {"upper_barrier", 1.2f}, {"maturity", 252U},
         }),
         product::load_double_knock_out_options
     );
@@ -512,7 +524,7 @@ int main() {
         "Digital call", "products", "cash_payoff", 0.0f, "cash_payoff",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
             {"cash_payoff", 1.0f},
         }),
         product::load_digital_options
@@ -521,7 +533,7 @@ int main() {
         "Digital put", "products", "cash_payoff", 0.0f, "cash_payoff",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
             {"cash_payoff", 1.0f},
         }),
         product::load_digital_options
@@ -530,7 +542,7 @@ int main() {
         "Asset-or-nothing call", "products", "strike", 0.0f, "strike",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
         }),
         product::load_asset_or_nothing_options
     );
@@ -538,7 +550,7 @@ int main() {
         "Asset-or-nothing put", "products", "strike", 0.0f, "strike",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
         }),
         product::load_asset_or_nothing_options
     );
@@ -548,7 +560,7 @@ int main() {
         one_row("products", {
             {"trigger_strike", 1.0f},
             {"payoff_strike", 0.95f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
         }),
         [](const std::filesystem::path& path) {
             return product::load_gap_options(path, OptionSide::call);
@@ -560,7 +572,7 @@ int main() {
         one_row("products", {
             {"trigger_strike", 1.0f},
             {"payoff_strike", 1.05f},
-            {"maturity", 1.0f},
+            {"maturity", 252U},
         }),
         [](const std::filesystem::path& path) {
             return product::load_gap_options(path, OptionSide::put);
@@ -568,31 +580,31 @@ int main() {
     );
     check_loader(
         "Straddle", "products", "strike", 0.0f, "strike",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_straddles
     );
     check_loader(
         "Lookback option", "products", "strike", -1.0f, "strike",
-        one_row("products", {{"strike", 1.0f}, {"maturity", 1.0f}}),
+        one_row("products", {{"strike", 1.0f}, {"maturity", 252U}}),
         product::load_lookback_options
     );
     check_loader(
-        "American put", "products", "exercise_interval", 1.0f,
+        "American put", "products", "exercise_interval",  252U,
         "exercise_interval",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
-            {"exercise_interval", 1.0f / 12.0f},
+            {"maturity", 252U},
+            {"exercise_interval", 21U},
         }),
         product::load_american_options
     );
     check_loader(
-        "American call", "products", "exercise_interval", 1.0f,
+        "American call", "products", "exercise_interval",  252U,
         "exercise_interval",
         one_row("products", {
             {"strike", 1.0f},
-            {"maturity", 1.0f},
-            {"exercise_interval", 1.0f / 12.0f},
+            {"maturity", 252U},
+            {"exercise_interval", 21U},
         }),
         product::load_american_options
     );
@@ -600,8 +612,8 @@ int main() {
         "Phoenix autocall", "products", "coupon_barrier", 0.50f,
         "barriers",
         one_row("products", {
-            {"maturity", 2.0f},
-            {"observation_interval", 0.25f},
+            {"maturity", 504U},
+            {"observation_interval", 63U},
             {"autocall_barrier", 1.0f},
             {"coupon_barrier", 0.70f},
             {"protection_barrier", 0.60f},
@@ -613,8 +625,8 @@ int main() {
         "Phoenix Memory autocall", "products", "coupon_barrier", 0.50f,
         "barriers",
         one_row("products", {
-            {"maturity", 2.0f},
-            {"observation_interval", 0.25f},
+            {"maturity", 504U},
+            {"observation_interval", 63U},
             {"autocall_barrier", 1.0f},
             {"coupon_barrier", 0.70f},
             {"protection_barrier", 0.60f},
@@ -626,8 +638,8 @@ int main() {
         "Athena autocall", "products", "protection_barrier", 1.10f,
         "barriers",
         one_row("products", {
-            {"maturity", 2.0f},
-            {"observation_interval", 0.25f},
+            {"maturity", 504U},
+            {"observation_interval", 63U},
             {"autocall_barrier", 1.0f},
             {"protection_barrier", 0.60f},
             {"annual_coupon_rate", 0.08f},
@@ -638,8 +650,8 @@ int main() {
         "Cliquet", "products", "global_floor", 0.40f,
         "global bounds",
         one_row("products", {
-            {"maturity", 2.0f},
-            {"observation_interval", 0.25f},
+            {"maturity", 504U},
+            {"observation_interval", 63U},
             {"participation_rate", 1.0f},
             {"local_floor", -0.05f},
             {"local_cap", 0.05f},
@@ -652,8 +664,8 @@ int main() {
         "Range Accrual", "products", "lower_barrier", 1.10f,
         "barriers",
         one_row("products", {
-            {"maturity", 2.0f},
-            {"observation_interval", 0.25f},
+            {"maturity", 504U},
+            {"observation_interval", 63U},
             {"lower_barrier", 0.80f},
             {"upper_barrier", 1.20f},
             {"coupon_rate", 0.08f},
@@ -661,24 +673,24 @@ int main() {
         product::load_range_accruals
     );
     check_loader(
-        "Caplet", "products", "fixing_time", 0.0f, "fixing_time",
+        "Caplet", "products", "fixing_time",  0U, "fixing_time",
         one_row("products", {
             {"notional", 1.0f},
             {"strike", -0.01f},
-            {"fixing_time", 1.0f},
-            {"payment_time", 1.5f},
-            {"accrual_period", 0.5f},
+            {"fixing_time", 252U},
+            {"payment_time", 378U},
+            {"accrual_period", 126U},
         }),
         product::load_rate_options
     );
     check_loader(
-        "Floorlet", "products", "payment_time", 1.0f, "payment_time",
+        "Floorlet", "products", "payment_time",  252U, "payment_time",
         one_row("products", {
             {"notional", 1.0f},
             {"strike", -0.01f},
-            {"fixing_time", 1.0f},
-            {"payment_time", 1.5f},
-            {"accrual_period", 0.5f},
+            {"fixing_time", 252U},
+            {"payment_time", 378U},
+            {"accrual_period", 126U},
         }),
         product::load_rate_options
     );
@@ -687,28 +699,32 @@ int main() {
         one_row("products", {
             {"notional", 1.0f},
             {"strike", 0.97f},
-            {"option_expiry", 1.0f},
-            {"bond_maturity", 1.5f},
+            {"option_expiry", 252U},
+            {"bond_maturity", 378U},
         }),
         product::load_zero_coupon_bond_options
     );
     check_loader(
-        "Zero-coupon bond put", "products", "bond_maturity", 1.0f,
+        "Zero-coupon bond put", "products", "bond_maturity",  252U,
         "bond_maturity",
         one_row("products", {
             {"notional", 1.0f},
             {"strike", 0.97f},
-            {"option_expiry", 1.0f},
-            {"bond_maturity", 1.5f},
+            {"option_expiry", 252U},
+            {"bond_maturity", 378U},
         }),
         product::load_zero_coupon_bond_options
     );
     // Price datasets may omit the curve or require it consistently per row.
     nlohmann::json price_document = {
         {"database_id", "test_price_01"},
-        {"catalog", "catalog/price/test_price_01"},
+        {"catalog", "catalog/model/equity/test_model/prices/test_price_01"},
         {"url", "https://datasets.ai-factory.example/test_price_01.json"},
         {"row_count", 1U},
+        {"time_convention", {
+            {"unit", "business_day"},
+            {"days_per_year", 252U},
+        }},
         {"model_dataset", {
             {"id", "test_model_01"},
             {"catalog", "catalog/model/test_model_01"},

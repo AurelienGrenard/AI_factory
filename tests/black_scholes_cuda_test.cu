@@ -18,7 +18,7 @@
 
 namespace {
 
-using ai_factory::workbench::black_scholes::BlackScholesModelParameters;
+using ai_factory::workbench::black_scholes::ModelParameters;
 
 struct DynamicsResults {
     float prepared_drift;
@@ -34,29 +34,36 @@ struct DynamicsResults {
 
 __global__ void exercise_dynamics_kernel(DynamicsResults* output) {
     using namespace ai_factory::workbench;
-    const BlackScholesModelParameters parameters = {
+    const ModelParameters parameters = {
         1.25f, 0.04f, 0.01f, 0.20f,
     };
-    const black_scholes::BlackScholesPreparedParameters quarter =
-        black_scholes::prepare_model(parameters, 0.25f);
-    black_scholes::BlackScholesState transitioned =
-        black_scholes::initial_state(quarter);
+    const black_scholes::PreparedModel prepared =
+        black_scholes::prepare_model(parameters);
+    const black_scholes::PreparedTransition quarter =
+        black_scholes::prepare_transition(prepared, 0.25f);
+    black_scholes::State transitioned =
+        black_scholes::initial_state(prepared);
     black_scholes::one_step_transition(quarter, 0.4f, transitioned);
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
     const float terminal_first = black_scholes::simulate_terminal_state(
-        quarter, key, 17U
+        prepared, quarter, key, 17U
     ).log_spot;
     const float terminal_replay = black_scholes::simulate_terminal_state(
-        quarter, key, 17U
+        prepared, quarter, key, 17U
     ).log_spot;
-    const auto two_times = black_scholes::simulate_at_two_times(
-        quarter, quarter, key, 23U
-    );
+    const black_scholes::PreparedTransition two_transitions[2] = {
+        quarter, quarter,
+    };
+    float first_spot = 0.0f;
+    const black_scholes::State second_state =
+        black_scholes::simulate_on_calendar(
+            prepared, two_transitions, 2U, key, 23U, 1U, &first_spot
+        );
     const auto geometric = black_scholes::simulate_geometric_mean_state(
-        quarter, key, 31U, 1U
+        prepared, quarter, key, 31U, 1U
     );
     const float geometric_terminal = black_scholes::simulate_terminal_state(
-        quarter, key, 31U
+        prepared, quarter, key, 31U
     ).log_spot;
     *output = {
         quarter.drift,
@@ -64,8 +71,8 @@ __global__ void exercise_dynamics_kernel(DynamicsResults* output) {
         transitioned.log_spot,
         terminal_first,
         terminal_replay,
-        two_times.first_spot,
-        two_times.terminal_spot,
+        first_spot,
+        expf(second_state.log_spot),
         geometric.geometric_mean,
         geometric_terminal,
     };
@@ -81,12 +88,12 @@ bool close(float lhs, float rhs, float tolerance = 3.0e-6f) {
 
 template <typename Product, typename Launcher>
 float price_one(
-    const BlackScholesModelParameters& model,
+    const ModelParameters& model,
     const Product& product,
     Launcher launch
 ) {
     using namespace ai_factory::workbench;
-    BlackScholesModelParameters* device_model = nullptr;
+    ModelParameters* device_model = nullptr;
     Product* device_product = nullptr;
     float* device_price = nullptr;
     check_cuda(cudaMalloc(&device_model, sizeof(model)), "BS test model allocation");
@@ -100,7 +107,7 @@ float price_one(
     ), "BS test product copy");
     launch(
         device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
-        32U, 1U, device_price
+        1.0f / 252.0f, 32U, 1U, device_price
     );
     check_cuda(cudaDeviceSynchronize(), "BS analytical kernel synchronize");
     float price = 0.0f;
@@ -114,12 +121,12 @@ float price_one(
 }
 
 float geometric_price_one(
-    const BlackScholesModelParameters& model,
+    const ModelParameters& model,
     const ai_factory::workbench::product::GeometricAsianOptionParameters& contract,
     ai_factory::workbench::OptionSide side
 ) {
     using namespace ai_factory::workbench;
-    BlackScholesModelParameters* device_model = nullptr;
+    ModelParameters* device_model = nullptr;
     product::GeometricAsianOptionParameters* device_product = nullptr;
     float* device_price = nullptr;
     check_cuda(cudaMalloc(&device_model, sizeof(model)), "BS geometric model allocation");
@@ -130,12 +137,12 @@ float geometric_price_one(
     if (side == OptionSide::call) {
         black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::call>(
             device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
-            1.0f / 360.0f, 32U, 1U, device_price
+            1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     } else {
         black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::put>(
             device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
-            1.0f / 360.0f, 32U, 1U, device_price
+            1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     }
     check_cuda(cudaDeviceSynchronize(), "BS geometric kernel synchronize");
@@ -178,30 +185,30 @@ int main() {
         std::exp(0.5f * (std::log(1.25f) + results.one_step_geometric_terminal))
     ), "BS direct geometric-mean simulation is inconsistent");
 
-    const BlackScholesModelParameters model = {1.0f, 0.02f, 0.01f, 0.20f};
-    const product::EuropeanOptionParameters vanilla{1.0f, 1.0f};
+    const ModelParameters model = {1.0f, 0.02f, 0.01f, 0.20f};
+    const product::EuropeanOptionParameters vanilla{1.0f, 252U};
     const float call = price_one(model, vanilla, black_scholes::launch_black_scholes_european_option_cuda<OptionSide::call>);
     const float put = price_one(model, vanilla, black_scholes::launch_black_scholes_european_option_cuda<OptionSide::put>);
     const float discount = std::exp(-model.risk_free_rate);
     const float discounted_spot = std::exp(-model.dividend_yield);
     require(close(call - put, discounted_spot - discount), "BS put-call parity failed");
 
-    const float straddle = price_one(model, product::StraddleParameters{1.0f, 1.0f}, black_scholes::launch_black_scholes_straddle_cuda);
+    const float straddle = price_one(model, product::StraddleParameters{1.0f, 252U}, black_scholes::launch_black_scholes_straddle_cuda);
     require(close(straddle, call + put), "BS straddle identity failed");
-    const float gap_call = price_one(model, product::GapOptionParameters{1.0f, 1.0f, 1.0f}, black_scholes::launch_black_scholes_gap_option_cuda<OptionSide::call>);
+    const float gap_call = price_one(model, product::GapOptionParameters{1.0f, 1.0f, 252U}, black_scholes::launch_black_scholes_gap_option_cuda<OptionSide::call>);
     require(close(gap_call, call), "BS zero-gap call identity failed");
 
-    const product::DigitalOptionParameters digital{1.0f, 1.0f, 2.0f};
+    const product::DigitalOptionParameters digital{1.0f, 252U, 2.0f};
     const float digital_call = price_one(model, digital, black_scholes::launch_black_scholes_digital_option_cuda<OptionSide::call>);
     const float digital_put = price_one(model, digital, black_scholes::launch_black_scholes_digital_option_cuda<OptionSide::put>);
     require(close(digital_call + digital_put, 2.0f * discount), "BS digital partition failed");
 
-    const product::AssetOrNothingOptionParameters asset{1.0f, 1.0f};
+    const product::AssetOrNothingOptionParameters asset{1.0f, 252U};
     const float asset_call = price_one(model, asset, black_scholes::launch_black_scholes_asset_or_nothing_option_cuda<OptionSide::call>);
     const float asset_put = price_one(model, asset, black_scholes::launch_black_scholes_asset_or_nothing_option_cuda<OptionSide::put>);
     require(close(asset_call + asset_put, discounted_spot), "BS asset partition failed");
 
-    const product::ForwardStartOptionParameters forward{1.0f, 0.5f, 1.0f};
+    const product::ForwardStartOptionParameters forward{1.0f, 126U, 252U};
     const float forward_call = price_one(model, forward, black_scholes::launch_black_scholes_forward_start_option_cuda<OptionSide::call>);
     const float forward_put = price_one(model, forward, black_scholes::launch_black_scholes_forward_start_option_cuda<OptionSide::put>);
     require(close(
@@ -209,12 +216,14 @@ int main() {
         discounted_spot - std::exp(-model.dividend_yield * 0.5f - model.risk_free_rate * 0.5f)
     ), "BS forward-start parity failed");
 
-    const product::GeometricAsianOptionParameters geometric{1.0f, 1.0f};
+    const product::GeometricAsianOptionParameters geometric{1.0f, 252U};
     const float geometric_call = geometric_price_one(model, geometric, OptionSide::call);
     const float geometric_put = geometric_price_one(model, geometric, OptionSide::put);
     require(std::isfinite(geometric_call) && std::isfinite(geometric_put), "BS geometric prices are not finite");
 
-    const product::RangeAccrualParameters range{1.0f, 0.25f, 0.8f, 1.2f, 0.05f};
+    const product::RangeAccrualParameters range{
+        252U, 63U, 0.8f, 1.2f, 0.05f,
+    };
     const float range_price = price_one(model, range, black_scholes::launch_black_scholes_range_accrual_cuda);
     require(range_price >= discount && range_price <= discount * 1.05f, "BS range-accrual bounds failed");
 }

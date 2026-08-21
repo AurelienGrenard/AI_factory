@@ -43,7 +43,7 @@ std::vector<GapOptionParameters> load_gap_options(
         const GapOptionParameters product = {
             parameters.at("trigger_strike").get<float>(),
             parameters.at("payoff_strike").get<float>(),
-            parameters.at("maturity").get<float>(),
+            parameters.at("maturity").get<std::uint32_t>(),
         };
         if (!std::isfinite(product.trigger_strike)
             || !(product.trigger_strike > 0.0f)) {
@@ -57,8 +57,8 @@ std::vector<GapOptionParameters> load_gap_options(
                 prefix + "payoff_strike must be finite and positive."
             );
         }
-        if (!std::isfinite(product.maturity) || !(product.maturity > 0.0f))
-            throw std::invalid_argument(prefix + "maturity must be finite and positive.");
+        if (product.maturity == 0U)
+            throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
         if (side == OptionSide::call
             && product.payoff_strike > product.trigger_strike) {
             throw std::invalid_argument(

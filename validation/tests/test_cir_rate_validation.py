@@ -31,7 +31,7 @@ class CirRateValidationTest(unittest.TestCase):
     def _paths(folder: str) -> tuple[Path, Path]:
         name = f"cir_01__{folder}_01__01.json"
         return (
-            ROOT / "datasets/price/fixed_income/cir" / folder / name,
+            ROOT / "datasets/model/fixed_income/cir/prices" / folder / name,
             ROOT / "validation/datasets/price/fixed_income/cir" / folder / name,
         )
 
@@ -107,7 +107,12 @@ class CirRateValidationTest(unittest.TestCase):
     def test_catalogs_only_expose_the_cached_validation_contract(self) -> None:
         for folder in PRODUCTS:
             stem = f"cir_01__{folder}_01__01"
-            catalog = ROOT / "catalog/price/fixed_income/cir" / folder / stem
+            catalog = (
+                ROOT
+                / "catalog/model/fixed_income/cir/prices"
+                / folder
+                / stem
+            )
             document = yaml.safe_load((catalog / "dataset.yaml").read_text())
             self.assertEqual(
                 document["validation"],

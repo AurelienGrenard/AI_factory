@@ -27,6 +27,33 @@ after its backend mapping has been audited. Kou in particular has no generic
 QuantLib process, so products not covered by a reliable Premia method remain
 unverified until a genuinely independent reference is implemented.
 
+## Compiled Black-Scholes path-reference engine
+
+Replace the scalar Python/QuantLib path loop used by the Black-Scholes
+Athena-autocall, cliquet, Phoenix-autocall, Phoenix-memory-autocall,
+double-knock-out, and up-no-touch references with an independently
+reproducible compiled or genuinely vectorized engine. The latter families
+normally use Premia first, but even a single technically unsupported row falls
+through to the same slow path engine.
+
+The current implementation covers all 1,000 rows with 1,024 antithetic pairs
+per row and refines suspicious rows with 8,192 pairs. It is numerically useful
+but performs every path generation, payoff observation, and `ql.Path` access
+through the Python-to-QuantLib boundary. A single dataset consequently takes
+tens of minutes. Athena was regenerated and verified under the
+`business_day / 252` convention, but cliquet and double-knock-out-call
+regeneration were intentionally interrupted. The two Phoenix families,
+double-knock-out put, and up-no-touch were not started. Their persistent
+references must therefore be regenerated after this performance work.
+
+Preserve the existing independent-reference contract: cover the 900-row core
+and 100-row stress regimes, retain deterministic per-row seeds and antithetic
+sampling, persist reference standard errors and provenance, and keep the
+refinement rule. Do not replace the external reference with the CUDA pricing
+kernel or Philox stream being validated. Add equivalence tests against the
+current QuantLib implementation on a small deterministic row selection before
+switching the full regeneration pipeline.
+
 ## CIR++ model and CIR joint dynamics
 
 The standalone CIR state dynamics, affine analytics, caplet/floorlet and
@@ -46,6 +73,11 @@ stress model datasets, independent QuantLib validation, catalog entries, and
 website integration.
 
 ## European and early-exercise swaptions
+
+The standalone Ornstein-Uhlenbeck European payer/receiver launcher and its
+reusable Jamshidian analytics are implemented. The common catalogue product,
+price datasets, independent validation, remaining model/curve combinations,
+and early-exercise launchers described below remain deferred.
 
 Implement a common swaption product definition covering the underlying swap,
 exercise schedule, settlement convention, payer/receiver side, strike, and

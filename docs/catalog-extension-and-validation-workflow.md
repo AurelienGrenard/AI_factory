@@ -9,7 +9,9 @@ validation indépendante et le site ont tous été mis à jour.
 - [ ] Reprendre l'ossature de l'exemple existant le plus proche.
 - [ ] Conserver les memes noms, signatures, ordre des fonctions et commentaires
       lorsque la semantique est identique.
-- [ ] Ne mettre dans `src/` que le chargement, les mathematiques et le pricing.
+- [ ] Ne mettre dans `src/` que le chargement, les mathematiques, le pricing et
+      les bibliotheques generatives reutilisables; les recettes restent dans
+      `catalog/`.
 - [ ] Mettre les helpers de generation et de validation de datasets dans
       `tools/datasets/`.
 - [ ] Generer les JSON et YAML avec le code; ne pas les corriger a la main.
@@ -56,13 +58,15 @@ Avant de creer un dossier, separer les couches reellement nouvelles:
 - une famille de parametres produit appartient a `src/product/` et a
   `catalog/product/`;
 - une dynamique ou des analytiques appartiennent a
-  `src/model/<asset_class>/<model>/` et a `catalog/model/`;
+  `src/model/<asset_class>/<model>/`; ses recettes appartiennent a
+  `catalog/model/<asset_class>/<model>/parameters/` ou `samples/`;
 - une courbe appartient a `src/curve/` et a `catalog/curve/`;
 - le pricing d'un couple modele-produit appartient au modele, dans
   `src/model/<asset_class>/<model>/[<curve>/]`;
 - une base de prix conserve son propre generateur et YAML sous
-  `catalog/price/`; un dataset migre ne stocke ni rapport ni notebook dans ce
-  dossier, ses references vivent sous `validation/datasets/price/`;
+  `catalog/model/<asset_class>/<model>/prices/`; un dataset migre ne stocke ni
+  rapport ni notebook dans ce dossier, ses references vivent sous
+  `validation/datasets/price/`;
 - l'orchestration de validation appartient a `validation/model/`, tandis que
   les conversions propres a Premia et QuantLib restent dans leurs backends.
 
@@ -77,9 +81,10 @@ qu'un nouveau payoff l'utilise.
 - [ ] Identifier l'implementation existante la plus proche a copier.
 - [ ] Fixer les conventions financieres: temps, paiements, exercice, notionnel,
       strike, actualisation et mesure de pricing.
-- [ ] Utiliser `Actual/360` pour les temps du catalogue; employer
-      `target_dt = 1 / 360` seulement lorsqu'une grille quotidienne ou un schema
-      numerique est effectivement necessaire.
+- [ ] Stocker les dates contractuelles comme des jours ouvrés entiers sous la
+      convention globale `days_per_year: 252`; employer une grille numérique
+      distincte, actuellement `dt = 1 / 504`, seulement lorsqu'un schéma ou un
+      monitoring fin est effectivement nécessaire.
 - [ ] Choisir la methode: formule exacte, Monte-Carlo, Longstaff-Schwartz, etc.
 - [ ] Enumerer toutes les methodes Premia du couple, dans tous les menus/classes
       d'actifs, et relever pour chacune le nom natif exact (`CF_*`, `AP_*`,
@@ -110,14 +115,49 @@ qu'un nouveau payoff l'utilise.
 ### Dataset du modele
 
 - [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
-- [ ] Creer `catalog/model/<asset_class>/<model>/<dataset_id>/generator.cpp`.
-- [ ] Creer `catalog/model/<asset_class>/<model>/<dataset_id>/dataset.yaml` par le generateur.
+- [ ] Creer
+      `catalog/model/<asset_class>/<model>/parameters/<dataset_id>/generator.cpp`.
+- [ ] Creer
+      `catalog/model/<asset_class>/<model>/parameters/<dataset_id>/dataset.yaml`
+      par le generateur.
 - [ ] Utiliser des plages financieres raisonnables.
 - [ ] Placer les cas extremes en queue de distribution, pas au centre.
 - [ ] Rejeter les lignes mathematiquement ou numeriquement invalides.
 - [ ] Verifier `database_id`, `model_family`, `catalog`, `url`, `row_count` et
       `models` dans le JSON genere.
 - [ ] Recharger le JSON genere avec `load_models(...)` avant de terminer.
+
+### Dataset de samples du modele
+
+- [ ] Creer
+      `catalog/model/<asset_class>/<model>/samples/<dataset_id>/generator.cpp`.
+- [ ] Generer le JSON complet sous
+      `datasets/model/<asset_class>/<model>/samples/<dataset_id>.json`.
+- [ ] Produire le YAML adjacent exclusivement depuis le generateur.
+- [ ] Considerer le generateur comme source de verite: le YAML documente la
+      recette executee et ne sert jamais d'entree au generateur.
+- [ ] Generer les parametres plausibles directement dans un vecteur type
+      contigu avec un flux Philox par ligne; ne pas ecrire puis recharger un
+      dataset de parametres intermediaire.
+- [ ] Reprendre uniquement le regime core de 90% du dataset de parametres de
+      pricing, sans sa queue stress de 10%.
+- [ ] Faire appeler au generateur la dynamique de reference placee sous
+      `src/model/<asset_class>/<model>/`; ne pas reimplementer le modele dans la
+      recette.
+- [ ] Produire exactement 3 000 000 de samples d'entrainement.
+- [ ] Fournir les deux recettes par modele: `samples_01` avec
+      `12 000 * 250 = 3 000 000`, puis `samples_02` avec
+      `3 000 000 * 1 = 3 000 000` et des seeds independantes.
+- [ ] Tirer independamment chaque maturite selon la loi uniforme discrete sur
+      `{90/360, ..., 720/360}` et utiliser `target_dt = 1 / 360` pour les
+      schemas discretises.
+- [ ] Declarer les parametres, la loi de `T`, les observables, la methode
+      numerique et les trois seeds dans le YAML.
+- [ ] Ecrire une liste plate de 3M lignes autonomes contenant chacune les
+      parametres, `maturity_days`, `T` et les valeurs terminales; accepter la
+      repetition des parametres dans les paquets de 250 de `samples_01`.
+- [ ] Ajouter un test `--smoke-test` de 1 000 samples, avec relecture du JSON,
+      controle des dimensions et rejet de toute valeur non finie.
 
 ## Ajouter une courbe
 
@@ -169,7 +209,8 @@ Lorsque call et put different uniquement par l'orientation du payoff:
       trajectoire.
 - [ ] Instancier explicitement les deux versions dans le `.cu`, afin que les
       generateurs C++ puissent les lier sans inclure l'implementation CUDA.
-- [ ] Conserver deux dossiers sous `catalog/price/`: les prix call et put sont
+- [ ] Conserver deux dossiers sous
+      `catalog/model/<asset_class>/<model>/prices/`: les prix call et put sont
       deux datasets publics distincts, meme s'ils partagent les parametres.
 - [ ] Ne creer des bases de parametres propres au call ou au put que si leur
       construction differe reellement; les ranger alors dans la meme famille
@@ -204,7 +245,8 @@ ou, pour l'exercice anticipe,
 
 ## Ajouter une base de prix
 
-- [ ] Creer `catalog/price/<asset_class>/<model>/[<curve>/]<product>/<dataset_id>/`.
+- [ ] Creer
+      `catalog/model/<asset_class>/<model>/prices/[<curve>/]<product>/<dataset_id>/`.
 - [ ] Ajouter `generator.cpp` et `dataset.yaml` dans ce meme dossier.
 - [ ] Charger les datasets modele, courbe si necessaire, et produit.
 - [ ] Verifier la construction `Aligned` ou `CartesianProduct` et le nombre de
