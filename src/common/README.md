@@ -1,230 +1,450 @@
-# Shared CUDA and pricing infrastructure
+# Common CUDA infrastructure
 
-This directory contains model-independent building blocks used by the CUDA
-pricing code. Model mathematics stays under `src/model`; product rows stay
-under `src/product`. A new utility belongs here only when several independent
-model/product implementations use the same contract.
+<details>
+<summary>Implementation</summary>
 
-## Contents
+```text
+common/
+├── README.md
+├── check_cuda.cuh
+├── cuda_kernel_diagnostics.cuh
+├── cuda_kernel_diagnostics.cpp
+├── noncentral_chi_square.cuh
+├── normal_distribution.cuh
+├── option_side.cuh
+├── philox.cuh
+├── reductions.cuh
+├── result_index.cuh
+├── sample.cuh
+├── time_grid.cuh
+└── longstaff_schwartz/
+    ├── exercise_schedule.cuh
+    ├── exercise_schedule.cu
+    ├── laguerre.cuh
+    ├── launch.cuh
+    ├── launch.cu
+    ├── linear_solver.cuh
+    ├── linear_solver.cu
+    ├── regression.cuh
+    ├── regression.cu
+    ├── workspace.cuh
+    └── workspace.cu
+```
 
-- [CUDA validation and diagnostics](#cuda-validation-and-diagnostics)
-- [Result construction and option orientation](#result-construction-and-option-orientation)
-- [Random numbers and distributions](#random-numbers-and-distributions)
-- [Monte Carlo reductions](#monte-carlo-reductions)
-- [Longstaff–Schwartz](#longstaffschwartz)
-- [Compatibility implementation](#compatibility-implementation)
-- [Reproducibility rules](#reproducibility-rules)
+</details>
 
-## File index
+[`check_cuda.cuh`](#check-cuda) ·
+[`cuda_kernel_diagnostics.cuh/.cpp`](#cuda-kernel-diagnostics) ·
+[`option_side.cuh`](#option-side) ·
+[`result_index.cuh`](#result-index) ·
+[`time_grid.cuh`](#time-grid) ·
+[`sample.cuh`](#sample) ·
+[`philox.cuh`](#philox) ·
+[`normal_distribution.cuh`](#normal-distribution) ·
+[`noncentral_chi_square.cuh`](#noncentral-chi-square) ·
+[`reductions.cuh`](#reductions) ·
+[`longstaff_schwartz/`](#longstaff-schwartz)
 
-| File | Responsibility |
+<a id="check-cuda"></a>
+## [`check_cuda.cuh`](check_cuda.cuh)
+
+| Function | Definition |
 |---|---|
-| [`check_cuda.cuh`](check_cuda.cuh) | CUDA errors, launch validation, dataset-shape validation, and overflow checks |
-| [`cuda_kernel_diagnostics.cuh`](cuda_kernel_diagnostics.cuh) / [`cuda_kernel_diagnostics.cpp`](cuda_kernel_diagnostics.cpp) | Opt-in resources and occupancy report for an exact kernel specialization |
-| [`result_index.cuh`](result_index.cuh) | Aligned/Cartesian result-index decoding |
-| [`option_side.cuh`](option_side.cuh) | Compile-time call/put orientation |
-| [`philox.cuh`](philox.cuh) | Philox stream, uniforms, normals, Poisson, Gamma, and inverse-Gaussian draws |
-| [`normal_distribution.cuh`](normal_distribution.cuh) | FP32 standard-normal CDF |
-| [`noncentral_chi_square.cuh`](noncentral_chi_square.cuh) | Deterministic regularized-Gamma and non-central-chi-square CDF/survival probabilities |
-| [`reductions.cuh`](reductions.cuh) | Deterministic FP64 block reductions and Monte Carlo statistics |
-| [`longstaff_schwartz/basis.cuh`](longstaff_schwartz/basis.cuh) / [`basis.cu`](longstaff_schwartz/basis.cu) | Active regression basis |
-| [`longstaff_schwartz/exercise_schedule.cuh`](longstaff_schwartz/exercise_schedule.cuh) / [`exercise_schedule.cu`](longstaff_schwartz/exercise_schedule.cu) | Maturity-anchored exercise dates |
-| [`longstaff_schwartz/regression.cuh`](longstaff_schwartz/regression.cuh) / [`regression.cu`](longstaff_schwartz/regression.cu) | Normal-equation accumulation, reduction, and solve orchestration |
-| [`longstaff_schwartz/linear_solver.cuh`](longstaff_schwartz/linear_solver.cuh) / [`linear_solver.cu`](longstaff_schwartz/linear_solver.cu) | Small dense FP64 Cholesky solve |
-| [`longstaff_schwartz/workspace.cuh`](longstaff_schwartz/workspace.cuh) / [`workspace.cu`](longstaff_schwartz/workspace.cu) | Typed regions, aligned workspace layout, and batch planning |
-| [`longstaff_schwartz/launch.cuh`](longstaff_schwartz/launch.cuh) / [`launch.cu`](longstaff_schwartz/launch.cu) | Workspace ownership, memory budget, timing, and launch metrics |
-| [`least_squares.cuh`](least_squares.cuh) / [`least_squares.cu`](least_squares.cu) | Inactive compatibility implementation retained for now |
+| `check_cuda(status, operation)` | Throws a C++ exception containing `operation` and the CUDA Runtime error represented by `status`. |
+| `checked_workspace_product(left, right, message)` | Returns `left * right` after rejecting `std::size_t` overflow. |
+| `bounded_block_count(result_count, block_count)` | Returns `min(result_count, block_count)` after rejecting zero dimensions. |
+| `validate_block_count(result_count, block_count)` | Requires `1 <= block_count <= result_count`. |
+| `validate_device_pointer(pointer, name)` | Requires a non-null pointer whose CUDA attributes report device memory. |
+| `validate_model_product_construction(...)` | Validates aligned rows or the Cartesian count `model_count * product_count`. |
+| `validate_model_curve_product_construction(...)` | Validates aligned rows or the Cartesian count `model_count * curve_count * product_count`. |
+| `validate_monte_carlo_path_count(paths_per_result)` | Requires at least two paths so a sample variance exists. |
+| `validate_day_fraction(day_fraction)` | Requires a positive finite contractual day fraction. |
+| `validate_monte_carlo_parameters(paths_per_result, dt)` | Validates the path count and the positive finite simulation step `dt`. |
+| `validate_simulation_steps_per_day(steps)` | Requires at least one simulation step per contractual day. |
+| `validate_cuda_block_size(threads_per_block)` | Checks the positive block size against the active device limit. |
+| `validate_reduction_block_size(threads_per_block)` | Additionally requires a whole number of 32-thread warps. |
+| `validate_grid_x_size(block_count)` | Checks `block_count` against the active device `gridDim.x` limit. |
+| `validate_row_seed_range(result_count, base_seed)` | Requires `base_seed + result_count - 1` to fit in `std::uint64_t`. |
 
-## CUDA validation and diagnostics
+<a id="cuda-kernel-diagnostics"></a>
+## [`cuda_kernel_diagnostics.cuh`](cuda_kernel_diagnostics.cuh) / [`cuda_kernel_diagnostics.cpp`](cuda_kernel_diagnostics.cpp)
 
-### `check_cuda.cuh`
+For `B` active blocks per streaming multiprocessor, `W_B` warps per block and
+`W_max` supported warps per streaming multiprocessor, the reported theoretical
+occupancy is
 
-Host-side validation shared by launchers and generators:
+```math
+\mathrm{occupancy}=\frac{B W_B}{W_{\max}}.
+```
 
-- `check_cuda` turns CUDA Runtime failures into readable C++ exceptions;
-- `checked_workspace_product` rejects allocation-size overflow;
-- `bounded_block_count`, `validate_block_count`, `validate_cuda_block_size`,
-  `validate_reduction_block_size`, and `validate_grid_x_size` validate launch
-  geometry;
-- `validate_device_pointer` rejects host/null pointers passed as device arrays;
-- `validate_model_product_construction` and
-  `validate_model_curve_product_construction` validate aligned or Cartesian
-  datasets;
-- `validate_monte_carlo_path_count`, `validate_monte_carlo_parameters`, and
-  `validate_row_seed_range` protect the common simulation contract.
+| Function or type | Definition |
+|---|---|
+| `CudaKernelLaunchDiagnostics` | Device identity, launch geometry, kernel resources and theoretical occupancy. |
+| `cuda_kernel_diagnostics_enabled()` | Reads the opt-in `AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS` flag. |
+| `reserve_cuda_kernel_launch_diagnostics(...)` | Deduplicates one `(kernel, variant, grid, block, shared memory)` report. |
+| `inspect_cuda_kernel_launch(kernel, grid, block, shared_bytes)` | Returns device limits, registers, local/shared memory, active blocks and theoretical occupancy for the exact specialization. |
+| `emit_cuda_kernel_launch_diagnostics(...)` | Writes the reserved report as one JSON object. |
+| `report_cuda_kernel_launch_if_enabled(...)` | Performs reservation, inspection and emission only when diagnostics are enabled. |
+| `environment_flag_enabled(value)` | Internal parser accepting `1`, `true` or `on`. |
+| `report_key(...)` | Internal stable key used to deduplicate reports. |
 
-### `cuda_kernel_diagnostics.cuh/.cpp`
+<a id="option-side"></a>
+## [`option_side.cuh`](option_side.cuh)
 
-Optional launch diagnostics for the exact kernel specialization and geometry.
-`report_cuda_kernel_launch_if_enabled` reports registers per thread, local and
-shared memory, theoretical occupancy, device limits, and binary/PTX versions.
+| Symbol | Definition |
+|---|---|
+| `OptionSide::call` | Call orientation. |
+| `OptionSide::put` | Put orientation. |
+| `option_side_name(side)` | Returns the stable host label `"call"` or `"put"`. |
 
-Set `AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1` (also accepts `true` or `on`) to emit
-one JSON object per distinct `(kernel, variant, grid, block, dynamic shared
-bytes)` tuple on standard error. Diagnostics are deduplicated and have no GPU
-query cost when disabled. Occupancy is a resource diagnostic, not a direct
-performance measurement.
+<a id="result-index"></a>
+## [`result_index.cuh`](result_index.cuh)
 
-## Result construction and option orientation
+Let `i` be a flattened result index and `P` the number of products.
 
-### `result_index.cuh`
+| Function | Definition |
+|---|---|
+| `decode_model_product_result_index(i, P, cartesian)` | Returns `ModelProductIndices {model_index, product_index}`. |
 
-`decode_model_product_result_index` returns `ModelProductIndices`. In aligned
-mode result `i` uses model `i` and product `i`. In Cartesian mode products vary
+Aligned construction uses `(i,i)`. Cartesian construction lets products vary
 fastest:
 
-```text
-model_index   = result_index / product_count
-product_index = result_index % product_count
+```math
+\mathrm{model\_index}=\left\lfloor\frac{i}{P}\right\rfloor,
+\qquad
+\mathrm{product\_index}=i\bmod P.
 ```
 
-Model/curve/product launchers apply the same ordering with the curve dimension
-between model and product, as validated by `check_cuda.cuh`.
+<a id="time-grid"></a>
+## [`time_grid.cuh`](time_grid.cuh)
 
-### `option_side.cuh`
+Let `n` be the positive number of grid steps per year and `k` an integer grid
+index. `TimeGrid(n)` stores
 
-`OptionSide::{call,put}` is the compile-time orientation shared by option
-families. Public launchers are explicitly instantiated for both sides;
-`option_side_name` supplies the stable host-side label. This removes duplicated
-call/put kernels and avoids a runtime branch in payoff code.
-
-## Random numbers and distributions
-
-### `philox.cuh`
-
-Implements Philox-4x32-10 from
-[Salmon et al. (2011)](https://doi.org/10.1145/2063384.2063405). The public
-mapping is deterministic:
-
-```text
-key                 = make_key(base_seed + result_index)
-counter words 0..1  = path_index
-counter words 2..3  = local_group_index
+```math
+\Delta t=\frac{1}{n}.
 ```
 
-`random_bits(key, path, group)` returns four 32-bit words;
-`uniform_quad` maps their midpoints to FP32 values strictly inside `(0,1)`.
-`UniformSequence(key, path)` hides four-value groups and exposes one ordered
-`next()` stream. Each Monte Carlo path creates exactly one such sequence.
+| Function | Definition |
+|---|---|
+| `TimeGrid(n)` | Builds `{steps_per_year = n, step_size = 1/n}`. |
+| `year_fraction(k, grid)` | Returns the grid time `t_k = k * grid.step_size`. |
+| `validate(grid)` | Requires a positive `n` and exactly `step_size = 1/n`. |
+| `index(t, grid, name)` | Returns the nearest integer index to `n t` after checking that `t` lies on the grid within `1e-4` grid step. |
 
-`box_muller`, `NormalPairCache`, and `next_normal` produce normals while
-retaining the second Box–Muller value. `poisson_from_uniform` performs inverse
-CDF sampling from a caller-provided uniform and prepared `exp(-mean)`.
-`poisson_from_uniform_sequence` retains that inversion for small means and
-uses Hoermann PTRS transformed rejection for large means, where direct
-inversion would be slow and `exp(-mean)` can underflow.
-`marsaglia_tsang_gamma` and
-`michael_schucany_haas_inverse_gaussian` implement the Gamma and
-inverse-Gaussian samplers used by VG and NIG. Rejection loops consume the same
-path-local sequence; they never create or restart a generator.
-`scaled_noncentral_chi_square` composes the adaptive Poisson and Gamma draws
-through the exact Poisson-Gamma mixture. Its scale is applied by the Gamma
-draw itself, which avoids a separate post-draw multiply in CIR callers.
+<a id="sample"></a>
+## [`sample.cuh`](sample.cuh)
 
-### `normal_distribution.cuh`
+The three Philox domains `kParameterDomain`, `kScheduleDomain` and
+`kDynamicsDomain` keep parameter, calendar and path streams independent.
 
-`normal_cdf` evaluates the standard-normal CDF in FP32 through `erfcf`. It is
-the shared primitive for closed-form device analytics.
+### Rows and bounds
 
-### `noncentral_chi_square.cuh`
+| Type | Definition |
+|---|---|
+| `UniformBounds` | Closed interval `[minimum, maximum]`. |
+| `RandomCalendarRules` | Observation-time bounds and minimum interval between observations. |
+| `GeneratedTerminalTime` | Integer grid day and corresponding year fraction. |
+| `TerminalSampleRow<ModelParameters, SampleValues>` | Model parameters, maturity and terminal values. |
+| `CalendarSampleRow<ModelParameters, SampleValues, N>` | Model parameters, `N` observation times and `N` sampled values. |
+| `ModelPathIndices` | Decoded model-row and conditional-path indices. |
 
-`regularized_gamma_probabilities` and
-`noncentral_chi_square_probabilities` return CDF and survival probability
-together, so tail-sensitive option formulas never form `1-CDF` in FP32.
-Regularized Gamma uses the convergent series on the left and a modified-Lentz
-continued fraction on the right. The non-central chi-square uses its exact
-Poisson--Gamma mixture centered at the modal Poisson term while the intensity
-is moderate, then switches to a Lugannani--Rice saddlepoint evaluation for
-large noncentralities. The internal evaluation is FP64 and the public result is
-FP32. CUDA tests compare both tails with SciPy across degrees of freedom down
-to `0.2`, the switching boundary, extreme tails, and noncentralities up to
-`1e8`.
+Let `d_min` and `d_max` be the integer grid indices of the terminal bounds.
+`generate_terminal_time` draws
 
-## Monte Carlo reductions
+```math
+d\sim\mathcal{U}\{d_{\min},\ldots,d_{\max}\},
+\qquad
+T=d\,\Delta t.
+```
 
-### `reductions.cuh`
+For a calendar of `N` observations, `generate_random_calendar` draws every
+integer day uniformly from its currently feasible interval. Let `g` be the
+minimum gap, let `j` run from zero to `N-1`, and define
 
-`MomentSums` stores FP64 payoff sum and squared-payoff sum.
-`reduce_block` performs a deterministic two-stage warp/block reduction using
-dynamic shared memory. `reduce_block_values<N>` applies the same scheme to a
-fixed register array. `compute_statistics` converts final moments into the
-sample mean and standard error, clamping only a negative round-off variance to
-zero.
+```math
+\ell_j=
+\begin{cases}
+d_{\min}, & j=0,\\
+d_{j-1}+g, & j>0,
+\end{cases}
+\qquad
+u_j=d_{\max}-(N-j-1)g.
+```
 
-Callers must use a whole number of warps and provide the dynamic shared-memory
-size required by the selected reduction. State evolution stays FP32; FP64 is
-reserved for long sums, regression equations, and final statistics.
+The next observation day is
 
-## Longstaff–Schwartz
+```math
+d_j\sim\mathcal{U}\{\ell_j,\ldots,u_j\}.
+```
 
-The active early-exercise implementation follows
-[Longstaff and Schwartz (2001)](https://doi.org/10.1093/rfs/14.1.113) and lives
-in `longstaff_schwartz/`.
+| Function | Definition |
+|---|---|
+| `generate_terminal_time(integers, bounds, grid)` | Draws one terminal grid day and its year fraction. |
+| `generate_random_calendar<N>(...)` | Draws `N` strictly increasing feasible observation days. |
+| `validate_uniform_bounds(bounds, name)` | Requires finite ordered bounds. |
+| `validate_terminal_bounds(maturity, grid)` | Requires both terminal bounds to lie on the grid in increasing order. |
+| `validate_generated_sample_launch(...)` | Validates output memory, package boundaries, launch slice and geometry. |
+| `validate_random_calendar_rules<N>(rules, grid)` | Requires the requested minimum gaps to fit inside the allowed interval. |
+| `validate_fixed_calendar<N>(times, grid)` | Requires `N` non-null, on-grid, strictly increasing times. |
+| `decode_sample_index(i, P)` | Returns `{i / P, i % P}`, where `P` is the number of paths per model. |
+| `sample_count(M, P)` | Returns `M P`, where `M` is the model count, after zero and overflow checks. |
+| `validate_sample_launch(...)` | Validates model/sample arrays, launch slice, geometry and Philox seed range. |
+| `validate_terminal_time(T)` | Requires a positive finite maturity `T`. |
+| `validate_regular_calendar(t_1, delta, N)` | Requires positive finite first time and spacing, with `N > 0`. |
+| `rounded_step_count(interval, target_dt)` | Returns the nearest positive integer to `interval / target_dt`. |
+| `calendar_step_count(s_0, s, N)` | Returns `s_0 + (N-1)s` after `std::uint32_t` overflow checks. |
 
-### `longstaff_schwartz/basis.cuh/.cu`
+<a id="philox"></a>
+## [`philox.cuh`](philox.cuh)
 
-Defines the fixed six-term two-factor Laguerre basis and its polynomial
-primitives. `RegressionBasis` in `regression.cuh` is the single active alias;
-changing the regression family is intentionally a separate design task.
+The counter-based generator is Philox-4x32-10 from
+[Salmon et al. (2011)](https://doi.org/10.1145/2063384.2063405). A 64-bit seed
+defines the two-word key; a path index `p` and local group index `g` define the
+four-word counter:
 
-### `longstaff_schwartz/exercise_schedule.cuh/.cu`
+```math
+K=(\mathrm{low}_{32}(\mathrm{seed}),\mathrm{high}_{32}(\mathrm{seed})),
+```
 
-`maturity_anchored_exercise_count` validates a regular exercise interval and
-counts the dates `T-(E-1)delta, ..., T` shared by American/Bermudan products.
+```math
+C=(\mathrm{low}_{32}(p),\mathrm{high}_{32}(p),
+   \mathrm{low}_{32}(g),\mathrm{high}_{32}(g)).
+```
 
-### `longstaff_schwartz/regression.cuh/.cu`
+### Counter and streams
 
-Accumulates fixed-basis normal equations in FP64, reduces partial equations
-across path blocks, applies a small relative ridge, solves one exercise-level
-regression, and records whether its coefficients are valid.
-`regression_shared_bytes` returns the reduction storage required by a block.
+| Function or type | Definition |
+|---|---|
+| `PhiloxCounter` | Four 32-bit counter/output words. |
+| `PhiloxKey` | Two 32-bit key words. |
+| `RandomQuad` | Four FP32 uniforms. |
+| `NormalPair` | Two independent FP32 standard normals. |
+| `make_key(seed)` | Splits the 64-bit seed into a `PhiloxKey`. |
+| `philox4x32_10(key, counter)` | Applies ten Philox multiplication, permutation and key-bump rounds. |
+| `random_bits(key, p, g)` | Evaluates Philox at the counter identified by path `p` and group `g`. |
+| `uint32_to_uniform(x)` | Maps one 32-bit word to the midpoint `(x+1/2)2^{-32}` and clamps below one. |
+| `uniform_quad(key, p, g)` | Converts the four Philox output words into four FP32 uniforms in `(0,1)`. |
+| `UniformSequence(key, p)` | Initializes a scalar-uniform stream at group zero for path `p`. |
+| `UniformSequence::next()` | Exposes the cached uniform groups as one ordered scalar stream. |
+| `Uint32Sequence(key, p)` | Initializes a raw-integer stream at group zero for path `p`. |
+| `Uint32Sequence::next()` | Exposes the cached Philox groups as one ordered raw-integer stream. |
+| `bounded_uint32(integers, b)` | Draws exactly uniformly from `{0,...,b-1}` by rejecting the prefix of size `2^32 mod b`. |
 
-### `longstaff_schwartz/linear_solver.cuh/.cu`
+### Distribution transforms
 
-`cholesky_solve_normal_equations` is the small dense FP64 Cholesky solver used
-by the regression stage. It works in place and rejects an unsafe diagonal
-instead of returning unstable coefficients.
+For independent uniforms `U_1,U_2` in `(0,1)`, `box_muller` returns two
+independent standard normals:
 
-### `longstaff_schwartz/workspace.cuh/.cu`
+```math
+R=\sqrt{-2\log U_2},
+\qquad
+\Theta=2\pi U_1,
+\qquad
+(Z_1,Z_2)=R(\cos\Theta,\sin\Theta).
+```
 
-Describes and plans the caller-owned device workspace. `WorkspaceDescriptor`
-declares the prepared-row type, model-specific SoA state fields, and regression
-dimensions. `make_workspace_layout` aligns all common regions inside one byte
-buffer. `plan_batches` groups consecutive rows under a memory budget and
-returns offsets, counts, maximum exercise counts, and allocation maxima.
+For a Gamma shape `alpha >= 1` and a standard normal variate `Z`, the
+Marsaglia–Tsang core sets
 
-State fields remain model-specific: Heston/Bates can declare spot and variance,
-whereas a one-state model declares only spot. `workspace_pointer<T>` turns a
-planned region into a typed device pointer.
+```math
+d=\alpha-\frac{1}{3},
+\qquad
+c=\frac{1}{\sqrt{9d}},
+\qquad
+V=(1+cZ)^3,
+```
 
-### `longstaff_schwartz/launch.cuh/.cu`
+then accepts `d V` with the method's squeeze or logarithmic test. Let
+`G_alpha` denote a unit-scale Gamma variate with shape `alpha`, and let `U` be
+an independent uniform variate. For `0 < alpha < 1`, the method uses
 
-`query_workspace_budget` reserves the larger of 1 GiB or ten percent of free
-device memory as a safety margin. `LaunchResources` owns the single workspace
-allocation and CUDA timing events with RAII. `LaunchResult` reports kernel
-time, batches, launches, maximum batch size, blocks per price, and bytes.
+```math
+G_{\alpha}=G_{\alpha+1}U^{1/\alpha}.
+```
 
-## Compatibility implementation
+Let `X` follow a non-central chi-square law with `nu` degrees of freedom and
+noncentrality `lambda`, and let `s > 0` be the requested scale. With
+`Gamma(alpha, theta)` denoting shape `alpha` and scale `theta`, the exact
+Poisson–Gamma representation is
 
-### `least_squares.cuh/.cu`
+```math
+N\sim\mathrm{Poisson}\!\left(\frac{\lambda}{2}\right),
+\qquad
+sX\mid N\sim\mathrm{Gamma}\!\left(\frac{\nu}{2}+N,2s\right),
+```
 
-Contains the earlier six-term Laguerre basis and Cholesky implementation in the
-`least_squares` namespace. Current American/Bermudan launchers use
-`longstaff_schwartz/` instead; this pair has no active consumers and should not
-be selected for new code without an explicit compatibility reason.
+For inverse-Gaussian mean `mu > 0` and shape `lambda > 0`, let `Z` be standard
+normal and `U` uniform on `(0,1)`. The Michael–Schucany–Haas construction sets
 
-## Reproducibility rules
+```math
+w=\frac{\mu Z^2}{2\lambda},
+\qquad
+r=1+w+\sqrt{w(2+w)},
+```
 
-- never enable fast-math;
-- derive one Philox key from `base_seed + result_index` and one sequence per
-  path;
-- preserve the documented order of random consumption and reductions;
-- keep state evolution FP32 and use FP64 only where accumulation stability
-  justifies it;
-- validate device pointers, sizes, Cartesian shapes, and launch geometry before
-  launching a kernel.
+then returns
 
-The detailed contracts are in
-[`docs/cuda-model-dynamics-contract.md`](../../docs/cuda-model-dynamics-contract.md),
-[`docs/cuda-closed-form-and-monte-carlo-pricing-contract.md`](../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md),
-and [`docs/cuda-american-and-bermudan-pricing-contract.md`](../../docs/cuda-american-and-bermudan-pricing-contract.md).
+```math
+X=
+\begin{cases}
+\mu/r, & U\le r/(r+1),\\
+\mu r, & U>r/(r+1).
+\end{cases}
+```
+
+| Function or type | Definition |
+|---|---|
+| `poisson_from_uniform(U, lambda, p_0)` | Inverts the Poisson CDF from one uniform, with `p_0 = exp(-lambda)` supplied by the caller. |
+| `poisson_from_uniform_sequence(uniforms, lambda)` | Uses inversion for `lambda < 10` and Hörmann PTRS otherwise. |
+| `box_muller(U_1, U_2)` | Returns the pair `(Z_1,Z_2)` above. |
+| `NormalPairCache` | Stores the unused second Box–Muller normal. |
+| `next_normal(uniforms, cache)` | Returns the cached normal or consumes two uniforms to refill the cache. |
+| `detail::marsaglia_tsang_gamma_shape_at_least_one(...)` | Draws a unit-scale Gamma variate for `alpha >= 1`. |
+| `marsaglia_tsang_gamma(..., alpha, theta)` | Draws `Gamma(alpha, theta)` for every positive shape `alpha` and scale `theta`. |
+| `scaled_noncentral_chi_square(..., nu, lambda, s)` | Draws the scaled non-central chi-square variate `sX` through the Poisson–Gamma mixture. |
+| `michael_schucany_haas_inverse_gaussian(..., mu, lambda)` | Draws `IG(mu, lambda)` with the exact normal/uniform construction. |
+
+References: [Box and Muller (1958)](https://doi.org/10.1214/aoms/1177706645),
+[Hörmann (1993)](https://doi.org/10.1016/0167-6687%2893%2990997-4),
+[Marsaglia and Tsang (2000)](https://doi.org/10.1145/358407.358414), and
+[Michael, Schucany and Haas (1976)](https://doi.org/10.1080/00031305.1976.10479147).
+
+<a id="normal-distribution"></a>
+## [`normal_distribution.cuh`](normal_distribution.cuh)
+
+Let `Z` be a standard normal random variable. `normal_cdf(z)` evaluates its
+CDF directly in FP32.
+
+| Function | Definition |
+|---|---|
+| `normal_cdf(z)` | Returns the standard-normal CDF at `z`. |
+
+The implementation uses
+
+```math
+\Phi(z)=\mathbb{P}[Z\le z]
+=\frac{1}{2}\,\mathrm{erfc}\!\left(-\frac{z}{\sqrt{2}}\right).
+```
+
+<a id="noncentral-chi-square"></a>
+## [`noncentral_chi_square.cuh`](noncentral_chi_square.cuh)
+
+`DistributionProbabilities {cdf, survival}` carries both tails so callers do
+not reconstruct a small probability by FP32 subtraction.
+
+### Regularized Gamma law
+
+For a shape `a > 0` and an argument `x >= 0`, with `Gamma(a)` denoting the
+Gamma function, define
+
+```math
+P(a,x)=\frac{1}{\Gamma(a)}\int_0^x t^{a-1}e^{-t}\,\mathrm dt,
+\qquad
+Q(a,x)=\frac{1}{\Gamma(a)}\int_x^{\infty}t^{a-1}e^{-t}\,\mathrm dt.
+```
+
+| Function or type | Definition |
+|---|---|
+| `clamp_probability(x)` | Clamps a final probability to `[0,1]`. |
+| `CompensatedSum(initial)` | Initializes a compensated FP32 sum. |
+| `CompensatedSum::add(x)` | Adds `x` with Kahan compensation. |
+| `log_one_plus_minus_argument(x)` | Evaluates `log(1+x)-x` by an 18-term local series when `abs(x) <= 1/4`. |
+| `stirling_correction(a)` | Evaluates the Stirling remainder used for `log Gamma(a)` when `a >= 8`. |
+| `gamma_log_scale(a, x)` | Evaluates `-x + a log(x) - log Gamma(a)` without subtracting large nearby terms. |
+| `regularized_gamma_series(a, x)` | Evaluates `P(a,x)` directly on the left of the Gamma transition region. |
+| `regularized_gamma_continued_fraction(a, x)` | Evaluates `Q(a,x)` directly on the right with the modified-Lentz fraction. |
+| `regularized_gamma_probability_pair(a, x)` | Selects the numerically stable direct tail and returns both `(P,Q)`. |
+| `regularized_gamma_probabilities(a, x)` | Public device interface returning `(P(a,x),Q(a,x))`. |
+
+The common scale factor is
+
+```math
+e^{-x+a\log x-\log\Gamma(a)}.
+```
+
+For `a >= 8`, write `r=(x-a)/a` and let `C(a)` be
+`stirling_correction(a)`. The same logarithm is evaluated as
+
+```math
+a\,[\log(1+r)-r]
++\frac{1}{2}\log\!\left(\frac{a}{2\pi}\right)-C(a),
+```
+
+### Non-central chi-square law
+
+Let `X` follow a non-central chi-square law with degrees of freedom `nu > 0`
+and noncentrality `lambda >= 0`. Its CDF at `x >= 0` is the Poisson mixture
+
+```math
+\mathbb{P}[X\le x]
+=\sum_{k=0}^{\infty}
+e^{-\lambda/2}\frac{(\lambda/2)^k}{k!}
+P\!\left(\frac{\nu}{2}+k,\frac{x}{2}\right).
+```
+
+| Function | Definition |
+|---|---|
+| `poisson_mode_log_weight(lambda_over_two, mode)` | Evaluates the logarithm of the modal Poisson weight without large-term cancellation. |
+| `poisson_gamma_mixture(nu, lambda, x)` | Sums both tails outward from the modal Poisson term with compensated FP32 sums. |
+| `log_one_plus_minus_ratio(delta)` | Evaluates the stable deviance term `log(1+delta)-delta/(1+delta)`. |
+| `saddlepoint_probabilities(nu, lambda, x)` | Applies the Lugannani–Rice saddlepoint approximation for large `lambda`. |
+| `noncentral_chi_square_probabilities(nu, lambda, x)` | Uses the exact mixture for `lambda <= 1024` and the saddlepoint approximation above it. |
+
+All device arithmetic in this file is FP32. The exact series implementation
+follows the recurrence strategy of [Ding (1992)](https://doi.org/10.2307/2347584);
+the large-noncentrality branch uses
+[Lugannani and Rice (1980)](https://doi.org/10.2307/1426607), and the continued
+fraction uses [Lentz (1976)](https://doi.org/10.1364/AO.15.000668).
+
+<a id="reductions"></a>
+## [`reductions.cuh`](reductions.cuh)
+
+Let `Y_1,...,Y_M` be `M >= 2` discounted Monte Carlo payoffs. `MomentSums`
+stores the FP64 moments
+
+```math
+s_1=\sum_{i=1}^{M}Y_i,
+\qquad
+s_2=\sum_{i=1}^{M}Y_i^2.
+```
+
+| Function | Definition |
+|---|---|
+| `reduce_block(sum, sumsq)` | Deterministically reduces one pair `(s_1,s_2)` across a whole CUDA block. |
+| `reduce_block_values<N>(values)` | Deterministically reduces `N` FP64 values into separate shared-memory totals. |
+| `compute_statistics(total, M, price, standard_error)` | Converts final moments into the sample mean and its standard error. |
+
+```math
+\widehat V=\frac{s_1}{M},
+\qquad
+\widehat{\mathrm{Var}}(Y)
+=\frac{s_2-M\widehat V^2}{M-1},
+\qquad
+\mathrm{SE}(\widehat V)
+=\sqrt{\frac{\max(\widehat{\mathrm{Var}}(Y),0)}{M}}.
+```
+
+State evolution remains FP32; FP64 is used here for long reductions and final
+statistics.
+
+<a id="longstaff-schwartz"></a>
+## [`longstaff_schwartz/`](longstaff_schwartz)
+
+[`exercise_schedule.cuh`](longstaff_schwartz/exercise_schedule.cuh) /
+[`exercise_schedule.cu`](longstaff_schwartz/exercise_schedule.cu) ·
+[`laguerre.cuh`](longstaff_schwartz/laguerre.cuh) ·
+[`launch.cuh`](longstaff_schwartz/launch.cuh) /
+[`launch.cu`](longstaff_schwartz/launch.cu) ·
+[`linear_solver.cuh`](longstaff_schwartz/linear_solver.cuh) /
+[`linear_solver.cu`](longstaff_schwartz/linear_solver.cu) ·
+[`regression.cuh`](longstaff_schwartz/regression.cuh) /
+[`regression.cu`](longstaff_schwartz/regression.cu) ·
+[`workspace.cuh`](longstaff_schwartz/workspace.cuh) /
+[`workspace.cu`](longstaff_schwartz/workspace.cu)
+
+Contains all exercise scheduling, Laguerre basis, FP64 regression and Cholesky
+solve, workspace planning, batching, resources and launch metrics required by
+the Longstaff–Schwartz method. See
+[Longstaff and Schwartz (2001)](https://doi.org/10.1093/rfs/14.1.113) and the
+[`CUDA American and Bermudan pricing contract`](../../docs/cuda-american-and-bermudan-pricing-contract.md).
