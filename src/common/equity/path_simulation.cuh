@@ -45,8 +45,8 @@ simulate_exact_transition_terminal(
     return state;
 }
 
-// Homogeneous regular schedule for a numerical scheme. The handler is called
-// only at contractual dates, not after every internal numerical transition.
+// Regular schedule for a numerical scheme, with an optional shorter initial
+// stub. The handler is called only at contractual observation dates.
 template<
     EquityDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
@@ -54,6 +54,7 @@ template<
 __device__ __forceinline__ typename Dynamics::State
 simulate_fixed_step_regular_schedule(
     const typename Dynamics::PreparedDynamics& dynamics,
+    std::uint32_t initial_transition_count,
     std::uint32_t transitions_per_observation,
     std::uint32_t observation_count,
     philox::PhiloxKey key,
@@ -69,7 +70,14 @@ simulate_fixed_step_regular_schedule(
         key,
         static_cast<std::uint64_t>(path)
     );
-    for (std::uint32_t observation = 0U;
+    Dynamics::advance(
+        dynamics,
+        initial_transition_count,
+        random,
+        state
+    );
+    if (!handler.on_observation(0U, state)) return state;
+    for (std::uint32_t observation = 1U;
          observation < observation_count;
          ++observation) {
         Dynamics::advance(
@@ -83,7 +91,8 @@ simulate_fixed_step_regular_schedule(
     return state;
 }
 
-// Homogeneous regular schedule for a direct-transition model.
+// Regular schedule for a direct-transition model, with a distinct initial
+// transition for an optional stub.
 template<
     ExactTransitionDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
@@ -91,7 +100,8 @@ template<
 __device__ __forceinline__ typename Dynamics::State
 simulate_exact_transition_regular_schedule(
     const typename Dynamics::PreparedModel& model,
-    const typename Dynamics::PreparedTransition& transition,
+    const typename Dynamics::PreparedTransition& initial_transition,
+    const typename Dynamics::PreparedTransition& regular_transition,
     std::uint32_t observation_count,
     philox::PhiloxKey key,
     std::size_t path,
@@ -106,10 +116,22 @@ simulate_exact_transition_regular_schedule(
         key,
         static_cast<std::uint64_t>(path)
     );
-    for (std::uint32_t observation = 0U;
+    Dynamics::simulate_one_step(
+        model,
+        initial_transition,
+        random,
+        state
+    );
+    if (!handler.on_observation(0U, state)) return state;
+    for (std::uint32_t observation = 1U;
          observation < observation_count;
          ++observation) {
-        Dynamics::simulate_one_step(model, transition, random, state);
+        Dynamics::simulate_one_step(
+            model,
+            regular_transition,
+            random,
+            state
+        );
         if (!handler.on_observation(observation, state)) return state;
     }
     return state;

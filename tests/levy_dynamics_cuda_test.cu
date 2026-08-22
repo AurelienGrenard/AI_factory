@@ -1,5 +1,7 @@
 // Verify the common samplers and exact VG/NIG dynamics contracts.
 #include "common/check_cuda.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "model/equity/variance_gamma/dynamics.cu"
 
@@ -39,6 +41,7 @@ struct LevyDynamicsResults {
     float nig_terminal_first;
     float nig_terminal_replay;
     float nig_terminal_manual_aggregate;
+    std::uint32_t exact_regular_matches_calendar;
 };
 
 __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
@@ -101,12 +104,14 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
             replay_sampler_uniforms, replay_sampler_cache, 0.8f, 1.7f
         );
 
-    const float vg_terminal_first = variance_gamma::simulate_terminal_state(
-        vg, vg_exact, key, 23U
-    ).log_spot;
-    const float vg_terminal_replay = variance_gamma::simulate_terminal_state(
-        vg, vg_exact, key, 23U
-    ).log_spot;
+    const float vg_terminal_first =
+        equity::simulate_exact_transition_terminal<
+            variance_gamma::DynamicsPolicy
+        >(vg, vg_exact, key, 23U).log_spot;
+    const float vg_terminal_replay =
+        equity::simulate_exact_transition_terminal<
+            variance_gamma::DynamicsPolicy
+        >(vg, vg_exact, key, 23U).log_spot;
 
     auto vg_terminal_manual = variance_gamma::initial_state(vg);
     philox::UniformSequence vg_uniforms(key, 23ULL);
@@ -127,11 +132,15 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     );
 
     const float nig_terminal_first =
-        normal_inverse_gaussian::simulate_terminal_state(
+        equity::simulate_exact_transition_terminal<
+            normal_inverse_gaussian::DynamicsPolicy
+        >(
             nig, nig_exact, key, 29U
         ).log_spot;
     const float nig_terminal_replay =
-        normal_inverse_gaussian::simulate_terminal_state(
+        equity::simulate_exact_transition_terminal<
+            normal_inverse_gaussian::DynamicsPolicy
+        >(
             nig, nig_exact, key, 29U
         ).log_spot;
 
@@ -156,6 +165,45 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         nig_terminal_manual
     );
 
+    const auto vg_initial_transition =
+        variance_gamma::prepare_transition(vg, 0.1f);
+    const auto vg_regular_transition =
+        variance_gamma::prepare_transition(vg, 0.2f);
+    const variance_gamma::PreparedTransition vg_calendar[3] = {
+        vg_initial_transition,
+        vg_regular_transition,
+        vg_regular_transition,
+    };
+    float vg_regular_spots[3];
+    float vg_calendar_spots[3];
+    equity::SpotObservationWriter<variance_gamma::DynamicsPolicy>
+        regular_writer{vg_regular_spots, 1U, 3U};
+    equity::SpotObservationWriter<variance_gamma::DynamicsPolicy>
+        calendar_writer{vg_calendar_spots, 1U, 3U};
+    const auto vg_regular_state =
+        equity::simulate_exact_transition_regular_schedule<
+            variance_gamma::DynamicsPolicy
+        >(
+            vg,
+            vg_initial_transition,
+            vg_regular_transition,
+            3U,
+            key,
+            31U,
+            regular_writer
+        );
+    const auto vg_calendar_state =
+        equity::simulate_exact_transition_calendar<
+            variance_gamma::DynamicsPolicy
+        >(vg, vg_calendar, 3U, key, 31U, calendar_writer);
+    const std::uint32_t exact_regular_matches_calendar =
+        static_cast<std::uint32_t>(
+            vg_regular_state.log_spot == vg_calendar_state.log_spot
+            && vg_regular_spots[0] == vg_calendar_spots[0]
+            && vg_regular_spots[1] == vg_calendar_spots[1]
+            && vg_regular_spots[2] == vg_calendar_spots[2]
+        );
+
     *output = {
         vg,
         vg_transition_coefficients,
@@ -177,6 +225,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         nig_terminal_first,
         nig_terminal_replay,
         nig_terminal_manual.log_spot,
+        exact_regular_matches_calendar,
     };
 }
 
@@ -287,6 +336,10 @@ int main() {
             && results.nig_terminal_first
                 == results.nig_terminal_manual_aggregate,
         "Levy terminal simulations did not use exact interval increments"
+    );
+    require(
+        results.exact_regular_matches_calendar == 1U,
+        "Exact regular and calendar schedules do not match bit for bit"
     );
     return 0;
 }

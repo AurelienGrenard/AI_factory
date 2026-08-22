@@ -3,6 +3,8 @@
 
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "common/sample.cuh"
 
 // Include the reusable dynamics so NVCC can inline every transition.
@@ -39,7 +41,9 @@ __global__ void merton_terminal_samples_kernel(
             prepare_model(models[indices.model_index]);
         const PreparedTransition transition =
             prepare_transition(prepared, maturity);
-        const State terminal = simulate_terminal_state(
+        const State terminal = equity::simulate_exact_transition_terminal<
+            DynamicsPolicy
+        >(
             prepared,
             transition,
             philox::make_key(base_seed + indices.model_index),
@@ -77,19 +81,20 @@ __global__ void merton_calendar_samples_kernel(
             prepare_transition(prepared_model, first_observation_time);
         const PreparedTransition regular_transition =
             prepare_transition(prepared_model, observation_interval);
-        const State terminal = simulate_on_regular_grid(
+        equity::SpotObservationWriter<DynamicsPolicy> writer{
+            spots + sample_index,
+            total_sample_count,
+            observation_count,
+        };
+        equity::simulate_exact_transition_regular_schedule<DynamicsPolicy>(
             prepared_model,
             initial_stub_transition,
             regular_transition,
+            observation_count,
             philox::make_key(base_seed + indices.model_index),
             indices.path_index,
-            observation_count,
-            total_sample_count,
-            spots + sample_index
+            writer
         );
-        spots[(static_cast<std::size_t>(observation_count) - 1U)
-                  * total_sample_count + sample_index] =
-            expf(terminal.log_spot);
     }
 }
 

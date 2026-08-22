@@ -4,6 +4,7 @@
 #include "common/equity/concepts.cuh"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::equity {
@@ -131,6 +132,60 @@ struct MaximumObservationHandler {
 
     __device__ __forceinline__ float maximum() const {
         return maximum_spot;
+    }
+};
+
+// Write selected contractual spots to a caller-owned strided output view.
+template<EquityDynamicsPolicy Dynamics>
+struct SpotObservationWriter {
+    float* spots;
+    std::size_t observation_stride;
+    std::uint32_t write_count;
+
+    __device__ __forceinline__ bool on_initial_state(
+        const typename Dynamics::State&
+    ) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        const typename Dynamics::State& state
+    ) {
+        if (observation < write_count) {
+            spots[static_cast<std::size_t>(observation)
+                  * observation_stride] = Dynamics::spot(state);
+        }
+        return true;
+    }
+};
+
+// Write spots together with one float member of the model state.
+template<EquityDynamicsPolicy Dynamics, auto StateMember>
+struct SpotAndStateObservationWriter {
+    float* spots;
+    float* state_values;
+    std::size_t observation_stride;
+    std::uint32_t write_count;
+
+    __device__ __forceinline__ bool on_initial_state(
+        const typename Dynamics::State&
+    ) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        const typename Dynamics::State& state
+    ) {
+        if (observation < write_count) {
+            const std::size_t output =
+                static_cast<std::size_t>(observation)
+                    * observation_stride;
+            spots[output] = Dynamics::spot(state);
+            state_values[output] = state.*StateMember;
+        }
+        return true;
     }
 };
 

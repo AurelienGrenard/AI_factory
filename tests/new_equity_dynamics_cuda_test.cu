@@ -1,6 +1,8 @@
 // Verify the preparation, transition, and Philox replay contracts of the four
 // equity dynamics added after the first catalogue release.
 #include "common/check_cuda.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "model/equity/cev/dynamics.cu"
 #include "model/equity/kou/dynamics.cu"
 #include "model/equity/merton/dynamics.cu"
@@ -91,106 +93,116 @@ __global__ void exercise_new_equity_dynamics_kernel(
         schobel_zhu_transition
     );
 
-    const float merton_terminal_first = merton::simulate_terminal_state(
-        merton_model,
-        merton_transition,
-        key,
-        17U
-    ).log_spot;
-    const float merton_terminal_replay = merton::simulate_terminal_state(
-        merton_model,
-        merton_transition,
-        key,
-        17U
-    ).log_spot;
-    const float kou_terminal_first = kou::simulate_terminal_state(
-        kou_model,
-        kou_transition,
-        key,
-        19U
-    ).log_spot;
-    const float kou_terminal_replay = kou::simulate_terminal_state(
-        kou_model,
-        kou_transition,
-        key,
-        19U
-    ).log_spot;
-    const float cev_terminal_first = cev::simulate_terminal_state(
-        cev_model,
-        key,
-        23U,
-        num_steps
-    ).spot;
-    const float cev_terminal_replay = cev::simulate_terminal_state(
-        cev_model,
-        key,
-        23U,
-        num_steps
-    ).spot;
+    const float merton_terminal_first =
+        equity::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
+            merton_model, merton_transition, key, 17U
+        ).log_spot;
+    const float merton_terminal_replay =
+        equity::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
+            merton_model, merton_transition, key, 17U
+        ).log_spot;
+    const float kou_terminal_first =
+        equity::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
+            kou_model, kou_transition, key, 19U
+        ).log_spot;
+    const float kou_terminal_replay =
+        equity::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
+            kou_model, kou_transition, key, 19U
+        ).log_spot;
+    const float cev_terminal_first =
+        equity::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
+            cev_model, num_steps, key, 23U
+        ).spot;
+    const float cev_terminal_replay =
+        equity::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
+            cev_model, num_steps, key, 23U
+        ).spot;
     const float schobel_zhu_terminal_first =
-        schobel_zhu::simulate_terminal_state(
-            schobel_zhu_model,
-            key,
-            29U,
-            num_steps
+        equity::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
+            schobel_zhu_model, num_steps, key, 29U
         ).log_spot;
     const float schobel_zhu_terminal_replay =
-        schobel_zhu::simulate_terminal_state(
-            schobel_zhu_model,
-            key,
-            29U,
-            num_steps
+        equity::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
+            schobel_zhu_model, num_steps, key, 29U
         ).log_spot;
 
     constexpr std::uint32_t steps_between_observations[3] = {2U, 5U, 5U};
     float cev_regular_observations[2];
     float cev_calendar_observations[2];
-    const cev::State cev_regular = cev::simulate_on_regular_grid(
-        cev_model,
-        key,
-        31U,
+    equity::SpotObservationWriter<cev::DynamicsPolicy> cev_regular_recorder{
+        cev_regular_observations,
+        1U,
         2U,
-        5U,
-        3U,
+    };
+    const cev::State cev_regular =
+        equity::simulate_fixed_step_regular_schedule<cev::DynamicsPolicy>(
+            cev_model,
+            2U,
+            5U,
+            3U,
+            key,
+            31U,
+            cev_regular_recorder
+        );
+    equity::SpotObservationWriter<cev::DynamicsPolicy> cev_recorder{
+        cev_calendar_observations,
         1U,
-        cev_regular_observations
-    );
-    const cev::State cev_calendar = cev::simulate_on_calendar(
-        cev_model,
-        key,
-        31U,
-        steps_between_observations,
-        3U,
-        1U,
-        cev_calendar_observations
-    );
+        2U,
+    };
+    const cev::State cev_calendar =
+        equity::simulate_fixed_step_calendar<cev::DynamicsPolicy>(
+            cev_model,
+            steps_between_observations,
+            3U,
+            key,
+            31U,
+            cev_recorder
+        );
 
     float schobel_zhu_regular_spots[2];
     float schobel_zhu_regular_volatilities[2];
     float schobel_zhu_calendar_spots[2];
     float schobel_zhu_calendar_volatilities[2];
+    equity::SpotAndStateObservationWriter<
+        schobel_zhu::DynamicsPolicy,
+        &schobel_zhu::State::volatility
+    >
+        schobel_zhu_regular_recorder{
+            schobel_zhu_regular_spots,
+            schobel_zhu_regular_volatilities,
+            1U,
+            2U,
+        };
     const schobel_zhu::State schobel_zhu_regular =
-        schobel_zhu::simulate_on_regular_grid(
+        equity::simulate_fixed_step_regular_schedule<
+            schobel_zhu::DynamicsPolicy
+        >(
             schobel_zhu_model,
-            key,
-            37U,
             2U,
             5U,
             3U,
-            1U,
-            schobel_zhu_regular_spots,
-            schobel_zhu_regular_volatilities
-        );
-    const schobel_zhu::State schobel_zhu_calendar =
-        schobel_zhu::simulate_on_calendar(
-            schobel_zhu_model,
             key,
             37U,
+            schobel_zhu_regular_recorder
+        );
+    equity::SpotAndStateObservationWriter<
+        schobel_zhu::DynamicsPolicy,
+        &schobel_zhu::State::volatility
+    >
+        schobel_zhu_recorder{
+            schobel_zhu_calendar_spots,
+            schobel_zhu_calendar_volatilities,
+            1U,
+            2U,
+        };
+    const schobel_zhu::State schobel_zhu_calendar =
+        equity::simulate_fixed_step_calendar<schobel_zhu::DynamicsPolicy>(
+            schobel_zhu_model,
             steps_between_observations,
             3U,
-            1U,
-            schobel_zhu_calendar_spots,
-            schobel_zhu_calendar_volatilities
+            key,
+            37U,
+            schobel_zhu_recorder
         );
 
     *output = {

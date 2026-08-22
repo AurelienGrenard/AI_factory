@@ -19,9 +19,9 @@ aucun kernel, n'allouent aucune mémoire et ne dépendent d'aucun paramètre de
 produit. Les paramètres bruts proviennent de `parameters.hpp`; les primitives
 aléatoires proviennent de `common/philox.cuh`.
 
-Les paramètres d'un produit, son payoff, ses barrières et ses règles d'arrêt
-restent dans le pricer. Une dynamique expose seulement le processus et les
-résumés de chemin réutilisables indépendamment d'un produit.
+Les paramètres d'un produit, son payoff, ses barrières, ses accumulateurs et
+ses règles d'arrêt restent dans le pricer. Une dynamique expose seulement le
+processus et les accès élémentaires à son état.
 
 ## Couches d'implémentation
 
@@ -134,11 +134,13 @@ mathématique, comme Bates réutilise l'état log-spot/variance de Heston.
 
 ### Résultats de chemin
 
-Un type spécialisé tel que `MeanPathResult`, `GeometricMeanPathResult` ou
-`MaximumPathResult` ne contient que les observables demandés. Il n'est ajouté
-que si plusieurs produits peuvent le réutiliser sans introduire de logique
-produit dans la dynamique. Un résultat à deux dates n'est pas exposé : il est
-le cas particulier d'un calendrier de deux observations.
+Les modèles equity standards ne déclarent aucun résultat de chemin dans leur
+dynamique. La moyenne, le maximum, les barrières et les coupons appartiennent
+aux handlers des produits dans `pricing_policy.cuh`. Un résultat à deux dates
+est le cas particulier d'un calendrier de deux observations.
+
+Black-Scholes et Rough Bergomi conservent temporairement leurs anciens types de
+résultat jusqu'à leur migration vers ce contrat.
 
 ### `DynamicsPolicy` equity
 
@@ -197,14 +199,15 @@ coût d'exécution.
 ## Primitives fondamentales
 
 Les déclarations publiques apparaissent dans cet ordre dans `dynamics.cuh`.
-Les noms communs sont conservés lorsqu'ils désignent la même responsabilité :
-`prepare_model`, `prepare_transition`, `prepare_calendar`, `initial_state`,
-`one_step_transition`, `simulate_terminal_state`, `simulate_on_calendar` et
-`simulate_on_regular_grid`. Une signature de variates n'est jamais artificiellement
-uniformisée lorsqu'une loi exige une consommation différente. `DynamicsPolicy`
-adapte ensuite ces primitives à l'interface commune consommée par les templates
-equity ; elle ne remplace pas leur API explicite, utile aux samples et aux
-pricers spécialisés.
+Les primitives communes sont `prepare_model`, l'éventuel
+`prepare_transition`, `initial_state` et `one_step_transition`. Une signature
+de variates n'est jamais artificiellement uniformisée lorsqu'une loi exige une
+consommation différente. `DynamicsPolicy` adapte ces primitives à l'interface
+commune consommée par les templates equity.
+
+Les simulations terminales, régulières et irrégulières sont exclusivement
+portées par `common/equity/path_simulation.cuh`. Elles ne sont pas dupliquées
+dans les dynamiques equity standards.
 
 ### `prepare_model`
 
@@ -263,7 +266,12 @@ l'intégrale.
 
 ### `prepare_calendar`
 
-Pour un modèle exact, le helper optionnel
+Ce helper ne fait pas partie du contrat des modèles equity factorisés. Le
+calendrier prépare directement ses transitions avec
+`DynamicsPolicy::prepare_transition`.
+
+Certaines dynamiques fixed income et Black-Scholes conservent encore la forme
+historique :
 
 ```cpp
 void prepare_calendar(
@@ -275,11 +283,10 @@ void prepare_calendar(
 );
 ```
 
-convertit les écarts entiers entre observations en transitions exactes. Chaque
-entrée vaut `prepare_transition(prepared_model, interval_steps[i] * delta_t)`.
-Le tableau de transitions est préparé une fois par ligne, jamais une fois par
-chemin. Un schéma à pas fixe conserve au contraire le tableau des nombres de
-pas et réutilise son unique `PreparedModel`.
+Elle convertit les écarts entiers entre observations en transitions exactes.
+Chaque entrée vaut
+`prepare_transition(prepared_model, interval_steps[i] * delta_t)`. Le tableau
+de transitions est préparé une fois par ligne, jamais une fois par chemin.
 
 ### `initial_state`
 
@@ -340,38 +347,22 @@ appelle `one_step_transition`. Un argument `PreparedModel` peut être inutilisé
 pour une loi simple ; il est conservé ici parce que d'autres lois, comme VG,
 NIG ou CIR, en ont réellement besoin.
 
-### `simulate_terminal_state`
+### Simulations terminales equity
 
-Attribut : `__device__ __forceinline__`.
-
-Pour un schéma à pas fixe :
-
-```cpp
-State simulate_terminal_state(
-    const PreparedModel& prepared_model,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t num_steps
-);
-```
-
-Pour une transition directe :
+`common/equity/path_simulation.cuh` expose deux fonctions
+`__device__ __forceinline__` :
 
 ```cpp
-State simulate_terminal_state(
-    const PreparedModel& prepared_model,
-    const PreparedTransition& prepared_transition,
-    philox::PhiloxKey key,
-    std::size_t path
-);
+simulate_fixed_step_terminal<Dynamics>(...);
+simulate_exact_transition_terminal<Dynamics>(...);
 ```
 
-La fonction retourne l'état terminal sans écriture en mémoire globale. La
-version à schéma construit une seule `UniformSequence` pour tout le chemin et
-répète sa transition `num_steps` fois. La version directe appelle une seule fois
-la transition préparée. Merton et Kou consomment ainsi un seul incrément
-compound-Poisson sur la durée préparée ; VG et NIG consomment directement leur
-incrément de Lévy terminal.
+Elles retournent l'état terminal sans écriture en mémoire globale. La première
+construit un unique `RandomContext` et appelle `Dynamics::advance` pour le
+nombre de pas demandé. La seconde appelle une fois la transition exacte
+préparée. Merton et Kou consomment ainsi un seul incrément compound-Poisson sur
+la durée préparée ; VG et NIG consomment directement leur incrément de Lévy
+terminal.
 
 CEV ne possède pas ici de transition trajectorielle exacte. Sa loi marginale
 peut se ramener à une loi du chi carré non centrale, mais, sur le domaine
@@ -387,69 +378,56 @@ couplée au Brownien de volatilité intégré sur le pas, puis au Brownien spot.
 log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc pas
 « transition jointe spot-volatilité exacte ».
 
-### `simulate_on_regular_grid`
+### Calendriers réguliers equity
 
-Attribut : `__device__ __forceinline__`.
+Les deux algorithmes génériques sont :
 
-Pour un modèle à schéma, la signature contient un unique `PreparedModel`, la
-clé et l'indice du chemin, `initial_stub_steps`, `steps_per_observation`,
-`observation_count`, `observation_stride`, puis les tableaux d'états observés.
-Le stub et les intervalles réguliers utilisent strictement le même `delta_t`
+```cpp
+simulate_fixed_step_regular_schedule<Dynamics>(...);
+simulate_exact_transition_regular_schedule<Dynamics>(...);
+```
+
+Pour un modèle à schéma, la signature reçoit `initial_transition_count`,
+`transitions_per_observation`, `observation_count`, la clé, le chemin et un
+handler. Le stub et les intervalles réguliers utilisent le même `delta_t`
 préparé.
 
-Pour un modèle exact, les deux compteurs de pas sont remplacés par
-`initial_stub_transition` et `regular_transition`. Un intervalle d'observation
-consomme ainsi un seul incrément exact, quelle que soit sa longueur.
+Pour un modèle exact, les deux compteurs sont remplacés par
+`initial_transition` et `regular_transition`. Un intervalle d'observation
+consomme un seul incrément exact, quelle que soit sa longueur.
 
 La fonction :
 
 1. construit une seule suite aléatoire pour le chemin ;
 2. simule le stub initial ;
-3. écrit uniquement les états pré-terminaux ;
-4. stocke les observations en SoA date-major ;
-5. retourne directement l'état terminal.
+3. notifie le handler à chaque date contractuelle ;
+4. retourne directement l'état terminal.
 
 Cette agrégation exacte ne s'applique jamais à un résumé qui observe chacun des
 pas, comme une moyenne, un maximum ou une barrière quotidienne. Dans ce cas,
 le pricer prépare explicitement une transition fine et la répète.
 
-Pour une date donnée, deux chemins consécutifs écrivent à des adresses
-consécutives. La maturité n'est pas écrite si elle peut être consommée
-directement par le payoff.
+Les handlers `SpotObservationWriter` et `SpotAndStateObservationWriter`
+centralisent les écritures SoA nécessaires aux samples et à
+Longstaff–Schwartz. Le pricer fixe leur `write_count` afin d'inclure ou non la
+maturité sans modifier la boucle de simulation.
 
-`observation_stride` est la distance entre deux observations successives du
-même chemin. Il vaut le nombre de chemins pour une sortie SoA date-major et
-`1` pour une sortie contiguë propre à un sample.
-Chaque pointeur d'observation doit déjà viser le premier emplacement du chemin
-courant : `base + path` en date-major, ou le début du tableau local pour un
-sample. L'indice `path` reste ainsi réservé à la suite Philox et n'est jamais
-réutilisé implicitement comme offset de sortie.
+### Calendriers irréguliers equity
 
-### `simulate_on_calendar`
-
-Attribut : `__device__ __forceinline__`.
+Les modèles equity factorisés n'exposent plus cette fonction. Les algorithmes
+communs de `common/equity/path_simulation.cuh` sont :
 
 ```cpp
-State simulate_on_calendar(
-    const PreparedModel& prepared_model,
-    const PreparedTransition* prepared_transitions,
-    std::uint32_t observation_count,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::size_t observation_stride,
-    /* tableaux d'observations */
-);
+simulate_fixed_step_regular_schedule<Dynamics>(...);
+simulate_fixed_step_calendar<Dynamics>(...);
+simulate_exact_transition_regular_schedule<Dynamics>(...);
+simulate_exact_transition_calendar<Dynamics>(...);
 ```
 
-Sous transition exacte, le tableau contient une transition préparée entre zéro
-et `t1`, puis entre chaque paire `t_i` et `t_{i+1}`. Sous schéma, ce même rôle
-est tenu par `steps_between_observations`, qui indique combien de fois appeler
-la transition élémentaire. Un pointeur CUDA brut ne portant pas sa taille,
-`observation_count` reste explicite. La fonction conserve une unique suite
-Philox, écrit les états pré-terminaux selon `observation_stride` et retourne
-l'état terminal. Les pointeurs suivent la même convention d'ancrage que la
-grille régulière. `simulate_at_two_times` n'est pas exposé : un calendrier de
-deux observations couvre ce cas sans dupliquer la logique aléatoire.
+Ils conservent une unique suite Philox par chemin et notifient un
+`ObservationHandlerFor<Dynamics>` à chaque date contractuelle. Le handler
+accumule uniquement les quantités requises par le payoff. Un calendrier de deux
+observations couvre naturellement les produits à deux dates.
 
 ## Limites d'uniformisation
 
@@ -460,22 +438,17 @@ une fausse transition jointe état-intégrale tant qu'une méthode justifiée n'
 pas implémentée. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
 
-## Simulateurs de résumés optionnels
+## Observations et résumés equity
 
-Les fonctions suivantes reprennent le préfixe `simulate_`, construisent une
-seule suite aléatoire par chemin et réutilisent `simulate_one_step` :
+Chaque `pricing_policy.cuh` définit le handler minimal de son payoff. Une option
+asiatique accumule sa moyenne, une barrière conserve son indicateur de survie
+et un lookback son extremum. Les templates de chemin restent identiques pour
+tous les modèles et le dispatch statique permet au compilateur d'inliner le
+handler sans coût virtuel.
 
-- `simulate_mean_state` : moyenne arithmétique des états observables ;
-- `simulate_geometric_mean_state` : moyenne des logarithmes puis exponentielle ;
-- `simulate_maximum_state` : maximum observé sur la grille.
-
-Les accumulations de moyennes sont effectuées en FP64. Un résumé dépendant
-d'une barrière, d'un coupon ou d'une règle d'exercice reste dans le pricer.
-
-Sous Black-Scholes, `simulate_geometric_mean_state` exploite directement la loi
-gaussienne de la moyenne discrète des log-spots. Elle inclut le spot initial et
-la maturité, comme les autres dynamiques, et ne conserve ni état terminal ni
-point intermédiaire lorsque seul le résumé géométrique est requis.
+Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
+dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes et
+Rough Bergomi restent provisoirement hors de cette factorisation.
 
 ## Modèles ajustés à une courbe
 

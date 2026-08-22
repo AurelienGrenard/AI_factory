@@ -4,6 +4,8 @@
 #include "common/check_cuda.cuh"
 #include "common/result_index.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "common/longstaff_schwartz/laguerre.cuh"
 #include "common/longstaff_schwartz/exercise_schedule.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
@@ -199,16 +201,23 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        const State terminal = simulate_on_regular_grid(
-            row.model,
-            row.initial_stub_transition,
-            row.regular_transition,
-            row.key,
-            path,
-            row.exercise_count,
+        equity::SpotObservationWriter<DynamicsPolicy> writer{
+            row_spots + path,
             paths_per_price,
-            row_spots + path
-        );
+            row.exercise_count - 1U,
+        };
+        const State terminal =
+            equity::simulate_exact_transition_regular_schedule<
+                DynamicsPolicy
+            >(
+                row.model,
+                row.initial_stub_transition,
+                row.regular_transition,
+                row.exercise_count,
+                row.key,
+                path,
+                writer
+            );
         const float terminal_spot = expf(terminal.log_spot);
         row_cashflows[path] = immediate_payoff<Side>(terminal_spot, row.strike);
     }

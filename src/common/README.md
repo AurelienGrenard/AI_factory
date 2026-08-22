@@ -157,8 +157,8 @@ bounded respectively by 256 and 128 bytes.
 |---|---|
 | `simulate_fixed_step_terminal(...)` | Advances one numerical scheme through a bounded number of homogeneous steps. |
 | `simulate_exact_transition_terminal(...)` | Applies one exact transition over the full horizon. |
-| `simulate_fixed_step_regular_schedule(...)` | Repeats a fixed number of numerical steps between regular observations. |
-| `simulate_exact_transition_regular_schedule(...)` | Applies one exact transition between regular observations. |
+| `simulate_fixed_step_regular_schedule(...)` | Applies an initial numerical stub, then a fixed number of steps between regular observations. |
+| `simulate_exact_transition_regular_schedule(...)` | Applies one exact initial transition, then one exact regular transition between observations. |
 | `simulate_fixed_step_calendar(...)` | Reads one numerical step count per irregular interval. |
 | `simulate_exact_transition_calendar(...)` | Reads one prepared exact transition per irregular interval. |
 
@@ -186,6 +186,8 @@ keeps it continuous across all transitions.
 | `ArithmeticMeanObservationHandler` | Accumulates observed spots in FP64 and returns their arithmetic mean. |
 | `GeometricMeanObservationHandler` | Accumulates log-spots in FP64; native log-state models avoid an unnecessary `log`. |
 | `MaximumObservationHandler` | Keeps the maximum spot observed on a dense schedule. |
+| `SpotObservationWriter` | Writes selected observed spots to a caller-owned strided view. |
+| `SpotAndStateObservationWriter` | Writes spots and one selected scalar state member to strided views. |
 
 <a id="equity-barrier-handlers"></a>
 ### [`barrier_observation_handlers.cuh`](equity/barrier_observation_handlers.cuh)
