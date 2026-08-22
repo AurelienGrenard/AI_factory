@@ -1,45 +1,19 @@
-// Two-date forward-start payoff composed with an exact calendar schedule.
+// Geometric-average payoff composed with a dense equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "common/option_side.cuh"
-#include "product/forward_start_option/dataset.hpp"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/option_payoff.cuh"
+#include "product/geometric_asian_option/dataset.hpp"
 
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
 namespace ai_factory::workbench::product {
-namespace detail {
-
-template<equity::EquityDynamicsPolicy Dynamics>
-struct ForwardStartObservationHandler {
-    float reset_spot = 0.0f;
-
-    __device__ __forceinline__ bool on_initial_state(
-        const typename Dynamics::State&
-    ) {
-        return true;
-    }
-
-    __device__ __forceinline__ bool on_observation(
-        std::uint32_t observation,
-        const typename Dynamics::State& state
-    ) {
-        if (observation == 0U) {
-            reset_spot = Dynamics::spot(state);
-            return true;
-        }
-        return false;
-    }
-};
-
-}  // namespace detail
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
+    equity::DenseEquitySchedulePolicy SchedulePolicy,
     typename DiscountPolicy,
     OptionSide Side
 >
@@ -47,15 +21,13 @@ requires equity::DiscountPolicyFor<
     DiscountPolicy,
     typename SchedulePolicy::Dynamics
 >
-struct ForwardStartOptionPricingPolicy {
+struct GeometricAsianOptionPricingPolicy {
     using Schedule = SchedulePolicy;
     using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
-    using ProductParameters = ForwardStartOptionParameters;
+    using ProductParameters = GeometricAsianOptionParameters;
     using PricingConfiguration = typename Schedule::Configuration;
-
-    static_assert(Schedule::kObservationCount == 2U);
 
     struct DeviceInputs {
         typename Schedule::DeviceInputs schedule;
@@ -65,7 +37,7 @@ struct ForwardStartOptionPricingPolicy {
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
         philox::PhiloxKey key;
-        float moneyness;
+        float strike;
         float discount;
     };
 
@@ -79,19 +51,11 @@ struct ForwardStartOptionPricingPolicy {
         const DeviceInputs& inputs,
         std::uint64_t seed
     ) {
-        const typename Schedule::Definition definition{{
-            product.reset_time,
-            product.maturity - product.reset_time,
-        }};
+        const typename Schedule::Definition definition{product.maturity};
         return {
-            Schedule::prepare(
-                model,
-                definition,
-                configuration,
-                inputs.schedule
-            ),
+            Schedule::prepare(model, definition, configuration, inputs.schedule),
             philox::make_key(seed),
-            product.moneyness,
+            product.strike,
             Discount::discount_factor(
                 model,
                 inputs.discount,
@@ -104,22 +68,14 @@ struct ForwardStartOptionPricingPolicy {
         const PreparedRow& row,
         std::size_t path
     ) {
-        detail::ForwardStartObservationHandler<Dynamics> handler;
-        const typename Dynamics::State terminal = Schedule::simulate(
-            row.schedule,
-            row.key,
-            path,
-            handler
+        equity::GeometricMeanObservationHandler<Dynamics> handler;
+        Schedule::simulate(row.schedule, row.key, path, handler);
+        return row.discount * equity::option_payoff<Side>(
+            handler.geometric_mean(
+                Schedule::observation_count(row.schedule) + 1U
+            ),
+            row.strike
         );
-        const float terminal_spot = Dynamics::spot(terminal);
-        const float strike = row.moneyness * handler.reset_spot;
-        if constexpr (Side == OptionSide::call) {
-            return row.discount
-                * fmaxf(terminal_spot - strike, 0.0f);
-        } else {
-            return row.discount
-                * fmaxf(strike - terminal_spot, 0.0f);
-        }
     }
 
     static void validate_configuration(

@@ -1,13 +1,11 @@
-// Arithmetic-average payoff composed with dense equity schedules.
+// Cash-or-nothing payoff composed with a terminal equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
 #include "common/equity/observation_handlers.cuh"
 #include "common/option_side.cuh"
-#include "product/asian_option/dataset.hpp"
+#include "product/digital_option/dataset.hpp"
 
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -15,7 +13,7 @@
 namespace ai_factory::workbench::product {
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
+    equity::TerminalEquitySchedulePolicy SchedulePolicy,
     typename DiscountPolicy,
     OptionSide Side
 >
@@ -23,12 +21,12 @@ requires equity::DiscountPolicyFor<
     DiscountPolicy,
     typename SchedulePolicy::Dynamics
 >
-struct AsianOptionPricingPolicy {
+struct DigitalOptionPricingPolicy {
     using Schedule = SchedulePolicy;
     using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
-    using ProductParameters = AsianOptionParameters;
+    using ProductParameters = DigitalOptionParameters;
     using PricingConfiguration = typename Schedule::Configuration;
 
     struct DeviceInputs {
@@ -40,7 +38,7 @@ struct AsianOptionPricingPolicy {
         typename Schedule::PreparedSchedule schedule;
         philox::PhiloxKey key;
         float strike;
-        float discount;
+        float discounted_cash_payoff;
     };
 
     static_assert(std::is_trivially_copyable_v<DeviceInputs>);
@@ -55,15 +53,10 @@ struct AsianOptionPricingPolicy {
     ) {
         const typename Schedule::Definition definition{product.maturity};
         return {
-            Schedule::prepare(
-                model,
-                definition,
-                configuration,
-                inputs.schedule
-            ),
+            Schedule::prepare(model, definition, configuration, inputs.schedule),
             philox::make_key(seed),
             product.strike,
-            Discount::discount_factor(
+            product.cash_payoff * Discount::discount_factor(
                 model,
                 inputs.discount,
                 Schedule::total_year_fraction(definition, configuration)
@@ -75,14 +68,16 @@ struct AsianOptionPricingPolicy {
         const PreparedRow& row,
         std::size_t path
     ) {
-        equity::ArithmeticMeanObservationHandler<Dynamics> handler;
-        Schedule::simulate(row.schedule, row.key, path, handler);
-        const float mean = handler.arithmetic_mean();
-        if constexpr (Side == OptionSide::call) {
-            return row.discount * fmaxf(mean - row.strike, 0.0f);
-        } else {
-            return row.discount * fmaxf(row.strike - mean, 0.0f);
-        }
+        const typename Dynamics::State terminal = Schedule::simulate_terminal(
+            row.schedule,
+            row.key,
+            path
+        );
+        const float terminal_spot = Dynamics::spot(terminal);
+        const bool pays = Side == OptionSide::call
+            ? terminal_spot > row.strike
+            : terminal_spot < row.strike;
+        return pays ? row.discounted_cash_payoff : 0.0f;
     }
 
     static void validate_configuration(

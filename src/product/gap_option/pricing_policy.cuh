@@ -1,49 +1,19 @@
-// Up-and-out payoff composed with a densely monitored equity schedule.
+// Gap-option payoff composed with a terminal equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
+#include "common/equity/observation_handlers.cuh"
 #include "common/option_side.cuh"
-#include "product/up_and_out_option/dataset.hpp"
+#include "product/gap_option/dataset.hpp"
 
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
 namespace ai_factory::workbench::product {
-namespace detail {
-
-template<equity::EquityDynamicsPolicy Dynamics>
-struct UpAndOutObservationHandler {
-    float barrier;
-    float terminal_spot = 0.0f;
-
-    __device__ __forceinline__ bool observe(
-        const typename Dynamics::State& state
-    ) {
-        terminal_spot = Dynamics::spot(state);
-        return !(terminal_spot >= barrier);
-    }
-
-    __device__ __forceinline__ bool on_initial_state(
-        const typename Dynamics::State& state
-    ) {
-        return observe(state);
-    }
-
-    __device__ __forceinline__ bool on_observation(
-        std::uint32_t,
-        const typename Dynamics::State& state
-    ) {
-        return observe(state);
-    }
-};
-
-}  // namespace detail
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
+    equity::TerminalEquitySchedulePolicy SchedulePolicy,
     typename DiscountPolicy,
     OptionSide Side
 >
@@ -51,12 +21,12 @@ requires equity::DiscountPolicyFor<
     DiscountPolicy,
     typename SchedulePolicy::Dynamics
 >
-struct UpAndOutOptionPricingPolicy {
+struct GapOptionPricingPolicy {
     using Schedule = SchedulePolicy;
     using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
-    using ProductParameters = UpAndOutOptionParameters;
+    using ProductParameters = GapOptionParameters;
     using PricingConfiguration = typename Schedule::Configuration;
 
     struct DeviceInputs {
@@ -67,8 +37,8 @@ struct UpAndOutOptionPricingPolicy {
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
         philox::PhiloxKey key;
-        float strike;
-        float barrier;
+        float trigger_strike;
+        float payoff_strike;
         float discount;
     };
 
@@ -84,15 +54,10 @@ struct UpAndOutOptionPricingPolicy {
     ) {
         const typename Schedule::Definition definition{product.maturity};
         return {
-            Schedule::prepare(
-                model,
-                definition,
-                configuration,
-                inputs.schedule
-            ),
+            Schedule::prepare(model, definition, configuration, inputs.schedule),
             philox::make_key(seed),
-            product.strike,
-            product.barrier,
+            product.trigger_strike,
+            product.payoff_strike,
             Discount::discount_factor(
                 model,
                 inputs.discount,
@@ -105,15 +70,20 @@ struct UpAndOutOptionPricingPolicy {
         const PreparedRow& row,
         std::size_t path
     ) {
-        detail::UpAndOutObservationHandler<Dynamics> handler{row.barrier};
-        Schedule::simulate(row.schedule, row.key, path, handler);
-        if (handler.terminal_spot >= row.barrier) return 0.0f;
+        const typename Dynamics::State terminal = Schedule::simulate_terminal(
+            row.schedule,
+            row.key,
+            path
+        );
+        const float terminal_spot = Dynamics::spot(terminal);
         if constexpr (Side == OptionSide::call) {
-            return row.discount
-                * fmaxf(handler.terminal_spot - row.strike, 0.0f);
+            return terminal_spot > row.trigger_strike
+                ? row.discount * (terminal_spot - row.payoff_strike)
+                : 0.0f;
         } else {
-            return row.discount
-                * fmaxf(row.strike - handler.terminal_spot, 0.0f);
+            return terminal_spot < row.trigger_strike
+                ? row.discount * (row.payoff_strike - terminal_spot)
+                : 0.0f;
         }
     }
 

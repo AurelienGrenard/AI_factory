@@ -8,17 +8,6 @@
 
 namespace ai_factory::workbench::equity {
 
-// Reuse one numerical transition while preserving the path-local RNG state.
-template<EquityDynamicsPolicy Dynamics>
-__device__ __forceinline__ void simulate_transitions(
-    const typename Dynamics::PreparedDynamics& dynamics,
-    std::uint32_t transition_count,
-    typename Dynamics::RandomContext& random,
-    typename Dynamics::State& state
-) {
-    Dynamics::advance(dynamics, transition_count, random, state);
-}
-
 // Terminal state reached through homogeneous fixed-size numerical steps.
 template<EquityDynamicsPolicy Dynamics>
 __device__ __forceinline__ typename Dynamics::State
@@ -34,12 +23,7 @@ simulate_fixed_step_terminal(
         key,
         static_cast<std::uint64_t>(path)
     );
-    simulate_transitions<Dynamics>(
-        dynamics,
-        transition_count,
-        random,
-        state
-    );
+    Dynamics::advance(dynamics, transition_count, random, state);
     return state;
 }
 
@@ -88,7 +72,7 @@ simulate_fixed_step_regular_schedule(
     for (std::uint32_t observation = 0U;
          observation < observation_count;
          ++observation) {
-        simulate_transitions<Dynamics>(
+        Dynamics::advance(
             dynamics,
             transitions_per_observation,
             random,
@@ -158,7 +142,7 @@ simulate_fixed_step_calendar(
     for (std::uint32_t observation = 0U;
          observation < observation_count;
          ++observation) {
-        simulate_transitions<Dynamics>(
+        Dynamics::advance(
             dynamics,
             transitions_between_observations[observation],
             random,

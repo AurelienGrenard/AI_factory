@@ -20,18 +20,10 @@ summary:
   maximum_prices_per_block: 1
   random_generator: "Philox"
 validation:
-  status: "passed"
-  verified: true
-  reference: "QuantLib (specialized pricer)"
+  status: "pending"
+  verified: false
+  reference: "none"
   notebook: "catalog/model/equity/bates/prices/digital_calls/bates_01__digital_calls_01__01/validation.ipynb"
-  core:
-    status: "passed"
-    row_count: 900
-    reference: "QuantLib (specialized pricer)"
-  stress:
-    status: "passed"
-    row_count: 100
-    reference: "QuantLib (specialized pricer)"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -48,8 +40,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.915632166 s"
-  kernel_seconds: "0.518783997 s"
+  wall_seconds: "2.353841273 s"
+  kernel_seconds: "0.412641205 s"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504

@@ -43,136 +43,170 @@ fermée utilise `evaluate_price` et généralement un thread par prix.
 | `template<SwaptionSide Side>` | compilation | spécialisation payer/receiver sans branche runtime |
 | `__restrict__` | paramètres de kernel | absence d'alias entre les tableaux concernés |
 
-## Types et fonctions obligatoires
+## Composition Monte Carlo equity
 
-### `PreparedRow`
+Les pricers equity standards hors Black-Scholes, rough Bergomi et exercice
+anticipé utilisent quatre politiques statiques. Aucun héritage, allocation ou
+appel virtuel n'entre dans le kernel : les concepts contrôlent les interfaces,
+puis le compilateur inline la composition complète.
 
-`PreparedRow` est une structure privée au `.cu`. Elle contient uniquement les
-coefficients de modèle, constantes de payoff, informations de simulation et
-index nécessaires à l'évaluation répétée d'un prix.
+```text
+DynamicsPolicy<Model>
+        |
+        v
+SchedulePolicy<DynamicsPolicy>
+        |
+        v
+PricingPolicy<SchedulePolicy, DiscountPolicy, Side>
+        |
+        v
+monte_carlo_price_kernel<PricingPolicy>
+```
 
-Ses compteurs contractuels bornés (`num_steps`, `observation_count`,
-`payment_count`, etc.) utilisent `std::uint32_t`. Les tailles de workspaces,
-dimensions globales, offsets, strides et indices mémoire restent en
-`std::size_t`; les dimensions CUDA finales utilisent `unsigned int`. Un
-compteur calculé pendant un planning mémoire en `std::size_t` est validé puis
-converti explicitement avant d'entrer dans la ligne device.
+### `DynamicsPolicy`
 
-Pour un pricer Monte Carlo persistant, une instance est généralement partagée
-par les threads du bloc. Pour une formule fermée, elle peut rester locale au
-thread. Le type ne fait pas partie de l'API publique et peut être spécifique au
-couple modèle-produit.
+Chaque `dynamics.cuh/.cu` expose `DynamicsPolicy`. Ses alias sont
+`Parameters`, `PreparedDynamics`, `RandomContext` et `State`. Un modèle à
+transition exacte expose en plus `PreparedModel` et `PreparedTransition`.
 
-### `prepare_row`
+Son interface commune est :
 
-Attribut : `__device__ __forceinline__`.
+```cpp
+static PreparedDynamics prepare_dynamics(
+    const Parameters& parameters,
+    float delta_t
+);
+static State initial_state(const PreparedDynamics& dynamics);
+static void simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+);
+static void advance(
+    const PreparedDynamics& dynamics,
+    std::uint32_t transition_count,
+    RandomContext& random,
+    State& state
+);
+static float spot(const State& state);
+```
 
-Responsabilités :
+Les modèles exacts ajoutent les surcharges qui séparent les coefficients
+invariants de ceux d'un intervalle. `EquityDynamicsPolicy` et
+`ExactTransitionDynamicsPolicy` vérifient ces contrats à la compilation.
 
-- charger une ligne de modèle, de courbe éventuelle et de produit ;
-- pré-calculer les coefficients invariants pendant l'évaluation ;
-- préparer la clé aléatoire et, lorsqu'elle existe, la discrétisation Monte
-  Carlo ;
-- retourner un `PreparedRow` sans allocation dynamique.
+### `SchedulePolicy`
 
-Cette fonction ne doit ni écrire les résultats ni effectuer de synchronisation.
+Un schedule convertit les jours contractuels, prépare les transitions et fait
+avancer un chemin. Il ne connaît aucun payoff. Les compositions disponibles
+sont :
 
-### `evaluate_path<Side>`
+| Besoin | Schéma fixe | Transition exacte |
+|---|---|---|
+| payoff terminal | `FixedStepTerminalSchedule` | `ExactTransitionTerminalSchedule` |
+| observations régulières | `FixedStepRegularSchedule` | `ExactTransitionRegularSchedule` |
+| monitoring à chaque pas | `FixedStepDenseSchedule` | transition fine régulière |
+| calendrier de taille statique | `FixedStepCalendarSchedule<N>` | `ExactTransitionCalendarSchedule<N>` |
 
-Attributs : `template<OptionSide Side>` et `__device__ __forceinline__`.
+Les produits terminaux appellent `simulate_terminal`. Les produits de chemin
+fournissent un observation handler possédant :
 
-Fonction obligatoire pour un pricer Monte Carlo. Elle simule exactement un
-chemin à partir d'un `PreparedRow`, évalue le payoff spécialisé et retourne la
-valeur actualisée de ce chemin. Elle ne doit pas écrire d'état de chemin en
-mémoire globale sauf lorsque le produit exige explicitement une architecture
-multi-kernel.
+```cpp
+bool on_initial_state(const State& state);
+bool on_observation(std::uint32_t observation, const State& state);
+```
 
-Pour un produit sans côté call/put, la fonction n'est pas templatisée.
+Retourner `false` arrête immédiatement le chemin, notamment après une barrière
+knock-out ou un autocall.
 
-### `evaluate_price<Side>`
+### `PricingPolicy`
 
-Attributs : `template<OptionSide Side>` et `__device__ __forceinline__`.
+Une politique située dans `src/product/<product>/pricing_policy.cuh` reçoit le
+schedule et la politique d'actualisation. Elle expose les alias
+`Dynamics`, `ModelParameters`, `ProductParameters`, `PricingConfiguration`,
+`DeviceInputs`, puis les éléments suivants :
 
-Fonction obligatoire pour un pricer en formule fermée. Elle évalue un
-`PreparedRow` et retourne son prix. Elle ne lance aucun kernel, n'alloue aucune
-mémoire et ne modifie pas les tableaux d'entrée.
+```cpp
+struct PreparedRow;
 
-### `<model>_<curve>_<product>_kernel<Side>`
+static PreparedRow prepare_row(
+    const ModelParameters& model,
+    const ProductParameters& product,
+    const PricingConfiguration& configuration,
+    const DeviceInputs& inputs,
+    std::uint64_t seed
+);
 
-Attributs : `template<OptionSide Side>` et `__global__`. Le segment `<curve>`
-est omis lorsqu'il n'existe pas.
+static float evaluate_path(
+    const PreparedRow& row,
+    std::size_t path
+);
 
-Responsabilités communes :
+static void validate_configuration(
+    const PricingConfiguration& configuration,
+    const DeviceInputs& inputs,
+    std::size_t monte_carlo_paths_per_price
+);
+```
 
-- convertir un `result_index` en indices modèle, courbe et produit ;
-- respecter la construction alignée ou cartésienne ;
-- appeler `prepare_row` puis la primitive d'évaluation ;
-- écrire chaque résultat exactement une fois.
+`PreparedRow` contient uniquement les états préparés et scalaires nécessaires
+à tous les chemins d'un prix. Il reste trivially copyable, borné à 256 octets
+par `ScalarMonteCarloPricingPolicy`, puis stocké une seule fois en mémoire
+partagée par bloc. `evaluate_path` ne reçoit donc aucun argument propre au
+modèle ou au produit hors de cette ligne compacte.
 
-Stratégie Monte Carlo : grille persistante bornée, un bloc responsable d'un
-prix à la fois, distribution des chemins entre les threads, accumulation FP64
-de la somme et de la somme des carrés, puis écriture FP32 du prix et de son
-erreur standard.
+Le côté call/put est un paramètre de template lorsque le payoff le demande. Un
+produit sans côté ne crée ni template artificiel ni branche runtime.
 
-Stratégie formule fermée : un thread responsable d'un prix, sans réduction de
-moments ni erreur standard Monte Carlo.
+### `monte_carlo_price_kernel<PricingPolicy>`
 
-### `validate_<model>_<curve>_<product>_launch`
+Le kernel générique de `common/equity/monte_carlo_kernel.cuh` :
 
-Attribut : fonction C++ hôte privée au `.cu`.
+1. décode la ligne modèle-produit ;
+2. construit un unique `PreparedRow` partagé par le bloc ;
+3. distribue les chemins entre les threads ;
+4. accumule somme et somme des carrés en FP64 ;
+5. réduit les moments et écrit prix et erreur standard en FP32.
 
-Cette fonction centralise toutes les préconditions avant le lancement :
+`validate_monte_carlo_launch<PricingPolicy>` valide les pointeurs, la
+construction alignée ou cartésienne, le batch, le nombre de chemins, la
+configuration numérique, la géométrie et la plage de seeds.
+`launch_monte_carlo_cuda<PricingPolicy>` vérifie ensuite l'occupation, émet les
+diagnostics optionnels, lance le kernel et contrôle `cudaGetLastError()`.
 
-- pointeurs device valides ;
-- nombres de modèles, courbes, produits et résultats cohérents ;
-- construction alignée ou cartésienne valide ;
-- intervalle de batch inclus dans le tableau de résultats ;
-- nombre de chemins valide en Monte Carlo ;
-- `dt` strictement positif et fini lorsqu'un schéma utilise une transition
-  élémentaire fixe ;
-- taille de bloc compatible avec le device et les réductions ;
-- dimensions de grille compatibles avec le device ;
-- absence de débordement de `size_t` et de la plage de seeds.
+### Launcher modèle-produit
 
-La fonction lève une exception C++ descriptive à la première violation. Elle
-ne modifie aucune entrée et ne lance aucun kernel.
+Le `.cu` du couple modèle-produit ne réimplémente plus le kernel. Il compose
+ses types :
 
-### `launch_<model>_<curve>_<product>_cuda<Side>`
+```cpp
+using Schedule = /* fixed-step ou exact, terminal/régulier/dense/calendrier */;
+using Discount = equity::ConstantRateDiscountPolicy<DynamicsPolicy>;
+using PricingPolicy = product::EuropeanOptionPricingPolicy<
+    Schedule,
+    Discount,
+    Side
+>;
+```
 
-Attribut : fonction C++ hôte publique déclarée dans le `.cuh`. Le segment
-`<curve>` est omis lorsqu'il n'existe pas.
+Le launcher public conserve sa signature historique, construit les petites
+structures `configuration` et `inputs`, puis appelle uniquement
+`launch_monte_carlo_cuda<PricingPolicy>`. Les variantes call et put sont
+explicitement instanciées au bas du fichier.
 
-Responsabilités :
+## Formules fermées et fixed income
 
-- appeler exclusivement la fonction `validate_..._launch` correspondante ;
-- calculer la mémoire partagée dynamique et la géométrie finale ;
-- vérifier qu'au moins un bloc peut résider sur un SM lorsque le kernel utilise
-  une réduction ou une grille persistante ;
-- appeler `report_cuda_kernel_launch_if_enabled` avec la spécialisation et la
-  géométrie exactes ;
-- lancer le kernel ;
-- contrôler immédiatement `cudaGetLastError()` avec `check_cuda`.
+Les pricers en formule fermée conservent un `PreparedRow` local au thread,
+`prepare_row`, `evaluate_price` et un thread par prix. Les launchers de
+swaptions instancient `SwaptionSide::payer` et `SwaptionSide::receiver`. Cette
+couche n'est pas forcée dans le contrat Monte Carlo equity : elle ne possède ni
+schedule de chemin, ni contexte aléatoire, ni réduction de moments.
 
-Le launcher n'effectue pas de `cudaDeviceSynchronize`. La synchronisation et le
-chronométrage appartiennent au générateur ou à l'orchestrateur de plus haut
-niveau.
-
-Les paramètres publics suivent cet ordre logique : tableaux et comptes modèle,
-courbe éventuelle et produit ; mode de construction ; plage de résultats ;
-paramètres numériques et géométrie ; seed Monte Carlo éventuelle ; tableaux de
-sortie.
-
-### Instanciations explicites
-
-Le bas du `.cu` doit instancier les versions publiques
-`OptionSide::call` et `OptionSide::put`. Les générateurs C++ peuvent ainsi lier
-directement `launch_..._cuda<OptionSide::call/put>` sans inclure
-l'implémentation CUDA et sans wrapper de dispatch runtime.
-
-Les launchers de swaptions instancient de la même façon
-`SwaptionSide::payer` et `SwaptionSide::receiver`.
-
-Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
+Dans toutes les familles, les compteurs contractuels bornés (`num_steps`,
+`observation_count`, `payment_count`) utilisent `std::uint32_t`. Les tailles de
+workspaces, dimensions globales, offsets, strides et indices mémoire utilisent
+`std::size_t`; les dimensions effectivement transmises à `dim3` utilisent
+`unsigned int`.
 
 ## Paramètres communs des launchers
 

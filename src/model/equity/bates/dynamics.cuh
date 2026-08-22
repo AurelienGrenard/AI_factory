@@ -1,6 +1,7 @@
 // Reusable CUDA interface for Bates paths simulated with Andersen QE-M.
 #pragma once
 
+#include "common/equity/concepts.cuh"
 #include "common/philox.cuh"
 #include "model/equity/bates/parameters.hpp"
 #include "model/equity/heston/dynamics.cuh"
@@ -123,5 +124,42 @@ __device__ __forceinline__ State simulate_on_calendar(
     float* __restrict__ observed_spots,
     float* __restrict__ observed_variances
 );
+
+using PreparedDynamics = PreparedModel;
+
+struct DynamicsPolicy {
+    using Parameters = ModelParameters;
+    using PreparedDynamics = bates::PreparedDynamics;
+    using RandomContext = philox::NormalRandomContext;
+    using State = bates::State;
+
+    static constexpr bool kNativeLogSpot = true;
+
+    __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
+        const Parameters& parameters,
+        float delta_t
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedDynamics& dynamics
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedDynamics& dynamics,
+        RandomContext& random,
+        State& state
+    );
+    __device__ __forceinline__ static void advance(
+        const PreparedDynamics& dynamics,
+        std::uint32_t step_count,
+        RandomContext& random,
+        State& state
+    );
+    __device__ __forceinline__ static float spot(const State& state);
+    __device__ __forceinline__ static float log_spot(const State& state);
+    __device__ __forceinline__ static float risk_free_rate(
+        const Parameters& parameters
+    );
+};
+
+static_assert(equity::EquityDynamicsPolicy<DynamicsPolicy>);
 
 }  // namespace ai_factory::workbench::bates

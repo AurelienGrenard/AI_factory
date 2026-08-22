@@ -40,8 +40,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.863238291 s"
-  kernel_seconds: "0.641767395 s"
+  wall_seconds: "3.266267966 s"
+  kernel_seconds: "0.500265778 s"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504

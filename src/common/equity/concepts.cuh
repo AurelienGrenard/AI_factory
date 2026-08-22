@@ -202,6 +202,42 @@ concept EquitySchedulePolicy =
         } -> std::same_as<void>;
     };
 
+// Dense schedules expose every homogeneous numerical transition to the
+// observation handler. Products whose payoff monitors the complete numerical
+// path use this narrower contract instead of accepting an arbitrary schedule.
+template<typename Schedule>
+concept DenseEquitySchedulePolicy =
+    EquitySchedulePolicy<Schedule>
+    && requires {
+        { Schedule::kObservesEveryTransition } -> std::convertible_to<bool>;
+    }
+    && Schedule::kObservesEveryTransition;
+
+// Terminal-only products bypass the observation lifecycle and request the
+// final state directly from either a fixed-step or exact-transition schedule.
+template<typename Schedule>
+concept TerminalEquitySchedulePolicy =
+    EquitySchedulePolicy<Schedule>
+    && requires(
+        const typename Schedule::PreparedSchedule& prepared,
+        philox::PhiloxKey key,
+        std::size_t path
+    ) {
+        {
+            Schedule::simulate_terminal(prepared, key, path)
+        } -> std::same_as<typename Schedule::Dynamics::State>;
+    };
+
+// Two-date products require exactly two contractual observations without
+// depending on the concrete fixed-step or exact-transition schedule type.
+template<typename Schedule>
+concept TwoDateEquitySchedulePolicy =
+    EquitySchedulePolicy<Schedule>
+    && requires {
+        { Schedule::kObservationCount } -> std::convertible_to<std::size_t>;
+    }
+    && Schedule::kObservationCount == 2U;
+
 // One pricing policy binds a product to a schedule and exposes the minimal
 // interface consumed by the generic one-block-per-price kernel.
 template<typename Pricing>

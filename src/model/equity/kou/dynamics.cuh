@@ -1,6 +1,7 @@
 // Reusable CUDA interface for exact Kou jump-diffusion increments.
 #pragma once
 
+#include "common/equity/concepts.cuh"
 #include "common/philox.cuh"
 #include "model/equity/kou/parameters.hpp"
 
@@ -27,6 +28,11 @@ struct PreparedTransition {
 };
 
 static_assert(sizeof(PreparedTransition) == 4U * sizeof(float));
+
+struct PreparedDynamics {
+    PreparedModel model;
+    PreparedTransition transition;
+};
 
 struct State {
     float log_spot;
@@ -126,5 +132,51 @@ __device__ __forceinline__ State simulate_on_regular_grid(
     std::size_t observation_stride,
     float* __restrict__ observed_spots
 );
+
+struct DynamicsPolicy {
+    using Parameters = ModelParameters;
+    using PreparedDynamics = kou::PreparedDynamics;
+    using PreparedModel = kou::PreparedModel;
+    using PreparedTransition = kou::PreparedTransition;
+    using RandomContext = philox::NormalRandomContext;
+    using State = kou::State;
+
+    static constexpr bool kNativeLogSpot = true;
+
+    __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
+        const Parameters& parameters, float delta_t
+    );
+    __device__ __forceinline__ static PreparedModel prepare_model(
+        const Parameters& parameters
+    );
+    __device__ __forceinline__ static PreparedTransition prepare_transition(
+        const PreparedModel& model, float delta_t
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedDynamics& dynamics
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedModel& model
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedDynamics& dynamics, RandomContext& random, State& state
+    );
+    __device__ __forceinline__ static void advance(
+        const PreparedDynamics& dynamics, std::uint32_t step_count,
+        RandomContext& random, State& state
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedModel& model, const PreparedTransition& transition,
+        RandomContext& random, State& state
+    );
+    __device__ __forceinline__ static float spot(const State& state);
+    __device__ __forceinline__ static float log_spot(const State& state);
+    __device__ __forceinline__ static float risk_free_rate(
+        const Parameters& parameters
+    );
+};
+
+static_assert(equity::EquityDynamicsPolicy<DynamicsPolicy>);
+static_assert(equity::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
 
 }  // namespace ai_factory::workbench::kou

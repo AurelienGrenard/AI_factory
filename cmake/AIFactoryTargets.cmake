@@ -209,42 +209,6 @@ foreach(model IN LISTS _ai_factory_equity_models)
     endforeach()
 endforeach()
 
-# Temporary side-by-side policy prototypes used by the equivalence and
-# performance benchmark. They deliberately keep distinct public launchers.
-foreach(model IN ITEMS cev merton)
-    ai_factory_add_cuda_unit(equity ${model}/athena_autocallbis)
-    target_link_libraries(
-        ai_factory_equity_${model}_athena_autocallbis PUBLIC
-        ai_factory_product_athena_autocall_dataset
-    )
-endforeach()
-
-ai_factory_add_cuda_unit(equity bates/athena_autocallbis)
-target_link_libraries(
-    ai_factory_equity_bates_athena_autocallbis PUBLIC
-    ai_factory_product_athena_autocall_dataset
-)
-
-foreach(product IN ITEMS asian_option up_and_out_option)
-    ai_factory_add_cuda_unit(equity heston/${product}bis)
-    target_link_libraries(
-        ai_factory_equity_heston_${product}bis PUBLIC
-        ai_factory_product_${product}_dataset
-    )
-endforeach()
-
-ai_factory_add_cuda_unit(equity merton/forward_start_optionbis)
-target_link_libraries(
-    ai_factory_equity_merton_forward_start_optionbis PUBLIC
-    ai_factory_product_forward_start_option_dataset
-)
-
-ai_factory_add_cuda_unit(equity variance_gamma/asian_optionbis)
-target_link_libraries(
-    ai_factory_equity_variance_gamma_asian_optionbis PUBLIC
-    ai_factory_product_asian_option_dataset
-)
-
 if(AI_FACTORY_MATHDX_ROOT)
     if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
         message(FATAL_ERROR
