@@ -1,5 +1,7 @@
 // Verify Bates preparation and the explicit one-step jump composition.
 #include "common/check_cuda.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "model/equity/bates/dynamics.cu"
 
 #include <cuda_runtime.h>
@@ -91,16 +93,20 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
     const bates::State terminal_first =
-        bates::simulate_terminal_state(prepared, key, 17U, step_count);
+        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+            prepared, step_count, key, 17U
+        );
     const bates::State terminal_second =
-        bates::simulate_terminal_state(prepared, key, 17U, step_count);
+        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+            prepared, step_count, key, 17U
+        );
     const bates::State no_jump_terminal =
-        bates::simulate_terminal_state(
-            no_jump_prepared, key, 19U, step_count
+        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+            no_jump_prepared, step_count, key, 19U
         );
     const heston::State heston_terminal =
-        heston::simulate_terminal_state(
-            no_jump_prepared.heston, key, 19U, step_count
+        equity::simulate_fixed_step_terminal<heston::DynamicsPolicy>(
+            no_jump_prepared.heston, step_count, key, 19U
         );
     const std::uint32_t poisson_zero = philox::poisson_from_uniform(
         0.5f, prepared.poisson_mean, prepared.poisson_zero_probability
@@ -117,53 +123,87 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     float heston_regular_variances[2];
     float heston_calendar_spots[2];
     float heston_calendar_variances[2];
-    const heston::State heston_regular = heston::simulate_on_regular_grid(
-        no_jump_prepared.heston,
-        key,
-        23U,
-        2U,
-        4U,
-        3U,
-        1U,
-        heston_regular_spots,
-        heston_regular_variances
-    );
-    const heston::State heston_calendar = heston::simulate_on_calendar(
-        no_jump_prepared.heston,
-        key,
-        23U,
-        steps_between_observations,
-        3U,
-        1U,
+    equity::SpotAndStateObservationWriter<
+        heston::DynamicsPolicy,
+        &heston::State::variance
+    >
+        heston_regular_recorder{
+            heston_regular_spots,
+            heston_regular_variances,
+            1U,
+            2U,
+        };
+    const heston::State heston_regular =
+        equity::simulate_fixed_step_regular_schedule<heston::DynamicsPolicy>(
+            no_jump_prepared.heston,
+            2U,
+            4U,
+            3U,
+            key,
+            23U,
+            heston_regular_recorder
+        );
+    equity::SpotAndStateObservationWriter<
+        heston::DynamicsPolicy,
+        &heston::State::variance
+    > heston_recorder{
         heston_calendar_spots,
-        heston_calendar_variances
-    );
+        heston_calendar_variances,
+        1U,
+        2U,
+    };
+    const heston::State heston_calendar =
+        equity::simulate_fixed_step_calendar<heston::DynamicsPolicy>(
+            no_jump_prepared.heston,
+            steps_between_observations,
+            3U,
+            key,
+            23U,
+            heston_recorder
+        );
 
     float bates_regular_spots[2];
     float bates_regular_variances[2];
     float bates_calendar_spots[2];
     float bates_calendar_variances[2];
-    const bates::State bates_regular = bates::simulate_on_regular_grid(
-        prepared,
-        key,
-        29U,
-        2U,
-        4U,
-        3U,
-        1U,
-        bates_regular_spots,
-        bates_regular_variances
-    );
-    const bates::State bates_calendar = bates::simulate_on_calendar(
-        prepared,
-        key,
-        29U,
-        steps_between_observations,
-        3U,
-        1U,
+    equity::SpotAndStateObservationWriter<
+        bates::DynamicsPolicy,
+        &bates::State::variance
+    >
+        bates_regular_recorder{
+            bates_regular_spots,
+            bates_regular_variances,
+            1U,
+            2U,
+        };
+    const bates::State bates_regular =
+        equity::simulate_fixed_step_regular_schedule<bates::DynamicsPolicy>(
+            prepared,
+            2U,
+            4U,
+            3U,
+            key,
+            29U,
+            bates_regular_recorder
+        );
+    equity::SpotAndStateObservationWriter<
+        bates::DynamicsPolicy,
+        &bates::State::variance
+    > bates_recorder{
         bates_calendar_spots,
-        bates_calendar_variances
-    );
+        bates_calendar_variances,
+        1U,
+        2U,
+    };
+    const bates::State bates_calendar =
+        equity::simulate_fixed_step_calendar<bates::DynamicsPolicy>(
+            prepared,
+            steps_between_observations,
+            3U,
+            key,
+            29U,
+            bates_recorder
+        );
     *output = {
         prepared,
         bates::initial_state(prepared),

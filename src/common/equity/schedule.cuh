@@ -322,6 +322,7 @@ struct FixedStepRegularSchedule {
         return simulate_fixed_step_regular_schedule<Dynamics>(
             schedule.dynamics,
             schedule.transitions_per_observation,
+            schedule.transitions_per_observation,
             schedule.observation_count,
             key,
             path,
@@ -410,6 +411,7 @@ struct ExactTransitionRegularSchedule {
         return simulate_exact_transition_regular_schedule<Dynamics>(
             schedule.model,
             schedule.transition,
+            schedule.transition,
             schedule.observation_count,
             key,
             path,
@@ -489,6 +491,7 @@ struct FixedStepDenseSchedule {
     ) {
         return simulate_fixed_step_regular_schedule<Dynamics>(
             schedule.dynamics,
+            1U,
             1U,
             schedule.transition_count,
             key,

@@ -107,9 +107,10 @@ qu'un nouveau payoff l'utilise.
 - [ ] Valider la structure JSON avant de lire les lignes.
 - [ ] Valider chaque parametre; toute erreur doit citer l'identifiant de ligne.
 - [ ] Ajouter `dynamics.cuh/.cu` seulement si le modele doit etre simule.
-- [ ] Reprendre les interfaces communes pertinentes: `prepare_model`,
-      `one_step_transition`, `simulate_terminal_state` et
-      `simulate_on_regular_grid`.
+- [ ] Reprendre les primitives propres au modele: `prepare_model`, l'eventuel
+      `prepare_transition`, `initial_state` et `one_step_transition`.
+- [ ] Pour un modele equity standard, exposer `DynamicsPolicy` et reutiliser
+      les chemins de `common/equity/path_simulation.cuh`.
 - [ ] Ajouter `analytics.cuh/.cu` pour les quantites analytiques reutilisables.
 - [ ] Conserver les noms et l'ordre des fonctions des modeles voisins.
 - [ ] Ajouter les sources et les tests au `CMakeLists.txt`.

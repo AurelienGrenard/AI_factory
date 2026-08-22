@@ -3,6 +3,8 @@
 
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
+#include "common/equity/observation_handlers.cuh"
+#include "common/equity/path_simulation.cuh"
 #include "common/sample.cuh"
 
 // Include the reusable dynamics so NVCC can inline every transition.
@@ -38,11 +40,13 @@ __global__ void bates_terminal_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const PreparedModel prepared = prepare_model(models[indices.model_index], dt);
-        const State terminal = simulate_terminal_state(
+        const State terminal = equity::simulate_fixed_step_terminal<
+            DynamicsPolicy
+        >(
             prepared,
+            step_count,
             philox::make_key(base_seed + indices.model_index),
-            indices.path_index,
-            step_count
+            indices.path_index
         );
         spots[sample_index] = expf(terminal.log_spot);
         variances[sample_index] = terminal.variance;
@@ -75,22 +79,24 @@ __global__ void bates_calendar_samples_kernel(
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
         const PreparedModel prepared_model = prepare_model(model, dt);
-        const State terminal = simulate_on_regular_grid(
+        equity::SpotAndStateObservationWriter<
+            DynamicsPolicy,
+            &State::variance
+        > writer{
+            spots + sample_index,
+            variances + sample_index,
+            total_sample_count,
+            observation_count,
+        };
+        equity::simulate_fixed_step_regular_schedule<DynamicsPolicy>(
             prepared_model,
-            philox::make_key(base_seed + indices.model_index),
-            indices.path_index,
             initial_stub_steps,
             steps_per_observation,
             observation_count,
-            total_sample_count,
-            spots + sample_index,
-            variances + sample_index
+            philox::make_key(base_seed + indices.model_index),
+            indices.path_index,
+            writer
         );
-        const std::size_t terminal_index =
-            (static_cast<std::size_t>(observation_count) - 1U)
-                * total_sample_count + sample_index;
-        spots[terminal_index] = expf(terminal.log_spot);
-        variances[terminal_index] = terminal.variance;
     }
 }
 
