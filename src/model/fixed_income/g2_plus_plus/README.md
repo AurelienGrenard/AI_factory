@@ -6,6 +6,7 @@
 ```text
 g2_plus_plus/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── nelson_siegel/analytics.cu

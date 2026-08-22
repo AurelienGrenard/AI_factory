@@ -6,12 +6,15 @@
 ```text
 cir/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh
 ├── dynamics.cu
 ├── analytics.cuh
 ├── analytics.cu
+├── european_swaption.cu
+├── european_swaption.cuh
 ├── rate_option.cu
 ├── rate_option.cuh
 ├── zero_coupon_bond_option.cu
@@ -289,10 +292,16 @@ $`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 
 **Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
-**Status:** Planned; the pricing launcher is not implemented.
+**Implementation:**
+`launch_cir_european_swaption_cuda<SwaptionSide::payer>` and the
+`SwaptionSide::receiver` specialization share the common one-factor
+Jamshidian engine.
 
 Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
 payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
+
+The integer dates use the model clock; each $`\delta_i`$ is supplied directly
+from the fixed leg's contractual day-count convention.
 
 At exercise,
 

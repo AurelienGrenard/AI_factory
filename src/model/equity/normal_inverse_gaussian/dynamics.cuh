@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

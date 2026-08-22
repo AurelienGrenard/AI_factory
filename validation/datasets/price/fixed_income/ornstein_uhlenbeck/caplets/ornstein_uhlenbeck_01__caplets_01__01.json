@@ -18,6 +18,7 @@
     "model_parameters": "sha256:24f6d602b91b965d837f176bb729984f6a8d2e64bbb8540704a6b3cc162f28de",
     "product_parameters": "sha256:91ffea212ddf22d943cedd3d45a84def06e6238a309d29f00f2247af47b3e4c8"
   },
+  "validation_policy_fingerprint": "sha256:fbf5be8a961f94c96bc41e9e333996278ece5e4379dd0b13203f4a24f64a38af",
   "reference_pricers": {
     "core": {
       "row_count": 900,

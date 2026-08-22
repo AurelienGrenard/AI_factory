@@ -194,7 +194,13 @@ void launch_vasicek_zero_coupon_bond_option_cuda(
 
 // Build both public payoff specializations in this CUDA translation unit.
 using LaunchSignature = decltype(launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::call>);
-template LaunchSignature launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::call>;
-template LaunchSignature launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::model::vasicek

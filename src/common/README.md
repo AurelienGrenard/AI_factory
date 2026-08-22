@@ -17,6 +17,13 @@ common/
 ├── result_index.cuh
 ├── sample.cuh
 ├── time_grid.cuh
+├── fixed_income/
+│   ├── cashflows.cuh
+│   ├── european_swaption.cuh
+│   ├── gaussian_bond_option.cuh
+│   ├── jamshidian.cuh
+│   ├── one_factor_affine.cuh
+│   └── swaption_side.cuh
 └── longstaff_schwartz/
     ├── exercise_schedule.cuh
     ├── exercise_schedule.cu
@@ -36,6 +43,7 @@ common/
 [`check_cuda.cuh`](#check-cuda) ·
 [`cuda_kernel_diagnostics.cuh/.cpp`](#cuda-kernel-diagnostics) ·
 [`option_side.cuh`](#option-side) ·
+[`fixed_income/`](#fixed-income) ·
 [`result_index.cuh`](#result-index) ·
 [`time_grid.cuh`](#time-grid) ·
 [`sample.cuh`](#sample) ·
@@ -97,6 +105,147 @@ occupancy is
 | `OptionSide::put` | Put orientation. |
 | `option_side_name(side)` | Returns the stable host label `"call"` or `"put"`. |
 
+<a id="fixed-income"></a>
+## [`fixed_income/`](fixed_income)
+
+[`one_factor_affine.cuh`](#one-factor-affine) ·
+[`cashflows.cuh`](#fixed-income-cashflows) ·
+[`gaussian_bond_option.cuh`](#gaussian-bond-option) ·
+[`swaption_side.cuh`](#swaption-side) ·
+[`jamshidian.cuh`](#jamshidian) ·
+[`european_swaption.cuh`](#european-swaption-engine)
+
+<a id="one-factor-affine"></a>
+### [`one_factor_affine.cuh`](fixed_income/one_factor_affine.cuh)
+
+For model-specific coefficients $`A(t,T)`$ and $`B(t,T)`$,
+
+```math
+\log P(t,T)=\log A(t,T)-B(t,T)x_t.
+```
+
+| Function or type | Definition |
+|---|---|
+| `OneFactorAffineBondCoefficients` | Carries `log_A` and `B` without an unnecessary `exp`/`log` round trip. |
+| `log_zero_coupon_bond(...)` | Evaluates the log-affine bond formula supplied by a model provider. |
+| `zero_coupon_bond(...)` | Returns the exponential of the common log-affine formula. |
+
+<a id="fixed-income-cashflows"></a>
+### [`cashflows.cuh`](fixed_income/cashflows.cuh)
+
+For payment dates $`T_1,\ldots,T_n`$ and contractual accrual fractions
+$`\delta_1,\ldots,\delta_n`$,
+
+```math
+L(t;T_0,T_1)
+=\frac{P(t,T_0)/P(t,T_1)-1}{\delta_1},
+```
+
+```math
+A_{\mathrm{swap}}(t)=\sum_{i=1}^{n}\delta_iP(t,T_i),
+\qquad
+S(t;T_0,T_n)
+=\frac{P(t,T_0)-P(t,T_n)}{A_{\mathrm{swap}}(t)},
+```
+
+```math
+\frac{V_{\mathrm{payer}}(t)}{N}
+=P(t,T_0)-P(t,T_n)-K A_{\mathrm{swap}}(t).
+```
+
+| Function or type | Definition |
+|---|---|
+| `FixedLegScheduleView` | Adapts already-converted payment times and accrual fractions to the common schedule interface. |
+| `forward_rate(...)` | Evaluates the simple forward rate from two zero-coupon bonds. |
+| `fixed_leg_terms(...)` | Computes the annuity and final bond in one schedule pass. |
+| `swap_rate(...)` | Evaluates the par swap rate. |
+| `payer_swap_value(...)` | Evaluates the unit-notional receive-floating/pay-fixed swap value. |
+
+<a id="gaussian-bond-option"></a>
+### [`gaussian_bond_option.cuh`](fixed_income/gaussian_bond_option.cuh)
+
+Let $`s=1`$ for a call, $`s=-1`$ for a put, $`P_e=P(t,T_e)`$,
+$`P_i=P(t,T_i)`$, strike $`K_B`$, and total bond volatility $`\Sigma`$.
+
+```math
+d_1=\frac{\log(P_i/(K_BP_e))}{\Sigma}+\frac{\Sigma}{2},
+\qquad d_2=d_1-\Sigma,
+```
+
+```math
+V_B=s\left[P_i\Phi(sd_1)-K_BP_e\Phi(sd_2)\right].
+```
+
+| Function or type | Definition |
+|---|---|
+| `GaussianBondOptionDiscountContext` | Stores the expiry discount factor and its logarithm once per option strip. |
+| `normal_cdf(z)` | Evaluates $`\Phi(z)`$ in FP32. |
+| `discounted_lognormal_bond_option_price(...)` | Evaluates the call/put expression and its zero-volatility limit. |
+
+The expression follows the forward option formula of
+[Black (1976)](https://doi.org/10.1016/0304-405X%2876%2990024-6).
+
+<a id="swaption-side"></a>
+### [`swaption_side.cuh`](fixed_income/swaption_side.cuh)
+
+| Symbol | Definition |
+|---|---|
+| `SwaptionSide::payer` | Right to receive floating and pay fixed. |
+| `SwaptionSide::receiver` | Right to receive fixed and pay floating. |
+| `swaption_side_name(side)` | Returns the stable host label `"payer"` or `"receiver"`. |
+
+<a id="jamshidian"></a>
+### [`jamshidian.cuh`](fixed_income/jamshidian.cuh)
+
+With
+
+```math
+c_i=K\delta_i+\mathbf 1_{\{i=n\}},
+```
+
+the unique one-factor boundary $`x^\star`$ solves
+
+```math
+\sum_{i=1}^{n}c_iP(T_e,T_i;x^\star)=1,
+\qquad
+K_i^\star=P(T_e,T_i;x^\star).
+```
+
+The payer and receiver prices per unit notional are
+
+```math
+V_{\mathrm{payer}}(t)
+=\sum_{i=1}^{n}c_i\,p_B(t;T_e,T_i,K_i^\star),
+```
+
+```math
+V_{\mathrm{receiver}}(t)
+=\sum_{i=1}^{n}c_i\,c_B(t;T_e,T_i,K_i^\star).
+```
+
+| Function | Definition |
+|---|---|
+| `jamshidian_state_boundary(...)` | Solves the monotone scalar equation with safeguarded Newton steps and deterministic bisection fallback. |
+| `jamshidian_bond_strike(...)` | Evaluates one $`K_i^\star`$. |
+| `european_swaption_price<Side>(...)` | Reuses one expiry context and sums bond puts or calls. |
+
+Reference: [Jamshidian (1989)](https://doi.org/10.1111/j.1540-6261.1989.tb02413.x).
+
+<a id="european-swaption-engine"></a>
+### [`european_swaption.cuh`](fixed_income/european_swaption.cuh)
+
+| Function or type | Definition |
+|---|---|
+| `PreparedEuropeanSwaptionRow` | Holds one prepared model, contract scalars and a regular or explicit schedule view. |
+| `prepare_european_swaption_row(...)` | Resolves standalone or fitted model inputs and the schedule representation. |
+| `evaluate_european_swaption_price<Side>(...)` | Calls the model policy's closed-form price for one row. |
+| `one_factor_european_swaption_kernel<Side>(...)` | Prices standalone model/product rows with one thread per price. |
+| `fitted_one_factor_european_swaption_kernel<Side>(...)` | Prices model/curve/product rows with one thread per price. |
+| `validate_european_swaption_schedule_source(...)` | Validates the optional explicit device pools. |
+| `validate_european_swaption_batch(...)` | Validates the result slice, time conversion and launch geometry. |
+| `launch_one_factor_european_swaption<Side>(...)` | Validates and launches a standalone specialization. |
+| `launch_fitted_one_factor_european_swaption<Side>(...)` | Validates and launches a fitted-model specialization. |
+
 <a id="result-index"></a>
 ## [`result_index.cuh`](result_index.cuh)
 
@@ -105,12 +254,23 @@ Let `i` be a flattened result index and `P` the number of products.
 | Function | Definition |
 |---|---|
 | `decode_model_product_result_index(i, P, cartesian)` | Returns `ModelProductIndices {model_index, product_index}`. |
+| `decode_model_curve_product_result_index(i, C, P, cartesian)` | Returns `ModelCurveProductIndices {model_index, curve_index, product_index}`. |
 
 Aligned construction uses `(i,i)`. Cartesian construction lets products vary
 fastest:
 
 ```math
 \mathrm{model\_index}=\left\lfloor\frac{i}{P}\right\rfloor,
+\qquad
+\mathrm{product\_index}=i\bmod P.
+```
+
+For a model/curve/product Cartesian construction with `C` curves,
+
+```math
+\mathrm{model\_index}=\left\lfloor\frac{i}{CP}\right\rfloor,
+\qquad
+\mathrm{curve\_index}=\left\lfloor\frac{i\bmod(CP)}{P}\right\rfloor,
 \qquad
 \mathrm{product\_index}=i\bmod P.
 ```

@@ -25,6 +25,7 @@
 #include "product/range_accrual/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
 #include "product/european_option/dataset.hpp"
+#include "product/european_swaption/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
@@ -49,6 +50,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -694,6 +696,75 @@ int main() {
         }),
         product::load_rate_options
     );
+
+    // Regular swaptions keep one interval and one contractual accrual scalar.
+    nlohmann::json swaption_document = one_row("products", {
+        {"notional", 1.0f},
+        {"strike", 0.03f},
+        {"exercise_time", 10U},
+        {"payment_interval", 21U},
+        {"payment_count", 65U},
+        {"accrual_fraction", 1.0f / 12.0f},
+    });
+    swaption_document["row_count"] = 2U;
+    swaption_document["products"].push_back({
+        {"id", "valid_002"},
+        {"parameters", {
+            {"notional", 2.0f},
+            {"strike", 0.04f},
+            {"exercise_time", 20U},
+            {"payment_interval", 126U},
+            {"payment_count", 2U},
+            {"accrual_fraction", 0.5f},
+        }},
+    });
+    write_document(swaption_document);
+    const product::RegularEuropeanSwaptionDataset swaption_dataset =
+        product::load_european_swaptions(test_path);
+    require(
+        swaption_dataset.products.size() == 2U
+            && swaption_dataset.products[0].payment_count == 65U
+            && swaption_dataset.products[0].payment_interval == 21U
+            && swaption_dataset.products[1].accrual_fraction == 0.5f,
+        "European swaption loader did not retain the regular schedule"
+    );
+    swaption_document["products"][1]["parameters"]
+        ["accrual_fraction"] = 0.0f;
+    write_document(swaption_document);
+    bool rejected_invalid_accrual_fraction = false;
+    try {
+        static_cast<void>(product::load_european_swaptions(test_path));
+    } catch (const std::invalid_argument& error) {
+        const std::string message = error.what();
+        rejected_invalid_accrual_fraction =
+            message.find("valid_002") != std::string::npos
+            && message.find("accrual_fraction") != std::string::npos;
+    }
+    require(
+        rejected_invalid_accrual_fraction,
+        "European swaption loader accepted an invalid accrual fraction"
+    );
+
+    // The explicit representation remains available for real dated schedules.
+    nlohmann::json explicit_swaption_document = one_row("products", {
+        {"notional", 1.0f},
+        {"strike", 0.03f},
+        {"exercise_time", 10U},
+        {"payment_times", {31U, 53U, 76U}},
+        {"accrual_fractions", {0.08f, 0.09f, 0.08f}},
+    });
+    write_document(explicit_swaption_document);
+    const product::ExplicitEuropeanSwaptionDataset explicit_dataset =
+        product::load_explicit_european_swaptions(test_path);
+    require(
+        explicit_dataset.products.size() == 1U
+            && explicit_dataset.products[0].payment_count == 3U
+            && explicit_dataset.products[0].schedule_offset == 0U
+            && explicit_dataset.payment_times[2] == 76U
+            && explicit_dataset.accrual_fractions[1] == 0.09f,
+        "Explicit European swaption loader did not flatten the schedule"
+    );
+
     check_loader(
         "Zero-coupon bond call", "products", "strike", 0.0f, "strike",
         one_row("products", {

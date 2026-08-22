@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/kou/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -41,11 +41,13 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 - `src/generative`: reserved for method-neutral generative-model tooling.
 
-Each model, curve, or product uses `dataset.hpp/.cpp` for its compact row and
-host loader. CUDA declarations and implementations retain descriptive names
-such as `dynamics.cuh/.cu` or `term_structure.cuh/.cu`. Curve-specific dataset
-construction helpers live under `tools/datasets`; catalog generators contain
-only their recipe constants and `main`.
+Each model defines its compact mathematical row in `parameters.hpp`; its
+`dataset.hpp/.cpp` pair only exposes and implements the host loader. Curves and
+products keep their compact rows with their dataset loaders. CUDA declarations
+and implementations retain descriptive names such as `dynamics.cuh/.cu` or
+`term_structure.cuh/.cu`. Curve-specific dataset construction helpers live
+under `tools/datasets`; catalog generators contain only their recipe constants
+and `main`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
@@ -62,7 +64,7 @@ generator with:
 
 ```bash
 AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 \
-    ./build/test_heston_terminal_payoffs_cuda \
+    ./build-dev/test_heston_terminal_payoffs_cuda \
     2> build/heston-kernel-diagnostics.jsonl
 ```
 
@@ -150,17 +152,20 @@ datasets/
 |-- model/fixed_income/hull_white/prices/<curve>/<product>/<price_dataset_id>.json
 |-- product/equity/european_options/european_options_01.json
 |-- product/equity/american_options/american_options_01.json
-`-- product/fixed_income/rate_options/rate_options_01.json
+|-- product/fixed_income/rate_options/rate_options_01.json
+`-- product/fixed_income/european_swaptions/european_swaptions_01.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
 downloaded from the `url` declared in the catalog. Generative-training sample
 datasets will likewise remain outside Git. This change provides their common
 and model-specific CUDA sampling kernels, but deliberately publishes no 3M-row
-sample recipe yet. Product calendars are stored as integer business-day counts
-under a 252-day year convention. Discretized price datasets use two simulation
-steps per business day, hence `dt = 1 / 504`; exact-transition models prepare a
-transition over the requested interval without artificial intermediate steps.
+sample recipe yet. Product calendar dates are stored as integer business-day
+counts under a 252-day model-time convention. Contractual year fractions are
+stored directly when their day-count convention differs from that model clock.
+Discretized price datasets use two simulation steps per business day, hence
+`dt = 1 / 504`; exact-transition models prepare a transition over the requested
+interval without artificial intermediate steps.
 
 ## Curves And Short Rates
 
@@ -247,8 +252,9 @@ Nelson-Siegel or Svensson discounts at the contract dates through Premia's
 external-curve interface; specialized QuantLib formulas provide row-local
 fallback only when the Premia backend fails technically.
 
-As with Heston, `dataset.hpp/.cpp` files contain compact rows and host JSON
-loaders. Numerical functions used by kernels live in `.cuh/.cu` files.
+As with Heston, `parameters.hpp` contains the compact model row and
+`dataset.hpp/.cpp` contains only its host JSON loader. Numerical functions used
+by kernels live in `.cuh/.cu` files.
 
 Bates composes the Heston QE-M transition with an independent compound-Poisson
 lognormal jump process. Each path owns one scalar uniform sequence and one
@@ -395,6 +401,10 @@ branched on per simulated path. Gap options retain separate call-oriented and
 put-oriented parameter datasets inside `gap_options/` because their payoff
 strike grids differ.
 
+European payer and receiver swaptions likewise share one side-free product
+dataset, but use the dedicated compile-time specializations
+`SwaptionSide::payer` and `SwaptionSide::receiver`.
+
 Side-aware CUDA launchers expose this choice directly in their public API, for
 example `launch_heston_european_option_cuda<OptionSide::call>(...)`. Their
 `.cu` file explicitly instantiates the call and put versions, so ordinary C++
@@ -405,46 +415,77 @@ implementations or keeping a runtime dispatch wrapper.
 
 Requirements:
 
-- a C++17 compiler;
-- the CUDA Toolkit;
+- a C++23 compiler (GCC 14 or newer with NVIDIA CUDA);
+- CUDA Toolkit 13.3 or newer;
 - `nlohmann-json3-dev`;
-- CMake 3.18 or newer.
+- CMake 3.20 or newer.
+
+`ccache` is optional. When installed, CMake detects it automatically for both
+C++ and CUDA compilation and reuses matching compilation results.
 
 For an RTX 4090:
 
 ```bash
-cmake -S . -B build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCUDA_WORKBENCH_ARCHITECTURES=89
-cmake --build build -j
+cmake --preset dev
+cmake --build --preset core
 ```
 
 The architecture list remains configurable, for example:
-`-DCUDA_WORKBENCH_ARCHITECTURES="70;86;89"`.
+`-DCUDA_WORKBENCH_ARCHITECTURES="75;86;89"`. CUDA 13 supports offline
+compilation for Turing (`sm_75`) and newer GPUs.
+
+The development build uses Ninja and deliberately excludes CUDA pricers,
+tests, and generators from the default target. Build the narrowest target for
+the current change:
+
+```bash
+# One price recipe: one model-product CUDA unit and its exact loaders.
+cmake --build build-dev --target generate_hull_white_nelson_siegel_caplets_01 -j2
+
+# One CUDA test and only the launchers included by that test.
+cmake --build build-dev --target test_one_factor_european_swaptions_cuda -j2
+ctest --test-dir build-dev -R '^one_factor_european_swaptions_cuda$' --output-on-failure
+
+# One complete model, one domain, or every public launcher.
+cmake --build build-dev --target model_hull_white -j2
+cmake --build --preset fixed-income
+cmake --build --preset all-models
+```
+
+The aggregate presets `host-tests`, `fixed-income-tests`, `equity-tests`,
+`cuda-tests`, `tests`, `parameter-generators`, and `price-generators` are
+available for broader checks. `cmake --build build-dev --target help` lists
+every granular target.
+Ninja keeps unaffected archives intact: changing one product launcher rebuilds
+that launcher and its consumers; changing a model dataset loader rebuilds only
+that loader and consumers; changing an included `dynamics.cu` or
+`analytics.cu` correctly rebuilds all launchers of the affected model. A clean
+rebuild is therefore not part of the normal development loop.
 
 ## Generate Datasets
 
 Parameter datasets are quick to regenerate:
 
 ```bash
-./build/generate_heston_01
-./build/generate_bates_01
-./build/generate_variance_gamma_01
-./build/generate_normal_inverse_gaussian_01
-./build/generate_g2_01
-./build/generate_g2_plus_plus_01
-./build/generate_nelson_siegel_01
-./build/generate_svensson_01
-./build/generate_hull_white_01
-./build/generate_ornstein_uhlenbeck_01
-./build/generate_vasicek_01
-./build/generate_cir_01
-./build/generate_european_options_01
-./build/generate_american_options_01
-./build/generate_gap_call_options_01
-./build/generate_gap_put_options_01
-./build/generate_rate_options_01
-./build/generate_zero_coupon_bond_options_01
+./build-dev/generate_heston_01
+./build-dev/generate_bates_01
+./build-dev/generate_variance_gamma_01
+./build-dev/generate_normal_inverse_gaussian_01
+./build-dev/generate_g2_01
+./build-dev/generate_g2_plus_plus_01
+./build-dev/generate_nelson_siegel_01
+./build-dev/generate_svensson_01
+./build-dev/generate_hull_white_01
+./build-dev/generate_ornstein_uhlenbeck_01
+./build-dev/generate_vasicek_01
+./build-dev/generate_cir_01
+./build-dev/generate_european_options_01
+./build-dev/generate_american_options_01
+./build-dev/generate_gap_call_options_01
+./build-dev/generate_gap_put_options_01
+./build-dev/generate_rate_options_01
+./build-dev/generate_zero_coupon_bond_options_01
+./build-dev/generate_european_swaptions_01
 ```
 
 Each command replaces the local dataset and its YAML catalog entry together.
@@ -454,56 +495,68 @@ stress policy documented in
 Price datasets follow the same workflow:
 
 ```bash
-./build/generate_heston_european_calls_01
-./build/generate_heston_american_puts_01
-./build/generate_bates_european_calls_01
-./build/generate_bates_american_puts_01
-./build/generate_variance_gamma_european_calls_01
-./build/generate_normal_inverse_gaussian_european_calls_01
-./build/generate_g2_caplets_01
-./build/generate_g2_floorlets_01
-./build/generate_g2_zero_coupon_bond_calls_01
-./build/generate_g2_zero_coupon_bond_puts_01
-./build/generate_g2_plus_plus_nelson_siegel_caplets_01
-./build/generate_g2_plus_plus_nelson_siegel_floorlets_01
-./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
-./build/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
-./build/generate_g2_plus_plus_svensson_caplets_01
-./build/generate_g2_plus_plus_svensson_floorlets_01
-./build/generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
-./build/generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
-./build/generate_ornstein_uhlenbeck_caplets_01
-./build/generate_ornstein_uhlenbeck_floorlets_01
-./build/generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
-./build/generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
-./build/generate_vasicek_caplets_01
-./build/generate_vasicek_floorlets_01
-./build/generate_vasicek_zero_coupon_bond_calls_01
-./build/generate_vasicek_zero_coupon_bond_puts_01
-./build/generate_cir_caplets_01
-./build/generate_cir_floorlets_01
-./build/generate_cir_zero_coupon_bond_calls_01
-./build/generate_cir_zero_coupon_bond_puts_01
-./build/generate_hull_white_nelson_siegel_caplets_01
-./build/generate_hull_white_nelson_siegel_floorlets_01
-./build/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
-./build/generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
-./build/generate_hull_white_svensson_caplets_01
-./build/generate_hull_white_svensson_floorlets_01
-./build/generate_hull_white_svensson_zero_coupon_bond_calls_01
-./build/generate_hull_white_svensson_zero_coupon_bond_puts_01
+./build-dev/generate_heston_european_calls_01
+./build-dev/generate_heston_american_puts_01
+./build-dev/generate_bates_european_calls_01
+./build-dev/generate_bates_american_puts_01
+./build-dev/generate_variance_gamma_european_calls_01
+./build-dev/generate_normal_inverse_gaussian_european_calls_01
+./build-dev/generate_g2_caplets_01
+./build-dev/generate_g2_floorlets_01
+./build-dev/generate_g2_zero_coupon_bond_calls_01
+./build-dev/generate_g2_zero_coupon_bond_puts_01
+./build-dev/generate_g2_plus_plus_nelson_siegel_caplets_01
+./build-dev/generate_g2_plus_plus_nelson_siegel_floorlets_01
+./build-dev/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
+./build-dev/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
+./build-dev/generate_g2_plus_plus_svensson_caplets_01
+./build-dev/generate_g2_plus_plus_svensson_floorlets_01
+./build-dev/generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
+./build-dev/generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
+./build-dev/generate_ornstein_uhlenbeck_caplets_01
+./build-dev/generate_ornstein_uhlenbeck_floorlets_01
+./build-dev/generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
+./build-dev/generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
+./build-dev/generate_vasicek_caplets_01
+./build-dev/generate_vasicek_floorlets_01
+./build-dev/generate_vasicek_zero_coupon_bond_calls_01
+./build-dev/generate_vasicek_zero_coupon_bond_puts_01
+./build-dev/generate_cir_caplets_01
+./build-dev/generate_cir_floorlets_01
+./build-dev/generate_cir_zero_coupon_bond_calls_01
+./build-dev/generate_cir_zero_coupon_bond_puts_01
+./build-dev/generate_hull_white_nelson_siegel_caplets_01
+./build-dev/generate_hull_white_nelson_siegel_floorlets_01
+./build-dev/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
+./build-dev/generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
+./build-dev/generate_hull_white_svensson_caplets_01
+./build-dev/generate_hull_white_svensson_floorlets_01
+./build-dev/generate_hull_white_svensson_zero_coupon_bond_calls_01
+./build-dev/generate_hull_white_svensson_zero_coupon_bond_puts_01
+./build-dev/generate_ornstein_uhlenbeck_european_payer_swaptions_01
+./build-dev/generate_ornstein_uhlenbeck_european_receiver_swaptions_01
+./build-dev/generate_vasicek_european_payer_swaptions_01
+./build-dev/generate_vasicek_european_receiver_swaptions_01
+./build-dev/generate_cir_european_payer_swaptions_01
+./build-dev/generate_cir_european_receiver_swaptions_01
+./build-dev/generate_hull_white_nelson_siegel_european_payer_swaptions_01
+./build-dev/generate_hull_white_nelson_siegel_european_receiver_swaptions_01
+./build-dev/generate_hull_white_svensson_european_payer_swaptions_01
+./build-dev/generate_hull_white_svensson_european_receiver_swaptions_01
 ```
 
 ## Test
 
 ```bash
-ctest --test-dir build --output-on-failure
+cmake --build --preset tests
+ctest --preset tests
 ```
 
 `dataset_catalog` validates two- and three-input constructions and mandatory
 catalog fields. CUDA tests cover reusable OU, Vasicek, CIR, G2, Hull-White, and
 G2++ analytics; caplets, floorlets, and zero-coupon options; deterministic
-Gamma/non-central-chi-square tails; the uniform Heston,
+Gamma/non-central-chi-square tails; one-factor payer/receiver swaptions,
+including regular, explicit and 600-payment schedules; the uniform Heston,
 Bates, VG, NIG, Merton, Kou, CEV, and Schöbel-Zhu dynamics and product
 launchers, including path averages, forward starts, jumps, and barriers; and
 the early-exercise pipelines. They use small in-memory fixtures and skip
@@ -512,12 +565,18 @@ automatically without a CUDA GPU.
 Every fixed-income and Black-Scholes price dataset has an immutable 1,000-row
 reference under `validation/datasets/price`. Routine CTest checks these caches,
 their source fingerprints, row provenance, metrics, and compact catalogue YAML
-without importing QuantLib or starting Premia/Wine. Vasicek, centered OU,
-Hull-White, G2++, and 25 Black-Scholes product families use Premia references;
-standalone G2 and CIR use specialized QuantLib references; four Black-Scholes
-structured families use QuantLib Monte Carlo. CIR records that Premia is
-callable but unreliable before selecting QuantLib. Direct backend checks remain
-useful numerical diagnostics when the corresponding dependency is installed.
+without importing QuantLib or starting Premia/Wine. Fixed-income caches also
+require a policy fingerprint over current tolerances, bias rules, regimes, and
+the semantic comparison implementation, so changed validation criteria cannot
+silently reuse an old acceptance decision. The 42 fixed-income caches cover the
+32 bond-option/caplet/floorlet datasets and ten one-factor payer/receiver
+swaption datasets. Vasicek, centered OU, Hull-White, G2++, and 25 Black-Scholes
+product families use Premia wherever its audited contract is reliable;
+specialized QuantLib supplies standalone G2, every CIR row, and explicit
+swaption fallbacks. Four Black-Scholes structured families use QuantLib Monte
+Carlo. CIR records that Premia is callable but unreliable before selecting
+QuantLib. Direct backend checks remain useful numerical diagnostics when the
+corresponding dependency is installed.
 The shared validator reports row errors, combined Monte-Carlo uncertainty,
 directional counts, and systematic bias. Premia continuous-monitoring prices
 remain the primary analytical reference for discrete Black-Scholes barriers:

@@ -3,9 +3,14 @@
 
 #include "model/fixed_income/cir/analytics.cuh"
 
+#include "common/fixed_income/cashflows.cuh"
+#include "common/fixed_income/jamshidian.cuh"
+#include "common/fixed_income/one_factor_affine.cuh"
 #include "common/noncentral_chi_square.cuh"
 
 #include <cuda_runtime.h>
+
+#include <cfloat>
 
 namespace ai_factory::workbench::model::cir {
 
@@ -13,9 +18,14 @@ namespace ai_factory::workbench::model::cir {
 
 namespace {
 
-struct AffineBondCoefficients {
-    float log_A;
-    float B;
+using AffineBondCoefficients =
+    fixed_income::OneFactorAffineBondCoefficients;
+
+struct BondOptionContext {
+    float expiry_bond;
+    float noncentrality_numerator;
+    float base_rate;
+    float degrees_of_freedom;
 };
 
 // Compute log(A) and B together while sharing gamma and exp(-gamma*tau).
@@ -47,29 +57,24 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     };
 }
 
-// Price a call (+1) or put (-1) through the two CIR forward-measure laws.
-__device__ __forceinline__ float zero_coupon_bond_option_price(
+// Prepare all CIR exercise-measure invariants once per option strip.
+__device__ __forceinline__ BondOptionContext prepare_bond_option_context(
     const ModelParameters& parameters,
     float state,
-    float option_sign,
     float valuation_time,
-    float option_expiry,
-    float bond_maturity,
-    float strike
+    float option_expiry
 ) {
     const float expiry_log_bond = log_zero_coupon_bond(
         parameters, state, valuation_time, option_expiry
     );
-    const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, bond_maturity
-    );
-    const float expiry_bond = expf(expiry_log_bond);
-    const float underlying_bond = expf(underlying_log_bond);
     const float time_to_expiry = option_expiry - valuation_time;
     if (time_to_expiry <= 1.0e-7f) {
-        return fmaxf(
-            option_sign * (underlying_bond - strike), 0.0f
-        );
+        return {
+            expf(expiry_log_bond),
+            0.0f,
+            0.0f,
+            0.0f,
+        };
     }
 
     const ProcessParameters& process = parameters.process;
@@ -85,54 +90,157 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const float rho = 2.0f * gamma * gamma_decay
         / (sigma_squared * one_minus_gamma_decay);
     const float psi = (process.mean_reversion + gamma) / sigma_squared;
-    const AffineBondCoefficients expiry_coefficients =
-        affine_bond_coefficients(
-            process, bond_maturity - option_expiry
-        );
-    const float critical_state = (
-        expiry_coefficients.log_A - logf(strike)
-    ) / expiry_coefficients.B;
-
-    // rho^2*exp(gamma*dt) is formed without a growing exponential.
     const float rho_squared_growth =
         4.0f * gamma * gamma * gamma_decay
         / (
             sigma_squared * sigma_squared
             * one_minus_gamma_decay * one_minus_gamma_decay
         );
-    const float noncentrality_numerator =
-        2.0f * rho_squared_growth * state;
-    const float base_rate = rho + psi;
-    const float bond_rate = base_rate + expiry_coefficients.B;
-    const float degrees_of_freedom =
+    return {
+        expf(expiry_log_bond),
+        2.0f * rho_squared_growth * state,
+        rho + psi,
         4.0f * process.mean_reversion * process.long_term_mean
-        / sigma_squared;
+            / sigma_squared,
+    };
+}
+
+// Price one CIR bond option while reusing the exercise-measure context.
+__device__ __forceinline__ float zero_coupon_bond_option_price(
+    const BondOptionContext& context,
+    const ModelParameters& parameters,
+    float state,
+    float option_sign,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    const float underlying_log_bond = log_zero_coupon_bond(
+        parameters, state, valuation_time, bond_maturity
+    );
+    const float underlying_bond = expf(underlying_log_bond);
+    if (context.base_rate <= 0.0f) {
+        return fmaxf(option_sign * (underlying_bond - strike), 0.0f);
+    }
+
+    const AffineBondCoefficients expiry_coefficients =
+        affine_bond_coefficients(
+            parameters.process, bond_maturity - option_expiry
+        );
+    const float critical_state = (
+        expiry_coefficients.log_A - logf(strike)
+    ) / expiry_coefficients.B;
+    const float bond_rate = context.base_rate + expiry_coefficients.B;
     const DistributionProbabilities bond_measure =
         noncentral_chi_square_probabilities(
-            degrees_of_freedom,
-            noncentrality_numerator / bond_rate,
+            context.degrees_of_freedom,
+            context.noncentrality_numerator / bond_rate,
             2.0f * critical_state * bond_rate
         );
     const DistributionProbabilities expiry_measure =
         noncentral_chi_square_probabilities(
-            degrees_of_freedom,
-            noncentrality_numerator / base_rate,
-            2.0f * critical_state * base_rate
+            context.degrees_of_freedom,
+            context.noncentrality_numerator / context.base_rate,
+            2.0f * critical_state * context.base_rate
         );
 
     if (option_sign > 0.0f) {
         return fmaxf(
             underlying_bond * bond_measure.cdf
-                - strike * expiry_bond * expiry_measure.cdf,
+                - strike * context.expiry_bond * expiry_measure.cdf,
             0.0f
         );
     }
     return fmaxf(
-        strike * expiry_bond * expiry_measure.survival
+        strike * context.expiry_bond * expiry_measure.survival
             - underlying_bond * bond_measure.survival,
         0.0f
     );
 }
+
+// Adapt a standalone bond option to the strip-oriented implementation.
+__device__ __forceinline__ float zero_coupon_bond_option_price(
+    const ModelParameters& parameters,
+    float state,
+    float option_sign,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    return zero_coupon_bond_option_price(
+        prepare_bond_option_context(
+            parameters, state, valuation_time, option_expiry
+        ),
+        parameters,
+        state,
+        option_sign,
+        valuation_time,
+        option_expiry,
+        bond_maturity,
+        strike
+    );
+}
+
+// Bind CIR A/B and non-central-chi-square inputs to common formulas.
+struct AnalyticsProvider {
+    __device__ __forceinline__ AffineBondCoefficients
+    affine_bond_coefficients(
+        const ModelParameters& parameters,
+        float valuation_time,
+        float maturity
+    ) const {
+        return cir::affine_bond_coefficients(
+            parameters.process, maturity - valuation_time
+        );
+    }
+
+    __device__ __forceinline__ float zero_coupon_bond(
+        const ModelParameters& parameters,
+        float state,
+        float valuation_time,
+        float maturity
+    ) const {
+        return fixed_income::zero_coupon_bond(
+            *this, parameters, state, valuation_time, maturity
+        );
+    }
+
+    __device__ __forceinline__ BondOptionContext
+    prepare_bond_option_context(
+        const ModelParameters& parameters,
+        float state,
+        float valuation_time,
+        float option_expiry
+    ) const {
+        return cir::prepare_bond_option_context(
+            parameters, state, valuation_time, option_expiry
+        );
+    }
+
+    __device__ __forceinline__ float bond_option_price(
+        const BondOptionContext& context,
+        const ModelParameters& parameters,
+        float state,
+        float option_sign,
+        float valuation_time,
+        float option_expiry,
+        float bond_maturity,
+        float strike
+    ) const {
+        return cir::zero_coupon_bond_option_price(
+            context,
+            parameters,
+            state,
+            option_sign,
+            valuation_time,
+            option_expiry,
+            bond_maturity,
+            strike
+        );
+    }
+};
 
 }  // namespace
 
@@ -207,9 +315,9 @@ __device__ __forceinline__ float zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    return expf(log_zero_coupon_bond(
-        parameters, state, valuation_time, maturity
-    ));
+    return fixed_income::zero_coupon_bond(
+        AnalyticsProvider{}, parameters, state, valuation_time, maturity
+    );
 }
 
 // Apply the two-CDF CIR formula for a call on a zero-coupon bond.
@@ -261,43 +369,188 @@ __device__ __forceinline__ float forward_rate(
     float end_time,
     float accrual_period
 ) {
-    const float start_bond = zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+    return fixed_income::forward_rate(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        end_time,
+        accrual_period
     );
-    const float end_bond = zero_coupon_bond(
-        parameters, state, valuation_time, end_time
-    );
-    return (start_bond / end_bond - 1.0f) / accrual_period;
 }
 
-// Divide the conditional floating-leg value by the fixed-leg annuity.
+template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const ModelParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
-    const float* __restrict__ payment_times,
-    const float* __restrict__ accrual_periods,
+    const ScheduleView& schedule
+) {
+    return fixed_income::swap_rate(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        schedule
+    );
+}
+
+template<typename ScheduleView>
+__device__ __forceinline__ float payer_swap_value(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float start_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return fixed_income::payer_swap_value(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        fixed_rate,
+        schedule
+    );
+}
+
+// Locate the monotone coupon-bond boundary for either schedule layout.
+template<typename ScheduleView>
+__device__ __forceinline__ float jamshidian_state_boundary(
+    const ModelParameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return fixed_income::jamshidian_state_boundary(
+        AnalyticsProvider{},
+        parameters,
+        exercise_time,
+        fixed_rate,
+        schedule
+    );
+}
+
+__device__ __forceinline__ float jamshidian_state_boundary(
+    const ModelParameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
     std::uint32_t payment_count
 ) {
-    float annuity = 0.0f;
-    float end_bond = 0.0f;
-    for (std::uint32_t payment = 0U;
-         payment < payment_count;
-         ++payment) {
-        const float current_bond = zero_coupon_bond(
-            parameters,
-            state,
-            valuation_time,
-            payment_times[payment]
-        );
-        annuity = fmaf(accrual_periods[payment], current_bond, annuity);
-        end_bond = current_bond;
-    }
-    const float start_bond = zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+    return jamshidian_state_boundary(
+        parameters, exercise_time, fixed_rate,
+        product::ExplicitEuropeanSwaptionScheduleView{
+            payment_times, accrual_fractions, payment_count, time_day_fraction,
+        }
     );
-    return (start_bond - end_bond) / annuity;
+}
+
+__device__ __forceinline__ float jamshidian_bond_strike(
+    const ModelParameters& parameters,
+    float exercise_time,
+    float payment_time,
+    float state_boundary
+) {
+    return fixed_income::jamshidian_bond_strike(
+        AnalyticsProvider{},
+        parameters,
+        exercise_time,
+        payment_time,
+        state_boundary
+    );
+}
+
+template<SwaptionSide Side, typename ScheduleView>
+__device__ __forceinline__ float european_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return fixed_income::european_swaption_price<Side>(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        exercise_time,
+        fixed_rate,
+        schedule
+    );
+}
+
+template<typename ScheduleView>
+__device__ __forceinline__ float european_payer_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return european_swaption_price<SwaptionSide::payer>(
+        parameters, state, valuation_time, exercise_time, fixed_rate, schedule
+    );
+}
+
+__device__ __forceinline__ float european_payer_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
+    std::uint32_t payment_count
+) {
+    return european_payer_swaption_price(
+        parameters, state, valuation_time, exercise_time, fixed_rate,
+        product::ExplicitEuropeanSwaptionScheduleView{
+            payment_times, accrual_fractions, payment_count, time_day_fraction,
+        }
+    );
+}
+
+template<typename ScheduleView>
+__device__ __forceinline__ float european_receiver_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return european_swaption_price<SwaptionSide::receiver>(
+        parameters, state, valuation_time, exercise_time, fixed_rate, schedule
+    );
+}
+
+__device__ __forceinline__ float european_receiver_swaption_price(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
+    std::uint32_t payment_count
+) {
+    return european_receiver_swaption_price(
+        parameters, state, valuation_time, exercise_time, fixed_rate,
+        product::ExplicitEuropeanSwaptionScheduleView{
+            payment_times, accrual_fractions, payment_count, time_day_fraction,
+        }
+    );
 }
 
 }  // namespace ai_factory::workbench::model::cir

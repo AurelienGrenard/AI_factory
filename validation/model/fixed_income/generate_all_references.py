@@ -14,6 +14,9 @@ from validation.model.fixed_income.fitted_gaussian_rate import (
 from validation.model.fixed_income.gaussian_rate import (
     generate_reference_dataset as generate_standalone,
 )
+from validation.model.fixed_income.swaption import (
+    generate_reference_dataset as generate_swaption,
+)
 from validation.reference_price_dataset import (
     ReferenceDatasetValidation,
     synchronize_catalog_validation,
@@ -34,6 +37,7 @@ _MODELS = (
     "ornstein_uhlenbeck",
     "vasicek",
 )
+_SWAPTION_SIDES = ("payer", "receiver")
 
 
 def _persist(
@@ -72,6 +76,19 @@ def generate_all(root: Path, selected_models: set[str]) -> None:
                 )
             _persist(source, destination, report)
 
+    for model_name in ("cir", "ornstein_uhlenbeck", "vasicek"):
+        if model_name not in selected_models:
+            continue
+        for side in _SWAPTION_SIDES:
+            folder = f"european_{side}_swaptions"
+            stem = f"{model_name}_01__{folder}_01__01.json"
+            source = source_root / model_name / "prices" / folder / stem
+            destination = destination_root / model_name / folder / stem
+            report = generate_swaption(
+                source, destination, model_name, side
+            )
+            _persist(source, destination, report)
+
     for model_name in ("g2_plus_plus", "hull_white"):
         if model_name not in selected_models:
             continue
@@ -97,6 +114,37 @@ def generate_all(root: Path, selected_models: set[str]) -> None:
                     model_name,
                     curve_name,
                     product_kind,
+                )
+                _persist(source, destination, report)
+
+    if "hull_white" in selected_models:
+        for curve_name in ("nelson_siegel", "svensson"):
+            for side in _SWAPTION_SIDES:
+                folder = f"european_{side}_swaptions"
+                stem = (
+                    f"hull_white_01__{curve_name}_01__{folder}_01__01.json"
+                )
+                source = (
+                    source_root
+                    / "hull_white"
+                    / "prices"
+                    / curve_name
+                    / folder
+                    / stem
+                )
+                destination = (
+                    destination_root
+                    / "hull_white"
+                    / curve_name
+                    / folder
+                    / stem
+                )
+                report = generate_swaption(
+                    source,
+                    destination,
+                    "hull_white",
+                    side,
+                    curve_name,
                 )
                 _persist(source, destination, report)
 

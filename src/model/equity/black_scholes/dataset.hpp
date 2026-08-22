@@ -1,21 +1,12 @@
-// Black-Scholes dataset row and host-side JSON loader.
+// Black-Scholes host-side JSON loader.
 #pragma once
 
+#include "model/equity/black_scholes/parameters.hpp"
+
 #include <filesystem>
-#include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::black_scholes {
-
-// Compact FP32 model row transferred from host memory to CUDA.
-struct ModelParameters {
-    float spot;
-    float risk_free_rate;
-    float dividend_yield;
-    float volatility;
-};
-
-static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
 // Load every model row from JSON into one contiguous FP32 vector.
 std::vector<ModelParameters> load_models(

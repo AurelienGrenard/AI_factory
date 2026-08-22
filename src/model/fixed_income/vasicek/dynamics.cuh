@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/fixed_income/vasicek/dataset.hpp"
+#include "model/fixed_income/vasicek/parameters.hpp"
 
 #include <cuda_runtime.h>
 

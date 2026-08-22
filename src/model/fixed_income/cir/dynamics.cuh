@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/fixed_income/cir/dataset.hpp"
+#include "model/fixed_income/cir/parameters.hpp"
 
 #include <cuda_runtime.h>
 

@@ -805,9 +805,13 @@ void launch_rough_bergomi_european_option_fft_cuda(
 using FftLaunchSignature = decltype(
     launch_rough_bergomi_european_option_fft_cuda<OptionSide::call>
 );
-template FftLaunchSignature
-    launch_rough_bergomi_european_option_fft_cuda<OptionSide::call>;
-template FftLaunchSignature
-    launch_rough_bergomi_european_option_fft_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] FftLaunchSignature* launch_instantiation_0 =
+    &launch_rough_bergomi_european_option_fft_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] FftLaunchSignature* launch_instantiation_1 =
+    &launch_rough_bergomi_european_option_fft_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::rough_bergomi

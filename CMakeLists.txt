@@ -1,12 +1,39 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.20)
 
 project(ai_factory_cuda_workbench LANGUAGES CXX CUDA)
+
+if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 13.3)
+    message(FATAL_ERROR "AI_factory requires CUDA Toolkit 13.3 or newer")
+endif()
+
+# CMake has recognized CUDA_STANDARD 23 since 3.20, but older releases do not
+# provide NVIDIA's dialect flag. CUDA 13.3 accepts this flag directly.
+if(NOT DEFINED CMAKE_CUDA23_STANDARD_COMPILE_OPTION)
+    set(CMAKE_CUDA23_STANDARD_COMPILE_OPTION "--std=c++23")
+    set(CMAKE_CUDA23_EXTENSION_COMPILE_OPTION "--std=c++23")
+endif()
 
 include(CTest)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
+
+option(
+    AI_FACTORY_USE_CCACHE
+    "Use ccache for repeated C++ and CUDA compilations when available"
+    ON
+)
+if(AI_FACTORY_USE_CCACHE)
+    find_program(AI_FACTORY_CCACHE_PROGRAM ccache)
+    if(AI_FACTORY_CCACHE_PROGRAM)
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${AI_FACTORY_CCACHE_PROGRAM}")
+        set(CMAKE_CUDA_COMPILER_LAUNCHER "${AI_FACTORY_CCACHE_PROGRAM}")
+        message(STATUS "Compiler cache: ${AI_FACTORY_CCACHE_PROGRAM}")
+    else()
+        message(STATUS "Compiler cache: ccache not found (optional)")
+    endif()
+endif()
 
 # cuFFTDx is optional because mathDx is distributed separately from the CUDA
 # toolkit. The fused rough-Bergomi pricer is enabled explicitly with the root
@@ -20,316 +47,113 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-# Keep the architecture list overridable from the CMake command line. CUDA
-# 11.8 introduced native Ada (SM 8.9) support; older toolkits retain the
-# portable Volta/Ampere default instead of failing configuration.
-if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 11.8)
-    set(_cuda_workbench_default_architectures "70;86;89")
-else()
-    set(_cuda_workbench_default_architectures "70;86")
-    message(STATUS
-        "CUDA < 11.8: SM 8.9 is unavailable; using architectures 70 and 86"
-    )
-endif()
+# Keep the architecture list overridable from the CMake command line. CUDA 13
+# supports offline compilation for Turing (SM 7.5) and newer GPUs.
+set(_cuda_workbench_default_architectures "75;86;89")
 set(
     CUDA_WORKBENCH_ARCHITECTURES "${_cuda_workbench_default_architectures}"
     CACHE STRING
-    "CUDA architectures (for example 89, 86, or 70;86;89)"
+    "CUDA architectures (for example 89, 86, or 75;86;89)"
 )
 set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
 
-# Host-only generation and serialization helpers shared by all generators.
-add_library(ai_factory_dataset_tools STATIC
-    tools/datasets/autocall_generation.cpp
-    tools/datasets/cliquet_generation.cpp
-    tools/datasets/range_accrual_generation.cpp
+# Host-only JSON validation and serialization used by every dataset family.
+add_library(ai_factory_dataset_core STATIC
     tools/datasets/dataset.cpp
-    tools/datasets/g2_generation.cpp
-    tools/datasets/nelson_siegel_generation.cpp
-    tools/datasets/ornstein_uhlenbeck_generation.cpp
-    tools/datasets/svensson_generation.cpp
-    tools/datasets/vasicek_generation.cpp
     tools/datasets/dataset_validation.cpp
 )
-target_include_directories(ai_factory_dataset_tools PUBLIC
+target_include_directories(ai_factory_dataset_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(
-    ai_factory_dataset_tools PUBLIC nlohmann_json::nlohmann_json
+    ai_factory_dataset_core PUBLIC nlohmann_json::nlohmann_json
 )
-target_compile_features(ai_factory_dataset_tools PUBLIC cxx_std_17)
-target_compile_options(ai_factory_dataset_tools PRIVATE -O3)
+target_compile_features(ai_factory_dataset_core PUBLIC cxx_std_23)
+target_compile_options(ai_factory_dataset_core PRIVATE -O3)
 
-add_library(cuda_workbench STATIC
-    src/common/cuda_kernel_diagnostics.cpp
-    src/common/longstaff_schwartz/exercise_schedule.cu
-    src/common/longstaff_schwartz/launch.cu
-    src/common/longstaff_schwartz/workspace.cu
-    src/curve/nelson_siegel/dataset.cpp
-    src/curve/svensson/dataset.cpp
-    src/model/fixed_income/cir/dataset.cpp
-    src/model/fixed_income/cir/rate_option.cu
-    src/model/fixed_income/cir/zero_coupon_bond_option.cu
-    src/model/fixed_income/g2/dataset.cpp
-    src/model/fixed_income/g2/rate_option.cu
-    src/model/fixed_income/g2/zero_coupon_bond_option.cu
-    src/model/fixed_income/g2_plus_plus/dataset.cpp
-    src/model/fixed_income/g2_plus_plus/nelson_siegel/rate_option.cu
-    src/model/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_option.cu
-    src/model/fixed_income/g2_plus_plus/svensson/rate_option.cu
-    src/model/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_option.cu
-    src/model/equity/black_scholes/dataset.cpp
-    src/model/equity/black_scholes/asian_option.cu
-    src/model/equity/black_scholes/asset_or_nothing_option.cu
-    src/model/equity/black_scholes/athena_autocall.cu
-    src/model/equity/black_scholes/cliquet.cu
-    src/model/equity/black_scholes/digital_option.cu
-    src/model/equity/black_scholes/double_knock_out_option.cu
-    src/model/equity/black_scholes/down_and_in_option.cu
-    src/model/equity/black_scholes/down_and_out_option.cu
-    src/model/equity/black_scholes/european_option.cu
-    src/model/equity/black_scholes/forward_start_option.cu
-    src/model/equity/black_scholes/gap_option.cu
-    src/model/equity/black_scholes/geometric_asian_option.cu
-    src/model/equity/black_scholes/lookback_option.cu
-    src/model/equity/black_scholes/phoenix_autocall.cu
-    src/model/equity/black_scholes/phoenix_memory_autocall.cu
-    src/model/equity/black_scholes/range_accrual.cu
-    src/model/equity/black_scholes/straddle.cu
-    src/model/equity/black_scholes/up_and_in_option.cu
-    src/model/equity/black_scholes/up_and_out_option.cu
-    src/model/equity/black_scholes/up_no_touch.cu
-    src/model/equity/black_scholes/up_one_touch.cu
-    src/model/equity/heston/dataset.cpp
-    src/model/equity/heston/american_option.cu
-    src/model/equity/heston/athena_autocall.cu
-    src/model/equity/heston/asian_option.cu
-    src/model/equity/heston/asset_or_nothing_option.cu
-    src/model/equity/heston/cliquet.cu
-    src/model/equity/heston/range_accrual.cu
-    src/model/equity/heston/digital_option.cu
-    src/model/equity/heston/double_knock_out_option.cu
-    src/model/equity/heston/down_and_in_option.cu
-    src/model/equity/heston/down_and_out_option.cu
-    src/model/equity/heston/european_option.cu
-    src/model/equity/heston/gap_option.cu
-    src/model/equity/heston/forward_start_option.cu
-    src/model/equity/heston/geometric_asian_option.cu
-    src/model/equity/heston/lookback_option.cu
-    src/model/equity/heston/phoenix_autocall.cu
-    src/model/equity/heston/phoenix_memory_autocall.cu
-    src/model/equity/heston/straddle.cu
-    src/model/equity/heston/up_and_in_option.cu
-    src/model/equity/heston/up_no_touch.cu
-    src/model/equity/heston/up_one_touch.cu
-    src/model/equity/heston/up_and_out_option.cu
-    src/model/equity/bates/dataset.cpp
-    src/model/equity/bates/american_option.cu
-    src/model/equity/bates/athena_autocall.cu
-    src/model/equity/bates/asian_option.cu
-    src/model/equity/bates/asset_or_nothing_option.cu
-    src/model/equity/bates/cliquet.cu
-    src/model/equity/bates/range_accrual.cu
-    src/model/equity/bates/digital_option.cu
-    src/model/equity/bates/double_knock_out_option.cu
-    src/model/equity/bates/down_and_in_option.cu
-    src/model/equity/bates/down_and_out_option.cu
-    src/model/equity/bates/european_option.cu
-    src/model/equity/bates/gap_option.cu
-    src/model/equity/bates/forward_start_option.cu
-    src/model/equity/bates/geometric_asian_option.cu
-    src/model/equity/bates/lookback_option.cu
-    src/model/equity/bates/phoenix_autocall.cu
-    src/model/equity/bates/phoenix_memory_autocall.cu
-    src/model/equity/bates/straddle.cu
-    src/model/equity/bates/up_and_in_option.cu
-    src/model/equity/bates/up_no_touch.cu
-    src/model/equity/bates/up_one_touch.cu
-    src/model/equity/bates/up_and_out_option.cu
-    src/model/equity/variance_gamma/dataset.cpp
-    src/model/equity/variance_gamma/american_option.cu
-    src/model/equity/variance_gamma/asian_option.cu
-    src/model/equity/variance_gamma/asset_or_nothing_option.cu
-    src/model/equity/variance_gamma/athena_autocall.cu
-    src/model/equity/variance_gamma/cliquet.cu
-    src/model/equity/variance_gamma/digital_option.cu
-    src/model/equity/variance_gamma/double_knock_out_option.cu
-    src/model/equity/variance_gamma/down_and_in_option.cu
-    src/model/equity/variance_gamma/down_and_out_option.cu
-    src/model/equity/variance_gamma/european_option.cu
-    src/model/equity/variance_gamma/forward_start_option.cu
-    src/model/equity/variance_gamma/gap_option.cu
-    src/model/equity/variance_gamma/geometric_asian_option.cu
-    src/model/equity/variance_gamma/lookback_option.cu
-    src/model/equity/variance_gamma/phoenix_autocall.cu
-    src/model/equity/variance_gamma/phoenix_memory_autocall.cu
-    src/model/equity/variance_gamma/range_accrual.cu
-    src/model/equity/variance_gamma/straddle.cu
-    src/model/equity/variance_gamma/up_and_in_option.cu
-    src/model/equity/variance_gamma/up_and_out_option.cu
-    src/model/equity/variance_gamma/up_no_touch.cu
-    src/model/equity/variance_gamma/up_one_touch.cu
-    src/model/equity/normal_inverse_gaussian/dataset.cpp
-    src/model/equity/rough_bergomi/dataset.cpp
-    src/model/equity/rough_bergomi/european_option.cu
-    src/model/equity/normal_inverse_gaussian/american_option.cu
-    src/model/equity/normal_inverse_gaussian/asian_option.cu
-    src/model/equity/normal_inverse_gaussian/asset_or_nothing_option.cu
-    src/model/equity/normal_inverse_gaussian/athena_autocall.cu
-    src/model/equity/normal_inverse_gaussian/cliquet.cu
-    src/model/equity/normal_inverse_gaussian/digital_option.cu
-    src/model/equity/normal_inverse_gaussian/double_knock_out_option.cu
-    src/model/equity/normal_inverse_gaussian/down_and_in_option.cu
-    src/model/equity/normal_inverse_gaussian/down_and_out_option.cu
-    src/model/equity/normal_inverse_gaussian/european_option.cu
-    src/model/equity/normal_inverse_gaussian/forward_start_option.cu
-    src/model/equity/normal_inverse_gaussian/gap_option.cu
-    src/model/equity/normal_inverse_gaussian/geometric_asian_option.cu
-    src/model/equity/normal_inverse_gaussian/lookback_option.cu
-    src/model/equity/normal_inverse_gaussian/phoenix_autocall.cu
-    src/model/equity/normal_inverse_gaussian/phoenix_memory_autocall.cu
-    src/model/equity/normal_inverse_gaussian/range_accrual.cu
-    src/model/equity/normal_inverse_gaussian/straddle.cu
-    src/model/equity/normal_inverse_gaussian/up_and_in_option.cu
-    src/model/equity/normal_inverse_gaussian/up_and_out_option.cu
-    src/model/equity/normal_inverse_gaussian/up_no_touch.cu
-    src/model/equity/normal_inverse_gaussian/up_one_touch.cu
-    src/model/fixed_income/hull_white/dataset.cpp
-    src/model/fixed_income/hull_white/nelson_siegel/rate_option.cu
-    src/model/fixed_income/hull_white/nelson_siegel/zero_coupon_bond_option.cu
-    src/model/fixed_income/hull_white/svensson/rate_option.cu
-    src/model/fixed_income/hull_white/svensson/zero_coupon_bond_option.cu
-    src/model/fixed_income/ornstein_uhlenbeck/european_swaption.cu
-    src/model/fixed_income/ornstein_uhlenbeck/rate_option.cu
-    src/model/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_option.cu
-    src/model/fixed_income/ornstein_uhlenbeck/dataset.cpp
-    src/model/fixed_income/vasicek/rate_option.cu
-    src/model/fixed_income/vasicek/zero_coupon_bond_option.cu
-    src/model/fixed_income/vasicek/dataset.cpp
-    src/product/american_option/dataset.cpp
-    src/product/athena_autocall/dataset.cpp
-    src/product/asian_option/dataset.cpp
-    src/product/asset_or_nothing_option/dataset.cpp
-    src/product/cliquet/dataset.cpp
-    src/product/range_accrual/dataset.cpp
-    src/product/digital_option/dataset.cpp
-    src/product/double_knock_out_option/dataset.cpp
-    src/product/down_and_in_option/dataset.cpp
-    src/product/down_and_out_option/dataset.cpp
-    src/product/european_option/dataset.cpp
-    src/product/european_swaption/dataset.cpp
-    src/product/rate_option/dataset.cpp
-    src/product/gap_option/dataset.cpp
-    src/product/forward_start_option/dataset.cpp
-    src/product/geometric_asian_option/dataset.cpp
-    src/product/lookback_option/dataset.cpp
-    src/product/phoenix_autocall/dataset.cpp
-    src/product/phoenix_memory_autocall/dataset.cpp
-    src/product/straddle/dataset.cpp
-    src/product/up_and_in_option/dataset.cpp
-    src/product/up_no_touch/dataset.cpp
-    src/product/up_one_touch/dataset.cpp
-    src/product/up_and_out_option/dataset.cpp
-    src/product/zero_coupon_bond_option/dataset.cpp
+# Parameter-only construction helpers stay outside price-generator builds.
+set(_ai_factory_generation_helpers
+    autocall_generation
+    cliquet_generation
+    g2_generation
+    nelson_siegel_generation
+    ornstein_uhlenbeck_generation
+    range_accrual_generation
+    svensson_generation
+    vasicek_generation
 )
-
-# Model-sample launchers share one persistent-grid contract. Exact models,
-# time-stepped Markov models, and rough Bergomi expose the same terminal and
-# regular-calendar surfaces while retaining their specialized dynamics.
-target_sources(cuda_workbench PRIVATE
-    src/model/equity/bates/sample.cu
-    src/model/equity/black_scholes/sample.cu
-    src/model/equity/cev/sample.cu
-    src/model/equity/heston/sample.cu
-    src/model/equity/kou/sample.cu
-    src/model/equity/merton/sample.cu
-    src/model/equity/normal_inverse_gaussian/sample.cu
-    src/model/equity/rough_bergomi/sample.cu
-    src/model/equity/schobel_zhu/sample.cu
-    src/model/equity/variance_gamma/sample.cu
-    src/model/fixed_income/cir/sample.cu
-    src/model/fixed_income/g2/sample.cu
-    src/model/fixed_income/g2_plus_plus/sample.cu
-    src/model/fixed_income/hull_white/sample.cu
-    src/model/fixed_income/ornstein_uhlenbeck/sample.cu
-    src/model/fixed_income/vasicek/sample.cu
-)
-
-# New equity models deliberately reuse the explicit product-specialized Monte
-# Carlo surface. Keeping the source list data-driven here avoids obscuring the
-# CUDA implementation behind a generic payoff kernel.
-set(_new_equity_monte_carlo_products
-    asian_option asset_or_nothing_option athena_autocall cliquet
-    digital_option double_knock_out_option down_and_in_option
-    down_and_out_option european_option forward_start_option gap_option
-    geometric_asian_option lookback_option phoenix_autocall
-    phoenix_memory_autocall range_accrual straddle up_and_in_option
-    up_and_out_option up_no_touch up_one_touch
-)
-foreach(_equity_model IN ITEMS merton kou cev schobel_zhu)
-    target_sources(cuda_workbench PRIVATE
-        src/model/equity/${_equity_model}/dataset.cpp
+set(_ai_factory_generation_targets)
+foreach(helper IN LISTS _ai_factory_generation_helpers)
+    set(target ai_factory_${helper})
+    add_library(
+        ${target} STATIC EXCLUDE_FROM_ALL tools/datasets/${helper}.cpp
     )
-    foreach(_product IN LISTS _new_equity_monte_carlo_products)
-        target_sources(cuda_workbench PRIVATE
-            src/model/equity/${_equity_model}/${_product}.cu
-        )
-    endforeach()
+    target_include_directories(${target} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(${target} PUBLIC ai_factory_dataset_core)
+    target_compile_features(${target} PUBLIC cxx_std_23)
+    target_compile_options(${target} PRIVATE -O3)
+    list(APPEND _ai_factory_generation_targets ${target})
 endforeach()
-target_include_directories(cuda_workbench PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+# Compatibility umbrella for parameter generators and external consumers.
+add_library(ai_factory_dataset_tools INTERFACE)
+target_link_libraries(ai_factory_dataset_tools INTERFACE
+    ai_factory_dataset_core
+    ${_ai_factory_generation_targets}
 )
-if(AI_FACTORY_MATHDX_ROOT)
-    if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
-        message(FATAL_ERROR
-            "AI_FACTORY_MATHDX_ROOT does not contain include/cufftdx.hpp"
-        )
-    endif()
-    if(NOT CUDA_WORKBENCH_ARCHITECTURES STREQUAL "89")
-        message(FATAL_ERROR
-            "The tuned cuFFTDx rough-Bergomi pricer currently targets SM 8.9; "
-            "configure CUDA_WORKBENCH_ARCHITECTURES=89"
-        )
-    endif()
-    target_sources(cuda_workbench PRIVATE
-        src/model/equity/rough_bergomi/european_option_fft.cu
-    )
-    target_include_directories(cuda_workbench PRIVATE
-        ${AI_FACTORY_MATHDX_ROOT}/include
-        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-    )
-    target_compile_definitions(cuda_workbench PUBLIC
-        AI_FACTORY_HAS_CUFFTDX=1
-    )
-endif()
-target_link_libraries(
-    cuda_workbench PUBLIC nlohmann_json::nlohmann_json ai_factory_dataset_tools
-)
-target_compile_features(cuda_workbench PUBLIC cxx_std_17)
-set_target_properties(cuda_workbench PROPERTIES
-    CUDA_STANDARD 17
-    CUDA_STANDARD_REQUIRED YES
-)
-target_compile_options(cuda_workbench PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-O3>
-    $<$<COMPILE_LANGUAGE:CXX>:-O3>
-)
+
+include(cmake/AIFactoryTargets.cmake)
 
 # Register one host-only parameter generator with shared build settings.
+add_custom_target(parameter_generators)
+add_custom_target(price_generators)
+
+function(ai_factory_collect_generation_dependencies output source)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
+    string(REGEX MATCHALL
+        "tools/datasets/[a-z0-9_]+_generation\\.hpp"
+        generation_headers
+        "${source_text}"
+    )
+    set(dependencies)
+    foreach(header IN LISTS generation_headers)
+        string(REGEX REPLACE
+            "tools/datasets/([^/]+)\\.hpp" "ai_factory_\\1"
+            candidate "${header}"
+        )
+        if(TARGET ${candidate})
+            list(APPEND dependencies ${candidate})
+        endif()
+    endforeach()
+    list(REMOVE_DUPLICATES dependencies)
+    set(${output} ${dependencies} PARENT_SCOPE)
+endfunction()
+
 function(add_parameter_generator target source)
-    add_executable(${target} ${source})
-    target_link_libraries(${target} PRIVATE ai_factory_dataset_tools)
-    target_compile_features(${target} PRIVATE cxx_std_17)
+    add_executable(${target} EXCLUDE_FROM_ALL ${source})
+    ai_factory_collect_generation_dependencies(dependencies ${source})
+    target_link_libraries(
+        ${target} PRIVATE ai_factory_dataset_core ${dependencies}
+    )
+    target_compile_features(${target} PRIVATE cxx_std_23)
+    add_dependencies(parameter_generators ${target})
 endfunction()
 
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
-    add_executable(${target} ${source})
+    add_executable(${target} EXCLUDE_FROM_ALL ${source})
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    ai_factory_collect_source_dependencies(dependencies ${source})
+    if(NOT dependencies)
+        message(FATAL_ERROR
+            "No compiled pricing unit found for generator ${target}: ${source}"
+        )
+    endif()
     target_link_libraries(
-        ${target} PRIVATE cuda_workbench ai_factory_dataset_tools
+        ${target} PRIVATE ${dependencies} ai_factory_dataset_core
     )
-    target_compile_features(${target} PRIVATE cxx_std_17)
+    target_compile_features(${target} PRIVATE cxx_std_23)
+    add_dependencies(price_generators ${target})
 endfunction()
 
 add_price_generator(
@@ -785,6 +609,46 @@ add_price_generator(
     generate_vasicek_zero_coupon_bond_puts_01
     catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
 )
+add_price_generator(
+    generate_ornstein_uhlenbeck_european_payer_swaptions_01
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_ornstein_uhlenbeck_european_receiver_swaptions_01
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_vasicek_european_payer_swaptions_01
+    catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_vasicek_european_receiver_swaptions_01
+    catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_cir_european_payer_swaptions_01
+    catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_cir_european_receiver_swaptions_01
+    catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_nelson_siegel_european_payer_swaptions_01
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_nelson_siegel_european_receiver_swaptions_01
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_european_payer_swaptions_01
+    catalog/model/fixed_income/hull_white/prices/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
+)
+add_price_generator(
+    generate_hull_white_svensson_european_receiver_swaptions_01
+    catalog/model/fixed_income/hull_white/prices/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
+)
 
 add_parameter_generator(
     generate_heston_01 catalog/model/equity/heston/parameters/heston_01/generator.cpp
@@ -953,8 +817,28 @@ add_parameter_generator(
     generate_zero_coupon_bond_options_01
     catalog/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01/generator.cpp
 )
+add_parameter_generator(
+    generate_european_swaptions_01
+    catalog/product/fixed_income/european_swaptions/european_swaptions_01/generator.cpp
+)
 
 if(BUILD_TESTING)
+    add_custom_target(ai_factory_tests)
+    add_custom_target(ai_factory_host_tests)
+    add_custom_target(ai_factory_cuda_tests)
+    add_custom_target(common_cuda_tests)
+    add_custom_target(equity_tests)
+    add_custom_target(fixed_income_tests)
+    add_dependencies(ai_factory_tests
+        ai_factory_host_tests
+        ai_factory_cuda_tests
+    )
+    add_dependencies(ai_factory_cuda_tests
+        common_cuda_tests
+        equity_tests
+        fixed_income_tests
+    )
+
     option(
         AI_FACTORY_QUANTLIB_VALIDATION
         "Run independent price-dataset checks through QuantLib Python"
@@ -968,6 +852,7 @@ if(BUILD_TESTING)
 
     add_executable(
         test_dataset_catalog
+        EXCLUDE_FROM_ALL
         tests/catalog_contract_test.cpp
     )
     target_include_directories(test_dataset_catalog PRIVATE
@@ -975,9 +860,10 @@ if(BUILD_TESTING)
     )
     target_link_libraries(
         test_dataset_catalog
-        PRIVATE cuda_workbench ai_factory_dataset_tools
+        PRIVATE ai_factory_dataset_core
     )
-    target_compile_features(test_dataset_catalog PRIVATE cxx_std_17)
+    target_compile_features(test_dataset_catalog PRIVATE cxx_std_23)
+    add_dependencies(ai_factory_host_tests test_dataset_catalog)
     add_test(
         NAME dataset_catalog
         COMMAND test_dataset_catalog
@@ -987,9 +873,17 @@ if(BUILD_TESTING)
         LABELS "workbench;catalog"
     )
 
-    add_executable(test_dataset_loaders tests/dataset_loaders_test.cpp)
-    target_link_libraries(test_dataset_loaders PRIVATE cuda_workbench)
-    target_compile_features(test_dataset_loaders PRIVATE cxx_std_17)
+    add_executable(
+        test_dataset_loaders EXCLUDE_FROM_ALL tests/dataset_loaders_test.cpp
+    )
+    ai_factory_collect_source_dependencies(
+        dataset_loader_dependencies tests/dataset_loaders_test.cpp
+    )
+    target_link_libraries(
+        test_dataset_loaders PRIVATE ${dataset_loader_dependencies}
+    )
+    target_compile_features(test_dataset_loaders PRIVATE cxx_std_23)
+    add_dependencies(ai_factory_host_tests test_dataset_loaders)
     add_test(NAME dataset_loaders COMMAND test_dataset_loaders)
     set_tests_properties(dataset_loaders PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -1549,6 +1443,15 @@ if(BUILD_TESTING)
                 )
             endforeach()
         endforeach()
+        foreach(model IN ITEMS cir ornstein_uhlenbeck vasicek)
+            foreach(side IN ITEMS payer receiver)
+                add_cached_standalone_rate_validation(
+                    ${model}
+                    european_${side}_swaption
+                    european_${side}_swaptions
+                )
+            endforeach()
+        endforeach()
 
         function(add_cached_fitted_rate_validation model curve product folder)
             add_test(
@@ -1588,25 +1491,53 @@ if(BUILD_TESTING)
                 endforeach()
             endforeach()
         endforeach()
+        foreach(curve IN ITEMS nelson_siegel svensson)
+            foreach(side IN ITEMS payer receiver)
+                add_cached_fitted_rate_validation(
+                    hull_white
+                    ${curve}
+                    european_${side}_swaption
+                    european_${side}_swaptions
+                )
+            endforeach()
+        endforeach()
     endif()
 
     # Register one GPU integration test with shared execution rules.
     function(add_cuda_workbench_test name source label timeout)
         set(target test_${name})
-        add_executable(${target} ${source})
+        add_executable(${target} EXCLUDE_FROM_ALL ${source})
         target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        ai_factory_collect_source_dependencies(dependencies ${source})
         target_link_libraries(
-            ${target} PRIVATE cuda_workbench ai_factory_dataset_tools
+            ${target} PRIVATE
+            ai_factory_runtime
+            ai_factory_dataset_core
+            ${dependencies}
         )
-        target_compile_features(${target} PRIVATE cxx_std_17)
+        target_compile_features(${target} PRIVATE cxx_std_23)
         set_target_properties(${target} PROPERTIES
-            CUDA_STANDARD 17
+            CUDA_STANDARD 23
             CUDA_STANDARD_REQUIRED YES
         )
+        add_dependencies(ai_factory_cuda_tests ${target})
+        file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" test_source_text)
+        set(domain_label common)
+        if(test_source_text MATCHES "model/fixed_income/")
+            add_dependencies(fixed_income_tests ${target})
+            set(domain_label fixed_income)
+        endif()
+        if(test_source_text MATCHES "model/equity/")
+            add_dependencies(equity_tests ${target})
+            set(domain_label equity)
+        endif()
+        if(NOT test_source_text MATCHES "model/(equity|fixed_income)/")
+            add_dependencies(common_cuda_tests ${target})
+        endif()
         add_test(NAME ${name} COMMAND ${target})
         set_tests_properties(${name} PROPERTIES
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;cuda;${label}"
+            LABELS "workbench;cuda;${domain_label};${label}"
             RESOURCE_LOCK cuda_gpu
             SKIP_RETURN_CODE 77
             TIMEOUT ${timeout}
@@ -1703,6 +1634,12 @@ if(BUILD_TESTING)
     add_cuda_workbench_test(
         ornstein_uhlenbeck_european_swaptions_cuda
         tests/ornstein_uhlenbeck_european_swaptions_cuda_test.cu
+        european_swaptions
+        30
+    )
+    add_cuda_workbench_test(
+        one_factor_european_swaptions_cuda
+        tests/one_factor_european_swaptions_cuda_test.cu
         european_swaptions
         30
     )

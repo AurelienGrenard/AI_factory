@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/black_scholes/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

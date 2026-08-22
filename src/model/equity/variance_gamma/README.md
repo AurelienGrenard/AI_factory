@@ -6,6 +6,7 @@
 ```text
 variance_gamma/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

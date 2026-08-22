@@ -99,8 +99,10 @@ qu'un nouveau payoff l'utilise.
 
 ## Ajouter un modele
 
-- [ ] Creer `src/model/<asset_class>/<model>/dataset.hpp` et `dataset.cpp`.
-- [ ] Declarer une structure de parametres compacte, explicite et adaptee au GPU.
+- [ ] Creer `src/model/<asset_class>/<model>/parameters.hpp` et y declarer une
+      structure de parametres compacte, explicite et adaptee au GPU.
+- [ ] Creer `src/model/<asset_class>/<model>/dataset.hpp` et `dataset.cpp` pour
+      le loader hote, tous deux dependants de `parameters.hpp`.
 - [ ] Implementer `load_models(...)` en preservant l'ordre des lignes.
 - [ ] Valider la structure JSON avant de lire les lignes.
 - [ ] Valider chaque parametre; toute erreur doit citer l'identifiant de ligne.
@@ -316,9 +318,15 @@ ou, pour l'exercice anticipe,
 - [ ] Expliquer les tolerances par la precision FP32 ou la statistique Monte-Carlo;
       ne pas les elargir uniquement pour faire passer le test.
 - [ ] Ecrire les 1 000 prix sous `validation/datasets/price`, avec empreintes
-      semantiques,
+      semantiques des sources et `validation_policy_fingerprint`,
       provenance `reference_pricer_id`, `row_priced`, version du backend
       utilisee et verification core/stress.
+- [ ] Apres un changement des seuls criteres de validation fixed income,
+      executer `python -m
+      validation.model.fixed_income.refresh_policy_fingerprints`: cette
+      migration revalide les caches sans relancer Premia ou QuantLib.
+- [ ] Regenerer avec `--generate` lorsque les sources ou le pricer de reference
+      changent; ne jamais recalculer une empreinte ou une metrique a la main.
 - [ ] Supprimer tout `validation_report.json` ou
       `validation.ipynb` adjacent au YAML et ne publier dans celui-ci que
       `status`, `verified` et `dataset`.
@@ -388,6 +396,8 @@ git status --short
 - [ ] Executer les tests CUDA sur le GPU cible.
 - [ ] Executer toutes les validations Premia et QuantLib concernees.
 - [ ] Executer la suite CTest complete sans echec.
+- [ ] Verifier que les empreintes des sources et de la politique courante sont
+      presentes et acceptees par les tests cache-only.
 - [ ] Comparer les performances au cas existant le plus proche.
 - [ ] Verifier qu'aucun dataset volumineux, build, site local ou note interne
       n'entre dans le commit.

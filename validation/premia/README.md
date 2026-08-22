@@ -8,9 +8,11 @@ checks.
 
 Premia is stateful and its binary interface is Windows-only. A small C runner is
 therefore cross-compiled with MinGW-w64 and executed under a private 64-bit Wine
-prefix. One runner process handles a complete dataset through a tab-separated
-stdin/stdout protocol; Wine and DLL startup are never repeated per row. Build
-artifacts and the Wine prefix live below `build/` and are not versioned.
+prefix. One runner process normally handles a complete dataset through a
+tab-separated stdin/stdout protocol. Hull-White swaption batches restart the
+runner every 100 rows because repeated fitted-curve reloads eventually corrupt
+Premia's process-local state. Wine and DLL startup are never repeated per row.
+Build artifacts and the Wine prefix live below `build/` and are not versioned.
 
 Install the two runtime dependencies once on Ubuntu/WSL:
 
@@ -74,12 +76,14 @@ The current catalogue includes the following direct Premia comparisons:
 - Kou: European calls/puts and straddles, using `AP_Carr_Kou`;
 - Vasicek and centered Ornstein-Uhlenbeck: European calls/puts on zero-coupon
   bonds, plus caplets/floorlets through their exact scaled bond-option
-  identities;
+  identities, and physical-settlement European payer/receiver swaptions through
+  the closed-form Jamshidian methods;
 - CIR: the bond-option formulas and finite-difference alternatives were
   inventoried and benchmarked, but the bundled methods are not used for
   certification for the reasons below;
 - Hull-White and G2++ fitted to Nelson-Siegel or Svensson: the same four
-  one-period and bond-option families through Premia HW1D/HW2D formulas.
+  one-period and bond-option families through Premia HW1D/HW2D formulas;
+  Hull-White also uses the closed-form payer/receiver swaption methods.
 
 The primitive engines are `CF_Call`, `CF_Put`, and `CF_Digit` for
 Black-Scholes; `CF_Call_Heston`/`CF_Put_Heston`; `CF_Call_MerHes` for the
@@ -89,6 +93,9 @@ Merton cash digital; `AP_Carr_Kou`; and
 The same two methods validate one-period floorlets/caplets after the exact
 strike and notional transformation. Premia's `Cap` and `Floor` contracts are
 multi-reset instruments and are deliberately not treated as caplets.
+European swaptions use `CF_Vasicek1d_PayerSwaption`,
+`CF_Vasicek1d_ReceiverSwaption`, `CF_HullWhite1d_PayerSwaption`, and
+`CF_HullWhite1d_ReceiverSwaption`.
 
 Merton arithmetic Asians use `AP_Asian_FMM_Mer` on its documented 52-date
 grid. Puts are reconstructed from the call using the expectation of that same
@@ -114,12 +121,23 @@ unreliable candidates, not eligible references. The complete closed-form core au
 the QuantLib specialized formula actually used. The detailed failed audit
 remains here; no divergent Premia price is selected or presented as a fallback.
 
+Premia exposes only `FD_Gauss_Cir1d_Swaption` and
+`FD_Explicit_Cir1d_SWAPTION` for CIR swaptions. On payer row `000001`, both are
+about 31% above the CUDA and QuantLib analytical values. On significant
+receiver row `000007`, they are respectively about 17% and 6% below. Both
+methods are therefore callable but unreliable, and every CIR swaption reference
+uses QuantLib's analytical bond-option decomposition.
+
 Premia HW1D/HW2D expects an initial-curve filename instead of curve
 coefficients. The runner writes one process-private temporary curve file per
-row, with locally bracketing nodes at the two contract dates and discounts
+row, with locally bracketing nodes at every required contract date and discounts
 evaluated from the catalogue Nelson-Siegel or Svensson formula. This preserves
 Premia as an independent pricer while making its internal linear interpolation
-numerically invisible. G2++ is converted exactly to Premia's HW2D state:
+numerically invisible. For swaptions, zero strike, 50-year expiry, and
+Hull-White 50-year swap tenor are outside the reliable operational domain;
+Premia also cannot represent a schedule whose payment spacing differs from its
+coupon accrual. Those rows use the specialized QuantLib fallback. G2++ is
+converted exactly to Premia's HW2D state:
 the short-rate noise combines the two G2++ Brownian shocks and the second
 Premia factor is the rescaled second OU factor. QuantLib remains the row-wise
 specialized fallback.

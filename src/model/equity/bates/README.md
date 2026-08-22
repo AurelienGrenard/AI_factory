@@ -6,6 +6,7 @@
 ```text
 bates/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

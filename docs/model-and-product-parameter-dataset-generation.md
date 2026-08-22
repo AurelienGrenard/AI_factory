@@ -64,11 +64,16 @@ draws subject to explicit ordering, cap/floor, and calendar constraints. Core
 rows precede stress rows. Fixed-income products use two Cartesian grids: a
 representative grid concentrated near ordinary rates or bond prices, followed
 by a sparse stress grid with unusually short and long dates, tenors, accruals,
-and strikes. All contractual dates are stored as positive integer business-day
-counts under the root convention `business_day / 252`. Pricing and validation
-adapters convert those counts to year fractions exactly once at their input
-boundary. A numerical grid such as `1 / 504` belongs only to a price dataset
-whose scheme or monitoring genuinely uses two transitions per business day.
+and strikes. Contractual dates are stored as positive integer business-day
+counts under the root model-time convention `business_day / 252`. Pricing and
+validation adapters convert those dates to model year fractions exactly once
+at their input boundary. When a coupon convention is independent from that
+clock, its contractual accrual is stored directly as an FP32 year fraction.
+Regular European swaptions store one `payment_interval`, one `payment_count`,
+and one `accrual_fraction`; explicitly dated schedules store parallel payment
+dates and accrual fractions in contiguous pools. A
+numerical grid such as `1 / 504` belongs only to a price dataset whose scheme or
+monitoring genuinely uses two transitions per business day.
 
 Price datasets remain distinct for call and put payoffs even when they share a
 single product-parameter dataset. The removed million-row Cartesian experiment

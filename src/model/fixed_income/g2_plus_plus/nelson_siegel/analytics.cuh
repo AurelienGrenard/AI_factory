@@ -124,14 +124,13 @@ __device__ __forceinline__ float forward_rate(
 );
 
 // Return the par swap rate observed at valuation_time.
+template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const G2PlusPlusFittedParameters& parameters,
     const model::g2::State& state,
     float valuation_time,
     float start_time,
-    const float* __restrict__ payment_times,
-    const float* __restrict__ accrual_periods,
-    std::uint32_t payment_count
+    const ScheduleView& schedule
 );
 
 }  // namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel

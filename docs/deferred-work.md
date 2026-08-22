@@ -74,36 +74,26 @@ website integration.
 
 ## European and early-exercise swaptions
 
-The standalone Ornstein-Uhlenbeck European payer/receiver launcher and its
-reusable Jamshidian analytics are implemented. The common catalogue product,
-price datasets, independent validation, remaining model/curve combinations,
-and early-exercise launchers described below remain deferred.
+European payer/receiver launchers and reusable Jamshidian analytics are
+implemented for standalone Ornstein-Uhlenbeck, Vasicek, CIR, and Hull-White
+one-factor fitted to either supported parametric curve. Their payer and receiver
+datasets are independently certified on all 900 core and 100 stress rows.
+Vasicek, centered OU, and Hull-White use Premia closed forms where the exact
+contract is supported and reliable, with specialized QuantLib Jamshidian
+fallbacks for the remaining rows. CIR uses QuantLib for all rows after both
+Premia finite-difference methods failed the numerical audit. The persistent
+caches include semantic and policy fingerprints and run cache-only in CI.
 
-**URGENT -- independently certify the Ornstein-Uhlenbeck European swaption.**
-The OU implementation may be reused as the code template for other one-factor
-Jamshidian models, but it must not be treated as an independently verified
-price source until all of the following validation work is complete:
-
-- run the existing payer and receiver CUDA test on a supported target GPU so
-  it executes rather than returning the no-device skip code;
-- add payer/receiver parity checks against the time-zero forward-starting swap
-  value across representative core and stress rows;
-- audit every compatible Premia method for the exact physical-settlement
-  contract, then configure specialized QuantLib and QuantLib Monte Carlo
-  fallbacks according to the mandatory validation hierarchy;
-- generate and pass the persistent 900-row core and 100-row stress independent
-  reference dataset for both payer and receiver prices, including semantic
-  fingerprints, row provenance, backend versions, tolerances, and failure
-  diagnostics;
-- keep every swaption catalogue entry unverified until the complete cached
-  validation passes without hidden finite comparison failures.
-
-Implement a common swaption product definition covering the underlying swap,
-exercise schedule, settlement convention, payer/receiver side, strike, and
-notional.
+G2/G2++ European implementations and all early-exercise swaption launchers
+remain deferred.
 
 European swaptions should use the best deterministic model-specific formula
-available. American or Bermudan swaptions should reuse the existing
+available. Add the G2 and G2++ European implementations only after selecting
+and documenting their non-Jamshidian numerical method. The current one-factor
+contract identifies exercise with the underlying swap start. Exact spot lags,
+distinct forward swap starts, and mid-curve swaptions require the corresponding
+generalized decomposition and remain deferred. American or Bermudan
+swaptions should reuse the existing
 early-exercise architecture: prepared rows, model-specific state simulation,
 Longstaff-Schwartz regression, backward cashflow updates, moment reduction, and
 memory-aware batch planning. Do not introduce a second early-exercise engine

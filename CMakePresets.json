@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "CUDA 13.3 development",
+      "description": "Ninja, GCC 14, CUDA 13.3, RTX 4090 (SM 8.9)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-13.3/bin/nvcc",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
+        "CUDA_WORKBENCH_ARCHITECTURES": "89",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "core",
+      "configurePreset": "dev",
+      "targets": ["ai_factory_dataset_core"],
+      "jobs": 2
+    },
+    {
+      "name": "fixed-income",
+      "configurePreset": "dev",
+      "targets": ["fixed_income"],
+      "jobs": 2
+    },
+    {
+      "name": "equity",
+      "configurePreset": "dev",
+      "targets": ["equity"],
+      "jobs": 2
+    },
+    {
+      "name": "all-models",
+      "configurePreset": "dev",
+      "targets": ["all_models"],
+      "jobs": 2
+    },
+    {
+      "name": "host-tests",
+      "configurePreset": "dev",
+      "targets": ["ai_factory_host_tests"],
+      "jobs": 2
+    },
+    {
+      "name": "cuda-tests",
+      "configurePreset": "dev",
+      "targets": ["ai_factory_cuda_tests"],
+      "jobs": 2
+    },
+    {
+      "name": "fixed-income-tests",
+      "configurePreset": "dev",
+      "targets": ["fixed_income_tests"],
+      "jobs": 2
+    },
+    {
+      "name": "equity-tests",
+      "configurePreset": "dev",
+      "targets": ["equity_tests"],
+      "jobs": 2
+    },
+    {
+      "name": "tests",
+      "configurePreset": "dev",
+      "targets": ["ai_factory_tests"],
+      "jobs": 2
+    },
+    {
+      "name": "parameter-generators",
+      "configurePreset": "dev",
+      "targets": ["parameter_generators"],
+      "jobs": 2
+    },
+    {
+      "name": "price-generators",
+      "configurePreset": "dev",
+      "targets": ["price_generators"],
+      "jobs": 2
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "tests",
+      "configurePreset": "dev",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "fixed-income-tests",
+      "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "fixed_income"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "equity-tests",
+      "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "equity"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

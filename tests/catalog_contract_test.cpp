@@ -70,6 +70,8 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/product/fixed_income/rate_options/rate_options_01/dataset.yaml",
     "catalog/product/fixed_income/zero_coupon_bond_options/"
     "zero_coupon_bond_options_01/dataset.yaml",
+    "catalog/product/fixed_income/european_swaptions/"
+    "european_swaptions_01/dataset.yaml",
     "catalog/model/equity/heston/prices/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/model/equity/heston/prices/european_puts/"

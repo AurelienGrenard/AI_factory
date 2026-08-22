@@ -9,23 +9,53 @@
 
 namespace ai_factory::workbench::product {
 
-// Keep one complete fixed-leg schedule in the trivially copyable CUDA row.
-inline constexpr std::size_t kMaximumEuropeanSwaptionPayments = 64U;
+// Regular fixed-leg schedule with exercise equal to the underlying swap start.
+struct RegularEuropeanSwaptionParameters {
+    float notional;
+    float strike;
+    float accrual_fraction;
+    std::uint32_t exercise_time;
+    std::uint32_t payment_interval;
+    std::uint32_t payment_count;
+};
 
-// Physical-settlement swaption with exercise equal to the underlying swap start.
-struct EuropeanSwaptionParameters {
+// Explicit fixed-leg schedule stored in two contiguous dataset pools.
+struct ExplicitEuropeanSwaptionParameters {
     float notional;
     float strike;
     std::uint32_t exercise_time;
     std::uint32_t payment_count;
-    std::uint32_t payment_times[kMaximumEuropeanSwaptionPayments];
-    std::uint32_t accrual_periods[kMaximumEuropeanSwaptionPayments];
+    std::size_t schedule_offset;
 };
 
-static_assert(std::is_trivially_copyable_v<EuropeanSwaptionParameters>);
+static_assert(
+    std::is_trivially_copyable_v<RegularEuropeanSwaptionParameters>
+);
+static_assert(
+    std::is_trivially_copyable_v<ExplicitEuropeanSwaptionParameters>
+);
+static_assert(sizeof(RegularEuropeanSwaptionParameters) == 24U);
+static_assert(sizeof(ExplicitEuropeanSwaptionParameters) == 24U);
 
-// Load every European-swaption row into one contiguous CUDA-ready vector.
-std::vector<EuropeanSwaptionParameters> load_european_swaptions(
+// Own regular product rows; no separate schedule allocation is required.
+struct RegularEuropeanSwaptionDataset {
+    std::vector<RegularEuropeanSwaptionParameters> products;
+};
+
+// Own explicit product rows and their two parallel fixed-leg schedule pools.
+struct ExplicitEuropeanSwaptionDataset {
+    std::vector<ExplicitEuropeanSwaptionParameters> products;
+    std::vector<std::uint32_t> payment_times;
+    std::vector<float> accrual_fractions;
+};
+
+// Load one regular-schedule European-swaption dataset.
+RegularEuropeanSwaptionDataset load_european_swaptions(
+    const std::filesystem::path& dataset_path
+);
+
+// Load arbitrary schedules and flatten them into contiguous pools.
+ExplicitEuropeanSwaptionDataset load_explicit_european_swaptions(
     const std::filesystem::path& dataset_path
 );
 

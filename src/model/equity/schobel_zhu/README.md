@@ -6,6 +6,7 @@
 ```text
 schobel_zhu/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

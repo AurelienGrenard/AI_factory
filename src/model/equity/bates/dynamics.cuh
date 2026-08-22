@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/bates/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
 #include "model/equity/heston/dynamics.cuh"
 
 #include <cuda_runtime.h>

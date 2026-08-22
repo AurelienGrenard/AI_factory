@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import ast
 from collections import Counter
 from dataclasses import dataclass
 import hashlib
+import inspect
 import json
 import math
 from pathlib import Path
 import re
+import textwrap
 from typing import Any, Mapping, Sequence
 
 import yaml
@@ -91,6 +94,22 @@ def _semantic_fingerprint(value: Any) -> str:
     return "sha256:" + hashlib.sha256(payload).hexdigest()
 
 
+def _semantic_python_source(value: Any) -> str:
+    """Return a formatting-independent AST for one policy implementation."""
+
+    try:
+        source = textwrap.dedent(inspect.getsource(value))
+    except (OSError, TypeError) as error:
+        raise RuntimeError(
+            f"Cannot inspect validation policy source for {value!r}."
+        ) from error
+    return ast.dump(
+        ast.parse(source),
+        annotate_fields=True,
+        include_attributes=False,
+    )
+
+
 def source_fingerprints(source_price_dataset: str | Path) -> dict[str, str]:
     """Hash only semantic prices and parameters, excluding volatile timing."""
 
@@ -160,6 +179,41 @@ def _tolerances_from_document(value: Any) -> ValidationTolerances:
         return ValidationTolerances(**{field: float(value[field]) for field in fields})
     except (TypeError, ValueError) as error:
         raise ValueError("verification.tolerances is invalid.") from error
+
+
+def validation_policy_fingerprint(
+    tolerances: ValidationTolerances,
+    allow_systematic_bias: bool = False,
+    systematic_bias_explanation: str | None = None,
+) -> str:
+    """Hash the current comparison policy and its semantic implementation."""
+
+    policy = {
+        "schema": "ai_factory.reference_price_validation_policy.v1",
+        "regimes": {"core": CORE_ROW_COUNT, "stress": STRESS_ROW_COUNT},
+        "tolerances": _tolerances_document(tolerances),
+        "systematic_bias_policy": {
+            "allowed": allow_systematic_bias,
+            "explanation": systematic_bias_explanation,
+        },
+        "implementation": {
+            value.__name__: _semantic_python_source(value)
+            for value in (
+                ValidationTolerances,
+                summarize_price_comparisons,
+                ReferenceDatasetValidation,
+                _tolerances_document,
+                _tolerances_from_document,
+                _verification_section,
+                verification_document,
+                _validate_verification,
+                _comparison_report,
+                compare_reference_dataset,
+                validate_published_reference,
+            )
+        },
+    }
+    return _semantic_fingerprint(policy)
 
 
 def _verification_section(
@@ -350,7 +404,10 @@ def _validate_verification(value: Any, database_id: str) -> None:
         raise ValueError("verification.status is inconsistent with its regimes.")
 
 
-def validate_reference_document(document: Mapping[str, Any]) -> None:
+def validate_reference_document(
+    document: Mapping[str, Any],
+    require_validation_policy_fingerprint: bool = False,
+) -> None:
     """Validate the stable envelope before a reference database is consumed."""
 
     database_id = document.get("database_id")
@@ -382,6 +439,22 @@ def validate_reference_document(document: Mapping[str, Any]) -> None:
         for value in fingerprints.values()
     ):
         raise ValueError(f"Reference dataset '{database_id}': invalid fingerprints.")
+
+    policy_fingerprint = document.get("validation_policy_fingerprint")
+    if policy_fingerprint is None:
+        if require_validation_policy_fingerprint:
+            raise ValueError(
+                f"Reference dataset '{database_id}': validation policy "
+                "fingerprint required."
+            )
+    elif (
+        not isinstance(policy_fingerprint, str)
+        or _FINGERPRINT_PATTERN.fullmatch(policy_fingerprint) is None
+    ):
+        raise ValueError(
+            f"Reference dataset '{database_id}': invalid validation policy "
+            "fingerprint."
+        )
 
     used_by_regime = _validate_pricers(
         document.get("reference_pricers"), database_id
@@ -602,6 +675,11 @@ def build_reference_document(
     document.update(
         {
             "source_fingerprints": source_fingerprints(source_path),
+            "validation_policy_fingerprint": validation_policy_fingerprint(
+                tolerances,
+                report.allow_systematic_bias,
+                report.systematic_bias_explanation,
+            ),
             "reference_pricers": dict(reference_pricers),
             "verification": verification_document(report, tolerances),
             "timing": {"wall_seconds": wall_seconds},
@@ -615,7 +693,9 @@ def build_reference_document(
 def write_reference_document(document: Mapping[str, Any], path: str | Path) -> None:
     """Validate and write one deterministic, human-readable reference JSON."""
 
-    validate_reference_document(document)
+    validate_reference_document(
+        document, require_validation_policy_fingerprint=True
+    )
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
@@ -645,13 +725,17 @@ def compare_reference_dataset(
     source_price_dataset: str | Path,
     reference_price_dataset: str | Path,
     tolerances: ValidationTolerances | None = None,
+    require_validation_policy_fingerprint: bool = False,
 ) -> ReferenceDatasetValidation:
     """Compare aligned source and cache, checking persisted verification."""
 
     source_path = Path(source_price_dataset).resolve()
     source = load_price_validation_input(source_path)
     reference_document = _read_object(Path(reference_price_dataset).resolve())
-    validate_reference_document(reference_document)
+    validate_reference_document(
+        reference_document,
+        require_validation_policy_fingerprint=require_validation_policy_fingerprint,
+    )
     _validate_envelope(source_path, reference_document)
     stored_tolerances = _tolerances_from_document(
         reference_document["verification"]["tolerances"]
@@ -667,15 +751,31 @@ def compare_reference_dataset(
         _tolerances_document(stored_tolerances)
     ):
         raise ValueError("Requested tolerances differ from the persisted policy.")
+    effective_tolerances = (
+        stored_tolerances if tolerances is None else tolerances
+    )
+    expected_policy_fingerprint = validation_policy_fingerprint(
+        effective_tolerances,
+        allow_systematic_bias,
+        systematic_bias_explanation,
+    )
+    stored_policy_fingerprint = reference_document.get(
+        "validation_policy_fingerprint"
+    )
+    if (
+        stored_policy_fingerprint is not None
+        and stored_policy_fingerprint != expected_policy_fingerprint
+    ):
+        raise ValueError("Reference validation policy fingerprint is stale.")
     report = _comparison_report(
         source,
         reference_document["results"],
-        stored_tolerances if tolerances is None else tolerances,
+        effective_tolerances,
         allow_systematic_bias,
         systematic_bias_explanation,
     )
     expected_verification = verification_document(
-        report, stored_tolerances if tolerances is None else tolerances
+        report, effective_tolerances
     )
     if reference_document["verification"] != expected_verification:
         raise ValueError(
@@ -687,12 +787,19 @@ def compare_reference_dataset(
 def validate_published_reference(
     source_price_dataset: str | Path,
     reference_price_dataset: str | Path,
+    tolerances: ValidationTolerances | None = None,
+    require_validation_policy_fingerprint: bool = False,
 ) -> ReferenceDatasetValidation:
     """Fail closed unless source, cache, verification, and YAML all agree."""
 
     source_path = Path(source_price_dataset).resolve()
     reference_path = Path(reference_price_dataset).resolve()
-    report = compare_reference_dataset(source_path, reference_path)
+    report = compare_reference_dataset(
+        source_path,
+        reference_path,
+        tolerances,
+        require_validation_policy_fingerprint,
+    )
     if not report.verified:
         raise ValueError("A failed reference dataset cannot be published.")
     root = _project_root(source_path)
@@ -726,6 +833,62 @@ def validate_published_reference(
     if not isinstance(catalog, dict) or catalog.get("validation") != expected:
         raise ValueError("Catalog validation metadata contradicts the reference cache.")
     return report
+
+
+def refresh_validation_policy_fingerprint(
+    source_price_dataset: str | Path,
+    reference_price_dataset: str | Path,
+    tolerances: ValidationTolerances = ValidationTolerances(),
+) -> ReferenceDatasetValidation:
+    """Revalidate cached prices and publish the current policy fingerprint."""
+
+    source_path = Path(source_price_dataset).resolve()
+    reference_path = Path(reference_price_dataset).resolve()
+    reference_document = _read_object(reference_path)
+    validate_reference_document(reference_document)
+    _validate_envelope(source_path, reference_document)
+    verification = reference_document["verification"]
+    bias_policy = verification.get("systematic_bias_policy")
+    allow_systematic_bias = isinstance(bias_policy, dict)
+    systematic_bias_explanation = (
+        bias_policy["explanation"] if allow_systematic_bias else None
+    )
+    report = _comparison_report(
+        load_price_validation_input(source_path),
+        reference_document["results"],
+        tolerances,
+        allow_systematic_bias,
+        systematic_bias_explanation,
+    )
+    if not report.verified:
+        raise ValueError(
+            "Reference prices fail the current validation policy; regenerate "
+            "them with the independent backend."
+        )
+    policy_fingerprint = validation_policy_fingerprint(
+        tolerances,
+        allow_systematic_bias,
+        systematic_bias_explanation,
+    )
+    reference_document["verification"] = verification_document(
+        report, tolerances
+    )
+    ordered_document: dict[str, Any] = {}
+    for field, value in reference_document.items():
+        if field == "validation_policy_fingerprint":
+            continue
+        ordered_document[field] = value
+        if field == "source_fingerprints":
+            ordered_document["validation_policy_fingerprint"] = (
+                policy_fingerprint
+            )
+    write_reference_document(ordered_document, reference_path)
+    return validate_published_reference(
+        source_path,
+        reference_path,
+        tolerances,
+        require_validation_policy_fingerprint=True,
+    )
 
 
 def synchronize_catalog_validation(
@@ -802,10 +965,12 @@ __all__ = (
     "compare_reference_dataset",
     "compare_reference_prices",
     "format_reference_validation",
+    "refresh_validation_policy_fingerprint",
     "source_fingerprints",
     "synchronize_catalog_validation",
     "validate_published_reference",
     "validate_reference_document",
+    "validation_policy_fingerprint",
     "verification_document",
     "write_reference_document",
 )

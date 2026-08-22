@@ -1,5 +1,6 @@
 // Verify rough-Bergomi hybrid preparation, transition, and Philox replay.
 #include "common/check_cuda.cuh"
+#include "model/equity/rough_bergomi/dataset.hpp"
 #include "model/equity/rough_bergomi/dynamics.cu"
 
 #include <cuda_runtime.h>

@@ -163,9 +163,13 @@ void launch_black_scholes_european_option_cuda(
 
 using LaunchSignature =
     decltype(launch_black_scholes_european_option_cuda<OptionSide::call>);
-template LaunchSignature
-launch_black_scholes_european_option_cuda<OptionSide::call>;
-template LaunchSignature
-launch_black_scholes_european_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_black_scholes_european_option_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_black_scholes_european_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::black_scholes

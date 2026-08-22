@@ -6,6 +6,7 @@ import QuantLib as ql
 
 from validation.quantlib.parameters import positive_number
 from validation.quantlib.rate_option import bond_option_times
+from validation.quantlib.swaption import swaption_times
 from validation.quantlib.term_structure import discount_curve, svensson_discount
 
 
@@ -18,7 +19,11 @@ def quantlib_model(
 
     if curve is None:
         raise ValueError("Hull-White validation requires a curve dataset.")
-    times = bond_option_times(product)
+    times = (
+        swaption_times(product)
+        if "exercise_time" in product
+        else bond_option_times(product)
+    )
     term_structure = discount_curve(
         lambda maturity: svensson_discount(curve, maturity), times
     )

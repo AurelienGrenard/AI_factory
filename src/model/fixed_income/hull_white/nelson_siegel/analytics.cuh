@@ -1,9 +1,11 @@
 // CUDA analytics for Hull-White one-factor fitted to Nelson-Siegel curves.
 #pragma once
 
+#include "common/fixed_income/swaption_side.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics.cuh"
+#include "product/european_swaption/schedule.cuh"
 
 #include <cuda_runtime.h>
 
@@ -124,13 +126,109 @@ __device__ __forceinline__ float forward_rate(
 );
 
 // Return the par swap rate observed at valuation_time.
+template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const HullWhiteFittedParameters& parameters,
     float state,
     float valuation_time,
     float start_time,
-    const float* __restrict__ payment_times,
-    const float* __restrict__ accrual_periods,
+    const ScheduleView& schedule
+);
+
+// Return the unit-notional value of the payer swap before optional exercise.
+template<typename ScheduleView>
+__device__ __forceinline__ float payer_swap_value(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float start_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+// Solve the unique one-factor Jamshidian state boundary at exercise.
+template<typename ScheduleView>
+__device__ __forceinline__ float jamshidian_state_boundary(
+    const HullWhiteFittedParameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+// Compatibility overload for one explicit day-count schedule.
+__device__ __forceinline__ float jamshidian_state_boundary(
+    const HullWhiteFittedParameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
+    std::uint32_t payment_count
+);
+
+// Return P(exercise,payment; boundary), the Jamshidian bond strike.
+__device__ __forceinline__ float jamshidian_bond_strike(
+    const HullWhiteFittedParameters& parameters,
+    float exercise_time,
+    float payment_time,
+    float state_boundary
+);
+
+template<SwaptionSide Side, typename ScheduleView>
+__device__ __forceinline__ float european_swaption_price(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+// Price a unit-notional European payer swaption by Jamshidian decomposition.
+template<typename ScheduleView>
+__device__ __forceinline__ float european_payer_swaption_price(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+// Compatibility overload for one explicit day-count schedule.
+__device__ __forceinline__ float european_payer_swaption_price(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
+    std::uint32_t payment_count
+);
+
+// Price a unit-notional European receiver swaption by Jamshidian decomposition.
+template<typename ScheduleView>
+__device__ __forceinline__ float european_receiver_swaption_price(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+// Compatibility overload for one explicit day-count schedule.
+__device__ __forceinline__ float european_receiver_swaption_price(
+    const HullWhiteFittedParameters& parameters,
+    float state,
+    float valuation_time,
+    float exercise_time,
+    float fixed_rate,
+    const std::uint32_t* __restrict__ payment_times,
+    const float* __restrict__ accrual_fractions,
+    float time_day_fraction,
     std::uint32_t payment_count
 );
 

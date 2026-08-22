@@ -16,7 +16,7 @@ indépendante.
 
 Les fonctions de dynamique sont `__device__ __forceinline__`. Elles ne lancent
 aucun kernel, n'allouent aucune mémoire et ne dépendent d'aucun paramètre de
-produit. Les données brutes proviennent de `dataset.hpp`; les primitives
+produit. Les paramètres bruts proviennent de `parameters.hpp`; les primitives
 aléatoires proviennent de `common/philox.cuh`.
 
 Les paramètres d'un produit, son payoff, ses barrières et ses règles d'arrêt
@@ -27,8 +27,10 @@ résumés de chemin réutilisables indépendamment d'un produit.
 
 Les responsabilités restent séparées entre les couches suivantes :
 
-- `src/model/<asset_class>/<model>/dataset.hpp/.cpp` porte la ligne brute et
-  son chargement ;
+- `src/model/<asset_class>/<model>/parameters.hpp` porte la ligne brute du
+  modèle, sans dépendance CUDA ni logique de sérialisation ;
+- `src/model/<asset_class>/<model>/dataset.hpp/.cpp` expose et implémente son
+  chargement hôte ;
 - `src/model/<asset_class>/<model>/dynamics.cuh/.cu` implémente le processus
   autonome ;
 - `src/model/<asset_class>/<model>/analytics.cuh/.cu` expose ses formules

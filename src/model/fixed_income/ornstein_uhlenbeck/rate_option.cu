@@ -198,7 +198,13 @@ void launch_ornstein_uhlenbeck_rate_option_cuda(
 
 // Build both public payoff specializations in this CUDA translation unit.
 using LaunchSignature = decltype(launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::call>);
-template LaunchSignature launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::call>;
-template LaunchSignature launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::model::ornstein_uhlenbeck

@@ -57,6 +57,10 @@ class CirRateValidationTest(unittest.TestCase):
                 set(document["source_fingerprints"]),
                 {"price_results", "model_parameters", "product_parameters"},
             )
+            self.assertRegex(
+                document["validation_policy_fingerprint"],
+                r"^sha256:[0-9a-f]{64}$",
+            )
             self.assertEqual(document["verification"]["status"], "passed")
             for regime in ("core", "stress"):
                 section = document["reference_pricers"][regime]
@@ -159,6 +163,32 @@ class CirRateValidationTest(unittest.TestCase):
             path.write_text(json.dumps(stale), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "fingerprints are stale"):
                 compare_reference_dataset(source, path)
+
+            stale_policy = copy.deepcopy(document)
+            stale_policy["validation_policy_fingerprint"] = (
+                "sha256:" + "0" * 64
+            )
+            path.write_text(json.dumps(stale_policy), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ValueError, "validation policy fingerprint is stale"
+            ):
+                compare_reference_dataset(source, path)
+
+            missing_policy = copy.deepcopy(document)
+            del missing_policy["validation_policy_fingerprint"]
+            path.write_text(json.dumps(missing_policy), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ValueError, "validation policy fingerprint required"
+            ):
+                validate_dataset(source, path)
+
+            old_tolerances = copy.deepcopy(document)
+            old_tolerances["verification"]["tolerances"]["absolute"] = 1.0
+            path.write_text(json.dumps(old_tolerances), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ValueError, "Requested tolerances differ"
+            ):
+                validate_dataset(source, path)
 
             falsified = copy.deepcopy(document)
             falsified["verification"]["core"]["maximum_absolute_error"] = 0.0

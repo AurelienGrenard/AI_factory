@@ -33,7 +33,6 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     constexpr float payment_times[] = {1.0f, 1.5f, 2.0f};
     constexpr float accrual_periods[] = {0.5f, 0.5f, 0.5f};
     constexpr std::uint32_t payment_days[] = {252U, 378U, 504U};
-    constexpr std::uint32_t accrual_days[] = {126U, 126U, 126U};
     constexpr float day_fraction = 1.0f / 252.0f;
 
     outputs[0] = ou::zero_coupon_bond(
@@ -54,9 +53,9 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
         state,
         valuation_time,
         0.5f,
-        payment_times,
-        accrual_periods,
-        3U
+        ai_factory::workbench::fixed_income::FixedLegScheduleView{
+            payment_times, accrual_periods, 3U,
+        }
     );
     const float swap_start_bond = ou::zero_coupon_bond(
         model, state, valuation_time, 0.5f
@@ -147,7 +146,7 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
         valuation_time,
         swap_strike,
         payment_days,
-        accrual_days,
+        accrual_periods,
         day_fraction,
         3U
     );
@@ -170,9 +169,9 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
         valuation_time,
         valuation_time,
         swap_strike,
-        payment_times,
-        accrual_periods,
-        3U
+        ai_factory::workbench::fixed_income::FixedLegScheduleView{
+            payment_times, accrual_periods, 3U,
+        }
     );
     outputs[27] = 1.0f - swap_end_bond - swap_strike * annuity;
 }

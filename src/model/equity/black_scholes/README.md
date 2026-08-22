@@ -6,6 +6,7 @@
 ```text
 black_scholes/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

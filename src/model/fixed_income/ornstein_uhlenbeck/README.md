@@ -6,6 +6,7 @@
 ```text
 ornstein_uhlenbeck/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh
@@ -251,13 +252,15 @@ The contractual rate $`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 **Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
 **Implementation:**
-`launch_ornstein_uhlenbeck_european_swaption_cuda<OptionSide::call>` prices
-the payer side and the `OptionSide::put` specialization prices the receiver
-side. The reusable Jamshidian boundary, bond strikes, swap value, and
-unit-notional payer/receiver formulas live in `analytics.cuh/.cu`.
+`launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::payer>` and
+the `SwaptionSide::receiver` specialization share the common one-factor
+Jamshidian engine.
 
 Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
 payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
+
+The integer dates use the model clock; each $`\delta_i`$ is supplied directly
+from the fixed leg's contractual day-count convention.
 
 At exercise,
 

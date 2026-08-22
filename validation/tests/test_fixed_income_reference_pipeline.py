@@ -13,6 +13,8 @@ import yaml
 from validation.model.fixed_income.reference_pipeline import (
     validate_cached_reference,
 )
+from validation.quantlib.price_validation import ValidationTolerances
+from validation.reference_price_dataset import validation_policy_fingerprint
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,14 +46,21 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
             / Path(*price_path)
         )
 
-    def test_all_32_catalogs_publish_only_a_verified_cache(self) -> None:
+    def test_all_42_catalogs_publish_only_a_verified_cache(self) -> None:
         sources = self._sources()
-        self.assertEqual(len(sources), 32)
+        self.assertEqual(len(sources), 42)
         for source in sources:
             source_document = json.loads(source.read_text(encoding="utf-8"))
             reference = self._reference(source)
             report = validate_cached_reference(source, reference)
             self.assertTrue(report.verified, source_document["database_id"])
+            reference_document = json.loads(
+                reference.read_text(encoding="utf-8")
+            )
+            self.assertRegex(
+                reference_document["validation_policy_fingerprint"],
+                r"^sha256:[0-9a-f]{64}$",
+            )
 
             catalog = ROOT / source_document["catalog"]
             yaml_document = yaml.safe_load(
@@ -93,6 +102,14 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
                     source, self._reference(source)
                 )
                 self.assertTrue(report.verified)
+
+    def test_policy_fingerprint_commits_the_current_tolerances(self) -> None:
+        default = validation_policy_fingerprint(ValidationTolerances())
+        changed = validation_policy_fingerprint(
+            ValidationTolerances(absolute=1.0e-6)
+        )
+        self.assertRegex(default, r"^sha256:[0-9a-f]{64}$")
+        self.assertNotEqual(default, changed)
 
 
 if __name__ == "__main__":

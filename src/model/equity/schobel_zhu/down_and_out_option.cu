@@ -301,7 +301,13 @@ void launch_schobel_zhu_down_and_out_option_cuda(
 
 // Build both public payoff specializations in this CUDA translation unit.
 using LaunchSignature = decltype(launch_schobel_zhu_down_and_out_option_cuda<OptionSide::call>);
-template LaunchSignature launch_schobel_zhu_down_and_out_option_cuda<OptionSide::call>;
-template LaunchSignature launch_schobel_zhu_down_and_out_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_schobel_zhu_down_and_out_option_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_schobel_zhu_down_and_out_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::schobel_zhu

@@ -61,9 +61,9 @@ __global__ void cir_test_kernel(float* outputs) {
         state,
         valuation_time,
         0.5f,
-        payment_times,
-        accrual_periods,
-        3U
+        ai_factory::workbench::fixed_income::FixedLegScheduleView{
+            payment_times, accrual_periods, 3U,
+        }
     );
     const float swap_start_bond = cir::zero_coupon_bond(
         model, state, valuation_time, 0.5f

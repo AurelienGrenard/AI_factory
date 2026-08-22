@@ -48,7 +48,9 @@ typedef enum ContractKind {
     CONTRACT_ZERO_COUPON_CALL,
     CONTRACT_ZERO_COUPON_PUT,
     CONTRACT_CAP,
-    CONTRACT_FLOOR
+    CONTRACT_FLOOR,
+    CONTRACT_PAYER_SWAPTION,
+    CONTRACT_RECEIVER_SWAPTION
 } ContractKind;
 
 typedef struct ModeSpec {
@@ -288,6 +290,36 @@ static const ModeSpec MODE_SPECS[] = {
     {"g2_plus_plus_svensson_zero_coupon_put", MODEL_G2_PLUS_PLUS,
      CONTRACT_ZERO_COUPON_PUT, "interest", "HullWhite2d",
      "ZeroCouponPutBondEuro", "CF_ZBPutEuroHW2D", 15},
+    {"vasicek_payer_swaption", MODEL_VASICEK, CONTRACT_PAYER_SWAPTION,
+     "interest", "Vasicek1d", "PayerSwaption",
+     "CF_Vasicek1d_PayerSwaption", 9},
+    {"vasicek_receiver_swaption", MODEL_VASICEK,
+     CONTRACT_RECEIVER_SWAPTION, "interest", "Vasicek1d",
+     "ReceiverSwaption", "CF_Vasicek1d_ReceiverSwaption", 9},
+    {"ornstein_uhlenbeck_payer_swaption", MODEL_ORNSTEIN_UHLENBECK,
+     CONTRACT_PAYER_SWAPTION, "interest", "Vasicek1d", "PayerSwaption",
+     "CF_Vasicek1d_PayerSwaption", 9},
+    {"ornstein_uhlenbeck_receiver_swaption", MODEL_ORNSTEIN_UHLENBECK,
+     CONTRACT_RECEIVER_SWAPTION, "interest", "Vasicek1d",
+     "ReceiverSwaption", "CF_Vasicek1d_ReceiverSwaption", 9},
+    {"cir_payer_swaption", MODEL_CIR, CONTRACT_PAYER_SWAPTION,
+     "interest", "Cir1d", "PayerSwaption",
+     "FD_Gauss_Cir1d_Swaption", 9},
+    {"cir_receiver_swaption", MODEL_CIR, CONTRACT_RECEIVER_SWAPTION,
+     "interest", "Cir1d", "ReceiverSwaption",
+     "FD_Gauss_Cir1d_Swaption", 9},
+    {"hull_white_nelson_siegel_payer_swaption", MODEL_HULL_WHITE,
+     CONTRACT_PAYER_SWAPTION, "interest", "HullWhite1d", "PayerSwaption",
+     "CF_HullWhite1d_PayerSwaption", 11},
+    {"hull_white_nelson_siegel_receiver_swaption", MODEL_HULL_WHITE,
+     CONTRACT_RECEIVER_SWAPTION, "interest", "HullWhite1d",
+     "ReceiverSwaption", "CF_HullWhite1d_ReceiverSwaption", 11},
+    {"hull_white_svensson_payer_swaption", MODEL_HULL_WHITE,
+     CONTRACT_PAYER_SWAPTION, "interest", "HullWhite1d", "PayerSwaption",
+     "CF_HullWhite1d_PayerSwaption", 13},
+    {"hull_white_svensson_receiver_swaption", MODEL_HULL_WHITE,
+     CONTRACT_RECEIVER_SWAPTION, "interest", "HullWhite1d",
+     "ReceiverSwaption", "CF_HullWhite1d_ReceiverSwaption", 13},
 };
 
 typedef struct PricingContext {
@@ -612,6 +644,11 @@ static int uses_fitted_curve(const PricingContext *context) {
         || context->spec->model_kind == MODEL_G2_PLUS_PLUS;
 }
 
+static int is_swaption_contract(const PricingContext *context) {
+    return context->spec->contract_kind == CONTRACT_PAYER_SWAPTION
+        || context->spec->contract_kind == CONTRACT_RECEIVER_SWAPTION;
+}
+
 static int is_svensson_curve(const PricingContext *context) {
     return strstr(context->spec->mode, "svensson") != NULL;
 }
@@ -660,8 +697,34 @@ static int write_curve_node(
         ? 16 : 0;
 }
 
+static int write_curve_bracket(
+    FILE *file,
+    const PricingContext *context,
+    const double *curve,
+    double maturity,
+    double *last_node
+) {
+    const double resolution = 1.0e-4;
+    const double lower = floor(maturity / resolution) * resolution;
+    const double upper = lower + resolution;
+    int status = 0;
+    if (lower > *last_node) {
+        status = write_curve_node(file, context, curve, lower);
+        if (status == 0) *last_node = lower;
+    }
+    if (status == 0 && upper > *last_node) {
+        status = write_curve_node(file, context, curve, upper);
+        if (status == 0) *last_node = upper;
+    }
+    return status;
+}
+
 static int write_fitted_curve(
-    PricingContext *context, const double *curve, double expiry, double maturity
+    PricingContext *context,
+    const double *curve,
+    double expiry,
+    double maturity,
+    double reset_period
 ) {
     FILE *file = fopen(context->curve_filename, "w");
     if (file == NULL) return 16;
@@ -670,20 +733,30 @@ static int write_fitted_curve(
      * each contractual date keep that interpolation local while the stored
      * discounts remain independent Nelson-Siegel/Svensson evaluations.
      */
-    const double resolution = 1.0e-4;
-    const double expiry_lower = floor(expiry / resolution) * resolution;
-    const double expiry_upper = expiry_lower + resolution;
-    const double maturity_lower = floor(maturity / resolution) * resolution;
-    const double maturity_upper = maturity_lower + resolution;
     int status = fprintf(file, "1 t=0\n") < 0 ? 16 : 0;
-    if (status == 0 && expiry_lower > 0.0)
-        status = write_curve_node(file, context, curve, expiry_lower);
+    double last_node = 0.0;
     if (status == 0)
-        status = write_curve_node(file, context, curve, expiry_upper);
-    if (status == 0 && maturity_lower > expiry_upper)
-        status = write_curve_node(file, context, curve, maturity_lower);
-    if (status == 0)
-        status = write_curve_node(file, context, curve, maturity_upper);
+        status = write_curve_bracket(
+            file, context, curve, expiry, &last_node
+        );
+    if (status == 0 && reset_period > 0.0) {
+        const double raw_count = (maturity - expiry) / reset_period;
+        const int reset_count = (int)llround(raw_count);
+        if (reset_count <= 0 || fabs(raw_count - reset_count) > 1.0e-7)
+            status = 12;
+        for (int index = 1; status == 0 && index <= reset_count; ++index)
+            status = write_curve_bracket(
+                file,
+                context,
+                curve,
+                expiry + index * reset_period,
+                &last_node
+            );
+    } else if (status == 0) {
+        status = write_curve_bracket(
+            file, context, curve, maturity, &last_node
+        );
+    }
     const int close_status = fclose(file);
     return status != 0 || close_status != 0 ? 16 : 0;
 }
@@ -696,8 +769,10 @@ static int prepare_fitted_rate_model(
     const int curve_count = is_svensson_curve(context) ? 6 : 4;
     const double *curve = &x[model_count];
     const int product_offset = model_count + curve_count;
-    const double expiry = x[product_offset + 1];
-    const double maturity = x[product_offset + 2];
+    const int swaption = is_swaption_contract(context);
+    const double expiry = x[product_offset + (swaption ? 2 : 1)];
+    const double maturity = x[product_offset + (swaption ? 3 : 2)];
+    const double reset_period = swaption ? x[product_offset + 4] : 0.0;
     const double first_tau = curve[is_svensson_curve(context) ? 4 : 3];
     const double second_tau = is_svensson_curve(context) ? curve[5] : 1.0;
     if (first_tau <= 0.0 || second_tau <= 0.0
@@ -744,7 +819,9 @@ static int prepare_fitted_rate_model(
         set_scalar(&model[6], sigma_u, context->model->TypeModel);
         set_scalar(&model[7], rho_ru, context->model->TypeModel);
     }
-    return write_fitted_curve(context, curve, expiry, maturity);
+    return write_fitted_curve(
+        context, curve, expiry, maturity, reset_period
+    );
 }
 
 static int prepare_contract(PricingContext *context, const double *x) {
@@ -898,6 +975,31 @@ static int prepare_contract(PricingContext *context, const double *x) {
             set_scalar(&context->option_variables[7], x[offset + 2],
                        context->option->TypeOpt);
             set_scalar(&context->option_variables[8], 1.0,
+                       context->option->TypeOpt);
+            break;
+            }
+        case CONTRACT_PAYER_SWAPTION:
+        case CONTRACT_RECEIVER_SWAPTION:
+            {
+            const int offset = count - 5;
+            const double expiry = x[offset + 2];
+            const double maturity = x[offset + 3];
+            const double reset_period = x[offset + 4];
+            const double raw_count = (maturity - expiry) / reset_period;
+            if (x[offset] <= 0.0 || x[offset + 1] < 0.0
+                || expiry <= 0.0 || maturity <= expiry
+                || reset_period <= 0.0
+                || fabs(raw_count - llround(raw_count)) > 1.0e-7)
+                return 12;
+            set_scalar(&context->option_variables[2], expiry,
+                       context->option->TypeOpt);
+            set_scalar(&context->option_variables[3], maturity,
+                       context->option->TypeOpt);
+            set_scalar(&context->option_variables[6], reset_period,
+                       context->option->TypeOpt);
+            set_scalar(&context->option_variables[4], x[offset],
+                       context->option->TypeOpt);
+            set_scalar(&context->option_variables[5], x[offset + 1],
                        context->option->TypeOpt);
             break;
             }

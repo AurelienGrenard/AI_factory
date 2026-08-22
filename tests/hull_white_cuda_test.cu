@@ -122,9 +122,9 @@ __global__ void hull_white_test_kernel(float* outputs) {
         state,
         0.0f,
         1.0f,
-        payment_times,
-        accrual_periods,
-        payment_count
+        ai_factory::workbench::fixed_income::FixedLegScheduleView{
+            payment_times, accrual_periods, payment_count,
+        }
     );
     const float swap_annuity =
         curve::nelson_siegel::discount_factor(initial_curve, 2.0f)

@@ -857,9 +857,13 @@ lsm::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
 // Build both public payoff specializations in this CUDA translation unit.
 using LaunchSignature =
     decltype(launch_normal_inverse_gaussian_american_option_cuda<OptionSide::call>);
-template LaunchSignature
-launch_normal_inverse_gaussian_american_option_cuda<OptionSide::call>;
-template LaunchSignature
-launch_normal_inverse_gaussian_american_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_normal_inverse_gaussian_american_option_cuda<OptionSide::call>;
+}  // namespace
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_normal_inverse_gaussian_american_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::normal_inverse_gaussian

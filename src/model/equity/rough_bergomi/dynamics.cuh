@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/rough_bergomi/dataset.hpp"
+#include "model/equity/rough_bergomi/parameters.hpp"
 
 #include <cuda_runtime.h>
 

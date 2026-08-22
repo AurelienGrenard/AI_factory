@@ -28,6 +28,7 @@ _PRODUCT_TIME_FIELDS = frozenset(
         "option_expiry",
         "bond_maturity",
         "exercise_time",
+        "payment_interval",
     }
 )
 _PRODUCT_TIME_ARRAY_FIELDS = frozenset(

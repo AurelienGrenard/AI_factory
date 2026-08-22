@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/merton/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

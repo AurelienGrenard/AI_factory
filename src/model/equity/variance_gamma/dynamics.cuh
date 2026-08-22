@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

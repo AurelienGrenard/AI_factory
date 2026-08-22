@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/parameters.hpp"
 
 #include <cuda_runtime.h>
 

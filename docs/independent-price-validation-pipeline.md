@@ -28,6 +28,15 @@ engine for that row only. A successful, financially admissible reference that
 fails the declared comparison is not replaced retrospectively by a closer
 price.
 
+European swaptions illustrate the distinction. Premia is primary for the
+Vasicek, centered-OU, and Hull-White rows inside its audited contract and
+operational domain. A distinct coupon accrual, zero strike, 50-year expiry, or
+Hull-White 50-year swap tenor is declared unsupported before pricing and uses
+the specialized QuantLib Jamshidian reference. CIR does not use row-wise
+selection: both available Premia finite-difference methods failed representative
+payer and receiver audits, so Premia is globally recorded as
+`available but not reliable` and QuantLib supplies all CIR swaption rows.
+
 ## Repository layout
 
 Source prices remain under:
@@ -68,7 +77,9 @@ The top-level identity mirrors the source dataset:
   "url": "https://datasets.ai-factory.example/v1/validation/price/...json",
   "row_count": 1000,
   "model_dataset": {"id": "...", "catalog": "...", "url": "..."},
-  "product_dataset": {"id": "...", "catalog": "...", "url": "..."}
+  "product_dataset": {"id": "...", "catalog": "...", "url": "..."},
+  "source_fingerprints": {"price_results": "sha256:..."},
+  "validation_policy_fingerprint": "sha256:..."
 }
 ```
 
@@ -76,6 +87,28 @@ Fitted models also copy `curve_dataset`. `source_fingerprints` hashes the
 semantic source prices, model parameters, product parameters, and curve
 parameters when present. Timing fields are intentionally excluded, so a
 benchmark-only change does not invalidate a correct price reference.
+
+### Two independent fingerprint layers
+
+The fingerprints answer two different questions:
+
+- `source_fingerprints`: are these cached references still aligned with the
+  exact generated prices and model, product, and curve parameters?
+- `validation_policy_fingerprint`: were they accepted under the exact policy
+  implemented today?
+
+The policy fingerprint hashes a canonical document containing the core/stress
+row counts, numerical tolerances, accepted-bias policy, and formatting-neutral
+Python ASTs of the functions that compute row allowances, systematic bias,
+verification metrics, and final publication status. A change to those rules
+therefore makes the old cache fail closed even when all source datasets are
+unchanged. Fixed-income references require this field; a missing, malformed,
+or stale value is a validation failure.
+
+SHA-256 provides stale-policy and accidental-tampering detection inside the
+repository. It is not an authenticity signature: a party allowed to modify
+both the validator and every reference cache can recompute the hashes. External
+authenticity would additionally require a signature or trusted manifest.
 
 ### Reference-pricer hierarchy
 
@@ -161,7 +194,9 @@ absolute tolerance
 The current defaults are `5e-7` absolute, `5e-5` relative, and five combined
 standard errors. Aggregate signed errors are tested independently for a
 material systematic bias. The JSON persists the policy and the exact core and
-stress metrics; cache validation recomputes them and rejects any mismatch.
+stress metrics; cache validation recomputes them and rejects any mismatch. It
+also compares the persisted tolerances with the current expected tolerances,
+so an old, more permissive threshold cannot remain silently authoritative.
 
 A dataset passes only if every row passes and no unexpected systematic bias is
 detected.
@@ -250,6 +285,21 @@ python -m validation.model.equity.black_scholes.european_call \
 Add `--generate` to that product command only when an explicit backend rerun is
 intended.
 
+When only the validation implementation or tolerances change, do not rerun the
+external pricers. Revalidate the immutable fixed-income reference prices and
+publish the new policy fingerprints with:
+
+```bash
+python -m validation.model.fixed_income.refresh_policy_fingerprints
+```
+
+This command is cache-only. It first verifies the source fingerprints, then
+recomputes all row decisions, core/stress metrics, and bias checks under the
+current policy. It writes the new verification block and policy fingerprint
+only when both regimes pass. If source prices or parameters changed, or if the
+selected reference engine/method must change, this command is insufficient:
+the affected reference must be regenerated explicitly with `--generate`.
+
 CTest registers migrated datasets with the `cached_reference` label:
 
 ```bash
@@ -266,6 +316,8 @@ Routine validation rejects publication if any of the following occurs:
 - the cache is absent or malformed;
 - source identity or row order differs;
 - a semantic fingerprint is stale;
+- the validation-policy fingerprint is absent, malformed, or stale;
+- persisted tolerances differ from the current expected policy;
 - core or stress is not exactly 900/100 rows;
 - pricer hierarchy order or `row_priced` provenance is inconsistent;
 - a price, standard error, allowance, or metric is invalid;
@@ -287,5 +339,20 @@ Routine validation rejects publication if any of the following occurs:
 7. Publish only after core and stress both pass.
 8. Replace adjacent reports/notebooks with the compact YAML cache link.
 9. Add cache-only unit and CTest coverage that blocks external-backend imports.
-10. Keep direct Premia and QuantLib modules as regeneration and diagnostic
+10. Require `validation_policy_fingerprint` and test missing, malformed, and
+    stale-policy failures.
+11. Keep direct Premia and QuantLib modules as regeneration and diagnostic
     tools, not routine publication tests.
+
+## Standard policy-change procedure
+
+1. Change the comparison implementation or current tolerances in source.
+2. Run the policy and fail-closed unit tests.
+3. Run `refresh_policy_fingerprints`; never edit hashes or verification metrics
+   by hand.
+4. Review the JSON diff: only the policy fingerprint and policy-dependent
+   verification fields may change.
+5. Run `ctest --test-dir build -L cached_reference --output-on-failure`.
+6. If any cached price fails the new policy, stop and investigate. Regenerate
+   with the independent backend only when a fresh external reference is
+   genuinely required.

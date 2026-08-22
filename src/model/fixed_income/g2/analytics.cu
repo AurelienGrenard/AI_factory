@@ -3,6 +3,9 @@
 
 #include "model/fixed_income/g2/analytics.cuh"
 
+#include "common/fixed_income/cashflows.cuh"
+#include "common/fixed_income/gaussian_bond_option.cuh"
+
 // Include exact G2 moments used by the analytical formulas below.
 #include "model/fixed_income/g2/dynamics.cu"
 
@@ -20,13 +23,6 @@ __device__ __forceinline__ float short_rate(const State& state) {
 // ==================== Model-specific implementation =======================
 
 namespace {
-
-constexpr float kInverseSqrtTwo = 0.70710678118654752440f;
-
-// Evaluate the standard normal cumulative distribution in FP32.
-__device__ __forceinline__ float normal_cdf(float value) {
-    return 0.5f * erfcf(-value * kInverseSqrtTwo);
-}
 
 struct AffineBondCoefficients {
     float log_A;
@@ -119,33 +115,34 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
         parameters, state, valuation_time, bond_maturity
     );
     const float expiry_bond = expf(expiry_log_bond);
-    const float underlying_bond = expf(underlying_log_bond);
     const float total_volatility = bond_option_total_volatility(
         parameters.process,
         option_expiry - valuation_time,
         bond_maturity - option_expiry
     );
-    if (total_volatility <= 1.0e-7f) {
-        return fmaxf(
-            option_sign * (underlying_bond - strike * expiry_bond),
-            0.0f
-        );
-    }
-
-    const float d1 =
-        (underlying_log_bond - expiry_log_bond - logf(strike))
-            / total_volatility
-        + 0.5f * total_volatility;
-    const float d2 = d1 - total_volatility;
-    return fmaxf(
+    return fixed_income::discounted_lognormal_bond_option_price(
+        {expiry_log_bond, expiry_bond},
+        underlying_log_bond,
+        total_volatility,
+        strike,
         option_sign
-            * (
-                underlying_bond * normal_cdf(option_sign * d1)
-                - strike * expiry_bond * normal_cdf(option_sign * d2)
-            ),
-        0.0f
     );
 }
+
+
+// Bind the two-factor bond function to common cashflow formulas.
+struct AnalyticsProvider {
+    __device__ __forceinline__ float zero_coupon_bond(
+        const ModelParameters& parameters,
+        const State& state,
+        float valuation_time,
+        float maturity
+    ) const {
+        return g2::zero_coupon_bond(
+            parameters, state, valuation_time, maturity
+        );
+    }
+};
 
 }  // namespace
 
@@ -284,38 +281,33 @@ __device__ __forceinline__ float forward_rate(
     float end_time,
     float accrual_period
 ) {
-    const float start_bond = zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+    return fixed_income::forward_rate(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        end_time,
+        accrual_period
     );
-    const float end_bond = zero_coupon_bond(
-        parameters, state, valuation_time, end_time
-    );
-    return (start_bond / end_bond - 1.0f) / accrual_period;
 }
 
-// Divide the conditional floating-leg value by the fixed-leg annuity.
+template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const ModelParameters& parameters,
     const State& state,
     float valuation_time,
     float start_time,
-    const float* __restrict__ payment_times,
-    const float* __restrict__ accrual_periods,
-    std::uint32_t payment_count
+    const ScheduleView& schedule
 ) {
-    float annuity = 0.0f;
-    float end_bond = 0.0f;
-    for (std::uint32_t payment = 0U; payment < payment_count; ++payment) {
-        const float current_bond = zero_coupon_bond(
-            parameters, state, valuation_time, payment_times[payment]
-        );
-        annuity = fmaf(accrual_periods[payment], current_bond, annuity);
-        end_bond = current_bond;
-    }
-    const float start_bond = zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+    return fixed_income::swap_rate(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        schedule
     );
-    return (start_bond - end_bond) / annuity;
 }
 
 }  // namespace ai_factory::workbench::model::g2

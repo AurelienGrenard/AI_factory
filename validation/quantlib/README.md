@@ -46,6 +46,10 @@ Supported datasets are:
 
 - CIR, OU, Vasicek, G2, and Hull-White or G2++ fitted to Nelson-Siegel or
   Svensson: bond calls, bond puts, caplets, and floorlets;
+- CIR, OU, Vasicek, and Hull-White fitted to Nelson-Siegel or Svensson:
+  one-factor European payer/receiver swaptions through an independent
+  double-precision Jamshidian decomposition built from QuantLib bond and
+  bond-option primitives;
 - Heston terminal-payoff families through specialized analytic engines;
 - Heston arithmetic and geometric Asians, discrete barriers, touches, double
   knock-outs, Athena, Phoenix, Cliquet, and Range Accrual products through
@@ -75,12 +79,16 @@ branch can lose the out-of-the-money tail and return a negative opposite-side
 price, so the adapter evaluates the OTM side and reconstructs the ITM side by
 exact zero-coupon put-call parity. This enforces non-negativity and parity in
 the extreme tails. It is the reliable CIR reference after the callable Premia
-formula failed its source and numerical audit. Its 1,000 prices per product are
-persisted under `validation/datasets/price/fixed_income/cir`; all four products
-pass both the 900-row core and 100-row stress regimes. Standalone G2 uses the
-same persistent contract with `G2.discountBondOption`; the other 24 analytical
-fixed-income bases persist their selected Premia prices. Thus routine checks of
-all 32 fixed-income caches require neither QuantLib nor Premia.
+formula failed its source and numerical audit. The same stabilized primitive
+feeds the CIR swaption Jamshidian decomposition after both Premia CIR swaption
+finite-difference methods failed representative payer and receiver rows. Its
+1,000 prices per product are persisted under
+`validation/datasets/price/fixed_income/cir`; all six products pass both the
+900-row core and 100-row stress regimes. Standalone G2 uses the same persistent
+contract with `G2.discountBondOption`. The remaining one-factor swaption caches
+use Premia where its exact contract is reliable and QuantLib row-wise for
+unsupported or impractical stress schedules. Thus routine checks of all 42
+fixed-income caches require neither QuantLib nor Premia.
 
 QuantLib 1.43 exposes no Normal-Inverse-Gaussian process or pricing engine in
 its Python binding. NIG datasets are therefore published with explicit `none`

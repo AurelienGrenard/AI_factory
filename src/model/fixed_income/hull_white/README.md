@@ -6,16 +6,21 @@
 ```text
 hull_white/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── nelson_siegel/analytics.cu
 ├── nelson_siegel/analytics.cuh
+├── nelson_siegel/european_swaption.cu
+├── nelson_siegel/european_swaption.cuh
 ├── nelson_siegel/rate_option.cu
 ├── nelson_siegel/rate_option.cuh
 ├── nelson_siegel/zero_coupon_bond_option.cu
 ├── nelson_siegel/zero_coupon_bond_option.cuh
 ├── svensson/analytics.cu
 ├── svensson/analytics.cuh
+├── svensson/european_swaption.cu
+├── svensson/european_swaption.cuh
 ├── svensson/rate_option.cu
 ├── svensson/rate_option.cuh
 ├── svensson/zero_coupon_bond_option.cu
@@ -273,10 +278,18 @@ The contractual rate $`K=S(0;T_0,T_n)`$ makes the swap worth zero at inception.
 
 **Pricing method:** Closed form — Jamshidian decomposition into zero-coupon bond puts.
 
-**Status:** Planned; the pricing launcher is not implemented.
+**Implementation:**
+`launch_hull_white_nelson_siegel_european_swaption_cuda` and
+`launch_hull_white_svensson_european_swaption_cuda` compose each model with
+its parametric curve. Their `SwaptionSide::payer` and
+`SwaptionSide::receiver` specializations share the common one-factor
+Jamshidian engine.
 
 Parameters: exercise and swap start $`T_0`$, notional $`N`$, fixed rate $`K`$,
 payment dates $`T_1,\ldots,T_n`$, and accruals $`\delta_1,\ldots,\delta_n`$.
+
+The integer dates use the model clock; each $`\delta_i`$ is supplied directly
+from the fixed leg's contractual day-count convention.
 
 At exercise,
 

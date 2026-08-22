@@ -104,7 +104,10 @@ def validate_cached_reference(
     """Fail closed on cache, fingerprints, verification, or YAML drift."""
 
     return validate_published_reference(
-        source_price_dataset, reference_price_dataset
+        source_price_dataset,
+        reference_price_dataset,
+        ValidationTolerances(),
+        require_validation_policy_fingerprint=True,
     )
 
 

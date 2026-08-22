@@ -12,6 +12,13 @@ struct ModelProductIndices {
     std::size_t product_index;
 };
 
+// Indices addressed by one flattened model/curve/product pricing result.
+struct ModelCurveProductIndices {
+    std::size_t model_index;
+    std::size_t curve_index;
+    std::size_t product_index;
+};
+
 // Decode a result index for either aligned rows or a Cartesian product.
 // In Cartesian mode, products vary fastest within each model.
 __host__ __device__ constexpr ModelProductIndices
@@ -27,6 +34,26 @@ decode_model_product_result_index(
         };
     }
     return {result_index, result_index};
+}
+
+// Decode aligned rows or model-major, curve-middle, product-fastest results.
+__host__ __device__ constexpr ModelCurveProductIndices
+decode_model_curve_product_result_index(
+    std::size_t result_index,
+    std::size_t curve_count,
+    std::size_t product_count,
+    bool cartesian_product
+) noexcept {
+    if (cartesian_product) {
+        const std::size_t curve_product_count = curve_count * product_count;
+        const std::size_t remainder = result_index % curve_product_count;
+        return {
+            result_index / curve_product_count,
+            remainder / product_count,
+            remainder % product_count,
+        };
+    }
+    return {result_index, result_index, result_index};
 }
 
 }  // namespace ai_factory::workbench

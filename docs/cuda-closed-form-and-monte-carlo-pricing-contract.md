@@ -26,7 +26,9 @@ fermée utilise `evaluate_price` et généralement un thread par prix.
 - `<product>` désigne la famille de produit commune aux variantes call/put.
 - Le préfixe complet est `<model>_<curve>_<product>` lorsqu'une courbe est
   nécessaire, sinon `<model>_<product>`.
-- Le côté du payoff est un paramètre de template `OptionSide Side`. Il ne doit
+- Le côté call/put du payoff est un paramètre de template `OptionSide Side`.
+  Une swaption utilise le type dédié `SwaptionSide` pour éviter toute
+  correspondance implicite entre call/put et payer/receiver. Le côté ne doit
   pas être stocké dans les lignes et ne doit pas produire de branche runtime
   dans le chemin chaud.
 
@@ -38,6 +40,7 @@ fermée utilise `evaluate_price` et généralement un thread par prix.
 | `__device__ __forceinline__` | device | primitive appelée dans un kernel et destinée à être inlinée |
 | `__global__` | device, appelée par l'hôte | point d'entrée d'un kernel CUDA |
 | `template<OptionSide Side>` | compilation | spécialisation call/put sans branche runtime |
+| `template<SwaptionSide Side>` | compilation | spécialisation payer/receiver sans branche runtime |
 | `__restrict__` | paramètres de kernel | absence d'alias entre les tableaux concernés |
 
 ## Types et fonctions obligatoires
@@ -166,6 +169,9 @@ Le bas du `.cu` doit instancier les versions publiques
 directement `launch_..._cuda<OptionSide::call/put>` sans inclure
 l'implémentation CUDA et sans wrapper de dispatch runtime.
 
+Les launchers de swaptions instancient de la même façon
+`SwaptionSide::payer` et `SwaptionSide::receiver`.
+
 Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
 
 ## Paramètres communs des launchers
@@ -175,11 +181,14 @@ Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
 | `device_models`, `model_count` | lignes de modèle présentes sur le device |
 | `device_curves`, `curve_count` | courbes présentes sur le device, si requises |
 | `device_products`, `product_count` | lignes de produit présentes sur le device |
+| `device_payment_times`, `device_accrual_fractions` | pools parallèles réservés aux schedules explicitement datés de longueur variable |
+| `schedule_size` | nombre d'éléments de chacun des deux pools explicites ; absent du fast path régulier |
 | `cartesian_product` | sélection entre construction alignée et produit cartésien |
 | `result_count` | taille totale des tableaux de résultats |
 | `result_offset`, `launch_result_count` | sous-plage traitée par un batch Monte Carlo |
 | `monte_carlo_paths_per_price` | chemins indépendants par prix |
 | `day_fraction` | fraction d'année représentée par un jour contractuel, par exemple `1 / 252` |
+| `time_day_fraction` | même conversion, nommée explicitement lorsqu'elle s'applique à l'horloge du modèle et jamais aux accruals contractuels |
 | `dt` | durée fixe d'une transition élémentaire d'un schéma ; omise pour les incréments exacts aux dates du payoff |
 | `simulation_steps_per_day` | nombre de transitions numériques ou de points de monitoring par jour contractuel |
 | `threads_per_block` | nombre de threads CUDA par bloc |
@@ -188,10 +197,17 @@ Un produit sans côté n'ajoute ni template artificiel ni instanciation double.
 | `device_prices` | prix FP32 écrits sur le device |
 | `device_standard_errors` | erreurs standards FP32, uniquement en Monte Carlo |
 
+Une swaption européenne régulière porte directement `payment_interval`,
+`payment_count` et `accrual_fraction` dans sa ligne produit. Son kernel ne
+reçoit aucun pool de schedule. La surcharge explicite conserve un
+`schedule_offset` et reçoit les deux pools au niveau du dataset ; les deux
+chemins spécialisent le même corps de kernel et leurs vues sont résolues à la
+compilation.
+
 ## Temps, grilles et convention
 
-Un dataset produit porte ses dates et durées contractuelles comme des nombres
-entiers de jours. Sa racine JSON et son YAML déclarent une seule fois :
+Un dataset produit porte ses dates contractuelles comme des nombres entiers de
+jours. Sa racine JSON et son YAML déclarent une seule fois :
 
 ```yaml
 time_convention:
@@ -201,8 +217,19 @@ time_convention:
 
 Cette section n'est pas une grille de simulation. Le launcher d'une formule ou
 d'une transition exacte reçoit `day_fraction = 1 / days_per_year`, convertit
-une date absolue ou un écart de dates en fraction d'année, puis prépare
-directement l'intervalle contractuel. Il ne reçoit aucun `num_steps` artificiel.
+une date absolue ou un écart exprimé sur cette même horloge en fraction d'année,
+puis prépare directement l'intervalle contractuel. Il ne reçoit aucun
+`num_steps` artificiel.
+
+Une fraction d'accrual calculée sous une convention de coupon indépendante ne
+se déduit pas de cette horloge. Elle est calculée en amont puis stockée
+directement en FP32. Pour un schedule explicite, `payment_times` contient les
+dates entières du modèle et `accrual_fractions` contient les $`\delta_i`$
+contractuels dans deux pools parallèles. Chaque ligne produit porte
+`schedule_offset` en `size_t` et `payment_count` en `uint32_t`; aucune taille
+maximale statique n'est réservée par ligne. Le loader hôte impose des dates
+strictement croissantes, des accruals finis et positifs, l'égalité des deux
+longueurs, puis le launcher reçoit la taille commune des pools.
 
 Un dataset de prix réellement discrétisé déclare en plus, dans son propre YAML
 et jamais dans le produit :

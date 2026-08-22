@@ -6,6 +6,7 @@
 ```text
 kou/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

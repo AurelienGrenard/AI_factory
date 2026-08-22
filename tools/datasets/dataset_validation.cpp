@@ -157,6 +157,7 @@ bool is_business_day_field(const std::string& name) {
         || name == "observation_interval"
         || name == "fixing_time"
         || name == "payment_time"
+        || name == "payment_interval"
         || name == "accrual_period"
         || name == "option_expiry"
         || name == "bond_maturity";

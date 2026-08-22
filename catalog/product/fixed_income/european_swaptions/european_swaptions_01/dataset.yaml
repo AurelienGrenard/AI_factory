@@ -1,0 +1,136 @@
+title: "European Swaptions parameter dataset european_swaptions_01"
+database_id: "european_swaptions_01"
+product_family: "European Swaptions"
+catalog: "catalog/product/fixed_income/european_swaptions/european_swaptions_01"
+url: "https://datasets.ai-factory.example/v1/product/european_swaptions/european_swaptions_01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+parameters:
+  notional: "Contract notional N."
+  strike: "Fixed swap rate K."
+  exercise_time: "Exercise date and underlying swap start T_e in business days."
+  payment_interval: "Constant number of business days between fixed-leg payments."
+  payment_count: "Number of fixed-leg payments."
+  accrual_fraction: "Constant contractual year fraction delta for each coupon."
+payoff:
+  expression: "N * max(omega * (1 - P(T_e,T_N) - K * sum_i delta * P(T_e,T_i)), 0), omega = +1 payer / -1 receiver"
+  exercise_time: "T_e equals the underlying swap start."
+  settlement: "physical"
+  normalization: "N = 1"
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "Cartesian grid"
+      rule: "Every exercise time, regular fixed-leg schedule, and strike combination."
+      description: "Standard expiries, one-to-twenty-year swaps, annual or semiannual fixed legs, and strikes concentrated around ordinary rate levels."
+      exercise_times:
+        - 63
+        - 126
+        - 252
+        - 504
+        - 756
+        - 1260
+        - 1764
+        - 2520
+        - 3780
+        - 5040
+      schedules:
+        -
+          payment_interval: 252
+          payment_count: 1
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 2
+          accrual_fraction: 0.5
+        -
+          payment_interval: 252
+          payment_count: 2
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 4
+          accrual_fraction: 0.5
+        -
+          payment_interval: 252
+          payment_count: 5
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 10
+          accrual_fraction: 0.5
+        -
+          payment_interval: 252
+          payment_count: 10
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 20
+          accrual_fraction: 0.5
+        -
+          payment_interval: 252
+          payment_count: 20
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 40
+          accrual_fraction: 0.5
+      strikes:
+        - 0.004999999888241291
+        - 0.012500000186264515
+        - 0.019999999552965164
+        - 0.027499999850988388
+        - 0.03500000014901161
+        - 0.042500000447034836
+        - 0.05000000074505806
+        - 0.06499999761581421
+        - 0.07999999821186066
+      notional: 1.0
+  stress:
+    row_count: 100
+    generation:
+      method: "Cartesian grid"
+      rule: "Every exercise time, regular fixed-leg schedule, and strike combination."
+      description: "Very short or long expiries, one-payment through fifty-year fixed legs, monthly long schedules, and zero or unusually high strikes."
+      exercise_times:
+        - 1
+        - 5
+        - 21
+        - 7560
+        - 12600
+      schedules:
+        -
+          payment_interval: 5
+          payment_count: 1
+          accrual_fraction: 0.01923076994717121
+        -
+          payment_interval: 21
+          payment_count: 12
+          accrual_fraction: 0.0833333358168602
+        -
+          payment_interval: 21
+          payment_count: 600
+          accrual_fraction: 0.0833333358168602
+        -
+          payment_interval: 63
+          payment_count: 200
+          accrual_fraction: 0.25
+        -
+          payment_interval: 252
+          payment_count: 50
+          accrual_fraction: 1.0
+      strikes:
+        - 0.0
+        - 0.0010000000474974513
+        - 0.15000000596046448
+        - 0.3499999940395355
+      notional: 1.0

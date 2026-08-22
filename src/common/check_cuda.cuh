@@ -23,6 +23,11 @@ inline void check_cuda(cudaError_t status, const char* operation) {
     }
 }
 
+// Accept dynamically composed operation labels without temporary c_str calls.
+inline void check_cuda(cudaError_t status, const std::string& operation) {
+    check_cuda(status, operation.c_str());
+}
+
 // Multiply CUDA allocation dimensions while rejecting size_t overflow.
 inline std::size_t checked_workspace_product(
     std::size_t left,

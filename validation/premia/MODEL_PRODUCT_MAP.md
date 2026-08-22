@@ -202,6 +202,20 @@ Premia prefixes its pricing methods by numerical strategy. This binary exports:
 - 75 `TR` methods: trees, quantization, and related backward schemes;
 - 185 `MC` methods: Monte Carlo pricing methods.
 
+For the implemented one-factor European swaptions, the exhaustive inventory is:
+
+- `Vasicek1D`: `CF_Vasicek1d_PayerSwaption`,
+  `CF_Vasicek1d_ReceiverSwaption`, `FD_Gauss_Vasicek1d_SWAPTION`, and
+  `FD_Explicit_Vasicek1d_SWAPTION`;
+- `HullWhite1D`: `CF_HullWhite1d_PayerSwaption`,
+  `CF_HullWhite1d_ReceiverSwaption`, and `TR_SwaptionHW1D`;
+- `Cir1D`: `FD_Gauss_Cir1d_Swaption` and
+  `FD_Explicit_Cir1d_SWAPTION`.
+
+The closed forms are selected for Vasicek and Hull-White. Both CIR finite-
+difference methods fail the numerical audit and are retained as callable but
+unreliable candidates.
+
 The `MC` methods make Premia usable when no deterministic formula exists. They
 encapsulate their own path simulation, payoff evaluation, and reduction and
 usually return a price together with an error estimate or confidence bounds.

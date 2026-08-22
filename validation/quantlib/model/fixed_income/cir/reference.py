@@ -18,6 +18,13 @@ class StableCoxIngersollRoss:
     model: ql.CoxIngersollRoss
     initial_state: float
 
+    def discountBond(
+        self, now: float, maturity: float, state: float
+    ) -> float:
+        """Delegate the affine bond primitive needed by Jamshidian."""
+
+        return self.model.discountBond(now, maturity, state)
+
     def discountBondOption(
         self,
         option_type: int,

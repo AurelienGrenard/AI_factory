@@ -6,6 +6,7 @@
 ```text
 normal_inverse_gaussian/
 ├── README.md
+├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
 ├── dynamics.cuh

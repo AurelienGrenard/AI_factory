@@ -198,7 +198,11 @@ void launch_cir_rate_option_cuda(
 
 // Build both public payoff specializations in this CUDA translation unit.
 using LaunchSignature = decltype(launch_cir_rate_option_cuda<OptionSide::call>);
-template LaunchSignature launch_cir_rate_option_cuda<OptionSide::call>;
-template LaunchSignature launch_cir_rate_option_cuda<OptionSide::put>;
+namespace {
+[[maybe_unused]] LaunchSignature* launch_instantiation_0 =
+    &launch_cir_rate_option_cuda<OptionSide::call>;
+[[maybe_unused]] LaunchSignature* launch_instantiation_1 =
+    &launch_cir_rate_option_cuda<OptionSide::put>;
+}  // namespace
 
 }  // namespace ai_factory::workbench::model::cir

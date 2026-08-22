@@ -24,6 +24,7 @@
     "product_parameters": "sha256:91ffea212ddf22d943cedd3d45a84def06e6238a309d29f00f2247af47b3e4c8",
     "curve_parameters": "sha256:5d7787b656e6ffa35b04f63f494ddc2170b39b1f6335b0ff315620e1b5c82ba1"
   },
+  "validation_policy_fingerprint": "sha256:fbf5be8a961f94c96bc41e9e333996278ece5e4379dd0b13203f4a24f64a38af",
   "reference_pricers": {
     "core": {
       "row_count": 900,
