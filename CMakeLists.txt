@@ -1753,5 +1753,17 @@ if(BUILD_TESTING)
         kernel_diagnostics
         30
     )
+    add_cuda_workbench_test(
+        equity_policy_athena_comparison_cuda
+        tests/equity_policy_athena_comparison_cuda_test.cpp
+        equity_policy
+        300
+    )
+    add_cuda_workbench_test(
+        equity_policy_prototype_comparison_cuda
+        tests/equity_policy_prototype_comparison_cuda_test.cpp
+        equity_policy
+        600
+    )
 
 endif()
