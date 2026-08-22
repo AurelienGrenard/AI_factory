@@ -254,4 +254,91 @@ __device__ __forceinline__ State simulate_on_regular_grid(
     return state;
 }
 
+__device__ __forceinline__ DynamicsPolicy::PreparedDynamics
+DynamicsPolicy::prepare_dynamics(
+    const Parameters& parameters,
+    float delta_t
+) {
+    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
+    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedModel
+DynamicsPolicy::prepare_model(const Parameters& parameters) {
+    return variance_gamma::prepare_model(parameters);
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedTransition
+DynamicsPolicy::prepare_transition(
+    const PreparedModel& model,
+    float delta_t
+) {
+    return variance_gamma::prepare_transition(model, delta_t);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
+    return variance_gamma::initial_state(dynamics.model);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedModel& model) {
+    return variance_gamma::initial_state(model);
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    DynamicsPolicy::simulate_one_step(
+        dynamics.model,
+        dynamics.transition,
+        random,
+        state
+    );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::advance(
+    const PreparedDynamics& dynamics,
+    std::uint32_t step_count,
+    RandomContext& random,
+    State& state
+) {
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
+        DynamicsPolicy::simulate_one_step(dynamics, random, state);
+    }
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    RandomContext& random,
+    State& state
+) {
+    variance_gamma::simulate_one_step(
+        model,
+        transition,
+        random.uniforms,
+        random.normals,
+        state
+    );
+}
+
+__device__ __forceinline__ float DynamicsPolicy::spot(const State& state) {
+    return expf(state.log_spot);
+}
+
+__device__ __forceinline__ float DynamicsPolicy::log_spot(
+    const State& state
+) {
+    return state.log_spot;
+}
+
+__device__ __forceinline__ float DynamicsPolicy::risk_free_rate(
+    const Parameters& parameters
+) {
+    return parameters.risk_free_rate;
+}
+
 }  // namespace ai_factory::workbench::variance_gamma

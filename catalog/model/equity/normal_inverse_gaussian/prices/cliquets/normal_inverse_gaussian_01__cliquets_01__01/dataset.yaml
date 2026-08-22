@@ -40,8 +40,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.210826142 s"
-  kernel_seconds: "0.016912384 s"
+  wall_seconds: "0.185471992 s"
+  kernel_seconds: "0.016014336 s"
 observation_schedule:
   rule: "exact independent increments at product observation times"
   observation_count: "round(maturity / observation_interval)"

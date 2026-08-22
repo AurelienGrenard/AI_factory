@@ -52,6 +52,12 @@ Les formules de courbe, payoffs, règles produit et kernels de pricing restent
 dans leurs couches respectives. Une dynamique ne les réimporte pas pour
 faciliter ponctuellement un pricer.
 
+Pour les modèles equity standards, `common/equity/path_simulation.cuh` porte
+les boucles de chemin, `common/equity/schedule.cuh` porte les calendriers et
+`src/product/<product>/pricing_policy.cuh` porte le payoff. Le fichier de
+dynamique ne conserve que les primitives du processus et leur adaptateur
+statique `DynamicsPolicy`.
+
 ## Analytics obligataires affines
 
 Un modèle de taux affine adopte la convention multiplicative
@@ -134,14 +140,71 @@ que si plusieurs produits peuvent le réutiliser sans introduire de logique
 produit dans la dynamique. Un résultat à deux dates n'est pas exposé : il est
 le cas particulier d'un calendrier de deux observations.
 
-## Fonctions fondamentales
+### `DynamicsPolicy` equity
+
+Chaque modèle equity standard expose à la fin de `dynamics.cuh` une structure
+sans donnée membre :
+
+```cpp
+struct DynamicsPolicy {
+    using Parameters = ModelParameters;
+    using PreparedDynamics = model_namespace::PreparedDynamics;
+    using RandomContext = philox::NormalRandomContext;
+    using State = model_namespace::State;
+
+    static PreparedDynamics prepare_dynamics(
+        const Parameters& parameters,
+        float delta_t
+    );
+    static State initial_state(const PreparedDynamics& dynamics);
+    static void simulate_one_step(
+        const PreparedDynamics& dynamics,
+        RandomContext& random,
+        State& state
+    );
+    static void advance(
+        const PreparedDynamics& dynamics,
+        std::uint32_t transition_count,
+        RandomContext& random,
+        State& state
+    );
+    static float spot(const State& state);
+};
+```
+
+Les `using` sont des alias de types et ne stockent rien. Les méthodes statiques
+redirigent vers les primitives propres au modèle et sont toutes
+`__device__ __forceinline__`; il n'existe ni instance de policy, ni vtable, ni
+dispatch runtime.
+
+Pour un schéma à pas fixe, `PreparedDynamics` est le modèle déjà préparé pour
+`delta_t`. Pour une simulation exacte, il agrège `PreparedModel` et
+`PreparedTransition`; la policy expose aussi ces deux types et les surcharges
+`prepare_model`, `prepare_transition`, `initial_state(model)` et
+`simulate_one_step(model, transition, random, state)`.
+
+`RandomContext` est défini dans `common/philox.cuh`. Il possède la suite
+uniforme continue du chemin et seulement les caches dont la dynamique a besoin.
+Le concept n'impose donc ni `NormalPairCache` séparé, ni nombre fixe de lois
+aléatoires.
+
+Le `static_assert` placé après la déclaration contrôle
+`EquityDynamicsPolicy<DynamicsPolicy>`. Un modèle exact contrôle en plus
+`ExactTransitionDynamicsPolicy<DynamicsPolicy>`. Les concepts vérifient les
+types et signatures utilisés par les templates communs ; ils n'ajoutent aucun
+coût d'exécution.
+
+## Primitives fondamentales
 
 Les déclarations publiques apparaissent dans cet ordre dans `dynamics.cuh`.
 Les noms communs sont conservés lorsqu'ils désignent la même responsabilité :
 `prepare_model`, `prepare_transition`, `prepare_calendar`, `initial_state`,
 `one_step_transition`, `simulate_terminal_state`, `simulate_on_calendar` et
 `simulate_on_regular_grid`. Une signature de variates n'est jamais artificiellement
-uniformisée lorsqu'une loi exige une consommation différente.
+uniformisée lorsqu'une loi exige une consommation différente. `DynamicsPolicy`
+adapte ensuite ces primitives à l'interface commune consommée par les templates
+equity ; elle ne remplace pas leur API explicite, utile aux samples et aux
+pricers spécialisés.
 
 ### `prepare_model`
 

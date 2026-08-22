@@ -40,5 +40,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.235847412 s"
-  kernel_seconds: "0.002036736 s"
+  wall_seconds: "1.020071855 s"
+  kernel_seconds: "0.001132544 s"

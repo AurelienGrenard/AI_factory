@@ -328,6 +328,30 @@ __device__ __forceinline__ float next_normal(
     return cache.normals.first;
 }
 
+// Path-local context for laws consuming only the scalar uniform stream.
+// The context owns no global memory and preserves one continuous Philox
+// sequence throughout the complete path.
+struct UniformRandomContext {
+    UniformSequence uniforms;
+
+    __device__ __forceinline__ UniformRandomContext(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) : uniforms(key, path_index) {}
+};
+
+// Path-local context for laws consuming uniforms and cached Box-Muller
+// normals. The normal cache never owns or restarts a random sequence.
+struct NormalRandomContext {
+    UniformSequence uniforms;
+    NormalPairCache normals;
+
+    __device__ __forceinline__ NormalRandomContext(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) : uniforms(key, path_index) {}
+};
+
 namespace detail {
 
 // Marsaglia-Tsang core for a unit-scale Gamma shape greater than or equal to 1.
