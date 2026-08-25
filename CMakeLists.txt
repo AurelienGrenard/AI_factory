@@ -1557,6 +1557,12 @@ if(BUILD_TESTING)
         cir_cuda tests/cir_cuda_test.cu cir 30
     )
     add_cuda_workbench_test(
+        fixed_income_dynamics_policy_cuda
+        tests/fixed_income_dynamics_policy_cuda_test.cu
+        dynamics_policy
+        30
+    )
+    add_cuda_workbench_test(
         cir_rate_options_cuda
         tests/cir_rate_options_cuda_test.cu
         "cir;rate_options"

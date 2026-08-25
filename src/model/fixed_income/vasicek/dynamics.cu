@@ -93,6 +93,12 @@ __device__ __forceinline__ void one_step_transition(
     );
 }
 
+__device__ __forceinline__ float initial_state(
+    const PreparedModel& model
+) {
+    return model.initial_state;
+}
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
@@ -182,6 +188,70 @@ __device__ __forceinline__ float simulate_on_regular_grid(
     }
     simulate_one_step(model, regular_transition, uniforms, normals, state);
     return state;
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedDynamics
+DynamicsPolicy::prepare_dynamics(
+    const Parameters& parameters, float delta_t
+) {
+    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
+    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedModel
+DynamicsPolicy::prepare_model(const Parameters& parameters) {
+    PreparedModel model = vasicek::prepare_model(parameters.process);
+    model.initial_state = parameters.initial_state;
+    return model;
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedTransition
+DynamicsPolicy::prepare_transition(
+    const PreparedModel& model, float delta_t
+) {
+    return vasicek::prepare_transition(model, delta_t);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
+    return vasicek::initial_state(dynamics.model);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedModel& model) {
+    return vasicek::initial_state(model);
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    DynamicsPolicy::simulate_one_step(
+        dynamics.model, dynamics.transition, random, state
+    );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::advance(
+    const PreparedDynamics& dynamics,
+    std::uint32_t step_count,
+    RandomContext& random,
+    State& state
+) {
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
+        DynamicsPolicy::simulate_one_step(dynamics, random, state);
+    }
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    RandomContext& random,
+    State& state
+) {
+    vasicek::simulate_one_step(
+        model, transition, random.uniforms, random.normals, state
+    );
 }
 
 namespace joint {
@@ -365,6 +435,68 @@ __device__ __forceinline__ State simulate_on_regular_grid(
     }
     simulate_one_step(model, regular_transition, uniforms, normals, state);
     return state;
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedDynamics
+DynamicsPolicy::prepare_dynamics(
+    const Parameters& parameters, float delta_t
+) {
+    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
+    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedModel
+DynamicsPolicy::prepare_model(const Parameters& parameters) {
+    return vasicek::DynamicsPolicy::prepare_model(parameters);
+}
+
+__device__ __forceinline__ DynamicsPolicy::PreparedTransition
+DynamicsPolicy::prepare_transition(
+    const PreparedModel& model, float delta_t
+) {
+    return joint::prepare_transition(model, delta_t);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
+    return DynamicsPolicy::initial_state(dynamics.model);
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedModel& model) {
+    return {vasicek::initial_state(model), 0.0f};
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    DynamicsPolicy::simulate_one_step(
+        dynamics.model, dynamics.transition, random, state
+    );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::advance(
+    const PreparedDynamics& dynamics,
+    std::uint32_t step_count,
+    RandomContext& random,
+    State& state
+) {
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
+        DynamicsPolicy::simulate_one_step(dynamics, random, state);
+    }
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedModel& model,
+    const PreparedTransition& transition,
+    RandomContext& random,
+    State& state
+) {
+    joint::simulate_one_step(
+        model, transition, random.uniforms, random.normals, state
+    );
 }
 
 }  // namespace joint

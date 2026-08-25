@@ -115,10 +115,23 @@ faire avancer ce modèle sur un intervalle `delta_t` donné. Le premier est
 invariant par rapport au temps, construit une fois par ligne et partagé par les
 chemins. Le second est construit une fois par intervalle distinct.
 
+Pour les processus de taux réutilisés par un modèle ajusté à une courbe, la
+primitive libre `prepare_model(ProcessParameters)` prépare uniquement le
+processus et son état centré. La méthode
+`DynamicsPolicy::prepare_model(ModelParameters)` complète ce résultat avec
+l'état initial du modèle autonome. `initial_state(prepared_model)` n'a ainsi
+besoin d'aucun argument extérieur. Hull-White et G2++ réutilisent directement
+la primitive du processus centré sans introduire une surcharge ambiguë.
+
 Pour un schéma numérique à pas fixe, `PreparedModel` contient directement les
 coefficients de la transition élémentaire de durée `delta_t`. Ajouter un
 `PreparedTransition` identique n'apporterait aucune séparation réelle : tous
 les pas du chemin utilisent le même intervalle numérique.
+
+Un modèle exact peut aussi satisfaire le contrat à pas fixe avec
+`PreparedDynamics = {model, transition(delta_t)}` puis répéter cette transition.
+Cette composition sert aux observations discrètes homogènes ; elle ne transforme
+pas la loi exacte en schéma d'Euler.
 
 Ces structures ne contiennent ni paramètre produit, ni pointeur propriétaire,
 ni allocation dynamique. Une transition exacte de taux state-only et sa
@@ -230,6 +243,19 @@ PreparedModel prepare_model(
 Elle prépare uniquement les coefficients invariants par rapport à la durée de
 transition. Elle ne reçoit ni maturité, ni `delta_t`, ni nombre de pas.
 
+Pour OU, Vasicek, CIR et G2, la primitive mathématique reçoit les seuls
+paramètres du processus :
+
+```cpp
+PreparedModel prepare_model(
+    const ProcessParameters& parameters
+);
+```
+
+La policy autonome reçoit néanmoins `ModelParameters`, appelle cette primitive
+et copie l'état initial dans `PreparedModel`. Cette frontière permet aux modèles
+ajustés à une courbe de partager exactement la même dynamique centrée.
+
 Pour un schéma discrétisé :
 
 ```cpp
@@ -269,6 +295,10 @@ log-spot. OU, Vasicek, CIR et G2 le suivent pour leurs facteurs de taux. Les
 dynamiques jointes OU, Vasicek et G2 réutilisent le `PreparedModel` state-only,
 mais préparent une transition plus riche qui contient aussi les moments de
 l'intégrale.
+
+Le namespace `cir::joint` réserve seulement les types de l'état joint et le nom
+de sa future policy. Il ne satisfait volontairement aucun concept tant qu'une
+transition exacte justifiée de l'intégrale n'est pas implémentée.
 
 ### `prepare_calendar`
 
@@ -457,6 +487,13 @@ Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
 dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes suit
 ce contrat pour ses pricers Monte Carlo ; Rough Bergomi reste provisoirement
 hors de cette factorisation.
+
+Le test générique `tests/common/dynamics_contract.cuh` vérifie pour chaque
+policy concernée la reproductibilité, l'isolation des chemins,
+`advance(n) == n * advance(1)`, l'accord entre simulation terminale et
+calendrier à une observation, ainsi que la parité entre transition exacte et
+un unique pas préparé. Le test fixed income compare en plus bit à bit les
+policies exactes aux points d'entrée historiques.
 
 ## Modèles ajustés à une courbe
 

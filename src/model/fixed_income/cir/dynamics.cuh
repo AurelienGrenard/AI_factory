@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
+#include "common/simulation/concepts.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 
 #include <cuda_runtime.h>
@@ -16,12 +17,18 @@ struct PreparedModel {
     float mean_reversion;
     float degrees_of_freedom;
     float scale_rate;
+    float initial_state = 0.0f;
 };
 
 // Coefficients required to advance the prepared model by one delta_t.
 struct PreparedTransition {
     float decay;
     float scale;
+};
+
+struct PreparedDynamics {
+    PreparedModel model;
+    PreparedTransition transition;
 };
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -47,6 +54,10 @@ __device__ __forceinline__ void one_step_transition(
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
     float& state
+);
+
+__device__ __forceinline__ float initial_state(
+    const PreparedModel& model
 );
 
 __device__ __forceinline__ float simulate_terminal_state(
@@ -79,5 +90,61 @@ __device__ __forceinline__ float simulate_on_regular_grid(
     std::size_t observation_stride,
     float* __restrict__ observed_states
 );
+
+struct DynamicsPolicy {
+    using Parameters = ModelParameters;
+    using PreparedDynamics = cir::PreparedDynamics;
+    using PreparedModel = cir::PreparedModel;
+    using PreparedTransition = cir::PreparedTransition;
+    using RandomContext = philox::NormalRandomContext;
+    using State = float;
+
+    __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
+        const Parameters& parameters, float delta_t
+    );
+    __device__ __forceinline__ static PreparedModel prepare_model(
+        const Parameters& parameters
+    );
+    __device__ __forceinline__ static PreparedTransition prepare_transition(
+        const PreparedModel& model, float delta_t
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedDynamics& dynamics
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedModel& model
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedDynamics& dynamics,
+        RandomContext& random,
+        State& state
+    );
+    __device__ __forceinline__ static void advance(
+        const PreparedDynamics& dynamics,
+        std::uint32_t step_count,
+        RandomContext& random,
+        State& state
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedModel& model,
+        const PreparedTransition& transition,
+        RandomContext& random,
+        State& state
+    );
+};
+
+// Reserved for a future justified joint transition of r_t and its integral.
+// The incomplete policy intentionally cannot satisfy a simulation concept.
+namespace joint {
+struct State {
+    float state;
+    float state_integral;
+};
+struct DynamicsPolicy;
+}  // namespace joint
+
+static_assert(simulation::DynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
 
 }  // namespace ai_factory::workbench::model::cir
