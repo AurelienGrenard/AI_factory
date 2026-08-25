@@ -1,8 +1,8 @@
 // Public launcher for the Kou fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

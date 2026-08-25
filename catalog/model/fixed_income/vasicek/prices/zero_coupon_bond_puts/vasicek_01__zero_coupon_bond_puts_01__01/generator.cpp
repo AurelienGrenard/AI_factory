@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "model/fixed_income/vasicek/zero_coupon_bond_option.cuh"
+#include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

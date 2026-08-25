@@ -1,8 +1,8 @@
 // Public launcher for the Heston Up-no-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/up_no_touch/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

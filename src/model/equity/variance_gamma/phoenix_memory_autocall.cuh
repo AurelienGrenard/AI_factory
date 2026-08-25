@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma Phoenix-Memory-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/phoenix_memory_autocall/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/phoenix_memory_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

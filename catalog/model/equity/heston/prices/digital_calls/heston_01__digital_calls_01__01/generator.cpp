@@ -1,6 +1,8 @@
 // Build one Heston digital-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/heston/digital_option.cuh"
+#include "model/equity/heston/dataset.hpp"
+#include "product/digital_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

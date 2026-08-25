@@ -1,8 +1,8 @@
 // Public launcher for the CEV Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

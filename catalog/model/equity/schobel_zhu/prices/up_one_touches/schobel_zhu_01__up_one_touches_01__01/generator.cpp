@@ -1,6 +1,8 @@
 // Build one SchobelZhu Up-one-touch price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/schobel_zhu/up_one_touch.cuh"
+#include "model/equity/schobel_zhu/dataset.hpp"
+#include "product/up_one_touch/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

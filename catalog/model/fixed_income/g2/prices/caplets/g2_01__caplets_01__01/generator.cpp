@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/g2/rate_option.cuh"
 #include "model/fixed_income/g2/dataset.hpp"
+#include "product/rate_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/heston/dataset.hpp"
-#include "product/up_and_in_option/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/up_and_in_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

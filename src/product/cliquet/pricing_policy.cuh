@@ -1,21 +1,22 @@
 // Cliquet payoff composed with a regular equity schedule.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
+#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "product/cliquet/dataset.hpp"
+#include "common/simulation/schedule.cuh"
+#include "product/cliquet/parameters.hpp"
 
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 namespace detail {
 
-template<equity::EquitySchedulePolicy Schedule>
+template<equity::SpotDynamicsPolicy Dynamics>
 struct CliquetObservationHandler {
-    using Dynamics = typename Schedule::Dynamics;
-
     float participation_rate;
     float local_floor;
     float local_cap;
@@ -49,29 +50,20 @@ struct CliquetObservationHandler {
 }  // namespace detail
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy
+    simulation::ObservedSchedulePolicy SchedulePolicy
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct CliquetPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = CliquetParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float participation_rate;
         float local_floor;
         float local_cap;
@@ -80,34 +72,27 @@ struct CliquetPricingPolicy {
         float maturity_discount;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{
+        const typename Schedule::Calendar calendar{
             product.observation_interval,
             product.maturity / product.observation_interval,
         };
         return {
-            Schedule::prepare(model, definition, configuration, inputs.schedule),
-            philox::make_key(seed),
+            Schedule::prepare(model, calendar, time_configuration),
             product.participation_rate,
             product.local_floor,
             product.local_cap,
             product.global_floor,
             product.global_cap,
-            Discount::discount_factor(
+            equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
-                equity::day_count_year_fraction(
+                simulation::day_count_year_fraction(
                     product.maturity,
-                    configuration
+                    time_configuration
                 )
             ),
         };
@@ -115,14 +100,15 @@ struct CliquetPricingPolicy {
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
-        detail::CliquetObservationHandler<Schedule> handler{
+        detail::CliquetObservationHandler<Dynamics> handler{
             row.participation_rate,
             row.local_floor,
             row.local_cap,
         };
-        Schedule::simulate(row.schedule, row.key, path, handler);
+        Schedule::simulate(row.schedule, key, path, handler);
         const float final_return = fminf(
             row.global_cap,
             fmaxf(row.global_floor, handler.accumulated_return)
@@ -130,18 +116,6 @@ struct CliquetPricingPolicy {
         return row.maturity_discount * (1.0f + final_return);
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

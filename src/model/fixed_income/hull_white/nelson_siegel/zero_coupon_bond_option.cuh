@@ -4,13 +4,13 @@
 #include "curve/nelson_siegel/dataset.hpp"
 #include "common/option_side.cuh"
 #include "model/fixed_income/hull_white/dataset.hpp"
-#include "product/zero_coupon_bond_option/dataset.hpp"
+#include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cstddef>
 
 namespace ai_factory::workbench::model::hull_white::nelson_siegel {
 
-// Launch one closed-form zero-coupon bond option per CUDA thread.
+// Launch closed-form zero-coupon bond-option prices across the CUDA grid.
 template<OptionSide Side>
 void launch_hull_white_nelson_siegel_zero_coupon_bond_option_cuda(
     const ModelParameters* device_models,

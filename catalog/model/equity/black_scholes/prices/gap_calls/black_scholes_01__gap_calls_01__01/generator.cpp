@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/gap_option.cuh"
 #include "model/equity/black_scholes/dataset.hpp"
+#include "product/gap_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

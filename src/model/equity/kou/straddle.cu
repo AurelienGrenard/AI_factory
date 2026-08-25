@@ -1,21 +1,18 @@
 // Kou straddle composition over generic CUDA layers.
 #include "model/equity/kou/straddle.cuh"
 
-#include "common/equity/discount.cuh"
-#include "common/equity/monte_carlo_kernel.cuh"
-#include "common/equity/schedule.cuh"
+#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "common/simulation/schedule.cuh"
 #include "model/equity/kou/dynamics.cu"
 #include "product/straddle/pricing_policy.cuh"
 
 namespace ai_factory::workbench::kou {
 namespace {
 
-using Schedule = equity::ExactTransitionTerminalSchedule<kou::DynamicsPolicy>;
-using Discount = equity::ConstantRateDiscountPolicy<kou::DynamicsPolicy>;
-using PricingPolicy = product::StraddlePricingPolicy<Schedule, Discount>;
+using Schedule = simulation::ExactTransitionTerminalSchedule<kou::DynamicsPolicy>;
+using PricingPolicy = product::StraddlePricingPolicy<Schedule>;
 
-static_assert(equity::EquitySchedulePolicy<Schedule>);
-static_assert(equity::ScalarMonteCarloPricingPolicy<PricingPolicy>);
+static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 
 }  // namespace
 
@@ -36,22 +33,22 @@ void launch_kou_straddle_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {
-    const equity::ExactTransitionConfiguration configuration{
+    const simulation::ExactTransitionTimeConfiguration time_configuration{
         day_fraction,
     };
-    const typename PricingPolicy::DeviceInputs inputs{};
-    equity::launch_monte_carlo_cuda<PricingPolicy>(
-        device_models,
-        model_count,
-        device_products,
-        product_count,
-        cartesian_product,
+    monte_carlo::launch_monte_carlo_cuda<PricingPolicy>(
+        make_model_product_device_inputs(
+            device_models,
+            model_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
         result_count,
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        configuration,
-        inputs,
+        time_configuration,
         threads_per_block,
         block_count,
         base_seed,

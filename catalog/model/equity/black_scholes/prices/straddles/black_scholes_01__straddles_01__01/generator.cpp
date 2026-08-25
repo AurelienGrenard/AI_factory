@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/straddle.cuh"
 #include "model/equity/black_scholes/dataset.hpp"
+#include "product/straddle/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

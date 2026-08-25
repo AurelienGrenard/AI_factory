@@ -1,8 +1,8 @@
 // Public launcher for the NormalInverseGaussian Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

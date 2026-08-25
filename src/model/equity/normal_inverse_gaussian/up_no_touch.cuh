@@ -1,8 +1,8 @@
 // Public launcher for the NormalInverseGaussian Up-no-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "product/up_no_touch/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

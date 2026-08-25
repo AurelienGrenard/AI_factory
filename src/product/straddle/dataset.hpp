@@ -1,20 +1,12 @@
 // Straddle dataset row and host-side JSON loader.
 #pragma once
 
-#include <cstdint>
+#include "product/straddle/parameters.hpp"
+
 #include <filesystem>
-#include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::product {
-
-// StraddleParameters is the compact product row transferred to CUDA.
-struct StraddleParameters {
-    float strike;
-    std::uint32_t maturity;
-};
-
-static_assert(std::is_trivially_copyable_v<StraddleParameters>);
 
 // Load every straddle row into one contiguous vector.
 std::vector<StraddleParameters> load_straddles(

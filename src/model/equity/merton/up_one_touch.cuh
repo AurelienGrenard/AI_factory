@@ -1,8 +1,8 @@
 // Public launcher for the Merton Up-one-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
-#include "product/up_one_touch/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/up_one_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

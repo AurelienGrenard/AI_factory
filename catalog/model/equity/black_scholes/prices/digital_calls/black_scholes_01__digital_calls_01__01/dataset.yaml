@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/equity/black_scholes/digital_calls/black_scholes_01__digital_calls_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/equity/black_scholes/prices/digital_calls/black_scholes_01__digital_calls_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,5 +36,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.186491212 s"
-  kernel_seconds: "0.000044032 s"
+  wall_seconds: "0.390943374 s"
+  kernel_seconds: "0.000092992 s"

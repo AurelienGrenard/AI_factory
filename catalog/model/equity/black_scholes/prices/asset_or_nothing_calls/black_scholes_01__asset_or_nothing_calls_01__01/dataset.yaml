@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/equity/black_scholes/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/equity/black_scholes/prices/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,5 +36,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.187306996 s"
-  kernel_seconds: "0.00001536 s"
+  wall_seconds: "3.218215252 s"
+  kernel_seconds: "0.000219136 s"

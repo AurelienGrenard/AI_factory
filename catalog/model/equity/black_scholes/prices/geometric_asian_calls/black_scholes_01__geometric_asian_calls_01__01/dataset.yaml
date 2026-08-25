@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/equity/black_scholes/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/equity/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,8 +36,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.18753297 s"
-  kernel_seconds: "0.000006144 s"
+  wall_seconds: "0.579177638 s"
+  kernel_seconds: "0.000282848 s"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504

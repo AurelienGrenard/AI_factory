@@ -1,8 +1,8 @@
 // Public launcher for the Merton fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

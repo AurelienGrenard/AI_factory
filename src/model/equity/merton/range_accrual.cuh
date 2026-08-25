@@ -1,8 +1,8 @@
 // Public launcher for the Merton Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,6 +1,8 @@
 // Generate Ornstein-Uhlenbeck European payer-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/european_swaption.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "product/european_swaption/dataset.hpp"
 #include "tools/datasets/european_swaption_price_generation.hpp"
 
 #include <filesystem>

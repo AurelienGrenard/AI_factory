@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

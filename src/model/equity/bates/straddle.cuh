@@ -1,8 +1,8 @@
 // Public launcher for the Bates Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

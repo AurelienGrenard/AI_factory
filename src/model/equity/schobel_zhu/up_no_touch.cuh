@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Up-no-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/up_no_touch/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

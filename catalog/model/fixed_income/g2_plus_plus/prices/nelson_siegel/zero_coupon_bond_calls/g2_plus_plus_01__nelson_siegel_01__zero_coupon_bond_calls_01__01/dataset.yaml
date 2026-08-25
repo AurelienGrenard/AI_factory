@@ -19,9 +19,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -40,5 +41,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.196812216 s"
-  kernel_seconds: "0.000006144 s"
+  wall_seconds: "0.542975033 s"
+  kernel_seconds: "0.00006656 s"

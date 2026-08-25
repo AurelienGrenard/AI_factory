@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

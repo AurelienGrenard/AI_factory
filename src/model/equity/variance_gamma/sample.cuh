@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for variance gamma model samples.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

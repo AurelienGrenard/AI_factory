@@ -1,8 +1,8 @@
 // Public launcher for the NormalInverseGaussian fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

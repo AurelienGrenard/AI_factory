@@ -2,13 +2,13 @@
 #pragma once
 
 #include "common/equity/barrier_pricing_policy.cuh"
-#include "product/up_no_touch/dataset.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 namespace ai_factory::workbench::product {
 
-template<equity::DenseEquitySchedulePolicy Schedule, typename Discount>
+template<simulation::DenseSchedulePolicy Schedule>
 using UpNoTouchPricingPolicy = equity::UpTouchPricingPolicy<
-    Schedule, Discount, UpNoTouchParameters, false
+    Schedule, UpNoTouchParameters, false
 >;
 
 }  // namespace ai_factory::workbench::product

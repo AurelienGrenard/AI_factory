@@ -93,12 +93,10 @@ struct DynamicsPolicy {
     );
     __device__ __forceinline__ static float spot(const State& state);
     __device__ __forceinline__ static float log_spot(const State& state);
-    __device__ __forceinline__ static float risk_free_rate(
-        const Parameters& parameters
-    );
 };
 
-static_assert(equity::EquityDynamicsPolicy<DynamicsPolicy>);
-static_assert(equity::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
+static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
 
 }  // namespace ai_factory::workbench::normal_inverse_gaussian

@@ -3,8 +3,8 @@
 
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "common/sample.cuh"
 
 // Include the reusable dynamics so NVCC can inline every transition.
@@ -41,7 +41,7 @@ __global__ void variance_gamma_terminal_samples_kernel(
             prepare_model(models[indices.model_index]);
         const PreparedTransition transition =
             prepare_transition(prepared, maturity);
-        const State terminal = equity::simulate_exact_transition_terminal<
+        const State terminal = simulation::simulate_exact_transition_terminal<
             DynamicsPolicy
         >(
             prepared,
@@ -86,7 +86,7 @@ __global__ void variance_gamma_calendar_samples_kernel(
             total_sample_count,
             observation_count,
         };
-        equity::simulate_exact_transition_regular_schedule<DynamicsPolicy>(
+        simulation::simulate_exact_transition_stubbed_regular_schedule<DynamicsPolicy>(
             prepared_model,
             initial_stub_transition,
             regular_transition,

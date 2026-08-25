@@ -1,6 +1,8 @@
 // Build one Merton Range Accrual price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/merton/range_accrual.cuh"
+#include "model/equity/merton/dataset.hpp"
+#include "product/range_accrual/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -1,8 +1,8 @@
 // Public launcher for the Heston Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

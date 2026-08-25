@@ -1,8 +1,8 @@
 // Public launcher for the Kou Up-one-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/up_one_touch/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/up_one_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -9,6 +9,7 @@ common/
 ├── check_cuda.cuh
 ├── cuda_kernel_diagnostics.cuh
 ├── cuda_kernel_diagnostics.cpp
+├── device_inputs.cuh
 ├── noncentral_chi_square.cuh
 ├── normal_distribution.cuh
 ├── option_side.cuh
@@ -16,19 +17,30 @@ common/
 ├── reductions.cuh
 ├── result_index.cuh
 ├── sample.cuh
+├── time_configuration.cuh
 ├── time_grid.cuh
+├── closed_form/
+│   ├── concepts.cuh
+│   └── closed_form_kernels.cuh
+├── simulation/
+│   ├── barrier_handlers.cuh
+│   ├── concepts.cuh
+│   ├── path_simulation.cuh
+│   └── schedule.cuh
+├── monte_carlo/
+│   ├── concepts.cuh
+│   └── monte_carlo_kernel.cuh
+├── payoff/
+│   ├── barrier.cuh
+│   └── vanilla_option.cuh
 ├── equity/
-│   ├── barrier_observation_handlers.cuh
 │   ├── barrier_pricing_policy.cuh
 │   ├── concepts.cuh
 │   ├── discount.cuh
-│   ├── monte_carlo_kernel.cuh
-│   ├── observation_handlers.cuh
-│   ├── option_payoff.cuh
-│   ├── path_simulation.cuh
-│   ├── pricing_inputs.cuh
-│   └── schedule.cuh
+│   ├── handlers.cuh
+│   └── observables.cuh
 ├── fixed_income/
+│   ├── bond_option_pricing_policies.cuh
 │   ├── cashflows.cuh
 │   ├── european_swaption.cuh
 │   ├── gaussian_bond_option.cuh
@@ -53,7 +65,13 @@ common/
 
 [`check_cuda.cuh`](#check-cuda) ·
 [`cuda_kernel_diagnostics.cuh/.cpp`](#cuda-kernel-diagnostics) ·
+[`device_inputs.cuh`](#device-inputs) ·
+[`time_configuration.cuh`](#time-configuration) ·
 [`option_side.cuh`](#option-side) ·
+[`closed_form/`](#closed-form) ·
+[`simulation/`](#simulation) ·
+[`monte_carlo/`](#monte-carlo) ·
+[`payoff/`](#payoff) ·
 [`equity/`](#equity) ·
 [`fixed_income/`](#fixed-income) ·
 [`result_index.cuh`](#result-index) ·
@@ -79,6 +97,7 @@ common/
 | `validate_model_curve_product_construction(...)` | Validates aligned rows or the Cartesian count `model_count * curve_count * product_count`. |
 | `validate_monte_carlo_path_count(paths_per_result)` | Requires at least two paths so a sample variance exists. |
 | `validate_day_fraction(day_fraction)` | Requires a positive finite contractual day fraction. |
+| `validate_time_step(dt)` | Requires a positive finite numerical time step. |
 | `validate_monte_carlo_parameters(paths_per_result, dt)` | Validates the path count and the positive finite simulation step `dt`. |
 | `validate_simulation_steps_per_day(steps)` | Requires at least one simulation step per contractual day. |
 | `validate_cuda_block_size(threads_per_block)` | Checks the positive block size against the active device limit. |
@@ -108,6 +127,37 @@ occupancy is
 | `environment_flag_enabled(value)` | Internal parser accepting `1`, `true` or `on`. |
 | `report_key(...)` | Internal stable key used to deduplicate reports. |
 
+<a id="device-inputs"></a>
+## [`device_inputs.cuh`](device_inputs.cuh)
+
+| Type or function | Definition |
+|---|---|
+| `ModelProductDeviceInputs<Model, Product>` | Contiguous device views, row counts and aligned/Cartesian mapping for model-product prices. |
+| `ModelCurveProductDeviceInputs<Model, Curve, Product>` | Same contract with one independent parametric-curve array. |
+| `DeviceInputsWithContext<Inputs, Context>` | Adds a trivially-copyable device context such as an explicit schedule pool. |
+| `make_model_product_device_inputs(...)` | Constructs the two-array input view without allocation. |
+| `make_model_curve_product_device_inputs(...)` | Constructs the three-array input view without allocation. |
+| `with_device_context(inputs, context)` | Adds one context to an existing primary input view. |
+
+Each view owns no memory. `validate(result_count)` checks its pointers and row
+construction on the host; `prepare_row<Pricing>(result_index, time)` decodes
+the same mapping and calls the pricing policy on the device. Monte Carlo and
+closed-form kernels therefore share one input contract without sharing an
+execution strategy.
+
+<a id="time-configuration"></a>
+## [`time_configuration.cuh`](time_configuration.cuh)
+
+```math
+t(d)=d\,\delta_{\mathrm{day}}.
+```
+
+| Type or function | Definition |
+|---|---|
+| `time::DayFractionTimeConfiguration` | Stores the year fraction represented by one contractual day. |
+| `time::validate_time_configuration(...)` | Requires a positive finite day fraction. |
+| `time::year_fraction(day_count, configuration)` | Converts an integer contractual day count to model time in FP32. |
+
 <a id="option-side"></a>
 ## [`option_side.cuh`](option_side.cuh)
 
@@ -117,133 +167,114 @@ occupancy is
 | `OptionSide::put` | Put orientation. |
 | `option_side_name(side)` | Returns the stable host label `"call"` or `"put"`. |
 
-<a id="equity"></a>
-## [`equity/`](equity)
+<a id="closed-form"></a>
+## [`closed_form/`](closed_form)
 
-[`concepts.cuh`](#equity-concepts) ·
-[`path_simulation.cuh`](#equity-path-simulation) ·
-[`schedule.cuh`](#equity-schedules) ·
-[`observation_handlers.cuh`](#equity-observation-handlers) ·
-[`barrier_observation_handlers.cuh`](#equity-barrier-handlers) ·
-[`discount.cuh`](#equity-discount) ·
-[`option_payoff.cuh`](#equity-option-payoff) ·
-[`barrier_pricing_policy.cuh`](#equity-barrier-pricing) ·
-[`pricing_inputs.cuh`](#equity-pricing-inputs) ·
-[`monte_carlo_kernel.cuh`](#equity-monte-carlo-kernel)
+[`concepts.cuh`](#closed-form-concepts) ·
+[`closed_form_kernels.cuh`](#closed-form-kernel)
 
-<a id="equity-concepts"></a>
-### [`concepts.cuh`](equity/concepts.cuh)
+<a id="closed-form-concepts"></a>
+### [`concepts.cuh`](closed_form/concepts.cuh)
 
 | Concept | Contract |
 |---|---|
-| `EquityDynamicsPolicy` | Prepared dynamics, random context, state, initialization, one-step simulation, multi-step advancement and spot access. |
-| `ExactTransitionDynamicsPolicy` | Adds invariant `PreparedModel`, interval-specific `PreparedTransition` and direct-transition preparation. |
-| `SupportsLogSpot` | Adds a log-spot accessor. |
-| `SupportsRiskFreeRate` | Adds the constant risk-free-rate accessor used by the current discount policy. |
-| `ObservationHandlerFor` | Receives the initial state and contractual observations and may stop a path early. |
-| `EquitySchedulePolicy` | Prepares time intervals, simulates a schedule and validates its numerical configuration. |
-| `DenseEquitySchedulePolicy` | Restricts a product to schedules observing every numerical transition. |
-| `TerminalEquitySchedulePolicy` | Provides the terminal state without constructing an observation handler. |
-| `TwoDateEquitySchedulePolicy` | Restricts a product to a compile-time two-date schedule. |
-| `ScalarMonteCarloPricingPolicy` | Binds model and product parameters to `PreparedRow`, `prepare_row`, `evaluate_path` and configuration validation. |
+| `ClosedFormPricingPolicy` | Trivially-copyable `DeviceInputs`, `TimeConfiguration` and `PreparedRow`; input-driven row preparation; scalar `evaluate_price(row)`. |
 
-`PreparedRow` and an observation handler must remain trivially copyable and are
-bounded respectively by 256 and 128 bytes.
+`PreparedRow` is limited to 256 bytes.
 
-<a id="equity-path-simulation"></a>
-### [`path_simulation.cuh`](equity/path_simulation.cuh)
+<a id="closed-form-kernel"></a>
+### [`closed_form_kernels.cuh`](closed_form/closed_form_kernels.cuh)
 
 | Function | Definition |
 |---|---|
-| `simulate_fixed_step_terminal(...)` | Advances one numerical scheme through a bounded number of homogeneous steps. |
-| `simulate_exact_transition_terminal(...)` | Applies one exact transition over the full horizon. |
-| `simulate_fixed_step_regular_schedule(...)` | Applies an initial numerical stub, then a fixed number of steps between regular observations. |
-| `simulate_exact_transition_regular_schedule(...)` | Applies one exact initial transition, then one exact regular transition between observations. |
-| `simulate_fixed_step_calendar(...)` | Reads one numerical step count per irregular interval. |
-| `simulate_exact_transition_calendar(...)` | Reads one prepared exact transition per irregular interval. |
+| `price_one<Pricing>(...)` | Prepares and evaluates one independent result row. |
+| `closed_form_price_kernel<Pricing, false>(...)` | Direct specialization with one thread per price and no loop. |
+| `closed_form_price_kernel<Pricing, true>(...)` | Grid-stride specialization used when the launch contains fewer threads than prices. |
+| `validate_closed_form_launch<Pricing>(...)` | Validates inputs, time, result batch and CUDA geometry. |
+| `launch_closed_form_cuda<Pricing>(...)` | Selects the direct or grid-stride specialization, reports diagnostics and launches it. |
 
-Every function constructs one path-local random context from `(key, path)` and
-keeps it continuous across all transitions.
+<a id="simulation"></a>
+## [`simulation/`](simulation)
 
-<a id="equity-schedules"></a>
-### [`schedule.cuh`](equity/schedule.cuh)
+[`concepts.cuh`](#simulation-concepts) ·
+[`path_simulation.cuh`](#path-simulation) ·
+[`schedule.cuh`](#simulation-schedules) ·
+[`barrier_handlers.cuh`](#simulation-barrier-handlers)
+
+<a id="simulation-concepts"></a>
+### [`concepts.cuh`](simulation/concepts.cuh)
+
+| Concept | Contract |
+|---|---|
+| `DynamicsPolicy` | Trivially-copyable parameters, random context and mutable state; no market-specific observable is imposed. |
+| `FixedStepDynamicsPolicy` | Adds `PreparedDynamics`, homogeneous-step preparation, initialization and multi-step advancement. |
+| `ExactTransitionDynamicsPolicy` | Adds invariant `PreparedModel`, interval-specific `PreparedTransition` and direct one-step simulation. |
+| `ObservationHandlerFor` | Receives the initial state and observations and may stop a path. |
+| `ScalarObservableFor` | Maps a model state to one scalar at inception and at every observation. |
+| `SchedulePolicy` | Prepares a schedule from a calendar and a time configuration. |
+| `ObservedSchedulePolicy` / `CountedObservedSchedulePolicy` | Adds observed path simulation and, when needed, its observation count. |
+| `DenseSchedulePolicy` | Requires observation of every numerical transition. |
+| `TerminalSchedulePolicy` | Returns a terminal state without an observation handler. |
+| `TwoDateSchedulePolicy` | Requires a compile-time two-date calendar. |
+
+Observation handlers remain trivially copyable and no larger than 128 bytes.
+
+<a id="path-simulation"></a>
+### [`path_simulation.cuh`](simulation/path_simulation.cuh)
+
+| Function | Definition |
+|---|---|
+| `simulate_fixed_step_terminal(...)` | Advances a numerical scheme through homogeneous steps. |
+| `simulate_exact_transition_terminal(...)` | Applies one direct transition over the horizon. |
+| `simulate_fixed_step_dense_schedule(...)` | Observes the initial state and every numerical transition in one loop. |
+| `simulate_fixed_step_regular_schedule(...)` / `simulate_exact_transition_regular_schedule(...)` | Applies one homogeneous interval between observations. |
+| `simulate_fixed_step_stubbed_regular_schedule(...)` / `simulate_exact_transition_stubbed_regular_schedule(...)` | Adds a distinct first interval. |
+| `simulate_fixed_step_calendar(...)` / `simulate_exact_transition_calendar(...)` | Reads one step count or prepared transition per irregular interval. |
+
+Every function constructs one continuous path-local random context from
+`(key, path)`.
+
+<a id="simulation-schedules"></a>
+### [`schedule.cuh`](simulation/schedule.cuh)
 
 | Type or function | Definition |
 |---|---|
-| `FixedStepConfiguration` | Elementary `dt` and numerical steps per contractual day. |
-| `ExactTransitionConfiguration` | Year fraction represented by one contractual day. |
-| `day_count_year_fraction(...)` | Converts a day count while preserving the FP32 arithmetic of its simulation family. |
-| `FixedStepTerminalSchedule` / `ExactTransitionTerminalSchedule` | Terminal-only schedule specialized for a numerical scheme or one exact transition. |
-| `FixedStepRegularSchedule` / `ExactTransitionRegularSchedule` | Homogeneous contractual observation schedule. |
+| `RegularCalendar` / `MaturityCalendar` | Contractual dates expressed in days. |
+| `FixedStepTimeConfiguration` | Elementary `dt` and numerical steps per contractual day. |
+| `ExactTransitionTimeConfiguration` | Year fraction represented by one contractual day. |
+| `validate_time_configuration(...)` | Validates the selected numerical time representation. |
+| `day_count_year_fraction(...)` | Converts a contractual day count with the arithmetic of the simulation family. |
+| `FixedStepTerminalSchedule` / `ExactTransitionTerminalSchedule` | Terminal-only schedule. |
+| `FixedStepRegularSchedule` / `ExactTransitionRegularSchedule` | Homogeneous observation schedule. |
 | `FixedStepDenseSchedule` | Observes every numerical transition. |
-| `FixedStepCalendarSchedule<N>` / `ExactTransitionCalendarSchedule<N>` | Compile-time irregular calendar storing `N` step counts or prepared transitions. |
+| `FixedStepCalendarSchedule<N>` / `ExactTransitionCalendarSchedule<N>` | Static irregular calendar of `N` intervals. |
 
-<a id="equity-observation-handlers"></a>
-### [`observation_handlers.cuh`](equity/observation_handlers.cuh)
-
-| Type | Definition |
-|---|---|
-| `ArithmeticMeanObservationHandler` | Accumulates observed spots in FP64 and returns their arithmetic mean. |
-| `GeometricMeanObservationHandler` | Accumulates log-spots in FP64; native log-state models avoid an unnecessary `log`. |
-| `MaximumObservationHandler` | Keeps the maximum spot observed on a dense schedule. |
-| `SpotObservationWriter` | Writes selected observed spots to a caller-owned strided view. |
-| `SpotAndStateObservationWriter` | Writes spots and one selected scalar state member to strided views. |
-
-<a id="equity-barrier-handlers"></a>
-### [`barrier_observation_handlers.cuh`](equity/barrier_observation_handlers.cuh)
-
-| Type or function | Definition |
-|---|---|
-| `BarrierDirection` | Compile-time down/up orientation. |
-| `barrier_breached<Direction>(...)` | Tests the oriented inclusive barrier condition. |
-| `KnockOutBarrierObservationHandler` | Stops at the first breach and retains the last tested spot. |
-| `KnockInBarrierObservationHandler` | Records activation while continuing to maturity. |
-| `DoubleKnockOutObservationHandler` | Stops when the spot leaves the open interval between two barriers. |
-
-<a id="equity-discount"></a>
-### [`discount.cuh`](equity/discount.cuh)
-
-For a continuously compounded constant rate,
-
-```math
-D(0,T)=\exp(-rT).
-```
+<a id="simulation-barrier-handlers"></a>
+### [`barrier_handlers.cuh`](simulation/barrier_handlers.cuh)
 
 | Type | Definition |
 |---|---|
-| `DiscountPolicyFor` | Contract for a discount policy compatible with one dynamics policy. |
-| `ConstantRateDiscountPolicy` | Reads `r` from the model parameters and evaluates the expression above. |
+| `KnockOutBarrierObservationHandler` | Stops when a scalar observable first breaches its oriented barrier. |
+| `KnockInBarrierObservationHandler` | Records activation and continues to maturity. |
+| `DoubleKnockOutObservationHandler` | Stops when a scalar observable leaves an open interval. |
 
-<a id="equity-option-payoff"></a>
-### [`option_payoff.cuh`](equity/option_payoff.cuh)
+<a id="monte-carlo"></a>
+## [`monte_carlo/`](monte_carlo)
 
-For $`s=1`$ for a call and $`s=-1`$ for a put,
+[`concepts.cuh`](#monte-carlo-concepts) ·
+[`monte_carlo_kernel.cuh`](#monte-carlo-kernel)
 
-```math
-\Pi_s(S,K)=\max\!\left(s(S-K),0\right).
-```
+<a id="monte-carlo-concepts"></a>
+### [`concepts.cuh`](monte_carlo/concepts.cuh)
 
-| Function | Definition |
+| Concept | Contract |
 |---|---|
-| `option_payoff<Side>(underlying, strike)` | Evaluates the call or put payoff with compile-time dispatch. |
+| `ScalarMonteCarloPricingPolicy` | Binds `DeviceInputs`, a schedule and a product to input-driven `PreparedRow` construction and `evaluate_path(row, key, path)`. |
 
-<a id="equity-barrier-pricing"></a>
-### [`barrier_pricing_policy.cuh`](equity/barrier_pricing_policy.cuh)
+`PreparedRow` remains trivially copyable and no larger than 256 bytes.
 
-| Type | Definition |
-|---|---|
-| `SingleBarrierOptionPricingPolicy` | Composes a dense schedule, discount rule, side, direction and knock-in/out convention. |
-| `UpTouchPricingPolicy` | Composes the same layers for one-touch and no-touch cash payoffs. |
-
-<a id="equity-pricing-inputs"></a>
-### [`pricing_inputs.cuh`](equity/pricing_inputs.cuh)
-
-| Type | Definition |
-|---|---|
-| `EmptyDeviceInputs` | Zero-state placeholder for policies requiring no auxiliary device view. |
-
-<a id="equity-monte-carlo-kernel"></a>
-### [`monte_carlo_kernel.cuh`](equity/monte_carlo_kernel.cuh)
+<a id="monte-carlo-kernel"></a>
+### [`monte_carlo_kernel.cuh`](monte_carlo/monte_carlo_kernel.cuh)
 
 Let $`Y_1,\ldots,Y_M`$ be the discounted payoffs returned by a pricing policy.
 The kernel reports
@@ -259,19 +290,127 @@ The kernel reports
 
 | Function | Definition |
 |---|---|
-| `monte_carlo_price_kernel<Pricing>(...)` | Uses one persistent block per price, one shared prepared row and an FP64 moment reduction. |
-| `validate_monte_carlo_launch<Pricing>(...)` | Validates pointers, result construction, batch, numerical configuration, geometry and seed range. |
+| `monte_carlo_price_kernel<Pricing>(...)` | Uses persistent blocks over prices, one shared prepared row, one shared Philox key and an FP64 moment reduction. |
+| `validate_monte_carlo_launch<Pricing>(...)` | Delegates input validation to `DeviceInputs`, then validates batch, numerical configuration, geometry and seed range. |
 | `launch_monte_carlo_cuda<Pricing>(...)` | Checks occupancy, emits optional diagnostics, launches the specialized kernel and checks the launch status. |
+
+<a id="payoff"></a>
+## [`payoff/`](payoff)
+
+[`vanilla_option.cuh`](#vanilla-option-payoff) ·
+[`barrier.cuh`](#barrier-payoff)
+
+<a id="vanilla-option-payoff"></a>
+### [`vanilla_option.cuh`](payoff/vanilla_option.cuh)
+
+For $`s=1`$ for a call and $`s=-1`$ for a put,
+
+```math
+\Pi_s(S,K)=\max\!\left(s(S-K),0\right).
+```
+
+| Function | Definition |
+|---|---|
+| `vanilla_option_payoff<Side>(underlying, strike)` | Evaluates the payoff with compile-time side dispatch. |
+
+<a id="barrier-payoff"></a>
+### [`barrier.cuh`](payoff/barrier.cuh)
+
+| Type or function | Definition |
+|---|---|
+| `BarrierDirection` | Compile-time down/up orientation. |
+| `barrier_breached<Direction>(value, barrier)` | Evaluates the inclusive oriented barrier condition. |
+
+<a id="equity"></a>
+## [`equity/`](equity)
+
+[`concepts.cuh`](#equity-concepts) ·
+[`observables.cuh`](#equity-observables) ·
+[`handlers.cuh`](#equity-handlers) ·
+[`discount.cuh`](#equity-discount) ·
+[`barrier_pricing_policy.cuh`](#equity-barrier-pricing)
+
+<a id="equity-concepts"></a>
+### [`concepts.cuh`](equity/concepts.cuh)
+
+| Concept | Contract |
+|---|---|
+| `SpotDynamicsPolicy` | Adds `spot(state)` to the market-neutral dynamics contract. |
+| `LogSpotDynamicsPolicy` | Adds `log_spot(state)` and the `kNativeLogSpot` capability flag. |
+
+<a id="equity-observables"></a>
+### [`observables.cuh`](equity/observables.cuh)
+
+| Type | Definition |
+|---|---|
+| `SpotObservable<Dynamics>` | Adapts `Dynamics::spot(state)` to the market-neutral scalar-observable interface. |
+
+<a id="equity-handlers"></a>
+### [`handlers.cuh`](equity/handlers.cuh)
+
+| Type | Definition |
+|---|---|
+| `ArithmeticMeanObservationHandler` | Accumulates observed spots in FP64. |
+| `GeometricMeanObservationHandler` | Accumulates log-spots in FP64. |
+| `MaximumObservationHandler` | Retains the maximum observed spot. |
+| `SpotObservationWriter` | Writes observed spots to a strided view. |
+| `SpotAndStateObservationWriter` | Writes spots and one selected state member. |
+
+<a id="equity-discount"></a>
+### [`discount.cuh`](equity/discount.cuh)
+
+```math
+D(0,T)=\exp(-rT).
+```
+
+| Type or function | Definition |
+|---|---|
+| `ConstantRateParameters` | Requires a scalar risk-free-rate field. |
+| `constant_rate_discount_factor(parameters, time)` | Evaluates the constant-rate discount factor. |
+
+<a id="equity-barrier-pricing"></a>
+### [`barrier_pricing_policy.cuh`](equity/barrier_pricing_policy.cuh)
+
+| Type | Definition |
+|---|---|
+| `SingleBarrierOptionPricingPolicy` | Composes a dense schedule with an equity spot observable and vanilla payoff. |
+| `UpTouchPricingPolicy` | Composes the same layers for one-touch and no-touch cash payoffs. |
 
 <a id="fixed-income"></a>
 ## [`fixed_income/`](fixed_income)
 
 [`one_factor_affine.cuh`](#one-factor-affine) ·
+[`bond_option_pricing_policies.cuh`](#bond-option-pricing-policies) ·
 [`cashflows.cuh`](#fixed-income-cashflows) ·
 [`gaussian_bond_option.cuh`](#gaussian-bond-option) ·
 [`swaption_side.cuh`](#swaption-side) ·
 [`jamshidian.cuh`](#jamshidian) ·
 [`european_swaption.cuh`](#european-swaption-engine)
+
+<a id="bond-option-pricing-policies"></a>
+### [`bond_option_pricing_policies.cuh`](fixed_income/bond_option_pricing_policies.cuh)
+
+For $`\delta`$ the contractual accrual fraction and strike $`K`$, a rate
+option is transformed with
+
+```math
+X=1+K\delta,
+\qquad
+K_B=\frac{1}{X},
+\qquad
+N_B=N X.
+```
+
+| Type | Definition |
+|---|---|
+| `StandaloneRateOptionClosedFormPricingPolicy<Model, Side>` | Prices a caplet as a scaled bond put and a floorlet as a scaled bond call. |
+| `StandaloneZeroCouponBondOptionClosedFormPricingPolicy<Model, Side>` | Applies the model bond-option primitive to a standalone model row. |
+| `FittedRateOptionClosedFormPricingPolicy<Composition, Side>` | Same rate-option transformation after composing a model with its parametric curve. |
+| `FittedZeroCouponBondOptionClosedFormPricingPolicy<Composition, Side>` | Same bond-option payoff after fitted-model composition. |
+
+The model analytics remain responsible for `zero_coupon_bond_call_price` and
+`zero_coupon_bond_put_price`. A fitted `Composition` supplies only the model,
+curve and fitted-model types, `compose(...)`, and the analytical initial state.
 
 <a id="one-factor-affine"></a>
 ### [`one_factor_affine.cuh`](fixed_income/one_factor_affine.cuh)
@@ -396,13 +535,11 @@ Reference: [Jamshidian (1989)](https://doi.org/10.1111/j.1540-6261.1989.tb02413.
 |---|---|
 | `PreparedEuropeanSwaptionRow` | Holds one prepared model, contract scalars and a regular or explicit schedule view. |
 | `prepare_european_swaption_row(...)` | Resolves standalone or fitted model inputs and the schedule representation. |
-| `evaluate_european_swaption_price<Side>(...)` | Calls the model policy's closed-form price for one row. |
-| `one_factor_european_swaption_kernel<Side>(...)` | Prices standalone model/product rows with one thread per price. |
-| `fitted_one_factor_european_swaption_kernel<Side>(...)` | Prices model/curve/product rows with one thread per price. |
-| `validate_european_swaption_schedule_source(...)` | Validates the optional explicit device pools. |
-| `validate_european_swaption_batch(...)` | Validates the result slice, time conversion and launch geometry. |
-| `launch_one_factor_european_swaption<Side>(...)` | Validates and launches a standalone specialization. |
-| `launch_fitted_one_factor_european_swaption<Side>(...)` | Validates and launches a fitted-model specialization. |
+| `evaluate_european_swaption_price<Side>(...)` | Calls the model's closed-form swaption analytic for one row. |
+| `OneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adapts standalone Jamshidian analytics and a schedule context to the common closed-form contract. |
+| `FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds a parametric curve to the same contract. |
+| `launch_one_factor_european_swaption<Side>(...)` | Builds `DeviceInputsWithContext` and launches the common closed-form kernel. |
+| `launch_fitted_one_factor_european_swaption<Side, Composition>(...)` | Adds fitted model/curve/product inputs through the shared model composition. |
 
 <a id="result-index"></a>
 ## [`result_index.cuh`](result_index.cuh)

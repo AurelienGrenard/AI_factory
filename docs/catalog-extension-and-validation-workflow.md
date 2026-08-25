@@ -110,7 +110,7 @@ qu'un nouveau payoff l'utilise.
 - [ ] Reprendre les primitives propres au modele: `prepare_model`, l'eventuel
       `prepare_transition`, `initial_state` et `one_step_transition`.
 - [ ] Pour un modele equity standard, exposer `DynamicsPolicy` et reutiliser
-      les chemins de `common/equity/path_simulation.cuh`.
+      les chemins de `common/simulation/path_simulation.cuh`.
 - [ ] Ajouter `analytics.cuh/.cu` pour les quantites analytiques reutilisables.
 - [ ] Conserver les noms et l'ordre des fonctions des modeles voisins.
 - [ ] Ajouter les sources et les tests au `CMakeLists.txt`.
@@ -190,8 +190,12 @@ qu'un nouveau payoff l'utilise.
 
 ## Ajouter un produit
 
-- [ ] Creer `src/product/<product>/dataset.hpp` et `dataset.cpp`.
-- [ ] Declarer uniquement les parametres necessaires au payoff ou au contrat.
+- [ ] Creer `src/product/<product>/parameters.hpp`, `dataset.hpp` et
+      `dataset.cpp`.
+- [ ] Declarer dans `parameters.hpp` uniquement les parametres necessaires au
+      payoff ou au contrat, avec leurs invariants de representation.
+- [ ] Reserver `dataset.hpp/.cpp` aux conteneurs hote et au chargement JSON;
+      les pricers et interfaces CUDA incluent directement `parameters.hpp`.
 - [ ] Implementer `load_products(...)` avec validation de structure et de lignes.
 - [ ] Verifier au minimum les valeurs finies, positivites, maturites croissantes,
       calendriers et conventions propres au produit.
@@ -228,11 +232,12 @@ changement de signe.
 
 - [ ] Ajouter `<product>.cuh/.cu` dans chaque modele compatible.
 - [ ] Copier l'ossature du produit numeriquement le plus proche.
-- [ ] Garder `PreparedRow`, `prepare_row`, `evaluate_price` ou `evaluate_path`,
-      le kernel, la validation et le launch dans le meme ordre.
+- [ ] Garder `PreparedRow`, `prepare_row`, `evaluate_price` ou `evaluate_path`
+      dans la politique; reutiliser le kernel et la validation communs.
 - [ ] Choisir une topologie adaptee sans casser l'uniformite:
-      un thread par prix pour une formule fermee, un ou plusieurs blocs par prix
-      pour le Monte-Carlo selon la reduction et le workspace necessaires.
+      specialisation directe ou grid-stride pour une formule fermee, blocs
+      persistants avec reduction pour le Monte-Carlo standard, kernel specialise
+      seulement lorsque l'algorithme l'exige.
 - [ ] Verifier les acces globaux contigus, la pression registre, les reductions,
       l'occupation et les allocations temporaires.
 - [ ] Ajouter le generateur de prix pour chaque dataset public distinct, meme

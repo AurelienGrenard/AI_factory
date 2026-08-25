@@ -1,6 +1,8 @@
 // Build one NormalInverseGaussian Cliquet price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/normal_inverse_gaussian/cliquet.cuh"
+#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "product/cliquet/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

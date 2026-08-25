@@ -1,8 +1,8 @@
 // Public launcher for the Kou Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

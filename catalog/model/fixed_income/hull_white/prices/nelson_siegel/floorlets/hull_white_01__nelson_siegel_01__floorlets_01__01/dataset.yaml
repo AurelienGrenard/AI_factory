@@ -19,9 +19,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/hull_white/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -40,5 +41,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.185414783 s"
-  kernel_seconds: "0.000054272 s"
+  wall_seconds: "0.478628613 s"
+  kernel_seconds: "0.00012288 s"

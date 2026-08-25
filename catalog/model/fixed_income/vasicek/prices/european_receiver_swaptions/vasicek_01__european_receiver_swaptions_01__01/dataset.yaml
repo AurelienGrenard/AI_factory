@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/vasicek/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,5 +36,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "3.378183678 s"
-  kernel_seconds: "0.007435136 s"
+  wall_seconds: "1.834995091 s"
+  kernel_seconds: "0.007003136 s"

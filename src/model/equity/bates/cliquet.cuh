@@ -1,8 +1,8 @@
 // Public launcher for the Bates Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

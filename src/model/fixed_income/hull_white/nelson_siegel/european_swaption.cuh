@@ -4,7 +4,7 @@
 #include "common/fixed_income/swaption_side.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
-#include "product/european_swaption/dataset.hpp"
+#include "product/european_swaption/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

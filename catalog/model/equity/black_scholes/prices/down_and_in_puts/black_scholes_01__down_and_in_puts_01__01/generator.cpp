@@ -1,6 +1,8 @@
 // Build one BlackScholes Down-and-in-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/down_and_in_option.cuh"
+#include "model/equity/black_scholes/dataset.hpp"
+#include "product/down_and_in_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

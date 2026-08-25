@@ -1,8 +1,8 @@
 // Public launcher for closed-form Black-Scholes straddle pricing.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 

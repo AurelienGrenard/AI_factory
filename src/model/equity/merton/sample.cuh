@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for merton model samples.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

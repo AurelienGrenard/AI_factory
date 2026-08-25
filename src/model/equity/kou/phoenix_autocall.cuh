@@ -1,8 +1,8 @@
 // Public launcher for the Kou Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,8 +1,8 @@
 // Public launcher for the Heston Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

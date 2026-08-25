@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/gap_option/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/gap_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

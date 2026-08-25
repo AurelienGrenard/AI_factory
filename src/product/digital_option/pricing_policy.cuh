@@ -1,76 +1,67 @@
 // Cash-or-nothing payoff composed with a terminal equity schedule.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
+#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "common/equity/observation_handlers.cuh"
+#include "common/simulation/schedule.cuh"
+#include "common/equity/handlers.cuh"
 #include "common/option_side.cuh"
-#include "product/digital_option/dataset.hpp"
+#include "product/digital_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 
 template<
-    equity::TerminalEquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy,
+    simulation::TerminalSchedulePolicy SchedulePolicy,
     OptionSide Side
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct DigitalOptionPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = DigitalOptionParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float strike;
         float discounted_cash_payoff;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{product.maturity};
+        const typename Schedule::Calendar calendar{product.maturity};
         return {
-            Schedule::prepare(model, definition, configuration, inputs.schedule),
-            philox::make_key(seed),
+            Schedule::prepare(model, calendar, time_configuration),
             product.strike,
-            product.cash_payoff * Discount::discount_factor(
+            product.cash_payoff * equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
-                Schedule::total_year_fraction(definition, configuration)
+                simulation::day_count_year_fraction(
+                    product.maturity,
+                    time_configuration
+                )
             ),
         };
     }
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
         const typename Dynamics::State terminal = Schedule::simulate_terminal(
             row.schedule,
-            row.key,
+            key,
             path
         );
         const float terminal_spot = Dynamics::spot(terminal);
@@ -80,18 +71,6 @@ struct DigitalOptionPricingPolicy {
         return pays ? row.discounted_cash_payoff : 0.0f;
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

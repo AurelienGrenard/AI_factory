@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/range_accrual.cuh"
 #include "model/equity/black_scholes/dataset.hpp"
+#include "product/range_accrual/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

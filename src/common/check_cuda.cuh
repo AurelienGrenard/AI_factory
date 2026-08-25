@@ -168,15 +168,20 @@ inline void validate_day_fraction(float day_fraction) {
     }
 }
 
+// Validate one numerical time step independently of Monte Carlo sampling.
+inline void validate_time_step(float dt) {
+    if (!(dt > 0.0f) || !std::isfinite(dt)) {
+        throw std::invalid_argument("dt must be positive and finite.");
+    }
+}
+
 // Validate the path count and step requested by a discretized simulation.
 inline void validate_monte_carlo_parameters(
     std::size_t paths_per_result,
     float dt
 ) {
     validate_monte_carlo_path_count(paths_per_result);
-    if (!(dt > 0.0f) || !std::isfinite(dt)) {
-        throw std::invalid_argument("dt must be positive and finite.");
-    }
+    validate_time_step(dt);
 }
 
 // Reject an empty numerical grid within one product business day.

@@ -1,8 +1,8 @@
 // Public launcher for closed-form Black-Scholes range-accrual pricing.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 

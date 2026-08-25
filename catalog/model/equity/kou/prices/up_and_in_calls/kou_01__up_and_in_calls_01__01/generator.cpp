@@ -1,6 +1,8 @@
 // Build one Kou Up-and-in-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/kou/up_and_in_option.cuh"
+#include "model/equity/kou/dataset.hpp"
+#include "product/up_and_in_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

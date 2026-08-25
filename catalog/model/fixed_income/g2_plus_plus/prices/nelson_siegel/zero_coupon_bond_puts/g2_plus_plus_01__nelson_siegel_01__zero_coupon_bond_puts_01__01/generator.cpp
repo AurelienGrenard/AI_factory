@@ -1,6 +1,9 @@
 // Build one G2++ Nelson-Siegel zero-coupon bond put dataset.
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/zero_coupon_bond_option.cuh"
+#include "curve/nelson_siegel/dataset.hpp"
+#include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

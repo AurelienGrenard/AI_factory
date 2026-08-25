@@ -1,6 +1,8 @@
 // Build one CEV digital-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/cev/digital_option.cuh"
+#include "model/equity/cev/dataset.hpp"
+#include "product/digital_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

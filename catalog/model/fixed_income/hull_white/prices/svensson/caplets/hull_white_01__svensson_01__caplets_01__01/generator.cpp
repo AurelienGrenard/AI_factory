@@ -1,6 +1,9 @@
 // Build one Hull-White Svensson caplet price dataset.
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/hull_white/svensson/rate_option.cuh"
+#include "curve/svensson/dataset.hpp"
+#include "model/fixed_income/hull_white/dataset.hpp"
+#include "product/rate_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -3,8 +3,8 @@
 
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "common/sample.cuh"
 
 // Include the reusable dynamics so NVCC can inline every transition.
@@ -40,7 +40,7 @@ __global__ void heston_terminal_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const PreparedModel prepared = prepare_model(models[indices.model_index], dt);
-        const State terminal = equity::simulate_fixed_step_terminal<
+        const State terminal = simulation::simulate_fixed_step_terminal<
             DynamicsPolicy
         >(
             prepared,
@@ -88,7 +88,7 @@ __global__ void heston_calendar_samples_kernel(
             total_sample_count,
             observation_count,
         };
-        equity::simulate_fixed_step_regular_schedule<DynamicsPolicy>(
+        simulation::simulate_fixed_step_stubbed_regular_schedule<DynamicsPolicy>(
             prepared_model,
             initial_stub_steps,
             steps_per_observation,

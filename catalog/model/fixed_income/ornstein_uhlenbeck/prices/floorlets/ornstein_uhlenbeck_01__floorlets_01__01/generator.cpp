@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/rate_option.cuh"
+#include "product/rate_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

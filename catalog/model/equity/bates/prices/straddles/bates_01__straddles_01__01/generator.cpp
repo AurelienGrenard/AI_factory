@@ -1,6 +1,8 @@
 // Build one Bates straddle price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/bates/straddle.cuh"
+#include "model/equity/bates/dataset.hpp"
+#include "product/straddle/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

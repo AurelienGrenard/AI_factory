@@ -1,6 +1,8 @@
 // Build one Merton Cliquet price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/merton/cliquet.cuh"
+#include "model/equity/merton/dataset.hpp"
+#include "product/cliquet/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

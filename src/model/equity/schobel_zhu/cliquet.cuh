@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

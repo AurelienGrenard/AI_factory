@@ -1,8 +1,8 @@
 // Public launcher for the BlackScholes Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,18 +1,19 @@
 // Shared Phoenix payoff policy with compile-time coupon-memory selection.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
+#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
+#include "common/simulation/schedule.cuh"
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product::detail {
 
-template<equity::EquitySchedulePolicy Schedule, bool MemoryCoupon>
+template<equity::SpotDynamicsPolicy Dynamics, bool MemoryCoupon>
 struct PhoenixObservationHandler {
-    using Dynamics = typename Schedule::Dynamics;
-
     std::uint32_t observation_count;
     float autocall_barrier;
     float coupon_barrier;
@@ -62,31 +63,22 @@ struct PhoenixObservationHandler {
 };
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy,
+    simulation::CountedObservedSchedulePolicy SchedulePolicy,
     typename ProductParametersT,
     bool MemoryCoupon
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct PhoenixPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = ProductParametersT;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float autocall_barrier;
         float coupon_barrier;
         float protection_barrier;
@@ -94,36 +86,27 @@ struct PhoenixPricingPolicy {
         float discount_per_observation;
     };
 
-    static_assert(std::is_trivially_copyable_v<ProductParameters>);
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{
+        const typename Schedule::Calendar calendar{
             product.observation_interval,
             product.maturity / product.observation_interval,
         };
-        const float observation_years = Schedule::interval_year_fraction(
-            definition,
-            0U,
-            configuration
+        const float observation_years = simulation::day_count_year_fraction(
+            product.observation_interval,
+            time_configuration
         );
         return {
-            Schedule::prepare(model, definition, configuration, inputs.schedule),
-            philox::make_key(seed),
+            Schedule::prepare(model, calendar, time_configuration),
             product.autocall_barrier,
             product.coupon_barrier,
             product.protection_barrier,
             product.annual_coupon_rate * observation_years,
-            Discount::discount_factor(
+            equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
                 observation_years
             ),
         };
@@ -131,9 +114,10 @@ struct PhoenixPricingPolicy {
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
-        PhoenixObservationHandler<Schedule, MemoryCoupon> handler{
+        PhoenixObservationHandler<Dynamics, MemoryCoupon> handler{
             Schedule::observation_count(row.schedule),
             row.autocall_barrier,
             row.coupon_barrier,
@@ -141,22 +125,10 @@ struct PhoenixPricingPolicy {
             row.coupon_per_observation,
             row.discount_per_observation,
         };
-        Schedule::simulate(row.schedule, row.key, path, handler);
+        Schedule::simulate(row.schedule, key, path, handler);
         return handler.present_value;
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product::detail

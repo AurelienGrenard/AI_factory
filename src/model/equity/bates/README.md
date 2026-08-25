@@ -139,7 +139,7 @@ are discounted at their own payment dates. For path-dependent options, let
 0=u_0\lt u_1\lt \cdots\lt u_N=T
 ```
 
-be the simulation grid selected by the pricing configuration.
+be the simulation grid selected by the time configuration.
 
 ### Vanilla, digital, gap, and forward-start options
 

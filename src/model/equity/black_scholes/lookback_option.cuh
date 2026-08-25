@@ -1,8 +1,8 @@
 // Public launcher for the BlackScholes fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,8 +1,8 @@
 // Public launcher for the Merton Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

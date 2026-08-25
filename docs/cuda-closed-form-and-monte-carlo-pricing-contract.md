@@ -17,7 +17,9 @@ suivante :
 
 La différence volontaire porte sur l'évaluation et la stratégie du kernel :
 Monte Carlo utilise `evaluate_path` et une réduction par prix ; une formule
-fermée utilise `evaluate_price` et généralement un thread par prix.
+fermée utilise `evaluate_price`. Les deux chemins reçoivent cependant le même
+type de vue `DeviceInputs`, qui centralise les tableaux device et le décodage
+aligné ou cartésien.
 
 ## Conventions de nommage
 
@@ -43,12 +45,13 @@ fermée utilise `evaluate_price` et généralement un thread par prix.
 | `template<SwaptionSide Side>` | compilation | spécialisation payer/receiver sans branche runtime |
 | `__restrict__` | paramètres de kernel | absence d'alias entre les tableaux concernés |
 
-## Composition Monte Carlo equity
+## Composition Monte Carlo commune
 
-Les pricers equity standards hors Black-Scholes, rough Bergomi et exercice
-anticipé utilisent quatre politiques statiques. Aucun héritage, allocation ou
-appel virtuel n'entre dans le kernel : les concepts contrôlent les interfaces,
-puis le compilateur inline la composition complète.
+Les pricers Monte Carlo standards, quel que soit leur marché, utilisent trois
+politiques statiques. Rough Bergomi et l'exercice anticipé conservent leurs
+kernels spécialisés. Aucun héritage, allocation ou appel virtuel n'entre dans
+le kernel : les concepts contrôlent les interfaces, puis le compilateur inline
+la composition complète.
 
 ```text
 DynamicsPolicy<Model>
@@ -57,7 +60,10 @@ DynamicsPolicy<Model>
 SchedulePolicy<DynamicsPolicy>
         |
         v
-PricingPolicy<SchedulePolicy, DiscountPolicy, Side>
+PricingPolicy<SchedulePolicy, Side>
+        |
+        v
+DeviceInputs<Model, Product[, Curve]>
         |
         v
 monte_carlo_price_kernel<PricingPolicy>
@@ -65,11 +71,14 @@ monte_carlo_price_kernel<PricingPolicy>
 
 ### `DynamicsPolicy`
 
-Chaque `dynamics.cuh/.cu` expose `DynamicsPolicy`. Ses alias sont
-`Parameters`, `PreparedDynamics`, `RandomContext` et `State`. Un modèle à
-transition exacte expose en plus `PreparedModel` et `PreparedTransition`.
+Chaque `dynamics.cuh/.cu` expose `DynamicsPolicy`. Ses alias minimaux sont
+`Parameters`, `RandomContext` et `State`. Un schéma à pas fixe expose en plus
+`PreparedDynamics`; un modèle à transition exacte expose `PreparedModel` et
+`PreparedTransition`.
 
-Son interface commune est :
+Le concept `simulation::DynamicsPolicy` vérifie uniquement les types
+path-local. Il n'impose ni spot, ni taux, ni facteur de marché. Les schémas à
+pas fixes ajoutent l'interface suivante :
 
 ```cpp
 static PreparedDynamics prepare_dynamics(
@@ -77,23 +86,21 @@ static PreparedDynamics prepare_dynamics(
     float delta_t
 );
 static State initial_state(const PreparedDynamics& dynamics);
-static void simulate_one_step(
-    const PreparedDynamics& dynamics,
-    RandomContext& random,
-    State& state
-);
 static void advance(
     const PreparedDynamics& dynamics,
     std::uint32_t transition_count,
     RandomContext& random,
     State& state
 );
-static float spot(const State& state);
 ```
 
 Les modèles exacts ajoutent les surcharges qui séparent les coefficients
-invariants de ceux d'un intervalle. `EquityDynamicsPolicy` et
-`ExactTransitionDynamicsPolicy` vérifient ces contrats à la compilation.
+invariants de ceux d'un intervalle, ainsi que `simulate_one_step`. Les concepts
+`DynamicsPolicy`, `FixedStepDynamicsPolicy` et
+`ExactTransitionDynamicsPolicy` ne vérifient que les capacités réellement
+consommées par chaque algorithme. Les accès de marché sont ajoutés séparément :
+`equity::SpotDynamicsPolicy` et `equity::LogSpotDynamicsPolicy` imposent les
+observables du spot sans contaminer le socle de simulation.
 
 ### `SchedulePolicy`
 
@@ -107,6 +114,13 @@ sont :
 | observations régulières | `FixedStepRegularSchedule` | `ExactTransitionRegularSchedule` |
 | monitoring à chaque pas | `FixedStepDenseSchedule` | transition fine régulière |
 | calendrier de taille statique | `FixedStepCalendarSchedule<N>` | `ExactTransitionCalendarSchedule<N>` |
+
+Chaque schedule expose `Calendar`, qui décrit les dates contractuelles en
+jours, et `TimeConfiguration`, qui décrit leur représentation numérique. Sa
+fonction `prepare(parameters, calendar, time_configuration)` produit le
+`PreparedSchedule` compact utilisé sur le GPU, tandis que
+`validate_time_configuration(time_configuration)` contrôle uniquement les
+paramètres temporels propres à cette famille de simulation.
 
 Les produits terminaux appellent `simulate_terminal`. Les produits de chemin
 fournissent un observation handler possédant :
@@ -122,9 +136,8 @@ knock-out ou un autocall.
 ### `PricingPolicy`
 
 Une politique située dans `src/product/<product>/pricing_policy.cuh` reçoit le
-schedule et la politique d'actualisation. Elle expose les alias
-`Dynamics`, `ModelParameters`, `ProductParameters`, `PricingConfiguration`,
-`DeviceInputs`, puis les éléments suivants :
+schedule. Elle expose `Schedule`, `DeviceInputs`, `ProductParameters`,
+`PreparedRow` et les deux points d'extension consommés par le kernel :
 
 ```cpp
 struct PreparedRow;
@@ -132,41 +145,43 @@ struct PreparedRow;
 static PreparedRow prepare_row(
     const ModelParameters& model,
     const ProductParameters& product,
-    const PricingConfiguration& configuration,
-    const DeviceInputs& inputs,
-    std::uint64_t seed
+    const TimeConfiguration& time_configuration
 );
 
 static float evaluate_path(
     const PreparedRow& row,
+    philox::PhiloxKey key,
     std::size_t path
 );
-
-static void validate_configuration(
-    const PricingConfiguration& configuration,
-    const DeviceInputs& inputs,
-    std::size_t monte_carlo_paths_per_price
-);
 ```
+
+`DeviceInputs::prepare_row<Pricing>(result_index, time_configuration)` décode
+les indices, charge les lignes de modèle, produit et éventuellement courbe,
+puis appelle le `prepare_row` ci-dessus. Le kernel ne connaît donc aucune
+forme particulière d'entrée.
 
 `PreparedRow` contient uniquement les états préparés et scalaires nécessaires
 à tous les chemins d'un prix. Il reste trivially copyable, borné à 256 octets
 par `ScalarMonteCarloPricingPolicy`, puis stocké une seule fois en mémoire
-partagée par bloc. `evaluate_path` ne reçoit donc aucun argument propre au
-modèle ou au produit hors de cette ligne compacte.
+partagée par bloc. La clé Philox de la ligne est également préparée une seule
+fois en mémoire partagée. Cette disposition évite de conserver `base_seed` et
+le calcul de clé dans les registres de chaque thread pendant toute la
+trajectoire.
 
 Le côté call/put est un paramètre de template lorsque le payoff le demande. Un
 produit sans côté ne crée ni template artificiel ni branche runtime.
 
 ### `monte_carlo_price_kernel<PricingPolicy>`
 
-Le kernel générique de `common/equity/monte_carlo_kernel.cuh` :
+Le kernel générique de `common/monte_carlo/monte_carlo_kernel.cuh` :
 
-1. décode la ligne modèle-produit ;
-2. construit un unique `PreparedRow` partagé par le bloc ;
-3. distribue les chemins entre les threads ;
-4. accumule somme et somme des carrés en FP64 ;
-5. réduit les moments et écrit prix et erreur standard en FP32.
+1. demande à `DeviceInputs` de construire la ligne correspondant au résultat ;
+2. stocke cet unique `PreparedRow` dans le bloc ;
+3. construit une seule clé `make_key(base_seed + result_index)` partagée par
+   le bloc ;
+4. distribue les chemins entre les threads ;
+5. accumule somme et somme des carrés en FP64 ;
+6. réduit les moments et écrit prix et erreur standard en FP32.
 
 `validate_monte_carlo_launch<PricingPolicy>` valide les pointeurs, la
 construction alignée ou cartésienne, le batch, le nombre de chemins, la
@@ -181,26 +196,97 @@ ses types :
 
 ```cpp
 using Schedule = /* fixed-step ou exact, terminal/régulier/dense/calendrier */;
-using Discount = equity::ConstantRateDiscountPolicy<DynamicsPolicy>;
 using PricingPolicy = product::EuropeanOptionPricingPolicy<
     Schedule,
-    Discount,
     Side
 >;
 ```
 
-Le launcher public conserve sa signature historique, construit les petites
-structures `configuration` et `inputs`, puis appelle uniquement
-`launch_monte_carlo_cuda<PricingPolicy>`. Les variantes call et put sont
-explicitement instanciées au bas du fichier.
+Le launcher public conserve sa signature historique, construit
+`ModelProductDeviceInputs`, puis la petite structure de configuration
+temporelle, et appelle uniquement `launch_monte_carlo_cuda<PricingPolicy>`.
+Les variantes call et put sont explicitement instanciées au bas du fichier.
 
-## Formules fermées et fixed income
+## Entrées device communes
 
-Les pricers en formule fermée conservent un `PreparedRow` local au thread,
-`prepare_row`, `evaluate_price` et un thread par prix. Les launchers de
-swaptions instancient `SwaptionSide::payer` et `SwaptionSide::receiver`. Cette
-couche n'est pas forcée dans le contrat Monte Carlo equity : elle ne possède ni
-schedule de chemin, ni contexte aléatoire, ni réduction de moments.
+`common/device_inputs.cuh` fournit trois vues trivially copyable et sans
+allocation :
+
+| Vue | Contenu |
+|---|---|
+| `ModelProductDeviceInputs<Model, Product>` | deux tableaux, leurs comptes et le mode aligné/cartésien |
+| `ModelCurveProductDeviceInputs<Model, Curve, Product>` | ajoute un tableau de courbes indépendantes |
+| `DeviceInputsWithContext<Inputs, Context>` | ajoute un contexte device, par exemple les pools d'un schedule explicite |
+
+Chaque vue expose `validate(result_count)` sur l'hôte et
+`prepare_row<Pricing>(result_index, time_configuration)` sur le device. Cette
+couche décrit uniquement où se trouvent les données d'une ligne. Elle ne
+connaît ni simulation, ni payoff, ni réduction, ni formule analytique.
+
+## Formules fermées
+
+Les formules fermées suivent une voie parallèle au Monte Carlo : elles ne
+possèdent ni `DynamicsPolicy`, ni `SchedulePolicy`, ni contexte aléatoire. Une
+politique minimale expose :
+
+```cpp
+using DeviceInputs = /* vue commune */;
+using TimeConfiguration = /* convention temporelle */;
+
+struct PreparedRow;
+
+static PreparedRow prepare_row(
+    const ModelParameters& model,
+    const ProductParameters& product,
+    const TimeConfiguration& time_configuration
+);
+
+static float evaluate_price(const PreparedRow& row);
+```
+
+Une politique ajustée à une courbe ajoute simplement le paramètre
+`CurveParameters` à `prepare_row`. Une entrée enrichie, comme le pool d'un
+schedule de swaption, reçoit en plus le `Context` fourni par
+`DeviceInputsWithContext`.
+
+Le concept `closed_form::ClosedFormPricingPolicy` exige des entrées, une
+configuration temporelle et une ligne préparée trivially copyable, borne
+`PreparedRow` à 256 octets, puis vérifie la préparation et l'évaluation
+scalaire.
+
+`closed_form_price_kernel<Pricing, GridStride>` possède un seul corps source
+et deux spécialisations de compilation :
+
+- `GridStride == false` traite directement un prix par thread, sans boucle ;
+- `GridStride == true` parcourt les prix avec un stride égal à la taille de la
+  grille lorsque le lancement contient moins de threads que de résultats.
+
+Le launcher choisit la spécialisation directe dès que la grille couvre le
+batch, et la spécialisation grid-stride sinon. Ce choix conserve les ressources
+du kernel historique dans le cas usuel tout en autorisant une petite grille
+persistante. Les deux spécialisations partagent `price_one<Pricing>`, la même
+validation et la même signature de lancement.
+
+Les transformations caplet/floorlet et option sur zéro-coupon sont définies
+une seule fois dans
+`common/fixed_income/bond_option_pricing_policies.cuh`. Les analytics propres
+au modèle fournissent les prix call/put sur zéro-coupon ; les modèles ajustés
+fournissent seulement la composition modèle-courbe et leur état analytique
+initial.
+
+Les launchers de swaptions instancient `SwaptionSide::payer` et
+`SwaptionSide::receiver`, préparent leur vue de schedule dans
+`DeviceInputsWithContext`, puis utilisent le même kernel fermé. Le chemin
+standalone conserve directement la ligne de modèle et son `initial_state` ; le
+chemin ajusté appelle la `FittedModelComposition` déjà utilisée par les options
+sur taux et zéro-coupon. Aucun adaptateur modèle-produit local n'est nécessaire.
+Le côté reste un paramètre de compilation.
+
+Lorsqu'un launcher public est un template dont la définition reste dans le
+`.cu`, chaque côté supporté est émis au bas du fichier avec une instanciation
+explicite standard `template void launch_...<Side>(...)`. Ne pas forcer cette
+instanciation par une variable pointeur, un alias `LaunchSignature` ou une prise
+d'adresse artificielle.
 
 Dans toutes les familles, les compteurs contractuels bornés (`num_steps`,
 `observation_count`, `payment_count`) utilisent `std::uint32_t`. Les tailles de

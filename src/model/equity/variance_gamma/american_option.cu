@@ -4,8 +4,8 @@
 #include "common/check_cuda.cuh"
 #include "common/result_index.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "common/longstaff_schwartz/laguerre.cuh"
 #include "common/longstaff_schwartz/exercise_schedule.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
@@ -207,7 +207,7 @@ __global__ void simulate_paths_kernel(
             row.exercise_count - 1U,
         };
         const State terminal =
-            equity::simulate_exact_transition_regular_schedule<
+            simulation::simulate_exact_transition_stubbed_regular_schedule<
                 DynamicsPolicy
             >(
                 row.model,

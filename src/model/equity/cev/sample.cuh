@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for cev model samples.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

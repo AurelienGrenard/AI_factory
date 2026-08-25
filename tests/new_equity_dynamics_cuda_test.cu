@@ -1,8 +1,8 @@
 // Verify the preparation, transition, and Philox replay contracts of the four
 // equity dynamics added after the first catalogue release.
 #include "common/check_cuda.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "model/equity/cev/dynamics.cu"
 #include "model/equity/kou/dynamics.cu"
 #include "model/equity/merton/dynamics.cu"
@@ -94,35 +94,35 @@ __global__ void exercise_new_equity_dynamics_kernel(
     );
 
     const float merton_terminal_first =
-        equity::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
+        simulation::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
             merton_model, merton_transition, key, 17U
         ).log_spot;
     const float merton_terminal_replay =
-        equity::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
+        simulation::simulate_exact_transition_terminal<merton::DynamicsPolicy>(
             merton_model, merton_transition, key, 17U
         ).log_spot;
     const float kou_terminal_first =
-        equity::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
+        simulation::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
             kou_model, kou_transition, key, 19U
         ).log_spot;
     const float kou_terminal_replay =
-        equity::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
+        simulation::simulate_exact_transition_terminal<kou::DynamicsPolicy>(
             kou_model, kou_transition, key, 19U
         ).log_spot;
     const float cev_terminal_first =
-        equity::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
             cev_model, num_steps, key, 23U
         ).spot;
     const float cev_terminal_replay =
-        equity::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<cev::DynamicsPolicy>(
             cev_model, num_steps, key, 23U
         ).spot;
     const float schobel_zhu_terminal_first =
-        equity::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
             schobel_zhu_model, num_steps, key, 29U
         ).log_spot;
     const float schobel_zhu_terminal_replay =
-        equity::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<schobel_zhu::DynamicsPolicy>(
             schobel_zhu_model, num_steps, key, 29U
         ).log_spot;
 
@@ -135,7 +135,7 @@ __global__ void exercise_new_equity_dynamics_kernel(
         2U,
     };
     const cev::State cev_regular =
-        equity::simulate_fixed_step_regular_schedule<cev::DynamicsPolicy>(
+        simulation::simulate_fixed_step_stubbed_regular_schedule<cev::DynamicsPolicy>(
             cev_model,
             2U,
             5U,
@@ -150,7 +150,7 @@ __global__ void exercise_new_equity_dynamics_kernel(
         2U,
     };
     const cev::State cev_calendar =
-        equity::simulate_fixed_step_calendar<cev::DynamicsPolicy>(
+        simulation::simulate_fixed_step_calendar<cev::DynamicsPolicy>(
             cev_model,
             steps_between_observations,
             3U,
@@ -174,7 +174,7 @@ __global__ void exercise_new_equity_dynamics_kernel(
             2U,
         };
     const schobel_zhu::State schobel_zhu_regular =
-        equity::simulate_fixed_step_regular_schedule<
+        simulation::simulate_fixed_step_stubbed_regular_schedule<
             schobel_zhu::DynamicsPolicy
         >(
             schobel_zhu_model,
@@ -196,7 +196,7 @@ __global__ void exercise_new_equity_dynamics_kernel(
             2U,
         };
     const schobel_zhu::State schobel_zhu_calendar =
-        equity::simulate_fixed_step_calendar<schobel_zhu::DynamicsPolicy>(
+        simulation::simulate_fixed_step_calendar<schobel_zhu::DynamicsPolicy>(
             schobel_zhu_model,
             steps_between_observations,
             3U,

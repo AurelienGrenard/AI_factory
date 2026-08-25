@@ -1,6 +1,8 @@
 // Build one VarianceGamma Cliquet price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/variance_gamma/cliquet.cuh"
+#include "model/equity/variance_gamma/dataset.hpp"
+#include "product/cliquet/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

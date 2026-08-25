@@ -1,8 +1,8 @@
 // Public launcher for the CEV Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

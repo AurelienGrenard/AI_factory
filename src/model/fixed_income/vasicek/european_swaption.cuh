@@ -3,7 +3,7 @@
 
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
-#include "product/european_swaption/dataset.hpp"
+#include "product/european_swaption/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

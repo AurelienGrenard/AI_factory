@@ -1,8 +1,8 @@
 // Public launcher for the BlackScholes Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/european_option.cuh"
 #include "model/equity/black_scholes/dataset.hpp"
+#include "product/european_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

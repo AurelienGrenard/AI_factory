@@ -1,8 +1,8 @@
 // Public launcher for the CEV Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

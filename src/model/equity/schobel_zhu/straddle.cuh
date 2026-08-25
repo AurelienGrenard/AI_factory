@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstring>
 #include <stdexcept>
 
 namespace {
@@ -154,6 +155,82 @@ float geometric_price_one(
     return price;
 }
 
+void require_closed_form_grid_stride_matches_direct() {
+    using namespace ai_factory::workbench;
+    constexpr std::size_t model_count = 2U;
+    constexpr std::size_t product_count = 3U;
+    constexpr std::size_t result_count = model_count * product_count;
+    const ModelParameters models[model_count] = {
+        {0.9f, 0.01f, 0.00f, 0.15f},
+        {1.2f, 0.04f, 0.02f, 0.35f},
+    };
+    const product::EuropeanOptionParameters products[product_count] = {
+        {0.8f, 63U},
+        {1.0f, 252U},
+        {1.4f, 756U},
+    };
+
+    ModelParameters* device_models = nullptr;
+    product::EuropeanOptionParameters* device_products = nullptr;
+    float* device_prices = nullptr;
+    check_cuda(
+        cudaMalloc(&device_models, sizeof(models)),
+        "BS grid-stride model allocation"
+    );
+    check_cuda(
+        cudaMalloc(&device_products, sizeof(products)),
+        "BS grid-stride product allocation"
+    );
+    check_cuda(
+        cudaMalloc(&device_prices, result_count * sizeof(float)),
+        "BS grid-stride price allocation"
+    );
+    check_cuda(cudaMemcpy(
+        device_models, models, sizeof(models), cudaMemcpyHostToDevice
+    ), "BS grid-stride model copy");
+    check_cuda(cudaMemcpy(
+        device_products, products, sizeof(products), cudaMemcpyHostToDevice
+    ), "BS grid-stride product copy");
+
+    float direct[result_count]{};
+    float grid_stride[result_count]{};
+    black_scholes::launch_black_scholes_european_option_cuda<
+        OptionSide::call
+    >(
+        device_models, model_count, device_products, product_count, true,
+        result_count, 0U, result_count, 1.0f / 252.0f, 32U, 1U,
+        device_prices
+    );
+    check_cuda(cudaMemcpy(
+        direct,
+        device_prices,
+        sizeof(direct),
+        cudaMemcpyDeviceToHost
+    ), "BS direct closed-form result copy");
+
+    black_scholes::launch_black_scholes_european_option_cuda<
+        OptionSide::call
+    >(
+        device_models, model_count, device_products, product_count, true,
+        result_count, 0U, result_count, 1.0f / 252.0f, 2U, 1U,
+        device_prices
+    );
+    check_cuda(cudaMemcpy(
+        grid_stride,
+        device_prices,
+        sizeof(grid_stride),
+        cudaMemcpyDeviceToHost
+    ), "BS grid-stride closed-form result copy");
+
+    require(
+        std::memcmp(direct, grid_stride, sizeof(direct)) == 0,
+        "BS closed-form grid-stride results differ from direct results"
+    );
+    check_cuda(cudaFree(device_models), "BS grid-stride model free");
+    check_cuda(cudaFree(device_products), "BS grid-stride product free");
+    check_cuda(cudaFree(device_prices), "BS grid-stride price free");
+}
+
 }  // namespace
 
 int main() {
@@ -164,6 +241,8 @@ int main() {
         || availability == cudaErrorInsufficientDriver
         || device_count == 0) return 77;
     check_cuda(availability, "Black-Scholes test cudaGetDeviceCount");
+
+    require_closed_form_grid_stride_matches_direct();
 
     DynamicsResults* device_results = nullptr;
     check_cuda(cudaMalloc(&device_results, sizeof(DynamicsResults)), "BS dynamics allocation");

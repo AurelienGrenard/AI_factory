@@ -1,8 +1,8 @@
 // Public launcher for the Merton Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/merton/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

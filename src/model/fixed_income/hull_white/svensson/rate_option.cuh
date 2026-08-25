@@ -4,13 +4,13 @@
 #include "curve/svensson/dataset.hpp"
 #include "common/option_side.cuh"
 #include "model/fixed_income/hull_white/dataset.hpp"
-#include "product/rate_option/dataset.hpp"
+#include "product/rate_option/parameters.hpp"
 
 #include <cstddef>
 
 namespace ai_factory::workbench::model::hull_white::svensson {
 
-// Launch one closed-form rate_option price per CUDA thread.
+// Launch closed-form rate_option prices across the CUDA grid.
 template<OptionSide Side>
 void launch_hull_white_svensson_rate_option_cuda(
     const ModelParameters* device_models,

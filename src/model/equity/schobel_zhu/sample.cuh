@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for schobel zhu model samples.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

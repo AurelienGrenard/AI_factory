@@ -1,6 +1,8 @@
 // Build one BlackScholes Athena-autocall price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/athena_autocall.cuh"
+#include "model/equity/black_scholes/dataset.hpp"
+#include "product/athena_autocall/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

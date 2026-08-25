@@ -52,11 +52,11 @@ Les formules de courbe, payoffs, règles produit et kernels de pricing restent
 dans leurs couches respectives. Une dynamique ne les réimporte pas pour
 faciliter ponctuellement un pricer.
 
-Pour les modèles equity standards, `common/equity/path_simulation.cuh` porte
-les boucles de chemin, `common/equity/schedule.cuh` porte les calendriers et
-`src/product/<product>/pricing_policy.cuh` porte le payoff. Le fichier de
-dynamique ne conserve que les primitives du processus et leur adaptateur
-statique `DynamicsPolicy`.
+Pour les modèles factorisés, `common/simulation/path_simulation.cuh` porte les
+boucles de chemin et `common/simulation/schedule.cuh` porte les calendriers.
+Le marché ajoute ensuite ses observables et le produit sa `pricing_policy.cuh`.
+Le fichier de dynamique ne conserve que les primitives du processus et leur
+adaptateur statique `DynamicsPolicy`.
 
 ## Analytics obligataires affines
 
@@ -139,13 +139,14 @@ dynamique. La moyenne, le maximum, les barrières et les coupons appartiennent
 aux handlers des produits dans `pricing_policy.cuh`. Un résultat à deux dates
 est le cas particulier d'un calendrier de deux observations.
 
-Black-Scholes et Rough Bergomi conservent temporairement leurs anciens types de
-résultat jusqu'à leur migration vers ce contrat.
+Black-Scholes conserve encore ses anciens types de résultat uniquement pour
+son générateur de samples historique ; ses pricers Monte Carlo utilisent le
+contrat commun. Rough Bergomi reste hors de ce contrat Markovien.
 
-### `DynamicsPolicy` equity
+### `DynamicsPolicy`
 
-Chaque modèle equity standard expose à la fin de `dynamics.cuh` une structure
-sans donnée membre :
+Chaque modèle factorisé expose à la fin de `dynamics.cuh` une structure sans
+donnée membre :
 
 ```cpp
 struct DynamicsPolicy {
@@ -170,7 +171,6 @@ struct DynamicsPolicy {
         RandomContext& random,
         State& state
     );
-    static float spot(const State& state);
 };
 ```
 
@@ -178,6 +178,12 @@ Les `using` sont des alias de types et ne stockent rien. Les méthodes statiques
 redirigent vers les primitives propres au modèle et sont toutes
 `__device__ __forceinline__`; il n'existe ni instance de policy, ni vtable, ni
 dispatch runtime.
+
+Le contrat de base n'impose aucun observable de marché. Une dynamique equity
+ajoute `spot(state)` et, lorsque disponible, `log_spot(state)` ; ces capacités
+sont vérifiées par `equity::SpotDynamicsPolicy` et
+`equity::LogSpotDynamicsPolicy`. Une future dynamique de taux peut exposer ses
+propres observables sans faux alias `spot`.
 
 Pour un schéma à pas fixe, `PreparedDynamics` est le modèle déjà préparé pour
 `delta_t`. Pour une simulation exacte, il agrège `PreparedModel` et
@@ -191,7 +197,7 @@ Le concept n'impose donc ni `NormalPairCache` séparé, ni nombre fixe de lois
 aléatoires.
 
 Le `static_assert` placé après la déclaration contrôle
-`EquityDynamicsPolicy<DynamicsPolicy>`. Un modèle exact contrôle en plus
+`simulation::DynamicsPolicy<DynamicsPolicy>`. Un modèle exact contrôle en plus
 `ExactTransitionDynamicsPolicy<DynamicsPolicy>`. Les concepts vérifient les
 types et signatures utilisés par les templates communs ; ils n'ajoutent aucun
 coût d'exécution.
@@ -203,11 +209,11 @@ Les primitives communes sont `prepare_model`, l'éventuel
 `prepare_transition`, `initial_state` et `one_step_transition`. Une signature
 de variates n'est jamais artificiellement uniformisée lorsqu'une loi exige une
 consommation différente. `DynamicsPolicy` adapte ces primitives à l'interface
-commune consommée par les templates equity.
+commune consommée par les templates de simulation.
 
 Les simulations terminales, régulières et irrégulières sont exclusivement
-portées par `common/equity/path_simulation.cuh`. Elles ne sont pas dupliquées
-dans les dynamiques equity standards.
+portées par `common/simulation/path_simulation.cuh`. Elles ne sont pas dupliquées
+dans les dynamiques factorisées.
 
 ### `prepare_model`
 
@@ -347,9 +353,9 @@ appelle `one_step_transition`. Un argument `PreparedModel` peut être inutilisé
 pour une loi simple ; il est conservé ici parce que d'autres lois, comme VG,
 NIG ou CIR, en ont réellement besoin.
 
-### Simulations terminales equity
+### Simulations terminales
 
-`common/equity/path_simulation.cuh` expose deux fonctions
+`common/simulation/path_simulation.cuh` expose deux fonctions
 `__device__ __forceinline__` :
 
 ```cpp
@@ -378,7 +384,7 @@ couplée au Brownien de volatilité intégré sur le pas, puis au Brownien spot.
 log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc pas
 « transition jointe spot-volatilité exacte ».
 
-### Calendriers réguliers equity
+### Calendriers réguliers
 
 Les deux algorithmes génériques sont :
 
@@ -387,19 +393,20 @@ simulate_fixed_step_regular_schedule<Dynamics>(...);
 simulate_exact_transition_regular_schedule<Dynamics>(...);
 ```
 
-Pour un modèle à schéma, la signature reçoit `initial_transition_count`,
+Pour un modèle à schéma, la forme homogène reçoit
 `transitions_per_observation`, `observation_count`, la clé, le chemin et un
-handler. Le stub et les intervalles réguliers utilisent le même `delta_t`
-préparé.
+handler. La forme `stubbed` ajoute `initial_transition_count`. Le stub et les
+intervalles réguliers utilisent le même `delta_t` préparé.
 
-Pour un modèle exact, les deux compteurs sont remplacés par
-`initial_transition` et `regular_transition`. Un intervalle d'observation
-consomme un seul incrément exact, quelle que soit sa longueur.
+Pour un modèle exact, la forme homogène reçoit une transition préparée unique ;
+la forme `stubbed` reçoit `initial_transition` et `regular_transition`. Un
+intervalle d'observation consomme un seul incrément exact, quelle que soit sa
+longueur.
 
 La fonction :
 
 1. construit une seule suite aléatoire pour le chemin ;
-2. simule le stub initial ;
+2. simule le premier intervalle, distinct seulement dans la forme `stubbed` ;
 3. notifie le handler à chaque date contractuelle ;
 4. retourne directement l'état terminal.
 
@@ -412,10 +419,10 @@ centralisent les écritures SoA nécessaires aux samples et à
 Longstaff–Schwartz. Le pricer fixe leur `write_count` afin d'inclure ou non la
 maturité sans modifier la boucle de simulation.
 
-### Calendriers irréguliers equity
+### Calendriers irréguliers
 
-Les modèles equity factorisés n'exposent plus cette fonction. Les algorithmes
-communs de `common/equity/path_simulation.cuh` sont :
+Les dynamiques factorisées n'exposent pas ces boucles. Les algorithmes
+communs de `common/simulation/path_simulation.cuh` sont :
 
 ```cpp
 simulate_fixed_step_regular_schedule<Dynamics>(...);
@@ -447,8 +454,9 @@ tous les modèles et le dispatch statique permet au compilateur d'inliner le
 handler sans coût virtuel.
 
 Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
-dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes et
-Rough Bergomi restent provisoirement hors de cette factorisation.
+dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes suit
+ce contrat pour ses pricers Monte Carlo ; Rough Bergomi reste provisoirement
+hors de cette factorisation.
 
 ## Modèles ajustés à une courbe
 

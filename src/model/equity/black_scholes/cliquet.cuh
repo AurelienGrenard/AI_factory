@@ -1,8 +1,8 @@
 // Public launcher for the BlackScholes Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

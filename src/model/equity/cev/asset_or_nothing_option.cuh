@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/cev/dataset.hpp"
-#include "product/asset_or_nothing_option/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/asset_or_nothing_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

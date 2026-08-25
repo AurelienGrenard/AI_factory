@@ -19,9 +19,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/hull_white/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -40,5 +41,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "2.911541734 s"
-  kernel_seconds: "0.025923552 s"
+  wall_seconds: "3.4046849 s"
+  kernel_seconds: "0.023963648 s"

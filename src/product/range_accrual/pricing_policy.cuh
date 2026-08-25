@@ -1,22 +1,23 @@
 // Range-accrual payoff composed with a regular equity schedule.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
+#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "product/range_accrual/dataset.hpp"
+#include "common/simulation/schedule.cuh"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 namespace detail {
 
-template<equity::EquitySchedulePolicy Schedule>
+template<equity::LogSpotDynamicsPolicy Dynamics>
 struct RangeAccrualObservationHandler {
-    using Dynamics = typename Schedule::Dynamics;
-
     float lower_coordinate;
     float upper_coordinate;
     std::uint32_t in_range_count = 0U;
@@ -48,64 +49,44 @@ struct RangeAccrualObservationHandler {
 }  // namespace detail
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy
+    simulation::ObservedSchedulePolicy SchedulePolicy
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
-> && requires {
-    {
-        SchedulePolicy::Dynamics::kNativeLogSpot
-    } -> std::convertible_to<bool>;
-}
+requires equity::LogSpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct RangeAccrualPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = RangeAccrualParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float lower_coordinate;
         float upper_coordinate;
         float maturity_discount;
         float discounted_coupon_per_observation;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{
+        const typename Schedule::Calendar calendar{
             product.observation_interval,
             product.maturity / product.observation_interval,
         };
-        const float observation_years = Schedule::interval_year_fraction(
-            definition,
-            0U,
-            configuration
+        const float observation_years = simulation::day_count_year_fraction(
+            product.observation_interval,
+            time_configuration
         );
-        const float maturity_discount = Discount::discount_factor(
+        const float maturity_discount = equity::constant_rate_discount_factor(
             model,
-            inputs.discount,
-            equity::day_count_year_fraction(
+            simulation::day_count_year_fraction(
                 product.maturity,
-                configuration
+                time_configuration
             )
         );
         float lower_coordinate = 0.0f;
@@ -119,8 +100,7 @@ struct RangeAccrualPricingPolicy {
             upper_coordinate = model.spot * product.upper_barrier;
         }
         return {
-            Schedule::prepare(model, definition, configuration, inputs.schedule),
-            philox::make_key(seed),
+            Schedule::prepare(model, calendar, time_configuration),
             lower_coordinate,
             upper_coordinate,
             maturity_discount,
@@ -130,13 +110,14 @@ struct RangeAccrualPricingPolicy {
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
-        detail::RangeAccrualObservationHandler<Schedule> handler{
+        detail::RangeAccrualObservationHandler<Dynamics> handler{
             row.lower_coordinate,
             row.upper_coordinate,
         };
-        Schedule::simulate(row.schedule, row.key, path, handler);
+        Schedule::simulate(row.schedule, key, path, handler);
         return fmaf(
             row.discounted_coupon_per_observation,
             static_cast<float>(handler.in_range_count),
@@ -144,18 +125,6 @@ struct RangeAccrualPricingPolicy {
         );
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

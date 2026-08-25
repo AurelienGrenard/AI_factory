@@ -1,8 +1,8 @@
 // Public launcher for the NormalInverseGaussian Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

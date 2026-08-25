@@ -1,14 +1,14 @@
-// Compile-time call and put payoff primitives shared by equity products.
+// Compile-time call and put payoff primitive for any scalar underlying.
 #pragma once
 
 #include "common/option_side.cuh"
 
 #include <cmath>
 
-namespace ai_factory::workbench::equity {
+namespace ai_factory::workbench::payoff {
 
 template<OptionSide Side>
-__device__ __forceinline__ float option_payoff(
+__device__ __forceinline__ float vanilla_option_payoff(
     float underlying,
     float strike
 ) {
@@ -19,4 +19,4 @@ __device__ __forceinline__ float option_payoff(
     }
 }
 
-}  // namespace ai_factory::workbench::equity
+}  // namespace ai_factory::workbench::payoff

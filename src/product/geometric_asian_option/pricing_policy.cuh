@@ -1,76 +1,67 @@
 // Geometric-average payoff composed with a dense equity schedule.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
+#include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/option_payoff.cuh"
-#include "product/geometric_asian_option/dataset.hpp"
+#include "common/simulation/schedule.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/payoff/vanilla_option.cuh"
+#include "product/geometric_asian_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 
 template<
-    equity::DenseEquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy,
+    simulation::DenseSchedulePolicy SchedulePolicy,
     OptionSide Side
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::LogSpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct GeometricAsianOptionPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = GeometricAsianOptionParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float strike;
         float discount;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{product.maturity};
+        const typename Schedule::Calendar calendar{product.maturity};
         return {
-            Schedule::prepare(model, definition, configuration, inputs.schedule),
-            philox::make_key(seed),
+            Schedule::prepare(model, calendar, time_configuration),
             product.strike,
-            Discount::discount_factor(
+            equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
-                Schedule::total_year_fraction(definition, configuration)
+                simulation::day_count_year_fraction(
+                    product.maturity,
+                    time_configuration
+                )
             ),
         };
     }
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
         equity::GeometricMeanObservationHandler<Dynamics> handler;
-        Schedule::simulate(row.schedule, row.key, path, handler);
-        return row.discount * equity::option_payoff<Side>(
+        Schedule::simulate(row.schedule, key, path, handler);
+        return row.discount * payoff::vanilla_option_payoff<Side>(
             handler.geometric_mean(
                 Schedule::observation_count(row.schedule) + 1U
             ),
@@ -78,18 +69,6 @@ struct GeometricAsianOptionPricingPolicy {
         );
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

@@ -1,8 +1,8 @@
 // Public launcher for the Kou Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

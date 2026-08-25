@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/g2/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,5 +36,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.233576493 s"
-  kernel_seconds: "0.000012288 s"
+  wall_seconds: "0.385127954 s"
+  kernel_seconds: "0.00012464 s"

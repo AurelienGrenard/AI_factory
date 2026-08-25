@@ -1,6 +1,8 @@
 // Build one Kou European-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/kou/european_option.cuh"
+#include "model/equity/kou/dataset.hpp"
+#include "product/european_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

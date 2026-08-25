@@ -1,8 +1,8 @@
 // Public launcher for the Bates Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

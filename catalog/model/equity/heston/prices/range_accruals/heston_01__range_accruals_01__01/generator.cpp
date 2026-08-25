@@ -1,6 +1,8 @@
 // Build one Heston Range Accrual price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/heston/range_accrual.cuh"
+#include "model/equity/heston/dataset.hpp"
+#include "product/range_accrual/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

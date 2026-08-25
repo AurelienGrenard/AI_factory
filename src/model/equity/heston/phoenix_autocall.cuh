@@ -1,8 +1,8 @@
 // Public launcher for the Heston Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

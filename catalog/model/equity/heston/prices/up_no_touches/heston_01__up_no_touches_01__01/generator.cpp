@@ -1,6 +1,8 @@
 // Build one Heston Up-no-touch price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/heston/up_no_touch.cuh"
+#include "model/equity/heston/dataset.hpp"
+#include "product/up_no_touch/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

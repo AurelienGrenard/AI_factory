@@ -9,42 +9,6 @@
 #include <cstddef>
 
 namespace ai_factory::workbench::model::ornstein_uhlenbeck {
-namespace {
-
-struct EuropeanSwaptionPolicy {
-    __device__ __forceinline__ ModelParameters prepare_model(
-        const ModelParameters& model
-    ) const {
-        return model;
-    }
-
-    __device__ __forceinline__ float initial_state(
-        const ModelParameters& model
-    ) const {
-        return model.initial_state;
-    }
-
-    template<SwaptionSide Side, typename ScheduleView>
-    __device__ __forceinline__ float price(
-        const ModelParameters& model,
-        float state,
-        float valuation_time,
-        float exercise_time,
-        float fixed_rate,
-        const ScheduleView& schedule
-    ) const {
-        return european_swaption_price<Side>(
-            model,
-            state,
-            valuation_time,
-            exercise_time,
-            fixed_rate,
-            schedule
-        );
-    }
-};
-
-}  // namespace
 
 template<SwaptionSide Side>
 void launch_ornstein_uhlenbeck_european_swaption_cuda(
@@ -61,9 +25,7 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_one_factor_european_swaption<
-        Side, EuropeanSwaptionPolicy
-    >(
+    fixed_income::launch_one_factor_european_swaption<Side>(
         "ornstein_uhlenbeck.european_swaption",
         device_models,
         model_count,
@@ -99,9 +61,7 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_one_factor_european_swaption<
-        Side, EuropeanSwaptionPolicy
-    >(
+    fixed_income::launch_one_factor_european_swaption<Side>(
         "ornstein_uhlenbeck.european_swaption",
         device_models,
         model_count,
@@ -123,34 +83,39 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     );
 }
 
-using RegularLaunchSignature = void(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<
+    SwaptionSide::payer
+>(
     const ModelParameters*, std::size_t,
     const product::RegularEuropeanSwaptionParameters*, std::size_t,
     bool, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-using ExplicitLaunchSignature = void(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<
+    SwaptionSide::receiver
+>(
+    const ModelParameters*, std::size_t,
+    const product::RegularEuropeanSwaptionParameters*, std::size_t,
+    bool, std::size_t, std::size_t, std::size_t, float,
+    unsigned int, std::size_t, float*
+);
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<
+    SwaptionSide::payer
+>(
     const ModelParameters*, std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
     const std::uint32_t*, const float*, std::size_t, std::size_t,
     bool, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-namespace {
-[[maybe_unused]] RegularLaunchSignature* launch_instantiation_0 =
-    &launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::payer>;
-}  // namespace
-namespace {
-[[maybe_unused]] RegularLaunchSignature* launch_instantiation_1 =
-    &launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::receiver>;
-}  // namespace
-namespace {
-[[maybe_unused]] ExplicitLaunchSignature* launch_instantiation_2 =
-    &launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::payer>;
-}  // namespace
-namespace {
-[[maybe_unused]] ExplicitLaunchSignature* launch_instantiation_3 =
-    &launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::receiver>;
-}  // namespace
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<
+    SwaptionSide::receiver
+>(
+    const ModelParameters*, std::size_t,
+    const product::ExplicitEuropeanSwaptionParameters*,
+    const std::uint32_t*, const float*, std::size_t, std::size_t,
+    bool, std::size_t, std::size_t, std::size_t, float,
+    unsigned int, std::size_t, float*
+);
 
 }  // namespace ai_factory::workbench::model::ornstein_uhlenbeck

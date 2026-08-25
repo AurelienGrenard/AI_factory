@@ -1,8 +1,8 @@
 // Public launcher for the NormalInverseGaussian Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

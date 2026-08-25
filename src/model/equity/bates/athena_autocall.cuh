@@ -1,8 +1,8 @@
 // Public launcher for the Bates Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

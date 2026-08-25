@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

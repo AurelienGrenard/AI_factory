@@ -1,6 +1,8 @@
 // Build one Bates European-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/bates/european_option.cuh"
+#include "model/equity/bates/dataset.hpp"
+#include "product/european_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -2,15 +2,14 @@
 #pragma once
 
 #include "common/equity/barrier_pricing_policy.cuh"
-#include "product/up_and_out_option/dataset.hpp"
+#include "product/up_and_out_option/parameters.hpp"
 
 namespace ai_factory::workbench::product {
 
-template<equity::DenseEquitySchedulePolicy Schedule, typename Discount,
-         OptionSide Side>
+template<simulation::DenseSchedulePolicy Schedule, OptionSide Side>
 using UpAndOutOptionPricingPolicy = equity::SingleBarrierOptionPricingPolicy<
-    Schedule, Discount, UpAndOutOptionParameters, Side,
-    equity::BarrierDirection::up, false
+    Schedule, UpAndOutOptionParameters, Side,
+    payoff::BarrierDirection::up, false
 >;
 
 }  // namespace ai_factory::workbench::product

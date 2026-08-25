@@ -1,6 +1,8 @@
 // Build one VarianceGamma European-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/variance_gamma/european_option.cuh"
+#include "model/equity/variance_gamma/dataset.hpp"
+#include "product/european_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

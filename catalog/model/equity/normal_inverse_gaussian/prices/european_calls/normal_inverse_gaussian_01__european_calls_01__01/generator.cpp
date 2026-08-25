@@ -1,6 +1,8 @@
 // Build one NormalInverseGaussian European-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/normal_inverse_gaussian/european_option.cuh"
+#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "product/european_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

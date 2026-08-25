@@ -9,7 +9,7 @@
 
 namespace ai_factory::workbench::equity {
 
-template<EquityDynamicsPolicy Dynamics>
+template<SpotDynamicsPolicy Dynamics>
 struct ArithmeticMeanObservationHandler {
     double spot_sum = 0.0;
 
@@ -38,10 +38,10 @@ struct ArithmeticMeanObservationHandler {
     }
 };
 
-template<SupportsLogSpot Dynamics, bool NativeLogSpot>
+template<LogSpotDynamicsPolicy Dynamics, bool NativeLogSpot>
 struct GeometricMeanObservationHandlerImplementation;
 
-template<SupportsLogSpot Dynamics>
+template<LogSpotDynamicsPolicy Dynamics>
 struct GeometricMeanObservationHandlerImplementation<Dynamics, true> {
     double log_spot_sum = 0.0;
 
@@ -70,7 +70,7 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, true> {
     }
 };
 
-template<SupportsLogSpot Dynamics>
+template<LogSpotDynamicsPolicy Dynamics>
 struct GeometricMeanObservationHandlerImplementation<Dynamics, false> {
     double log_spot_sum = 0.0;
     bool hit_non_positive_spot = false;
@@ -105,14 +105,14 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, false> {
     }
 };
 
-template<SupportsLogSpot Dynamics>
+template<LogSpotDynamicsPolicy Dynamics>
 using GeometricMeanObservationHandler =
     GeometricMeanObservationHandlerImplementation<
         Dynamics,
         Dynamics::kNativeLogSpot
     >;
 
-template<EquityDynamicsPolicy Dynamics>
+template<SpotDynamicsPolicy Dynamics>
 struct MaximumObservationHandler {
     float maximum_spot = -3.402823466e+38F;
 
@@ -136,7 +136,7 @@ struct MaximumObservationHandler {
 };
 
 // Write selected contractual spots to a caller-owned strided output view.
-template<EquityDynamicsPolicy Dynamics>
+template<SpotDynamicsPolicy Dynamics>
 struct SpotObservationWriter {
     float* spots;
     std::size_t observation_stride;
@@ -161,7 +161,7 @@ struct SpotObservationWriter {
 };
 
 // Write spots together with one float member of the model state.
-template<EquityDynamicsPolicy Dynamics, auto StateMember>
+template<SpotDynamicsPolicy Dynamics, auto StateMember>
 struct SpotAndStateObservationWriter {
     float* spots;
     float* state_values;

@@ -1,7 +1,8 @@
 // Device-side schedule views shared by every European-swaption model.
 #pragma once
 
-#include "product/european_swaption/dataset.hpp"
+#include "common/check_cuda.cuh"
+#include "product/european_swaption/parameters.hpp"
 
 #include <cuda_runtime.h>
 
@@ -19,6 +20,25 @@ struct ExplicitEuropeanSwaptionScheduleSource {
     const float* accrual_fractions;
     std::size_t schedule_size;
 };
+
+inline void validate_device_context(
+    RegularEuropeanSwaptionScheduleSource
+) {}
+
+inline void validate_device_context(
+    ExplicitEuropeanSwaptionScheduleSource source
+) {
+    validate_device_pointer(source.payment_times, "device_payment_times");
+    validate_device_pointer(
+        source.accrual_fractions,
+        "device_accrual_fractions"
+    );
+    if (source.schedule_size == 0U) {
+        throw std::invalid_argument(
+            "The European swaption schedule pool is empty."
+        );
+    }
+}
 
 // Reconstruct an equally spaced fixed leg without schedule-pool reads.
 struct RegularEuropeanSwaptionScheduleView {

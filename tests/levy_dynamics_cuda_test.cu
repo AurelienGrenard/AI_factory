@@ -1,7 +1,7 @@
 // Verify the common samplers and exact VG/NIG dynamics contracts.
 #include "common/check_cuda.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "model/equity/variance_gamma/dynamics.cu"
 
@@ -105,11 +105,11 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         );
 
     const float vg_terminal_first =
-        equity::simulate_exact_transition_terminal<
+        simulation::simulate_exact_transition_terminal<
             variance_gamma::DynamicsPolicy
         >(vg, vg_exact, key, 23U).log_spot;
     const float vg_terminal_replay =
-        equity::simulate_exact_transition_terminal<
+        simulation::simulate_exact_transition_terminal<
             variance_gamma::DynamicsPolicy
         >(vg, vg_exact, key, 23U).log_spot;
 
@@ -132,13 +132,13 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     );
 
     const float nig_terminal_first =
-        equity::simulate_exact_transition_terminal<
+        simulation::simulate_exact_transition_terminal<
             normal_inverse_gaussian::DynamicsPolicy
         >(
             nig, nig_exact, key, 29U
         ).log_spot;
     const float nig_terminal_replay =
-        equity::simulate_exact_transition_terminal<
+        simulation::simulate_exact_transition_terminal<
             normal_inverse_gaussian::DynamicsPolicy
         >(
             nig, nig_exact, key, 29U
@@ -181,7 +181,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     equity::SpotObservationWriter<variance_gamma::DynamicsPolicy>
         calendar_writer{vg_calendar_spots, 1U, 3U};
     const auto vg_regular_state =
-        equity::simulate_exact_transition_regular_schedule<
+        simulation::simulate_exact_transition_stubbed_regular_schedule<
             variance_gamma::DynamicsPolicy
         >(
             vg,
@@ -193,7 +193,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
             regular_writer
         );
     const auto vg_calendar_state =
-        equity::simulate_exact_transition_calendar<
+        simulation::simulate_exact_transition_calendar<
             variance_gamma::DynamicsPolicy
         >(vg, vg_calendar, 3U, key, 31U, calendar_writer);
     const std::uint32_t exact_regular_matches_calendar =

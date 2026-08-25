@@ -77,11 +77,9 @@ struct DynamicsPolicy {
     );
     __device__ __forceinline__ static float spot(const State& state);
     __device__ __forceinline__ static float log_spot(const State& state);
-    __device__ __forceinline__ static float risk_free_rate(
-        const Parameters& parameters
-    );
 };
 
-static_assert(equity::EquityDynamicsPolicy<DynamicsPolicy>);
+static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 
 }  // namespace ai_factory::workbench::schobel_zhu

@@ -1,8 +1,8 @@
 // Public launcher for the Heston Cliquet CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/cliquet/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/cliquet/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

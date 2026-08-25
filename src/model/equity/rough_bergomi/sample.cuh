@@ -1,7 +1,7 @@
 // Block-persistent CUDA launchers for rough-Bergomi spot samples.
 #pragma once
 
-#include "model/equity/rough_bergomi/dataset.hpp"
+#include "model/equity/rough_bergomi/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

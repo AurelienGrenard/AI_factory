@@ -1,6 +1,8 @@
 // Build one Bates Down-and-in-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/bates/down_and_in_option.cuh"
+#include "model/equity/bates/dataset.hpp"
+#include "product/down_and_in_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

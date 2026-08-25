@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/merton/dataset.hpp"
-#include "product/asset_or_nothing_option/dataset.hpp"
+#include "model/equity/merton/parameters.hpp"
+#include "product/asset_or_nothing_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

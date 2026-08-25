@@ -1,8 +1,8 @@
 // Public launcher for the Heston Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

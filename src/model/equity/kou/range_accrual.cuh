@@ -1,8 +1,8 @@
 // Public launcher for the Kou Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/kou/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/kou/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

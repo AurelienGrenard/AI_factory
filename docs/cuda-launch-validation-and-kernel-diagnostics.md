@@ -183,6 +183,18 @@ doit être exactement celle utilisée par l'expression `<<<...>>>` suivante.
 5. lancer le même kernel avec la même géométrie ;
 6. appeler `check_cuda(cudaGetLastError(), ...)`.
 
+Le launcher analytique commun applique cet ordre à deux spécialisations du
+même template. Il inspecte et lance `closed_form_price_kernel<Pricing, false>`
+si la grille couvre tout le batch ; sinon il inspecte et lance
+`closed_form_price_kernel<Pricing, true>`, dont la boucle est grid-stride. Le
+pointeur transmis au diagnostic reste donc toujours celui de la spécialisation
+effectivement exécutée.
+
+Les entrées modèle-produit et modèle-courbe-produit sont validées par leur
+`DeviceInputs::validate(result_count)`. Un contexte supplémentaire, comme un
+pool de schedule explicite, ajoute son propre `validate_device_context` avant
+toute inspection ou exécution du kernel.
+
 Le diagnostic n'ajoute ni synchronisation du kernel ni mesure de durée. Le
 chronométrage reste la responsabilité des événements CUDA du générateur ou de
 `longstaff_schwartz::LaunchResources`.

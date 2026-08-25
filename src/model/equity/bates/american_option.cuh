@@ -3,8 +3,8 @@
 
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/option_side.cuh"
-#include "model/equity/bates/dataset.hpp"
-#include "product/american_option/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/american_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,8 +1,8 @@
 // Public launcher for the Heston fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

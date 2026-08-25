@@ -2,6 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "model/equity/black_scholes/geometric_asian_option.cuh"
 #include "model/equity/black_scholes/dataset.hpp"
+#include "product/geometric_asian_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -8,38 +8,6 @@
 #include <cstddef>
 
 namespace ai_factory::workbench::model::hull_white::nelson_siegel {
-namespace {
-
-struct EuropeanSwaptionPolicy {
-    __device__ __forceinline__ HullWhiteFittedParameters prepare_model(
-        const ModelParameters& model,
-        const curve::nelson_siegel::NelsonSiegelParameters& curve
-    ) const {
-        return compose_model(model, curve);
-    }
-
-    __device__ __forceinline__ float initial_state(
-        const HullWhiteFittedParameters&
-    ) const {
-        return 0.0f;
-    }
-
-    template<SwaptionSide Side, typename ScheduleView>
-    __device__ __forceinline__ float price(
-        const HullWhiteFittedParameters& model,
-        float state,
-        float valuation_time,
-        float exercise_time,
-        float fixed_rate,
-        const ScheduleView& schedule
-    ) const {
-        return european_swaption_price<Side>(
-            model, state, valuation_time, exercise_time, fixed_rate, schedule
-        );
-    }
-};
-
-}  // namespace
 
 template<SwaptionSide Side>
 void launch_hull_white_nelson_siegel_european_swaption_cuda(
@@ -59,7 +27,8 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     float* device_prices
 ) {
     fixed_income::launch_fitted_one_factor_european_swaption<
-        Side, EuropeanSwaptionPolicy
+        Side,
+        FittedModelComposition
     >(
         "hull_white.nelson_siegel.european_swaption",
         device_models,
@@ -101,7 +70,8 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     float* device_prices
 ) {
     fixed_income::launch_fitted_one_factor_european_swaption<
-        Side, EuropeanSwaptionPolicy
+        Side,
+        FittedModelComposition
     >(
         "hull_white.nelson_siegel.european_swaption",
         device_models,
@@ -126,36 +96,83 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     );
 }
 
-using RegularLaunchSignature = void(
-    const ModelParameters*, std::size_t,
-    const curve::nelson_siegel::NelsonSiegelParameters*, std::size_t,
-    const product::RegularEuropeanSwaptionParameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*
+template void launch_hull_white_nelson_siegel_european_swaption_cuda<
+    SwaptionSide::payer
+>(
+    const ModelParameters*,
+    std::size_t,
+    const curve::nelson_siegel::NelsonSiegelParameters*,
+    std::size_t,
+    const product::RegularEuropeanSwaptionParameters*,
+    std::size_t,
+    bool,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
 );
-using ExplicitLaunchSignature = void(
-    const ModelParameters*, std::size_t,
-    const curve::nelson_siegel::NelsonSiegelParameters*, std::size_t,
+template void launch_hull_white_nelson_siegel_european_swaption_cuda<
+    SwaptionSide::receiver
+>(
+    const ModelParameters*,
+    std::size_t,
+    const curve::nelson_siegel::NelsonSiegelParameters*,
+    std::size_t,
+    const product::RegularEuropeanSwaptionParameters*,
+    std::size_t,
+    bool,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
+);
+template void launch_hull_white_nelson_siegel_european_swaption_cuda<
+    SwaptionSide::payer
+>(
+    const ModelParameters*,
+    std::size_t,
+    const curve::nelson_siegel::NelsonSiegelParameters*,
+    std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
-    const std::uint32_t*, const float*, std::size_t, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*
+    const std::uint32_t*,
+    const float*,
+    std::size_t,
+    std::size_t,
+    bool,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
 );
-namespace {
-[[maybe_unused]] RegularLaunchSignature* launch_instantiation_0 =
-    &launch_hull_white_nelson_siegel_european_swaption_cuda<SwaptionSide::payer>;
-}  // namespace
-namespace {
-[[maybe_unused]] RegularLaunchSignature* launch_instantiation_1 =
-    &launch_hull_white_nelson_siegel_european_swaption_cuda<SwaptionSide::receiver>;
-}  // namespace
-namespace {
-[[maybe_unused]] ExplicitLaunchSignature* launch_instantiation_2 =
-    &launch_hull_white_nelson_siegel_european_swaption_cuda<SwaptionSide::payer>;
-}  // namespace
-namespace {
-[[maybe_unused]] ExplicitLaunchSignature* launch_instantiation_3 =
-    &launch_hull_white_nelson_siegel_european_swaption_cuda<SwaptionSide::receiver>;
-}  // namespace
+template void launch_hull_white_nelson_siegel_european_swaption_cuda<
+    SwaptionSide::receiver
+>(
+    const ModelParameters*,
+    std::size_t,
+    const curve::nelson_siegel::NelsonSiegelParameters*,
+    std::size_t,
+    const product::ExplicitEuropeanSwaptionParameters*,
+    const std::uint32_t*,
+    const float*,
+    std::size_t,
+    std::size_t,
+    bool,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
+);
 
 }  // namespace ai_factory::workbench::model::hull_white::nelson_siegel

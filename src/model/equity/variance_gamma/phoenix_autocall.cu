@@ -1,21 +1,18 @@
 // Variance-Gamma phoenix-autocall composition over generic CUDA layers.
 #include "model/equity/variance_gamma/phoenix_autocall.cuh"
 
-#include "common/equity/discount.cuh"
-#include "common/equity/monte_carlo_kernel.cuh"
-#include "common/equity/schedule.cuh"
+#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "common/simulation/schedule.cuh"
 #include "model/equity/variance_gamma/dynamics.cu"
 #include "product/phoenix_autocall/pricing_policy.cuh"
 
 namespace ai_factory::workbench::variance_gamma {
 namespace {
 
-using Schedule = equity::ExactTransitionRegularSchedule<variance_gamma::DynamicsPolicy>;
-using Discount = equity::ConstantRateDiscountPolicy<variance_gamma::DynamicsPolicy>;
-using PricingPolicy = product::PhoenixAutocallPricingPolicy<Schedule, Discount>;
+using Schedule = simulation::ExactTransitionRegularSchedule<variance_gamma::DynamicsPolicy>;
+using PricingPolicy = product::PhoenixAutocallPricingPolicy<Schedule>;
 
-static_assert(equity::EquitySchedulePolicy<Schedule>);
-static_assert(equity::ScalarMonteCarloPricingPolicy<PricingPolicy>);
+static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 
 }  // namespace
 
@@ -36,22 +33,22 @@ void launch_variance_gamma_phoenix_autocall_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {
-    const equity::ExactTransitionConfiguration configuration{
+    const simulation::ExactTransitionTimeConfiguration time_configuration{
         day_fraction,
     };
-    const typename PricingPolicy::DeviceInputs inputs{};
-    equity::launch_monte_carlo_cuda<PricingPolicy>(
-        device_models,
-        model_count,
-        device_products,
-        product_count,
-        cartesian_product,
+    monte_carlo::launch_monte_carlo_cuda<PricingPolicy>(
+        make_model_product_device_inputs(
+            device_models,
+            model_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
         result_count,
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        configuration,
-        inputs,
+        time_configuration,
         threads_per_block,
         block_count,
         base_seed,

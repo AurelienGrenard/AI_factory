@@ -1,6 +1,9 @@
 // Build one Hull-White Svensson zero-coupon bond put dataset.
 #include "common/check_cuda.cuh"
 #include "model/fixed_income/hull_white/svensson/zero_coupon_bond_option.cuh"
+#include "curve/svensson/dataset.hpp"
+#include "model/fixed_income/hull_white/dataset.hpp"
+#include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

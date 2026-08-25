@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/black_scholes/dataset.hpp"
-#include "product/down_and_out_option/dataset.hpp"
+#include "model/equity/black_scholes/parameters.hpp"
+#include "product/down_and_out_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

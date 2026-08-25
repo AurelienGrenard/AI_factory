@@ -1,8 +1,8 @@
 // Public launcher for the Bates Range Accrual CUDA kernel.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
-#include "product/range_accrual/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

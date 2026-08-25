@@ -1,6 +1,8 @@
 // Build one VarianceGamma Up-and-in-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/variance_gamma/up_and_in_option.cuh"
+#include "model/equity/variance_gamma/dataset.hpp"
+#include "product/up_and_in_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

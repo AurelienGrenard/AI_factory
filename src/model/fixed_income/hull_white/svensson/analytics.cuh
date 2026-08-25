@@ -27,6 +27,26 @@ __device__ __forceinline__ HullWhiteFittedParameters compose_model(
     const curve::svensson::SvenssonParameters& initial_curve
 );
 
+// Model/curve composition consumed by generic closed-form pricing policies.
+struct FittedModelComposition {
+    using ModelParameters =
+        ::ai_factory::workbench::model::hull_white::ModelParameters;
+    using CurveParameters =
+        ::ai_factory::workbench::curve::svensson::SvenssonParameters;
+    using FittedModel = HullWhiteFittedParameters;
+
+    __device__ __forceinline__ static float initial_state() {
+        return 0.0f;
+    }
+
+    __device__ __forceinline__ static FittedModel compose(
+        const ModelParameters& model,
+        const CurveParameters& initial_curve
+    ) {
+        return compose_model(model, initial_curve);
+    }
+};
+
 // Return phi(t) in the shifted representation r(t) = x(t) + phi(t).
 __device__ __forceinline__ float short_rate_shift(
     const HullWhiteFittedParameters& parameters,

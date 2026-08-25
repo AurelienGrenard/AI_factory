@@ -1,6 +1,8 @@
 // Build one NormalInverseGaussian Geometric-Asian-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/normal_inverse_gaussian/geometric_asian_option.cuh"
+#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "product/geometric_asian_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

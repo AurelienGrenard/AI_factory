@@ -1,21 +1,21 @@
 // Athena payoff composed with arbitrary equity schedule and discount policies.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
 #include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "product/athena_autocall/dataset.hpp"
+#include "common/simulation/schedule.cuh"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 namespace detail {
 
-template<equity::EquitySchedulePolicy Schedule>
+template<equity::SpotDynamicsPolicy Dynamics>
 struct AthenaAutocallObservationHandler {
-    using Dynamics = typename Schedule::Dynamics;
-
     std::uint32_t observation_count;
     float autocall_barrier;
     float protection_barrier;
@@ -63,72 +63,50 @@ struct AthenaAutocallObservationHandler {
 }  // namespace detail
 
 template<
-    equity::EquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy
+    simulation::CountedObservedSchedulePolicy SchedulePolicy
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct AthenaAutocallPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = AthenaAutocallParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float autocall_barrier;
         float protection_barrier;
         float gain_per_observation;
         float discount_per_observation;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-    static_assert(
-        sizeof(PreparedRow) <= equity::kMaximumPreparedRowBytes
-    );
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{
+        const typename Schedule::Calendar calendar{
             product.observation_interval,
             product.maturity / product.observation_interval,
         };
-        const float observation_years =
-            Schedule::interval_year_fraction(
-                definition,
-                0U,
-                configuration
-            );
+        const float observation_years = simulation::day_count_year_fraction(
+            product.observation_interval,
+            time_configuration
+        );
         return {
             Schedule::prepare(
                 model,
-                definition,
-                configuration,
-                inputs.schedule
+                calendar,
+                time_configuration
             ),
-            philox::make_key(seed),
             product.autocall_barrier,
             product.protection_barrier,
             product.annual_coupon_rate * observation_years,
-            Discount::discount_factor(
+            equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
                 observation_years
             ),
         };
@@ -136,9 +114,10 @@ struct AthenaAutocallPricingPolicy {
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
-        detail::AthenaAutocallObservationHandler<Schedule> handler{
+        detail::AthenaAutocallObservationHandler<Dynamics> handler{
             Schedule::observation_count(row.schedule),
             row.autocall_barrier,
             row.protection_barrier,
@@ -147,25 +126,13 @@ struct AthenaAutocallPricingPolicy {
         };
         Schedule::simulate(
             row.schedule,
-            row.key,
+            key,
             path,
             handler
         );
         return handler.discounted_payoff;
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

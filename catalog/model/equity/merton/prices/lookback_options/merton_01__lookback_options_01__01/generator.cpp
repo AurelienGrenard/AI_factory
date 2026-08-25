@@ -1,6 +1,8 @@
 // Build one Merton fixed-strike lookback price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/merton/lookback_option.cuh"
+#include "model/equity/merton/dataset.hpp"
+#include "product/lookback_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -1,21 +1,18 @@
 // Bates phoenix-memory-autocall composition over generic CUDA layers.
 #include "model/equity/bates/phoenix_memory_autocall.cuh"
 
-#include "common/equity/discount.cuh"
-#include "common/equity/monte_carlo_kernel.cuh"
-#include "common/equity/schedule.cuh"
+#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "common/simulation/schedule.cuh"
 #include "model/equity/bates/dynamics.cu"
 #include "product/phoenix_memory_autocall/pricing_policy.cuh"
 
 namespace ai_factory::workbench::bates {
 namespace {
 
-using Schedule = equity::FixedStepRegularSchedule<bates::DynamicsPolicy>;
-using Discount = equity::ConstantRateDiscountPolicy<bates::DynamicsPolicy>;
-using PricingPolicy = product::PhoenixMemoryAutocallPricingPolicy<Schedule, Discount>;
+using Schedule = simulation::FixedStepRegularSchedule<bates::DynamicsPolicy>;
+using PricingPolicy = product::PhoenixMemoryAutocallPricingPolicy<Schedule>;
 
-static_assert(equity::EquitySchedulePolicy<Schedule>);
-static_assert(equity::ScalarMonteCarloPricingPolicy<PricingPolicy>);
+static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 
 }  // namespace
 
@@ -37,23 +34,23 @@ void launch_bates_phoenix_memory_autocall_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {
-    const equity::FixedStepConfiguration configuration{
+    const simulation::FixedStepTimeConfiguration time_configuration{
         dt,
         simulation_steps_per_day,
     };
-    const typename PricingPolicy::DeviceInputs inputs{};
-    equity::launch_monte_carlo_cuda<PricingPolicy>(
-        device_models,
-        model_count,
-        device_products,
-        product_count,
-        cartesian_product,
+    monte_carlo::launch_monte_carlo_cuda<PricingPolicy>(
+        make_model_product_device_inputs(
+            device_models,
+            model_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
         result_count,
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        configuration,
-        inputs,
+        time_configuration,
         threads_per_block,
         block_count,
         base_seed,

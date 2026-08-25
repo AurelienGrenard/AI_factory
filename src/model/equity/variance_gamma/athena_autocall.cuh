@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -169,10 +169,4 @@ __device__ __forceinline__ float DynamicsPolicy::log_spot(
     return state.log_spot;
 }
 
-__device__ __forceinline__ float DynamicsPolicy::risk_free_rate(
-    const Parameters& parameters
-) {
-    return parameters.risk_free_rate;
-}
-
 }  // namespace ai_factory::workbench::normal_inverse_gaussian

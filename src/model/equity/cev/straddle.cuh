@@ -1,8 +1,8 @@
 // Public launcher for the CEV Straddle CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/straddle/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/straddle/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

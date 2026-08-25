@@ -1,8 +1,8 @@
 // Public launcher for the VarianceGamma Up-no-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/variance_gamma/dataset.hpp"
-#include "product/up_no_touch/dataset.hpp"
+#include "model/equity/variance_gamma/parameters.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

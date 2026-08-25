@@ -1,23 +1,20 @@
 // CEV up-and-in-option composition over generic CUDA layers.
 #include "model/equity/cev/up_and_in_option.cuh"
 
-#include "common/equity/discount.cuh"
-#include "common/equity/monte_carlo_kernel.cuh"
-#include "common/equity/schedule.cuh"
+#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "common/simulation/schedule.cuh"
 #include "model/equity/cev/dynamics.cu"
 #include "product/up_and_in_option/pricing_policy.cuh"
 
 namespace ai_factory::workbench::cev {
 namespace {
 
-using Schedule = equity::FixedStepDenseSchedule<cev::DynamicsPolicy>;
-using Discount = equity::ConstantRateDiscountPolicy<cev::DynamicsPolicy>;
+using Schedule = simulation::FixedStepDenseSchedule<cev::DynamicsPolicy>;
 template<OptionSide Side>
 using PricingPolicy =
-    product::UpAndInOptionPricingPolicy<Schedule, Discount, Side>;
+    product::UpAndInOptionPricingPolicy<Schedule, Side>;
 
-static_assert(equity::EquitySchedulePolicy<Schedule>);
-static_assert(equity::ScalarMonteCarloPricingPolicy<PricingPolicy<OptionSide::call>>);
+static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy<OptionSide::call>>);
 
 }  // namespace
 
@@ -40,23 +37,23 @@ void launch_cev_up_and_in_option_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {
-    const equity::FixedStepConfiguration configuration{
+    const simulation::FixedStepTimeConfiguration time_configuration{
         dt,
         simulation_steps_per_day,
     };
-    const typename PricingPolicy<Side>::DeviceInputs inputs{};
-    equity::launch_monte_carlo_cuda<PricingPolicy<Side>>(
-        device_models,
-        model_count,
-        device_products,
-        product_count,
-        cartesian_product,
+    monte_carlo::launch_monte_carlo_cuda<PricingPolicy<Side>>(
+        make_model_product_device_inputs(
+            device_models,
+            model_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
         result_count,
         result_offset,
         launch_result_count,
         monte_carlo_paths_per_price,
-        configuration,
-        inputs,
+        time_configuration,
         threads_per_block,
         block_count,
         base_seed,

@@ -1,6 +1,8 @@
 // Build one Kou Geometric-Asian-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/kou/geometric_asian_option.cuh"
+#include "model/equity/kou/dataset.hpp"
+#include "product/geometric_asian_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

@@ -1,8 +1,8 @@
 // Public launcher for the CEV Up-no-touch CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/up_no_touch/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/up_no_touch/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for normal inverse gaussian model samples.
 #pragma once
 
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
+#include "model/equity/normal_inverse_gaussian/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

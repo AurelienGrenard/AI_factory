@@ -1,7 +1,7 @@
 // Verify Bates preparation and the explicit one-step jump composition.
 #include "common/check_cuda.cuh"
-#include "common/equity/observation_handlers.cuh"
-#include "common/equity/path_simulation.cuh"
+#include "common/equity/handlers.cuh"
+#include "common/simulation/path_simulation.cuh"
 #include "model/equity/bates/dynamics.cu"
 
 #include <cuda_runtime.h>
@@ -93,19 +93,19 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
     const bates::State terminal_first =
-        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
             prepared, step_count, key, 17U
         );
     const bates::State terminal_second =
-        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
             prepared, step_count, key, 17U
         );
     const bates::State no_jump_terminal =
-        equity::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
             no_jump_prepared, step_count, key, 19U
         );
     const heston::State heston_terminal =
-        equity::simulate_fixed_step_terminal<heston::DynamicsPolicy>(
+        simulation::simulate_fixed_step_terminal<heston::DynamicsPolicy>(
             no_jump_prepared.heston, step_count, key, 19U
         );
     const std::uint32_t poisson_zero = philox::poisson_from_uniform(
@@ -134,7 +134,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             2U,
         };
     const heston::State heston_regular =
-        equity::simulate_fixed_step_regular_schedule<heston::DynamicsPolicy>(
+        simulation::simulate_fixed_step_stubbed_regular_schedule<heston::DynamicsPolicy>(
             no_jump_prepared.heston,
             2U,
             4U,
@@ -153,7 +153,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         2U,
     };
     const heston::State heston_calendar =
-        equity::simulate_fixed_step_calendar<heston::DynamicsPolicy>(
+        simulation::simulate_fixed_step_calendar<heston::DynamicsPolicy>(
             no_jump_prepared.heston,
             steps_between_observations,
             3U,
@@ -177,7 +177,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             2U,
         };
     const bates::State bates_regular =
-        equity::simulate_fixed_step_regular_schedule<bates::DynamicsPolicy>(
+        simulation::simulate_fixed_step_stubbed_regular_schedule<bates::DynamicsPolicy>(
             prepared,
             2U,
             4U,
@@ -196,7 +196,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         2U,
     };
     const bates::State bates_calendar =
-        equity::simulate_fixed_step_calendar<bates::DynamicsPolicy>(
+        simulation::simulate_fixed_step_calendar<bates::DynamicsPolicy>(
             prepared,
             steps_between_observations,
             3U,

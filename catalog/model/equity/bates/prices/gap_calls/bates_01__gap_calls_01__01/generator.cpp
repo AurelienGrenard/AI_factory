@@ -1,6 +1,8 @@
 // Build one Bates gap-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
 #include "model/equity/bates/gap_option.cuh"
+#include "model/equity/bates/dataset.hpp"
+#include "product/gap_option/dataset.hpp"
 #include "tools/datasets/dataset.hpp"
 #include "tools/datasets/dataset_validation.hpp"
 

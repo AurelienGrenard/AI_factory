@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for heston model samples.
 #pragma once
 
-#include "model/equity/heston/dataset.hpp"
+#include "model/equity/heston/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,19 +1,21 @@
 // Two-date forward-start payoff composed with an exact calendar schedule.
 #pragma once
 
+#include "common/device_inputs.cuh"
+
 #include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
-#include "product/forward_start_option/dataset.hpp"
+#include "common/simulation/schedule.cuh"
+#include "product/forward_start_option/parameters.hpp"
 
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::product {
 namespace detail {
 
-template<equity::EquityDynamicsPolicy Dynamics>
+template<equity::SpotDynamicsPolicy Dynamics>
 struct ForwardStartObservationHandler {
     float reset_spot = 0.0f;
 
@@ -38,74 +40,61 @@ struct ForwardStartObservationHandler {
 }  // namespace detail
 
 template<
-    equity::TwoDateEquitySchedulePolicy SchedulePolicy,
-    typename DiscountPolicy,
+    simulation::TwoDateSchedulePolicy SchedulePolicy,
     OptionSide Side,
     bool SeparateCallRounding = false
 >
-requires equity::DiscountPolicyFor<
-    DiscountPolicy,
-    typename SchedulePolicy::Dynamics
->
+requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
 struct ForwardStartOptionPricingPolicy {
     using Schedule = SchedulePolicy;
-    using Discount = DiscountPolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename Dynamics::Parameters;
     using ProductParameters = ForwardStartOptionParameters;
-    using PricingConfiguration = typename Schedule::Configuration;
-
-    struct DeviceInputs {
-        typename Schedule::DeviceInputs schedule;
-        typename Discount::DeviceInputs discount;
-    };
+    using DeviceInputs =
+        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using TimeConfiguration = typename Schedule::TimeConfiguration;
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
-        philox::PhiloxKey key;
         float moneyness;
         float discount;
     };
 
-    static_assert(std::is_trivially_copyable_v<DeviceInputs>);
-    static_assert(std::is_trivially_copyable_v<PreparedRow>);
-
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const ProductParameters& product,
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::uint64_t seed
+        const TimeConfiguration& time_configuration
     ) {
-        const typename Schedule::Definition definition{{
+        const typename Schedule::Calendar calendar{{
             product.reset_time,
             product.maturity - product.reset_time,
         }};
         return {
             Schedule::prepare(
                 model,
-                definition,
-                configuration,
-                inputs.schedule
+                calendar,
+                time_configuration
             ),
-            philox::make_key(seed),
             product.moneyness,
-            Discount::discount_factor(
+            equity::constant_rate_discount_factor(
                 model,
-                inputs.discount,
-                Schedule::total_year_fraction(definition, configuration)
+                simulation::day_count_year_fraction(
+                    product.maturity,
+                    time_configuration
+                )
             ),
         };
     }
 
     __device__ __forceinline__ static float evaluate_path(
         const PreparedRow& row,
+        philox::PhiloxKey key,
         std::size_t path
     ) {
         detail::ForwardStartObservationHandler<Dynamics> handler;
         const typename Dynamics::State terminal = Schedule::simulate(
             row.schedule,
-            row.key,
+            key,
             path,
             handler
         );
@@ -133,18 +122,6 @@ struct ForwardStartOptionPricingPolicy {
         }
     }
 
-    static void validate_configuration(
-        const PricingConfiguration& configuration,
-        const DeviceInputs& inputs,
-        std::size_t monte_carlo_paths_per_price
-    ) {
-        Schedule::validate_configuration(
-            configuration,
-            inputs.schedule,
-            monte_carlo_paths_per_price
-        );
-        Discount::validate_inputs(inputs.discount);
-    }
 };
 
 }  // namespace ai_factory::workbench::product

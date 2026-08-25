@@ -18,9 +18,10 @@ summary:
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/fixed_income/cir/european_payer_swaptions/cir_01__european_payer_swaptions_01__01.json"
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/validation.ipynb"
 outputs:
   price:
     estimator: "closed-form price"
@@ -35,5 +36,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "3.482092279 s"
-  kernel_seconds: "0.081195007 s"
+  wall_seconds: "1.047203747 s"
+  kernel_seconds: "0.081105919 s"

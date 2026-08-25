@@ -1,7 +1,7 @@
 // Persistent CUDA launchers for bates model samples.
 #pragma once
 
-#include "model/equity/bates/dataset.hpp"
+#include "model/equity/bates/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

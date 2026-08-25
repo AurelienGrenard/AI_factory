@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Phoenix-Memory-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/phoenix_memory_autocall/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/phoenix_memory_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

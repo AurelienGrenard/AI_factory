@@ -1,8 +1,8 @@
 // Public launcher for the CEV fixed-strike lookback CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/lookback_option/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/lookback_option/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

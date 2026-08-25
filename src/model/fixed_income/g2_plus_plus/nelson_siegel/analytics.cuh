@@ -25,6 +25,26 @@ __device__ __forceinline__ G2PlusPlusFittedParameters compose_model(
     const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
 );
 
+// Model/curve composition consumed by generic closed-form pricing policies.
+struct FittedModelComposition {
+    using ModelParameters =
+        ::ai_factory::workbench::model::g2_plus_plus::ModelParameters;
+    using CurveParameters =
+        ::ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters;
+    using FittedModel = G2PlusPlusFittedParameters;
+
+    __device__ __forceinline__ static model::g2::State initial_state() {
+        return {0.0f, 0.0f};
+    }
+
+    __device__ __forceinline__ static FittedModel compose(
+        const ModelParameters& model,
+        const CurveParameters& initial_curve
+    ) {
+        return compose_model(model, initial_curve);
+    }
+};
+
 // Return phi(t) in r(t) = x(t) + y(t) + phi(t).
 __device__ __forceinline__ float short_rate_shift(
     const G2PlusPlusFittedParameters& parameters,

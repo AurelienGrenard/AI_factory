@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Athena-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "product/athena_autocall/dataset.hpp"
+#include "model/equity/schobel_zhu/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>

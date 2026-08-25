@@ -1,8 +1,8 @@
 // Public launcher for the CEV Phoenix-autocall CUDA kernel.
 #pragma once
 
-#include "model/equity/cev/dataset.hpp"
-#include "product/phoenix_autocall/dataset.hpp"
+#include "model/equity/cev/parameters.hpp"
+#include "product/phoenix_autocall/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
