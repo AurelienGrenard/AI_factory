@@ -10,7 +10,6 @@
 
 namespace ai_factory::workbench::simulation {
 
-inline constexpr std::size_t kMaximumPreparedRowBytes = 256U;
 inline constexpr std::size_t kMaximumObservationHandlerBytes = 128U;
 
 // Every dynamics exposes model parameters, one path-local random context and

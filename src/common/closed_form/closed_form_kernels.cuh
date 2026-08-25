@@ -19,6 +19,12 @@ __device__ __forceinline__ void price_one(
     const typename Pricing::TimeConfiguration& time_configuration,
     float* __restrict__ prices
 ) {
+    static_assert(
+        sizeof(typename Pricing::PreparedRow)
+            <= kMaximumThreadPreparedRowBytes,
+        "Closed-form PreparedRow exceeds the 256-byte per-thread budget; "
+        "store a compact view and keep variable-length data in device memory."
+    );
     const typename Pricing::PreparedRow row =
         inputs.template prepare_row<Pricing>(
             result_index,

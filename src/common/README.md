@@ -141,9 +141,11 @@ occupancy is
 
 Each view owns no memory. `validate(result_count)` checks its pointers and row
 construction on the host; `prepare_row<Pricing>(result_index, time)` decodes
-the same mapping and calls the pricing policy on the device. Monte Carlo and
-closed-form kernels therefore share one input contract without sharing an
-execution strategy.
+the same mapping and calls the pricing policy on the device. Additional
+trivially-copyable inputs are forwarded variadically to that policy.
+`DeviceInputsWithContext` uses this delegation and never inspects a curve type
+or the members of its primary input. Monte Carlo and closed-form kernels
+therefore share one input contract without sharing an execution strategy.
 
 <a id="time-configuration"></a>
 ## [`time_configuration.cuh`](time_configuration.cuh)
@@ -180,7 +182,9 @@ t(d)=d\,\delta_{\mathrm{day}}.
 |---|---|
 | `ClosedFormPricingPolicy` | Trivially-copyable `DeviceInputs`, `TimeConfiguration` and `PreparedRow`; input-driven row preparation; scalar `evaluate_price(row)`. |
 
-`PreparedRow` is limited to 256 bytes.
+The concept constrains only the interface. `price_one` enforces the
+`kMaximumThreadPreparedRowBytes = 256` per-thread storage budget and asks a
+larger contract to use a compact view over device-resident data.
 
 <a id="closed-form-kernel"></a>
 ### [`closed_form_kernels.cuh`](closed_form/closed_form_kernels.cuh)
@@ -271,7 +275,10 @@ Every function constructs one continuous path-local random context from
 |---|---|
 | `ScalarMonteCarloPricingPolicy` | Binds `DeviceInputs`, a schedule and a product to input-driven `PreparedRow` construction and `evaluate_path(row, key, path)`. |
 
-`PreparedRow` remains trivially copyable and no larger than 256 bytes.
+`PreparedRow` remains trivially copyable. The kernel stores one row per block
+in shared memory and enforces
+`kMaximumSharedPreparedRowBytes = 2048`; a larger dynamic calendar must use a
+compact schedule view over a device-resident pool.
 
 <a id="monte-carlo-kernel"></a>
 ### [`monte_carlo_kernel.cuh`](monte_carlo/monte_carlo_kernel.cuh)

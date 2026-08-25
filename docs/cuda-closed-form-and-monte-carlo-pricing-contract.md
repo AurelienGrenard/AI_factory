@@ -161,12 +161,13 @@ puis appelle le `prepare_row` ci-dessus. Le kernel ne connaît donc aucune
 forme particulière d'entrée.
 
 `PreparedRow` contient uniquement les états préparés et scalaires nécessaires
-à tous les chemins d'un prix. Il reste trivially copyable, borné à 256 octets
-par `ScalarMonteCarloPricingPolicy`, puis stocké une seule fois en mémoire
-partagée par bloc. La clé Philox de la ligne est également préparée une seule
-fois en mémoire partagée. Cette disposition évite de conserver `base_seed` et
-le calcul de clé dans les registres de chaque thread pendant toute la
-trajectoire.
+à tous les chemins d'un prix. Il reste trivially copyable, puis est stocké une
+seule fois en mémoire partagée par bloc. Le kernel impose un budget explicite
+`monte_carlo::kMaximumSharedPreparedRowBytes = 2048`; son diagnostic de
+compilation demande une `ScheduleView` compacte lorsque la ligne dépasse cette
+limite. La clé Philox de la ligne est également préparée une seule fois en
+mémoire partagée. Cette disposition évite de conserver `base_seed` et le
+calcul de clé dans les registres de chaque thread pendant toute la trajectoire.
 
 Le côté call/put est un paramètre de template lorsque le payoff le demande. Un
 produit sans côté ne crée ni template artificiel ni branche runtime.
@@ -223,6 +224,12 @@ Chaque vue expose `validate(result_count)` sur l'hôte et
 couche décrit uniquement où se trouvent les données d'une ligne. Elle ne
 connaît ni simulation, ni payoff, ni réduction, ni formule analytique.
 
+Les deux vues primaires acceptent en plus des arguments de préparation
+additionnels et restent seules responsables du décodage de leurs tableaux.
+`DeviceInputsWithContext` leur délègue donc la préparation avec son contexte ;
+il n'inspecte ni alias `CurveParameters`, ni membres internes, et n'ajoute
+aucune branche propre à la forme modèle-produit ou modèle-courbe-produit.
+
 ## Formules fermées
 
 Les formules fermées suivent une voie parallèle au Monte Carlo : elles ne
@@ -250,9 +257,11 @@ schedule de swaption, reçoit en plus le `Context` fourni par
 `DeviceInputsWithContext`.
 
 Le concept `closed_form::ClosedFormPricingPolicy` exige des entrées, une
-configuration temporelle et une ligne préparée trivially copyable, borne
-`PreparedRow` à 256 octets, puis vérifie la préparation et l'évaluation
-scalaire.
+configuration temporelle et une ligne préparée trivially copyable, puis
+vérifie la préparation et l'évaluation scalaire. `price_one` impose séparément
+le budget d'exécution
+`closed_form::kMaximumThreadPreparedRowBytes = 256`, car cette ligne est locale
+à chaque thread et peut sinon augmenter les registres ou les spills.
 
 `closed_form_price_kernel<Pricing, GridStride>` possède un seul corps source
 et deux spécialisations de compilation :

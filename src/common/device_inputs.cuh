@@ -43,15 +43,21 @@ struct ModelProductDeviceInputs {
         );
     }
 
-    template<typename Pricing, typename TimeConfiguration>
+    template<
+        typename Pricing,
+        typename TimeConfiguration,
+        typename... AdditionalInputs
+    >
     __device__ __forceinline__ typename Pricing::PreparedRow prepare_row(
         std::size_t result_index,
-        const TimeConfiguration& time_configuration
+        const TimeConfiguration& time_configuration,
+        const AdditionalInputs&... additional_inputs
     ) const {
         const ModelProductIndices row = indices(result_index);
         return Pricing::prepare_row(
             models[row.model_index],
             products[row.product_index],
+            additional_inputs...,
             time_configuration
         );
     }
@@ -95,16 +101,22 @@ struct ModelCurveProductDeviceInputs {
         );
     }
 
-    template<typename Pricing, typename TimeConfiguration>
+    template<
+        typename Pricing,
+        typename TimeConfiguration,
+        typename... AdditionalInputs
+    >
     __device__ __forceinline__ typename Pricing::PreparedRow prepare_row(
         std::size_t result_index,
-        const TimeConfiguration& time_configuration
+        const TimeConfiguration& time_configuration,
+        const AdditionalInputs&... additional_inputs
     ) const {
         const ModelCurveProductIndices row = indices(result_index);
         return Pricing::prepare_row(
             models[row.model_index],
             curves[row.curve_index],
             products[row.product_index],
+            additional_inputs...,
             time_configuration
         );
     }
@@ -129,23 +141,11 @@ struct DeviceInputsWithContext {
         std::size_t result_index,
         const TimeConfiguration& time_configuration
     ) const {
-        const auto row = primary.indices(result_index);
-        if constexpr (requires { typename PrimaryInputs::CurveParameters; }) {
-            return Pricing::prepare_row(
-                primary.models[row.model_index],
-                primary.curves[row.curve_index],
-                primary.products[row.product_index],
-                context,
-                time_configuration
-            );
-        } else {
-            return Pricing::prepare_row(
-                primary.models[row.model_index],
-                primary.products[row.product_index],
-                context,
-                time_configuration
-            );
-        }
+        return primary.template prepare_row<Pricing>(
+            result_index,
+            time_configuration,
+            context
+        );
     }
 };
 

@@ -27,6 +27,13 @@ __global__ void monte_carlo_price_kernel(
     float* __restrict__ prices,
     float* __restrict__ standard_errors
 ) {
+    static_assert(
+        sizeof(typename Pricing::PreparedRow)
+            <= kMaximumSharedPreparedRowBytes,
+        "Monte Carlo PreparedRow exceeds the 2048-byte shared-memory "
+        "budget; store a compact ScheduleView instead of embedding the "
+        "complete runtime calendar."
+    );
     __shared__ typename Pricing::PreparedRow prepared;
     __shared__ philox::PhiloxKey key;
 
@@ -88,6 +95,13 @@ inline void validate_monte_carlo_launch(
     const float* device_prices,
     const float* device_standard_errors
 ) {
+    static_assert(
+        sizeof(typename Pricing::PreparedRow)
+            <= kMaximumSharedPreparedRowBytes,
+        "Monte Carlo PreparedRow exceeds the 2048-byte shared-memory "
+        "budget; store a compact ScheduleView instead of embedding the "
+        "complete runtime calendar."
+    );
     inputs.validate(result_count);
     validate_device_pointer(device_prices, "device_prices");
     validate_device_pointer(

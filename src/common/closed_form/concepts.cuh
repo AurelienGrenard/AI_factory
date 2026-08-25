@@ -7,14 +7,14 @@
 
 namespace ai_factory::workbench::closed_form {
 
-inline constexpr std::size_t kMaximumPreparedRowBytes = 256U;
+// Closed-form rows are local to one pricing thread.
+inline constexpr std::size_t kMaximumThreadPreparedRowBytes = 256U;
 
 template<typename Pricing>
 concept ClosedFormPricingPolicy =
     std::is_trivially_copyable_v<typename Pricing::DeviceInputs>
     && std::is_trivially_copyable_v<typename Pricing::TimeConfiguration>
     && std::is_trivially_copyable_v<typename Pricing::PreparedRow>
-    && sizeof(typename Pricing::PreparedRow) <= kMaximumPreparedRowBytes
     && requires(
         const typename Pricing::DeviceInputs& inputs,
         const typename Pricing::TimeConfiguration& time_configuration,
