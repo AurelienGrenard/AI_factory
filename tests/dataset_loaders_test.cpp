@@ -164,21 +164,21 @@ nlohmann::json one_row(
 int main() {
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
     namespace svensson = ai_factory::workbench::curve::svensson;
-    namespace g2 = ai_factory::workbench::model::g2;
-    namespace g2_plus_plus = ai_factory::workbench::model::g2_plus_plus;
-    namespace bates = ai_factory::workbench::bates;
-    namespace black_scholes = ai_factory::workbench::black_scholes;
-    namespace cev = ai_factory::workbench::cev;
-    namespace heston = ai_factory::workbench::heston;
-    namespace kou = ai_factory::workbench::kou;
-    namespace merton = ai_factory::workbench::merton;
-    namespace nig = ai_factory::workbench::normal_inverse_gaussian;
-    namespace schobel_zhu = ai_factory::workbench::schobel_zhu;
-    namespace vg = ai_factory::workbench::variance_gamma;
-    namespace hull_white = ai_factory::workbench::model::hull_white;
-    namespace cir = ai_factory::workbench::model::cir;
-    namespace ou = ai_factory::workbench::model::ornstein_uhlenbeck;
-    namespace vasicek = ai_factory::workbench::model::vasicek;
+    namespace g2 = ai_factory::workbench::model::fixed_income::g2;
+    namespace g2_plus_plus = ai_factory::workbench::model::fixed_income::g2_plus_plus;
+    namespace bates = ai_factory::workbench::model::equity::bates;
+    namespace black_scholes = ai_factory::workbench::model::equity::black_scholes;
+    namespace cev = ai_factory::workbench::model::equity::cev;
+    namespace heston = ai_factory::workbench::model::equity::heston;
+    namespace kou = ai_factory::workbench::model::equity::kou;
+    namespace merton = ai_factory::workbench::model::equity::merton;
+    namespace nig = ai_factory::workbench::model::equity::normal_inverse_gaussian;
+    namespace schobel_zhu = ai_factory::workbench::model::equity::schobel_zhu;
+    namespace vg = ai_factory::workbench::model::equity::variance_gamma;
+    namespace hull_white = ai_factory::workbench::model::fixed_income::hull_white;
+    namespace cir = ai_factory::workbench::model::fixed_income::cir;
+    namespace ou = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck;
+    namespace vasicek = ai_factory::workbench::model::fixed_income::vasicek;
     namespace product = ai_factory::workbench::product;
     namespace datasets = ai_factory::workbench::datasets;
     using ai_factory::workbench::OptionSide;
@@ -223,7 +223,7 @@ int main() {
             {"initial_state_x", 0.02f},
             {"initial_state_y", 0.01f},
         }),
-        g2::load_models
+        ai_factory::workbench::model::fixed_income::g2::load_models
     );
     check_loader(
         "G2++", "models", "mean_reversion_x", 0.0f, "mean reversions",
@@ -234,7 +234,7 @@ int main() {
             {"volatility_y", 0.008f},
             {"correlation", -0.40f},
         }),
-        g2_plus_plus::load_models
+        ai_factory::workbench::model::fixed_income::g2_plus_plus::load_models
     );
     check_loader(
         "Black-Scholes", "models", "volatility", 0.0f, "volatility",
@@ -244,7 +244,7 @@ int main() {
             {"dividend_yield", 0.01f},
             {"volatility", 0.2f},
         }),
-        black_scholes::load_models
+        ai_factory::workbench::model::equity::black_scholes::load_models
     );
     check_loader(
         "Heston", "models", "spot", 0.0f, "spot",
@@ -258,7 +258,7 @@ int main() {
             {"gamma", 0.3f},
             {"rho", -0.5f},
         }),
-        heston::load_models
+        ai_factory::workbench::model::equity::heston::load_models
     );
     check_loader(
         "Bates", "models", "jump_intensity", -0.1f, "jump_intensity",
@@ -275,7 +275,7 @@ int main() {
             {"jump_log_mean", -0.1f},
             {"jump_log_volatility", 0.2f},
         }),
-        bates::load_models
+        ai_factory::workbench::model::equity::bates::load_models
     );
     check_loader(
         "Merton", "models", "jump_intensity", -0.1f,
@@ -289,7 +289,7 @@ int main() {
             {"jump_log_mean", -0.1f},
             {"jump_log_volatility", 0.2f},
         }),
-        merton::load_models
+        ai_factory::workbench::model::equity::merton::load_models
     );
     check_loader(
         "Kou", "models", "positive_jump_rate", 2.0f,
@@ -304,7 +304,7 @@ int main() {
             {"positive_jump_rate", 8.0f},
             {"negative_jump_rate", 10.0f},
         }),
-        kou::load_models
+        ai_factory::workbench::model::equity::kou::load_models
     );
     check_loader(
         "CEV", "models", "beta", 1.0f, "beta",
@@ -315,7 +315,7 @@ int main() {
             {"sigma", 0.2f},
             {"beta", 0.75f},
         }),
-        cev::load_models
+        ai_factory::workbench::model::equity::cev::load_models
     );
     check_loader(
         "Schobel-Zhu", "models", "correlation", 1.0f,
@@ -330,7 +330,7 @@ int main() {
             {"volatility_of_volatility", 0.3f},
             {"correlation", -0.5f},
         }),
-        schobel_zhu::load_models
+        ai_factory::workbench::model::equity::schobel_zhu::load_models
     );
     check_loader(
         "Variance-Gamma", "models", "nu", 0.0f, "nu",
@@ -375,7 +375,7 @@ int main() {
             {"volatility", 0.01f},
             {"initial_state", 0.03f},
         }),
-        vasicek::load_models
+        ai_factory::workbench::model::fixed_income::vasicek::load_models
     );
     check_loader(
         "CIR", "models", "long_term_mean", 0.0f, "long_term_mean",
@@ -385,7 +385,7 @@ int main() {
             {"volatility", 0.15f},
             {"initial_state", 0.03f},
         }),
-        cir::load_models
+        ai_factory::workbench::model::fixed_income::cir::load_models
     );
     check_loader(
         "Hull-White", "models", "volatility", -0.01f, "volatility",
@@ -393,7 +393,7 @@ int main() {
             {"mean_reversion", 0.2f},
             {"volatility", 0.01f},
         }),
-        hull_white::load_models
+        ai_factory::workbench::model::fixed_income::hull_white::load_models
     );
     check_loader(
         "Nelson-Siegel", "curves", "tau", 0.0f, "tau",
@@ -725,7 +725,8 @@ int main() {
         swaption_dataset.products.size() == 2U
             && swaption_dataset.products[0].payment_count == 65U
             && swaption_dataset.products[0].payment_interval == 21U
-            && swaption_dataset.products[1].accrual_fraction == 0.5f,
+            && swaption_dataset.products[1].accrual_fraction == 0.5f
+            && swaption_dataset.maximum_payment_count == 65U,
         "European swaption loader did not retain the regular schedule"
     );
     swaption_document["products"][1]["parameters"]
@@ -761,7 +762,8 @@ int main() {
             && explicit_dataset.products[0].payment_count == 3U
             && explicit_dataset.products[0].schedule_offset == 0U
             && explicit_dataset.payment_times[2] == 76U
-            && explicit_dataset.accrual_fractions[1] == 0.09f,
+            && explicit_dataset.accrual_fractions[1] == 0.09f
+            && explicit_dataset.maximum_payment_count == 3U,
         "Explicit European swaption loader did not flatten the schedule"
     );
 

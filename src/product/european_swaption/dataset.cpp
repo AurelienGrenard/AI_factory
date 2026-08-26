@@ -4,6 +4,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <fstream>
@@ -69,7 +70,7 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
 ) {
     const nlohmann::json document = load_document(dataset_path);
     const auto& rows = document.at("products");
-    RegularEuropeanSwaptionDataset dataset;
+    RegularEuropeanSwaptionDataset dataset{};
     dataset.products.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
@@ -122,6 +123,10 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
             );
         }
         dataset.products.push_back(product);
+        dataset.maximum_payment_count = std::max(
+            dataset.maximum_payment_count,
+            product.payment_count
+        );
     }
     return dataset;
 }
@@ -132,7 +137,7 @@ ExplicitEuropeanSwaptionDataset load_explicit_european_swaptions(
 ) {
     const nlohmann::json document = load_document(dataset_path);
     const auto& rows = document.at("products");
-    ExplicitEuropeanSwaptionDataset dataset;
+    ExplicitEuropeanSwaptionDataset dataset{};
     dataset.products.reserve(rows.size());
     for (const auto& row : rows) {
         const std::string row_id = row.at("id").get<std::string>();
@@ -210,6 +215,10 @@ ExplicitEuropeanSwaptionDataset load_explicit_european_swaptions(
             accrual_fractions.end()
         );
         dataset.products.push_back(product);
+        dataset.maximum_payment_count = std::max(
+            dataset.maximum_payment_count,
+            product.payment_count
+        );
     }
     return dataset;
 }

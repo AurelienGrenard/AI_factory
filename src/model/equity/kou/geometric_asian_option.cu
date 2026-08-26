@@ -6,7 +6,7 @@
 #include "model/equity/kou/dynamics.cu"
 #include "product/geometric_asian_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<kou::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_kou_geometric_asian_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

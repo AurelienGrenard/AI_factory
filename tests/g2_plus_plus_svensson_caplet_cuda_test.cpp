@@ -35,7 +35,7 @@ double zero_rate(
 
 // Price one caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::g2_plus_plus::ModelParameters& model,
+    const ai_factory::workbench::model::fixed_income::g2_plus_plus::ModelParameters& model,
     const ai_factory::workbench::curve::svensson::SvenssonParameters& curve,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
@@ -92,7 +92,7 @@ int main() {
     }
     check_cuda(availability, "caplet test cudaGetDeviceCount");
 
-    const std::vector<model::g2_plus_plus::ModelParameters> models = {
+    const std::vector<model::fixed_income::g2_plus_plus::ModelParameters> models = {
         {{0.10f, 0.01f, 0.60f, 0.008f, -0.40f}},
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}},
         {{0.50f, 0.02f, 1.10f, 0.012f, -0.10f}},
@@ -109,7 +109,7 @@ int main() {
     };
     constexpr std::size_t row_count = 3U;
 
-    model::g2_plus_plus::ModelParameters* device_models = nullptr;
+    model::fixed_income::g2_plus_plus::ModelParameters* device_models = nullptr;
     curve::svensson::SvenssonParameters* device_curves = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -158,7 +158,7 @@ int main() {
             "caplet test cudaMemcpy products"
         );
 
-        model::g2_plus_plus::svensson::
+        model::fixed_income::g2_plus_plus::svensson::
             launch_g2_plus_plus_svensson_rate_option_cuda<OptionSide::call>(
                 device_models,
                 row_count,

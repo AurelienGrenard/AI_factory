@@ -6,7 +6,7 @@
 #include "model/equity/heston/dynamics.cu"
 #include "product/digital_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 namespace {
 
 using Schedule = simulation::FixedStepTerminalSchedule<heston::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_heston_digital_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

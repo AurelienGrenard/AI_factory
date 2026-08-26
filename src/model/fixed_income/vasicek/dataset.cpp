@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
 
 // Parse and validate Vasicek rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -73,4 +73,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

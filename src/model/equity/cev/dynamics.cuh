@@ -5,9 +5,15 @@
 #include "common/philox.cuh"
 #include "model/equity/cev/parameters.hpp"
 
+#include <cuda_runtime.h>
+
 #include <cstdint>
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
+
+struct State {
+    float spot;
+};
 
 struct PreparedModel {
     float initial_spot;
@@ -16,10 +22,8 @@ struct PreparedModel {
     float milstein_scale;
     float beta;
 };
+
 using PreparedDynamics = PreparedModel;
-struct State {
-    float spot;
-};
 
 // ======================== Common equity dynamics =========================
 
@@ -48,6 +52,7 @@ struct DynamicsPolicy {
     using State = cev::State;
 
     static constexpr bool kNativeLogSpot = false;
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -71,7 +76,7 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static float log_spot(const State& state);
 };
 
-static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

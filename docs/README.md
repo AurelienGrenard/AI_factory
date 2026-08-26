@@ -24,6 +24,9 @@ names describe both the subject and the role of each document; separate
 - [`cuda-model-dynamics-contract.md`](cuda-model-dynamics-contract.md): model
   dynamics layers, common device interface, state layout, Philox consumption,
   exact and discretized transitions, and naming conventions.
+- [`cuda-model-analytics-contract.md`](cuda-model-analytics-contract.md):
+  canonical analytics APIs, capability providers, fitted-model composition,
+  shared lognormal primitives, and symmetric numerical tests.
 - [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](cuda-closed-form-and-monte-carlo-pricing-contract.md):
   required types, functions, kernels, launchers, and invariants for closed-form
   and standard Monte Carlo pricing.
@@ -42,6 +45,11 @@ names describe both the subject and the role of each document; separate
 
 ## Work tracking
 
+- [`audit-query.md`](audit-query.md): stable checklist for dynamics, analytics,
+  naming, project structure, `src`/`tools` ownership, and CUDA performance
+  audits.
+- [`audit-response.md`](audit-response.md): actionable audit findings that
+  remain open and are removed after verified resolution.
 - [`deferred-work.md`](deferred-work.md): planned extensions that remain on the
   roadmap but are intentionally outside the current task.
 - [`abandoned-work.md`](abandoned-work.md): measured or analyzed ideas that were

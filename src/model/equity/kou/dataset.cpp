@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 
 // Parse and validate Kou rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -104,4 +104,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

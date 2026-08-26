@@ -51,7 +51,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace g2pp = model::g2_plus_plus;
+    namespace g2pp = model::fixed_income::g2_plus_plus;
     namespace fitted = g2pp::nelson_siegel;
 
     // 1. Load model, curve, and product rows into contiguous FP32 vectors.

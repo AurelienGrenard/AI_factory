@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 
 // Parse and validate Bates rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -101,4 +101,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

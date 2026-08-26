@@ -1,5 +1,6 @@
 // Validate Nelson-Siegel and exact Hull-White building blocks on CUDA.
 #include "common/check_cuda.cuh"
+#include "common/simulation/path_simulation.cuh"
 
 // Include the implementation exactly as future product kernels will.
 #include "model/fixed_income/hull_white/nelson_siegel/analytics.cu"
@@ -13,11 +14,51 @@
 namespace {
 
 namespace fitted =
-    ai_factory::workbench::model::hull_white::nelson_siegel;
+    ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel;
 namespace ou =
-    ai_factory::workbench::model::ornstein_uhlenbeck;
+    ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck;
 
 constexpr std::size_t kOutputCount = 34U;
+
+struct JointStateWriter {
+    float* states;
+    float* integrated_states;
+    std::uint32_t write_count;
+
+    __device__ __forceinline__ bool on_initial_state(
+        const ou::joint::State&
+    ) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        const ou::joint::State& state
+    ) {
+        if (observation < write_count) {
+            states[observation] = state.state;
+            integrated_states[observation] = state.state_integral;
+        }
+        return true;
+    }
+};
+
+struct ScalarStateWriter {
+    float* states;
+    std::uint32_t write_count;
+
+    __device__ __forceinline__ bool on_initial_state(float) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        float state
+    ) {
+        if (observation < write_count) states[observation] = state;
+        return true;
+    }
+};
 
 // Evaluate curve limits, one exact transition, and one model zero-coupon.
 __global__ void hull_white_test_kernel(float* outputs) {
@@ -30,14 +71,14 @@ __global__ void hull_white_test_kernel(float* outputs) {
         0.02f,
         2.0f,
     };
-    const ai_factory::workbench::model::hull_white::ModelParameters
+    const ai_factory::workbench::model::fixed_income::hull_white::ModelParameters
         model = {0.15f, 0.01f};
     constexpr float dt = 1.0f / 12.0f;
     constexpr float maturity = 5.0f;
 
     using namespace ai_factory::workbench;
     const fitted::HullWhiteFittedParameters prepared =
-        fitted::compose_model(model, initial_curve);
+        fitted::compose_fitted_model(model, initial_curve);
     const ou::PreparedModel process_model =
         ou::prepare_model(prepared.process);
     const ou::PreparedTransition step =
@@ -59,7 +100,7 @@ __global__ void hull_white_test_kernel(float* outputs) {
     );
     outputs[3] =
         curve::nelson_siegel::discount_factor(initial_curve, maturity);
-    outputs[4] = step.decay;
+    outputs[4] = step.state_decay;
     outputs[5] = step.state_standard_deviation;
 
     ou::one_step_transition(step, 0.0f, state);
@@ -83,18 +124,19 @@ __global__ void hull_white_test_kernel(float* outputs) {
 
     float observed_states[2] = {};
     float observed_integrated_states[2] = {};
+    JointStateWriter joint_writer{
+        observed_states, observed_integrated_states, 2U,
+    };
     const ou::joint::State grid_terminal =
-        ou::joint::simulate_on_regular_grid(
+        simulation::simulate_exact_transition_regular_schedule<
+            ou::joint::DynamicsPolicy
+        >(
             process_model,
             joint_step,
-            joint_step,
-            0.0f,
+            3U,
             key,
             0U,
-            3U,
-            1U,
-            observed_states,
-            observed_integrated_states
+            joint_writer
         );
     outputs[12] = observed_states[0];
     outputs[13] = observed_integrated_states[0];
@@ -165,17 +207,17 @@ __global__ void hull_white_test_kernel(float* outputs) {
     float simple_terminal = 0.0f;
     ou::one_step_transition(terminal_step, 0.5f, simple_terminal);
     float simple_observed_states[2] = {};
+    ScalarStateWriter scalar_writer{simple_observed_states, 2U};
     const float simple_grid_terminal =
-        ou::simulate_on_regular_grid(
+        simulation::simulate_exact_transition_regular_schedule<
+            ou::DynamicsPolicy
+        >(
             process_model,
             step,
-            step,
-            0.0f,
+            3U,
             key,
             1U,
-            3U,
-            1U,
-            simple_observed_states
+            scalar_writer
         );
     outputs[23] = simple_terminal;
     outputs[24] = simple_observed_states[0];

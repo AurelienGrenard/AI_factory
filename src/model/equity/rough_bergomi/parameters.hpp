@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Flat-forward-variance rough-Bergomi inputs under the risk-neutral measure.
 struct RoughBergomiModelParameters {
@@ -18,4 +18,4 @@ struct RoughBergomiModelParameters {
 
 static_assert(std::is_trivially_copyable_v<RoughBergomiModelParameters>);
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

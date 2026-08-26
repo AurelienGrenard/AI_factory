@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 
 // Parse and validate Black-Scholes rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -59,4 +59,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

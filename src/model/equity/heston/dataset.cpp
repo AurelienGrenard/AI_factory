@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 
 // Parse and validate Heston rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -80,4 +80,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

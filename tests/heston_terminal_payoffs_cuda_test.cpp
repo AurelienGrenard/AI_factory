@@ -39,7 +39,7 @@ void require(bool condition, const char* message) {
 // Launch one product row and return its price and standard error.
 template <typename Product, typename Launcher>
 void price_one(
-    const ai_factory::workbench::heston::ModelParameters& model,
+    const ai_factory::workbench::model::equity::heston::ModelParameters& model,
     const Product& product,
     Launcher launch,
     float& price,
@@ -47,7 +47,7 @@ void price_one(
 ) {
     using namespace ai_factory::workbench;
 
-    heston::ModelParameters* device_model = nullptr;
+    ai_factory::workbench::model::equity::heston::ModelParameters* device_model = nullptr;
     Product* device_product = nullptr;
     float* device_price = nullptr;
     float* device_standard_error = nullptr;
@@ -110,7 +110,7 @@ int main() {
     }
     check_cuda(availability, "terminal-payoff test cudaGetDeviceCount");
 
-    const heston::ModelParameters model = {
+    const ai_factory::workbench::model::equity::heston::ModelParameters model = {
         1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
     };
     float call = 0.0f;
@@ -119,14 +119,14 @@ int main() {
     price_one(
         model,
         product::EuropeanOptionParameters{1.0f, 252U},
-        heston::launch_heston_european_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_european_option_cuda<OptionSide::call>,
         call,
         error
     );
     price_one(
         model,
         product::EuropeanOptionParameters{1.0f, 252U},
-        heston::launch_heston_european_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_european_option_cuda<OptionSide::put>,
         put,
         error
     );
@@ -135,7 +135,7 @@ int main() {
     price_one(
         model,
         product::StraddleParameters{1.0f, 252U},
-        heston::launch_heston_straddle_cuda,
+        ai_factory::workbench::model::equity::heston::launch_heston_straddle_cuda,
         straddle,
         error
     );
@@ -149,14 +149,14 @@ int main() {
     price_one(
         model,
         product::GapOptionParameters{1.0f, 1.0f, 252U},
-        heston::launch_heston_gap_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_gap_option_cuda<OptionSide::call>,
         gap_call,
         error
     );
     price_one(
         model,
         product::GapOptionParameters{1.0f, 1.0f, 252U},
-        heston::launch_heston_gap_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_gap_option_cuda<OptionSide::put>,
         gap_put,
         error
     );
@@ -171,14 +171,14 @@ int main() {
     price_one(
         model,
         product::DigitalOptionParameters{1.0f, 252U, 1.0f},
-        heston::launch_heston_digital_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_digital_option_cuda<OptionSide::call>,
         digital_call,
         error
     );
     price_one(
         model,
         product::DigitalOptionParameters{1.0f, 252U, 1.0f},
-        heston::launch_heston_digital_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_digital_option_cuda<OptionSide::put>,
         digital_put,
         error
     );
@@ -192,14 +192,14 @@ int main() {
     price_one(
         model,
         product::AssetOrNothingOptionParameters{1.0f, 252U},
-        heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::call>,
         asset_call,
         error
     );
     price_one(
         model,
         product::AssetOrNothingOptionParameters{1.0f, 252U},
-        heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_asset_or_nothing_option_cuda<OptionSide::put>,
         asset_put,
         error
     );
@@ -208,7 +208,7 @@ int main() {
     price_one(
         model,
         product::AsianOptionParameters{1.0f, 252U},
-        heston::launch_heston_asian_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_asian_option_cuda<OptionSide::put>,
         asian_put,
         error
     );
@@ -218,14 +218,14 @@ int main() {
     price_one(
         model,
         product::GeometricAsianOptionParameters{1.0f, 252U},
-        heston::launch_heston_geometric_asian_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_geometric_asian_option_cuda<OptionSide::call>,
         geometric_call,
         error
     );
     price_one(
         model,
         product::GeometricAsianOptionParameters{1.0f, 252U},
-        heston::launch_heston_geometric_asian_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_geometric_asian_option_cuda<OptionSide::put>,
         geometric_put,
         error
     );
@@ -235,14 +235,14 @@ int main() {
     price_one(
         model,
         product::ForwardStartOptionParameters{1.0f, 126U, 252U},
-        heston::launch_heston_forward_start_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_forward_start_option_cuda<OptionSide::call>,
         forward_call,
         error
     );
     price_one(
         model,
         product::ForwardStartOptionParameters{1.0f, 126U, 252U},
-        heston::launch_heston_forward_start_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_forward_start_option_cuda<OptionSide::put>,
         forward_put,
         error
     );
@@ -256,42 +256,42 @@ int main() {
     price_one(
         model,
         product::UpAndOutOptionParameters{1.0f, 1.2f, 252U},
-        heston::launch_heston_up_and_out_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_up_and_out_option_cuda<OptionSide::call>,
         up_and_out_call,
         error
     );
     price_one(
         model,
         product::DownAndOutOptionParameters{1.0f, 0.8f, 252U},
-        heston::launch_heston_down_and_out_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_down_and_out_option_cuda<OptionSide::put>,
         down_and_out_put,
         error
     );
     price_one(
         model,
         product::UpAndInOptionParameters{1.0f, 1.2f, 252U},
-        heston::launch_heston_up_and_in_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_up_and_in_option_cuda<OptionSide::call>,
         up_and_in_call,
         error
     );
     price_one(
         model,
         product::DownAndInOptionParameters{1.0f, 0.8f, 252U},
-        heston::launch_heston_down_and_in_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_down_and_in_option_cuda<OptionSide::put>,
         down_and_in_put,
         error
     );
     price_one(
         model,
         product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 252U},
-        heston::launch_heston_double_knock_out_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::equity::heston::launch_heston_double_knock_out_option_cuda<OptionSide::call>,
         double_knock_out_call,
         error
     );
     price_one(
         model,
         product::DoubleKnockOutOptionParameters{1.0f, 0.8f, 1.2f, 252U},
-        heston::launch_heston_double_knock_out_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::equity::heston::launch_heston_double_knock_out_option_cuda<OptionSide::put>,
         double_knock_out_put,
         error
     );
@@ -324,14 +324,14 @@ int main() {
     price_one(
         model,
         product::UpOneTouchParameters{1.2f, 1.0f, 252U},
-        heston::launch_heston_up_one_touch_cuda,
+        ai_factory::workbench::model::equity::heston::launch_heston_up_one_touch_cuda,
         up_one_touch,
         error
     );
     price_one(
         model,
         product::UpNoTouchParameters{1.2f, 1.0f, 252U},
-        heston::launch_heston_up_no_touch_cuda,
+        ai_factory::workbench::model::equity::heston::launch_heston_up_no_touch_cuda,
         up_no_touch,
         error
     );

@@ -2,13 +2,13 @@
 #pragma once
 
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/vasicek/dataset.hpp"
+#include "model/fixed_income/vasicek/parameters.hpp"
 #include "product/european_swaption/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
 
 // Launch one regular-schedule payer (call) or receiver (put) per thread.
 template<SwaptionSide Side>
@@ -47,4 +47,4 @@ void launch_vasicek_european_swaption_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

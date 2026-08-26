@@ -6,7 +6,7 @@
 #include "model/equity/kou/dynamics.cu"
 #include "product/lookback_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<kou::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_kou_lookback_option_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

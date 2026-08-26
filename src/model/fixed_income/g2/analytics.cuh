@@ -2,25 +2,57 @@
 #pragma once
 
 #include "model/fixed_income/g2/dynamics.cuh"
+#include "model/fixed_income/g2/state.hpp"
 
 #include <cuda_runtime.h>
 
-#include <cstdint>
-
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // ======================= Model-specific analytics =========================
 
+// Return the stochastic contribution x(t) + y(t).
+__device__ __forceinline__ float stochastic_short_rate(const State& state);
+
 // Return the short rate r(t) = x(t) + y(t).
-__device__ __forceinline__ float short_rate(const State& state);
+__device__ __forceinline__ float short_rate(
+    const ModelParameters& parameters,
+    const State& state,
+    float time
+);
 
 // ===================== Common fixed-income analytics ======================
 
 // Two affine state loadings in P(t,T)=A(t,T)exp(-B_x*x-B_y*y).
-struct G2BondLoadings {
+struct TwoFactorAffineBondLoadings {
     float state_x;
     float state_y;
 };
+
+struct TwoFactorAffineBondCoefficients {
+    float log_A;
+    TwoFactorAffineBondLoadings B;
+};
+
+// Pure G2 primitives reused by standalone G2 and fitted G2++.
+__device__ __forceinline__ TwoFactorAffineBondCoefficients
+affine_bond_coefficients(
+    const ProcessParameters& parameters,
+    float time_to_maturity
+);
+
+__device__ __forceinline__ void state_covariances(
+    const ProcessParameters& parameters,
+    float time_to_expiry,
+    float& variance_x,
+    float& variance_y,
+    float& covariance_xy
+);
+
+__device__ __forceinline__ float bond_option_total_volatility(
+    const ProcessParameters& parameters,
+    float time_to_expiry,
+    float bond_tenor
+);
 
 // Return the logarithm of the affine bond prefactor A(t,T).
 __device__ __forceinline__ float log_A(
@@ -37,7 +69,7 @@ __device__ __forceinline__ float A(
 );
 
 // Return both affine state loadings B(t,T).
-__device__ __forceinline__ G2BondLoadings B(
+__device__ __forceinline__ TwoFactorAffineBondLoadings B(
     const ModelParameters& parameters,
     float valuation_time,
     float maturity
@@ -53,12 +85,16 @@ __device__ __forceinline__ float log_zero_coupon_bond(
 
 // Return minus the accumulated short-rate integral from time zero.
 __device__ __forceinline__ float log_discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 );
 
 // Return the model zero-coupon bond P(valuation_time, maturity).
@@ -96,7 +132,7 @@ __device__ __forceinline__ float forward_rate(
     float valuation_time,
     float start_time,
     float end_time,
-    float accrual_period
+    float accrual_fraction
 );
 
 // Return the par swap rate observed at valuation_time.
@@ -109,4 +145,15 @@ __device__ __forceinline__ float swap_rate(
     const ScheduleView& schedule
 );
 
-}  // namespace ai_factory::workbench::model::g2
+// Return the unit-notional value of the payer swap.
+template<typename ScheduleView>
+__device__ __forceinline__ float payer_swap_value(
+    const ModelParameters& parameters,
+    const State& state,
+    float valuation_time,
+    float start_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+);
+
+}  // namespace ai_factory::workbench::model::fixed_income::g2

@@ -1,4 +1,6 @@
 // Reusable Bates QE-M preparation and path simulation implementation.
+#pragma once
+
 #include "model/equity/bates/dynamics.cuh"
 
 #include "common/philox.cuh"
@@ -11,7 +13,7 @@
 
 #include <cstdint>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 
 // ======================== Common equity dynamics =========================
 
@@ -154,8 +156,8 @@ __device__ __forceinline__ void simulate_jump_interval(
 ) {
     const float count = static_cast<float>(step_count);
     const float poisson_mean = prepared_model.poisson_mean * count;
-    const float poisson_zero_probability = step_count == 1U
-        ? prepared_model.poisson_zero_probability
+    const float zero_jump_probability = step_count == 1U
+        ? prepared_model.zero_jump_probability
         : expf(-poisson_mean);
     const float jump_compensator = prepared_model.jump_compensator * count;
 
@@ -163,7 +165,7 @@ __device__ __forceinline__ void simulate_jump_interval(
     const std::uint32_t jump_count = philox::poisson_from_uniform(
         poisson_uniform,
         poisson_mean,
-        poisson_zero_probability
+        zero_jump_probability
     );
     float jump_normal = 0.0f;
     if (jump_count != 0U) {
@@ -182,9 +184,8 @@ __device__ __forceinline__ void simulate_interval(
     philox::NormalPairCache& normal_cache,
     State& state
 ) {
-    for (std::uint32_t step_index = 0U;
-         step_index < step_count;
-         ++step_index) {
+    if (step_count == 0U) return;
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
         simulate_heston_one_step(prepared_model, uniforms, normal_cache, state);
     }
     simulate_jump_interval(
@@ -260,4 +261,4 @@ __device__ __forceinline__ float DynamicsPolicy::log_spot(
     return state.log_spot;
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

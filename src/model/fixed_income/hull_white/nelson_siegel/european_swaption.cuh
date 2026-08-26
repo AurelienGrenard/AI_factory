@@ -2,14 +2,14 @@
 #pragma once
 
 #include "common/fixed_income/swaption_side.cuh"
-#include "curve/nelson_siegel/dataset.hpp"
-#include "model/fixed_income/hull_white/dataset.hpp"
+#include "curve/nelson_siegel/parameters.hpp"
+#include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/european_swaption/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel {
 
 // Launch one regular-schedule payer (call) or receiver (put) per thread.
 template<SwaptionSide Side>
@@ -52,4 +52,4 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

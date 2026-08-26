@@ -1,39 +1,58 @@
-// CUDA analytics for G2++ fitted to Nelson-Siegel curves.
+// G2++ analytics fitted to a Nelson-Siegel curve.
 #pragma once
 
-#include "curve/nelson_siegel/dataset.hpp"
-#include "model/fixed_income/g2/analytics.cuh"
-#include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "curve/nelson_siegel/term_structure.cuh"
+#include "model/fixed_income/g2_plus_plus/fitted_analytics.cuh"
 
 #include <cuda_runtime.h>
 
-#include <cstdint>
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel {
 
-namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
+using CurveAnalyticsProvider = curve::nelson_siegel::AnalyticsProvider;
+using G2PlusPlusFittedParameters =
+    fitted::FittedParameters<CurveAnalyticsProvider>;
+using FittedAnalyticsProvider =
+    fitted::AnalyticsProvider<CurveAnalyticsProvider>;
 
-// ======================= Model-specific analytics =========================
-
-// Correlated G2 process and initial curve defining one fitted G2++ model.
-struct G2PlusPlusFittedParameters {
-    model::g2::ProcessParameters process;
-    curve::nelson_siegel::NelsonSiegelParameters initial_curve;
-};
-
-// Compose one G2++ row with its fitted initial curve.
-__device__ __forceinline__ G2PlusPlusFittedParameters compose_model(
-    const ModelParameters& parameters,
-    const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
+static_assert(
+    ::ai_factory::workbench::fixed_income::ParametricCurveProvider<
+        CurveAnalyticsProvider,
+        curve::nelson_siegel::NelsonSiegelParameters
+    >
+);
+static_assert(
+    ::ai_factory::workbench::fixed_income::ZeroCouponBondProvider<
+        FittedAnalyticsProvider,
+        G2PlusPlusFittedParameters,
+        model::fixed_income::g2::State
+    >
+);
+static_assert(
+    ::ai_factory::workbench::fixed_income::BondOptionProvider<
+        FittedAnalyticsProvider,
+        G2PlusPlusFittedParameters,
+        model::fixed_income::g2::State
+    >
 );
 
-// Model/curve composition consumed by generic closed-form pricing policies.
+__device__ __forceinline__ G2PlusPlusFittedParameters compose_fitted_model(
+    const ModelParameters& model,
+    const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
+) {
+    return fitted::compose_fitted_model<CurveAnalyticsProvider>(
+        model, initial_curve
+    );
+}
+
 struct FittedModelComposition {
     using ModelParameters =
-        ::ai_factory::workbench::model::g2_plus_plus::ModelParameters;
+        ::ai_factory::workbench::model::fixed_income::g2_plus_plus::ModelParameters;
     using CurveParameters =
         ::ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters;
     using FittedModel = G2PlusPlusFittedParameters;
 
-    __device__ __forceinline__ static model::g2::State initial_state() {
+    __device__ __forceinline__ static model::fixed_income::g2::State
+    initial_state() {
         return {0.0f, 0.0f};
     }
 
@@ -41,116 +60,23 @@ struct FittedModelComposition {
         const ModelParameters& model,
         const CurveParameters& initial_curve
     ) {
-        return compose_model(model, initial_curve);
+        return compose_fitted_model(model, initial_curve);
     }
 };
 
-// Return phi(t) in r(t) = x(t) + y(t) + phi(t).
-__device__ __forceinline__ float short_rate_shift(
-    const G2PlusPlusFittedParameters& parameters,
-    float time
-);
+using fitted::A;
+using fitted::B;
+using fitted::discount_factor;
+using fitted::forward_rate;
+using fitted::log_A;
+using fitted::log_discount_factor;
+using fitted::log_zero_coupon_bond;
+using fitted::payer_swap_value;
+using fitted::short_rate;
+using fitted::short_rate_shift;
+using fitted::swap_rate;
+using fitted::zero_coupon_bond;
+using fitted::zero_coupon_bond_call_price;
+using fitted::zero_coupon_bond_put_price;
 
-// Reconstruct the shifted short rate from both Gaussian states.
-__device__ __forceinline__ float short_rate(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float time
-);
-
-// ===================== Common fixed-income analytics ======================
-
-// Return the logarithm of the affine bond prefactor A(t,T).
-__device__ __forceinline__ float log_A(
-    const G2PlusPlusFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return the affine bond prefactor A(t,T).
-__device__ __forceinline__ float A(
-    const G2PlusPlusFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return both affine state loadings B(t,T).
-__device__ __forceinline__ model::g2::G2BondLoadings B(
-    const G2PlusPlusFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return log P = log A - B_x*x - B_y*y.
-__device__ __forceinline__ float log_zero_coupon_bond(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float maturity
-);
-
-// The remaining analytics mirror the standalone G2 interface.
-
-// Return the accumulated path log-discount from time zero.
-__device__ __forceinline__ float log_discount_factor(
-    const G2PlusPlusFittedParameters& parameters,
-    float state_integral,
-    float time
-);
-
-// Return the accumulated path discount factor from time zero.
-__device__ __forceinline__ float discount_factor(
-    const G2PlusPlusFittedParameters& parameters,
-    float state_integral,
-    float time
-);
-
-// Return the model zero-coupon bond P(valuation_time, maturity).
-__device__ __forceinline__ float zero_coupon_bond(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float maturity
-);
-
-// Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
-__device__ __forceinline__ float zero_coupon_bond_call_price(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
-    float strike
-);
-
-// Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
-__device__ __forceinline__ float zero_coupon_bond_put_price(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
-    float strike
-);
-
-// Return the simple forward rate over [start_time,end_time].
-__device__ __forceinline__ float forward_rate(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float start_time,
-    float end_time,
-    float accrual_period
-);
-
-// Return the par swap rate observed at valuation_time.
-template<typename ScheduleView>
-__device__ __forceinline__ float swap_rate(
-    const G2PlusPlusFittedParameters& parameters,
-    const model::g2::State& state,
-    float valuation_time,
-    float start_time,
-    const ScheduleView& schedule
-);
-
-}  // namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel

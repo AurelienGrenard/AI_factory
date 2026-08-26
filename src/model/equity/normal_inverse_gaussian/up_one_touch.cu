@@ -6,7 +6,7 @@
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "product/up_one_touch/pricing_policy.cuh"
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<normal_inverse_gaussian::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_normal_inverse_gaussian_up_one_touch_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

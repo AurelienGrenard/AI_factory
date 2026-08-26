@@ -47,7 +47,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<ou::ModelParameters> models =

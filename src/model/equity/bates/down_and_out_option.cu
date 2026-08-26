@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/down_and_out_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<bates::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_bates_down_and_out_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

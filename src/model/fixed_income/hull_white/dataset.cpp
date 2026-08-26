@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::hull_white {
+namespace ai_factory::workbench::model::fixed_income::hull_white {
 
 // Parse and validate model rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -61,4 +61,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::hull_white
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white

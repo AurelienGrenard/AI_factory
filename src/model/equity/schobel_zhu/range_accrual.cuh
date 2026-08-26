@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_schobel_zhu_range_accrual_cuda(
@@ -29,4 +29,4 @@ void launch_schobel_zhu_range_accrual_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

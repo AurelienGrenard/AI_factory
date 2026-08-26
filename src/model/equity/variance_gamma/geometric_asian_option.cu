@@ -6,7 +6,7 @@
 #include "model/equity/variance_gamma/dynamics.cu"
 #include "product/geometric_asian_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<variance_gamma::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_variance_gamma_geometric_asian_option_cuda<OptionSide::put>
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

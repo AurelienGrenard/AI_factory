@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // Parse and validate G2 rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -92,4 +92,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::g2
+}  // namespace ai_factory::workbench::model::fixed_income::g2

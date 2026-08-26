@@ -13,7 +13,7 @@
 namespace {
 
 namespace ou =
-    ai_factory::workbench::model::ornstein_uhlenbeck;
+    ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck;
 
 constexpr std::size_t kOutputCount = 28U;
 
@@ -115,7 +115,7 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     ou::one_step_transition(exact, 0.75f, terminal_state);
     outputs[12] = terminal_state;
     outputs[13] = fmaf(
-        exact.decay, state, exact.state_standard_deviation * 0.75f
+        exact.state_decay, state, exact.state_standard_deviation * 0.75f
     );
     const ou::joint::PreparedTransition joint_exact =
         ou::joint::prepare_transition(prepared_model, 0.25f);
@@ -125,8 +125,12 @@ __global__ void ornstein_uhlenbeck_test_kernel(float* outputs) {
     );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
-    outputs[16] = ou::log_discount_factor(joint_terminal.state_integral);
-    outputs[17] = ou::discount_factor(joint_terminal.state_integral);
+    outputs[16] = ou::log_discount_factor(
+        model, joint_terminal.state_integral, 0.25f
+    );
+    outputs[17] = ou::discount_factor(
+        model, joint_terminal.state_integral, 0.25f
+    );
     const ou::IntegralMoments moments =
         ou::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading

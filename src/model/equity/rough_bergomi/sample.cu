@@ -16,7 +16,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 namespace {
 
 struct PreparedSampleModel {
@@ -453,4 +453,4 @@ void launch_rough_bergomi_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "rough-Bergomi calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

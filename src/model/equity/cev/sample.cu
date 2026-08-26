@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 namespace {
 
 __global__ void cev_terminal_samples_kernel(
@@ -76,7 +76,7 @@ __global__ void cev_calendar_samples_kernel(
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
         const PreparedModel prepared_model = prepare_model(model, dt);
-        equity::SpotObservationWriter<DynamicsPolicy> writer{
+        ::ai_factory::workbench::equity::SpotObservationWriter<DynamicsPolicy> writer{
             spots + sample_index,
             total_sample_count,
             observation_count,
@@ -206,4 +206,4 @@ void launch_cev_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "cev calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

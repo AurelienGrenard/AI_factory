@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 // Coefficients in dX_t = -mean_reversion * X_t dt + volatility * dW_t.
 struct ProcessParameters {
@@ -19,4 +19,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

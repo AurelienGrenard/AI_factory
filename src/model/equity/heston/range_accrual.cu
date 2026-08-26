@@ -6,7 +6,7 @@
 #include "model/equity/heston/dynamics.cu"
 #include "product/range_accrual/pricing_policy.cuh"
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 namespace {
 
 using Schedule = simulation::FixedStepRegularSchedule<heston::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_heston_range_accrual_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

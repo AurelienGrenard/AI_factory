@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/up_one_touch/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<bates::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_bates_up_one_touch_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

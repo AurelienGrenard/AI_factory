@@ -18,7 +18,7 @@ constexpr std::size_t kOutputCount = 13U;
 __global__ void g2_plus_plus_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
-    namespace g2pp = ai_factory::workbench::model::g2_plus_plus;
+    namespace g2pp = ai_factory::workbench::model::fixed_income::g2_plus_plus;
     namespace fitted = g2pp::nelson_siegel;
 
     const g2pp::ModelParameters model = {{
@@ -28,8 +28,8 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
         0.03f, -0.01f, 0.02f, 2.0f
     };
     const fitted::G2PlusPlusFittedParameters parameters =
-        fitted::compose_model(model, initial_curve);
-    const ai_factory::workbench::model::g2::State state{0.0f, 0.0f};
+        fitted::compose_fitted_model(model, initial_curve);
+    const ai_factory::workbench::model::fixed_income::g2::State state{0.0f, 0.0f};
     constexpr float expiry = 1.0f;
     constexpr float maturity = 2.0f;
     constexpr float strike = 0.95f;
@@ -51,11 +51,11 @@ __global__ void g2_plus_plus_test_kernel(float* outputs) {
     outputs[6] = outputs[4] - outputs[5]
         - (outputs[2] - strike * outputs[0]);
     outputs[7] = fitted::short_rate(parameters, state, 0.0f);
-    constexpr ai_factory::workbench::model::g2::State affine_state = {
+    constexpr ai_factory::workbench::model::fixed_income::g2::State affine_state = {
         0.01f, -0.005f
     };
     outputs[8] = fitted::A(parameters, expiry, maturity);
-    const ai_factory::workbench::model::g2::G2BondLoadings bond_loadings =
+    const ai_factory::workbench::model::fixed_income::g2::TwoFactorAffineBondLoadings bond_loadings =
         fitted::B(parameters, expiry, maturity);
     outputs[9] = bond_loadings.state_x;
     outputs[10] = bond_loadings.state_y;

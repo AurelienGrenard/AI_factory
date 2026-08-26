@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 
 void launch_kou_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -36,4 +36,4 @@ void launch_kou_calendar_samples_cuda(
     float* device_spots
 );
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

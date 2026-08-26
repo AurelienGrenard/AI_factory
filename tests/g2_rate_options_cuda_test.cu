@@ -15,7 +15,7 @@ namespace {
 
 constexpr double kDayFraction = 1.0 / 252.0;
 
-using Model = ai_factory::workbench::model::g2::
+using Model = ai_factory::workbench::model::fixed_income::g2::
     ModelParameters;
 
 // Stop immediately with a readable invariant name.
@@ -269,7 +269,7 @@ void check_launcher(
 // Validate floorlet and direct bond-option pricing against FP64 formulas.
 int main() {
     using namespace ai_factory::workbench;
-    namespace g2 = model::g2;
+    namespace g2 = model::fixed_income::g2;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -304,7 +304,7 @@ int main() {
     check_launcher(
         models,
         floorlets,
-        g2::launch_g2_rate_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::put>,
         [](const Model& model, const product::RateOptionParameters& product) {
             const double strike_factor =
                 1.0 + product.accrual_period * kDayFraction * product.strike;
@@ -321,7 +321,7 @@ int main() {
     check_launcher(
         models,
         calls,
-        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::call>,
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::call>,
         [](const Model& model,
            const product::ZeroCouponBondOptionParameters& product) {
             return product.notional * bond_option_price(
@@ -337,7 +337,7 @@ int main() {
     check_launcher(
         models,
         puts,
-        g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_zero_coupon_bond_option_cuda<OptionSide::put>,
         [](const Model& model,
            const product::ZeroCouponBondOptionParameters& product) {
             return product.notional * bond_option_price(

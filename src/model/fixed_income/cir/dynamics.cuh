@@ -7,10 +7,11 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::cir {
+namespace ai_factory::workbench::model::fixed_income::cir {
+
+using State = float;
 
 // Time-invariant coefficients of the noncentral chi-square law.
 struct PreparedModel {
@@ -22,7 +23,7 @@ struct PreparedModel {
 
 // Coefficients required to advance the prepared model by one delta_t.
 struct PreparedTransition {
-    float decay;
+    float state_decay;
     float scale;
 };
 
@@ -36,59 +37,20 @@ __device__ __forceinline__ PreparedModel prepare_model(
 );
 
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const PreparedModel& model,
+    const PreparedModel& prepared_model,
     float delta_t
 );
 
-__device__ __forceinline__ void prepare_calendar(
-    const PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    float& state
-);
-
-__device__ __forceinline__ float initial_state(
-    const PreparedModel& model
-);
-
-__device__ __forceinline__ float simulate_terminal_state(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-__device__ __forceinline__ float simulate_on_calendar(
-    const PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
-);
-
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
+    State& state
 );
 
 struct DynamicsPolicy {
@@ -97,7 +59,9 @@ struct DynamicsPolicy {
     using PreparedModel = cir::PreparedModel;
     using PreparedTransition = cir::PreparedTransition;
     using RandomContext = philox::NormalRandomContext;
-    using State = float;
+    using State = cir::State;
+
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters, float delta_t
@@ -106,13 +70,13 @@ struct DynamicsPolicy {
         const Parameters& parameters
     );
     __device__ __forceinline__ static PreparedTransition prepare_transition(
-        const PreparedModel& model, float delta_t
+        const PreparedModel& prepared_model, float delta_t
     );
     __device__ __forceinline__ static State initial_state(
         const PreparedDynamics& dynamics
     );
     __device__ __forceinline__ static State initial_state(
-        const PreparedModel& model
+        const PreparedModel& prepared_model
     );
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
@@ -126,25 +90,84 @@ struct DynamicsPolicy {
         State& state
     );
     __device__ __forceinline__ static void simulate_one_step(
-        const PreparedModel& model,
-        const PreparedTransition& transition,
+        const PreparedModel& prepared_model,
+        const PreparedTransition& prepared_transition,
         RandomContext& random,
         State& state
     );
 };
 
-// Reserved for a future justified joint transition of r_t and its integral.
-// The incomplete policy intentionally cannot satisfy a simulation concept.
 namespace joint {
+
 struct State {
     float state;
     float state_integral;
 };
-struct DynamicsPolicy;
+
+// Exact CIR state transition plus trapezoidal integral accumulation.
+struct PreparedTransition {
+    cir::PreparedTransition state_transition;
+    float integral_trapezoid_scale;
+};
+
+struct PreparedDynamics {
+    cir::PreparedModel model;
+    PreparedTransition transition;
+};
+
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const cir::PreparedModel& prepared_model,
+    float delta_t
+);
+
+__device__ __forceinline__ State initial_state(
+    const cir::PreparedModel& prepared_model
+);
+
+__device__ __forceinline__ void one_step_transition(
+    const cir::PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    State& state
+);
+
+struct DynamicsPolicy {
+    using Parameters = ModelParameters;
+    using PreparedDynamics = joint::PreparedDynamics;
+    using RandomContext = philox::NormalRandomContext;
+    using State = joint::State;
+
+    static constexpr bool kPartitionInvariantAdvance = true;
+
+    __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
+        const Parameters& parameters, float delta_t
+    );
+    __device__ __forceinline__ static State initial_state(
+        const PreparedDynamics& dynamics
+    );
+    __device__ __forceinline__ static void simulate_one_step(
+        const PreparedDynamics& dynamics,
+        RandomContext& random,
+        State& state
+    );
+    __device__ __forceinline__ static void advance(
+        const PreparedDynamics& dynamics,
+        std::uint32_t step_count,
+        RandomContext& random,
+        State& state
+    );
+};
+
 }  // namespace joint
 
 static_assert(simulation::DynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::DynamicsPolicy<joint::DynamicsPolicy>);
+static_assert(simulation::FixedStepDynamicsPolicy<joint::DynamicsPolicy>);
+static_assert(!simulation::ExactTransitionDynamicsPolicy<
+    joint::DynamicsPolicy
+>);
 
-}  // namespace ai_factory::workbench::model::cir
+}  // namespace ai_factory::workbench::model::fixed_income::cir

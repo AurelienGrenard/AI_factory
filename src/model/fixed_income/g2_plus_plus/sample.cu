@@ -4,6 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
 #include "common/sample.cuh"
+#include "common/simulation/path_simulation.cuh"
 
 #include "model/fixed_income/g2/dynamics.cu"
 
@@ -12,11 +13,33 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::g2_plus_plus {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus {
 namespace {
 
-using model::g2::PreparedTransition;
-using model::g2::State;
+using G2Dynamics = model::fixed_income::g2::DynamicsPolicy;
+using model::fixed_income::g2::PreparedTransition;
+using model::fixed_income::g2::State;
+
+struct StateObservationWriter {
+    float* states_x;
+    float* states_y;
+    std::size_t observation_stride;
+
+    __device__ __forceinline__ bool on_initial_state(const State&) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        const State& state
+    ) {
+        const std::size_t output =
+            static_cast<std::size_t>(observation) * observation_stride;
+        states_x[output] = state.state_x;
+        states_y[output] = state.state_y;
+        return true;
+    }
+};
 
 __global__ void g2_plus_plus_terminal_samples_kernel(
     const ModelParameters* __restrict__ models,
@@ -38,17 +61,20 @@ __global__ void g2_plus_plus_terminal_samples_kernel(
         const std::size_t sample_index = sample_offset + launch_index;
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
-        const model::g2::PreparedModel prepared_model =
-            model::g2::prepare_model(models[indices.model_index].process);
+        const G2Dynamics::Parameters process_model{
+            models[indices.model_index].process, {0.0f, 0.0f},
+        };
+        const G2Dynamics::PreparedModel prepared_model =
+            G2Dynamics::prepare_model(process_model);
         const PreparedTransition transition =
-            model::g2::prepare_transition(prepared_model, maturity);
-        const State terminal = model::g2::simulate_terminal_state(
-            prepared_model,
-            transition,
-            {0.0f, 0.0f},
-            philox::make_key(base_seed + indices.model_index),
-            indices.path_index
-        );
+            G2Dynamics::prepare_transition(prepared_model, maturity);
+        const State terminal =
+            simulation::simulate_exact_transition_terminal<G2Dynamics>(
+                prepared_model,
+                transition,
+                philox::make_key(base_seed + indices.model_index),
+                indices.path_index
+            );
         states_x[sample_index] = terminal.state_x;
         states_y[sample_index] = terminal.state_y;
     }
@@ -77,34 +103,35 @@ __global__ void g2_plus_plus_calendar_samples_kernel(
         const std::size_t sample_index = sample_offset + launch_index;
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
-        const auto process = models[indices.model_index].process;
-        const model::g2::PreparedModel prepared_model =
-            model::g2::prepare_model(process);
+        const G2Dynamics::Parameters process_model{
+            models[indices.model_index].process, {0.0f, 0.0f},
+        };
+        const G2Dynamics::PreparedModel prepared_model =
+            G2Dynamics::prepare_model(process_model);
         const PreparedTransition initial_stub_transition =
-            model::g2::prepare_transition(
+            G2Dynamics::prepare_transition(
                 prepared_model, first_observation_time
             );
         const PreparedTransition regular_transition =
-            model::g2::prepare_transition(
+            G2Dynamics::prepare_transition(
                 prepared_model, observation_interval
             );
-        const State terminal = model::g2::simulate_on_regular_grid(
+        StateObservationWriter writer{
+            states_x + sample_index,
+            states_y + sample_index,
+            total_sample_count,
+        };
+        simulation::simulate_exact_transition_stubbed_regular_schedule<
+            G2Dynamics
+        >(
             prepared_model,
             initial_stub_transition,
             regular_transition,
-            {0.0f, 0.0f},
+            observation_count,
             philox::make_key(base_seed + indices.model_index),
             indices.path_index,
-            observation_count,
-            total_sample_count,
-            states_x + sample_index,
-            states_y + sample_index
+            writer
         );
-        const std::size_t terminal_index =
-            (static_cast<std::size_t>(observation_count) - 1U)
-                * total_sample_count + sample_index;
-        states_x[terminal_index] = terminal.state_x;
-        states_y[terminal_index] = terminal.state_y;
     }
 }
 
@@ -206,4 +233,4 @@ void launch_g2_plus_plus_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "G2++ calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus

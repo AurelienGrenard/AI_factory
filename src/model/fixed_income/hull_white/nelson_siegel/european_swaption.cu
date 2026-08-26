@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel {
 
 template<SwaptionSide Side>
 void launch_hull_white_nelson_siegel_european_swaption_cuda(
@@ -26,7 +26,7 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_fitted_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side,
         FittedModelComposition
     >(
@@ -69,7 +69,7 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_fitted_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side,
         FittedModelComposition
     >(
@@ -175,4 +175,4 @@ template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     float*
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

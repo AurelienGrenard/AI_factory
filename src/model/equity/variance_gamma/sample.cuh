@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 
 void launch_variance_gamma_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -36,4 +36,4 @@ void launch_variance_gamma_calendar_samples_cuda(
     float* device_spots
 );
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

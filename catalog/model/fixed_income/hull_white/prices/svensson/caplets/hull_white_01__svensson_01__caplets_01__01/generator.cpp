@@ -51,7 +51,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace hw = model::hull_white;
+    namespace hw = model::fixed_income::hull_white;
     namespace fitted = hw::svensson;
 
     // 1. Load model, curve, and product rows into contiguous FP32 vectors.

@@ -1557,6 +1557,12 @@ if(BUILD_TESTING)
         cir_cuda tests/cir_cuda_test.cu cir 30
     )
     add_cuda_workbench_test(
+        fixed_income_analytics_contract_cuda
+        tests/fixed_income_analytics_contract_cuda_test.cu
+        analytics_contract
+        30
+    )
+    add_cuda_workbench_test(
         fixed_income_dynamics_policy_cuda
         tests/fixed_income_dynamics_policy_cuda_test.cu
         dynamics_policy
@@ -1689,6 +1695,12 @@ if(BUILD_TESTING)
         bates_dynamics_cuda
         tests/bates_dynamics_cuda_test.cu
         bates_dynamics
+        30
+    )
+    add_cuda_workbench_test(
+        equity_dynamics_policy_cuda
+        tests/equity_dynamics_policy_cuda_test.cu
+        dynamics_policy
         30
     )
     add_cuda_workbench_test(

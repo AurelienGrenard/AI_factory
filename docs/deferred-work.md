@@ -54,17 +54,12 @@ kernel or Philox stream being validated. Add equivalence tests against the
 current QuantLib implementation on a small deterministic row selection before
 switching the full regeneration pipeline.
 
-## CIR++ model and CIR joint dynamics
+## CIR++ model
 
 The standalone CIR state dynamics, affine analytics, caplet/floorlet and
-zero-coupon-bond-option datasets are implemented. Complete the shifted CIR++
-form and the CIR joint rate/integral transition required by path-discounted
-products.
-
-The implemented state transition uses the exact non-central-chi-square law via
-the common Poisson--Gamma sampler. Products requiring the integrated short
-rate or the complete path still need a separately justified simulation
-strategy and a finer time grid where exact joint sampling is not available.
+zero-coupon-bond-option datasets are implemented. Its joint Monte Carlo state
+uses exact non-central-chi-square endpoints and accumulates the short-rate
+integral by a fixed-step trapezoidal rule. Complete the shifted CIR++ form.
 
 CIR++ must reuse the CIR stochastic factor and add only the deterministic shift
 needed to fit the initial term structure. Keep raw dynamics, curve fitting,

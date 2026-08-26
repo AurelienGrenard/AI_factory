@@ -6,7 +6,7 @@
 #include "model/equity/cev/dynamics.cu"
 #include "product/cliquet/pricing_policy.cuh"
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 namespace {
 
 using Schedule = simulation::FixedStepRegularSchedule<cev::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_cev_cliquet_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

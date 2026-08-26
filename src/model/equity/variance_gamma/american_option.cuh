@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 
 template<OptionSide Side>
 longstaff_schwartz::LaunchResult launch_variance_gamma_american_option_cuda(
@@ -29,4 +29,4 @@ longstaff_schwartz::LaunchResult launch_variance_gamma_american_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/cliquet/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepRegularSchedule<bates::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_bates_cliquet_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

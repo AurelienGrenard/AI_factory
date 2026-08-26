@@ -3,7 +3,9 @@
 
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
+#include "common/equity/handlers.cuh"
 #include "common/sample.cuh"
+#include "common/simulation/path_simulation.cuh"
 
 // Include the reusable dynamics so NVCC can inline every transition.
 #include "model/equity/black_scholes/dynamics.cu"
@@ -14,7 +16,7 @@
 #include <cstdint>
 #include <stdexcept>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template <std::uint32_t ObservationCount>
@@ -83,16 +85,19 @@ __device__ __forceinline__ void write_terminal_sample(
         sample::generate_terminal_time(
             schedule_integers, maturity_bounds, grid
         );
-    const PreparedModel prepared = prepare_model(parameters);
-    const PreparedTransition transition = prepare_transition(
-        prepared, maturity.time
-    );
-    const State terminal = simulate_terminal_state(
-        prepared,
-        transition,
-        philox::make_key(base_seed ^ sample::kDynamicsDomain),
-        sample_index
-    );
+    const DynamicsPolicy::PreparedModel prepared =
+        DynamicsPolicy::prepare_model(parameters);
+    const DynamicsPolicy::PreparedTransition transition =
+        DynamicsPolicy::prepare_transition(
+            prepared, maturity.time
+        );
+    const State terminal =
+        simulation::simulate_exact_transition_terminal<DynamicsPolicy>(
+            prepared,
+            transition,
+            philox::make_key(base_seed ^ sample::kDynamicsDomain),
+            sample_index
+        );
     const BlackScholesTerminalSampleRow row{
         parameters,
         maturity.time,
@@ -215,26 +220,30 @@ __device__ __forceinline__ void write_calendar_sample(
             observation_days[observation] - previous_day;
         previous_day = observation_days[observation];
     }
-    const PreparedModel prepared = prepare_model(parameters);
-    PreparedTransition transitions[ObservationCount];
-    prepare_calendar(
-        prepared,
-        interval_steps,
-        ObservationCount,
-        grid.step_size,
-        transitions
-    );
+    const DynamicsPolicy::PreparedModel prepared =
+        DynamicsPolicy::prepare_model(parameters);
+    DynamicsPolicy::PreparedTransition transitions[ObservationCount];
+    #pragma unroll
+    for (std::uint32_t observation = 0U;
+         observation < ObservationCount;
+         ++observation) {
+        transitions[observation] = DynamicsPolicy::prepare_transition(
+            prepared,
+            static_cast<float>(interval_steps[observation]) * grid.step_size
+        );
+    }
     float observed_spots[ObservationCount];
-    const State terminal = simulate_on_calendar(
+    ::ai_factory::workbench::equity::SpotObservationWriter<DynamicsPolicy> writer{
+        observed_spots, 1U, ObservationCount,
+    };
+    simulation::simulate_exact_transition_calendar<DynamicsPolicy>(
         prepared,
         transitions,
         ObservationCount,
         philox::make_key(base_seed ^ sample::kDynamicsDomain),
         sample_index,
-        1U,
-        observed_spots
+        writer
     );
-    observed_spots[ObservationCount - 1U] = expf(terminal.log_spot);
 
     BlackScholesCalendarSampleRow<ObservationCount> row{};
     row.parameters = parameters;
@@ -416,7 +425,7 @@ void launch_calendar(
         );
     }
     check_cuda(
-        cudaGetLastError(), "Black-Scholes calendar sample kernel"
+        cudaGetLastError(), "Black-Scholes Calendar Sample kernel"
     );
 }
 
@@ -582,7 +591,7 @@ void launch_black_scholes_terminal_samples_cuda(
         );
     }
     check_cuda(
-        cudaGetLastError(), "Black-Scholes terminal sample kernel"
+        cudaGetLastError(), "Black-Scholes Terminal Sample kernel"
     );
 }
 
@@ -685,4 +694,4 @@ void launch_black_scholes_fixed_calendar_samples_cuda(
 #undef AI_FACTORY_DISPATCH_RANDOM_CALENDAR
 #undef AI_FACTORY_DISPATCH_FIXED_CALENDAR
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

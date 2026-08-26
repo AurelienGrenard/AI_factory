@@ -6,7 +6,7 @@
 #include "model/equity/cev/dynamics.cu"
 #include "product/straddle/pricing_policy.cuh"
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 namespace {
 
 using Schedule = simulation::FixedStepTerminalSchedule<cev::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_cev_straddle_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

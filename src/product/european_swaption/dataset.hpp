@@ -12,6 +12,7 @@ namespace ai_factory::workbench::product {
 // Own regular product rows; no separate schedule allocation is required.
 struct RegularEuropeanSwaptionDataset {
     std::vector<RegularEuropeanSwaptionParameters> products;
+    std::uint32_t maximum_payment_count = 0U;
 };
 
 // Own explicit product rows and their two parallel fixed-leg schedule pools.
@@ -19,6 +20,7 @@ struct ExplicitEuropeanSwaptionDataset {
     std::vector<ExplicitEuropeanSwaptionParameters> products;
     std::vector<std::uint32_t> payment_times;
     std::vector<float> accrual_fractions;
+    std::uint32_t maximum_payment_count = 0U;
 };
 
 // Load one regular-schedule European-swaption dataset.

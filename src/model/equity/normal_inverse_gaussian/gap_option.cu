@@ -6,7 +6,7 @@
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "product/gap_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace {
 
 using Schedule = simulation::ExactTransitionTerminalSchedule<normal_inverse_gaussian::DynamicsPolicy>;
@@ -78,4 +78,4 @@ template void launch_normal_inverse_gaussian_gap_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

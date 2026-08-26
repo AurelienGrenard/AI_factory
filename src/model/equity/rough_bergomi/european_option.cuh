@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Caller-owned storage required by one persistent rough-Bergomi launch.
 struct RoughBergomiWorkspacePlan {
@@ -52,4 +52,4 @@ void launch_rough_bergomi_european_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 
 void launch_heston_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -40,4 +40,4 @@ void launch_heston_calendar_samples_cuda(
     float* device_variances
 );
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

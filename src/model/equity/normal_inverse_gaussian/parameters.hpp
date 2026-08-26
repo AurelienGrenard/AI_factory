@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 
 // Risk-neutral exponential NIG inputs without a redundant location parameter.
 struct ModelParameters {
@@ -17,4 +17,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

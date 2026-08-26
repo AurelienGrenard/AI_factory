@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_black_scholes_phoenix_memory_autocall_cuda(
@@ -28,4 +28,4 @@ void launch_black_scholes_phoenix_memory_autocall_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

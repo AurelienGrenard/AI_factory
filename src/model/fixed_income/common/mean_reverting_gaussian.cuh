@@ -3,7 +3,7 @@
 
 #include <cuda_runtime.h>
 
-namespace ai_factory::workbench::model::mean_reverting_gaussian {
+namespace ai_factory::workbench::model::fixed_income::mean_reverting_gaussian {
 
 // Conditional moments of the future integral of one centered factor.
 struct IntegralMoments {
@@ -164,4 +164,4 @@ __device__ __forceinline__ IntegralMoments integral_moments(
     };
 }
 
-}  // namespace ai_factory::workbench::model::mean_reverting_gaussian
+}  // namespace ai_factory::workbench::model::fixed_income::mean_reverting_gaussian

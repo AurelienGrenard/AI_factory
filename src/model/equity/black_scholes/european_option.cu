@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/time_configuration.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template<OptionSide Side>
@@ -17,12 +17,7 @@ struct EuropeanOptionClosedFormPricingPolicy {
     >;
     using TimeConfiguration = time::DayFractionTimeConfiguration;
 
-    struct PreparedRow {
-        float discounted_spot;
-        float discounted_strike;
-        float d1;
-        float d2;
-    };
+    using PreparedRow = DiscountedLognormalOptionValues;
 
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
@@ -33,33 +28,17 @@ struct EuropeanOptionClosedFormPricingPolicy {
             product.maturity,
             time_configuration
         );
-        const float sqrt_maturity = sqrtf(maturity_years);
-        const float volatility_sqrt_maturity =
-            model.volatility * sqrt_maturity;
-        const float variance = model.volatility * model.volatility;
-        const float d1 = (
-            logf(model.spot / product.strike)
-            + (model.risk_free_rate - model.dividend_yield
-               + 0.5f * variance) * maturity_years
-        ) / volatility_sqrt_maturity;
-        return {
-            model.spot * expf(-model.dividend_yield * maturity_years),
-            product.strike * expf(-model.risk_free_rate * maturity_years),
-            d1,
-            d1 - volatility_sqrt_maturity,
-        };
+        return prepare_vanilla_option_values(
+            prepare_analytics(model), product.strike, maturity_years
+        );
     }
 
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        if constexpr (Side == OptionSide::call) {
-            return row.discounted_spot * normal_cdf(row.d1)
-                - row.discounted_strike * normal_cdf(row.d2);
-        } else {
-            return row.discounted_strike * normal_cdf(-row.d2)
-                - row.discounted_spot * normal_cdf(-row.d1);
-        }
+        constexpr float option_sign =
+            Side == OptionSide::call ? 1.0f : -1.0f;
+        return discounted_lognormal_option_price(row, option_sign);
     }
 };
 
@@ -84,8 +63,8 @@ void launch_black_scholes_european_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = EuropeanOptionClosedFormPricingPolicy<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = EuropeanOptionClosedFormPricingPolicy<Side>;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -102,7 +81,7 @@ void launch_black_scholes_european_option_cuda(
         device_prices,
         "black_scholes.european_option",
         option_side_name(Side),
-        "Black-Scholes European-option kernel"
+        "Black-Scholes European Option kernel"
     );
 }
 
@@ -119,4 +98,4 @@ template void launch_black_scholes_european_option_cuda<OptionSide::put>(
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

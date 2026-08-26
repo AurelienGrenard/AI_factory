@@ -12,40 +12,40 @@
 
 namespace ai_factory::workbench::closed_form {
 
-template<ClosedFormPricingPolicy Pricing>
+template<ClosedFormPricingPolicy PricingPolicy>
 __device__ __forceinline__ void price_one(
-    const typename Pricing::DeviceInputs& inputs,
+    const typename PricingPolicy::DeviceInputs& inputs,
     std::size_t result_index,
-    const typename Pricing::TimeConfiguration& time_configuration,
+    const typename PricingPolicy::TimeConfiguration& time_configuration,
     float* __restrict__ prices
 ) {
     static_assert(
-        sizeof(typename Pricing::PreparedRow)
+        sizeof(typename PricingPolicy::PreparedRow)
             <= kMaximumThreadPreparedRowBytes,
         "Closed-form PreparedRow exceeds the 256-byte per-thread budget; "
         "store a compact view and keep variable-length data in device memory."
     );
-    const typename Pricing::PreparedRow row =
-        inputs.template prepare_row<Pricing>(
+    const typename PricingPolicy::PreparedRow row =
+        inputs.template prepare_row<PricingPolicy>(
             result_index,
             time_configuration
         );
-    prices[result_index] = Pricing::evaluate_price(row);
+    prices[result_index] = PricingPolicy::evaluate_price(row);
 }
 
-template<ClosedFormPricingPolicy Pricing, bool GridStride>
+template<ClosedFormPricingPolicy PricingPolicy, bool GridStride>
 __global__ void closed_form_price_kernel(
-    typename Pricing::DeviceInputs inputs,
+    typename PricingPolicy::DeviceInputs inputs,
     std::size_t result_offset,
     std::size_t launch_result_count,
-    typename Pricing::TimeConfiguration time_configuration,
+    typename PricingPolicy::TimeConfiguration time_configuration,
     float* __restrict__ prices
 ) {
     const std::size_t thread =
         static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     if constexpr (!GridStride) {
         if (thread >= launch_result_count) return;
-        price_one<Pricing>(
+        price_one<PricingPolicy>(
             inputs,
             result_offset + thread,
             time_configuration,
@@ -58,7 +58,7 @@ __global__ void closed_form_price_kernel(
              launch_index < launch_result_count;
              launch_index += stride) {
             const std::size_t result_index = result_offset + launch_index;
-            price_one<Pricing>(
+            price_one<PricingPolicy>(
                 inputs,
                 result_index,
                 time_configuration,
@@ -68,13 +68,13 @@ __global__ void closed_form_price_kernel(
     }
 }
 
-template<ClosedFormPricingPolicy Pricing>
+template<ClosedFormPricingPolicy PricingPolicy>
 inline void validate_closed_form_launch(
-    const typename Pricing::DeviceInputs& inputs,
+    const typename PricingPolicy::DeviceInputs& inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
-    const typename Pricing::TimeConfiguration& time_configuration,
+    const typename PricingPolicy::TimeConfiguration& time_configuration,
     unsigned int threads_per_block,
     std::size_t block_count,
     const float* device_prices
@@ -94,13 +94,13 @@ inline void validate_closed_form_launch(
     validate_grid_x_size(block_count);
 }
 
-template<ClosedFormPricingPolicy Pricing>
+template<ClosedFormPricingPolicy PricingPolicy>
 inline void launch_closed_form_cuda(
-    const typename Pricing::DeviceInputs& inputs,
+    const typename PricingPolicy::DeviceInputs& inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
-    const typename Pricing::TimeConfiguration& time_configuration,
+    const typename PricingPolicy::TimeConfiguration& time_configuration,
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
@@ -108,7 +108,7 @@ inline void launch_closed_form_cuda(
     const char* diagnostic_variant,
     const char* operation_name
 ) {
-    validate_closed_form_launch<Pricing>(
+    validate_closed_form_launch<PricingPolicy>(
         inputs,
         result_count,
         result_offset,
@@ -127,11 +127,11 @@ inline void launch_closed_form_cuda(
         report_cuda_kernel_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
-            closed_form_price_kernel<Pricing, false>,
+            closed_form_price_kernel<PricingPolicy, false>,
             dim3(static_cast<unsigned int>(block_count)),
             dim3(threads_per_block)
         );
-        closed_form_price_kernel<Pricing, false><<<
+        closed_form_price_kernel<PricingPolicy, false><<<
             static_cast<unsigned int>(block_count),
             threads_per_block
         >>>(
@@ -145,11 +145,11 @@ inline void launch_closed_form_cuda(
         report_cuda_kernel_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
-            closed_form_price_kernel<Pricing, true>,
+            closed_form_price_kernel<PricingPolicy, true>,
             dim3(static_cast<unsigned int>(block_count)),
             dim3(threads_per_block)
         );
-        closed_form_price_kernel<Pricing, true><<<
+        closed_form_price_kernel<PricingPolicy, true><<<
             static_cast<unsigned int>(block_count),
             threads_per_block
         >>>(

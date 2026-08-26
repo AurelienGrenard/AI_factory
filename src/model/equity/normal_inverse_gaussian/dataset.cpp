@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 
 std::vector<ModelParameters> load_models(
     const std::filesystem::path& dataset_path
@@ -70,4 +70,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

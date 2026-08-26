@@ -6,7 +6,7 @@
 #include "model/equity/cev/dynamics.cu"
 #include "product/down_and_in_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<cev::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_cev_down_and_in_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

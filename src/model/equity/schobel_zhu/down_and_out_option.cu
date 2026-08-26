@@ -6,7 +6,7 @@
 #include "model/equity/schobel_zhu/dynamics.cu"
 #include "product/down_and_out_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<schobel_zhu::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_schobel_zhu_down_and_out_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

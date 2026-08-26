@@ -2,12 +2,12 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/fixed_income/vasicek/dataset.hpp"
+#include "model/fixed_income/vasicek/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
 
 // Launch closed-form zero-coupon bond-option prices across the CUDA grid.
 template<OptionSide Side>
@@ -26,4 +26,4 @@ void launch_vasicek_zero_coupon_bond_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

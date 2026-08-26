@@ -1,14 +1,14 @@
 // Public launcher for Hull-White Nelson-Siegel zero-coupon bond options.
 #pragma once
 
-#include "curve/nelson_siegel/dataset.hpp"
+#include "curve/nelson_siegel/parameters.hpp"
 #include "common/option_side.cuh"
-#include "model/fixed_income/hull_white/dataset.hpp"
+#include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel {
 
 // Launch closed-form zero-coupon bond-option prices across the CUDA grid.
 template<OptionSide Side>
@@ -29,4 +29,4 @@ void launch_hull_white_nelson_siegel_zero_coupon_bond_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

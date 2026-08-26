@@ -4,6 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
 #include "common/sample.cuh"
+#include "common/simulation/path_simulation.cuh"
 
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics.cu"
 
@@ -12,8 +13,28 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::hull_white {
+namespace ai_factory::workbench::model::fixed_income::hull_white {
 namespace {
+
+using OuDynamics = model::fixed_income::ornstein_uhlenbeck::DynamicsPolicy;
+
+struct StateObservationWriter {
+    float* states;
+    std::size_t observation_stride;
+
+    __device__ __forceinline__ bool on_initial_state(float) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        float state
+    ) {
+        states[static_cast<std::size_t>(observation) * observation_stride] =
+            state;
+        return true;
+    }
+};
 
 __global__ void hull_white_terminal_samples_kernel(
     const ModelParameters* __restrict__ models,
@@ -35,21 +56,20 @@ __global__ void hull_white_terminal_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
-        const model::ornstein_uhlenbeck::PreparedModel prepared_model =
-            model::ornstein_uhlenbeck::prepare_model({
-                model.mean_reversion, model.volatility,
-            });
-        const model::ornstein_uhlenbeck::PreparedTransition transition =
-            model::ornstein_uhlenbeck::prepare_transition(
-                prepared_model, maturity
+        const OuDynamics::Parameters process_model{
+            {model.mean_reversion, model.volatility}, 0.0f,
+        };
+        const OuDynamics::PreparedModel prepared_model =
+            OuDynamics::prepare_model(process_model);
+        const OuDynamics::PreparedTransition transition =
+            OuDynamics::prepare_transition(prepared_model, maturity);
+        states[sample_index] =
+            simulation::simulate_exact_transition_terminal<OuDynamics>(
+                prepared_model,
+                transition,
+                philox::make_key(base_seed + indices.model_index),
+                indices.path_index
             );
-        states[sample_index] = model::ornstein_uhlenbeck::simulate_terminal_state(
-            prepared_model,
-            transition,
-            0.0f,
-            philox::make_key(base_seed + indices.model_index),
-            indices.path_index
-        );
     }
 }
 
@@ -76,33 +96,31 @@ __global__ void hull_white_calendar_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
-        const model::ornstein_uhlenbeck::PreparedModel prepared_model =
-            model::ornstein_uhlenbeck::prepare_model({
-                model.mean_reversion, model.volatility,
-            });
-        const model::ornstein_uhlenbeck::PreparedTransition
-            initial_stub_transition =
-                model::ornstein_uhlenbeck::prepare_transition(
-                    prepared_model, first_observation_time
-                );
-        const model::ornstein_uhlenbeck::PreparedTransition
-            regular_transition =
-                model::ornstein_uhlenbeck::prepare_transition(
-                    prepared_model, observation_interval
-                );
-        const float terminal = model::ornstein_uhlenbeck::simulate_on_regular_grid(
+        const OuDynamics::Parameters process_model{
+            {model.mean_reversion, model.volatility}, 0.0f,
+        };
+        const OuDynamics::PreparedModel prepared_model =
+            OuDynamics::prepare_model(process_model);
+        const OuDynamics::PreparedTransition initial_stub_transition =
+            OuDynamics::prepare_transition(
+                prepared_model, first_observation_time
+            );
+        const OuDynamics::PreparedTransition regular_transition =
+            OuDynamics::prepare_transition(
+                prepared_model, observation_interval
+            );
+        StateObservationWriter writer{states + sample_index, total_sample_count};
+        simulation::simulate_exact_transition_stubbed_regular_schedule<
+            OuDynamics
+        >(
             prepared_model,
             initial_stub_transition,
             regular_transition,
-            0.0f,
+            observation_count,
             philox::make_key(base_seed + indices.model_index),
             indices.path_index,
-            observation_count,
-            total_sample_count,
-            states + sample_index
+            writer
         );
-        states[(static_cast<std::size_t>(observation_count) - 1U)
-                   * total_sample_count + sample_index] = terminal;
     }
 }
 
@@ -198,4 +216,4 @@ void launch_hull_white_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "hull white calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::model::hull_white
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white

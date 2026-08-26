@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/time_configuration.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 struct StraddleClosedFormPricingPolicy {
@@ -16,12 +16,7 @@ struct StraddleClosedFormPricingPolicy {
     >;
     using TimeConfiguration = time::DayFractionTimeConfiguration;
 
-    struct PreparedRow {
-        float discounted_spot;
-        float discounted_strike;
-        float d1;
-        float d2;
-    };
+    using PreparedRow = DiscountedLognormalOptionValues;
 
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
@@ -32,30 +27,16 @@ struct StraddleClosedFormPricingPolicy {
             product.maturity,
             time_configuration
         );
-        const float sqrt_maturity = sqrtf(maturity_years);
-        const float volatility_sqrt_maturity =
-            model.volatility * sqrt_maturity;
-        const float variance = model.volatility * model.volatility;
-        const float d1 = (
-            logf(model.spot / product.strike)
-            + (model.risk_free_rate - model.dividend_yield
-               + 0.5f * variance) * maturity_years
-        ) / volatility_sqrt_maturity;
-        return {
-            model.spot * expf(-model.dividend_yield * maturity_years),
-            product.strike * expf(-model.risk_free_rate * maturity_years),
-            d1,
-            d1 - volatility_sqrt_maturity,
-        };
+        return prepare_vanilla_option_values(
+            prepare_analytics(model), product.strike, maturity_years
+        );
     }
 
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        return row.discounted_spot
-                * (normal_cdf(row.d1) - normal_cdf(-row.d1))
-            + row.discounted_strike
-                * (normal_cdf(-row.d2) - normal_cdf(row.d2));
+        return discounted_lognormal_option_price(row, 1.0f)
+            + discounted_lognormal_option_price(row, -1.0f);
     }
 };
 
@@ -79,8 +60,8 @@ void launch_black_scholes_straddle_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = StraddleClosedFormPricingPolicy;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = StraddleClosedFormPricingPolicy;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -101,4 +82,4 @@ void launch_black_scholes_straddle_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

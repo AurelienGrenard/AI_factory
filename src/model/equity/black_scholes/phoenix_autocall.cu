@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/phoenix_autocall/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<black_scholes::DynamicsPolicy>;
@@ -56,8 +56,8 @@ void launch_black_scholes_phoenix_autocall_cuda(
         device_standard_errors,
         "black_scholes.phoenix_autocall",
         "default",
-        "Black-Scholes phoenix autocall kernel"
+        "Black-Scholes Phoenix Autocall kernel"
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

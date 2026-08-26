@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 
 struct ModelParameters {
     float spot;
@@ -18,4 +18,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

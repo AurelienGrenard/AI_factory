@@ -9,14 +9,20 @@
 
 #include <cstdint>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
+
+// Evolving log-spot and variance private to one Monte Carlo path.
+struct State {
+    float log_spot;
+    float variance;
+};
 
 // Coefficients prepared once per result row and reused by every path.
 struct PreparedModel {
     float initial_log_spot;
     float initial_variance;
     float theta;
-    float exp_kdt;
+    float variance_decay;
     float variance_linear_scale;
     float variance_constant_scale;
     float drift_dt;
@@ -28,11 +34,7 @@ struct PreparedModel {
     float martingale_a;
 };
 
-// Evolving log-spot and variance private to one Monte Carlo path.
-struct State {
-    float log_spot;
-    float variance;
-};
+using PreparedDynamics = PreparedModel;
 
 // ======================== Common equity dynamics =========================
 
@@ -57,8 +59,6 @@ __device__ __forceinline__ void one_step_transition(
     State& state
 );
 
-using PreparedDynamics = PreparedModel;
-
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = heston::PreparedDynamics;
@@ -66,6 +66,7 @@ struct DynamicsPolicy {
     using State = heston::State;
 
     static constexpr bool kNativeLogSpot = true;
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -89,7 +90,7 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static float log_spot(const State& state);
 };
 
-static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

@@ -9,6 +9,7 @@ g2_plus_plus/
 ├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
+├── fitted_analytics.cuh
 ├── nelson_siegel/analytics.cu
 ├── nelson_siegel/analytics.cuh
 ├── nelson_siegel/rate_option.cu

@@ -9,18 +9,18 @@
 // Keep the model-specific analytical primitives visible for device inlining.
 #include "model/fixed_income/g2_plus_plus/svensson/analytics.cu"
 
-namespace ai_factory::workbench::model::g2_plus_plus::svensson {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::svensson {
 namespace {
 
 template<OptionSide Side>
-using RateOptionPricing =
-    fixed_income::FittedRateOptionClosedFormPricingPolicy<
+using PricingPolicy =
+    ::ai_factory::workbench::fixed_income::FittedRateOptionClosedFormPricingPolicy<
         FittedModelComposition,
         Side
     >;
 
 static_assert(closed_form::ClosedFormPricingPolicy<
-    RateOptionPricing<OptionSide::call>
+    PricingPolicy<OptionSide::call>
 >);
 
 }  // namespace
@@ -42,8 +42,7 @@ void launch_g2_plus_plus_svensson_rate_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = RateOptionPricing<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    closed_form::launch_closed_form_cuda<PricingPolicy<Side>>(
         make_model_curve_product_device_inputs(
             device_models,
             model_count,
@@ -81,4 +80,4 @@ template void launch_g2_plus_plus_svensson_rate_option_cuda<OptionSide::put>(
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus::svensson
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::svensson

@@ -4,6 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/cuda_kernel_diagnostics.cuh"
 #include "common/sample.cuh"
+#include "common/simulation/path_simulation.cuh"
 
 #include "model/fixed_income/g2/dynamics.cu"
 
@@ -13,8 +14,29 @@
 #include <cstdint>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 namespace {
+
+struct StateObservationWriter {
+    float* states_x;
+    float* states_y;
+    std::size_t observation_stride;
+
+    __device__ __forceinline__ bool on_initial_state(const State&) {
+        return true;
+    }
+
+    __device__ __forceinline__ bool on_observation(
+        std::uint32_t observation,
+        const State& state
+    ) {
+        const std::size_t output =
+            static_cast<std::size_t>(observation) * observation_stride;
+        states_x[output] = state.state_x;
+        states_y[output] = state.state_y;
+        return true;
+    }
+};
 
 __global__ void g2_terminal_samples_kernel(
     const ModelParameters* __restrict__ models,
@@ -37,16 +59,17 @@ __global__ void g2_terminal_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
-        const PreparedModel prepared_model = prepare_model(model.process);
-        const PreparedTransition transition =
-            prepare_transition(prepared_model, maturity);
-        const State terminal = simulate_terminal_state(
-            prepared_model,
-            transition,
-            model.initial_state,
-            philox::make_key(base_seed + indices.model_index),
-            indices.path_index
-        );
+        const DynamicsPolicy::PreparedModel prepared_model =
+            DynamicsPolicy::prepare_model(model);
+        const DynamicsPolicy::PreparedTransition transition =
+            DynamicsPolicy::prepare_transition(prepared_model, maturity);
+        const State terminal =
+            simulation::simulate_exact_transition_terminal<DynamicsPolicy>(
+                prepared_model,
+                transition,
+                philox::make_key(base_seed + indices.model_index),
+                indices.path_index
+            );
         states_x[sample_index] = terminal.state_x;
         states_y[sample_index] = terminal.state_y;
     }
@@ -76,28 +99,32 @@ __global__ void g2_calendar_samples_kernel(
         const sample::ModelPathIndices indices =
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
-        const PreparedModel prepared_model = prepare_model(model.process);
-        const PreparedTransition initial_stub_transition =
-            prepare_transition(prepared_model, first_observation_time);
-        const PreparedTransition regular_transition =
-            prepare_transition(prepared_model, observation_interval);
-        const State terminal = simulate_on_regular_grid(
+        const DynamicsPolicy::PreparedModel prepared_model =
+            DynamicsPolicy::prepare_model(model);
+        const DynamicsPolicy::PreparedTransition initial_stub_transition =
+            DynamicsPolicy::prepare_transition(
+                prepared_model, first_observation_time
+            );
+        const DynamicsPolicy::PreparedTransition regular_transition =
+            DynamicsPolicy::prepare_transition(
+                prepared_model, observation_interval
+            );
+        StateObservationWriter writer{
+            states_x + sample_index,
+            states_y + sample_index,
+            total_sample_count,
+        };
+        simulation::simulate_exact_transition_stubbed_regular_schedule<
+            DynamicsPolicy
+        >(
             prepared_model,
             initial_stub_transition,
             regular_transition,
-            model.initial_state,
+            observation_count,
             philox::make_key(base_seed + indices.model_index),
             indices.path_index,
-            observation_count,
-            total_sample_count,
-            states_x + sample_index,
-            states_y + sample_index
+            writer
         );
-        const std::size_t terminal_index =
-            (static_cast<std::size_t>(observation_count) - 1U)
-                * total_sample_count + sample_index;
-        states_x[terminal_index] = terminal.state_x;
-        states_y[terminal_index] = terminal.state_y;
     }
 }
 
@@ -196,4 +223,4 @@ void launch_g2_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "G2 calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::model::g2
+}  // namespace ai_factory::workbench::model::fixed_income::g2

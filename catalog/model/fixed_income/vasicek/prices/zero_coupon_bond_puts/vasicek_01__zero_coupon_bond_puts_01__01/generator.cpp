@@ -48,7 +48,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<vasicek::ModelParameters> models =

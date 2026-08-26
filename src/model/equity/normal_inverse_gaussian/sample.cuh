@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 
 void launch_normal_inverse_gaussian_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -36,4 +36,4 @@ void launch_normal_inverse_gaussian_calendar_samples_cuda(
     float* device_spots
 );
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

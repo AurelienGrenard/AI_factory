@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/time_configuration.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 struct RangeAccrualClosedFormPricingPolicy {
@@ -17,11 +17,10 @@ struct RangeAccrualClosedFormPricingPolicy {
     using TimeConfiguration = time::DayFractionTimeConfiguration;
 
     struct PreparedRow {
+        LognormalEvolutionContext evolution;
         float log_lower_barrier;
         float log_upper_barrier;
-        float log_drift_rate;
-        float volatility;
-        float observation_interval;
+        float observation_interval_years;
         float maturity_discount;
         float discounted_coupon_per_observation;
         std::uint32_t observation_count;
@@ -32,8 +31,7 @@ struct RangeAccrualClosedFormPricingPolicy {
         const product::RangeAccrualParameters& product,
         const TimeConfiguration& time_configuration
     ) {
-        const float variance = model.volatility * model.volatility;
-        const float observation_years = time::year_fraction(
+        const float observation_interval_years = time::year_fraction(
             product.observation_interval,
             time_configuration
         );
@@ -44,13 +42,13 @@ struct RangeAccrualClosedFormPricingPolicy {
         const float maturity_discount =
             expf(-model.risk_free_rate * maturity_years);
         return {
+            prepare_lognormal_evolution(prepare_analytics(model)),
             logf(product.lower_barrier),
             logf(product.upper_barrier),
-            model.risk_free_rate - model.dividend_yield - 0.5f * variance,
-            model.volatility,
-            observation_years,
+            observation_interval_years,
             maturity_discount,
-            maturity_discount * product.coupon_rate * observation_years,
+            maturity_discount * product.coupon_rate
+                * observation_interval_years,
             product.maturity / product.observation_interval,
         };
     }
@@ -63,16 +61,15 @@ struct RangeAccrualClosedFormPricingPolicy {
              observation <= row.observation_count;
              ++observation) {
             const float observation_time =
-                static_cast<float>(observation) * row.observation_interval;
-            const float standard_deviation =
-                row.volatility * sqrtf(observation_time);
-            const float mean = row.log_drift_rate * observation_time;
-            const float lower =
-                (row.log_lower_barrier - mean) / standard_deviation;
-            const float upper =
-                (row.log_upper_barrier - mean) / standard_deviation;
+                static_cast<float>(observation)
+                * row.observation_interval_years;
             probability_sum += static_cast<double>(
-                normal_cdf(upper) - normal_cdf(lower)
+                lognormal_log_interval_probability(
+                    row.evolution,
+                    row.log_lower_barrier,
+                    row.log_upper_barrier,
+                    observation_time
+                )
             );
         }
         return fmaf(
@@ -103,8 +100,8 @@ void launch_black_scholes_range_accrual_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = RangeAccrualClosedFormPricingPolicy;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = RangeAccrualClosedFormPricingPolicy;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -121,8 +118,8 @@ void launch_black_scholes_range_accrual_cuda(
         device_prices,
         "black_scholes.range_accrual",
         "none",
-        "Black-Scholes Range-accrual kernel"
+        "Black-Scholes Range Accrual kernel"
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

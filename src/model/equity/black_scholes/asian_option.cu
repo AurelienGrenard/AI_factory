@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/asian_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<black_scholes::DynamicsPolicy>;
@@ -61,7 +61,7 @@ void launch_black_scholes_asian_option_cuda(
         device_standard_errors,
         "black_scholes.asian_option",
         option_side_name(Side),
-        "Black-Scholes asian option kernel"
+        "Black-Scholes Asian Option kernel"
     );
 }
 
@@ -80,4 +80,4 @@ template void launch_black_scholes_asian_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

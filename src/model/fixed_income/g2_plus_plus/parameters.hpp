@@ -5,13 +5,13 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::model::g2_plus_plus {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus {
 
 // Curve-independent process parameters of one centered G2++ model.
 struct ModelParameters {
-    model::g2::ProcessParameters process;
+    model::fixed_income::g2::ProcessParameters process;
 };
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus

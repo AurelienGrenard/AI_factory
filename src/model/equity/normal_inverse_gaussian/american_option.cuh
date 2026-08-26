@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 
 template<OptionSide Side>
 longstaff_schwartz::LaunchResult launch_normal_inverse_gaussian_american_option_cuda(
@@ -29,4 +29,4 @@ longstaff_schwartz::LaunchResult launch_normal_inverse_gaussian_american_option_
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

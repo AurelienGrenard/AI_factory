@@ -6,7 +6,7 @@
 #include "model/equity/heston/dynamics.cu"
 #include "product/asian_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<heston::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_heston_asian_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

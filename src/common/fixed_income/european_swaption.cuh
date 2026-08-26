@@ -2,7 +2,9 @@
 #pragma once
 
 #include "common/closed_form/closed_form_kernels.cuh"
+#include "common/closed_form/cooperative_closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
+#include "common/fixed_income/jamshidian_cooperative.cuh"
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/time_configuration.cuh"
 #include "product/european_swaption/parameters.hpp"
@@ -10,7 +12,10 @@
 
 #include <cuda_runtime.h>
 
+#include <algorithm>
 #include <cstddef>
+#include <cstdint>
+#include <stdexcept>
 #include <utility>
 
 namespace ai_factory::workbench::fixed_income {
@@ -136,6 +141,59 @@ struct OneFactorEuropeanSwaptionClosedFormPricingPolicy {
 
 template<
     SwaptionSide Side,
+    typename Provider,
+    typename Model,
+    typename Product,
+    typename Source
+>
+struct CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy
+    : OneFactorEuropeanSwaptionClosedFormPricingPolicy<
+          Side,
+          Model,
+          Product,
+          Source
+      > {
+    using Base = OneFactorEuropeanSwaptionClosedFormPricingPolicy<
+        Side,
+        Model,
+        Product,
+        Source
+    >;
+    using typename Base::DeviceInputs;
+    using typename Base::PreparedRow;
+    using typename Base::TimeConfiguration;
+    using Base::evaluate_price;
+    using Base::prepare_row;
+
+    inline static std::size_t required_shared_memory_bytes(
+        std::uint32_t maximum_payment_count
+    ) {
+        return cooperative_jamshidian_shared_memory_bytes(
+            maximum_payment_count
+        );
+    }
+
+    __device__ __forceinline__ static float evaluate_price(
+        const PreparedRow& row,
+        std::byte* workspace,
+        std::uint32_t workspace_capacity
+    ) {
+        return row.notional * cooperative_european_swaption_price<Side>(
+            Provider{},
+            row.model,
+            row.model.initial_state,
+            0.0f,
+            row.exercise_time,
+            row.strike,
+            row.schedule,
+            workspace,
+            workspace_capacity
+        );
+    }
+};
+
+template<
+    SwaptionSide Side,
     typename Composition,
     typename Model,
     typename Curve,
@@ -190,6 +248,80 @@ struct FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy {
 
 template<
     SwaptionSide Side,
+    typename Provider,
+    typename Composition,
+    typename Model,
+    typename Curve,
+    typename Product,
+    typename Source
+>
+struct CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy
+    : FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<
+          Side,
+          Composition,
+          Model,
+          Curve,
+          Product,
+          Source
+      > {
+    using Base = FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<
+        Side,
+        Composition,
+        Model,
+        Curve,
+        Product,
+        Source
+    >;
+    using typename Base::DeviceInputs;
+    using typename Base::PreparedRow;
+    using typename Base::TimeConfiguration;
+    using Base::evaluate_price;
+    using Base::prepare_row;
+
+    inline static std::size_t required_shared_memory_bytes(
+        std::uint32_t maximum_payment_count
+    ) {
+        return cooperative_jamshidian_shared_memory_bytes(
+            maximum_payment_count
+        );
+    }
+
+    __device__ __forceinline__ static float evaluate_price(
+        const PreparedRow& row,
+        std::byte* workspace,
+        std::uint32_t workspace_capacity
+    ) {
+        return row.notional * cooperative_european_swaption_price<Side>(
+            Provider{},
+            row.model,
+            Composition::initial_state(),
+            0.0f,
+            row.exercise_time,
+            row.strike,
+            row.schedule,
+            workspace,
+            workspace_capacity
+        );
+    }
+};
+
+inline std::size_t scalar_closed_form_block_count(
+    std::size_t launch_result_count,
+    unsigned int threads_per_block,
+    std::size_t cooperative_block_count
+) {
+    // Let the scalar launcher report invalid empty launches or block sizes.
+    // Avoid unsigned underflow and division by zero while computing its grid.
+    if (launch_result_count == 0U || threads_per_block == 0U) {
+        return cooperative_block_count;
+    }
+    const std::size_t direct_block_count =
+        (launch_result_count - 1U) / threads_per_block + 1U;
+    return std::min(cooperative_block_count, direct_block_count);
+}
+
+template<
+    SwaptionSide Side,
     typename Model,
     typename Product,
     typename Source
@@ -210,15 +342,15 @@ void launch_one_factor_european_swaption(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing =
+    using PricingPolicy =
         OneFactorEuropeanSwaptionClosedFormPricingPolicy<
             Side,
             Model,
             Product,
             Source
         >;
-    static_assert(closed_form::ClosedFormPricingPolicy<Pricing>);
-    closed_form::launch_closed_form_cuda<Pricing>(
+    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         with_device_context(
             make_model_product_device_inputs(
                 device_models,
@@ -239,6 +371,96 @@ void launch_one_factor_european_swaption(
         kernel_name,
         swaption_side_name(Side),
         "European swaption kernel"
+    );
+}
+
+template<
+    SwaptionSide Side,
+    typename Provider,
+    typename Model,
+    typename Product,
+    typename Source
+>
+void launch_cooperative_one_factor_european_swaption(
+    const char* kernel_name,
+    const Model* device_models,
+    std::size_t model_count,
+    const Product* device_products,
+    Source schedule_source,
+    std::size_t product_count,
+    bool cartesian_product,
+    std::size_t result_count,
+    std::size_t result_offset,
+    std::size_t launch_result_count,
+    float time_day_fraction,
+    unsigned int threads_per_block,
+    std::size_t block_count,
+    float* device_prices,
+    std::uint32_t maximum_payment_count
+) {
+    if (maximum_payment_count == 0U) {
+        throw std::invalid_argument(
+            "maximum_payment_count must be positive."
+        );
+    }
+    using PricingPolicy =
+        CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy<
+            Side,
+            Provider,
+            Model,
+            Product,
+            Source
+        >;
+    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
+    static_assert(
+        closed_form::CooperativeClosedFormPricingPolicy<PricingPolicy>
+    );
+    const auto inputs = with_device_context(
+        make_model_product_device_inputs(
+            device_models,
+            model_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
+        schedule_source
+    );
+    const time::DayFractionTimeConfiguration time_configuration{
+        time_day_fraction
+    };
+    const bool launched = maximum_payment_count > 1U
+        && closed_form::launch_cooperative_closed_form_cuda<PricingPolicy>(
+            inputs,
+            result_count,
+            result_offset,
+            launch_result_count,
+            time_configuration,
+            maximum_payment_count,
+            threads_per_block,
+            block_count,
+            device_prices,
+            kernel_name,
+            swaption_side_name(Side),
+            "Cooperative European swaption kernel"
+        );
+    if (launched) return;
+
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
+        inputs,
+        result_count,
+        result_offset,
+        launch_result_count,
+        time_configuration,
+        threads_per_block,
+        scalar_closed_form_block_count(
+            launch_result_count,
+            threads_per_block,
+            block_count
+        ),
+        device_prices,
+        kernel_name,
+        swaption_side_name(Side),
+        "European swaption fallback kernel"
     );
 }
 
@@ -268,7 +490,7 @@ void launch_fitted_one_factor_european_swaption(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing =
+    using PricingPolicy =
         FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<
             Side,
             Composition,
@@ -277,8 +499,8 @@ void launch_fitted_one_factor_european_swaption(
             Product,
             Source
         >;
-    static_assert(closed_form::ClosedFormPricingPolicy<Pricing>);
-    closed_form::launch_closed_form_cuda<Pricing>(
+    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         with_device_context(
             make_model_curve_product_device_inputs(
                 device_models,
@@ -301,6 +523,104 @@ void launch_fitted_one_factor_european_swaption(
         kernel_name,
         swaption_side_name(Side),
         "European swaption kernel"
+    );
+}
+
+template<
+    SwaptionSide Side,
+    typename Provider,
+    typename Composition,
+    typename Model,
+    typename Curve,
+    typename Product,
+    typename Source
+>
+void launch_cooperative_fitted_one_factor_european_swaption(
+    const char* kernel_name,
+    const Model* device_models,
+    std::size_t model_count,
+    const Curve* device_curves,
+    std::size_t curve_count,
+    const Product* device_products,
+    Source schedule_source,
+    std::size_t product_count,
+    bool cartesian_product,
+    std::size_t result_count,
+    std::size_t result_offset,
+    std::size_t launch_result_count,
+    float time_day_fraction,
+    unsigned int threads_per_block,
+    std::size_t block_count,
+    float* device_prices,
+    std::uint32_t maximum_payment_count
+) {
+    if (maximum_payment_count == 0U) {
+        throw std::invalid_argument(
+            "maximum_payment_count must be positive."
+        );
+    }
+    using PricingPolicy =
+        CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<
+            Side,
+            Provider,
+            Composition,
+            Model,
+            Curve,
+            Product,
+            Source
+        >;
+    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
+    static_assert(
+        closed_form::CooperativeClosedFormPricingPolicy<PricingPolicy>
+    );
+    const auto inputs = with_device_context(
+        make_model_curve_product_device_inputs(
+            device_models,
+            model_count,
+            device_curves,
+            curve_count,
+            device_products,
+            product_count,
+            cartesian_product
+        ),
+        schedule_source
+    );
+    const time::DayFractionTimeConfiguration time_configuration{
+        time_day_fraction
+    };
+    const bool launched = maximum_payment_count > 1U
+        && closed_form::launch_cooperative_closed_form_cuda<PricingPolicy>(
+            inputs,
+            result_count,
+            result_offset,
+            launch_result_count,
+            time_configuration,
+            maximum_payment_count,
+            threads_per_block,
+            block_count,
+            device_prices,
+            kernel_name,
+            swaption_side_name(Side),
+            "Cooperative European swaption kernel"
+        );
+    if (launched) return;
+
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
+        inputs,
+        result_count,
+        result_offset,
+        launch_result_count,
+        time_configuration,
+        threads_per_block,
+        scalar_closed_form_block_count(
+            launch_result_count,
+            threads_per_block,
+            block_count
+        ),
+        device_prices,
+        kernel_name,
+        swaption_side_name(Side),
+        "European swaption fallback kernel"
     );
 }
 

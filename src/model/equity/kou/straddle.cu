@@ -6,7 +6,7 @@
 #include "model/equity/kou/dynamics.cu"
 #include "product/straddle/pricing_policy.cuh"
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 namespace {
 
 using Schedule = simulation::ExactTransitionTerminalSchedule<kou::DynamicsPolicy>;
@@ -60,4 +60,4 @@ void launch_kou_straddle_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

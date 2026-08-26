@@ -14,7 +14,7 @@
     "url": "https://datasets.ai-factory.example/v1/product/european_swaptions/european_swaptions_01.json"
   },
   "source_fingerprints": {
-    "price_results": "sha256:e89dc4f8d8c9bb6baea466579693baf4b503cf196f420d8f69970d5dc96006a0",
+    "price_results": "sha256:73992c06d2c6f91d11e2bdbc94200e135856da2dd03bdc103a946bbdf0ac0bff",
     "model_parameters": "sha256:72c750adf17ef38c85a02aba891a68b1811bea17b4a1ec52d819424d37ba79df",
     "product_parameters": "sha256:58f144de68539828cf4dd263d4a78f0f318eaff12a753c6105584c16d990734b"
   },
@@ -73,7 +73,7 @@
       "failed_row_count": 0,
       "maximum_absolute_error": 3.886258687045563e-07,
       "maximum_absolute_error_row_id": "000287",
-      "mean_signed_error": -6.117586310200475e-09,
+      "mean_signed_error": -5.808336321208176e-09,
       "systematic_bias": false
     },
     "stress": {
@@ -83,12 +83,12 @@
       "failed_row_count": 0,
       "maximum_absolute_error": 3.3038162463583376e-06,
       "maximum_absolute_error_row_id": "000912",
-      "mean_signed_error": 4.2086462392809636e-08,
+      "mean_signed_error": 4.063335361284001e-08,
       "systematic_bias": false
     }
   },
   "timing": {
-    "wall_seconds": 6.033930759003852
+    "wall_seconds": 1.8480983529952937
   },
   "results": [
     {

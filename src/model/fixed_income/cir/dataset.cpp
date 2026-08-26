@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::cir {
+namespace ai_factory::workbench::model::fixed_income::cir {
 
 // Parse and validate CIR rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -76,4 +76,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::cir
+}  // namespace ai_factory::workbench::model::fixed_income::cir

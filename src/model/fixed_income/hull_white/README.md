@@ -9,6 +9,7 @@ hull_white/
 ├── parameters.hpp
 ├── dataset.hpp
 ├── dataset.cpp
+├── fitted_analytics.cuh
 ├── nelson_siegel/analytics.cu
 ├── nelson_siegel/analytics.cuh
 ├── nelson_siegel/european_swaption.cu

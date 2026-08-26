@@ -6,7 +6,7 @@
 #include "model/equity/merton/dynamics.cu"
 #include "product/digital_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 namespace {
 
 using Schedule = simulation::ExactTransitionTerminalSchedule<merton::DynamicsPolicy>;
@@ -78,4 +78,4 @@ template void launch_merton_digital_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

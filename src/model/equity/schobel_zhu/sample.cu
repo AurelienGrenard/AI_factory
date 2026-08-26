@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 namespace {
 
 __global__ void schobel_zhu_terminal_samples_kernel(
@@ -79,7 +79,7 @@ __global__ void schobel_zhu_calendar_samples_kernel(
             sample::decode_sample_index(sample_index, paths_per_model);
         const ModelParameters model = models[indices.model_index];
         const PreparedModel prepared_model = prepare_model(model, dt);
-        equity::SpotAndStateObservationWriter<
+        ::ai_factory::workbench::equity::SpotAndStateObservationWriter<
             DynamicsPolicy,
             &State::volatility
         > writer{
@@ -217,4 +217,4 @@ void launch_schobel_zhu_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "schobel zhu calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

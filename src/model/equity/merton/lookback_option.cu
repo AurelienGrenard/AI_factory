@@ -6,7 +6,7 @@
 #include "model/equity/merton/dynamics.cu"
 #include "product/lookback_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<merton::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_merton_lookback_option_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

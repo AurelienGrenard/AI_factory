@@ -13,7 +13,7 @@
 
 namespace {
 
-using Model = ai_factory::workbench::model::ornstein_uhlenbeck::
+using Model = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck::
     ModelParameters;
 using Product = ai_factory::workbench::product::
     RegularEuropeanSwaptionParameters;
@@ -684,7 +684,7 @@ void check_long_regular_schedule(
 // Validate payer and receiver Jamshidian prices in both construction modes.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

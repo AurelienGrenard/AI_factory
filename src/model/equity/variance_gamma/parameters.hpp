@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 
 // Risk-neutral exponential Variance-Gamma inputs in the Madan-Carr-Chang form.
 struct ModelParameters {
@@ -17,4 +17,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_kou_cliquet_cuda(
@@ -28,4 +28,4 @@ void launch_kou_cliquet_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

@@ -26,11 +26,19 @@ concept DynamicsPolicy =
     >;
 
 // Numerical schemes prepare one homogeneous step and expose interval
-// advancement as their public customization point.
+// advancement as their public customization point. advance(dynamics, n, ...)
+// returns the state at the end of an unobserved interval of n homogeneous
+// steps. It need not consume the same random stream as n calls with n = 1;
+// kPartitionInvariantAdvance advertises that stronger property when it holds.
 template<typename Dynamics>
 concept FixedStepDynamicsPolicy =
     DynamicsPolicy<Dynamics>
     && std::is_trivially_copyable_v<typename Dynamics::PreparedDynamics>
+    && requires {
+        {
+            Dynamics::kPartitionInvariantAdvance
+        } -> std::convertible_to<bool>;
+    }
     && requires(
         const typename Dynamics::Parameters& parameters,
         const typename Dynamics::PreparedDynamics& dynamics,

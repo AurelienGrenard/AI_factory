@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 
 // Parse and validate Merton rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -93,4 +93,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

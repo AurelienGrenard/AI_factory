@@ -6,7 +6,7 @@
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "product/geometric_asian_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<normal_inverse_gaussian::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_normal_inverse_gaussian_geometric_asian_option_cuda<OptionS
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

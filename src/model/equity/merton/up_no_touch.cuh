@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_merton_up_no_touch_cuda(
@@ -29,4 +29,4 @@ void launch_merton_up_no_touch_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

@@ -16,7 +16,7 @@ namespace {
 constexpr std::uint32_t kStepCount = 8U;
 
 struct RoughBergomiDynamicsResults {
-    ai_factory::workbench::rough_bergomi::RoughBergomiPreparedParameters model;
+    ai_factory::workbench::model::equity::rough_bergomi::RoughBergomiPreparedParameters model;
     float first_far_weight;
     float first_log_variance_correction;
     float explicit_log_spot;
@@ -38,7 +38,7 @@ __global__ void exercise_rough_bergomi_dynamics_kernel(
     RoughBergomiDynamicsResults* output
 ) {
     using namespace ai_factory::workbench;
-    using namespace ai_factory::workbench::rough_bergomi;
+    using namespace ai_factory::workbench::model::equity::rough_bergomi;
 
     __shared__ RoughBergomiPreparedParameters model;
     __shared__ float far_weights[kStepCount];
@@ -147,7 +147,7 @@ bool close(float left, float right, float tolerance = 5.0e-6f) {
 
 int main() {
     const auto models =
-        ai_factory::workbench::rough_bergomi::load_models(
+        ai_factory::workbench::model::equity::rough_bergomi::load_models(
             "datasets/model/equity/rough_bergomi/parameters/rough_bergomi_01.json"
         );
     require(

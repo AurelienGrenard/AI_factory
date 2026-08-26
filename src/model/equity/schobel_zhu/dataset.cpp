@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 
 // Parse and validate Schobel-Zhu rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -101,4 +101,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

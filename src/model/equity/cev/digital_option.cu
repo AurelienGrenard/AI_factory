@@ -6,7 +6,7 @@
 #include "model/equity/cev/dynamics.cu"
 #include "product/digital_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 namespace {
 
 using Schedule = simulation::FixedStepTerminalSchedule<cev::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_cev_digital_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

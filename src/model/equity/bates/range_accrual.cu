@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/range_accrual/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepRegularSchedule<bates::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_bates_range_accrual_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

@@ -5,16 +5,23 @@
 #include "common/philox.cuh"
 #include "model/equity/schobel_zhu/parameters.hpp"
 
+#include <cuda_runtime.h>
+
 #include <cstdint>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
+
+struct State {
+    float log_spot;
+    float volatility;
+};
 
 struct PreparedModel {
     float initial_log_spot;
     float initial_volatility;
     float long_run_volatility;
-    float exp_mean_reversion_dt;
-    float ou_std;
+    float volatility_decay;
+    float volatility_standard_deviation;
     float endpoint_increment_correlation;
     float endpoint_increment_residual;
     float drift_dt;
@@ -22,11 +29,8 @@ struct PreparedModel {
     float correlation;
     float correlation_residual;
 };
+
 using PreparedDynamics = PreparedModel;
-struct State {
-    float log_spot;
-    float volatility;
-};
 
 // ======================== Common equity dynamics =========================
 
@@ -56,6 +60,7 @@ struct DynamicsPolicy {
     using State = schobel_zhu::State;
 
     static constexpr bool kNativeLogSpot = true;
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -79,7 +84,7 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static float log_spot(const State& state);
 };
 
-static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

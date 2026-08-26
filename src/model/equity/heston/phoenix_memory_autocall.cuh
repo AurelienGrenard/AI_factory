@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_heston_phoenix_memory_autocall_cuda(
@@ -29,4 +29,4 @@ void launch_heston_phoenix_memory_autocall_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

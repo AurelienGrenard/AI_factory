@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/european_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepTerminalSchedule<bates::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_bates_european_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

@@ -23,7 +23,8 @@ __device__ __forceinline__ bool bitwise_equal(
     return true;
 }
 
-// Check deterministic replay, advance(n) equivalence and path isolation.
+// Check the fixed-step contract without imposing partition invariance on
+// dynamics that deliberately aggregate an unobserved interval.
 template<
     simulation::FixedStepDynamicsPolicy Dynamics,
     typename StateInspector
@@ -40,6 +41,19 @@ test_fixed_step_dynamics_contract(
         Dynamics::prepare_dynamics(parameters, delta_t);
     const typename Dynamics::State initial =
         Dynamics::initial_state(dynamics);
+
+    typename Dynamics::RandomContext after_zero_random(
+        key, static_cast<std::uint64_t>(path)
+    );
+    typename Dynamics::State after_zero = initial;
+    Dynamics::advance(dynamics, 0U, after_zero_random, after_zero);
+    Dynamics::advance(dynamics, 1U, after_zero_random, after_zero);
+
+    typename Dynamics::RandomContext baseline_random(
+        key, static_cast<std::uint64_t>(path)
+    );
+    typename Dynamics::State baseline = initial;
+    Dynamics::advance(dynamics, 1U, baseline_random, baseline);
 
     typename Dynamics::RandomContext batched_random(
         key, static_cast<std::uint64_t>(path)
@@ -70,12 +84,27 @@ test_fixed_step_dynamics_contract(
         simulation::simulate_fixed_step_terminal<Dynamics>(
             dynamics, transition_count, key, path
         );
+    simulation::ObservationHandlerProbe<Dynamics> handler;
+    const typename Dynamics::State observed =
+        simulation::simulate_fixed_step_regular_schedule<Dynamics>(
+            dynamics,
+            transition_count,
+            1U,
+            key,
+            path,
+            handler
+        );
 
     std::uint32_t result = 0U;
     result |= StateInspector::finite(initial) ? 1U : 0U;
-    result |= bitwise_equal(batched, repeated) ? 2U : 0U;
-    result |= bitwise_equal(first, replay) ? 4U : 0U;
-    result |= StateInspector::finite(first) ? 8U : 0U;
+    result |= bitwise_equal(after_zero, baseline) ? 2U : 0U;
+    const bool partition_contract =
+        !Dynamics::kPartitionInvariantAdvance
+        || bitwise_equal(batched, repeated);
+    result |= partition_contract ? 4U : 0U;
+    result |= bitwise_equal(first, replay) ? 8U : 0U;
+    result |= StateInspector::finite(first) ? 16U : 0U;
+    result |= bitwise_equal(first, observed) ? 32U : 0U;
     return result;
 }
 

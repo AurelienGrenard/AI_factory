@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/up_and_in_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<black_scholes::DynamicsPolicy>;
@@ -61,7 +61,7 @@ void launch_black_scholes_up_and_in_option_cuda(
         device_standard_errors,
         "black_scholes.up_and_in_option",
         option_side_name(Side),
-        "Black-Scholes up and in option kernel"
+        "Black-Scholes Up-and-In Option kernel"
     );
 }
 
@@ -80,4 +80,4 @@ template void launch_black_scholes_up_and_in_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

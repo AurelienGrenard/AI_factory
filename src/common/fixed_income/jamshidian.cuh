@@ -14,6 +14,20 @@ namespace ai_factory::workbench::fixed_income {
 inline constexpr std::uint32_t kMaximumJamshidianNewtonIterations = 48U;
 inline constexpr float kJamshidianResidualTolerance = 2.0e-7f;
 
+// Return c_i = K*delta_i plus the final unit redemption.
+__device__ __forceinline__ float jamshidian_cashflow_coefficient(
+    float fixed_rate,
+    float accrual_fraction,
+    std::uint32_t payment,
+    std::uint32_t payment_count
+) {
+    return fmaf(
+        fixed_rate,
+        accrual_fraction,
+        payment + 1U == payment_count ? 1.0f : 0.0f
+    );
+}
+
 // Solve sum_i c_i P(T_e,T_i;x*) = 1 with safeguarded Newton iterations.
 template<typename Provider, typename Parameters, typename ScheduleView>
 __device__ __forceinline__ float jamshidian_state_boundary(
@@ -40,10 +54,11 @@ __device__ __forceinline__ float jamshidian_state_boundary(
          payment < payment_count;
          ++payment) {
         const float accrual_fraction = schedule.accrual_fraction(payment);
-        const float coefficient = fmaf(
+        const float coefficient = jamshidian_cashflow_coefficient(
             fixed_rate,
             accrual_fraction,
-            payment + 1U == payment_count ? 1.0f : 0.0f
+            payment,
+            payment_count
         );
         const float payment_time = schedule.payment_time(payment);
         if (!isfinite(coefficient)
@@ -89,10 +104,11 @@ __device__ __forceinline__ float jamshidian_state_boundary(
         for (std::uint32_t payment = 0U;
              payment < payment_count;
              ++payment) {
-            const float coefficient = fmaf(
+            const float coefficient = jamshidian_cashflow_coefficient(
                 fixed_rate,
                 schedule.accrual_fraction(payment),
-                payment + 1U == payment_count ? 1.0f : 0.0f
+                payment,
+                payment_count
             );
             if (coefficient == 0.0f) continue;
             const OneFactorAffineBondCoefficients bond =
@@ -185,10 +201,11 @@ __device__ __forceinline__ float european_swaption_price(
     for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
-        const float coefficient = fmaf(
+        const float coefficient = jamshidian_cashflow_coefficient(
             fixed_rate,
             schedule.accrual_fraction(payment),
-            payment + 1U == payment_count ? 1.0f : 0.0f
+            payment,
+            payment_count
         );
         if (coefficient == 0.0f) continue;
         const float payment_time = schedule.payment_time(payment);

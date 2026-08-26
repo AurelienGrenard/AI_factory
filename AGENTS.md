@@ -7,6 +7,14 @@
 - Read `docs/deferred-work.md` before starting a planned extension. Read
   `docs/abandoned-work.md` before reopening an optimization that may already
   have been measured and rejected. Never use the abandoned list as a backlog.
+- Read `docs/audit-query.md` before auditing dynamics, analytics, naming,
+  project structure, `src`/`tools` ownership, or CUDA performance. Record only
+  unresolved, evidence-backed findings in the matching
+  section of `docs/audit-response.md`, with a stable identifier and an explicit
+  closure criterion. After a finding is fixed and verified, move any permanent
+  rule to the relevant implementation contract, record rejected experiments in
+  `docs/abandoned-work.md` or postponed work in `docs/deferred-work.md`, then
+  remove the resolved finding from `docs/audit-response.md`.
 - Follow `docs/catalog-extension-and-validation-workflow.md` for every model,
   curve, product, price, validation, or website extension.
 - For CUDA pricing work, read
@@ -17,6 +25,8 @@
   `docs/cuda-launch-validation-and-kernel-diagnostics.md`.
 - For model simulation work, read `docs/cuda-model-dynamics-contract.md` before
   changing a `dynamics.cuh/.cu` interface or its Philox consumption.
+- For model analytics work, read `docs/cuda-model-analytics-contract.md` before
+  changing an `analytics.cuh/.cu` interface, provider, or shared primitive.
 - For model-parameter or product generation work, read
   `docs/model-and-product-parameter-dataset-generation.md` and preserve its
   ordered 90/10 policy and complete adjacent YAML recipe.
@@ -26,6 +36,11 @@
 - Keep the canonical function names and responsibilities documented under
   `docs/` consistent across model, curve, and product implementations. Update
   the associated document whenever the common contract changes.
+- After a refactor, remove superseded documentation, compatibility layers, and
+  dead code once repository references and tests prove that they are no longer
+  used. Do not retain stale implementation trees, obsolete API descriptions, or
+  parallel legacy paths for historical context; preserve only durable rules in
+  contracts and measured rejected ideas in `docs/abandoned-work.md`.
 
 ## Project layout
 

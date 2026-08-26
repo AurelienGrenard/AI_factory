@@ -1,36 +1,45 @@
-// CUDA analytics for Hull-White one-factor fitted to Nelson-Siegel curves.
+// Hull-White analytics fitted to a Nelson-Siegel curve.
 #pragma once
 
-#include "common/fixed_income/swaption_side.cuh"
-#include "curve/nelson_siegel/dataset.hpp"
-#include "model/fixed_income/hull_white/dataset.hpp"
-#include "model/fixed_income/ornstein_uhlenbeck/dynamics.cuh"
-#include "product/european_swaption/schedule.cuh"
+#include "curve/nelson_siegel/term_structure.cuh"
+#include "model/fixed_income/hull_white/fitted_analytics.cuh"
 
 #include <cuda_runtime.h>
 
-#include <cstdint>
+namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel {
 
-namespace ai_factory::workbench::model::hull_white::nelson_siegel {
+using CurveAnalyticsProvider = curve::nelson_siegel::AnalyticsProvider;
+using HullWhiteFittedParameters =
+    fitted::FittedParameters<CurveAnalyticsProvider>;
+using FittedAnalyticsProvider =
+    fitted::AnalyticsProvider<CurveAnalyticsProvider>;
 
-// ======================= Model-specific analytics =========================
-
-// OU process and initial curve defining one fitted Hull-White model.
-struct HullWhiteFittedParameters {
-    model::ornstein_uhlenbeck::ProcessParameters process;
-    curve::nelson_siegel::NelsonSiegelParameters initial_curve;
-};
-
-// Compose one Hull-White row with its fitted initial curve.
-__device__ __forceinline__ HullWhiteFittedParameters compose_model(
-    const ModelParameters& parameters,
-    const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
+static_assert(
+    ::ai_factory::workbench::fixed_income::ParametricCurveProvider<
+        CurveAnalyticsProvider,
+        curve::nelson_siegel::NelsonSiegelParameters
+    >
+);
+static_assert(
+    ::ai_factory::workbench::fixed_income::JamshidianAnalyticsProvider<
+        FittedAnalyticsProvider,
+        HullWhiteFittedParameters,
+        float
+    >
 );
 
-// Model/curve composition consumed by generic closed-form pricing policies.
+__device__ __forceinline__ HullWhiteFittedParameters compose_fitted_model(
+    const ModelParameters& model,
+    const curve::nelson_siegel::NelsonSiegelParameters& initial_curve
+) {
+    return fitted::compose_fitted_model<CurveAnalyticsProvider>(
+        model, initial_curve
+    );
+}
+
 struct FittedModelComposition {
     using ModelParameters =
-        ::ai_factory::workbench::model::hull_white::ModelParameters;
+        ::ai_factory::workbench::model::fixed_income::hull_white::ModelParameters;
     using CurveParameters =
         ::ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters;
     using FittedModel = HullWhiteFittedParameters;
@@ -43,213 +52,28 @@ struct FittedModelComposition {
         const ModelParameters& model,
         const CurveParameters& initial_curve
     ) {
-        return compose_model(model, initial_curve);
+        return compose_fitted_model(model, initial_curve);
     }
 };
 
-// Return phi(t) in the shifted representation r(t) = x(t) + phi(t).
-__device__ __forceinline__ float short_rate_shift(
-    const HullWhiteFittedParameters& parameters,
-    float time
-);
+using fitted::A;
+using fitted::B;
+using fitted::discount_factor;
+using fitted::european_payer_swaption_price;
+using fitted::european_receiver_swaption_price;
+using fitted::european_swaption_price;
+using fitted::forward_rate;
+using fitted::jamshidian_bond_strike;
+using fitted::jamshidian_state_boundary;
+using fitted::log_A;
+using fitted::log_discount_factor;
+using fitted::log_zero_coupon_bond;
+using fitted::payer_swap_value;
+using fitted::short_rate;
+using fitted::short_rate_shift;
+using fitted::swap_rate;
+using fitted::zero_coupon_bond;
+using fitted::zero_coupon_bond_call_price;
+using fitted::zero_coupon_bond_put_price;
 
-// Reconstruct the short rate from one simulated OU state.
-__device__ __forceinline__ float short_rate(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float time
-);
-
-// ===================== Common fixed-income analytics ======================
-
-// Return the logarithm of the affine bond prefactor A(t,T).
-__device__ __forceinline__ float log_A(
-    const HullWhiteFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return the affine bond prefactor A(t,T).
-__device__ __forceinline__ float A(
-    const HullWhiteFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return the affine OU-state loading B(t,T).
-__device__ __forceinline__ float B(
-    const HullWhiteFittedParameters& parameters,
-    float valuation_time,
-    float maturity
-);
-
-// Return log P(valuation_time,maturity) = log A - B*state.
-__device__ __forceinline__ float log_zero_coupon_bond(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float maturity
-);
-
-// The remaining analytics mirror the standalone OU interface.
-
-// Return the accumulated path log-discount from time zero.
-__device__ __forceinline__ float log_discount_factor(
-    const HullWhiteFittedParameters& parameters,
-    float state_integral,
-    float time
-);
-
-// Return the accumulated path discount factor from time zero.
-__device__ __forceinline__ float discount_factor(
-    const HullWhiteFittedParameters& parameters,
-    float state_integral,
-    float time
-);
-
-// Return the model zero-coupon bond P(valuation_time, maturity).
-__device__ __forceinline__ float zero_coupon_bond(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float maturity
-);
-
-// Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
-__device__ __forceinline__ float zero_coupon_bond_call_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
-    float strike
-);
-
-// Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
-__device__ __forceinline__ float zero_coupon_bond_put_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
-    float strike
-);
-
-// Return the simple forward rate observed at valuation_time over [start,end].
-__device__ __forceinline__ float forward_rate(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float start_time,
-    float end_time,
-    float accrual_period
-);
-
-// Return the par swap rate observed at valuation_time.
-template<typename ScheduleView>
-__device__ __forceinline__ float swap_rate(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float start_time,
-    const ScheduleView& schedule
-);
-
-// Return the unit-notional value of the payer swap before optional exercise.
-template<typename ScheduleView>
-__device__ __forceinline__ float payer_swap_value(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float start_time,
-    float fixed_rate,
-    const ScheduleView& schedule
-);
-
-// Solve the unique one-factor Jamshidian state boundary at exercise.
-template<typename ScheduleView>
-__device__ __forceinline__ float jamshidian_state_boundary(
-    const HullWhiteFittedParameters& parameters,
-    float exercise_time,
-    float fixed_rate,
-    const ScheduleView& schedule
-);
-
-// Compatibility overload for one explicit day-count schedule.
-__device__ __forceinline__ float jamshidian_state_boundary(
-    const HullWhiteFittedParameters& parameters,
-    float exercise_time,
-    float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
-    const float* __restrict__ accrual_fractions,
-    float time_day_fraction,
-    std::uint32_t payment_count
-);
-
-// Return P(exercise,payment; boundary), the Jamshidian bond strike.
-__device__ __forceinline__ float jamshidian_bond_strike(
-    const HullWhiteFittedParameters& parameters,
-    float exercise_time,
-    float payment_time,
-    float state_boundary
-);
-
-template<SwaptionSide Side, typename ScheduleView>
-__device__ __forceinline__ float european_swaption_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float exercise_time,
-    float fixed_rate,
-    const ScheduleView& schedule
-);
-
-// Price a unit-notional European payer swaption by Jamshidian decomposition.
-template<typename ScheduleView>
-__device__ __forceinline__ float european_payer_swaption_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float exercise_time,
-    float fixed_rate,
-    const ScheduleView& schedule
-);
-
-// Compatibility overload for one explicit day-count schedule.
-__device__ __forceinline__ float european_payer_swaption_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float exercise_time,
-    float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
-    const float* __restrict__ accrual_fractions,
-    float time_day_fraction,
-    std::uint32_t payment_count
-);
-
-// Price a unit-notional European receiver swaption by Jamshidian decomposition.
-template<typename ScheduleView>
-__device__ __forceinline__ float european_receiver_swaption_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float exercise_time,
-    float fixed_rate,
-    const ScheduleView& schedule
-);
-
-// Compatibility overload for one explicit day-count schedule.
-__device__ __forceinline__ float european_receiver_swaption_price(
-    const HullWhiteFittedParameters& parameters,
-    float state,
-    float valuation_time,
-    float exercise_time,
-    float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
-    const float* __restrict__ accrual_fractions,
-    float time_day_fraction,
-    std::uint32_t payment_count
-);
-
-}  // namespace ai_factory::workbench::model::hull_white::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

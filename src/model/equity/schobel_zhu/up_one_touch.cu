@@ -6,7 +6,7 @@
 #include "model/equity/schobel_zhu/dynamics.cu"
 #include "product/up_one_touch/pricing_policy.cuh"
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<schobel_zhu::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_schobel_zhu_up_one_touch_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

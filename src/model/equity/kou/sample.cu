@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 namespace {
 
 __global__ void kou_terminal_samples_kernel(
@@ -81,7 +81,7 @@ __global__ void kou_calendar_samples_kernel(
             prepare_transition(prepared_model, first_observation_time);
         const PreparedTransition regular_transition =
             prepare_transition(prepared_model, observation_interval);
-        equity::SpotObservationWriter<DynamicsPolicy> writer{
+        ::ai_factory::workbench::equity::SpotObservationWriter<DynamicsPolicy> writer{
             spots + sample_index,
             total_sample_count,
             observation_count,
@@ -198,4 +198,4 @@ void launch_kou_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "kou calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

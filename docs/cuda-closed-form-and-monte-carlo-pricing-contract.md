@@ -276,6 +276,45 @@ du kernel historique dans le cas usuel tout en autorisant une petite grille
 persistante. Les deux spécialisations partagent `price_one<Pricing>`, la même
 validation et la même signature de lancement.
 
+Une formule fermée dont un prix contient beaucoup de termes indépendants peut
+ajouter la capacité `CooperativeClosedFormPricingPolicy`. Elle conserve les
+mêmes `DeviceInputs`, `TimeConfiguration` et `PreparedRow`, puis expose :
+
+```cpp
+static std::size_t required_shared_memory_bytes(
+    std::uint32_t workspace_capacity
+);
+
+static float evaluate_price(
+    const PreparedRow& row,
+    std::byte* workspace,
+    std::uint32_t workspace_capacity
+);
+```
+
+`cooperative_closed_form_price_kernel<Pricing>` attribue un bloc à un prix,
+prépare la ligne une seule fois en mémoire partagée, puis fournit le scratch
+dynamique à tous les threads. Sa grille est block-stride lorsque le nombre de
+blocs est inférieur au batch. Le launcher vérifie la limite de shared memory
+du kernel et au moins un bloc résident par SM ; il retourne au chemin scalaire
+si cette topologie n'est pas supportée. Le budget statique de la ligne préparée
+reste `kMaximumSharedPreparedRowBytes = 256`.
+
+Jamshidian coopératif utilise trois tableaux FP32 de capacité $`N_{\max}`$ :
+$`\log A_i`$, $`B_i`$ et les valeurs des options sur zéro-coupon. Les threads
+préparent les coefficients et les options indépendantes ; un thread résout la
+frontière de Newton à partir des coefficients partagés, puis accumule les
+cashflows dans l'ordre contractuel. Cet ordre déterministe évite une réduction
+arborescente différente selon la géométrie. Pour un paiement unique,
+$`K_1^\star=1/c_1`$ supprime exactement la recherche de frontière.
+
+La capacité maximale est calculée côté hôte lors du chargement du dataset et
+transmise une seule fois au launcher. Elle n'est ni répétée dans chaque ligne
+produit, ni remplacée par une constante de taille maximale. Une ligne dont le
+`payment_count` dépasse la capacité transmise est rejetée sur le device ; une
+capacité qui dépasse la shared memory disponible sélectionne le fallback
+scalaire.
+
 Les transformations caplet/floorlet et option sur zéro-coupon sont définies
 une seule fois dans
 `common/fixed_income/bond_option_pricing_policies.cuh`. Les analytics propres
@@ -322,6 +361,7 @@ workspaces, dimensions globales, offsets, strides et indices mémoire utilisent
 | `simulation_steps_per_day` | nombre de transitions numériques ou de points de monitoring par jour contractuel |
 | `threads_per_block` | nombre de threads CUDA par bloc |
 | `block_count` | nombre de blocs de la grille persistante ou analytique |
+| `maximum_payment_count` | maximum hôte des longueurs de jambes fixes d'un batch coopératif ; absent des lignes produit et des launchers scalaires |
 | `base_seed` | origine de la clé déterministe `key = make_key(base_seed + result_index)` |
 | `device_prices` | prix FP32 écrits sur le device |
 | `device_standard_errors` | erreurs standards FP32, uniquement en Monte Carlo |

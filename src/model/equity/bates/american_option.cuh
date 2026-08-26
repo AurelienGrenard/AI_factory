@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 
 template<OptionSide Side>
 longstaff_schwartz::LaunchResult launch_bates_american_option_cuda(
@@ -30,4 +30,4 @@ longstaff_schwartz::LaunchResult launch_bates_american_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

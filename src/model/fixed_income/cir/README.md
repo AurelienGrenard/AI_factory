@@ -64,6 +64,23 @@ X\sim\chi'^2_d(\lambda_\Delta).
 This exact transition preserves non-negativity and remains valid on either
 side of the Feller condition $`2\kappa\theta\geq\sigma^2`$.
 
+For fixed-step Monte Carlo paths, define the accumulated short rate by
+
+```math
+I_t=\int_0^t r_u\,\mathrm du.
+```
+
+Each rate endpoint is simulated with the exact transition above, while the
+integral is accumulated with the trapezoidal rule
+
+```math
+I_{t+\Delta}
+\approx I_t+\frac{\Delta}{2}(r_t+r_{t+\Delta}).
+```
+
+Thus the rate transition is exact on every numerical step, whereas the joint
+rate-integral transition converges as the fixed step is refined.
+
 | Symbol | Dataset field | Meaning |
 |---:|---|---|
 | $`r_0`$ | `initial_state` | Initial short rate |

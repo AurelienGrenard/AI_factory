@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace lsm = longstaff_schwartz;
 
 namespace {
@@ -201,7 +201,7 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        equity::SpotObservationWriter<DynamicsPolicy> writer{
+        ::ai_factory::workbench::equity::SpotObservationWriter<DynamicsPolicy> writer{
             row_spots + path,
             paths_per_price,
             row.exercise_count - 1U,
@@ -875,4 +875,4 @@ namespace {
     &launch_normal_inverse_gaussian_american_option_cuda<OptionSide::put>;
 }  // namespace
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

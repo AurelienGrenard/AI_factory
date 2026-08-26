@@ -47,7 +47,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace g2 = model::g2;
+    namespace g2 = model::fixed_income::g2;
 
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<g2::ModelParameters> models =

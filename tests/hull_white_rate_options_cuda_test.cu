@@ -15,7 +15,7 @@ namespace {
 
 constexpr double kDayFraction = 1.0 / 252.0;
 
-using Model = ai_factory::workbench::model::hull_white::ModelParameters;
+using Model = ai_factory::workbench::model::fixed_income::hull_white::ModelParameters;
 using Curve = ai_factory::workbench::curve::nelson_siegel::
     NelsonSiegelParameters;
 
@@ -262,7 +262,7 @@ void check_launcher(
 // Validate floorlet and bond-option prices against FP64 formulas.
 int main() {
     using namespace ai_factory::workbench;
-    namespace hw = model::hull_white::nelson_siegel;
+    namespace hw = model::fixed_income::hull_white::nelson_siegel;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

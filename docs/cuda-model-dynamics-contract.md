@@ -68,18 +68,19 @@ P(t,T) = A(t,T) * exp(-B(t,T)' * X_t).
 
 Son `analytics.cuh` expose `log_A`, `A`, `B`, `log_zero_coupon_bond` et
 `zero_coupon_bond`. Un modèle à un facteur retourne un `float` depuis `B`; G2
-et G2++ retournent le type partagé `G2BondLoadings`. Le `.cu` calcule `log_A`
-et tous les loadings dans un helper privé `affine_bond_coefficients`, afin que
-le chemin chaud d'un ZCB partage les moments et transcendantes. `A` reste un
+et G2++ retournent le type partagé `TwoFactorAffineBondLoadings`. Le calcul de
+`log_A` et des loadings est groupé dans `affine_bond_coefficients`, afin que le
+chemin chaud d'un ZCB partage les moments et transcendantes. `A` reste un
 wrapper de lisibilité; le pricing travaille en espace logarithmique et ne fait
 pas un aller-retour `exp` puis `log`.
 
-`log_discount_factor` et `discount_factor` ne désignent pas ces coefficients :
-ils reçoivent uniquement la valeur scalaire `integral_0^t r_s ds` et retournent
-respectivement son opposé et son exponentielle. Le code appelant extrait donc
-`state_integral` d'un éventuel état joint sans transmettre les autres facteurs
-inutiles. Pour un modèle `++`, les paramètres de courbe et le temps complètent
-cette entrée scalaire afin d'ajouter l'intégrale du shift déterministe.
+`log_discount_factor(parameters, state_integral, time)` et
+`discount_factor(parameters, state_integral, time)` ne désignent pas ces
+coefficients. Le code appelant extrait `state_integral` d'un éventuel état
+joint sans transmettre les autres facteurs stochastiques. Un modèle standalone
+ignore les arguments supplémentaires lorsque son état est directement le short
+rate ; un modèle ajusté les utilise pour ajouter l'intégrale du shift
+déterministe.
 
 ## Types communs
 
@@ -104,8 +105,9 @@ utilisent `unsigned int`.
 Dans un namespace propre au modèle, les types ne répètent pas son nom : la
 ligne brute est `ModelParameters` ou `ProcessParameters`, le modèle préparé est
 `PreparedModel`, la transition exacte préparée est `PreparedTransition` et
-l'état mutable est `State`. Leur qualification (`kou::PreparedTransition`,
-`model::g2::State`) apporte l'information du modèle sans produire des noms tels
+l'état mutable est `State`. Leur qualification
+(`model::equity::kou::PreparedTransition`,
+`model::fixed_income::g2::State`) apporte l'information du modèle sans produire des noms tels
 que `kou::KouPreparedTransition`.
 
 Pour un processus à transition directe, `PreparedModel` contient exactement
@@ -147,14 +149,11 @@ mathématique, comme Bates réutilise l'état log-spot/variance de Heston.
 
 ### Résultats de chemin
 
-Les modèles equity standards ne déclarent aucun résultat de chemin dans leur
-dynamique. La moyenne, le maximum, les barrières et les coupons appartiennent
-aux handlers des produits dans `pricing_policy.cuh`. Un résultat à deux dates
-est le cas particulier d'un calendrier de deux observations.
-
-Black-Scholes conserve encore ses anciens types de résultat uniquement pour
-son générateur de samples historique ; ses pricers Monte Carlo utilisent le
-contrat commun. Rough Bergomi reste hors de ce contrat Markovien.
+Les modèles Markoviens ne déclarent aucun résultat de chemin dans leur
+dynamique. La moyenne, le maximum, les barrières, les coupons et les écritures
+de samples appartiennent aux handlers appelés par les simulateurs communs. Un
+résultat à deux dates est le cas particulier d'un calendrier de deux
+observations. Rough Bergomi reste provisoirement hors de ce contrat.
 
 ### `DynamicsPolicy`
 
@@ -167,6 +166,8 @@ struct DynamicsPolicy {
     using PreparedDynamics = model_namespace::PreparedDynamics;
     using RandomContext = philox::NormalRandomContext;
     using State = model_namespace::State;
+
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -186,6 +187,18 @@ struct DynamicsPolicy {
     );
 };
 ```
+
+`advance(dynamics, n, random, state)` retourne l'état à la fin d'un intervalle
+non observé de `n` pas homogènes. `advance(..., 0, ...)` ne modifie ni l'état ni
+la suite aléatoire. La propriété `kPartitionInvariantAdvance` indique si cet
+appel consomme exactement la même suite et produit les mêmes bits que `n`
+appels successifs avec `step_count == 1`.
+
+Bates fixe cette propriété à `false` : il simule les pas QE-M de Heston, puis
+agrège le processus de sauts indépendant sur l'intervalle non observé. La loi à
+la frontière est correcte, mais le partitionnement des appels change la
+consommation Philox. Un calendrier dense appelle `advance(..., 1, ...)`, donc
+les sauts restent appliqués à chaque date effectivement observée.
 
 Les `using` sont des alias de types et ne stockent rien. Les méthodes statiques
 redirigent vers les primitives propres au modèle et sont toutes
@@ -293,36 +306,16 @@ observe réellement le chemin à cette fréquence.
 Black-Scholes, Merton, Kou, Variance-Gamma et NIG suivent ce découpage pour le
 log-spot. OU, Vasicek, CIR et G2 le suivent pour leurs facteurs de taux. Les
 dynamiques jointes OU, Vasicek et G2 réutilisent le `PreparedModel` state-only,
-mais préparent une transition plus riche qui contient aussi les moments de
-l'intégrale.
+mais préparent une transition plus riche qui contient aussi les moments exacts
+de l'intégrale.
 
-Le namespace `cir::joint` réserve seulement les types de l'état joint et le nom
-de sa future policy. Il ne satisfait volontairement aucun concept tant qu'une
-transition exacte justifiée de l'intégrale n'est pas implémentée.
-
-### `prepare_calendar`
-
-Ce helper ne fait pas partie du contrat des modèles equity factorisés. Le
-calendrier prépare directement ses transitions avec
-`DynamicsPolicy::prepare_transition`.
-
-Certaines dynamiques fixed income et Black-Scholes conservent encore la forme
-historique :
-
-```cpp
-void prepare_calendar(
-    const PreparedModel& prepared_model,
-    const std::uint32_t* interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* transitions
-);
-```
-
-Elle convertit les écarts entiers entre observations en transitions exactes.
-Chaque entrée vaut
-`prepare_transition(prepared_model, interval_steps[i] * delta_t)`. Le tableau
-de transitions est préparé une fois par ligne, jamais une fois par chemin.
+La dynamique `cir::joint` réutilise également le `PreparedModel` et la
+transition exacte de l'état CIR. Elle ajoute le coefficient du trapèze local
+pour accumuler
+`integral_t^(t + delta_t) r_s ds ~= delta_t (r_t + r_(t + delta_t)) / 2`.
+Sa policy expose uniquement le contrat à pas fixe : elle ne satisfait pas
+`ExactTransitionDynamicsPolicy`, car l'intégrale est approchée même si chaque
+extrémité CIR est tirée exactement.
 
 ### `initial_state`
 
@@ -332,9 +325,9 @@ Attribut : `__device__ __forceinline__`.
 State initial_state(const PreparedModel& prepared_model);
 ```
 
-La fonction construit l'état en temps zéro lorsque celui-ci est porté par les
-paramètres du modèle. Elle est omise lorsque l'état initial est naturellement
-un argument explicite des fonctions de simulation.
+La fonction construit l'état en temps zéro à partir du modèle préparé. L'état
+initial n'est jamais un argument parallèle des simulateurs communs : il est
+porté par `PreparedModel` ou `PreparedDynamics`.
 
 ### `one_step_transition`
 
@@ -470,9 +463,10 @@ observations couvre naturellement les produits à deux dates.
 
 Rough Bergomi n'est pas forcé dans ce contrat Markovien : son historique de
 Volterra, son workspace et sa consommation aléatoire exigent une interface
-spécifique qui sera refondue avec son propre contrat. De même, CIR n'expose pas
-une fausse transition jointe état-intégrale tant qu'une méthode justifiée n'est
-pas implémentée. L'uniformité porte sur les responsabilités réellement
+spécifique qui sera refondue avec son propre contrat. L'état joint CIR reste
+volontairement limité au contrat à pas fixe afin que son intégration
+trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
+grand intervalle. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
 
 ## Observations et résumés equity
@@ -489,11 +483,15 @@ ce contrat pour ses pricers Monte Carlo ; Rough Bergomi reste provisoirement
 hors de cette factorisation.
 
 Le test générique `tests/common/dynamics_contract.cuh` vérifie pour chaque
-policy concernée la reproductibilité, l'isolation des chemins,
-`advance(n) == n * advance(1)`, l'accord entre simulation terminale et
-calendrier à une observation, ainsi que la parité entre transition exacte et
-un unique pas préparé. Le test fixed income compare en plus bit à bit les
-policies exactes aux points d'entrée historiques.
+policy concernée la reproductibilité, l'isolation des chemins, la neutralité
+de `advance(0)`, l'accord entre simulation terminale et calendrier à une
+observation, ainsi que la parité entre transition exacte et un unique pas
+préparé. L'égalité bit-à-bit `advance(n) == n * advance(1)` est vérifiée
+uniquement lorsque `kPartitionInvariantAdvance` vaut `true`.
+`equity_dynamics_policy_cuda_test.cu` instancie ce contrat sur tous les modèles
+equity non-rough et inclut toutes leurs implémentations dans une même unité de
+traduction. `fixed_income_dynamics_policy_cuda_test.cu` l'applique aux modèles
+de taux et à leurs variantes jointes état-intégrale.
 
 ## Modèles ajustés à une courbe
 
@@ -616,14 +614,19 @@ validées avant l'entrée dans les kernels.
 
 ## Nommage et structure des boucles
 
-Les namespaces portent les noms du processus, du modèle et de la courbe. Les
-fonctions réutilisables ne les répètent donc pas : `heston::prepare_model`,
-`model::ornstein_uhlenbeck::prepare_model` ou
-`model::hull_white::nelson_siegel::compose_model` sont les formes attendues.
+Les modèles suivent uniformément
+`workbench::model::<asset_class>::<model>`. Les namespaces portent ensuite les
+noms du processus et de la courbe. Les fonctions réutilisables ne les répètent
+donc pas : `model::equity::heston::prepare_model`,
+`model::fixed_income::ornstein_uhlenbeck::prepare_model` ou
+`model::fixed_income::hull_white::nelson_siegel::compose_fitted_model` sont les
+formes attendues.
 
 Employer les mêmes noms de contrôle lorsque leur sens est identique : `path`,
-`step_index`, `observation`, `output_index`, `uniforms`, `normals` et `state`.
-Pour un schéma à pas fixe, employer `prepared_model`, `initial_stub_steps`,
+`step`, `observation`, `output_index`, `uniforms`, `normal_cache` et `state`.
+Employer `prepared_model`, `prepared_transition`, `delta_t` et `step_count`
+pour les primitives et les policies. Pour un schéma à pas fixe, employer
+`prepared_model`, `initial_stub_steps`,
 `steps_per_observation`, `observation_count` et `observation_stride`. Les noms
 spécifiques tels que
 `observed_variances` ou `observed_integrated_states` sont réservés à des données

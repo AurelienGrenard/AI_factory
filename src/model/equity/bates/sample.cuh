@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 
 void launch_bates_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -40,4 +40,4 @@ void launch_bates_calendar_samples_cuda(
     float* device_variances
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

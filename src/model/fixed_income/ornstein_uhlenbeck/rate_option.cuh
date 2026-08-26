@@ -2,12 +2,12 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 // Launch closed-form rate_option prices across the CUDA grid.
 template<OptionSide Side>
@@ -26,4 +26,4 @@ void launch_ornstein_uhlenbeck_rate_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

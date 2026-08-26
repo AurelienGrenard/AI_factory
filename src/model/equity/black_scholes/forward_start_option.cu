@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/time_configuration.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template<OptionSide Side>
@@ -17,53 +17,31 @@ struct ForwardStartOptionClosedFormPricingPolicy {
     >;
     using TimeConfiguration = time::DayFractionTimeConfiguration;
 
-    struct PreparedRow {
-        float discounted_spot;
-        float discounted_strike;
-        float d1;
-        float d2;
-    };
+    using PreparedRow = DiscountedLognormalOptionValues;
 
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const product::ForwardStartOptionParameters& product,
         const TimeConfiguration& time_configuration
     ) {
-        const float reset_time =
+        const float reset_time_years =
             time::year_fraction(product.reset_time, time_configuration);
-        const float maturity =
+        const float maturity_years =
             time::year_fraction(product.maturity, time_configuration);
-        const float remaining_time = maturity - reset_time;
-        const float volatility_sqrt_maturity =
-            model.volatility * sqrtf(remaining_time);
-        const float variance = model.volatility * model.volatility;
-        const float d1 = (
-            -logf(product.moneyness)
-            + (model.risk_free_rate - model.dividend_yield
-               + 0.5f * variance) * remaining_time
-        ) / volatility_sqrt_maturity;
-        return {
-            model.spot * expf(-model.dividend_yield * maturity),
-            model.spot * product.moneyness
-                * expf(
-                    -model.dividend_yield * reset_time
-                    - model.risk_free_rate * remaining_time
-                ),
-            d1,
-            d1 - volatility_sqrt_maturity,
-        };
+        return prepare_forward_start_option_values(
+            prepare_analytics(model),
+            product.moneyness,
+            reset_time_years,
+            maturity_years
+        );
     }
 
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        if constexpr (Side == OptionSide::call) {
-            return row.discounted_spot * normal_cdf(row.d1)
-                - row.discounted_strike * normal_cdf(row.d2);
-        } else {
-            return row.discounted_strike * normal_cdf(-row.d2)
-                - row.discounted_spot * normal_cdf(-row.d1);
-        }
+        constexpr float option_sign =
+            Side == OptionSide::call ? 1.0f : -1.0f;
+        return discounted_lognormal_option_price(row, option_sign);
     }
 };
 
@@ -88,8 +66,8 @@ void launch_black_scholes_forward_start_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = ForwardStartOptionClosedFormPricingPolicy<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = ForwardStartOptionClosedFormPricingPolicy<Side>;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -106,7 +84,7 @@ void launch_black_scholes_forward_start_option_cuda(
         device_prices,
         "black_scholes.forward_start_option",
         option_side_name(Side),
-        "Black-Scholes ForwardStartOption kernel"
+        "Black-Scholes Forward-Start Option kernel"
     );
 }
 
@@ -127,4 +105,4 @@ template void launch_black_scholes_forward_start_option_cuda<
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

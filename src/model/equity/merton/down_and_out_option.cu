@@ -6,7 +6,7 @@
 #include "model/equity/merton/dynamics.cu"
 #include "product/down_and_out_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<merton::DynamicsPolicy>;
@@ -80,4 +80,4 @@ template void launch_merton_down_and_out_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

@@ -6,7 +6,7 @@
 #include "model/equity/schobel_zhu/dynamics.cu"
 #include "product/forward_start_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 namespace {
 
 using Schedule = simulation::FixedStepCalendarSchedule<schobel_zhu::DynamicsPolicy, 2U>;
@@ -80,4 +80,4 @@ template void launch_schobel_zhu_forward_start_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

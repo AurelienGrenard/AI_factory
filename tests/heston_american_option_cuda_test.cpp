@@ -27,7 +27,7 @@ void require(bool condition, const char* message) {
 }
 
 struct DeviceArrays {
-    ai_factory::workbench::heston::ModelParameters* models = nullptr;
+    ai_factory::workbench::model::equity::heston::ModelParameters* models = nullptr;
     ai_factory::workbench::product::AmericanOptionParameters* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
@@ -52,7 +52,7 @@ ai_factory::workbench::longstaff_schwartz::LaunchResult price_once(
     using namespace ai_factory::workbench;
 
     const longstaff_schwartz::LaunchResult execution =
-        heston::launch_heston_american_option_cuda<Side>(
+        ai_factory::workbench::model::equity::heston::launch_heston_american_option_cuda<Side>(
             device.models,
             kRowCount,
             products.data(),
@@ -94,7 +94,7 @@ template<OptionSide Side>
 void validate_side(
     const DeviceArrays& device,
     const std::vector<
-        ai_factory::workbench::heston::ModelParameters
+        ai_factory::workbench::model::equity::heston::ModelParameters
     >& models,
     const std::vector<
         ai_factory::workbench::product::AmericanOptionParameters
@@ -188,7 +188,7 @@ int main() {
     }
     check_cuda(availability, "test cudaGetDeviceCount");
 
-    const std::vector<heston::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::equity::heston::ModelParameters> models = {
         {1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f},
         {1.0f, 0.03f, 0.00f, 0.06f, 2.0f, 0.05f, 0.40f, -0.60f},
         {1.0f, 0.01f, 0.02f, 0.03f, 1.0f, 0.06f, 0.25f, -0.50f},

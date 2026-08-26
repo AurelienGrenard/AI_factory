@@ -20,7 +20,7 @@ void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
 }
 
-black_scholes::BlackScholesSampleBounds parameter_bounds() {
+ai_factory::workbench::model::equity::black_scholes::BlackScholesSampleBounds parameter_bounds() {
     return {
         {1.0f, 1.0f},
         {0.001f, 0.08f},
@@ -53,7 +53,7 @@ std::vector<Row> generate_rows(std::size_t row_count, Launch launch) {
 }
 
 void check_terminal_grid(
-    const std::vector<black_scholes::BlackScholesTerminalSampleRow>& rows,
+    const std::vector<ai_factory::workbench::model::equity::black_scholes::BlackScholesTerminalSampleRow>& rows,
     time_grid::TimeGrid grid,
     std::uint32_t minimum_index,
     std::uint32_t maximum_index
@@ -98,9 +98,9 @@ int main() {
         720.0f / 360.0f,
     };
     const auto iid = generate_rows<
-        black_scholes::BlackScholesTerminalSampleRow
+        ai_factory::workbench::model::equity::black_scholes::BlackScholesTerminalSampleRow
     >(row_count, [&](auto* device_rows) {
-        black_scholes::launch_black_scholes_terminal_samples_cuda(
+        ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_terminal_samples_cuda(
             bounds,
             daily_maturity,
             daily_grid,
@@ -117,9 +117,9 @@ int main() {
     check_terminal_grid(iid, daily_grid, 90U, 720U);
 
     const auto replay = generate_rows<
-        black_scholes::BlackScholesTerminalSampleRow
+        ai_factory::workbench::model::equity::black_scholes::BlackScholesTerminalSampleRow
     >(row_count, [&](auto* device_rows) {
-        black_scholes::launch_black_scholes_terminal_samples_cuda(
+        ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_terminal_samples_cuda(
             bounds,
             daily_maturity,
             daily_grid,
@@ -141,9 +141,9 @@ int main() {
     );
 
     const auto packaged = generate_rows<
-        black_scholes::BlackScholesTerminalSampleRow
+        ai_factory::workbench::model::equity::black_scholes::BlackScholesTerminalSampleRow
     >(row_count, [&](auto* device_rows) {
-        black_scholes::launch_black_scholes_terminal_samples_cuda(
+        ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_terminal_samples_cuda(
             bounds,
             daily_maturity,
             daily_grid,
@@ -178,9 +178,9 @@ int main() {
         504.0f / 252.0f,
     };
     const auto trading = generate_rows<
-        black_scholes::BlackScholesTerminalSampleRow
+        ai_factory::workbench::model::equity::black_scholes::BlackScholesTerminalSampleRow
     >(row_count, [&](auto* device_rows) {
-        black_scholes::launch_black_scholes_terminal_samples_cuda(
+        ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_terminal_samples_cuda(
             bounds,
             trading_maturity,
             trading_grid,
@@ -197,7 +197,7 @@ int main() {
     check_terminal_grid(trading, trading_grid, 63U, 504U);
 
     using CalendarRow =
-        black_scholes::BlackScholesCalendarSampleRow<3U>;
+        ai_factory::workbench::model::equity::black_scholes::BlackScholesCalendarSampleRow<3U>;
     static_assert(sizeof(CalendarRow) == 10U * sizeof(float));
     const sample::RandomCalendarRules calendar_rules{
         daily_maturity,
@@ -206,7 +206,7 @@ int main() {
     const auto random_calendar = generate_rows<CalendarRow>(
         row_count,
         [&](auto* device_rows) {
-            black_scholes::launch_black_scholes_random_calendar_samples_cuda(
+            ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_random_calendar_samples_cuda(
                 bounds,
                 calendar_rules,
                 daily_grid,
@@ -253,7 +253,7 @@ int main() {
     const auto fixed_calendar = generate_rows<CalendarRow>(
         row_count,
         [&](auto* device_rows) {
-            black_scholes::launch_black_scholes_fixed_calendar_samples_cuda(
+            ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_fixed_calendar_samples_cuda(
                 bounds,
                 fixed_times,
                 daily_grid,

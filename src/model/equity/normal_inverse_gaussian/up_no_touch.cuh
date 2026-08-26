@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_normal_inverse_gaussian_up_no_touch_cuda(
@@ -29,4 +29,4 @@ void launch_normal_inverse_gaussian_up_no_touch_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

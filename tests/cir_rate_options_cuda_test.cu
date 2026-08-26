@@ -13,7 +13,7 @@
 
 namespace {
 
-namespace cir = ai_factory::workbench::model::cir;
+namespace cir = ai_factory::workbench::model::fixed_income::cir;
 namespace product = ai_factory::workbench::product;
 using ai_factory::workbench::OptionSide;
 
@@ -23,12 +23,12 @@ void require(bool condition, const char* message) {
 
 template <typename Product, typename Launcher>
 std::vector<float> launch_prices(
-    const std::vector<cir::ModelParameters>& models,
+    const std::vector<ai_factory::workbench::model::fixed_income::cir::ModelParameters>& models,
     const std::vector<Product>& products,
     Launcher launcher
 ) {
     using ai_factory::workbench::check_cuda;
-    cir::ModelParameters* device_models = nullptr;
+    ai_factory::workbench::model::fixed_income::cir::ModelParameters* device_models = nullptr;
     Product* device_products = nullptr;
     float* device_prices = nullptr;
     std::vector<float> prices(models.size());
@@ -151,7 +151,7 @@ int main() {
     check_cuda(availability, "CIR rate-option test cudaGetDeviceCount");
 
     // Row two deliberately violates Feller; row three has a narrow diffusion.
-    const std::vector<cir::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::fixed_income::cir::ModelParameters> models = {
         {{0.60f, 0.04f, 0.15f}, 0.03f},
         {{0.05f, 0.015f, 0.12f}, 0.001f},
         {{1.50f, 0.10f, 0.05f}, 0.20f},
@@ -170,22 +170,22 @@ int main() {
     const std::vector<float> calls = launch_prices(
         models,
         bond_options,
-        cir::launch_cir_zero_coupon_bond_option_cuda<OptionSide::call>
+        ai_factory::workbench::model::fixed_income::cir::launch_cir_zero_coupon_bond_option_cuda<OptionSide::call>
     );
     const std::vector<float> puts = launch_prices(
         models,
         bond_options,
-        cir::launch_cir_zero_coupon_bond_option_cuda<OptionSide::put>
+        ai_factory::workbench::model::fixed_income::cir::launch_cir_zero_coupon_bond_option_cuda<OptionSide::put>
     );
     const std::vector<float> caplets = launch_prices(
         models,
         rate_options,
-        cir::launch_cir_rate_option_cuda<OptionSide::call>
+        ai_factory::workbench::model::fixed_income::cir::launch_cir_rate_option_cuda<OptionSide::call>
     );
     const std::vector<float> floorlets = launch_prices(
         models,
         rate_options,
-        cir::launch_cir_rate_option_cuda<OptionSide::put>
+        ai_factory::workbench::model::fixed_income::cir::launch_cir_rate_option_cuda<OptionSide::put>
     );
 
     compare(

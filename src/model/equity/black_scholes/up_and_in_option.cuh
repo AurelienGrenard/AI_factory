@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 template<OptionSide Side>
@@ -31,4 +31,4 @@ void launch_black_scholes_up_and_in_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

@@ -1,8 +1,10 @@
+#pragma once
+
 #include "model/equity/cev/dynamics.cuh"
 
 #include <cmath>
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 
 // ======================== Common equity dynamics =========================
 
@@ -96,4 +98,4 @@ __device__ __forceinline__ float DynamicsPolicy::log_spot(
     return logf(state.spot);
 }
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

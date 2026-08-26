@@ -1,8 +1,10 @@
+#pragma once
+
 #include "model/equity/schobel_zhu/dynamics.cuh"
 
 #include <cmath>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 
 // ======================== Common equity dynamics =========================
 
@@ -13,14 +15,14 @@ __device__ __forceinline__ PreparedModel prepare_model(
     float delta_t
 ) {
     const float sqrt_dt = sqrtf(delta_t);
-    const float exp_mean_reversion_dt = expf(
+    const float volatility_decay = expf(
         -parameters.mean_reversion * delta_t
     );
     const float endpoint_variance =
-        (1.0f - exp_mean_reversion_dt * exp_mean_reversion_dt)
+        (1.0f - volatility_decay * volatility_decay)
         / (2.0f * parameters.mean_reversion);
     const float endpoint_increment_correlation =
-        (1.0f - exp_mean_reversion_dt)
+        (1.0f - volatility_decay)
         / (
             parameters.mean_reversion
             * sqrtf(delta_t * endpoint_variance)
@@ -34,7 +36,7 @@ __device__ __forceinline__ PreparedModel prepare_model(
         logf(parameters.spot),
         parameters.initial_volatility,
         parameters.long_run_volatility,
-        exp_mean_reversion_dt,
+        volatility_decay,
         parameters.volatility_of_volatility * sqrtf(endpoint_variance),
         clamped_endpoint_correlation,
         sqrtf(
@@ -86,8 +88,8 @@ __device__ __forceinline__ void one_step_transition(
     state.volatility =
         prepared_model.long_run_volatility
         + (volatility - prepared_model.long_run_volatility)
-            * prepared_model.exp_mean_reversion_dt
-        + prepared_model.ou_std * ou_normal;
+            * prepared_model.volatility_decay
+        + prepared_model.volatility_standard_deviation * ou_normal;
 }
 
 // ==================== Model-specific implementation =======================
@@ -97,17 +99,17 @@ namespace {
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normals,
+    philox::NormalPairCache& normal_cache,
     State& state
 ) {
-    const float ou_normal = philox::next_normal(uniforms, normals);
+    const float ou_normal = philox::next_normal(uniforms, normal_cache);
     const float increment_residual_normal = philox::next_normal(
         uniforms,
-        normals
+        normal_cache
     );
     const float asset_residual_normal = philox::next_normal(
         uniforms,
-        normals
+        normal_cache
     );
     one_step_transition(
         prepared_model,
@@ -169,4 +171,4 @@ __device__ __forceinline__ float DynamicsPolicy::log_spot(
     return state.log_spot;
 }
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

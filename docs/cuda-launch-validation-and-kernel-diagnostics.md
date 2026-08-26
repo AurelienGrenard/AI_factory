@@ -183,12 +183,20 @@ doit être exactement celle utilisée par l'expression `<<<...>>>` suivante.
 5. lancer le même kernel avec la même géométrie ;
 6. appeler `check_cuda(cudaGetLastError(), ...)`.
 
-Le launcher analytique commun applique cet ordre à deux spécialisations du
-même template. Il inspecte et lance `closed_form_price_kernel<Pricing, false>`
+Le launcher analytique scalaire commun applique cet ordre à deux spécialisations
+du même template. Il inspecte et lance
+`closed_form_price_kernel<PricingPolicy, false>`
 si la grille couvre tout le batch ; sinon il inspecte et lance
-`closed_form_price_kernel<Pricing, true>`, dont la boucle est grid-stride. Le
-pointeur transmis au diagnostic reste donc toujours celui de la spécialisation
-effectivement exécutée.
+`closed_form_price_kernel<PricingPolicy, true>`, dont la boucle est grid-stride.
+Le pointeur transmis au diagnostic reste donc toujours celui de la
+spécialisation effectivement exécutée.
+
+Le launcher analytique coopératif suit le même ordre avec un bloc par prix et
+une boucle block-stride. Il calcule la mémoire partagée dynamique à partir de la
+capacité hôte, vérifie `maxDynamicSharedSizeBytes` puis exige au moins un bloc
+résident avec `cudaOccupancyMaxActiveBlocksPerMultiprocessor`. Si l'une de ces
+deux contraintes matérielles échoue, il ne lance rien et rend la main au
+launcher produit, qui sélectionne explicitement son chemin scalaire de repli.
 
 Les entrées modèle-produit et modèle-courbe-produit sont validées par leur
 `DeviceInputs::validate(result_count)`. Un contexte supplémentaire, comme un

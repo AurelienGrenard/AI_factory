@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::g2_plus_plus {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus {
 
 // Parse and validate centered G2++ rows in their dataset order.
 std::vector<ModelParameters> load_models(
@@ -73,4 +73,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus

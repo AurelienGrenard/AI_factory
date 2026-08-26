@@ -3,6 +3,7 @@
 
 #include "model/fixed_income/g2/analytics.cuh"
 
+#include "common/fixed_income/analytics_concepts.cuh"
 #include "common/fixed_income/cashflows.cuh"
 #include "common/fixed_income/gaussian_bond_option.cuh"
 
@@ -11,31 +12,35 @@
 
 #include <cuda_runtime.h>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // ======================= Model-specific analytics =========================
 
-// Add both Gaussian factor states to reconstruct the short rate.
-__device__ __forceinline__ float short_rate(const State& state) {
+__device__ __forceinline__ float stochastic_short_rate(const State& state) {
     return state.state_x + state.state_y;
+}
+
+// Add both Gaussian factor states to reconstruct the short rate.
+__device__ __forceinline__ float short_rate(
+    const ModelParameters& parameters,
+    const State& state,
+    float time
+) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
+    return stochastic_short_rate(state);
 }
 
 // ==================== Model-specific implementation =======================
 
-namespace {
-
-struct AffineBondCoefficients {
-    float log_A;
-    G2BondLoadings B;
-};
-
 // Compute log(A), B_x, and B_y from one shared integral-moment evaluation.
-__device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
+__device__ __forceinline__ TwoFactorAffineBondCoefficients
+affine_bond_coefficients(
     const ProcessParameters& parameters,
-    float delta
+    float time_to_maturity
 ) {
     const IntegralMoments moments = integral_moments(
-        parameters, delta
+        parameters, time_to_maturity
     );
     return {
         0.5f * moments.variance,
@@ -46,7 +51,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
 // Return the conditional covariance matrix of both future factor states.
 __device__ __forceinline__ void state_covariances(
     const ProcessParameters& parameters,
-    float delta,
+    float time_to_expiry,
     float& variance_x,
     float& variance_y,
     float& covariance_xy
@@ -54,12 +59,12 @@ __device__ __forceinline__ void state_covariances(
     const float a = parameters.mean_reversion_x;
     const float b = parameters.mean_reversion_y;
     variance_x = parameters.volatility_x * parameters.volatility_x
-        * (-expm1f(-2.0f * a * delta)) / (2.0f * a);
+        * (-expm1f(-2.0f * a * time_to_expiry)) / (2.0f * a);
     variance_y = parameters.volatility_y * parameters.volatility_y
-        * (-expm1f(-2.0f * b * delta)) / (2.0f * b);
+        * (-expm1f(-2.0f * b * time_to_expiry)) / (2.0f * b);
     covariance_xy = parameters.correlation
         * parameters.volatility_x * parameters.volatility_y
-        * (-expm1f(-(a + b) * delta)) / (a + b);
+        * (-expm1f(-(a + b) * time_to_expiry)) / (a + b);
 }
 
 // Return the total log-forward volatility of one bond option.
@@ -98,7 +103,51 @@ __device__ __forceinline__ float bond_option_total_volatility(
     return sqrtf(fmaxf(variance, 0.0f));
 }
 
+namespace {
+
+using BondOptionContext =
+    ::ai_factory::workbench::fixed_income::GaussianBondOptionDiscountContext;
+
+__device__ __forceinline__ BondOptionContext prepare_bond_option_context(
+    const ModelParameters& parameters,
+    const State& state,
+    float valuation_time,
+    float option_expiry
+) {
+    const float expiry_log_bond = log_zero_coupon_bond(
+        parameters, state, valuation_time, option_expiry
+    );
+    return {expiry_log_bond, expf(expiry_log_bond)};
+}
+
 // Price a call (+1) or put (-1) with one shared Black-style expression.
+__device__ __forceinline__ float zero_coupon_bond_option_price(
+    const BondOptionContext& context,
+    const ModelParameters& parameters,
+    const State& state,
+    float option_sign,
+    float valuation_time,
+    float option_expiry,
+    float bond_maturity,
+    float strike
+) {
+    const float underlying_log_bond = log_zero_coupon_bond(
+        parameters, state, valuation_time, bond_maturity
+    );
+    const float total_volatility = bond_option_total_volatility(
+        parameters.process,
+        option_expiry - valuation_time,
+        bond_maturity - option_expiry
+    );
+    return ::ai_factory::workbench::fixed_income::discounted_lognormal_bond_option_price(
+        context,
+        underlying_log_bond,
+        total_volatility,
+        strike,
+        option_sign
+    );
+}
+
 __device__ __forceinline__ float zero_coupon_bond_option_price(
     const ModelParameters& parameters,
     const State& state,
@@ -108,27 +157,19 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     float bond_maturity,
     float strike
 ) {
-    const float expiry_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, option_expiry
-    );
-    const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, bond_maturity
-    );
-    const float expiry_bond = expf(expiry_log_bond);
-    const float total_volatility = bond_option_total_volatility(
-        parameters.process,
-        option_expiry - valuation_time,
-        bond_maturity - option_expiry
-    );
-    return fixed_income::discounted_lognormal_bond_option_price(
-        {expiry_log_bond, expiry_bond},
-        underlying_log_bond,
-        total_volatility,
-        strike,
-        option_sign
+    return zero_coupon_bond_option_price(
+        prepare_bond_option_context(
+            parameters, state, valuation_time, option_expiry
+        ),
+        parameters,
+        state,
+        option_sign,
+        valuation_time,
+        option_expiry,
+        bond_maturity,
+        strike
     );
 }
-
 
 // Bind the two-factor bond function to common cashflow formulas.
 struct AnalyticsProvider {
@@ -142,7 +183,56 @@ struct AnalyticsProvider {
             parameters, state, valuation_time, maturity
         );
     }
+
+    __device__ __forceinline__ BondOptionContext
+    prepare_bond_option_context(
+        const ModelParameters& parameters,
+        const State& state,
+        float valuation_time,
+        float option_expiry
+    ) const {
+        return g2::prepare_bond_option_context(
+            parameters, state, valuation_time, option_expiry
+        );
+    }
+
+    __device__ __forceinline__ float bond_option_price(
+        const BondOptionContext& context,
+        const ModelParameters& parameters,
+        const State& state,
+        float option_sign,
+        float valuation_time,
+        float option_expiry,
+        float bond_maturity,
+        float strike
+    ) const {
+        return g2::zero_coupon_bond_option_price(
+            context,
+            parameters,
+            state,
+            option_sign,
+            valuation_time,
+            option_expiry,
+            bond_maturity,
+            strike
+        );
+    }
 };
+
+static_assert(
+    ::ai_factory::workbench::fixed_income::ZeroCouponBondProvider<
+        AnalyticsProvider,
+        ModelParameters,
+        State
+    >
+);
+static_assert(
+    ::ai_factory::workbench::fixed_income::BondOptionProvider<
+        AnalyticsProvider,
+        ModelParameters,
+        State
+    >
+);
 
 }  // namespace
 
@@ -169,7 +259,7 @@ __device__ __forceinline__ float A(
 }
 
 // Return both factor loadings in one value.
-__device__ __forceinline__ G2BondLoadings B(
+__device__ __forceinline__ TwoFactorAffineBondLoadings B(
     const ModelParameters& parameters,
     float valuation_time,
     float maturity
@@ -192,7 +282,7 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    const AffineBondCoefficients coefficients = affine_bond_coefficients(
+    const TwoFactorAffineBondCoefficients coefficients = affine_bond_coefficients(
         parameters.process, maturity - valuation_time
     );
     return fmaf(
@@ -208,16 +298,22 @@ __device__ __forceinline__ float log_zero_coupon_bond(
 
 // The joint integral is the accumulated standalone G2 short rate.
 __device__ __forceinline__ float log_discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
     return -state_integral;
 }
 
 // Exponentiate the accumulated rate integral only when required.
 __device__ __forceinline__ float discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
-    return expf(log_discount_factor(state_integral));
+    return expf(log_discount_factor(parameters, state_integral, time));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
@@ -279,16 +375,16 @@ __device__ __forceinline__ float forward_rate(
     float valuation_time,
     float start_time,
     float end_time,
-    float accrual_period
+    float accrual_fraction
 ) {
-    return fixed_income::forward_rate(
+    return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider{},
         parameters,
         state,
         valuation_time,
         start_time,
         end_time,
-        accrual_period
+        accrual_fraction
     );
 }
 
@@ -300,7 +396,7 @@ __device__ __forceinline__ float swap_rate(
     float start_time,
     const ScheduleView& schedule
 ) {
-    return fixed_income::swap_rate(
+    return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider{},
         parameters,
         state,
@@ -310,4 +406,24 @@ __device__ __forceinline__ float swap_rate(
     );
 }
 
-}  // namespace ai_factory::workbench::model::g2
+template<typename ScheduleView>
+__device__ __forceinline__ float payer_swap_value(
+    const ModelParameters& parameters,
+    const State& state,
+    float valuation_time,
+    float start_time,
+    float fixed_rate,
+    const ScheduleView& schedule
+) {
+    return ::ai_factory::workbench::fixed_income::payer_swap_value(
+        AnalyticsProvider{},
+        parameters,
+        state,
+        valuation_time,
+        start_time,
+        fixed_rate,
+        schedule
+    );
+}
+
+}  // namespace ai_factory::workbench::model::fixed_income::g2

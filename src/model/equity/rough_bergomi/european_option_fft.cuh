@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Caller-owned scratch reused sequentially by every result row.
 struct RoughBergomiFftWorkspacePlan {
@@ -50,4 +50,4 @@ void launch_rough_bergomi_european_option_fft_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

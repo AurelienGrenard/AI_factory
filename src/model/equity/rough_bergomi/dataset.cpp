@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Parse and validate rough-Bergomi rows while preserving dataset order.
 std::vector<RoughBergomiModelParameters> load_models(
@@ -94,4 +94,4 @@ std::vector<RoughBergomiModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

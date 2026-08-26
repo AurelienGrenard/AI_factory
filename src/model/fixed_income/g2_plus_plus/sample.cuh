@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::g2_plus_plus {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus {
 
 void launch_g2_plus_plus_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -38,4 +38,4 @@ void launch_g2_plus_plus_calendar_samples_cuda(
     float* device_states_y
 );
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus

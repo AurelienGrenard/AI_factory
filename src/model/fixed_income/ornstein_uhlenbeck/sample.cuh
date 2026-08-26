@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 void launch_ornstein_uhlenbeck_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -36,4 +36,4 @@ void launch_ornstein_uhlenbeck_calendar_samples_cuda(
     float* device_states
 );
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

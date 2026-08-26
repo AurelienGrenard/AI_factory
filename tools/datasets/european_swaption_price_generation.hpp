@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,22 @@ namespace ai_factory::workbench::datasets {
 
 inline constexpr unsigned int kEuropeanSwaptionThreadsPerBlock = 256U;
 inline constexpr float kEuropeanSwaptionTimeDayFraction = 1.0f / 252.0f;
+
+enum class EuropeanSwaptionWorkDistribution {
+    one_price_per_thread,
+    one_price_per_block,
+};
+
+struct EuropeanSwaptionGenerationConfiguration {
+    unsigned int threads_per_block;
+    EuropeanSwaptionWorkDistribution work_distribution;
+};
+
+inline constexpr EuropeanSwaptionGenerationConfiguration
+kDefaultEuropeanSwaptionGenerationConfiguration{
+    kEuropeanSwaptionThreadsPerBlock,
+    EuropeanSwaptionWorkDistribution::one_price_per_thread,
+};
 
 // Price one aligned model/product dataset and serialize its native CUDA output.
 template<typename Model, typename Launcher>
@@ -32,15 +49,26 @@ void generate_regular_european_swaption_prices(
     const std::filesystem::path& catalog_path,
     const std::string& url,
     const std::string& numerical_method,
-    const std::string& cuda_label
+    const std::string& cuda_label,
+    EuropeanSwaptionGenerationConfiguration configuration =
+        kDefaultEuropeanSwaptionGenerationConfiguration
 ) {
+    if (configuration.threads_per_block == 0U) {
+        throw std::invalid_argument(
+            "European swaption generation requires a positive block size."
+        );
+    }
     constexpr PriceConstruction construction = PriceConstruction::Aligned;
     const auto& products = product_dataset.products;
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
     );
-    const auto block_count_for = [](std::size_t row_count) {
-        return (row_count - 1U) / kEuropeanSwaptionThreadsPerBlock + 1U;
+    const auto block_count_for = [&](std::size_t row_count) {
+        if (configuration.work_distribution
+            == EuropeanSwaptionWorkDistribution::one_price_per_block) {
+            return row_count;
+        }
+        return (row_count - 1U) / configuration.threads_per_block + 1U;
     };
     const std::size_t block_count = block_count_for(result_count);
     std::vector<float> prices(result_count);
@@ -101,7 +129,7 @@ void generate_regular_european_swaption_prices(
             0U,
             warmup_count,
             kEuropeanSwaptionTimeDayFraction,
-            kEuropeanSwaptionThreadsPerBlock,
+            configuration.threads_per_block,
             block_count_for(warmup_count),
             device_prices
         );
@@ -126,7 +154,7 @@ void generate_regular_european_swaption_prices(
             0U,
             result_count,
             kEuropeanSwaptionTimeDayFraction,
-            kEuropeanSwaptionThreadsPerBlock,
+            configuration.threads_per_block,
             block_count,
             device_prices
         );
@@ -180,9 +208,15 @@ void generate_regular_european_swaption_prices(
         numerical_method,
         nlohmann::ordered_json{
             {"block_count", block_count},
-            {"threads_per_block", kEuropeanSwaptionThreadsPerBlock},
+            {"threads_per_block", configuration.threads_per_block},
             {"kernel_launch_count", 1U},
-            {"work_distribution", "one price per thread"},
+            {
+                "work_distribution",
+                configuration.work_distribution
+                    == EuropeanSwaptionWorkDistribution::one_price_per_block
+                    ? "one price per block"
+                    : "one price per thread"
+            },
         },
         wall_seconds,
         kernel_seconds
@@ -204,15 +238,26 @@ void generate_regular_european_swaption_prices(
     const std::filesystem::path& catalog_path,
     const std::string& url,
     const std::string& numerical_method,
-    const std::string& cuda_label
+    const std::string& cuda_label,
+    EuropeanSwaptionGenerationConfiguration configuration =
+        kDefaultEuropeanSwaptionGenerationConfiguration
 ) {
+    if (configuration.threads_per_block == 0U) {
+        throw std::invalid_argument(
+            "European swaption generation requires a positive block size."
+        );
+    }
     constexpr PriceConstruction construction = PriceConstruction::Aligned;
     const auto& products = product_dataset.products;
     const std::size_t result_count = price_row_count(
         models.size(), curves.size(), products.size(), construction
     );
-    const auto block_count_for = [](std::size_t row_count) {
-        return (row_count - 1U) / kEuropeanSwaptionThreadsPerBlock + 1U;
+    const auto block_count_for = [&](std::size_t row_count) {
+        if (configuration.work_distribution
+            == EuropeanSwaptionWorkDistribution::one_price_per_block) {
+            return row_count;
+        }
+        return (row_count - 1U) / configuration.threads_per_block + 1U;
     };
     const std::size_t block_count = block_count_for(result_count);
     std::vector<float> prices(result_count);
@@ -290,7 +335,7 @@ void generate_regular_european_swaption_prices(
             0U,
             warmup_count,
             kEuropeanSwaptionTimeDayFraction,
-            kEuropeanSwaptionThreadsPerBlock,
+            configuration.threads_per_block,
             block_count_for(warmup_count),
             device_prices
         );
@@ -317,7 +362,7 @@ void generate_regular_european_swaption_prices(
             0U,
             result_count,
             kEuropeanSwaptionTimeDayFraction,
-            kEuropeanSwaptionThreadsPerBlock,
+            configuration.threads_per_block,
             block_count,
             device_prices
         );
@@ -374,9 +419,15 @@ void generate_regular_european_swaption_prices(
         numerical_method,
         nlohmann::ordered_json{
             {"block_count", block_count},
-            {"threads_per_block", kEuropeanSwaptionThreadsPerBlock},
+            {"threads_per_block", configuration.threads_per_block},
             {"kernel_launch_count", 1U},
-            {"work_distribution", "one price per thread"},
+            {
+                "work_distribution",
+                configuration.work_distribution
+                    == EuropeanSwaptionWorkDistribution::one_price_per_block
+                    ? "one price per block"
+                    : "one price per thread"
+            },
         },
         wall_seconds,
         kernel_seconds

@@ -6,7 +6,7 @@
 #include "model/equity/kou/dynamics.cu"
 #include "product/phoenix_memory_autocall/pricing_policy.cuh"
 
-namespace ai_factory::workbench::kou {
+namespace ai_factory::workbench::model::equity::kou {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<kou::DynamicsPolicy>;
@@ -60,4 +60,4 @@ void launch_kou_phoenix_memory_autocall_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::kou
+}  // namespace ai_factory::workbench::model::equity::kou

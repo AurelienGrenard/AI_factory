@@ -3,7 +3,7 @@
 
 #include "model/fixed_income/cir/dynamics.cuh"
 
-namespace ai_factory::workbench::model::cir {
+namespace ai_factory::workbench::model::fixed_income::cir {
 
 __device__ __forceinline__ PreparedModel prepare_model(
     const ProcessParameters& parameters
@@ -19,168 +19,79 @@ __device__ __forceinline__ PreparedModel prepare_model(
 }
 
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const PreparedModel& model,
+    const PreparedModel& prepared_model,
     float delta_t
 ) {
-    const float one_minus_decay = -expm1f(-model.mean_reversion * delta_t);
-    return {1.0f - one_minus_decay, model.scale_rate * one_minus_decay};
+    const float one_minus_decay = -expm1f(-prepared_model.mean_reversion * delta_t);
+    return {1.0f - one_minus_decay, prepared_model.scale_rate * one_minus_decay};
 }
 
-__device__ __forceinline__ void prepare_calendar(
-    const PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
-        transitions[interval] = prepare_transition(
-            model, static_cast<float>(interval_steps[interval]) * delta_t
-        );
-    }
+    return prepared_model.initial_state;
 }
 
 __device__ __forceinline__ void one_step_transition(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    float& state
+    State& state
 ) {
     state = philox::scaled_noncentral_chi_square(
         uniforms,
         normal_cache,
-        model.degrees_of_freedom,
-        transition.decay * state / transition.scale,
-        transition.scale
+        prepared_model.degrees_of_freedom,
+        prepared_transition.state_decay * state / prepared_transition.scale,
+        prepared_transition.scale
     );
-}
-
-__device__ __forceinline__ float initial_state(
-    const PreparedModel& model
-) {
-    return model.initial_state;
 }
 
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
     philox::NormalPairCache& normal_cache,
-    float& state
+    State& state
 ) {
-    one_step_transition(model, transition, uniforms, normal_cache, state);
-}
-
-}  // namespace
-
-__device__ __forceinline__ float simulate_terminal_state(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-) {
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    simulate_one_step(
-        model, transition, uniforms, normal_cache, initial_state
-    );
-    return initial_state;
-}
-
-__device__ __forceinline__ float simulate_on_calendar(
-    const PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
-) {
-    float state = initial_state;
-    if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    for (std::uint32_t observation = 0U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(
-            model, transitions[observation], uniforms, normal_cache, state
-        );
-        observed_states[
-            static_cast<std::size_t>(observation) * observation_stride
-        ] = state;
-    }
-    simulate_one_step(
-        model,
-        transitions[observation_count - 1U],
+    one_step_transition(
+        prepared_model,
+        prepared_transition,
         uniforms,
         normal_cache,
         state
     );
-    return state;
 }
 
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
-) {
-    float state = initial_state;
-    if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normal_cache;
-    simulate_one_step(
-        model, initial_stub_transition, uniforms, normal_cache, state
-    );
-    if (observation_count == 1U) return state;
-    observed_states[0U] = state;
-    for (std::uint32_t observation = 1U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(
-            model, regular_transition, uniforms, normal_cache, state
-        );
-        observed_states[
-            static_cast<std::size_t>(observation) * observation_stride
-        ] = state;
-    }
-    simulate_one_step(
-        model, regular_transition, uniforms, normal_cache, state
-    );
-    return state;
-}
+}  // namespace
 
 __device__ __forceinline__ DynamicsPolicy::PreparedDynamics
 DynamicsPolicy::prepare_dynamics(
     const Parameters& parameters, float delta_t
 ) {
-    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
-    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+    const PreparedModel prepared_model =
+        DynamicsPolicy::prepare_model(parameters);
+    return {
+        prepared_model,
+        DynamicsPolicy::prepare_transition(prepared_model, delta_t),
+    };
 }
 
 __device__ __forceinline__ DynamicsPolicy::PreparedModel
 DynamicsPolicy::prepare_model(const Parameters& parameters) {
-    PreparedModel model = cir::prepare_model(parameters.process);
-    model.initial_state = parameters.initial_state;
-    return model;
+    PreparedModel prepared_model = cir::prepare_model(parameters.process);
+    prepared_model.initial_state = parameters.initial_state;
+    return prepared_model;
 }
 
 __device__ __forceinline__ DynamicsPolicy::PreparedTransition
 DynamicsPolicy::prepare_transition(
-    const PreparedModel& model, float delta_t
+    const PreparedModel& prepared_model, float delta_t
 ) {
-    return cir::prepare_transition(model, delta_t);
+    return cir::prepare_transition(prepared_model, delta_t);
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
@@ -189,8 +100,8 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
-DynamicsPolicy::initial_state(const PreparedModel& model) {
-    return cir::initial_state(model);
+DynamicsPolicy::initial_state(const PreparedModel& prepared_model) {
+    return cir::initial_state(prepared_model);
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
@@ -215,14 +126,116 @@ __device__ __forceinline__ void DynamicsPolicy::advance(
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     RandomContext& random,
     State& state
 ) {
-    cir::one_step_transition(
-        model, transition, random.uniforms, random.normals, state
+    cir::simulate_one_step(
+        prepared_model, prepared_transition, random.uniforms, random.normals, state
     );
 }
 
-}  // namespace ai_factory::workbench::model::cir
+namespace joint {
+
+__device__ __forceinline__ PreparedTransition prepare_transition(
+    const cir::PreparedModel& prepared_model,
+    float delta_t
+) {
+    return {
+        cir::prepare_transition(prepared_model, delta_t),
+        0.5f * delta_t,
+    };
+}
+
+__device__ __forceinline__ State initial_state(
+    const cir::PreparedModel& prepared_model
+) {
+    return {cir::initial_state(prepared_model), 0.0f};
+}
+
+__device__ __forceinline__ void one_step_transition(
+    const cir::PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    State& state
+) {
+    const float previous_state = state.state;
+    cir::one_step_transition(
+        prepared_model,
+        prepared_transition.state_transition,
+        uniforms,
+        normal_cache,
+        state.state
+    );
+    state.state_integral = fmaf(
+        prepared_transition.integral_trapezoid_scale,
+        previous_state + state.state,
+        state.state_integral
+    );
+}
+
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const cir::PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    State& state
+) {
+    one_step_transition(
+        prepared_model,
+        prepared_transition,
+        uniforms,
+        normal_cache,
+        state
+    );
+}
+
+}  // namespace
+
+__device__ __forceinline__ DynamicsPolicy::PreparedDynamics
+DynamicsPolicy::prepare_dynamics(
+    const Parameters& parameters,
+    float delta_t
+) {
+    const cir::PreparedModel prepared_model =
+        cir::DynamicsPolicy::prepare_model(parameters);
+    return {prepared_model, joint::prepare_transition(prepared_model, delta_t)};
+}
+
+__device__ __forceinline__ DynamicsPolicy::State
+DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
+    return joint::initial_state(dynamics.model);
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    joint::simulate_one_step(
+        dynamics.model,
+        dynamics.transition,
+        random.uniforms,
+        random.normals,
+        state
+    );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::advance(
+    const PreparedDynamics& dynamics,
+    std::uint32_t step_count,
+    RandomContext& random,
+    State& state
+) {
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
+        DynamicsPolicy::simulate_one_step(dynamics, random, state);
+    }
+}
+
+}  // namespace joint
+
+}  // namespace ai_factory::workbench::model::fixed_income::cir

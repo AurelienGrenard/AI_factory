@@ -19,24 +19,27 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
 namespace {
 
-using CirModel = ai_factory::workbench::model::cir::ModelParameters;
+using CirModel = ai_factory::workbench::model::fixed_income::cir::ModelParameters;
 using HullWhiteModel =
-    ai_factory::workbench::model::hull_white::ModelParameters;
+    ai_factory::workbench::model::fixed_income::hull_white::ModelParameters;
 using NelsonSiegelCurve =
     ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters;
-using OrnsteinUhlenbeckModel = ai_factory::workbench::model::
+using OrnsteinUhlenbeckModel = ai_factory::workbench::model::fixed_income::
     ornstein_uhlenbeck::ModelParameters;
 using Product =
     ai_factory::workbench::product::RegularEuropeanSwaptionParameters;
+using ExplicitProduct =
+    ai_factory::workbench::product::ExplicitEuropeanSwaptionParameters;
 using SvenssonCurve =
     ai_factory::workbench::curve::svensson::SvenssonParameters;
 using VasicekModel =
-    ai_factory::workbench::model::vasicek::ModelParameters;
+    ai_factory::workbench::model::fixed_income::vasicek::ModelParameters;
 
 template<typename Model>
 using RegularTwoInputLauncher = void (*)(
@@ -63,19 +66,52 @@ void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
 }
 
+template<
+    ai_factory::workbench::SwaptionSide Side,
+    typename ProductParameters,
+    typename ScheduleSource
+>
+__global__ void cir_scalar_swaption_reference_kernel(
+    const CirModel* models,
+    const ProductParameters* products,
+    ScheduleSource schedule_source,
+    float time_day_fraction,
+    float* prices
+) {
+    if (blockIdx.x != 0U || threadIdx.x != 0U) return;
+    namespace cir =
+        ai_factory::workbench::model::fixed_income::cir;
+    namespace product = ai_factory::workbench::product;
+    const auto schedule = product::make_european_swaption_schedule_view(
+        products[0],
+        schedule_source,
+        time_day_fraction
+    );
+    const float exercise_time =
+        static_cast<float>(products[0].exercise_time) * time_day_fraction;
+    prices[0] = products[0].notional * cir::european_swaption_price<Side>(
+        models[0],
+        models[0].initial_state,
+        0.0f,
+        exercise_time,
+        products[0].strike,
+        schedule
+    );
+}
+
 // Compare regular reconstruction with the same explicitly materialized leg.
 __global__ void schedule_view_equivalence_kernel(float* differences) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
 
-    namespace cir = ai_factory::workbench::model::cir;
+    namespace cir = ai_factory::workbench::model::fixed_income::cir;
     namespace hw_ns =
-        ai_factory::workbench::model::hull_white::nelson_siegel;
+        ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel;
     namespace hw_sv =
-        ai_factory::workbench::model::hull_white::svensson;
+        ai_factory::workbench::model::fixed_income::hull_white::svensson;
     namespace ou =
-        ai_factory::workbench::model::ornstein_uhlenbeck;
+        ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck;
     namespace product = ai_factory::workbench::product;
-    namespace vasicek = ai_factory::workbench::model::vasicek;
+    namespace vasicek = ai_factory::workbench::model::fixed_income::vasicek;
 
     constexpr float day_fraction = 1.0f / 252.0f;
     constexpr float exercise_time = 1.0f;
@@ -121,21 +157,21 @@ __global__ void schedule_view_equivalence_kernel(float* differences) {
         {0.10f, 0.030f, 0.010f}, 0.025f,
     };
     differences[2] = fabsf(
-        vasicek::european_payer_swaption_price(
+        ai_factory::workbench::model::fixed_income::vasicek::european_payer_swaption_price(
             vasicek_model, vasicek_model.initial_state, 0.0f,
             exercise_time, strike, regular
         )
-        - vasicek::european_payer_swaption_price(
+        - ai_factory::workbench::model::fixed_income::vasicek::european_payer_swaption_price(
             vasicek_model, vasicek_model.initial_state, 0.0f,
             exercise_time, strike, explicit_schedule
         )
     );
     differences[3] = fabsf(
-        vasicek::european_receiver_swaption_price(
+        ai_factory::workbench::model::fixed_income::vasicek::european_receiver_swaption_price(
             vasicek_model, vasicek_model.initial_state, 0.0f,
             exercise_time, strike, regular
         )
-        - vasicek::european_receiver_swaption_price(
+        - ai_factory::workbench::model::fixed_income::vasicek::european_receiver_swaption_price(
             vasicek_model, vasicek_model.initial_state, 0.0f,
             exercise_time, strike, explicit_schedule
         )
@@ -145,21 +181,21 @@ __global__ void schedule_view_equivalence_kernel(float* differences) {
         {0.60f, 0.040f, 0.15f}, 0.030f,
     };
     differences[4] = fabsf(
-        cir::european_payer_swaption_price(
+        ai_factory::workbench::model::fixed_income::cir::european_payer_swaption_price(
             cir_model, cir_model.initial_state, 0.0f,
             exercise_time, strike, regular
         )
-        - cir::european_payer_swaption_price(
+        - ai_factory::workbench::model::fixed_income::cir::european_payer_swaption_price(
             cir_model, cir_model.initial_state, 0.0f,
             exercise_time, strike, explicit_schedule
         )
     );
     differences[5] = fabsf(
-        cir::european_receiver_swaption_price(
+        ai_factory::workbench::model::fixed_income::cir::european_receiver_swaption_price(
             cir_model, cir_model.initial_state, 0.0f,
             exercise_time, strike, regular
         )
-        - cir::european_receiver_swaption_price(
+        - ai_factory::workbench::model::fixed_income::cir::european_receiver_swaption_price(
             cir_model, cir_model.initial_state, 0.0f,
             exercise_time, strike, explicit_schedule
         )
@@ -169,7 +205,7 @@ __global__ void schedule_view_equivalence_kernel(float* differences) {
     const NelsonSiegelCurve nelson_siegel_curve = {
         0.030f, -0.010f, 0.015f, 1.50f,
     };
-    const auto nelson_siegel_model = hw_ns::compose_model(
+    const auto nelson_siegel_model = hw_ns::compose_fitted_model(
         hull_white_model, nelson_siegel_curve
     );
     differences[6] = fabsf(
@@ -196,7 +232,7 @@ __global__ void schedule_view_equivalence_kernel(float* differences) {
     const SvenssonCurve svensson_curve = {
         0.030f, -0.010f, 0.015f, -0.005f, 1.50f, 4.00f,
     };
-    const auto svensson_model = hw_sv::compose_model(
+    const auto svensson_model = hw_sv::compose_fitted_model(
         hull_white_model, svensson_curve
     );
     differences[8] = fabsf(
@@ -563,6 +599,362 @@ void append_product(
     fixtures.products.push_back(product);
 }
 
+std::uint32_t maximum_payment_count(const ProductFixtures& fixtures) {
+    std::uint32_t maximum = 0U;
+    for (const Product& product : fixtures.products) {
+        maximum = std::max(maximum, product.payment_count);
+    }
+    return maximum;
+}
+
+float read_device_price(float* device_price, const char* operation) {
+    float price = 0.0f;
+    ai_factory::workbench::check_cuda(
+        cudaMemcpy(
+            &price,
+            device_price,
+            sizeof(float),
+            cudaMemcpyDeviceToHost
+        ),
+        operation
+    );
+    return price;
+}
+
+// Compare cooperative CIR pricing with the scalar formula on a long leg.
+void check_cir_long_schedule() {
+    using ai_factory::workbench::SwaptionSide;
+    namespace cir =
+        ai_factory::workbench::model::fixed_income::cir;
+    namespace product = ai_factory::workbench::product;
+
+    const CirModel model = {
+        {0.60f, 0.040f, 0.15f},
+        0.030f,
+    };
+    Product contract{};
+    contract.notional = 1.0f;
+    contract.strike = 0.035f;
+    contract.accrual_fraction = 1.0f / 12.0f;
+    contract.exercise_time = 1260U;
+    contract.payment_interval = 21U;
+    contract.payment_count = 600U;
+
+    CirModel* device_model = nullptr;
+    Product* device_product = nullptr;
+    float* device_price = nullptr;
+    try {
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_model, sizeof(CirModel)),
+            "Long CIR swaption test cudaMalloc model"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_product, sizeof(Product)),
+            "Long CIR swaption test cudaMalloc product"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_price, sizeof(float)),
+            "Long CIR swaption test cudaMalloc price"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_model,
+                &model,
+                sizeof(CirModel),
+                cudaMemcpyHostToDevice
+            ),
+            "Long CIR swaption test cudaMemcpy model"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_product,
+                &contract,
+                sizeof(Product),
+                cudaMemcpyHostToDevice
+            ),
+            "Long CIR swaption test cudaMemcpy product"
+        );
+
+        const auto scalar_price = [&]<SwaptionSide Side>() {
+            cir_scalar_swaption_reference_kernel<Side><<<1U, 1U>>>(
+                device_model,
+                device_product,
+                product::RegularEuropeanSwaptionScheduleSource{},
+                static_cast<float>(kDayFraction),
+                device_price
+            );
+            ai_factory::workbench::check_cuda(
+                cudaGetLastError(),
+                "Long CIR scalar swaption reference kernel"
+            );
+            return read_device_price(
+                device_price,
+                "Long CIR scalar swaption reference copy"
+            );
+        };
+        const auto cooperative_price = [&]<SwaptionSide Side>(
+            std::uint32_t maximum
+        ) {
+            cir::launch_cir_european_swaption_cuda<Side>(
+                device_model,
+                1U,
+                device_product,
+                1U,
+                false,
+                1U,
+                0U,
+                1U,
+                static_cast<float>(kDayFraction),
+                128U,
+                1U,
+                device_price,
+                maximum
+            );
+            return read_device_price(
+                device_price,
+                "Long CIR cooperative swaption copy"
+            );
+        };
+
+        const float scalar_payer =
+            scalar_price.template operator()<SwaptionSide::payer>();
+        const float scalar_receiver =
+            scalar_price.template operator()<SwaptionSide::receiver>();
+        const float cooperative_payer =
+            cooperative_price.template operator()<SwaptionSide::payer>(600U);
+        const float cooperative_receiver =
+            cooperative_price.template operator()<SwaptionSide::receiver>(
+                600U
+            );
+        require(
+            std::isfinite(cooperative_payer)
+                && std::fabs(cooperative_payer - scalar_payer) <= 2.0e-5f,
+            "Long CIR cooperative payer differs from the scalar formula"
+        );
+        require(
+            std::isfinite(cooperative_receiver)
+                && std::fabs(cooperative_receiver - scalar_receiver)
+                    <= 2.0e-5f,
+            "Long CIR cooperative receiver differs from the scalar formula"
+        );
+
+        const float understated_capacity =
+            cooperative_price.template operator()<SwaptionSide::payer>(599U);
+        require(
+            std::isnan(understated_capacity),
+            "CIR cooperative pricing accepted an understated payment maximum"
+        );
+
+        const float scalar_fallback =
+            cooperative_price.template operator()<SwaptionSide::payer>(
+                std::numeric_limits<std::uint32_t>::max()
+            );
+        require(
+            std::isfinite(scalar_fallback)
+                && std::fabs(scalar_fallback - scalar_payer) <= 1.0e-6f,
+            "CIR scalar fallback differs from the scalar formula"
+        );
+    } catch (...) {
+        if (device_model != nullptr) cudaFree(device_model);
+        if (device_product != nullptr) cudaFree(device_product);
+        if (device_price != nullptr) cudaFree(device_price);
+        throw;
+    }
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_model), "Long CIR swaption test cudaFree model"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_product), "Long CIR swaption test cudaFree product"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_price), "Long CIR swaption test cudaFree price"
+    );
+}
+
+// Exercise the same cooperative body through an arbitrary schedule pool.
+void check_cir_explicit_schedule() {
+    using ai_factory::workbench::SwaptionSide;
+    namespace cir =
+        ai_factory::workbench::model::fixed_income::cir;
+    namespace product = ai_factory::workbench::product;
+
+    const CirModel model = {
+        {0.60f, 0.040f, 0.15f},
+        0.030f,
+    };
+    const ExplicitProduct contract = {
+        1.25f,
+        0.0325f,
+        252U,
+        4U,
+        0U,
+    };
+    constexpr std::array<std::uint32_t, 4U> payment_times = {
+        315U, 420U, 546U, 756U,
+    };
+    constexpr std::array<float, 4U> accrual_fractions = {
+        0.25f, 0.40f, 0.50f, 0.75f,
+    };
+
+    CirModel* device_model = nullptr;
+    ExplicitProduct* device_product = nullptr;
+    std::uint32_t* device_payment_times = nullptr;
+    float* device_accrual_fractions = nullptr;
+    float* device_price = nullptr;
+    try {
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_model, sizeof(CirModel)),
+            "Explicit CIR swaption test cudaMalloc model"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_product, sizeof(ExplicitProduct)),
+            "Explicit CIR swaption test cudaMalloc product"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(
+                &device_payment_times,
+                payment_times.size() * sizeof(std::uint32_t)
+            ),
+            "Explicit CIR swaption test cudaMalloc payment times"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(
+                &device_accrual_fractions,
+                accrual_fractions.size() * sizeof(float)
+            ),
+            "Explicit CIR swaption test cudaMalloc accrual fractions"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMalloc(&device_price, sizeof(float)),
+            "Explicit CIR swaption test cudaMalloc price"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_model,
+                &model,
+                sizeof(CirModel),
+                cudaMemcpyHostToDevice
+            ),
+            "Explicit CIR swaption test cudaMemcpy model"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_product,
+                &contract,
+                sizeof(ExplicitProduct),
+                cudaMemcpyHostToDevice
+            ),
+            "Explicit CIR swaption test cudaMemcpy product"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_payment_times,
+                payment_times.data(),
+                payment_times.size() * sizeof(std::uint32_t),
+                cudaMemcpyHostToDevice
+            ),
+            "Explicit CIR swaption test cudaMemcpy payment times"
+        );
+        ai_factory::workbench::check_cuda(
+            cudaMemcpy(
+                device_accrual_fractions,
+                accrual_fractions.data(),
+                accrual_fractions.size() * sizeof(float),
+                cudaMemcpyHostToDevice
+            ),
+            "Explicit CIR swaption test cudaMemcpy accrual fractions"
+        );
+
+        const product::ExplicitEuropeanSwaptionScheduleSource source{
+            device_payment_times,
+            device_accrual_fractions,
+            payment_times.size(),
+        };
+        const auto scalar_price = [&]<SwaptionSide Side>() {
+            cir_scalar_swaption_reference_kernel<Side><<<1U, 1U>>>(
+                device_model,
+                device_product,
+                source,
+                static_cast<float>(kDayFraction),
+                device_price
+            );
+            ai_factory::workbench::check_cuda(
+                cudaGetLastError(),
+                "Explicit CIR scalar swaption reference kernel"
+            );
+            return read_device_price(
+                device_price,
+                "Explicit CIR scalar swaption reference copy"
+            );
+        };
+        const auto cooperative_price = [&]<SwaptionSide Side>() {
+            cir::launch_cir_european_swaption_cuda<Side>(
+                device_model,
+                1U,
+                device_product,
+                device_payment_times,
+                device_accrual_fractions,
+                payment_times.size(),
+                1U,
+                false,
+                1U,
+                0U,
+                1U,
+                static_cast<float>(kDayFraction),
+                128U,
+                1U,
+                device_price,
+                4U
+            );
+            return read_device_price(
+                device_price,
+                "Explicit CIR cooperative swaption copy"
+            );
+        };
+
+        for (const bool payer : {true, false}) {
+            const float scalar = payer
+                ? scalar_price.template operator()<SwaptionSide::payer>()
+                : scalar_price.template operator()<SwaptionSide::receiver>();
+            const float cooperative = payer
+                ? cooperative_price.template operator()<SwaptionSide::payer>()
+                : cooperative_price.template operator()<
+                    SwaptionSide::receiver
+                >();
+            require(
+                std::isfinite(cooperative)
+                    && std::fabs(cooperative - scalar) <= 2.0e-6f,
+                "Explicit CIR cooperative swaption differs from scalar"
+            );
+        }
+    } catch (...) {
+        if (device_model != nullptr) cudaFree(device_model);
+        if (device_product != nullptr) cudaFree(device_product);
+        if (device_payment_times != nullptr) cudaFree(device_payment_times);
+        if (device_accrual_fractions != nullptr)
+            cudaFree(device_accrual_fractions);
+        if (device_price != nullptr) cudaFree(device_price);
+        throw;
+    }
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_model), "Explicit CIR swaption test cudaFree model"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_product), "Explicit CIR swaption test cudaFree product"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_payment_times),
+        "Explicit CIR swaption test cudaFree payment times"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_accrual_fractions),
+        "Explicit CIR swaption test cudaFree accrual fractions"
+    );
+    ai_factory::workbench::check_cuda(
+        cudaFree(device_price), "Explicit CIR swaption test cudaFree price"
+    );
+}
+
 // Exercise aligned and model-product Cartesian indexing for one launcher.
 template<typename Model, typename Launcher, typename Expected>
 void check_two_input_launcher(
@@ -904,10 +1296,10 @@ void check_hull_white_launcher(
 // Validate payer/receiver prices and every supported construction mode.
 int main() {
     using namespace ai_factory::workbench;
-    namespace cir = model::cir;
-    namespace hw_ns = model::hull_white::nelson_siegel;
-    namespace hw_sv = model::hull_white::svensson;
-    namespace vasicek = model::vasicek;
+    namespace cir = model::fixed_income::cir;
+    namespace hw_ns = model::fixed_income::hull_white::nelson_siegel;
+    namespace hw_sv = model::fixed_income::hull_white::svensson;
+    namespace vasicek = model::fixed_income::vasicek;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -918,6 +1310,8 @@ int main() {
     }
     check_cuda(availability, "One-factor swaption test cudaGetDeviceCount");
     check_schedule_view_equivalence();
+    check_cir_long_schedule();
+    check_cir_explicit_schedule();
 
     ProductFixtures fixtures;
     append_product(
@@ -981,7 +1375,7 @@ int main() {
                 vasicek_models,
                 fixtures,
                 static_cast<RegularTwoInputLauncher<VasicekModel>>(
-                    vasicek::launch_vasicek_european_swaption_cuda<
+                    ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_european_swaption_cuda<
                         SwaptionSide::payer
                     >
                 ),
@@ -994,7 +1388,7 @@ int main() {
                 vasicek_models,
                 fixtures,
                 static_cast<RegularTwoInputLauncher<VasicekModel>>(
-                    vasicek::launch_vasicek_european_swaption_cuda<
+                    ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_european_swaption_cuda<
                         SwaptionSide::receiver
                     >
                 ),
@@ -1029,9 +1423,13 @@ int main() {
     check_two_input_launcher(
         cir_models,
         fixtures,
-        static_cast<RegularTwoInputLauncher<CirModel>>(
-            cir::launch_cir_european_swaption_cuda<SwaptionSide::payer>
-        ),
+        [maximum = maximum_payment_count(fixtures)](auto... arguments) {
+            ai_factory::workbench::model::fixed_income::cir::
+                launch_cir_european_swaption_cuda<SwaptionSide::payer>(
+                    arguments...,
+                    maximum
+                );
+        },
         [&](std::size_t model_index, std::size_t product_index) {
             return cir_payer[model_index][product_index];
         },
@@ -1041,9 +1439,13 @@ int main() {
     check_two_input_launcher(
         cir_models,
         fixtures,
-        static_cast<RegularTwoInputLauncher<CirModel>>(
-            cir::launch_cir_european_swaption_cuda<SwaptionSide::receiver>
-        ),
+        [maximum = maximum_payment_count(fixtures)](auto... arguments) {
+            ai_factory::workbench::model::fixed_income::cir::
+                launch_cir_european_swaption_cuda<SwaptionSide::receiver>(
+                    arguments...,
+                    maximum
+                );
+        },
         [&](std::size_t model_index, std::size_t product_index) {
             return cir_receiver[model_index][product_index];
         },

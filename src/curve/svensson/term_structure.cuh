@@ -1,7 +1,7 @@
 // Reusable CUDA interface for the analytical Svensson curve.
 #pragma once
 
-#include "curve/svensson/dataset.hpp"
+#include "curve/svensson/parameters.hpp"
 
 #include <cuda_runtime.h>
 
@@ -43,5 +43,24 @@ __device__ __forceinline__ float forward_rate(
     float start,
     float end
 );
+
+// Static adapter consumed by fitted short-rate analytics.
+struct AnalyticsProvider {
+    using Parameters = SvenssonParameters;
+
+    __device__ __forceinline__ static float log_discount_factor(
+        const Parameters& parameters,
+        float time
+    ) {
+        return svensson::log_discount_factor(parameters, time);
+    }
+
+    __device__ __forceinline__ static float instantaneous_forward(
+        const Parameters& parameters,
+        float time
+    ) {
+        return svensson::instantaneous_forward(parameters, time);
+    }
+};
 
 }  // namespace ai_factory::workbench::curve::svensson

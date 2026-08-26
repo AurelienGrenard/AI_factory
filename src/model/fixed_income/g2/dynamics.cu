@@ -8,10 +8,9 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // ======================== Model-specific dynamics =========================
 namespace {
@@ -114,10 +113,10 @@ __device__ __forceinline__ PreparedModel prepare_model(
 
 // Prepare the Cholesky coefficients of both correlated state innovations.
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const PreparedModel& model,
+    const PreparedModel& prepared_model,
     float delta_t
 ) {
-    const ProcessParameters& parameters = model.process;
+    const ProcessParameters& parameters = prepared_model.process;
     const float variance_x = mean_reverting_gaussian::state_variance(
         parameters.mean_reversion_x, parameters.volatility_x, delta_t
     );
@@ -137,167 +136,74 @@ __device__ __forceinline__ PreparedTransition prepare_transition(
     };
 }
 
-__device__ __forceinline__ void prepare_calendar(
-    const PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 ) {
-    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
-        transitions[interval] = g2::prepare_transition(
-            model, static_cast<float>(interval_steps[interval]) * delta_t
-        );
-    }
+    return prepared_model.initial_state;
 }
 
 // Apply one exact correlated transition to both factor states.
 __device__ __forceinline__ void one_step_transition(
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     float state_x_normal,
     float state_y_normal,
     State& state
 ) {
     state.state_x = fmaf(
-        transition.decay_x,
+        prepared_transition.state_x_decay,
         state.state_x,
-        transition.state_x_standard_deviation * state_x_normal
+        prepared_transition.state_x_standard_deviation * state_x_normal
     );
     const float y_noise = fmaf(
-        transition.state_y_x_normal_loading,
+        prepared_transition.state_y_x_normal_loading,
         state_x_normal,
-        transition.state_y_independent_standard_deviation * state_y_normal
+        prepared_transition.state_y_independent_standard_deviation * state_y_normal
     );
-    state.state_y = fmaf(transition.decay_y, state.state_y, y_noise);
-}
-
-__device__ __forceinline__ State initial_state(
-    const PreparedModel& model
-) {
-    return model.initial_state;
+    state.state_y = fmaf(prepared_transition.state_y_decay, state.state_y, y_noise);
 }
 
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel&,
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normals,
+    philox::NormalPairCache& normal_cache,
     State& state
 ) {
-    const float state_x_normal = philox::next_normal(uniforms, normals);
-    const float state_y_normal = philox::next_normal(uniforms, normals);
+    const float state_x_normal = philox::next_normal(uniforms, normal_cache);
+    const float state_y_normal = philox::next_normal(uniforms, normal_cache);
     one_step_transition(
-        transition, state_x_normal, state_y_normal, state
+        prepared_transition, state_x_normal, state_y_normal, state
     );
 }
 
 }  // namespace
 
-__device__ __forceinline__ State simulate_terminal_state(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
-    State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-) {
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normals;
-    simulate_one_step(model, transition, uniforms, normals, initial_state);
-    return initial_state;
-}
-
-__device__ __forceinline__ State simulate_on_calendar(
-    const PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states_x,
-    float* __restrict__ observed_states_y
-) {
-    State state = initial_state;
-    if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normals;
-    for (std::uint32_t observation = 0U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(
-            model, transitions[observation], uniforms, normals, state
-        );
-        const std::size_t output =
-            static_cast<std::size_t>(observation) * observation_stride;
-        observed_states_x[output] = state.state_x;
-        observed_states_y[output] = state.state_y;
-    }
-    simulate_one_step(
-        model, transitions[observation_count - 1U], uniforms, normals, state
-    );
-    return state;
-}
-
-__device__ __forceinline__ State simulate_on_regular_grid(
-    const PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states_x,
-    float* __restrict__ observed_states_y
-) {
-    State state = initial_state;
-    if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
-    philox::NormalPairCache normals;
-    simulate_one_step(
-        model, initial_stub_transition, uniforms, normals, state
-    );
-    if (observation_count == 1U) return state;
-    observed_states_x[0U] = state.state_x;
-    observed_states_y[0U] = state.state_y;
-
-    for (std::uint32_t observation = 1U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(model, regular_transition, uniforms, normals, state);
-        const std::size_t output =
-            static_cast<std::size_t>(observation) * observation_stride;
-        observed_states_x[output] = state.state_x;
-        observed_states_y[output] = state.state_y;
-    }
-    simulate_one_step(model, regular_transition, uniforms, normals, state);
-    return state;
-}
-
 __device__ __forceinline__ DynamicsPolicy::PreparedDynamics
 DynamicsPolicy::prepare_dynamics(
     const Parameters& parameters, float delta_t
 ) {
-    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
-    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+    const PreparedModel prepared_model =
+        DynamicsPolicy::prepare_model(parameters);
+    return {
+        prepared_model,
+        DynamicsPolicy::prepare_transition(prepared_model, delta_t),
+    };
 }
 
 __device__ __forceinline__ DynamicsPolicy::PreparedModel
 DynamicsPolicy::prepare_model(const Parameters& parameters) {
-    PreparedModel model = g2::prepare_model(parameters.process);
-    model.initial_state = parameters.initial_state;
-    return model;
+    PreparedModel prepared_model = g2::prepare_model(parameters.process);
+    prepared_model.initial_state = parameters.initial_state;
+    return prepared_model;
 }
 
 __device__ __forceinline__ DynamicsPolicy::PreparedTransition
 DynamicsPolicy::prepare_transition(
-    const PreparedModel& model, float delta_t
+    const PreparedModel& prepared_model, float delta_t
 ) {
-    return g2::prepare_transition(model, delta_t);
+    return g2::prepare_transition(prepared_model, delta_t);
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
@@ -306,8 +212,8 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
-DynamicsPolicy::initial_state(const PreparedModel& model) {
-    return g2::initial_state(model);
+DynamicsPolicy::initial_state(const PreparedModel& prepared_model) {
+    return g2::initial_state(prepared_model);
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
@@ -332,13 +238,13 @@ __device__ __forceinline__ void DynamicsPolicy::advance(
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     RandomContext& random,
     State& state
 ) {
     g2::simulate_one_step(
-        model, transition, random.uniforms, random.normals, state
+        prepared_model, prepared_transition, random.uniforms, random.normals, state
     );
 }
 
@@ -348,12 +254,12 @@ namespace joint {
 
 // Prepare a three-dimensional Cholesky transition for X, Y, and their integral.
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const g2::PreparedModel& model,
+    const g2::PreparedModel& prepared_model,
     float delta_t
 ) {
-    const ProcessParameters& parameters = model.process;
+    const ProcessParameters& parameters = prepared_model.process;
     const g2::PreparedTransition state_transition =
-        g2::prepare_transition(model, delta_t);
+        g2::prepare_transition(prepared_model, delta_t);
     const IntegralMoments moments =
         g2::integral_moments(parameters, delta_t);
     const float covariance_x_integral =
@@ -392,9 +298,9 @@ __device__ __forceinline__ PreparedTransition prepare_transition(
         0.0f
     );
     return {
-        state_transition.decay_x,
+        state_transition.state_x_decay,
         state_transition.state_x_standard_deviation,
-        state_transition.decay_y,
+        state_transition.state_y_decay,
         state_transition.state_y_x_normal_loading,
         state_transition.state_y_independent_standard_deviation,
         moments.state_x_loading,
@@ -405,23 +311,15 @@ __device__ __forceinline__ PreparedTransition prepare_transition(
     };
 }
 
-__device__ __forceinline__ void prepare_calendar(
-    const g2::PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const g2::PreparedModel& prepared_model
 ) {
-    for (std::uint32_t interval = 0U; interval < interval_count; ++interval) {
-        transitions[interval] = g2::joint::prepare_transition(
-            model, static_cast<float>(interval_steps[interval]) * delta_t
-        );
-    }
+    return {g2::initial_state(prepared_model), 0.0f};
 }
 
-// Apply the exact joint state and integral transition.
+// Apply the exact joint state and integral prepared_transition.
 __device__ __forceinline__ void one_step_transition(
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     float state_x_normal,
     float state_y_normal,
     float integral_normal,
@@ -429,33 +327,33 @@ __device__ __forceinline__ void one_step_transition(
 ) {
     const g2::State previous_state = joint_state.state;
     joint_state.state.state_x = fmaf(
-        transition.decay_x,
+        prepared_transition.state_x_decay,
         previous_state.state_x,
-        transition.state_x_standard_deviation * state_x_normal
+        prepared_transition.state_x_standard_deviation * state_x_normal
     );
     const float state_y_noise = fmaf(
-        transition.state_y_x_normal_loading,
+        prepared_transition.state_y_x_normal_loading,
         state_x_normal,
-        transition.state_y_independent_standard_deviation * state_y_normal
+        prepared_transition.state_y_independent_standard_deviation * state_y_normal
     );
     joint_state.state.state_y = fmaf(
-        transition.decay_y, previous_state.state_y, state_y_noise
+        prepared_transition.state_y_decay, previous_state.state_y, state_y_noise
     );
     float integral_noise = fmaf(
-        transition.integral_x_normal_loading,
+        prepared_transition.integral_x_normal_loading,
         state_x_normal,
-        transition.integral_independent_standard_deviation * integral_normal
+        prepared_transition.integral_independent_standard_deviation * integral_normal
     );
     integral_noise = fmaf(
-        transition.integral_y_normal_loading, state_y_normal, integral_noise
+        prepared_transition.integral_y_normal_loading, state_y_normal, integral_noise
     );
     joint_state.state_integral = fmaf(
-        transition.integral_state_x_loading,
+        prepared_transition.integral_state_x_loading,
         previous_state.state_x,
         joint_state.state_integral + integral_noise
     );
     joint_state.state_integral = fmaf(
-        transition.integral_state_y_loading,
+        prepared_transition.integral_state_y_loading,
         previous_state.state_y,
         joint_state.state_integral
     );
@@ -465,16 +363,16 @@ namespace {
 
 __device__ __forceinline__ void simulate_one_step(
     const g2::PreparedModel&,
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normals,
+    philox::NormalPairCache& normal_cache,
     State& state
 ) {
-    const float state_x_normal = philox::next_normal(uniforms, normals);
-    const float state_y_normal = philox::next_normal(uniforms, normals);
-    const float integral_normal = philox::next_normal(uniforms, normals);
+    const float state_x_normal = philox::next_normal(uniforms, normal_cache);
+    const float state_y_normal = philox::next_normal(uniforms, normal_cache);
+    const float integral_normal = philox::next_normal(uniforms, normal_cache);
     one_step_transition(
-        transition,
+        prepared_transition,
         state_x_normal,
         state_y_normal,
         integral_normal,
@@ -484,105 +382,16 @@ __device__ __forceinline__ void simulate_one_step(
 
 }  // namespace
 
-__device__ __forceinline__ State simulate_terminal_state(
-    const g2::PreparedModel& model,
-    const PreparedTransition& transition,
-    g2::State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-) {
-    State joint_state{initial_state, 0.0f};
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normals;
-    simulate_one_step(model, transition, uniforms, normals, joint_state);
-    return joint_state;
-}
-
-__device__ __forceinline__ State simulate_on_calendar(
-    const g2::PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    g2::State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states_x,
-    float* __restrict__ observed_states_y,
-    float* __restrict__ observed_integrated_states
-) {
-    State state{initial_state, 0.0f};
-    if (observation_count == 0U) return state;
-    philox::UniformSequence uniforms(key, static_cast<std::uint64_t>(path));
-    philox::NormalPairCache normals;
-    for (std::uint32_t observation = 0U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(
-            model, transitions[observation], uniforms, normals, state
-        );
-        const std::size_t output =
-            static_cast<std::size_t>(observation) * observation_stride;
-        observed_states_x[output] = state.state.state_x;
-        observed_states_y[output] = state.state.state_y;
-        observed_integrated_states[output] = state.state_integral;
-    }
-    simulate_one_step(
-        model, transitions[observation_count - 1U], uniforms, normals, state
-    );
-    return state;
-}
-
-__device__ __forceinline__ State simulate_on_regular_grid(
-    const g2::PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    g2::State initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states_x,
-    float* __restrict__ observed_states_y,
-    float* __restrict__ observed_integrated_states
-) {
-    State joint_state{initial_state, 0.0f};
-    if (observation_count == 0U) return joint_state;
-    philox::UniformSequence uniforms(
-        key, static_cast<std::uint64_t>(path)
-    );
-    philox::NormalPairCache normals;
-    simulate_one_step(
-        model, initial_stub_transition, uniforms, normals, joint_state
-    );
-    if (observation_count == 1U) return joint_state;
-    observed_states_x[0U] = joint_state.state.state_x;
-    observed_states_y[0U] = joint_state.state.state_y;
-    observed_integrated_states[0U] = joint_state.state_integral;
-
-    for (std::uint32_t observation = 1U;
-         observation + 1U < observation_count;
-         ++observation) {
-        simulate_one_step(
-            model, regular_transition, uniforms, normals, joint_state
-        );
-        const std::size_t output =
-            static_cast<std::size_t>(observation) * observation_stride;
-        observed_states_x[output] = joint_state.state.state_x;
-        observed_states_y[output] = joint_state.state.state_y;
-        observed_integrated_states[output] = joint_state.state_integral;
-    }
-    simulate_one_step(
-        model, regular_transition, uniforms, normals, joint_state
-    );
-    return joint_state;
-}
-
 __device__ __forceinline__ DynamicsPolicy::PreparedDynamics
 DynamicsPolicy::prepare_dynamics(
     const Parameters& parameters, float delta_t
 ) {
-    const PreparedModel model = DynamicsPolicy::prepare_model(parameters);
-    return {model, DynamicsPolicy::prepare_transition(model, delta_t)};
+    const PreparedModel prepared_model =
+        DynamicsPolicy::prepare_model(parameters);
+    return {
+        prepared_model,
+        DynamicsPolicy::prepare_transition(prepared_model, delta_t),
+    };
 }
 
 __device__ __forceinline__ DynamicsPolicy::PreparedModel
@@ -592,9 +401,9 @@ DynamicsPolicy::prepare_model(const Parameters& parameters) {
 
 __device__ __forceinline__ DynamicsPolicy::PreparedTransition
 DynamicsPolicy::prepare_transition(
-    const PreparedModel& model, float delta_t
+    const PreparedModel& prepared_model, float delta_t
 ) {
-    return joint::prepare_transition(model, delta_t);
+    return joint::prepare_transition(prepared_model, delta_t);
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
@@ -603,8 +412,8 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
 }
 
 __device__ __forceinline__ DynamicsPolicy::State
-DynamicsPolicy::initial_state(const PreparedModel& model) {
-    return {g2::initial_state(model), 0.0f};
+DynamicsPolicy::initial_state(const PreparedModel& prepared_model) {
+    return joint::initial_state(prepared_model);
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
@@ -629,15 +438,15 @@ __device__ __forceinline__ void DynamicsPolicy::advance(
 }
 
 __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     RandomContext& random,
     State& state
 ) {
     joint::simulate_one_step(
-        model, transition, random.uniforms, random.normals, state
+        prepared_model, prepared_transition, random.uniforms, random.normals, state
     );
 }
 
 }  // namespace joint
-}  // namespace ai_factory::workbench::model::g2
+}  // namespace ai_factory::workbench::model::fixed_income::g2

@@ -1,4 +1,6 @@
 // Flat-xi0 rough-Bergomi simulation with the kappa=1 hybrid scheme.
+#pragma once
+
 #include "model/equity/rough_bergomi/dynamics.cuh"
 
 #include "common/philox.cuh"
@@ -9,7 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 __device__ __forceinline__ RoughBergomiPreparedParameters prepare_model(
     const RoughBergomiModelParameters& parameters,
@@ -386,4 +388,4 @@ __device__ __forceinline__ RoughBergomiState simulate_on_regular_grid(
     return state;
 }
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

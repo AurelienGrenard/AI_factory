@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 
 struct BlackScholesSampleBounds {
     sample::UniformBounds spot;
@@ -84,4 +84,4 @@ void launch_black_scholes_fixed_calendar_samples_cuda(
     void* device_rows
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

@@ -35,7 +35,7 @@ double integral_variance(double a, double sigma, double delta) {
 
 // Price one OU caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::ornstein_uhlenbeck::
+    const ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck::
         ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
@@ -78,7 +78,7 @@ double caplet_price(
 // Verify aligned OU caplet pricing against an independent CPU expression.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

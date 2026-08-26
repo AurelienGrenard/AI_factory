@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/up_no_touch/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<black_scholes::DynamicsPolicy>;
@@ -58,8 +58,8 @@ void launch_black_scholes_up_no_touch_cuda(
         device_standard_errors,
         "black_scholes.up_no_touch",
         "default",
-        "Black-Scholes up no touch kernel"
+        "Black-Scholes Up No-Touch kernel"
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

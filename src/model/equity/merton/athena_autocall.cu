@@ -6,7 +6,7 @@
 #include "model/equity/merton/dynamics.cu"
 #include "product/athena_autocall/pricing_policy.cuh"
 
-namespace ai_factory::workbench::merton {
+namespace ai_factory::workbench::model::equity::merton {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<merton::DynamicsPolicy>;
@@ -60,4 +60,4 @@ void launch_merton_athena_autocall_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::merton
+}  // namespace ai_factory::workbench::model::equity::merton

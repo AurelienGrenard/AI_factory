@@ -44,7 +44,7 @@ float measure_milliseconds(Launch&& launch) {
 
 int main() {
     using namespace ai_factory::workbench;
-    using namespace ai_factory::workbench::rough_bergomi;
+    using namespace ai_factory::workbench::model::equity::rough_bergomi;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

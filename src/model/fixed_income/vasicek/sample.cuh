@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
 
 void launch_vasicek_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -36,4 +36,4 @@ void launch_vasicek_calendar_samples_cuda(
     float* device_states
 );
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::cev {
+namespace ai_factory::workbench::model::equity::cev {
 
 void launch_cev_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -38,4 +38,4 @@ void launch_cev_calendar_samples_cuda(
     float* device_spots
 );
 
-}  // namespace ai_factory::workbench::cev
+}  // namespace ai_factory::workbench::model::equity::cev

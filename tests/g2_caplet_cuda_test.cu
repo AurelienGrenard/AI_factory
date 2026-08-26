@@ -35,7 +35,7 @@ double integral_variance(double a, double sigma, double delta) {
 
 // Return the variance of the integrated sum of both correlated factors.
 double g2_integral_variance(
-    const ai_factory::workbench::model::g2::ProcessParameters& process,
+    const ai_factory::workbench::model::fixed_income::g2::ProcessParameters& process,
     double delta
 ) {
     const double a = process.mean_reversion_x;
@@ -55,7 +55,7 @@ double g2_integral_variance(
 
 // Price one G2 caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::g2::
+    const ai_factory::workbench::model::fixed_income::g2::
         ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
@@ -113,7 +113,7 @@ double caplet_price(
 // Verify aligned G2 caplet pricing against an independent CPU expression.
 int main() {
     using namespace ai_factory::workbench;
-    namespace g2 = model::g2;
+    namespace g2 = model::fixed_income::g2;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -124,7 +124,7 @@ int main() {
     }
     check_cuda(availability, "G2 caplet test cudaGetDeviceCount");
 
-    const std::vector<g2::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::fixed_income::g2::ModelParameters> models = {
         {{0.10f, 0.01f, 0.60f, 0.008f, -0.40f}, {0.02f, 0.01f}},
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}, {0.03f, 0.01f}},
         {{0.50f, 0.0f, 1.10f, 0.0f, 0.00f}, {0.02f, 0.005f}},
@@ -137,7 +137,7 @@ int main() {
     constexpr std::size_t row_count = 3U;
     constexpr std::size_t cartesian_count = 6U;
 
-    g2::ModelParameters* device_models = nullptr;
+    ai_factory::workbench::model::fixed_income::g2::ModelParameters* device_models = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
@@ -172,7 +172,7 @@ int main() {
             "G2 caplet test cudaMemcpy products"
         );
 
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
@@ -211,7 +211,7 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
@@ -225,7 +225,7 @@ int main() {
             1U,
             device_prices
         );
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,

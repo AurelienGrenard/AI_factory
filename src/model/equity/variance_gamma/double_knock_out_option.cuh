@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 template<OptionSide Side>
@@ -31,4 +31,4 @@ void launch_variance_gamma_double_knock_out_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

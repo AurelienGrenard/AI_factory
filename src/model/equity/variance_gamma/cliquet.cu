@@ -6,7 +6,7 @@
 #include "model/equity/variance_gamma/dynamics.cu"
 #include "product/cliquet/pricing_policy.cuh"
 
-namespace ai_factory::workbench::variance_gamma {
+namespace ai_factory::workbench::model::equity::variance_gamma {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<variance_gamma::DynamicsPolicy>;
@@ -60,4 +60,4 @@ void launch_variance_gamma_cliquet_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::variance_gamma
+}  // namespace ai_factory::workbench::model::equity::variance_gamma

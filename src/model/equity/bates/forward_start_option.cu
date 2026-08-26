@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/forward_start_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepCalendarSchedule<bates::DynamicsPolicy, 2U>;
@@ -84,4 +84,4 @@ template void launch_bates_forward_start_option_cuda<OptionSide::put>(
     float*, float*
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

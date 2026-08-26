@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/cliquet/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<black_scholes::DynamicsPolicy>;
@@ -56,8 +56,8 @@ void launch_black_scholes_cliquet_cuda(
         device_standard_errors,
         "black_scholes.cliquet",
         "default",
-        "Black-Scholes cliquet kernel"
+        "Black-Scholes Cliquet kernel"
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

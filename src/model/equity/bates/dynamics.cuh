@@ -10,20 +10,22 @@
 
 #include <cstdint>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
+
+// Bates and Heston share the same path state exactly.
+using State = heston::State;
 
 // Coefficients prepared once per result row and reused by every path.
 struct PreparedModel {
     heston::PreparedModel heston;
     float poisson_mean;
-    float poisson_zero_probability;
+    float zero_jump_probability;
     float jump_log_mean;
     float jump_log_volatility;
     float jump_compensator;
 };
 
-// Evolving log-spot and variance private to one Monte Carlo path.
-using State = heston::State;
+using PreparedDynamics = PreparedModel;
 
 // ======================== Common equity dynamics =========================
 
@@ -50,8 +52,6 @@ __device__ __forceinline__ void one_step_transition(
     State& state
 );
 
-using PreparedDynamics = PreparedModel;
-
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = bates::PreparedDynamics;
@@ -59,6 +59,7 @@ struct DynamicsPolicy {
     using State = bates::State;
 
     static constexpr bool kNativeLogSpot = true;
+    static constexpr bool kPartitionInvariantAdvance = false;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -82,7 +83,7 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static float log_spot(const State& state);
 };
 
-static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

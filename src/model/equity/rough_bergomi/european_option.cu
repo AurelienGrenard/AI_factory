@@ -18,7 +18,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 namespace {
 
 // Prepared model and payoff constants shared by one result block.
@@ -477,4 +477,4 @@ namespace {
     &launch_rough_bergomi_european_option_cuda<OptionSide::put>;
 }  // namespace
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

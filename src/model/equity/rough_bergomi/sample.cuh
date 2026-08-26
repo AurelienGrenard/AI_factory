@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 struct RoughBergomiSampleWorkspacePlan {
     std::size_t maximum_step_count;
@@ -58,4 +58,4 @@ void launch_rough_bergomi_calendar_samples_cuda(
     float* device_spots
 );
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

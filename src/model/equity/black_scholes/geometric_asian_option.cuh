@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 
 template<OptionSide Side>
 void launch_black_scholes_geometric_asian_option_cuda(
@@ -26,4 +26,4 @@ void launch_black_scholes_geometric_asian_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

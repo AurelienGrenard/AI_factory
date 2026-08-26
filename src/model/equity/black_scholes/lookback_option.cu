@@ -6,7 +6,7 @@
 #include "model/equity/black_scholes/dynamics.cu"
 #include "product/lookback_option/pricing_policy.cuh"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 using Schedule = simulation::FixedStepDenseSchedule<black_scholes::DynamicsPolicy>;
@@ -58,8 +58,8 @@ void launch_black_scholes_lookback_option_cuda(
         device_standard_errors,
         "black_scholes.lookback_option",
         "default",
-        "Black-Scholes lookback option kernel"
+        "Black-Scholes Lookback Option kernel"
     );
 }
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

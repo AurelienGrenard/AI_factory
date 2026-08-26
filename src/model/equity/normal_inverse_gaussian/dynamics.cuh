@@ -5,9 +5,15 @@
 #include "common/philox.cuh"
 #include "model/equity/normal_inverse_gaussian/parameters.hpp"
 
+#include <cuda_runtime.h>
+
 #include <cstdint>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
+
+struct State {
+    float log_spot;
+};
 
 struct PreparedModel {
     float initial_log_spot;
@@ -28,10 +34,6 @@ struct PreparedDynamics {
     PreparedTransition transition;
 };
 
-struct State {
-    float log_spot;
-};
-
 // ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -39,17 +41,17 @@ __device__ __forceinline__ PreparedModel prepare_model(
 );
 
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const PreparedModel& model,
+    const PreparedModel& prepared_model,
     float delta_t
 );
 
 __device__ __forceinline__ State initial_state(
-    const PreparedModel& model
+    const PreparedModel& prepared_model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
     float inverse_gaussian_increment,
     float brownian_normal,
     State& state
@@ -64,6 +66,7 @@ struct DynamicsPolicy {
     using State = normal_inverse_gaussian::State;
 
     static constexpr bool kNativeLogSpot = true;
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters, float delta_t
@@ -72,13 +75,13 @@ struct DynamicsPolicy {
         const Parameters& parameters
     );
     __device__ __forceinline__ static PreparedTransition prepare_transition(
-        const PreparedModel& model, float delta_t
+        const PreparedModel& prepared_model, float delta_t
     );
     __device__ __forceinline__ static State initial_state(
         const PreparedDynamics& dynamics
     );
     __device__ __forceinline__ static State initial_state(
-        const PreparedModel& model
+        const PreparedModel& prepared_model
     );
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics, RandomContext& random, State& state
@@ -88,15 +91,15 @@ struct DynamicsPolicy {
         RandomContext& random, State& state
     );
     __device__ __forceinline__ static void simulate_one_step(
-        const PreparedModel& model, const PreparedTransition& transition,
+        const PreparedModel& prepared_model, const PreparedTransition& prepared_transition,
         RandomContext& random, State& state
     );
     __device__ __forceinline__ static float spot(const State& state);
     __device__ __forceinline__ static float log_spot(const State& state);
 };
 
-static_assert(equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
+static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

@@ -2,13 +2,13 @@
 #pragma once
 
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/parameters.hpp"
 #include "product/european_swaption/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 // Launch one regular-schedule payer (call) or receiver (put) per thread.
 template<SwaptionSide Side>
@@ -47,4 +47,4 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

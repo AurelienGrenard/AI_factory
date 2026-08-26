@@ -1,14 +1,14 @@
 // Public launcher for Hull-White Svensson zero-coupon bond options.
 #pragma once
 
-#include "curve/svensson/dataset.hpp"
+#include "curve/svensson/parameters.hpp"
 #include "common/option_side.cuh"
-#include "model/fixed_income/hull_white/dataset.hpp"
+#include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::hull_white::svensson {
+namespace ai_factory::workbench::model::fixed_income::hull_white::svensson {
 
 // Launch closed-form zero-coupon bond-option prices across the CUDA grid.
 template<OptionSide Side>
@@ -29,4 +29,4 @@ void launch_hull_white_svensson_zero_coupon_bond_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::svensson
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::svensson

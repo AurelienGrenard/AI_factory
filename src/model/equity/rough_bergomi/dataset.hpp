@@ -6,11 +6,11 @@
 #include <filesystem>
 #include <vector>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Load every model row from JSON into one contiguous FP32 vector.
 std::vector<RoughBergomiModelParameters> load_models(
     const std::filesystem::path& dataset_path
 );
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

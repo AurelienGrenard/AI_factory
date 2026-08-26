@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::schobel_zhu {
+namespace ai_factory::workbench::model::equity::schobel_zhu {
 
 void launch_schobel_zhu_terminal_samples_cuda(
     const ModelParameters* device_models,
@@ -40,4 +40,4 @@ void launch_schobel_zhu_calendar_samples_cuda(
     float* device_volatilities
 );
 
-}  // namespace ai_factory::workbench::schobel_zhu
+}  // namespace ai_factory::workbench::model::equity::schobel_zhu

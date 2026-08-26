@@ -8,7 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 // Parse and validate OU rows while preserving their dataset order.
 std::vector<ModelParameters> load_models(
@@ -67,4 +67,4 @@ std::vector<ModelParameters> load_models(
     return models;
 }
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

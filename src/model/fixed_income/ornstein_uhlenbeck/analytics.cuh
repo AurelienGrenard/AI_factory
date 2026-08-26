@@ -7,10 +7,16 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
+
+// Return the standalone short rate represented by the OU state.
+__device__ __forceinline__ float short_rate(
+    const ModelParameters& parameters,
+    float state,
+    float time
+);
 
 // ===================== Common fixed-income analytics ======================
 
@@ -45,12 +51,16 @@ __device__ __forceinline__ float log_zero_coupon_bond(
 
 // Return the accumulated path log-discount from time zero.
 __device__ __forceinline__ float log_discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 );
 
 // Return the accumulated path discount factor from time zero.
 __device__ __forceinline__ float discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 );
 
 // Return the model zero-coupon bond P(valuation_time, maturity).
@@ -88,7 +98,7 @@ __device__ __forceinline__ float forward_rate(
     float valuation_time,
     float start_time,
     float end_time,
-    float accrual_period
+    float accrual_fraction
 );
 
 // Return the par swap rate observed at valuation_time.
@@ -199,4 +209,4 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     std::uint32_t payment_count
 );
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

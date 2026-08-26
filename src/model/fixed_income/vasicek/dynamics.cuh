@@ -7,14 +7,15 @@
 
 #include <cuda_runtime.h>
 
-#include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
+
+using State = float;
 
 struct IntegralMoments {
     float state_loading;
-    float mean_increment;
+    float state_mean_increment;
     float variance;
 };
 
@@ -43,8 +44,8 @@ struct PreparedModel {
 
 // Coefficients required to advance the prepared model by one delta_t.
 struct PreparedTransition {
-    float decay;
-    float mean_increment;
+    float state_decay;
+    float state_mean_increment;
     float state_standard_deviation;
 };
 
@@ -58,57 +59,18 @@ __device__ __forceinline__ PreparedModel prepare_model(
 );
 
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const PreparedModel& model,
+    const PreparedModel& prepared_model,
     float delta_t
 );
 
-__device__ __forceinline__ void prepare_calendar(
-    const PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const PreparedModel& prepared_model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     float state_normal,
-    float& state
-);
-
-__device__ __forceinline__ float initial_state(
-    const PreparedModel& model
-);
-
-__device__ __forceinline__ float simulate_terminal_state(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-__device__ __forceinline__ float simulate_on_calendar(
-    const PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
-);
-
-__device__ __forceinline__ float simulate_on_regular_grid(
-    const PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states
+    State& state
 );
 
 struct DynamicsPolicy {
@@ -117,7 +79,9 @@ struct DynamicsPolicy {
     using PreparedModel = vasicek::PreparedModel;
     using PreparedTransition = vasicek::PreparedTransition;
     using RandomContext = philox::NormalRandomContext;
-    using State = float;
+    using State = vasicek::State;
+
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters, float delta_t
@@ -126,13 +90,13 @@ struct DynamicsPolicy {
         const Parameters& parameters
     );
     __device__ __forceinline__ static PreparedTransition prepare_transition(
-        const PreparedModel& model, float delta_t
+        const PreparedModel& prepared_model, float delta_t
     );
     __device__ __forceinline__ static State initial_state(
         const PreparedDynamics& dynamics
     );
     __device__ __forceinline__ static State initial_state(
-        const PreparedModel& model
+        const PreparedModel& prepared_model
     );
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
@@ -146,8 +110,8 @@ struct DynamicsPolicy {
         State& state
     );
     __device__ __forceinline__ static void simulate_one_step(
-        const PreparedModel& model,
-        const PreparedTransition& transition,
+        const PreparedModel& prepared_model,
+        const PreparedTransition& prepared_transition,
         RandomContext& random,
         State& state
     );
@@ -155,8 +119,13 @@ struct DynamicsPolicy {
 
 namespace joint {
 
+struct State {
+    float state;
+    float state_integral;
+};
+
 struct PreparedTransition {
-    float decay;
+    float state_decay;
     float state_mean_increment;
     float state_standard_deviation;
     float integral_state_loading;
@@ -165,67 +134,25 @@ struct PreparedTransition {
     float integral_independent_standard_deviation;
 };
 
-struct State {
-    float state;
-    float state_integral;
-};
-
 struct PreparedDynamics {
     vasicek::PreparedModel model;
     PreparedTransition transition;
 };
 
 __device__ __forceinline__ PreparedTransition prepare_transition(
-    const vasicek::PreparedModel& model,
+    const vasicek::PreparedModel& prepared_model,
     float delta_t
 );
 
-__device__ __forceinline__ void prepare_calendar(
-    const vasicek::PreparedModel& model,
-    const std::uint32_t* __restrict__ interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* __restrict__ transitions
+__device__ __forceinline__ State initial_state(
+    const vasicek::PreparedModel& prepared_model
 );
 
 __device__ __forceinline__ void one_step_transition(
-    const PreparedTransition& transition,
+    const PreparedTransition& prepared_transition,
     float state_normal,
     float integral_normal,
     State& state
-);
-
-__device__ __forceinline__ State simulate_terminal_state(
-    const vasicek::PreparedModel& model,
-    const PreparedTransition& transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-
-__device__ __forceinline__ State simulate_on_calendar(
-    const vasicek::PreparedModel& model,
-    const PreparedTransition* __restrict__ transitions,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states,
-    float* __restrict__ observed_integrated_states
-);
-
-__device__ __forceinline__ State simulate_on_regular_grid(
-    const vasicek::PreparedModel& model,
-    const PreparedTransition& initial_stub_transition,
-    const PreparedTransition& regular_transition,
-    float initial_state,
-    philox::PhiloxKey key,
-    std::size_t path,
-    std::uint32_t observation_count,
-    std::size_t observation_stride,
-    float* __restrict__ observed_states,
-    float* __restrict__ observed_integrated_states
 );
 
 struct DynamicsPolicy {
@@ -236,6 +163,8 @@ struct DynamicsPolicy {
     using RandomContext = philox::NormalRandomContext;
     using State = joint::State;
 
+    static constexpr bool kPartitionInvariantAdvance = true;
+
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters, float delta_t
     );
@@ -243,13 +172,13 @@ struct DynamicsPolicy {
         const Parameters& parameters
     );
     __device__ __forceinline__ static PreparedTransition prepare_transition(
-        const PreparedModel& model, float delta_t
+        const PreparedModel& prepared_model, float delta_t
     );
     __device__ __forceinline__ static State initial_state(
         const PreparedDynamics& dynamics
     );
     __device__ __forceinline__ static State initial_state(
-        const PreparedModel& model
+        const PreparedModel& prepared_model
     );
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
@@ -263,8 +192,8 @@ struct DynamicsPolicy {
         State& state
     );
     __device__ __forceinline__ static void simulate_one_step(
-        const PreparedModel& model,
-        const PreparedTransition& transition,
+        const PreparedModel& prepared_model,
+        const PreparedTransition& prepared_transition,
         RandomContext& random,
         State& state
     );
@@ -279,4 +208,4 @@ static_assert(simulation::DynamicsPolicy<joint::DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<joint::DynamicsPolicy>);
 static_assert(simulation::ExactTransitionDynamicsPolicy<joint::DynamicsPolicy>);
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

@@ -47,7 +47,7 @@ const std::string numerical_method =
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
-    namespace cir = model::cir;
+    namespace cir = model::fixed_income::cir;
 
     // 1. Load model and product rows into contiguous FP32 vectors.
     const std::vector<cir::ModelParameters> models =

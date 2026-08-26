@@ -9,7 +9,7 @@
 
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";

@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 template<OptionSide Side>
@@ -31,4 +31,4 @@ void launch_heston_asset_or_nothing_option_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

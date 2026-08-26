@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/time_configuration.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template<OptionSide Side>
@@ -29,30 +29,24 @@ struct DigitalOptionClosedFormPricingPolicy {
     ) {
         const float maturity_years =
             time::year_fraction(product.maturity, time_configuration);
-        const float sqrt_maturity = sqrtf(maturity_years);
-        const float volatility_sqrt_maturity =
-            model.volatility * sqrt_maturity;
-        const float variance = model.volatility * model.volatility;
-        const float d2 = (
-            logf(model.spot / product.strike)
-            + (model.risk_free_rate - model.dividend_yield
-               - 0.5f * variance) * maturity_years
-        ) / volatility_sqrt_maturity;
+        const auto values = prepare_vanilla_option_values(
+            prepare_analytics(model), product.strike, maturity_years
+        );
         return {
             product.cash_payoff
                 * expf(-model.risk_free_rate * maturity_years),
-            d2,
+            values.d2,
         };
     }
 
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        if constexpr (Side == OptionSide::call) {
-            return row.discounted_cash_payoff * normal_cdf(row.d2);
-        } else {
-            return row.discounted_cash_payoff * normal_cdf(-row.d2);
-        }
+        constexpr float option_sign =
+            Side == OptionSide::call ? 1.0f : -1.0f;
+        return cash_or_nothing_price(
+            row.discounted_cash_payoff, row.d2, option_sign
+        );
     }
 };
 
@@ -77,8 +71,8 @@ void launch_black_scholes_digital_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = DigitalOptionClosedFormPricingPolicy<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = DigitalOptionClosedFormPricingPolicy<Side>;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -95,7 +89,7 @@ void launch_black_scholes_digital_option_cuda(
         device_prices,
         "black_scholes.digital_option",
         option_side_name(Side),
-        "Black-Scholes DigitalOption kernel"
+        "Black-Scholes Digital Option kernel"
     );
 }
 
@@ -112,4 +106,4 @@ template void launch_black_scholes_digital_option_cuda<OptionSide::put>(
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

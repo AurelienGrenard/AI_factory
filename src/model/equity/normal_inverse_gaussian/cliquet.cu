@@ -6,7 +6,7 @@
 #include "model/equity/normal_inverse_gaussian/dynamics.cu"
 #include "product/cliquet/pricing_policy.cuh"
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace {
 
 using Schedule = simulation::ExactTransitionRegularSchedule<normal_inverse_gaussian::DynamicsPolicy>;
@@ -60,4 +60,4 @@ void launch_normal_inverse_gaussian_cliquet_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

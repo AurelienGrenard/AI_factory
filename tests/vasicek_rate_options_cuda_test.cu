@@ -15,7 +15,7 @@ namespace {
 
 constexpr double kDayFraction = 1.0 / 252.0;
 
-using Model = ai_factory::workbench::model::vasicek::
+using Model = ai_factory::workbench::model::fixed_income::vasicek::
     ModelParameters;
 
 // Stop immediately with a readable invariant name.
@@ -236,7 +236,7 @@ void check_launcher(
 // Validate floorlet and direct bond-option pricing against FP64 formulas.
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -271,7 +271,7 @@ int main() {
     check_launcher(
         models,
         floorlets,
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::put>,
         [](const Model& model, const product::RateOptionParameters& product) {
             const double strike_factor =
                 1.0 + product.accrual_period * kDayFraction * product.strike;
@@ -288,7 +288,7 @@ int main() {
     check_launcher(
         models,
         calls,
-        vasicek::launch_vasicek_zero_coupon_bond_option_cuda<
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_zero_coupon_bond_option_cuda<
             OptionSide::call
         >,
         [](const Model& model,
@@ -306,7 +306,7 @@ int main() {
     check_launcher(
         models,
         puts,
-        vasicek::launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::put>,
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_zero_coupon_bond_option_cuda<OptionSide::put>,
         [](const Model& model,
            const product::ZeroCouponBondOptionParameters& product) {
             return product.notional * bond_option_price(

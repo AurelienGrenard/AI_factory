@@ -15,29 +15,31 @@ inline constexpr std::size_t kMaximumSharedPreparedRowBytes = 2048U;
 
 // One pricing policy binds a product to a simulation schedule and exposes the
 // minimal interface consumed by the generic one-block-per-price kernel.
-template<typename Pricing>
+template<typename PricingPolicy>
 concept ScalarMonteCarloPricingPolicy =
-    simulation::SchedulePolicy<typename Pricing::Schedule>
-    && std::is_trivially_copyable_v<typename Pricing::DeviceInputs>
-    && std::is_trivially_copyable_v<typename Pricing::ProductParameters>
-    && std::is_trivially_copyable_v<typename Pricing::PreparedRow>
+    simulation::SchedulePolicy<typename PricingPolicy::Schedule>
+    && std::is_trivially_copyable_v<typename PricingPolicy::DeviceInputs>
+    && std::is_trivially_copyable_v<
+        typename PricingPolicy::ProductParameters
+    >
+    && std::is_trivially_copyable_v<typename PricingPolicy::PreparedRow>
     && requires(
-        const typename Pricing::DeviceInputs& inputs,
-        const typename Pricing::Schedule::TimeConfiguration&
+        const typename PricingPolicy::DeviceInputs& inputs,
+        const typename PricingPolicy::Schedule::TimeConfiguration&
             time_configuration,
-        const typename Pricing::PreparedRow& row,
+        const typename PricingPolicy::PreparedRow& row,
         philox::PhiloxKey key,
         std::size_t path
     ) {
         { inputs.validate(0U) } -> std::same_as<void>;
         {
-            inputs.template prepare_row<Pricing>(
+            inputs.template prepare_row<PricingPolicy>(
                 0U,
                 time_configuration
             )
-        } -> std::same_as<typename Pricing::PreparedRow>;
+        } -> std::same_as<typename PricingPolicy::PreparedRow>;
         {
-            Pricing::evaluate_path(row, key, path)
+            PricingPolicy::evaluate_path(row, key, path)
         } -> std::same_as<float>;
     };
 

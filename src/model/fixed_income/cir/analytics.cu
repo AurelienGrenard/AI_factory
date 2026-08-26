@@ -3,6 +3,7 @@
 
 #include "model/fixed_income/cir/analytics.cuh"
 
+#include "common/fixed_income/analytics_concepts.cuh"
 #include "common/fixed_income/cashflows.cuh"
 #include "common/fixed_income/jamshidian.cuh"
 #include "common/fixed_income/one_factor_affine.cuh"
@@ -12,14 +13,14 @@
 
 #include <cfloat>
 
-namespace ai_factory::workbench::model::cir {
+namespace ai_factory::workbench::model::fixed_income::cir {
 
 // ==================== Model-specific implementation =======================
 
 namespace {
 
 using AffineBondCoefficients =
-    fixed_income::OneFactorAffineBondCoefficients;
+    ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients;
 
 struct BondOptionContext {
     float expiry_bond;
@@ -202,7 +203,7 @@ struct AnalyticsProvider {
         float valuation_time,
         float maturity
     ) const {
-        return fixed_income::zero_coupon_bond(
+        return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
             *this, parameters, state, valuation_time, maturity
         );
     }
@@ -242,7 +243,26 @@ struct AnalyticsProvider {
     }
 };
 
+static_assert(
+    ::ai_factory::workbench::fixed_income::JamshidianAnalyticsProvider<
+        AnalyticsProvider,
+        ModelParameters,
+        float
+    >
+);
+
 }  // namespace
+
+// The standalone CIR state is itself the short rate.
+__device__ __forceinline__ float short_rate(
+    const ModelParameters& parameters,
+    float state,
+    float time
+) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
+    return state;
+}
 
 // ===================== Common fixed-income analytics ======================
 
@@ -284,28 +304,29 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    const AffineBondCoefficients coefficients = affine_bond_coefficients(
-        parameters.process, maturity - valuation_time
-    );
-    return fmaf(
-        -coefficients.B,
-        state,
-        coefficients.log_A
+    return ::ai_factory::workbench::fixed_income::log_zero_coupon_bond(
+        AnalyticsProvider{}, parameters, state, valuation_time, maturity
     );
 }
 
 // The CIR state is the short rate, so its integral is the log discount.
 __device__ __forceinline__ float log_discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
     return -state_integral;
 }
 
 // Exponentiate the accumulated short-rate integral only when required.
 __device__ __forceinline__ float discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
-    return expf(log_discount_factor(state_integral));
+    return expf(log_discount_factor(parameters, state_integral, time));
 }
 
 // Exponentiate the conditional affine log bond only at the public boundary.
@@ -315,7 +336,7 @@ __device__ __forceinline__ float zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    return fixed_income::zero_coupon_bond(
+    return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
         AnalyticsProvider{}, parameters, state, valuation_time, maturity
     );
 }
@@ -367,16 +388,16 @@ __device__ __forceinline__ float forward_rate(
     float valuation_time,
     float start_time,
     float end_time,
-    float accrual_period
+    float accrual_fraction
 ) {
-    return fixed_income::forward_rate(
+    return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider{},
         parameters,
         state,
         valuation_time,
         start_time,
         end_time,
-        accrual_period
+        accrual_fraction
     );
 }
 
@@ -388,7 +409,7 @@ __device__ __forceinline__ float swap_rate(
     float start_time,
     const ScheduleView& schedule
 ) {
-    return fixed_income::swap_rate(
+    return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider{},
         parameters,
         state,
@@ -407,7 +428,7 @@ __device__ __forceinline__ float payer_swap_value(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::payer_swap_value(
+    return ::ai_factory::workbench::fixed_income::payer_swap_value(
         AnalyticsProvider{},
         parameters,
         state,
@@ -426,7 +447,7 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::jamshidian_state_boundary(
+    return ::ai_factory::workbench::fixed_income::jamshidian_state_boundary(
         AnalyticsProvider{},
         parameters,
         exercise_time,
@@ -458,7 +479,7 @@ __device__ __forceinline__ float jamshidian_bond_strike(
     float payment_time,
     float state_boundary
 ) {
-    return fixed_income::jamshidian_bond_strike(
+    return ::ai_factory::workbench::fixed_income::jamshidian_bond_strike(
         AnalyticsProvider{},
         parameters,
         exercise_time,
@@ -476,7 +497,7 @@ __device__ __forceinline__ float european_swaption_price(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::european_swaption_price<Side>(
+    return ::ai_factory::workbench::fixed_income::european_swaption_price<Side>(
         AnalyticsProvider{},
         parameters,
         state,
@@ -553,4 +574,4 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     );
 }
 
-}  // namespace ai_factory::workbench::model::cir
+}  // namespace ai_factory::workbench::model::fixed_income::cir

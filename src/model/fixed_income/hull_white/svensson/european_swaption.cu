@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::hull_white::svensson {
+namespace ai_factory::workbench::model::fixed_income::hull_white::svensson {
 
 template<SwaptionSide Side>
 void launch_hull_white_svensson_european_swaption_cuda(
@@ -26,7 +26,7 @@ void launch_hull_white_svensson_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_fitted_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side, FittedModelComposition
     >(
         "hull_white.svensson.european_swaption",
@@ -68,7 +68,7 @@ void launch_hull_white_svensson_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_fitted_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side, FittedModelComposition
     >(
         "hull_white.svensson.european_swaption",
@@ -133,4 +133,4 @@ template void launch_hull_white_svensson_european_swaption_cuda<
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::svensson
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::svensson

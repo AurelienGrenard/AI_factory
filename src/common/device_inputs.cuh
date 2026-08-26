@@ -44,17 +44,17 @@ struct ModelProductDeviceInputs {
     }
 
     template<
-        typename Pricing,
+        typename PricingPolicy,
         typename TimeConfiguration,
         typename... AdditionalInputs
     >
-    __device__ __forceinline__ typename Pricing::PreparedRow prepare_row(
+    __device__ __forceinline__ typename PricingPolicy::PreparedRow prepare_row(
         std::size_t result_index,
         const TimeConfiguration& time_configuration,
         const AdditionalInputs&... additional_inputs
     ) const {
         const ModelProductIndices row = indices(result_index);
-        return Pricing::prepare_row(
+        return PricingPolicy::prepare_row(
             models[row.model_index],
             products[row.product_index],
             additional_inputs...,
@@ -102,17 +102,17 @@ struct ModelCurveProductDeviceInputs {
     }
 
     template<
-        typename Pricing,
+        typename PricingPolicy,
         typename TimeConfiguration,
         typename... AdditionalInputs
     >
-    __device__ __forceinline__ typename Pricing::PreparedRow prepare_row(
+    __device__ __forceinline__ typename PricingPolicy::PreparedRow prepare_row(
         std::size_t result_index,
         const TimeConfiguration& time_configuration,
         const AdditionalInputs&... additional_inputs
     ) const {
         const ModelCurveProductIndices row = indices(result_index);
-        return Pricing::prepare_row(
+        return PricingPolicy::prepare_row(
             models[row.model_index],
             curves[row.curve_index],
             products[row.product_index],
@@ -136,12 +136,12 @@ struct DeviceInputsWithContext {
         validate_device_context(context);
     }
 
-    template<typename Pricing, typename TimeConfiguration>
-    __device__ __forceinline__ typename Pricing::PreparedRow prepare_row(
+    template<typename PricingPolicy, typename TimeConfiguration>
+    __device__ __forceinline__ typename PricingPolicy::PreparedRow prepare_row(
         std::size_t result_index,
         const TimeConfiguration& time_configuration
     ) const {
-        return primary.template prepare_row<Pricing>(
+        return primary.template prepare_row<PricingPolicy>(
             result_index,
             time_configuration,
             context

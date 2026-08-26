@@ -6,7 +6,7 @@
 #include "model/equity/bates/dynamics.cu"
 #include "product/straddle/pricing_policy.cuh"
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 namespace {
 
 using Schedule = simulation::FixedStepTerminalSchedule<bates::DynamicsPolicy>;
@@ -62,4 +62,4 @@ void launch_bates_straddle_cuda(
     );
 }
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::normal_inverse_gaussian {
+namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 namespace {
 
 __global__ void normal_inverse_gaussian_terminal_samples_kernel(
@@ -81,7 +81,7 @@ __global__ void normal_inverse_gaussian_calendar_samples_kernel(
             prepare_transition(prepared_model, first_observation_time);
         const PreparedTransition regular_transition =
             prepare_transition(prepared_model, observation_interval);
-        equity::SpotObservationWriter<DynamicsPolicy> writer{
+        ::ai_factory::workbench::equity::SpotObservationWriter<DynamicsPolicy> writer{
             spots + sample_index,
             total_sample_count,
             observation_count,
@@ -198,4 +198,4 @@ void launch_normal_inverse_gaussian_calendar_samples_cuda(
     check_cuda(cudaGetLastError(), "normal inverse gaussian calendar sample kernel");
 }
 
-}  // namespace ai_factory::workbench::normal_inverse_gaussian
+}  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

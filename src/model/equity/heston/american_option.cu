@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 namespace lsm = longstaff_schwartz;
 
 namespace {
@@ -210,7 +210,7 @@ __global__ void simulate_paths_kernel(
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
-        equity::SpotAndStateObservationWriter<
+        ::ai_factory::workbench::equity::SpotAndStateObservationWriter<
             DynamicsPolicy,
             &State::variance
         > writer{
@@ -900,4 +900,4 @@ namespace {
     &launch_heston_american_option_cuda<OptionSide::put>;
 }  // namespace
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

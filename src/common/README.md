@@ -10,6 +10,7 @@ common/
 ├── cuda_kernel_diagnostics.cuh
 ├── cuda_kernel_diagnostics.cpp
 ├── device_inputs.cuh
+├── lognormal_option.cuh
 ├── noncentral_chi_square.cuh
 ├── normal_distribution.cuh
 ├── option_side.cuh
@@ -21,7 +22,8 @@ common/
 ├── time_grid.cuh
 ├── closed_form/
 │   ├── concepts.cuh
-│   └── closed_form_kernels.cuh
+│   ├── closed_form_kernels.cuh
+│   └── cooperative_closed_form_kernels.cuh
 ├── simulation/
 │   ├── barrier_handlers.cuh
 │   ├── concepts.cuh
@@ -40,11 +42,13 @@ common/
 │   ├── handlers.cuh
 │   └── observables.cuh
 ├── fixed_income/
+│   ├── analytics_concepts.cuh
 │   ├── bond_option_pricing_policies.cuh
 │   ├── cashflows.cuh
 │   ├── european_swaption.cuh
 │   ├── gaussian_bond_option.cuh
 │   ├── jamshidian.cuh
+│   ├── jamshidian_cooperative.cuh
 │   ├── one_factor_affine.cuh
 │   └── swaption_side.cuh
 └── longstaff_schwartz/
@@ -79,6 +83,7 @@ common/
 [`sample.cuh`](#sample) ·
 [`philox.cuh`](#philox) ·
 [`normal_distribution.cuh`](#normal-distribution) ·
+[`lognormal_option.cuh`](#lognormal-option) ·
 [`noncentral_chi_square.cuh`](#noncentral-chi-square) ·
 [`reductions.cuh`](#reductions) ·
 [`longstaff_schwartz/`](#longstaff-schwartz)
@@ -173,14 +178,17 @@ t(d)=d\,\delta_{\mathrm{day}}.
 ## [`closed_form/`](closed_form)
 
 [`concepts.cuh`](#closed-form-concepts) ·
-[`closed_form_kernels.cuh`](#closed-form-kernel)
+[`closed_form_kernels.cuh`](#closed-form-kernel) ·
+[`cooperative_closed_form_kernels.cuh`](#cooperative-closed-form-kernel)
 
 <a id="closed-form-concepts"></a>
 ### [`concepts.cuh`](closed_form/concepts.cuh)
 
 | Concept | Contract |
 |---|---|
+| `ClosedFormPreparedRowPolicy` | Common device-input, time-configuration and prepared-row contract. |
 | `ClosedFormPricingPolicy` | Trivially-copyable `DeviceInputs`, `TimeConfiguration` and `PreparedRow`; input-driven row preparation; scalar `evaluate_price(row)`. |
+| `CooperativeClosedFormPricingPolicy` | Same prepared-row contract plus dynamic shared-memory sizing and block-cooperative `evaluate_price`. |
 
 The concept constrains only the interface. `price_one` enforces the
 `kMaximumThreadPreparedRowBytes = 256` per-thread storage budget and asks a
@@ -196,6 +204,15 @@ larger contract to use a compact view over device-resident data.
 | `closed_form_price_kernel<Pricing, true>(...)` | Grid-stride specialization used when the launch contains fewer threads than prices. |
 | `validate_closed_form_launch<Pricing>(...)` | Validates inputs, time, result batch and CUDA geometry. |
 | `launch_closed_form_cuda<Pricing>(...)` | Selects the direct or grid-stride specialization, reports diagnostics and launches it. |
+
+<a id="cooperative-closed-form-kernel"></a>
+### [`cooperative_closed_form_kernels.cuh`](closed_form/cooperative_closed_form_kernels.cuh)
+
+| Function | Definition |
+|---|---|
+| `cooperative_closed_form_price_kernel<Pricing>(...)` | Stores one prepared row per block and evaluates one price cooperatively. |
+| `validate_cooperative_closed_form_launch<Pricing>(...)` | Validates inputs, workspace capacity, result batch and CUDA geometry. |
+| `launch_cooperative_closed_form_cuda<Pricing>(...)` | Checks dynamic shared-memory residency, reports diagnostics and launches the block-stride kernel. |
 
 <a id="simulation"></a>
 ## [`simulation/`](simulation)
@@ -387,12 +404,28 @@ D(0,T)=\exp(-rT).
 ## [`fixed_income/`](fixed_income)
 
 [`one_factor_affine.cuh`](#one-factor-affine) ·
+[`analytics_concepts.cuh`](#fixed-income-analytics-concepts) ·
 [`bond_option_pricing_policies.cuh`](#bond-option-pricing-policies) ·
 [`cashflows.cuh`](#fixed-income-cashflows) ·
 [`gaussian_bond_option.cuh`](#gaussian-bond-option) ·
 [`swaption_side.cuh`](#swaption-side) ·
 [`jamshidian.cuh`](#jamshidian) ·
+[`jamshidian_cooperative.cuh`](#cooperative-jamshidian) ·
 [`european_swaption.cuh`](#european-swaption-engine)
+
+<a id="fixed-income-analytics-concepts"></a>
+### [`analytics_concepts.cuh`](fixed_income/analytics_concepts.cuh)
+
+| Concept | Required capability |
+|---|---|
+| `ZeroCouponBondProvider` | One `zero_coupon_bond(parameters, state, t, T)` evaluator. |
+| `OneFactorAffineBondProvider` | A zero-coupon provider plus grouped `log_A` and `B` coefficients. |
+| `BondOptionProvider` | A reusable expiry context and one signed bond-option evaluator. |
+| `JamshidianAnalyticsProvider` | The one-factor affine and bond-option capabilities together. |
+| `ParametricCurveProvider` | Curve log discount and instantaneous forward. |
+
+The contracts are capability-based: G2 and G2++ are not required to expose
+Jamshidian operations.
 
 <a id="bond-option-pricing-policies"></a>
 ### [`bond_option_pricing_policies.cuh`](fixed_income/bond_option_pricing_policies.cuh)
@@ -483,8 +516,7 @@ V_B=s\left[P_i\Phi(sd_1)-K_BP_e\Phi(sd_2)\right].
 | Function or type | Definition |
 |---|---|
 | `GaussianBondOptionDiscountContext` | Stores the expiry discount factor and its logarithm once per option strip. |
-| `normal_cdf(z)` | Evaluates $`\Phi(z)`$ in FP32. |
-| `discounted_lognormal_bond_option_price(...)` | Evaluates the call/put expression and its zero-volatility limit. |
+| `discounted_lognormal_bond_option_price(...)` | Adapts bond levels to the common discounted-lognormal primitive. |
 
 The expression follows the forward option formula of
 [Black (1976)](https://doi.org/10.1016/0304-405X%2876%2990024-6).
@@ -529,11 +561,22 @@ V_{\mathrm{receiver}}(t)
 
 | Function | Definition |
 |---|---|
+| `jamshidian_cashflow_coefficient(...)` | Returns $`c_i=K\delta_i+\mathbf 1_{\{i=n\}}`$. |
 | `jamshidian_state_boundary(...)` | Solves the monotone scalar equation with safeguarded Newton steps and deterministic bisection fallback. |
 | `jamshidian_bond_strike(...)` | Evaluates one $`K_i^\star`$. |
 | `european_swaption_price<Side>(...)` | Reuses one expiry context and sums bond puts or calls. |
 
 Reference: [Jamshidian (1989)](https://doi.org/10.1111/j.1540-6261.1989.tb02413.x).
+
+<a id="cooperative-jamshidian"></a>
+### [`jamshidian_cooperative.cuh`](fixed_income/jamshidian_cooperative.cuh)
+
+| Function or type | Definition |
+|---|---|
+| `CooperativeJamshidianWorkspace` | Views the shared `log_A`, `B` and bond-option arrays. |
+| `cooperative_jamshidian_shared_memory_bytes(...)` | Returns the dynamic shared-memory requirement for a runtime payment capacity. |
+| `jamshidian_state_boundary_from_coefficients(...)` | Applies safeguarded Newton iterations to the coefficients prepared by the block. |
+| `cooperative_european_swaption_price<Side>(...)` | Distributes bond coefficients and bond options across the block, then accumulates cashflows in contractual order. |
 
 <a id="european-swaption-engine"></a>
 ### [`european_swaption.cuh`](fixed_income/european_swaption.cuh)
@@ -545,8 +588,12 @@ Reference: [Jamshidian (1989)](https://doi.org/10.1111/j.1540-6261.1989.tb02413.
 | `evaluate_european_swaption_price<Side>(...)` | Calls the model's closed-form swaption analytic for one row. |
 | `OneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adapts standalone Jamshidian analytics and a schedule context to the common closed-form contract. |
 | `FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds a parametric curve to the same contract. |
+| `CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds a provider and the block-cooperative Jamshidian evaluation to a standalone row. |
+| `CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds the same cooperative evaluation to a fitted model. |
 | `launch_one_factor_european_swaption<Side>(...)` | Builds `DeviceInputsWithContext` and launches the common closed-form kernel. |
 | `launch_fitted_one_factor_european_swaption<Side, Composition>(...)` | Adds fitted model/curve/product inputs through the shared model composition. |
+| `launch_cooperative_one_factor_european_swaption<Side, Provider>(...)` | Selects cooperative execution with scalar fallback for a standalone model. |
+| `launch_cooperative_fitted_one_factor_european_swaption<Side, Provider, Composition>(...)` | Selects the same execution for a fitted model. |
 
 <a id="result-index"></a>
 ## [`result_index.cuh`](result_index.cuh)
@@ -788,6 +835,30 @@ The implementation uses
 \Phi(z)=\mathbb{P}[Z\le z]
 =\frac{1}{2}\,\mathrm{erfc}\!\left(-\frac{z}{\sqrt{2}}\right).
 ```
+
+<a id="lognormal-option"></a>
+## [`lognormal_option.cuh`](lognormal_option.cuh)
+
+For discounted underlying $`U`$, discounted strike $`K_d`$, total volatility
+$`\Sigma`$ and sign $`s\in\{-1,1\}`$,
+
+```math
+d_1=\frac{\log(U/K_d)}{\Sigma}+\frac{\Sigma}{2},
+\qquad d_2=d_1-\Sigma,
+```
+
+```math
+V=s\left[U\Phi(sd_1)-K_d\Phi(sd_2)\right].
+```
+
+| Function or type | Definition |
+|---|---|
+| `DiscountedLognormalOptionContext` | Stores the log underlying level and the strike discount in log and level form. |
+| `LognormalOptionDValues` | Carries `d1` and `d2`. |
+| `DiscountedLognormalOptionValues` | Carries discounted levels and their two normal arguments. |
+| `lognormal_option_d_values(...)` | Computes `d1` and `d2` for positive total volatility. |
+| `prepare_discounted_lognormal_option_values(...)` | Prepares levels and normal arguments, including the deterministic limit. |
+| `discounted_lognormal_option_price(...)` | Prices either sign from a context or prepared values. |
 
 <a id="noncentral-chi-square"></a>
 ## [`noncentral_chi_square.cuh`](noncentral_chi_square.cuh)

@@ -3,10 +3,10 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/normal_distribution.cuh"
 #include "common/simulation/schedule.cuh"
+#include "model/equity/black_scholes/analytics.cu"
 
-namespace ai_factory::workbench::black_scholes {
+namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template<OptionSide Side>
@@ -17,52 +17,31 @@ struct GeometricAsianOptionClosedFormPricingPolicy {
     >;
     using TimeConfiguration = simulation::FixedStepTimeConfiguration;
 
-    struct PreparedRow {
-        float discounted_geometric_mean;
-        float discounted_strike;
-        float d1;
-        float d2;
-    };
+    using PreparedRow = DiscountedLognormalOptionValues;
 
     __device__ __forceinline__ static PreparedRow prepare_row(
         const ModelParameters& model,
         const product::GeometricAsianOptionParameters& product,
         const TimeConfiguration& time_configuration
     ) {
-        const std::uint32_t num_steps =
+        const std::uint32_t transition_count =
             time_configuration.simulation_steps_per_day * product.maturity;
         const float maturity_years =
-            static_cast<float>(num_steps) * time_configuration.dt;
-        const float variance = model.volatility * model.volatility;
-        const float step_count = static_cast<float>(num_steps);
-        const float log_mean = logf(model.spot)
-            + 0.5f * (model.risk_free_rate - model.dividend_yield
-                - 0.5f * variance) * maturity_years;
-        const float log_variance = variance * maturity_years
-            * (2.0f * step_count + 1.0f)
-            / (6.0f * (step_count + 1.0f));
-        const float log_standard_deviation = sqrtf(log_variance);
-        const float d2 =
-            (log_mean - logf(product.strike)) / log_standard_deviation;
-        return {
-            expf(-model.risk_free_rate * maturity_years
-                + log_mean + 0.5f * log_variance),
-            product.strike * expf(-model.risk_free_rate * maturity_years),
-            d2 + log_standard_deviation,
-            d2,
-        };
+            static_cast<float>(transition_count) * time_configuration.dt;
+        return prepare_geometric_asian_option_values(
+            prepare_analytics(model),
+            product.strike,
+            maturity_years,
+            transition_count
+        );
     }
 
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        if constexpr (Side == OptionSide::call) {
-            return row.discounted_geometric_mean * normal_cdf(row.d1)
-                - row.discounted_strike * normal_cdf(row.d2);
-        } else {
-            return row.discounted_strike * normal_cdf(-row.d2)
-                - row.discounted_geometric_mean * normal_cdf(-row.d1);
-        }
+        constexpr float option_sign =
+            Side == OptionSide::call ? 1.0f : -1.0f;
+        return discounted_lognormal_option_price(row, option_sign);
     }
 };
 
@@ -88,8 +67,8 @@ void launch_black_scholes_geometric_asian_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = GeometricAsianOptionClosedFormPricingPolicy<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    using PricingPolicy = GeometricAsianOptionClosedFormPricingPolicy<Side>;
+    closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
             model_count,
@@ -109,7 +88,7 @@ void launch_black_scholes_geometric_asian_option_cuda(
         device_prices,
         "black_scholes.geometric_asian_option",
         option_side_name(Side),
-        "Black-Scholes GeometricAsianOption kernel"
+        "Black-Scholes Geometric Asian Option kernel"
     );
 }
 
@@ -130,4 +109,4 @@ template void launch_black_scholes_geometric_asian_option_cuda<
     float, std::uint32_t, unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::black_scholes
+}  // namespace ai_factory::workbench::model::equity::black_scholes

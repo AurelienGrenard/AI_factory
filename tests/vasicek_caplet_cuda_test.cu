@@ -35,7 +35,7 @@ double integral_variance(double a, double sigma, double delta) {
 
 // Price one Vasicek caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::vasicek::
+    const ai_factory::workbench::model::fixed_income::vasicek::
         ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
@@ -80,7 +80,7 @@ double caplet_price(
 // Verify aligned Vasicek caplet pricing against an independent CPU expression.
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -91,7 +91,7 @@ int main() {
     }
     check_cuda(availability, "Vasicek caplet test cudaGetDeviceCount");
 
-    const std::vector<vasicek::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::fixed_income::vasicek::ModelParameters> models = {
         {{0.10f, 0.02f, 0.01f}, 0.03f},
         {{0.25f, 0.05f, 0.015f}, 0.04f},
         {{0.50f, 0.01f, 0.0f}, 0.025f},
@@ -104,7 +104,7 @@ int main() {
     constexpr std::size_t row_count = 3U;
     constexpr std::size_t cartesian_count = 6U;
 
-    vasicek::ModelParameters* device_models = nullptr;
+    ai_factory::workbench::model::fixed_income::vasicek::ModelParameters* device_models = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
@@ -139,7 +139,7 @@ int main() {
             "Vasicek caplet test cudaMemcpy products"
         );
 
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
@@ -178,7 +178,7 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
@@ -192,7 +192,7 @@ int main() {
             1U,
             device_prices
         );
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,

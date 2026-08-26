@@ -8,7 +8,7 @@
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::ornstein_uhlenbeck {
+namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {
 
 template<SwaptionSide Side>
 void launch_ornstein_uhlenbeck_european_swaption_cuda(
@@ -25,7 +25,7 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_one_factor_european_swaption<Side>(
+    ::ai_factory::workbench::fixed_income::launch_one_factor_european_swaption<Side>(
         "ornstein_uhlenbeck.european_swaption",
         device_models,
         model_count,
@@ -61,7 +61,7 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    fixed_income::launch_one_factor_european_swaption<Side>(
+    ::ai_factory::workbench::fixed_income::launch_one_factor_european_swaption<Side>(
         "ornstein_uhlenbeck.european_swaption",
         device_models,
         model_count,
@@ -118,4 +118,4 @@ template void launch_ornstein_uhlenbeck_european_swaption_cuda<
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::model::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck

@@ -1,4 +1,6 @@
 // Reusable Heston QE-M preparation and path simulation implementation.
+#pragma once
+
 #include "model/equity/heston/dynamics.cuh"
 
 #include "common/philox.cuh"
@@ -7,7 +9,7 @@
 
 #include <cstdint>
 
-namespace ai_factory::workbench::heston {
+namespace ai_factory::workbench::model::equity::heston {
 
 // ==================== Model-specific implementation =======================
 
@@ -32,7 +34,7 @@ __device__ __forceinline__ PreparedModel prepare_model(
     const float gamma = parameters.gamma;
     const float rho = parameters.rho;
     const float one_minus_exp = -expm1f(-kappa * delta_t);
-    const float exp_kdt = 1.0f - one_minus_exp;
+    const float variance_decay = 1.0f - one_minus_exp;
     const float gamma2 = gamma * gamma;
     const float drift_dt = fmaf(
         parameters.risk_free_rate - parameters.dividend_yield,
@@ -52,8 +54,8 @@ __device__ __forceinline__ PreparedModel prepare_model(
         logf(parameters.spot),
         parameters.initial_variance,
         theta,
-        exp_kdt,
-        gamma2 * exp_kdt * one_minus_exp / kappa,
+        variance_decay,
+        gamma2 * variance_decay * one_minus_exp / kappa,
         theta * gamma2 * one_minus_exp * one_minus_exp / (2.0f * kappa),
         drift_dt,
         drift_dt - rho * kappa * theta * delta_t / gamma,
@@ -84,7 +86,7 @@ __device__ __forceinline__ void one_step_transition(
     const float previous_variance = fmaxf(state.variance, 0.0f);
     const float conditional_mean = fmaf(
         previous_variance - prepared_model.theta,
-        prepared_model.exp_kdt,
+        prepared_model.variance_decay,
         prepared_model.theta
     );
     const float conditional_variance = fmaf(
@@ -173,7 +175,7 @@ __device__ __forceinline__ void one_step_transition(
 
 namespace {
 
-// Draw the three variates consumed by one fused QE-M transition.
+// Draw the three variates consumed by one fused QE-M prepared_transition.
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     philox::UniformSequence& uniforms,
@@ -248,4 +250,4 @@ __device__ __forceinline__ float DynamicsPolicy::log_spot(
     return state.log_spot;
 }
 
-}  // namespace ai_factory::workbench::heston
+}  // namespace ai_factory::workbench::model::equity::heston

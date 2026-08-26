@@ -15,7 +15,7 @@ namespace {
 
 constexpr double kDayFraction = 1.0 / 252.0;
 
-using Model = ai_factory::workbench::model::ornstein_uhlenbeck::
+using Model = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck::
     ModelParameters;
 
 // Stop immediately with a readable invariant name.
@@ -234,7 +234,7 @@ void check_launcher(
 // Validate floorlet and direct bond-option pricing against FP64 formulas.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

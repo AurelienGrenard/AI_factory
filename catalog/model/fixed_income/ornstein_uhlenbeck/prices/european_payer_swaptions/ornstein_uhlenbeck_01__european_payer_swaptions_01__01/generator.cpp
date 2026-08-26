@@ -9,7 +9,7 @@
 
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/ornstein_uhlenbeck/parameters/"

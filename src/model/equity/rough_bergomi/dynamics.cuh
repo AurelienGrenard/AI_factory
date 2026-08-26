@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 
 // Scalar coefficients shared by all paths of one model/product row.
 struct RoughBergomiPreparedParameters {
@@ -175,4 +175,4 @@ __device__ __forceinline__ RoughBergomiState simulate_on_regular_grid(
     float* __restrict__ observed_spots
 );
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

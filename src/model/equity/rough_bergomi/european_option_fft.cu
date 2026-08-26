@@ -18,7 +18,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace ai_factory::workbench::rough_bergomi {
+namespace ai_factory::workbench::model::equity::rough_bergomi {
 namespace {
 
 constexpr std::size_t kMaximumStepCount = 4096U;
@@ -814,4 +814,4 @@ namespace {
     &launch_rough_bergomi_european_option_fft_cuda<OptionSide::put>;
 }  // namespace
 
-}  // namespace ai_factory::workbench::rough_bergomi
+}  // namespace ai_factory::workbench::model::equity::rough_bergomi

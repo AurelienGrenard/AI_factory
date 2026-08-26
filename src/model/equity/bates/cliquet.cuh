@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::bates {
+namespace ai_factory::workbench::model::equity::bates {
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
 void launch_bates_cliquet_cuda(
@@ -29,4 +29,4 @@ void launch_bates_cliquet_cuda(
     float* device_standard_errors
 );
 
-}  // namespace ai_factory::workbench::bates
+}  // namespace ai_factory::workbench::model::equity::bates

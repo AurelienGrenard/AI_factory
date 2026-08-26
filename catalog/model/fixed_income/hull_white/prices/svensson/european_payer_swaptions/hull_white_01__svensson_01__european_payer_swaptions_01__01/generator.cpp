@@ -10,7 +10,7 @@
 
 int main() {
     using namespace ai_factory::workbench;
-    namespace hw = model::hull_white;
+    namespace hw = model::fixed_income::hull_white;
     namespace fitted = hw::svensson;
     namespace sv = curve::svensson;
 

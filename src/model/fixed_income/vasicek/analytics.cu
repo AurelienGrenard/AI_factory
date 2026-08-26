@@ -3,6 +3,7 @@
 
 #include "model/fixed_income/vasicek/analytics.cuh"
 
+#include "common/fixed_income/analytics_concepts.cuh"
 #include "common/fixed_income/cashflows.cuh"
 #include "common/fixed_income/gaussian_bond_option.cuh"
 #include "common/fixed_income/jamshidian.cuh"
@@ -15,17 +16,17 @@
 
 #include <cfloat>
 
-namespace ai_factory::workbench::model::vasicek {
+namespace ai_factory::workbench::model::fixed_income::vasicek {
 
 // ==================== Model-specific implementation =======================
 
 namespace {
 
 using AffineBondCoefficients =
-    fixed_income::OneFactorAffineBondCoefficients;
+    ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients;
 
 struct BondOptionContext {
-    fixed_income::GaussianBondOptionDiscountContext discount;
+    ::ai_factory::workbench::fixed_income::GaussianBondOptionDiscountContext discount;
     float expiry_state_standard_deviation;
 };
 
@@ -38,7 +39,7 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
         parameters, delta
     );
     return {
-        0.5f * moments.variance - moments.mean_increment,
+        0.5f * moments.variance - moments.state_mean_increment,
         moments.state_loading,
     };
 }
@@ -57,7 +58,8 @@ __device__ __forceinline__ BondOptionContext prepare_bond_option_context(
     const float expiry_log_bond = fmaf(
         -expiry_moments.state_loading,
         state,
-        0.5f * expiry_moments.variance - expiry_moments.mean_increment
+        0.5f * expiry_moments.variance
+            - expiry_moments.state_mean_increment
     );
     const float expiry_bond = expf(expiry_log_bond);
 
@@ -90,7 +92,7 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
         parameters.process.mean_reversion,
         bond_maturity - option_expiry
     );
-    return fixed_income::discounted_lognormal_bond_option_price(
+    return ::ai_factory::workbench::fixed_income::discounted_lognormal_bond_option_price(
         context.discount,
         underlying_log_bond,
         bond_loading * context.expiry_state_standard_deviation,
@@ -142,7 +144,7 @@ struct AnalyticsProvider {
         float valuation_time,
         float maturity
     ) const {
-        return fixed_income::zero_coupon_bond(
+        return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
             *this, parameters, state, valuation_time, maturity
         );
     }
@@ -182,7 +184,26 @@ struct AnalyticsProvider {
     }
 };
 
+static_assert(
+    ::ai_factory::workbench::fixed_income::JamshidianAnalyticsProvider<
+        AnalyticsProvider,
+        ModelParameters,
+        float
+    >
+);
+
 }  // namespace
+
+// The standalone Vasicek state is itself the short rate.
+__device__ __forceinline__ float short_rate(
+    const ModelParameters& parameters,
+    float state,
+    float time
+) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
+    return state;
+}
 
 // ===================== Common fixed-income analytics ======================
 
@@ -224,23 +245,29 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    return fixed_income::log_zero_coupon_bond(
+    return ::ai_factory::workbench::fixed_income::log_zero_coupon_bond(
         AnalyticsProvider{}, parameters, state, valuation_time, maturity
     );
 }
 
 // The Vasicek state is the short rate, so its integral is the log discount.
 __device__ __forceinline__ float log_discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
+    static_cast<void>(parameters);
+    static_cast<void>(time);
     return -state_integral;
 }
 
 // Exponentiate the accumulated short-rate integral only when required.
 __device__ __forceinline__ float discount_factor(
-    float state_integral
+    const ModelParameters& parameters,
+    float state_integral,
+    float time
 ) {
-    return expf(log_discount_factor(state_integral));
+    return expf(log_discount_factor(parameters, state_integral, time));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
@@ -250,7 +277,7 @@ __device__ __forceinline__ float zero_coupon_bond(
     float valuation_time,
     float maturity
 ) {
-    return fixed_income::zero_coupon_bond(
+    return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
         AnalyticsProvider{}, parameters, state, valuation_time, maturity
     );
 }
@@ -302,16 +329,16 @@ __device__ __forceinline__ float forward_rate(
     float valuation_time,
     float start_time,
     float end_time,
-    float accrual_period
+    float accrual_fraction
 ) {
-    return fixed_income::forward_rate(
+    return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider{},
         parameters,
         state,
         valuation_time,
         start_time,
         end_time,
-        accrual_period
+        accrual_fraction
     );
 }
 
@@ -324,7 +351,7 @@ __device__ __forceinline__ float swap_rate(
     float start_time,
     const ScheduleView& schedule
 ) {
-    return fixed_income::swap_rate(
+    return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider{},
         parameters,
         state,
@@ -344,7 +371,7 @@ __device__ __forceinline__ float payer_swap_value(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::payer_swap_value(
+    return ::ai_factory::workbench::fixed_income::payer_swap_value(
         AnalyticsProvider{},
         parameters,
         state,
@@ -363,7 +390,7 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::jamshidian_state_boundary(
+    return ::ai_factory::workbench::fixed_income::jamshidian_state_boundary(
         AnalyticsProvider{},
         parameters,
         exercise_time,
@@ -400,7 +427,7 @@ __device__ __forceinline__ float jamshidian_bond_strike(
     float payment_time,
     float state_boundary
 ) {
-    return fixed_income::jamshidian_bond_strike(
+    return ::ai_factory::workbench::fixed_income::jamshidian_bond_strike(
         AnalyticsProvider{},
         parameters,
         exercise_time,
@@ -418,7 +445,7 @@ __device__ __forceinline__ float european_swaption_price(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
-    return fixed_income::european_swaption_price<Side>(
+    return ::ai_factory::workbench::fixed_income::european_swaption_price<Side>(
         AnalyticsProvider{},
         parameters,
         state,
@@ -495,4 +522,4 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     );
 }
 
-}  // namespace ai_factory::workbench::model::vasicek
+}  // namespace ai_factory::workbench::model::fixed_income::vasicek

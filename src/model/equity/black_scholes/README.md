@@ -11,6 +11,8 @@ black_scholes/
 ├── dataset.cpp
 ├── dynamics.cuh
 ├── dynamics.cu
+├── analytics.cuh
+├── analytics.cu
 ├── asian_option.cu
 ├── asian_option.cuh
 ├── asset_or_nothing_option.cu
