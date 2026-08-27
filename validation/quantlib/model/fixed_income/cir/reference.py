@@ -8,7 +8,12 @@ from typing import Any, Mapping
 
 import QuantLib as ql
 
+from validation.quantlib.bermudan_swaption import (
+    PreparedBermudanModel,
+    bermudan_swaption_times,
+)
 from validation.quantlib.parameters import finite_number, positive_number
+from validation.quantlib.term_structure import discount_curve
 
 
 @dataclass(frozen=True)
@@ -95,4 +100,25 @@ def quantlib_model(
     return StableCoxIngersollRoss(reference, initial_state)
 
 
-__all__ = ("StableCoxIngersollRoss", "quantlib_model")
+def quantlib_bermudan_model(
+    model: Mapping[str, Any],
+    curve: Mapping[str, Any] | None,
+    product: Mapping[str, Any],
+) -> PreparedBermudanModel:
+    """Build the QuantLib CIR tree and its endogenous initial curve."""
+
+    reference = quantlib_model(model, curve, product)
+    term_structure = discount_curve(
+        lambda maturity: reference.discountBond(
+            0.0, maturity, reference.initial_state
+        ),
+        bermudan_swaption_times(product),
+    )
+    return PreparedBermudanModel(reference.model, term_structure, "tree")
+
+
+__all__ = (
+    "StableCoxIngersollRoss",
+    "quantlib_bermudan_model",
+    "quantlib_model",
+)

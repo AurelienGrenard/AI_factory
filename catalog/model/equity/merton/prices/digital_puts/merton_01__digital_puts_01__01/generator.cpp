@@ -1,15 +1,12 @@
 // Build one Merton digital-put price dataset from JSON inputs.
-#include "common/check_cuda.cuh"
-#include "model/equity/merton/digital_option.cuh"
-#include "model/equity/merton/dataset.hpp"
+#include "model/equity/markovian/merton/digital_option.cuh"
+#include "model/equity/markovian/merton/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
-
-#include <cuda_runtime.h>
+#include "tools/datasets/price_dataset.hpp"
+#include "tools/cuda/pricing_runner.cuh"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
-#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -23,8 +20,8 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path product_dataset_path =
     "datasets/product/equity/digital_options/digital_options_01.json";
 
-constexpr ai_factory::workbench::datasets::PriceConstruction construction =
-    ai_factory::workbench::datasets::PriceConstruction::Aligned;
+constexpr ai_factory::workbench::PriceConstruction construction =
+    ai_factory::workbench::PriceConstruction::Aligned;
 
 // Numerical and CUDA configuration used by the pricing algorithm.
 constexpr std::size_t monte_carlo_paths_per_price = 16'384U;
@@ -52,6 +49,7 @@ const std::string numerical_method = "Exact Merton increments";
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
+    namespace merton = model::equity::merton;
 
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<merton::ModelParameters> models =
@@ -60,7 +58,7 @@ int main() {
         product::load_digital_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
-    const std::size_t result_count = datasets::price_row_count(
+    const std::size_t result_count = ai_factory::workbench::price_row_count(
         models.size(), products.size(), construction
     );
 
@@ -74,72 +72,16 @@ int main() {
     );
 
     // Allocate the two output arrays in host memory.
-    std::vector<float> prices(result_count);
-    std::vector<float> standard_errors(result_count);
 
     // Declare the device pointers and CUDA events used below.
-    merton::ModelParameters* device_models = nullptr;
-    product::DigitalOptionParameters* device_products = nullptr;
-    float* device_prices = nullptr;
-    float* device_standard_errors = nullptr;
-    cudaEvent_t start_event = nullptr;
-    cudaEvent_t stop_event = nullptr;
-    double kernel_seconds = 0.0;
-
-    // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::steady_clock::now();
-    try {
-        // Allocate the model, product, price, and error arrays on the GPU.
-        check_cuda(
-            cudaMalloc(
-                &device_models,
-                models.size() * sizeof(merton::ModelParameters)
-            ),
-            "cudaMalloc Merton models"
-        );
-        check_cuda(
-            cudaMalloc(
-                &device_products,
-                products.size() * sizeof(product::DigitalOptionParameters)
-            ),
-            "cudaMalloc Digital puts"
-        );
-        check_cuda(
-            cudaMalloc(
-                &device_prices,
-                result_count * sizeof(float)
-            ),
-            "cudaMalloc Merton digital put prices"
-        );
-        check_cuda(
-            cudaMalloc(
-                &device_standard_errors,
-                result_count * sizeof(float)
-            ),
-            "cudaMalloc Merton digital put standard errors"
-        );
-
-        // Copy the model and product parameters from host memory to the GPU.
-        check_cuda(
-            cudaMemcpy(
-                device_models,
-                models.data(),
-                models.size() * sizeof(merton::ModelParameters),
-                cudaMemcpyHostToDevice
-            ),
-            "cudaMemcpy Merton models"
-        );
-        check_cuda(
-            cudaMemcpy(
-                device_products,
-                products.data(),
-                products.size() * sizeof(product::DigitalOptionParameters),
-                cudaMemcpyHostToDevice
-            ),
-            "cudaMemcpy Digital puts"
-        );
-
-        // Warm up the specialized kernel and establish normal GPU clocks.
+    const auto run = offline::cuda::run_monte_carlo(
+        offline::cuda::inputs(models, products),
+        result_count,
+        [&](auto& execution) {
+        const auto* device_models = execution.template input<0U>();
+        const auto* device_products = execution.template input<1U>();
+        auto* device_prices = execution.prices();
+        auto* device_standard_errors = execution.standard_errors();
         const std::size_t warmup_row_count = std::min<std::size_t>(
             64U,
             std::min(models.size(), products.size())
@@ -153,7 +95,7 @@ int main() {
             warmup_row_count,
             device_products,
             warmup_row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             warmup_row_count,
             0U,
             warmup_row_count,
@@ -165,13 +107,13 @@ int main() {
             device_prices,
             device_standard_errors
         );
-        check_cuda(cudaDeviceSynchronize(), "Merton digital put warmup");
 
-        // Launch and time the complete production pricing kernel.
-        check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
-        check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
-        check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
-
+        },
+        [&](auto& execution) {
+        const auto* device_models = execution.template input<0U>();
+        const auto* device_products = execution.template input<1U>();
+        auto* device_prices = execution.prices();
+        auto* device_standard_errors = execution.standard_errors();
         for (std::size_t result_offset = 0U;
              result_offset < result_count;
              result_offset += results_per_kernel_launch) {
@@ -188,7 +130,7 @@ int main() {
                 models.size(),
                 device_products,
                 products.size(),
-                construction == datasets::PriceConstruction::CartesianProduct,
+                construction,
                 result_count,
                 result_offset,
                 launch_result_count,
@@ -202,69 +144,17 @@ int main() {
             );
         }
 
-        check_cuda(cudaEventRecord(stop_event), "cudaEventRecord stop");
-        check_cuda(cudaEventSynchronize(stop_event), "cudaEventSynchronize stop");
-        float kernel_milliseconds = 0.0f;
-        check_cuda(
-            cudaEventElapsedTime(
-                &kernel_milliseconds, start_event, stop_event
-            ),
-            "cudaEventElapsedTime"
-        );
-        kernel_seconds =
-            static_cast<double>(kernel_milliseconds) * 1.0e-3;
 
-        // Copy the final prices and standard errors back to host memory.
-        check_cuda(
-            cudaMemcpy(
-                prices.data(),
-                device_prices,
-                result_count * sizeof(float),
-                cudaMemcpyDeviceToHost
-            ),
-            "cudaMemcpy Merton digital put prices"
-        );
-        check_cuda(
-            cudaMemcpy(
-                standard_errors.data(),
-                device_standard_errors,
-                result_count * sizeof(float),
-                cudaMemcpyDeviceToHost
-            ),
-            "cudaMemcpy Merton digital put standard errors"
-        );
-    } catch (...) {
-        // Release any CUDA resources acquired before the exception.
-        if (start_event != nullptr) cudaEventDestroy(start_event);
-        if (stop_event != nullptr) cudaEventDestroy(stop_event);
-        if (device_models != nullptr) cudaFree(device_models);
-        if (device_products != nullptr) cudaFree(device_products);
-        if (device_prices != nullptr) cudaFree(device_prices);
-        if (device_standard_errors != nullptr) cudaFree(device_standard_errors);
-        throw;
-    }
-
-    // 4. This generator prices once, so every CUDA resource is released now.
-    check_cuda(cudaEventDestroy(start_event), "cudaEventDestroy start");
-    check_cuda(cudaEventDestroy(stop_event), "cudaEventDestroy stop");
-    check_cuda(cudaFree(device_models), "cudaFree Merton models");
-    check_cuda(cudaFree(device_products), "cudaFree Digital puts");
-    check_cuda(cudaFree(device_prices), "cudaFree Merton digital put prices");
-    check_cuda(
-        cudaFree(device_standard_errors),
-        "cudaFree Merton digital put standard errors"
+        }
     );
-    const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::steady_clock::now() - wall_start
-    ).count();
 
     // 5. Write the complete price dataset and catalog YAML.
     datasets::write_monte_carlo_price_dataset(
         model_dataset_path,
         product_dataset_path,
         construction,
-        prices,
-        standard_errors,
+        run.prices,
+        run.standard_errors,
         random_generator,
         dataset_path,
         catalog_path,
@@ -280,8 +170,8 @@ int main() {
         },
         nlohmann::ordered_json::object(),
         seed,
-        wall_seconds,
-        kernel_seconds
+        run.wall_seconds,
+        run.kernel_seconds
     );
     datasets::validate_price_dataset_file(dataset_path);
 }

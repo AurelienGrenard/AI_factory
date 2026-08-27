@@ -7,8 +7,8 @@
 namespace ai_factory::workbench::product {
 
 struct RangeAccrualParameters {
-    std::uint32_t maturity;
-    std::uint32_t observation_interval;
+    std::uint32_t maturity_days;
+    std::uint32_t observation_interval_days;
     float lower_barrier;
     float upper_barrier;
     float coupon_rate;

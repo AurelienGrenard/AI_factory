@@ -1,8 +1,12 @@
 // Validate versioned YAML catalogs without requiring complete local datasets.
-#include "tools/datasets/dataset.hpp"
+#include "common/check_cuda.cuh"
+#include "common/result_index.cuh"
+#include "common/time_configuration.cuh"
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -23,6 +27,8 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/model/equity/normal_inverse_gaussian/"
     "parameters/normal_inverse_gaussian_01/dataset.yaml",
     "catalog/model/equity/rough_bergomi/parameters/rough_bergomi_01/dataset.yaml",
+    "catalog/model/equity/rough_heston/parameters/rough_heston_01/dataset.yaml",
+    "catalog/model/equity/rough_sabr/parameters/rough_sabr_01/dataset.yaml",
     "catalog/model/fixed_income/g2/parameters/g2_01/dataset.yaml",
     "catalog/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01/dataset.yaml",
     "catalog/model/fixed_income/hull_white/parameters/hull_white_01/dataset.yaml",
@@ -72,6 +78,8 @@ const std::vector<std::filesystem::path> catalog_paths = {
     "zero_coupon_bond_options_01/dataset.yaml",
     "catalog/product/fixed_income/european_swaptions/"
     "european_swaptions_01/dataset.yaml",
+    "catalog/product/fixed_income/bermudan_swaptions/"
+    "bermudan_swaptions_01/dataset.yaml",
     "catalog/model/equity/heston/prices/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
     "catalog/model/equity/heston/prices/european_puts/"
@@ -385,32 +393,124 @@ void validate_price_validation_metadata(const std::filesystem::path& path) {
 int main() {
     using namespace ai_factory::workbench;
 
+    for (const std::uint32_t days_per_year : {252U, 360U, 365U}) {
+        const time::DayFractionTimeConfiguration time_configuration{
+            1.0f / static_cast<float>(days_per_year)
+        };
+        require(
+            std::fabs(
+                time::year_fraction(days_per_year, time_configuration) - 1.0f
+            ) <= 2.0f * std::numeric_limits<float>::epsilon(),
+            "contract days and model years disagree at a day-count boundary"
+        );
+    }
+
     require(
-        datasets::price_row_count(
-            100U, 100U, datasets::PriceConstruction::Aligned
+        ai_factory::workbench::price_row_count(
+            100U, 100U, ai_factory::workbench::PriceConstruction::Aligned
         ) == 100U,
         "aligned construction count is not 100"
     );
     require(
-        datasets::price_row_count(
-            100U, 100U, datasets::PriceConstruction::CartesianProduct
+        ai_factory::workbench::price_row_count(
+            100U, 100U, ai_factory::workbench::PriceConstruction::CartesianProduct
         ) == 10'000U,
         "Cartesian construction count is not 10000"
     );
     require(
-        datasets::price_row_count(
-            100U, 100U, 100U, datasets::PriceConstruction::Aligned
+        ai_factory::workbench::price_row_count(
+            100U, 100U, 100U, ai_factory::workbench::PriceConstruction::Aligned
         ) == 100U,
         "three-input aligned construction count is not 100"
     );
     require(
-        datasets::price_row_count(
+        ai_factory::workbench::price_row_count(
             100U,
             100U,
             100U,
-            datasets::PriceConstruction::CartesianProduct
+            ai_factory::workbench::PriceConstruction::CartesianProduct
         ) == 1'000'000U,
         "three-input Cartesian construction count is not 1000000"
+    );
+    const ModelProductIndices product_indices =
+        decode_model_product_result_index(
+            7U, 3U, PriceConstruction::CartesianProduct
+        );
+    require(
+        product_indices.model_index == 2U
+            && product_indices.product_index == 1U,
+        "Cartesian model/product IDs do not follow model-major order"
+    );
+    const ModelProductIndices product_indices_32 =
+        decode_model_product_result_index_32(
+            7U, 3U, PriceConstruction::CartesianProduct
+        );
+    require(
+        product_indices_32.model_index == product_indices.model_index
+            && product_indices_32.product_index
+                == product_indices.product_index,
+        "validated uint32 model/product decoding changed canonical IDs"
+    );
+    const ModelCurveProductIndices curve_indices =
+        decode_model_curve_product_result_index(
+            17U, 2U, 4U, PriceConstruction::CartesianProduct
+        );
+    require(
+        curve_indices.model_index == 2U
+            && curve_indices.curve_index == 0U
+            && curve_indices.product_index == 1U,
+        "Cartesian model/curve/product IDs do not follow canonical order"
+    );
+    const ModelCurveProductIndices curve_indices_32 =
+        decode_model_curve_product_result_index_32(
+            17U, 2U, 4U, PriceConstruction::CartesianProduct
+        );
+    require(
+        curve_indices_32.model_index == curve_indices.model_index
+            && curve_indices_32.curve_index == curve_indices.curve_index
+            && curve_indices_32.product_index == curve_indices.product_index,
+        "validated uint32 model/curve/product decoding changed canonical IDs"
+    );
+    const ModelCurveProductIndices aligned_indices =
+        decode_model_curve_product_result_index(
+            7U, 99U, 99U, PriceConstruction::Aligned
+        );
+    require(
+        aligned_indices.model_index == 7U
+            && aligned_indices.curve_index == 7U
+            && aligned_indices.product_index == 7U,
+        "aligned construction does not preserve row IDs"
+    );
+    bool rejected_overflow = false;
+    try {
+        static_cast<void>(price_row_count(
+            std::numeric_limits<std::size_t>::max(),
+            2U,
+            PriceConstruction::CartesianProduct
+        ));
+    } catch (const std::overflow_error&) {
+        rejected_overflow = true;
+    }
+    require(rejected_overflow, "Cartesian cardinality accepted size_t overflow");
+    bool rejected_device_index_overflow = false;
+    try {
+        validate_model_product_construction(
+            1U,
+            static_cast<std::size_t>(
+                std::numeric_limits<std::uint32_t>::max()
+            ) + 1U,
+            PriceConstruction::CartesianProduct,
+            static_cast<std::size_t>(
+                std::numeric_limits<std::uint32_t>::max()
+            ) + 1U
+        );
+    } catch (const std::overflow_error& error) {
+        rejected_device_index_overflow =
+            std::string(error.what()).find("split") != std::string::npos;
+    }
+    require(
+        rejected_device_index_overflow,
+        "CUDA construction accepted an unrepresentable device row index"
     );
 
     const std::string catalog = read_text(price_catalog_path);

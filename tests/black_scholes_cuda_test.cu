@@ -2,16 +2,16 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/black_scholes/asset_or_nothing_option.cuh"
-#include "model/equity/black_scholes/analytics.cu"
-#include "model/equity/black_scholes/digital_option.cuh"
-#include "model/equity/black_scholes/dynamics.cu"
-#include "model/equity/black_scholes/european_option.cuh"
-#include "model/equity/black_scholes/forward_start_option.cuh"
-#include "model/equity/black_scholes/gap_option.cuh"
-#include "model/equity/black_scholes/geometric_asian_option.cuh"
-#include "model/equity/black_scholes/range_accrual.cuh"
-#include "model/equity/black_scholes/straddle.cuh"
+#include "model/equity/markovian/black_scholes/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/black_scholes/analytics_impl.cuh"
+#include "model/equity/markovian/black_scholes/digital_option.cuh"
+#include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
+#include "model/equity/markovian/black_scholes/european_option.cuh"
+#include "model/equity/markovian/black_scholes/forward_start_option.cuh"
+#include "model/equity/markovian/black_scholes/gap_option.cuh"
+#include "model/equity/markovian/black_scholes/geometric_asian_option.cuh"
+#include "model/equity/markovian/black_scholes/range_accrual.cuh"
+#include "model/equity/markovian/black_scholes/straddle.cuh"
 
 #include <cuda_runtime.h>
 
@@ -199,11 +199,11 @@ double range_accrual_price(
 ) {
     constexpr double day_fraction = 1.0 / 252.0;
     const double maturity_years =
-        static_cast<double>(product.maturity) * day_fraction;
+        static_cast<double>(product.maturity_days) * day_fraction;
     const double observation_interval_years =
-        static_cast<double>(product.observation_interval) * day_fraction;
+        static_cast<double>(product.observation_interval_days) * day_fraction;
     const std::uint32_t observation_count =
-        product.maturity / product.observation_interval;
+        product.maturity_days / product.observation_interval_days;
     double probability_sum = 0.0;
     for (std::uint32_t observation = 1U;
          observation <= observation_count;
@@ -243,7 +243,7 @@ float price_one(
         device_product, &product, sizeof(product), cudaMemcpyHostToDevice
     ), "BS test product copy");
     launch(
-        device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+        device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         1.0f / 252.0f, 32U, 1U, device_price
     );
     check_cuda(cudaDeviceSynchronize(), "BS analytical kernel synchronize");
@@ -273,12 +273,12 @@ float geometric_price_one(
     check_cuda(cudaMemcpy(device_product, &contract, sizeof(contract), cudaMemcpyHostToDevice), "BS geometric product copy");
     if (side == OptionSide::call) {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::call>(
-            device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     } else {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::put>(
-            device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     }
@@ -333,7 +333,7 @@ void require_closed_form_grid_stride_matches_direct() {
     ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_european_option_cuda<
         OptionSide::call
     >(
-        device_models, model_count, device_products, product_count, true,
+        device_models, model_count, device_products, product_count, ai_factory::workbench::PriceConstruction::CartesianProduct,
         result_count, 0U, result_count, 1.0f / 252.0f, 32U, 1U,
         device_prices
     );
@@ -347,7 +347,7 @@ void require_closed_form_grid_stride_matches_direct() {
     ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_european_option_cuda<
         OptionSide::call
     >(
-        device_models, model_count, device_products, product_count, true,
+        device_models, model_count, device_products, product_count, ai_factory::workbench::PriceConstruction::CartesianProduct,
         result_count, 0U, result_count, 1.0f / 252.0f, 2U, 1U,
         device_prices
     );

@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 
+#include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::fixed_income {
@@ -29,6 +30,42 @@ struct FixedLegScheduleView {
         return count;
     }
 };
+
+// Adapt business-day payment arrays without depending on a product type.
+struct BusinessDayFixedLegScheduleView {
+    const std::uint32_t* payment_times_days;
+    const float* accrual_fractions;
+    std::uint32_t count;
+    float time_day_fraction;
+    std::size_t stride = 1U;
+
+    __device__ __forceinline__ bool valid() const {
+        return count > 0U
+            && payment_times_days != nullptr
+            && accrual_fractions != nullptr
+            && isfinite(time_day_fraction)
+            && time_day_fraction > 0.0f;
+    }
+
+    __device__ __forceinline__ float payment_time(
+        std::uint32_t payment
+    ) const {
+        return static_cast<float>(payment_times_days[payment * stride])
+            * time_day_fraction;
+    }
+
+    __device__ __forceinline__ float accrual_fraction(
+        std::uint32_t payment
+    ) const {
+        return accrual_fractions[payment * stride];
+    }
+
+    __device__ __forceinline__ std::uint32_t payment_count() const {
+        return count;
+    }
+};
+
+static_assert(sizeof(BusinessDayFixedLegScheduleView) == 32U);
 
 // Build L(t;T_0,T_1) from two zero-coupon bonds.
 template<typename BondProvider, typename Parameters, typename State>

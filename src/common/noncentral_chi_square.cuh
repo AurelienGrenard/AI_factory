@@ -16,6 +16,12 @@ struct DistributionProbabilities {
 
 namespace noncentral_chi_square_detail {
 
+#if defined(AI_FACTORY_NCX2_FORCE_INLINE)
+#define AI_FACTORY_NCX2_LARGE_FUNCTION static __forceinline__
+#else
+#define AI_FACTORY_NCX2_LARGE_FUNCTION static __noinline__
+#endif
+
 constexpr float kInverseSqrtTwo = 0.70710678118654752440f;
 constexpr float kInverseSqrtTwoPi = 0.39894228040143267794f;
 constexpr float kTwoPi = 6.28318530717958647693f;
@@ -100,7 +106,7 @@ __device__ __forceinline__ float gamma_log_scale(
 }
 
 // Evaluate P(a,x) directly when x is left of the Gamma transition region.
-__device__ __forceinline__ float regularized_gamma_series(
+__device__ AI_FACTORY_NCX2_LARGE_FUNCTION float regularized_gamma_series(
     float shape,
     float value
 ) {
@@ -119,7 +125,7 @@ __device__ __forceinline__ float regularized_gamma_series(
 }
 
 // Evaluate Q(a,x) directly through the modified-Lentz continued fraction.
-__device__ __forceinline__ float regularized_gamma_continued_fraction(
+__device__ AI_FACTORY_NCX2_LARGE_FUNCTION float regularized_gamma_continued_fraction(
     float shape,
     float value
 ) {
@@ -157,7 +163,7 @@ __device__ __forceinline__ float regularized_gamma_continued_fraction(
 }
 
 // Select the stable direct Gamma tail, then derive its non-critical complement.
-__device__ __forceinline__ DistributionProbabilities
+__device__ AI_FACTORY_NCX2_LARGE_FUNCTION DistributionProbabilities
 regularized_gamma_probability_pair(float shape, float value) {
     if (value <= 0.0f) return {0.0f, 1.0f};
 
@@ -195,7 +201,8 @@ __device__ __forceinline__ float poisson_mode_log_weight(
 }
 
 // Use the exact Poisson-Gamma mixture, centered at its modal Poisson term.
-__device__ __forceinline__ DistributionProbabilities poisson_gamma_mixture(
+__device__ AI_FACTORY_NCX2_LARGE_FUNCTION DistributionProbabilities
+poisson_gamma_mixture(
     float degrees_of_freedom,
     float noncentrality,
     float value
@@ -295,7 +302,8 @@ __device__ __forceinline__ float log_one_plus_minus_ratio(float delta) {
 }
 
 // Lugannani-Rice remains cheap when the exact Poisson center is too large.
-__device__ __forceinline__ DistributionProbabilities saddlepoint_probabilities(
+__device__ AI_FACTORY_NCX2_LARGE_FUNCTION DistributionProbabilities
+saddlepoint_probabilities(
     float degrees_of_freedom,
     float noncentrality,
     float value
@@ -376,6 +384,8 @@ __device__ __forceinline__ DistributionProbabilities saddlepoint_probabilities(
 }
 
 }  // namespace noncentral_chi_square_detail
+
+#undef AI_FACTORY_NCX2_LARGE_FUNCTION
 
 // Return both regularized incomplete-Gamma tails P(shape,value) and Q.
 __device__ __forceinline__ DistributionProbabilities

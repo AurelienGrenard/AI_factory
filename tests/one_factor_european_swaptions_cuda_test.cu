@@ -4,13 +4,14 @@
 #include "model/fixed_income/hull_white/nelson_siegel/european_swaption.cuh"
 #include "model/fixed_income/hull_white/svensson/european_swaption.cuh"
 #include "model/fixed_income/vasicek/european_swaption.cuh"
+#include "product/european_swaption/schedule.cuh"
 
 // Instantiate both schedule-view paths directly in this test translation unit.
-#include "model/fixed_income/cir/analytics.cu"
-#include "model/fixed_income/hull_white/nelson_siegel/analytics.cu"
-#include "model/fixed_income/hull_white/svensson/analytics.cu"
-#include "model/fixed_income/ornstein_uhlenbeck/analytics.cu"
-#include "model/fixed_income/vasicek/analytics.cu"
+#include "model/fixed_income/cir/analytics_impl.cuh"
+#include "model/fixed_income/hull_white/nelson_siegel/analytics_impl.cuh"
+#include "model/fixed_income/hull_white/svensson/analytics_impl.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/analytics_impl.cuh"
+#include "model/fixed_income/vasicek/analytics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -43,7 +44,7 @@ using VasicekModel =
 
 template<typename Model>
 using RegularTwoInputLauncher = void (*)(
-    const Model*, std::size_t, const Product*, std::size_t, bool,
+    const Model*, std::size_t, const Product*, std::size_t, ai_factory::workbench::PriceConstruction,
     std::size_t, std::size_t, std::size_t, float, unsigned int,
     std::size_t, float*
 );
@@ -51,7 +52,7 @@ using RegularTwoInputLauncher = void (*)(
 template<typename Curve>
 using RegularHullWhiteLauncher = void (*)(
     const HullWhiteModel*, std::size_t, const Curve*, std::size_t,
-    const Product*, std::size_t, bool, std::size_t, std::size_t,
+    const Product*, std::size_t, ai_factory::workbench::PriceConstruction, std::size_t, std::size_t,
     std::size_t, float, unsigned int, std::size_t, float*
 );
 
@@ -88,7 +89,8 @@ __global__ void cir_scalar_swaption_reference_kernel(
         time_day_fraction
     );
     const float exercise_time =
-        static_cast<float>(products[0].exercise_time) * time_day_fraction;
+        static_cast<float>(products[0].exercise_time_days)
+            * time_day_fraction;
     prices[0] = products[0].notional * cir::european_swaption_price<Side>(
         models[0],
         models[0].initial_state,
@@ -500,7 +502,7 @@ double jamshidian_price(
     ConditionalBond conditional_bond,
     BondOption bond_option
 ) {
-    const double exercise_time = product.exercise_time * kDayFraction;
+    const double exercise_time = product.exercise_time_days * kDayFraction;
     const auto coupon_bond = [&](double state) {
         double value = 0.0;
         for (std::uint32_t payment = 0U;
@@ -509,12 +511,12 @@ double jamshidian_price(
             const double coefficient =
                 product.strike * product.accrual_fraction
                 + (payment + 1U == product.payment_count ? 1.0 : 0.0);
-            const std::uint32_t payment_time = product.exercise_time
-                + (payment + 1U) * product.payment_interval;
+            const std::uint32_t payment_time_days = product.exercise_time_days
+                + (payment + 1U) * product.payment_interval_days;
             value += coefficient * conditional_bond(
                 state,
                 exercise_time,
-                payment_time * kDayFraction
+                payment_time_days * kDayFraction
             );
         }
         return value;
@@ -556,8 +558,8 @@ double jamshidian_price(
         const double coefficient =
             product.strike * product.accrual_fraction
             + (payment + 1U == product.payment_count ? 1.0 : 0.0);
-        const std::uint32_t payment_day = product.exercise_time
-            + (payment + 1U) * product.payment_interval;
+        const std::uint32_t payment_day = product.exercise_time_days
+            + (payment + 1U) * product.payment_interval_days;
         const double payment_time =
             payment_day * kDayFraction;
         const double bond_strike = conditional_bond(
@@ -578,13 +580,13 @@ void append_product(
     ProductFixtures& fixtures,
     float notional,
     float strike,
-    std::uint32_t exercise_time,
-    std::uint32_t payment_interval,
+    std::uint32_t exercise_time_days,
+    std::uint32_t payment_interval_days,
     std::uint32_t payment_count,
     float accrual_fraction
 ) {
     require(
-        payment_interval > 0U
+        payment_interval_days > 0U
             && payment_count > 0U
             && accrual_fraction > 0.0f,
         "Invalid European swaption fixture schedule"
@@ -593,8 +595,8 @@ void append_product(
     product.notional = notional;
     product.strike = strike;
     product.accrual_fraction = accrual_fraction;
-    product.exercise_time = exercise_time;
-    product.payment_interval = payment_interval;
+    product.exercise_time_days = exercise_time_days;
+    product.payment_interval_days = payment_interval_days;
     product.payment_count = payment_count;
     fixtures.products.push_back(product);
 }
@@ -636,8 +638,8 @@ void check_cir_long_schedule() {
     contract.notional = 1.0f;
     contract.strike = 0.035f;
     contract.accrual_fraction = 1.0f / 12.0f;
-    contract.exercise_time = 1260U;
-    contract.payment_interval = 21U;
+    contract.exercise_time_days = 1260U;
+    contract.payment_interval_days = 21U;
     contract.payment_count = 600U;
 
     CirModel* device_model = nullptr;
@@ -700,7 +702,7 @@ void check_cir_long_schedule() {
                 1U,
                 device_product,
                 1U,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 1U,
                 0U,
                 1U,
@@ -789,7 +791,7 @@ void check_cir_explicit_schedule() {
         4U,
         0U,
     };
-    constexpr std::array<std::uint32_t, 4U> payment_times = {
+    constexpr std::array<std::uint32_t, 4U> payment_times_days = {
         315U, 420U, 546U, 756U,
     };
     constexpr std::array<float, 4U> accrual_fractions = {
@@ -798,7 +800,7 @@ void check_cir_explicit_schedule() {
 
     CirModel* device_model = nullptr;
     ExplicitProduct* device_product = nullptr;
-    std::uint32_t* device_payment_times = nullptr;
+    std::uint32_t* device_payment_times_days = nullptr;
     float* device_accrual_fractions = nullptr;
     float* device_price = nullptr;
     try {
@@ -812,8 +814,8 @@ void check_cir_explicit_schedule() {
         );
         ai_factory::workbench::check_cuda(
             cudaMalloc(
-                &device_payment_times,
-                payment_times.size() * sizeof(std::uint32_t)
+                &device_payment_times_days,
+                payment_times_days.size() * sizeof(std::uint32_t)
             ),
             "Explicit CIR swaption test cudaMalloc payment times"
         );
@@ -848,9 +850,9 @@ void check_cir_explicit_schedule() {
         );
         ai_factory::workbench::check_cuda(
             cudaMemcpy(
-                device_payment_times,
-                payment_times.data(),
-                payment_times.size() * sizeof(std::uint32_t),
+                device_payment_times_days,
+                payment_times_days.data(),
+                payment_times_days.size() * sizeof(std::uint32_t),
                 cudaMemcpyHostToDevice
             ),
             "Explicit CIR swaption test cudaMemcpy payment times"
@@ -866,9 +868,9 @@ void check_cir_explicit_schedule() {
         );
 
         const product::ExplicitEuropeanSwaptionScheduleSource source{
-            device_payment_times,
+            device_payment_times_days,
             device_accrual_fractions,
-            payment_times.size(),
+            payment_times_days.size(),
         };
         const auto scalar_price = [&]<SwaptionSide Side>() {
             cir_scalar_swaption_reference_kernel<Side><<<1U, 1U>>>(
@@ -892,11 +894,11 @@ void check_cir_explicit_schedule() {
                 device_model,
                 1U,
                 device_product,
-                device_payment_times,
+                device_payment_times_days,
                 device_accrual_fractions,
-                payment_times.size(),
+                payment_times_days.size(),
                 1U,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 1U,
                 0U,
                 1U,
@@ -930,7 +932,9 @@ void check_cir_explicit_schedule() {
     } catch (...) {
         if (device_model != nullptr) cudaFree(device_model);
         if (device_product != nullptr) cudaFree(device_product);
-        if (device_payment_times != nullptr) cudaFree(device_payment_times);
+        if (device_payment_times_days != nullptr) {
+            cudaFree(device_payment_times_days);
+        }
         if (device_accrual_fractions != nullptr)
             cudaFree(device_accrual_fractions);
         if (device_price != nullptr) cudaFree(device_price);
@@ -943,7 +947,7 @@ void check_cir_explicit_schedule() {
         cudaFree(device_product), "Explicit CIR swaption test cudaFree product"
     );
     ai_factory::workbench::check_cuda(
-        cudaFree(device_payment_times),
+        cudaFree(device_payment_times_days),
         "Explicit CIR swaption test cudaFree payment times"
     );
     ai_factory::workbench::check_cuda(
@@ -1007,7 +1011,7 @@ void check_two_input_launcher(
             aligned_count,
             device_products,
             aligned_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             aligned_count,
             0U,
             aligned_count,
@@ -1042,7 +1046,7 @@ void check_two_input_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -1056,7 +1060,7 @@ void check_two_input_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,
@@ -1175,7 +1179,7 @@ void check_hull_white_launcher(
             aligned_count,
             device_products,
             aligned_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             aligned_count,
             0U,
             aligned_count,
@@ -1212,7 +1216,7 @@ void check_hull_white_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             5U,
@@ -1228,7 +1232,7 @@ void check_hull_white_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             5U,
             cartesian_count - 5U,

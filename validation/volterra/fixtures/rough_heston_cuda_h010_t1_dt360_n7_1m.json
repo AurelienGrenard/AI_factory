@@ -1,0 +1,17 @@
+{
+  "factor_count": 7,
+  "time_steps": 360,
+  "path_count": 1048576,
+  "seed": 912000001,
+  "call": {
+    "price": 0.0791683644,
+    "standard_error": 0.000095910349,
+    "milliseconds": 1029.21313
+  },
+  "put": {
+    "price": 0.0691591129,
+    "standard_error": 0.00012164747,
+    "milliseconds": 1007.22729
+  },
+  "call_put_parity_difference": 0.000158091309
+}

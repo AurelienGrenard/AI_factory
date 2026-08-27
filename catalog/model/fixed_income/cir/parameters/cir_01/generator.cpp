@@ -1,7 +1,7 @@
 // Generate CIR rows by sampling ordinary rate parameters first, then sigma
 // from row-dependent bounds that control the Feller-ratio range.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
 #include <cmath>

@@ -1,6 +1,6 @@
 // Generate risk-neutral Variance-Gamma rows in ordered core and stress regimes.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

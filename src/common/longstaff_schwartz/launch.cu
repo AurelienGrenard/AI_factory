@@ -19,6 +19,38 @@ std::string operation(const char* action, const char* product_name) {
 
 }  // namespace
 
+std::string regression_diagnostic_message(
+    const RegressionDiagnosticSummary& diagnostics,
+    const char* product_name
+) {
+    if (!diagnostics.has_fatal_failure()) return {};
+    return std::string(product_name) + " result row "
+        + std::to_string(diagnostics.first_fatal_result_index)
+        + " has a fatal Longstaff-Schwartz regression status: "
+        + regression_status_name(diagnostics.first_fatal_status)
+        + " (affected rows="
+        + std::to_string(diagnostics.affected_result_count)
+        + ", insufficient="
+        + std::to_string(diagnostics.insufficient_candidate_count)
+        + ", non-finite statistics="
+        + std::to_string(diagnostics.non_finite_statistics_count)
+        + ", factorization failures="
+        + std::to_string(diagnostics.factorization_failure_count)
+        + ", non-finite coefficients="
+        + std::to_string(diagnostics.non_finite_coefficient_count)
+        + ").";
+}
+
+void validate_regression_diagnostics(
+    const LaunchResult& result,
+    const char* product_name
+) {
+    const std::string message = regression_diagnostic_message(
+        result.regression_diagnostics, product_name
+    );
+    if (!message.empty()) throw std::runtime_error(message);
+}
+
 WorkspaceBudget query_workspace_budget(const char* product_name) {
     std::size_t free_bytes = 0U;
     std::size_t total_bytes = 0U;

@@ -1,9 +1,10 @@
 // Reusable CUDA analytics for the affine Vasicek short-rate model.
 #pragma once
 
+#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "common/fixed_income/cashflows.cuh"
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/dynamics.cuh"
-#include "product/european_swaption/schedule.cuh"
 
 #include <cuda_runtime.h>
 
@@ -136,7 +137,7 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     const ModelParameters& parameters,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
@@ -178,7 +179,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     float valuation_time,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
@@ -202,10 +203,78 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     float valuation_time,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
 );
+
+// Model-side analytics and regression projection used by Bermudan swaptions.
+struct BermudanSwaptionAnalyticsPolicy {
+    using PreparedModel = ModelParameters;
+
+    struct PreparedRegressionState {
+        float inverse_scale;
+    };
+
+    __device__ __forceinline__ static PreparedRegressionState
+    prepare_regression_state(const ModelParameters& parameters) {
+        return {
+            ::ai_factory::workbench::fixed_income::
+                mean_reverting_gaussian::
+                    inverse_stationary_deviation_from_volatility(
+                        parameters.process.volatility,
+                        parameters.process.mean_reversion
+                    ),
+        };
+    }
+
+    __device__ __forceinline__ static float normalize_regression_state(
+        const PreparedRegressionState& prepared,
+        float state
+    ) {
+        return state * prepared.inverse_scale;
+    }
+
+    __device__ __forceinline__ static PreparedModel prepare_model(
+        const ModelParameters& model
+    ) {
+        return model;
+    }
+
+    template<typename JointState>
+    __device__ __forceinline__ static float factor_state(
+        const JointState& state
+    ) {
+        return state.state;
+    }
+
+    __device__ __forceinline__ static float log_discount_factor(
+        const PreparedModel& model,
+        float state_integral,
+        float time
+    ) {
+        return vasicek::log_discount_factor(model, state_integral, time);
+    }
+
+    template<typename ScheduleView>
+    __device__ __forceinline__ static float payer_swap_value(
+        const PreparedModel& model,
+        float state,
+        float valuation_time,
+        float start_time,
+        float fixed_rate,
+        const ScheduleView& schedule
+    ) {
+        return vasicek::payer_swap_value(
+            model,
+            state,
+            valuation_time,
+            start_time,
+            fixed_rate,
+            schedule
+        );
+    }
+};
 
 }  // namespace ai_factory::workbench::model::fixed_income::vasicek

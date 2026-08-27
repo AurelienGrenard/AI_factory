@@ -1,0 +1,78 @@
+title: "Heston 3/2 parameter dataset heston_3_2_01"
+database_id: "heston_3_2_01"
+model_family: "Heston 3/2"
+catalog: "catalog/model/equity/heston_3_2/parameters/heston_3_2_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/heston_3_2/parameters/heston_3_2_01.json"
+row_count: 1000
+parameters:
+  spot: "Initial spot; fixed to 1."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_variance: "Initial instantaneous variance."
+  mean_reversion: "3/2 variance mean-reversion coefficient."
+  long_run_variance: "3/2 variance equilibrium level."
+  volatility_of_variance: "Coefficient of V^(3/2)dW."
+  rho: "Spot/variance Brownian correlation."
+dynamics:
+  spot: "dS/S=(r-q)dt+sqrt(V)dW_S."
+  variance: "dV=kappa V(theta-V)dt+epsilon V^(3/2)dW_V."
+  simulation: "Milstein stepping of reciprocal CIR U=1/V."
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - 0.001
+          - 0.08
+        dividend_yield:
+          - 0.0
+          - 0.06
+        initial_variance:
+          - 0.01
+          - 0.09
+        mean_reversion:
+          - 5.0
+          - 40.0
+        long_run_variance:
+          - 0.015
+          - 0.09
+        volatility_of_variance:
+          - 1.0
+          - 8.0
+        rho:
+          - -0.95
+          - -0.1
+  stress:
+    row_count: 100
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - -0.03
+          - 0.12
+        dividend_yield:
+          - 0.0
+          - 0.1
+        initial_variance:
+          - 0.0025
+          - 0.25
+        mean_reversion:
+          - 0.5
+          - 80.0
+        long_run_variance:
+          - 0.0025
+          - 0.25
+        volatility_of_variance:
+          - 0.2
+          - 15.0
+        rho:
+          - -0.99
+          - 0.5

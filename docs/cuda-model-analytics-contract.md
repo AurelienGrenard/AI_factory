@@ -4,9 +4,10 @@
 
 Ce document fixe l'ossature des analytics déterministes de Black-Scholes et
 des modèles de taux. Les fonctions publiques propres à un modèle restent dans
-`src/model/<asset_class>/<model>/analytics.cuh/.cu`. Les primitives qui ne
-dépendent d'aucun modèle vivent dans `src/common`, et les compositions ajustées
-à une courbe réutilisent les analytics du processus stochastique de base.
+`src/model/<asset_class>/<model>/analytics.cuh`; leurs définitions device
+incluses restent dans `analytics_impl.cuh`. Les primitives qui ne dépendent
+d'aucun modèle vivent dans `src/common`, et les compositions ajustées à une
+courbe réutilisent les analytics du processus stochastique de base.
 
 Une API commune est définie par capacité. Aucun modèle ne doit implémenter une
 fonction artificielle uniquement pour satisfaire un provider universel.
@@ -21,12 +22,13 @@ Un header analytics présente, dans cet ordre :
 4. les coefficients affines ;
 5. le zéro-coupon et le discounting de chemin ;
 6. les options sur zéro-coupon ;
-7. les taux forward, taux swap et valeurs de swap ;
-8. les formules produit propres à la famille, notamment Jamshidian.
+7. les taux forward, taux swap et valeurs de swap.
 
-Le `.cu` contient `#pragma once`, les includes, le namespace du modèle, les
-primitives propres au modèle, les providers de capacité, leurs contrôles de concept,
-puis les wrappers publics dans le même ordre que le header.
+`analytics_impl.cuh` contient `#pragma once`, les includes, le namespace du
+modèle, les primitives propres au modèle, les providers de capacité, leurs
+contrôles de concept, puis les wrappers publics dans le même ordre que le
+header. Les formules qui assemblent un schedule ou un payoff concret restent
+dans le produit propriétaire.
 
 ## Signatures fixed income
 
@@ -106,8 +108,9 @@ même socle.
 
 ## Black-Scholes
 
-`model/equity/black_scholes/analytics.cuh/.cu` contient les seules quantités
-propres au modèle : contexte Black-Scholes, `d1`/`d2`, niveaux vanilla,
+`model/equity/markovian/black_scholes/analytics.cuh` et `analytics_impl.cuh` contiennent
+les seules quantités propres au modèle : contexte Black-Scholes, `d1`/`d2`,
+niveaux vanilla,
 probabilités cash-or-nothing, termes asset-or-nothing et probabilités
 d'intervalles lognormaux. Les politiques produit conservent `PreparedRow` et
 réutilisent ces primitives sans redévelopper la distribution.
@@ -132,7 +135,9 @@ Les valeurs obtenues après conversion du calendrier portent le suffixe
 Chaque provider est contrôlé par `static_assert`. Les tests numériques couvrent
 symétriquement les identités applicables : bond et log-bond, coefficient affine,
 discounting de chemin, forward, swap, valeur payer, parité call/put, limites
-dégénérées et Jamshidian pour les seuls modèles un facteur.
+dégénérées et capacités nécessaires à Jamshidian pour les seuls modèles un
+facteur. Les schedules et la décomposition complète sont testés depuis le
+produit swaption.
 
 Black-Scholes vérifie en plus la parité put-call, les partitions digital et
 asset-or-nothing, les payoffs gap/forward-start, l'Asian géométrique et le range

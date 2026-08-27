@@ -8,8 +8,8 @@ namespace ai_factory::workbench::product {
 
 struct ForwardStartOptionParameters {
     float moneyness;
-    std::uint32_t reset_time;
-    std::uint32_t maturity;
+    std::uint32_t reset_time_days;
+    std::uint32_t maturity_days;
 };
 
 static_assert(std::is_trivially_copyable_v<ForwardStartOptionParameters>);

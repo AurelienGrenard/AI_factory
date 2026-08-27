@@ -8,7 +8,7 @@ namespace ai_factory::workbench::product {
 
 struct DigitalOptionParameters {
     float strike;
-    std::uint32_t maturity;
+    std::uint32_t maturity_days;
     float cash_payoff;
 };
 

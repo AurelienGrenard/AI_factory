@@ -141,7 +141,7 @@ void check_launcher(
             aligned_count,
             device_products,
             aligned_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             aligned_count,
             0U,
             aligned_count,
@@ -179,7 +179,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             5U,
@@ -195,7 +195,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             5U,
             cartesian_count - 5U,
@@ -308,13 +308,13 @@ int main() {
            const Curve& curve,
            const product::RateOptionParameters& product) {
             const double strike_factor =
-                1.0 + product.accrual_period * kDayFraction * product.strike;
+                1.0 + product.accrual_period_days * kDayFraction * product.strike;
             return product.notional * strike_factor * bond_option_price(
                 model,
                 curve,
                 1.0,
-                product.fixing_time * kDayFraction,
-                product.payment_time * kDayFraction,
+                product.fixing_time_days * kDayFraction,
+                product.payment_time_days * kDayFraction,
                 1.0 / strike_factor
             );
         },
@@ -334,8 +334,8 @@ int main() {
                 model,
                 curve,
                 1.0,
-                product.option_expiry * kDayFraction,
-                product.bond_maturity * kDayFraction,
+                product.option_expiry_days * kDayFraction,
+                product.bond_maturity_days * kDayFraction,
                 product.strike
             );
         },
@@ -355,8 +355,8 @@ int main() {
                 model,
                 curve,
                 -1.0,
-                product.option_expiry * kDayFraction,
-                product.bond_maturity * kDayFraction,
+                product.option_expiry_days * kDayFraction,
+                product.bond_maturity_days * kDayFraction,
                 product.strike
             );
         },

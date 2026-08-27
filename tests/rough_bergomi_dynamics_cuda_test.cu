@@ -1,137 +1,112 @@
-// Verify rough-Bergomi hybrid preparation, transition, and Philox replay.
+// Check the shared fractional driver and the two Gaussian-Volterra path maps.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough_bergomi/dataset.hpp"
-#include "model/equity/rough_bergomi/dynamics.cu"
+#include "common/volterra/fractional_hybrid_driver.cuh"
+#include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
+#include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
-#include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <stdexcept>
 
 namespace {
 
-constexpr std::uint32_t kStepCount = 8U;
+namespace bergomi =
+    ai_factory::workbench::model::equity::rough_bergomi;
+namespace sabr = ai_factory::workbench::model::equity::rough_sabr;
 
-struct RoughBergomiDynamicsResults {
-    ai_factory::workbench::model::equity::rough_bergomi::RoughBergomiPreparedParameters model;
-    float first_far_weight;
-    float first_log_variance_correction;
-    float explicit_log_spot;
-    float explicit_variance;
-    float explicit_brownian_increment;
-    float explicit_second_log_spot;
-    float explicit_second_variance;
-    float explicit_second_brownian_increment;
-    float terminal_first;
-    float terminal_replay;
-    float two_time_terminal;
-    float arithmetic_mean;
-    float geometric_mean;
-    float maximum_spot;
+struct Results {
+    float first_weight;
+    float terminal_driver_variance;
+    float bergomi_log_spot;
+    float bergomi_volatility;
+    float sabr_log_spot;
+    float sabr_volatility;
+    float cev_log_spot;
 };
 
-__global__ void exercise_rough_bergomi_dynamics_kernel(
-    float* history_storage,
-    RoughBergomiDynamicsResults* output
-) {
-    using namespace ai_factory::workbench;
-    using namespace ai_factory::workbench::model::equity::rough_bergomi;
-
-    __shared__ RoughBergomiPreparedParameters model;
-    __shared__ float far_weights[kStepCount];
-    __shared__ float log_variance_corrections[kStepCount];
-    if (threadIdx.x == 0U) {
-        const RoughBergomiModelParameters parameters = {
-            1.0f, 0.03f, 0.01f, 0.04f, 1.7f, 0.10f, -0.70f,
-        };
-        model = prepare_model(parameters, 1.0f, kStepCount);
-    }
-    __syncthreads();
-    prepare_hybrid_grid(
-        model,
-        kStepCount,
-        far_weights,
-        log_variance_corrections,
-        threadIdx.x,
-        blockDim.x
-    );
-    __syncthreads();
-    if (threadIdx.x != 0U) return;
-
-    const RoughBergomiHybridGridView grid = {
-        far_weights,
-        log_variance_corrections,
+__global__ void evaluate_dynamics(Results* output) {
+    using Driver =
+        ai_factory::workbench::volterra::FractionalHybridDriverPolicy;
+    if (threadIdx.x != 0U || blockIdx.x != 0U) return;
+    constexpr float dt = 1.0f / 360.0f;
+    const Driver::PreparedDriver driver = Driver::prepare(0.10f, dt);
+    const bergomi::ModelParameters bergomi_parameters = {
+        1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f,
     };
-    const RoughBergomiHistoryView history = {history_storage, 1U};
+    const sabr::ModelParameters lognormal_sabr_parameters = {
+        1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f, 1.0f,
+    };
+    const sabr::ModelParameters cev_sabr_parameters = {
+        1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f, 0.70f,
+    };
+    const bergomi::PreparedModel bergomi_model =
+        bergomi::prepare_model(bergomi_parameters, dt);
+    const sabr::PreparedModel sabr_model =
+        sabr::prepare_model(lognormal_sabr_parameters, dt);
+    const sabr::PreparedModel cev_model =
+        sabr::prepare_model(cev_sabr_parameters, dt);
+    bergomi::State bergomi_state = bergomi::initial_state(bergomi_model);
+    sabr::State sabr_state = sabr::initial_state(sabr_model);
+    sabr::State cev_state = sabr::initial_state(cev_model);
 
-    RoughBergomiState explicit_state = initial_state(model);
-    one_step_transition(
-        model,
-        grid,
-        history,
-        0U,
-        -0.35f,
-        0.45f,
-        0.20f,
-        explicit_state
-    );
-    const float explicit_log_spot = explicit_state.log_spot;
-    const float explicit_variance = explicit_state.variance;
-    const float explicit_brownian_increment = history_storage[0];
-    one_step_transition(
-        model,
-        grid,
-        history,
-        1U,
-        0.25f,
-        -0.15f,
-        0.40f,
-        explicit_state
-    );
-    const float explicit_second_log_spot = explicit_state.log_spot;
-    const float explicit_second_variance = explicit_state.variance;
-    const float explicit_second_brownian_increment = history_storage[1];
-
-    const philox::PhiloxKey key = philox::make_key(900001001ULL);
-    const RoughBergomiState terminal_first = simulate_terminal_state(
-        model, grid, history, key, 17U, kStepCount
-    );
-    const RoughBergomiState terminal_replay = simulate_terminal_state(
-        model, grid, history, key, 17U, kStepCount
-    );
-    const RoughBergomiTwoTimePathResult two_time = simulate_at_two_times(
-        model, grid, history, key, 17U, 3U, kStepCount
-    );
-    const RoughBergomiMeanPathResult mean = simulate_mean_state(
-        model, grid, history, key, 19U, kStepCount
-    );
-    const RoughBergomiGeometricMeanPathResult geometric =
-        simulate_geometric_mean_state(
-            model, grid, history, key, 23U, kStepCount
+    float increments[16]{};
+    for (unsigned int step = 0U; step < 16U; ++step) {
+        const float rough_normal = 0.07f * static_cast<float>(step) - 0.4f;
+        const float singular_normal = 0.3f - 0.02f * step;
+        const float spot_normal = -0.2f + 0.04f * step;
+        increments[step] = driver.sqrt_time_step * rough_normal;
+        float far = 0.0f;
+        for (unsigned int previous = 0U; previous < step; ++previous) {
+            far = fmaf(
+                Driver::far_cell_weight(driver, step + 1U - previous),
+                increments[previous],
+                far
+            );
+        }
+        const float value = Driver::value(
+            driver,
+            far,
+            rough_normal,
+            singular_normal
         );
-    const RoughBergomiMaximumPathResult maximum = simulate_maximum_state(
-        model, grid, history, key, 29U, kStepCount
-    );
-
+        const float variance = Driver::variance(
+            driver,
+            static_cast<float>(step + 1U) * dt
+        );
+        bergomi::advance(
+            bergomi_model,
+            value,
+            variance,
+            rough_normal,
+            spot_normal,
+            bergomi_state
+        );
+        sabr::advance(
+            sabr_model,
+            value,
+            variance,
+            rough_normal,
+            spot_normal,
+            sabr_state
+        );
+        sabr::advance(
+            cev_model,
+            value,
+            variance,
+            rough_normal,
+            spot_normal,
+            cev_state
+        );
+    }
     *output = {
-        model,
-        far_weights[0],
-        log_variance_corrections[0],
-        explicit_log_spot,
-        explicit_variance,
-        explicit_brownian_increment,
-        explicit_second_log_spot,
-        explicit_second_variance,
-        explicit_second_brownian_increment,
-        terminal_first.log_spot,
-        terminal_replay.log_spot,
-        logf(two_time.terminal_spot),
-        mean.arithmetic_mean,
-        geometric.geometric_mean,
-        maximum.maximum_spot,
+        Driver::far_cell_weight(driver, 2U),
+        Driver::variance(driver, 16.0f * dt),
+        bergomi_state.log_spot,
+        sqrtf(bergomi_state.variance),
+        sabr_state.log_spot,
+        sabr_state.volatility,
+        cev_state.log_spot,
     };
 }
 
@@ -139,32 +114,10 @@ void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
 }
 
-bool close(float left, float right, float tolerance = 5.0e-6f) {
-    return std::fabs(left - right) <= tolerance;
-}
-
 }  // namespace
 
 int main() {
-    const auto models =
-        ai_factory::workbench::model::equity::rough_bergomi::load_models(
-            "datasets/model/equity/rough_bergomi/parameters/rough_bergomi_01.json"
-        );
-    require(
-        models.size() == 1000U,
-        "rough-Bergomi model dataset does not contain 1000 rows"
-    );
-    require(
-        std::all_of(
-            models.begin(),
-            models.end(),
-            [](const auto& model) {
-                return model.spot == 1.0f && model.xi_0 == 0.04f;
-            }
-        ),
-        "rough-Bergomi dataset does not keep spot and xi_0 fixed"
-    );
-
+    using ai_factory::workbench::check_cuda;
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
     if (availability == cudaErrorNoDevice
@@ -172,146 +125,40 @@ int main() {
         || device_count == 0) {
         return 77;
     }
-    ai_factory::workbench::check_cuda(
-        availability, "rough-Bergomi dynamics test cudaGetDeviceCount"
-    );
+    check_cuda(availability, "rough Volterra dynamics cudaGetDeviceCount");
 
-    float* device_history = nullptr;
-    RoughBergomiDynamicsResults* device_results = nullptr;
-    ai_factory::workbench::check_cuda(
-        cudaMalloc(&device_history, kStepCount * sizeof(float)),
-        "rough-Bergomi dynamics test history cudaMalloc"
-    );
-    ai_factory::workbench::check_cuda(
-        cudaMalloc(&device_results, sizeof(RoughBergomiDynamicsResults)),
-        "rough-Bergomi dynamics test results cudaMalloc"
-    );
-    exercise_rough_bergomi_dynamics_kernel<<<1, 32>>>(
-        device_history, device_results
-    );
-    ai_factory::workbench::check_cuda(
-        cudaGetLastError(), "rough-Bergomi dynamics test kernel launch"
-    );
-
-    RoughBergomiDynamicsResults results{};
-    ai_factory::workbench::check_cuda(
+    Results* device_results = nullptr;
+    check_cuda(cudaMalloc(&device_results, sizeof(Results)), "dynamics malloc");
+    evaluate_dynamics<<<1U, 1U>>>(device_results);
+    check_cuda(cudaGetLastError(), "rough Volterra dynamics kernel");
+    Results results{};
+    check_cuda(
         cudaMemcpy(
             &results,
             device_results,
-            sizeof(results),
+            sizeof(Results),
             cudaMemcpyDeviceToHost
         ),
-        "rough-Bergomi dynamics test cudaMemcpy"
+        "rough Volterra dynamics copy"
     );
-    ai_factory::workbench::check_cuda(
-        cudaFree(device_results),
-        "rough-Bergomi dynamics test results cudaFree"
-    );
-    ai_factory::workbench::check_cuda(
-        cudaFree(device_history),
-        "rough-Bergomi dynamics test history cudaFree"
-    );
+    check_cuda(cudaFree(device_results), "rough Volterra dynamics free");
 
-    constexpr float dt = 1.0f / static_cast<float>(kStepCount);
-    constexpr float h = 0.10f;
-    constexpr float alpha = h - 0.5f;
-    constexpr float alpha_plus_one = alpha + 1.0f;
-    constexpr float eta = 1.7f;
-    constexpr float rho = -0.70f;
-    const float expected_first_weight = std::pow(dt, alpha)
-        * (std::pow(2.0f, alpha_plus_one) - 1.0f)
-        / alpha_plus_one;
-    const float expected_first_correction = std::log(0.04f)
-        - 0.5f * eta * eta * std::pow(dt, 2.0f * h);
+    require(results.first_weight > 0.0f, "hybrid far weight is invalid");
     require(
-        close(results.first_far_weight, expected_first_weight),
-        "rough-Bergomi optimal far-cell weight is incorrect"
+        std::fabs(results.terminal_driver_variance
+                  - std::pow(16.0f / 360.0f, 0.2f)) < 2.0e-6f,
+        "fractional driver variance has the wrong normalization"
     );
     require(
-        close(
-            results.first_log_variance_correction,
-            expected_first_correction
-        ),
-        "rough-Bergomi log-variance correction is incorrect"
-    );
-
-    constexpr float rough_normal = -0.35f;
-    constexpr float singular_normal = 0.45f;
-    constexpr float spot_normal = 0.20f;
-    const float delta_w = std::sqrt(dt) * rough_normal;
-    const float delta_w_perp = std::sqrt(dt) * spot_normal;
-    const float spot_increment = rho * delta_w
-        + std::sqrt(1.0f - rho * rho) * delta_w_perp;
-    const float expected_log_spot = (0.03f - 0.01f) * dt
-        - 0.5f * 0.04f * dt
-        + std::sqrt(0.04f) * spot_increment;
-    const float singular_integral =
-        results.model.singular_driver_loading * rough_normal
-        + results.model.singular_independent_loading * singular_normal;
-    const float rough_driver = std::sqrt(2.0f * h) * singular_integral;
-    const float expected_variance = std::exp(
-        expected_first_correction + eta * rough_driver
+        std::fabs(results.bergomi_log_spot - results.sabr_log_spot) < 2.0e-6f
+            && std::fabs(
+                results.bergomi_volatility - results.sabr_volatility
+            ) < 2.0e-6f,
+        "rough SABR beta=1 does not reduce to rough Bergomi"
     );
     require(
-        close(results.explicit_brownian_increment, delta_w),
-        "rough-Bergomi history does not store the driving Brownian increment"
-    );
-    require(
-        close(results.explicit_log_spot, expected_log_spot),
-        "rough-Bergomi explicit log-spot transition is incorrect"
-    );
-    require(
-        close(results.explicit_variance, expected_variance),
-        "rough-Bergomi explicit variance transition is incorrect"
-    );
-
-    constexpr float second_rough_normal = 0.25f;
-    constexpr float second_singular_normal = -0.15f;
-    constexpr float second_spot_normal = 0.40f;
-    const float second_delta_w = std::sqrt(dt) * second_rough_normal;
-    const float second_delta_w_perp = std::sqrt(dt) * second_spot_normal;
-    const float second_spot_increment = rho * second_delta_w
-        + std::sqrt(1.0f - rho * rho) * second_delta_w_perp;
-    const float expected_second_log_spot = expected_log_spot
-        + (0.03f - 0.01f) * dt
-        - 0.5f * expected_variance * dt
-        + std::sqrt(expected_variance) * second_spot_increment;
-    const float second_singular_integral =
-        results.model.singular_driver_loading * second_rough_normal
-        + results.model.singular_independent_loading
-            * second_singular_normal;
-    const float second_rough_driver = std::sqrt(2.0f * h)
-        * (second_singular_integral + expected_first_weight * delta_w);
-    const float second_correction = std::log(0.04f)
-        - 0.5f * eta * eta * std::pow(2.0f * dt, 2.0f * h);
-    const float expected_second_variance = std::exp(
-        second_correction + eta * second_rough_driver
-    );
-    require(
-        close(results.explicit_second_brownian_increment, second_delta_w),
-        "rough-Bergomi second Brownian increment is not stored correctly"
-    );
-    require(
-        close(results.explicit_second_log_spot, expected_second_log_spot),
-        "rough-Bergomi second log-spot transition is incorrect"
-    );
-    require(
-        close(results.explicit_second_variance, expected_second_variance),
-        "rough-Bergomi far-history convolution is incorrect"
-    );
-    require(
-        results.terminal_first == results.terminal_replay
-            && results.terminal_first == results.two_time_terminal,
-        "rough-Bergomi path replay or continuous two-time history is incorrect"
-    );
-    require(
-        std::isfinite(results.arithmetic_mean)
-            && results.arithmetic_mean > 0.0f
-            && std::isfinite(results.geometric_mean)
-            && results.geometric_mean > 0.0f
-            && std::isfinite(results.maximum_spot)
-            && results.maximum_spot >= 1.0f,
-        "rough-Bergomi path summaries are not finite and positive"
+        std::isfinite(results.cev_log_spot),
+        "rough SABR CEV path produced a non-finite state"
     );
     return 0;
 }

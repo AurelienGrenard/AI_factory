@@ -1,6 +1,8 @@
 // Host implementation of constrained Svensson dataset generation.
 #include "tools/datasets/svensson_generation.hpp"
 
+#include "curve/svensson/instantaneous_forward.cuh"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -37,23 +39,6 @@ void validate_bounds(
     }
 }
 
-// Evaluate the analytical instantaneous forward in host precision.
-double instantaneous_forward(
-    double beta0,
-    double beta1,
-    double beta2,
-    double beta3,
-    double tau1,
-    double tau2,
-    double maturity
-) {
-    const double x1 = maturity / tau1;
-    const double x2 = maturity / tau2;
-    return beta0
-        + std::exp(-x1) * (beta1 + beta2 * x1)
-        + beta3 * x2 * std::exp(-x2);
-}
-
 // Reject hidden negative or extreme forwards on a dense maturity grid.
 bool has_admissible_forwards(
     float beta0,
@@ -74,9 +59,16 @@ bool has_admissible_forwards(
         const double maturity = index == 0U
             ? 0.0
             : std::exp(log_minimum + weight * (log_maximum - log_minimum));
-        const double forward = instantaneous_forward(
-            beta0, beta1, beta2, beta3, tau1, tau2, maturity
-        );
+        const double forward =
+            curve::svensson::instantaneous_forward_formula(
+                static_cast<double>(beta0),
+                static_cast<double>(beta1),
+                static_cast<double>(beta2),
+                static_cast<double>(beta3),
+                static_cast<double>(tau1),
+                static_cast<double>(tau2),
+                maturity
+            );
         if (forward < accepted_forward.minimum
             || forward > accepted_forward.maximum) {
             return false;

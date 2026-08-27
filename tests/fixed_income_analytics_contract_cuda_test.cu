@@ -2,16 +2,16 @@
 #include "common/check_cuda.cuh"
 #include "common/fixed_income/analytics_concepts.cuh"
 #include "common/fixed_income/cashflows.cuh"
-#include "curve/nelson_siegel/term_structure.cu"
-#include "curve/svensson/term_structure.cu"
-#include "model/fixed_income/cir/analytics.cu"
-#include "model/fixed_income/g2/analytics.cu"
+#include "curve/nelson_siegel/term_structure_impl.cuh"
+#include "curve/svensson/term_structure_impl.cuh"
+#include "model/fixed_income/cir/analytics_impl.cuh"
+#include "model/fixed_income/g2/analytics_impl.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics.cuh"
 #include "model/fixed_income/g2_plus_plus/svensson/analytics.cuh"
 #include "model/fixed_income/hull_white/nelson_siegel/analytics.cuh"
 #include "model/fixed_income/hull_white/svensson/analytics.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/analytics.cu"
-#include "model/fixed_income/vasicek/analytics.cu"
+#include "model/fixed_income/ornstein_uhlenbeck/analytics_impl.cuh"
+#include "model/fixed_income/vasicek/analytics_impl.cuh"
 
 #include <concepts>
 #include <cmath>

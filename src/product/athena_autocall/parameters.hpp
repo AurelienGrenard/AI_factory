@@ -7,8 +7,8 @@
 namespace ai_factory::workbench::product {
 
 struct AthenaAutocallParameters {
-    std::uint32_t maturity;
-    std::uint32_t observation_interval;
+    std::uint32_t maturity_days;
+    std::uint32_t observation_interval_days;
     float autocall_barrier;
     float protection_barrier;
     float annual_coupon_rate;

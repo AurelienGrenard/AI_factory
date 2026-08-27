@@ -1,6 +1,6 @@
 // Generate reproducible standalone G2 short-rate parameters.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 #include "tools/datasets/g2_generation.hpp"
 
 #include <cstdint>

@@ -2,10 +2,12 @@
 #include "common/check_cuda.cuh"
 #include "tests/common/dynamics_contract.cuh"
 
-#include "model/fixed_income/cir/dynamics.cu"
-#include "model/fixed_income/g2/dynamics.cu"
-#include "model/fixed_income/ornstein_uhlenbeck/dynamics.cu"
-#include "model/fixed_income/vasicek/dynamics.cu"
+#include "model/fixed_income/cir/dynamics_impl.cuh"
+#include "model/fixed_income/g2/dynamics_impl.cuh"
+#include "model/fixed_income/g2_plus_plus/dynamics.cuh"
+#include "model/fixed_income/hull_white/dynamics.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh"
+#include "model/fixed_income/vasicek/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -19,6 +21,9 @@ namespace {
 namespace workbench = ai_factory::workbench;
 namespace cir = workbench::model::fixed_income::cir;
 namespace g2 = workbench::model::fixed_income::g2;
+namespace g2_plus_plus =
+    workbench::model::fixed_income::g2_plus_plus;
+namespace hull_white = workbench::model::fixed_income::hull_white;
 namespace ou = workbench::model::fixed_income::ornstein_uhlenbeck;
 namespace vasicek = workbench::model::fixed_income::vasicek;
 
@@ -110,6 +115,12 @@ __global__ void fixed_income_dynamics_policy_contract_kernel(
         {0.10f, 0.01f, 0.30f, 0.015f, -0.40f},
         {0.02f, -0.01f},
     };
+    const hull_white::ModelParameters hull_white_parameters = {
+        0.25f, 0.02f,
+    };
+    const g2_plus_plus::ModelParameters g2_plus_plus_parameters = {
+        {0.10f, 0.01f, 0.30f, 0.015f, -0.40f},
+    };
 
     results[0] = contract_result<ou::DynamicsPolicy, ScalarInspector>(
         ou_parameters,
@@ -171,6 +182,24 @@ __global__ void fixed_income_dynamics_policy_contract_kernel(
         key,
         path
     );
+    results[8] = contract_result<
+        hull_white::joint::DynamicsPolicy,
+        JointScalarInspector
+    >(
+        hull_white_parameters,
+        delta_t,
+        key,
+        path
+    );
+    results[9] = contract_result<
+        g2_plus_plus::joint::DynamicsPolicy,
+        JointG2Inspector
+    >(
+        g2_plus_plus_parameters,
+        delta_t,
+        key,
+        path
+    );
 }
 
 }  // namespace
@@ -188,7 +217,7 @@ int main() {
         "Fixed-income dynamics policy test cudaGetDeviceCount"
     );
 
-    constexpr std::size_t kResultCount = 8U;
+    constexpr std::size_t kResultCount = 10U;
     std::uint32_t* device_results = nullptr;
     workbench::check_cuda(
         cudaMalloc(&device_results, kResultCount * sizeof(std::uint32_t)),

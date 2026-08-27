@@ -3,8 +3,8 @@
 #include "common/simulation/path_simulation.cuh"
 
 // Include the implementation exactly as future product kernels will.
-#include "model/fixed_income/cir/analytics.cu"
-#include "model/fixed_income/cir/dynamics.cu"
+#include "model/fixed_income/cir/analytics_impl.cuh"
+#include "model/fixed_income/cir/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 

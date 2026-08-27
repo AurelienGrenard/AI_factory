@@ -41,8 +41,8 @@ double caplet_price(
 ) {
     const double a = model.process.mean_reversion;
     const double sigma = model.process.volatility;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const auto zero_coupon = [&](double maturity) {
         return std::exp(
             -integral_loading(a, maturity) * model.initial_state
@@ -54,7 +54,7 @@ double caplet_price(
     const double volatility = sigma * integral_loading(a, t2 - t1)
         * std::sqrt(-std::expm1(-2.0 * a * t1) / (2.0 * a));
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     if (volatility <= 1.0e-14) {
         const double put = std::max(bond_strike * p01 - p02, 0.0);
@@ -142,7 +142,7 @@ int main() {
             row_count,
             device_products,
             row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             row_count,
             0U,
             row_count,
@@ -181,7 +181,7 @@ int main() {
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -195,7 +195,7 @@ int main() {
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,

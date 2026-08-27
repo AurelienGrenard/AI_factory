@@ -3,14 +3,14 @@
 ## Objet
 
 Ce document fixe l'interface et les responsabilités des dynamiques placées dans
-`src/model/<asset_class>/<model>/dynamics.cuh/.cu`. Une nouvelle dynamique doit conserver les
-mêmes couches, les mêmes noms et le même ordre de fonctions lorsque sa
-mathématique les rend applicables.
+`src/model/<asset_class>/<model>/dynamics.cuh` et `dynamics_impl.cuh`. Une
+nouvelle dynamique doit conserver les mêmes couches, les mêmes noms et le même
+ordre de fonctions lorsque sa mathématique les rend applicables.
 
-Le fichier `.cuh` déclare les types et fonctions device réutilisables. Le
-fichier `.cu` adjacent contient leurs définitions force-inlinées et est inclus
-par les kernels consommateurs ; il n'est pas compilé comme une unité CMake
-indépendante.
+Le fichier `dynamics.cuh` déclare les types et fonctions device réutilisables.
+`dynamics_impl.cuh` contient leurs définitions force-inlinées et est inclus par
+les kernels consommateurs. Les launchers autonomes restent des unités `.cu`
+enregistrées dans CMake.
 
 ## Attributs et dépendances
 
@@ -31,18 +31,20 @@ Les responsabilités restent séparées entre les couches suivantes :
   modèle, sans dépendance CUDA ni logique de sérialisation ;
 - `src/model/<asset_class>/<model>/dataset.hpp/.cpp` expose et implémente son
   chargement hôte ;
-- `src/model/<asset_class>/<model>/dynamics.cuh/.cu` implémente le processus
-  autonome ;
-- `src/model/<asset_class>/<model>/analytics.cuh/.cu` expose ses formules
-  réutilisables ;
-- `src/curve/<curve>/term_structure.cuh/.cu` expose la courbe derrière les noms
-  communs tels que `discount_factor` et `forward_rate` ;
-- `src/model/<asset_class>/<model>/<curve>/analytics.cuh/.cu` compose, lorsque
-  nécessaire, le processus et la courbe calibrée.
+- `src/model/<asset_class>/<model>/dynamics.cuh` et `dynamics_impl.cuh`
+  déclarent et implémentent le processus autonome ;
+- `src/model/<asset_class>/<model>/analytics.cuh` et `analytics_impl.cuh`
+  exposent ses formules réutilisables ;
+- `src/curve/<curve>/term_structure.cuh` et `term_structure_impl.cuh` exposent
+  la courbe derrière les noms communs tels que `discount_factor` et
+  `forward_rate` ;
+- `src/model/<asset_class>/<model>/<curve>/analytics.cuh` et
+  `analytics_impl.cuh` composent, lorsque nécessaire, le processus et la
+  courbe calibrée.
 
 Les moments numériquement stables d'un facteur gaussien mean-reverting sont
 centralisés dans
-`src/model/fixed_income/common/mean_reverting_gaussian.cuh`. OU et Vasicek les
+`src/common/fixed_income/mean_reverting_gaussian.cuh`. OU et Vasicek les
 exposent derrière leurs interfaces propres ; G2 les applique séparément à ses
 deux facteurs et conserve localement ses covariances croisées. Ce helper ne
 contient aucun état de modèle, aucune logique de courbe et aucune simulation de
@@ -153,7 +155,8 @@ Les modèles Markoviens ne déclarent aucun résultat de chemin dans leur
 dynamique. La moyenne, le maximum, les barrières, les coupons et les écritures
 de samples appartiennent aux handlers appelés par les simulateurs communs. Un
 résultat à deux dates est le cas particulier d'un calendrier de deux
-observations. Rough Bergomi reste provisoirement hors de ce contrat.
+observations. Un exécuteur Volterra peut réutiliser le même contrat de handler
+via `StatePolicy` sans prétendre exposer une transition markovienne `t -> t+dt`.
 
 ### `DynamicsPolicy`
 
@@ -212,7 +215,13 @@ sont vérifiées par `equity::SpotDynamicsPolicy` et
 propres observables sans faux alias `spot`.
 
 Pour un schéma à pas fixe, `PreparedDynamics` est le modèle déjà préparé pour
-`delta_t`. Pour une simulation exacte, il agrège `PreparedModel` et
+`delta_t`. `PreparedFixedStepDynamicsPolicy` vérifie l'état, le contexte
+aléatoire et `advance` lorsque ces coefficients sont fournis extérieurement ;
+`FixedStepDynamicsPolicy` ajoute la capacité de les construire directement sur
+le device avec `prepare_dynamics(parameters, delta_t)`. Cette séparation permet
+à rough Heston de préparer une approximation de noyau et une exponentielle de
+matrice une seule fois côté hôte sans introduire une fausse préparation device.
+Pour une simulation exacte, il agrège `PreparedModel` et
 `PreparedTransition`; la policy expose aussi ces deux types et les surcharges
 `prepare_model`, `prepare_transition`, `initial_state(model)` et
 `simulate_one_step(model, transition, random, state)`.
@@ -405,7 +414,11 @@ ajouter de registre persistant.
 Schöbel-Zhu tire exactement l'extrémité OU de la volatilité. L'innovation OU est
 couplée au Brownien de volatilité intégré sur le pas, puis au Brownien spot. Le
 log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc pas
-« transition jointe spot-volatilité exacte ».
+« transition jointe spot-volatilité exacte ». Les termes `1-exp(-x)` de la
+variance d'extrémité et de la corrélation utilisent `-expm1f(-x)` afin de rester
+stables lorsque `kappa * delta_t` est petit. Une transition consomme exactement
+trois normales, dans l'ordre innovation OU, résidu de l'incrément de volatilité,
+puis résidu spot ; cette affectation Philox fait partie du contrat.
 
 ### Calendriers réguliers
 
@@ -461,9 +474,22 @@ observations couvre naturellement les produits à deux dates.
 
 ## Limites d'uniformisation
 
-Rough Bergomi n'est pas forcé dans ce contrat Markovien : son historique de
-Volterra, son workspace et sa consommation aléatoire exigent une interface
-spécifique qui sera refondue avec son propre contrat. L'état joint CIR reste
+Rough Bergomi, log-modulated rough Bergomi, rough SABR et rough Stein--Stein ne
+sont pas forcés dans ce contrat Markovien. Ils composent le moteur commun
+`hybrid_fft_pricer` avec quatre politiques : driver Volterra gaussien,
+transformation de chemin propre au modèle, calendrier et produit. Le
+`PathPolicy` reçoit successivement `Y_i`, sa variance déterministe lorsqu'elle
+est requise, et les normales corrélées ; il possède seul les transformations
+du driver vers la variance ou la volatilité, puis l'évolution de `S_i`. Les
+handlers reçoivent des observations spot scalaires et restent donc
+indépendants du layout d'état.
+
+Cette composition s'applique quand l'intégrale de Volterra est une convolution
+linéaire d'un bruit gaussien par un kernel stationnaire. Rough Heston et
+quadratic rough Heston ne rentrent pas dans cette classe car leur intégrande
+dépend de l'état simulé. Après approximation exponentielle, ils satisfont en revanche
+`PreparedFixedStepDynamicsPolicy` et réutilise les schedules et kernels Monte
+Carlo communs. L'état joint CIR reste
 volontairement limité au contrat à pas fixe afin que son intégration
 trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
 grand intervalle. L'uniformité porte sur les responsabilités réellement
@@ -479,8 +505,8 @@ handler sans coût virtuel.
 
 Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
 dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes suit
-ce contrat pour ses pricers Monte Carlo ; Rough Bergomi reste provisoirement
-hors de cette factorisation.
+ce contrat pour ses pricers Monte Carlo. Rough Bergomi expose un `StatePolicy`
+spot/log-spot aux mêmes handlers, mais conserve son exécution FFT spécialisée.
 
 Le test générique `tests/common/dynamics_contract.cuh` vérifie pour chaque
 policy concernée la reproductibilité, l'isolation des chemins, la neutralité

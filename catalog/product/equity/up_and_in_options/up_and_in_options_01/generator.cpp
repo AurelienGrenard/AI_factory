@@ -1,6 +1,6 @@
 // Generate 20 maturity-dependent exponential strikes at each of 50 maturities.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cmath>
 #include <filesystem>
@@ -29,9 +29,9 @@ int main() {
     );
     for (auto& row : rows.rows) {
         const float strike = row.at("strike").get<float>();
-        const std::uint32_t maturity =
+        const std::uint32_t maturity_days =
             row.at("maturity").get<std::uint32_t>();
-        const float maturity_years = business_days_to_years(maturity);
+        const float maturity_years = business_days_to_years(maturity_days);
         row["barrier"] = fmaxf(
             1.05f, strike * expf(0.15f * sqrtf(maturity_years / 3.0f))
         );

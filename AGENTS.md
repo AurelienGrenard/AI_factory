@@ -4,17 +4,25 @@
 
 - Read `README.md`, `docs/README.md`, the relevant file under `docs/`, and the
   corresponding CMake, test, generator, and validation entries.
-- Read `docs/deferred-work.md` before starting a planned extension. Read
-  `docs/abandoned-work.md` before reopening an optimization that may already
-  have been measured and rejected. Never use the abandoned list as a backlog.
-- Read `docs/audit-query.md` before auditing dynamics, analytics, naming,
-  project structure, `src`/`tools` ownership, or CUDA performance. Record only
+- Read `docs/deferred-work.md` before starting a planned extension. Before
+  opening or reopening an audit finding, read `docs/audit/closed.md` so a
+  corrected or measured finding is not recreated under another identifier.
+- Read `docs/audit/query.md` before performing a main repository audit. The
+  slower validation/reproducibility audit is separate, explicitly triggered,
+  and defined by `docs/validation/query.md`. After each complete or partial
+  pass, update the matching `docs/audit/status.md` or
+  `docs/validation/status.md` with the revision, dirty-worktree state,
+  coverage, exclusions, and evidence, even when no issue is found. Record only
   unresolved, evidence-backed findings in the matching
-  section of `docs/audit-response.md`, with a stable identifier and an explicit
-  closure criterion. After a finding is fixed and verified, move any permanent
-  rule to the relevant implementation contract, record rejected experiments in
-  `docs/abandoned-work.md` or postponed work in `docs/deferred-work.md`, then
-  remove the resolved finding from `docs/audit-response.md`.
+  `docs/audit/response.md` or `docs/validation/response.md`, with a stable
+  identifier, severity, priority, confidence, and explicit closure criterion.
+  Cross-reference secondary audit sections instead of duplicating a finding.
+  Keep every unresolved finding in the matching response document, including
+  findings explicitly postponed within that audit. After a finding is fixed,
+  disproved by measurement, merged, or shown to be inapplicable, move it to
+  the matching `closed.md` with its original signature, evidence, and reopening
+  condition. Move permanent engineering rules to the relevant implementation
+  contract as well.
 - Follow `docs/catalog-extension-and-validation-workflow.md` for every model,
   curve, product, price, validation, or website extension.
 - For CUDA pricing work, read
@@ -24,23 +32,27 @@
   resource inspection, read
   `docs/cuda-launch-validation-and-kernel-diagnostics.md`.
 - For model simulation work, read `docs/cuda-model-dynamics-contract.md` before
-  changing a `dynamics.cuh/.cu` interface or its Philox consumption.
+  changing a `dynamics.cuh`/`dynamics_impl.cuh` interface or its Philox
+  consumption.
 - For model analytics work, read `docs/cuda-model-analytics-contract.md` before
-  changing an `analytics.cuh/.cu` interface, provider, or shared primitive.
+  changing an `analytics.cuh`/`analytics_impl.cuh` interface, provider, or
+  shared primitive.
 - For model-parameter or product generation work, read
   `docs/model-and-product-parameter-dataset-generation.md` and preserve its
   ordered 90/10 policy and complete adjacent YAML recipe.
 - Inspect the Git status first and preserve unrelated or pre-existing changes.
-- Keep CUDA interfaces and implementations in focused `.cuh/.cu` pairs. Public
-  headers should expose only declarations needed by callers.
+- Keep CUDA interfaces and implementations focused: public `.cuh` headers
+  expose only declarations needed by callers, included device definitions use
+  `*_impl.cuh`, and standalone `.cu` launch units are registered in CMake.
 - Keep the canonical function names and responsibilities documented under
   `docs/` consistent across model, curve, and product implementations. Update
   the associated document whenever the common contract changes.
 - After a refactor, remove superseded documentation, compatibility layers, and
   dead code once repository references and tests prove that they are no longer
   used. Do not retain stale implementation trees, obsolete API descriptions, or
-  parallel legacy paths for historical context; preserve only durable rules in
-  contracts and measured rejected ideas in `docs/abandoned-work.md`.
+  parallel legacy paths for historical context; preserve durable rules in
+  contracts and compact audit closure evidence in `docs/audit/closed.md` or
+  `docs/validation/closed.md`.
 
 ## Project layout
 

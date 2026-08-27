@@ -35,6 +35,42 @@ struct CooperativeJamshidianWorkspace {
     float* option_values;
 };
 
+template<typename ScheduleView>
+__device__ __forceinline__ JamshidianBoundaryEvaluation
+evaluate_jamshidian_boundary_from_coefficients(
+    float fixed_rate,
+    const ScheduleView& schedule,
+    const CooperativeJamshidianWorkspace& workspace,
+    float state
+) {
+    const std::uint32_t payment_count = schedule.payment_count();
+    float coupon_bond = 0.0f;
+    float derivative = 0.0f;
+    for (std::uint32_t payment = 0U;
+         payment < payment_count;
+         ++payment) {
+        const float coefficient = jamshidian_cashflow_coefficient(
+            fixed_rate,
+            schedule.accrual_fraction(payment),
+            payment,
+            payment_count
+        );
+        if (coefficient == 0.0f) continue;
+        const float term = coefficient * expf(
+            fmaf(
+                -workspace.B[payment],
+                state,
+                workspace.log_A[payment]
+            )
+        );
+        coupon_bond += term;
+        derivative = fmaf(
+            -workspace.B[payment], term, derivative
+        );
+    }
+    return {coupon_bond - 1.0f, derivative};
+}
+
 __device__ __forceinline__ CooperativeJamshidianWorkspace
 make_cooperative_jamshidian_workspace(
     std::byte* storage,
@@ -48,7 +84,11 @@ make_cooperative_jamshidian_workspace(
     };
 }
 
-template<typename ScheduleView>
+template<
+    typename ScheduleView,
+    std::uint32_t MaximumIterations =
+        kMaximumJamshidianNewtonIterations
+>
 __device__ __forceinline__ float
 jamshidian_state_boundary_from_coefficients(
     float fixed_rate,
@@ -97,37 +137,15 @@ jamshidian_state_boundary_from_coefficients(
     }
 
     float state = 0.5f * (lower_state + upper_state);
-    for (std::uint32_t iteration = 0U;
-         iteration < kMaximumJamshidianNewtonIterations;
-         ++iteration) {
-        float coupon_bond = 0.0f;
-        float derivative = 0.0f;
-        for (std::uint32_t payment = 0U;
-             payment < payment_count;
-             ++payment) {
-            const float coefficient = jamshidian_cashflow_coefficient(
-                fixed_rate,
-                schedule.accrual_fraction(payment),
-                payment,
-                payment_count
+    if constexpr (MaximumIterations > 0U) {
+      for (std::uint32_t iteration = 0U;
+           iteration < MaximumIterations;
+           ++iteration) {
+        const JamshidianBoundaryEvaluation evaluation =
+            evaluate_jamshidian_boundary_from_coefficients(
+                fixed_rate, schedule, workspace, state
             );
-            if (coefficient == 0.0f) continue;
-            const float term = coefficient * expf(
-                fmaf(
-                    -workspace.B[payment],
-                    state,
-                    workspace.log_A[payment]
-                )
-            );
-            coupon_bond += term;
-            derivative = fmaf(
-                -workspace.B[payment],
-                term,
-                derivative
-            );
-        }
-
-        const float residual = coupon_bond - 1.0f;
+        const float residual = evaluation.residual;
         if (fabsf(residual) <= kJamshidianResidualTolerance) return state;
         if (residual > 0.0f)
             lower_state = state;
@@ -136,8 +154,10 @@ jamshidian_state_boundary_from_coefficients(
 
         const float midpoint = 0.5f * (lower_state + upper_state);
         float next_state = midpoint;
-        if (isfinite(derivative) && derivative < 0.0f) {
-            const float newton_state = state - residual / derivative;
+        if (isfinite(evaluation.derivative)
+            && evaluation.derivative < 0.0f) {
+            const float newton_state =
+                state - residual / evaluation.derivative;
             const float quarter_width =
                 0.25f * (upper_state - lower_state);
             if (isfinite(newton_state)
@@ -148,11 +168,25 @@ jamshidian_state_boundary_from_coefficients(
         }
         if (next_state == state || midpoint == lower_state
             || midpoint == upper_state) {
-            return midpoint;
+            const JamshidianBoundaryEvaluation final_evaluation =
+                evaluate_jamshidian_boundary_from_coefficients(
+                    fixed_rate, schedule, workspace, midpoint
+                );
+            return checked_jamshidian_boundary(
+                midpoint, final_evaluation.residual
+            );
         }
         state = next_state;
+      }
     }
-    return 0.5f * (lower_state + upper_state);
+    const float midpoint = 0.5f * (lower_state + upper_state);
+    const JamshidianBoundaryEvaluation final_evaluation =
+        evaluate_jamshidian_boundary_from_coefficients(
+            fixed_rate, schedule, workspace, midpoint
+        );
+    return checked_jamshidian_boundary(
+        midpoint, final_evaluation.residual
+    );
 }
 
 template<

@@ -38,15 +38,15 @@ double caplet_price(
 ) {
     const double a = model.mean_reversion;
     const double sigma = model.volatility;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const double p01 = std::exp(-t1 * zero_rate(curve, t1));
     const double p02 = std::exp(-t2 * zero_rate(curve, t2));
     const double loading = -std::expm1(-a * (t2 - t1)) / a;
     const double volatility = sigma * loading
         * std::sqrt(-std::expm1(-2.0 * a * t1) / (2.0 * a));
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     const double d1 =
         std::log(p02 / (bond_strike * p01)) / volatility
@@ -148,7 +148,7 @@ int main() {
                 row_count,
                 device_products,
                 row_count,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 row_count,
                 0U,
                 row_count,

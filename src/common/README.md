@@ -1,72 +1,5 @@
 # Common CUDA infrastructure
 
-<details>
-<summary>Implementation</summary>
-
-```text
-common/
-├── README.md
-├── check_cuda.cuh
-├── cuda_kernel_diagnostics.cuh
-├── cuda_kernel_diagnostics.cpp
-├── device_inputs.cuh
-├── lognormal_option.cuh
-├── noncentral_chi_square.cuh
-├── normal_distribution.cuh
-├── option_side.cuh
-├── philox.cuh
-├── reductions.cuh
-├── result_index.cuh
-├── sample.cuh
-├── time_configuration.cuh
-├── time_grid.cuh
-├── closed_form/
-│   ├── concepts.cuh
-│   ├── closed_form_kernels.cuh
-│   └── cooperative_closed_form_kernels.cuh
-├── simulation/
-│   ├── barrier_handlers.cuh
-│   ├── concepts.cuh
-│   ├── path_simulation.cuh
-│   └── schedule.cuh
-├── monte_carlo/
-│   ├── concepts.cuh
-│   └── monte_carlo_kernel.cuh
-├── payoff/
-│   ├── barrier.cuh
-│   └── vanilla_option.cuh
-├── equity/
-│   ├── barrier_pricing_policy.cuh
-│   ├── concepts.cuh
-│   ├── discount.cuh
-│   ├── handlers.cuh
-│   └── observables.cuh
-├── fixed_income/
-│   ├── analytics_concepts.cuh
-│   ├── bond_option_pricing_policies.cuh
-│   ├── cashflows.cuh
-│   ├── european_swaption.cuh
-│   ├── gaussian_bond_option.cuh
-│   ├── jamshidian.cuh
-│   ├── jamshidian_cooperative.cuh
-│   ├── one_factor_affine.cuh
-│   └── swaption_side.cuh
-└── longstaff_schwartz/
-    ├── exercise_schedule.cuh
-    ├── exercise_schedule.cu
-    ├── laguerre.cuh
-    ├── launch.cuh
-    ├── launch.cu
-    ├── linear_solver.cuh
-    ├── linear_solver.cu
-    ├── regression.cuh
-    ├── regression.cu
-    ├── workspace.cuh
-    └── workspace.cu
-```
-
-</details>
-
 [`check_cuda.cuh`](#check-cuda) ·
 [`cuda_kernel_diagnostics.cuh/.cpp`](#cuda-kernel-diagnostics) ·
 [`device_inputs.cuh`](#device-inputs) ·
@@ -74,12 +7,12 @@ common/
 [`option_side.cuh`](#option-side) ·
 [`closed_form/`](#closed-form) ·
 [`simulation/`](#simulation) ·
+[`volterra/`](#volterra) ·
 [`monte_carlo/`](#monte-carlo) ·
 [`payoff/`](#payoff) ·
 [`equity/`](#equity) ·
 [`fixed_income/`](#fixed-income) ·
 [`result_index.cuh`](#result-index) ·
-[`time_grid.cuh`](#time-grid) ·
 [`sample.cuh`](#sample) ·
 [`philox.cuh`](#philox) ·
 [`normal_distribution.cuh`](#normal-distribution) ·
@@ -140,6 +73,7 @@ occupancy is
 | `ModelProductDeviceInputs<Model, Product>` | Contiguous device views, row counts and aligned/Cartesian mapping for model-product prices. |
 | `ModelCurveProductDeviceInputs<Model, Curve, Product>` | Same contract with one independent parametric-curve array. |
 | `DeviceInputsWithContext<Inputs, Context>` | Adds a trivially-copyable device context such as an explicit schedule pool. |
+| `PreparedModelProductDeviceInputs<Model, Product, Dynamics>` | Selects one host-prepared numerical dynamics row with the decoded model index, without result-wise duplication. |
 | `make_model_product_device_inputs(...)` | Constructs the two-array input view without allocation. |
 | `make_model_curve_product_device_inputs(...)` | Constructs the three-array input view without allocation. |
 | `with_device_context(inputs, context)` | Adds one context to an existing primary input view. |
@@ -151,6 +85,32 @@ trivially-copyable inputs are forwarded variadically to that policy.
 `DeviceInputsWithContext` uses this delegation and never inspects a curve type
 or the members of its primary input. Monte Carlo and closed-form kernels
 therefore share one input contract without sharing an execution strategy.
+
+<a id="volterra"></a>
+## [`volterra/`](volterra)
+
+The Volterra layer contains only kernel representations, schedules and shared
+execution primitives. `FractionalPowerKernel` provides power-kernel cell
+averages; `FractionalHybridDriverPolicy` adds the exact current-cell coupling;
+`ExponentialKernel<N>` stores a fixed-size positive Markovian approximation;
+and `fit_positive_fractional_kernel_l2<N>` prepares that approximation on the
+host over `[dt, horizon]`. `execute_padded_linear_convolution` owns the padded
+forward transform, spectrum product and inverse transform for one block FFT.
+
+`hybrid_fft_pricer.cuh` composes one Gaussian driver, one model path mapping,
+one observation schedule and one product policy. It packs two real paths into
+each C2C transform, stages only a bounded chunk of convolution values, then
+runs fully occupied path/product threads. Terminal, dense, regular and static
+calendars reuse the same FFT code. Model mappings such as rough Bergomi and
+rough SABR remain in their model directories; rough Heston's nonlinear
+variance feedback instead uses its Markovian exponential lift.
+
+The SM89 crossover experiment keeps cuFFTDx for every supported length: a
+bounded direct convolution is already 35% slower at eight steps and degrades
+quadratically thereafter. The 8192 transform uses 16 elements per thread;
+against 32, this raises theoretical occupancy from 16.7% to 33.3%, lowers the
+register count from 139 to 72 and improves the measured median by 20.4%. The
+direct implementation remains confined to the performance experiment target.
 
 <a id="time-configuration"></a>
 ## [`time_configuration.cuh`](time_configuration.cuh)
@@ -218,6 +178,7 @@ larger contract to use a compact view over device-resident data.
 ## [`simulation/`](simulation)
 
 [`concepts.cuh`](#simulation-concepts) ·
+[`adapted_dynamics.cuh`](#adapted-dynamics) ·
 [`path_simulation.cuh`](#path-simulation) ·
 [`schedule.cuh`](#simulation-schedules) ·
 [`barrier_handlers.cuh`](#simulation-barrier-handlers)
@@ -239,6 +200,16 @@ larger contract to use a compact view over device-resident data.
 | `TwoDateSchedulePolicy` | Requires a compile-time two-date calendar. |
 
 Observation handlers remain trivially copyable and no larger than 128 bytes.
+This is a measured local-state budget. The near-limit SM75/86/89 probes and
+the compact-view alternative are recorded in the central pricing contract and
+the versioned CUDA performance baseline.
+
+<a id="adapted-dynamics"></a>
+### [`adapted_dynamics.cuh`](simulation/adapted_dynamics.cuh)
+
+| Type | Definition |
+|---|---|
+| `AdaptedExactTransitionDynamicsPolicy<OuterParameters, BaseDynamics, ParameterAdapter>` | Reuses one exact-transition dynamics under a fitted model's outer parameter row; only the compile-time parameter projection is model-specific. |
 
 <a id="path-simulation"></a>
 ### [`path_simulation.cuh`](simulation/path_simulation.cuh)
@@ -296,6 +267,9 @@ Every function constructs one continuous path-local random context from
 in shared memory and enforces
 `kMaximumSharedPreparedRowBytes = 2048`; a larger dynamic calendar must use a
 compact schedule view over a device-resident pool.
+The same placement rule and measured budget apply to Longstaff-Schwartz rows
+and prepared sample inputs; their `static_assert` diagnostics name the compact
+view or device-pool alternative.
 
 <a id="monte-carlo-kernel"></a>
 ### [`monte_carlo_kernel.cuh`](monte_carlo/monte_carlo_kernel.cuh)
@@ -405,13 +379,17 @@ D(0,T)=\exp(-rT).
 
 [`one_factor_affine.cuh`](#one-factor-affine) ·
 [`analytics_concepts.cuh`](#fixed-income-analytics-concepts) ·
-[`bond_option_pricing_policies.cuh`](#bond-option-pricing-policies) ·
 [`cashflows.cuh`](#fixed-income-cashflows) ·
 [`gaussian_bond_option.cuh`](#gaussian-bond-option) ·
 [`swaption_side.cuh`](#swaption-side) ·
 [`jamshidian.cuh`](#jamshidian) ·
-[`jamshidian_cooperative.cuh`](#cooperative-jamshidian) ·
-[`european_swaption.cuh`](#european-swaption-engine)
+[`jamshidian_cooperative.cuh`](#cooperative-jamshidian)
+
+Product assembly is owned by the
+[rate-option](../product/rate_option/pricing_policy.cuh),
+[zero-coupon-bond-option](../product/zero_coupon_bond_option/pricing_policy.cuh),
+and [European-swaption](../product/european_swaption/pricing_policy.cuh)
+directories.
 
 <a id="fixed-income-analytics-concepts"></a>
 ### [`analytics_concepts.cuh`](fixed_income/analytics_concepts.cuh)
@@ -426,31 +404,6 @@ D(0,T)=\exp(-rT).
 
 The contracts are capability-based: G2 and G2++ are not required to expose
 Jamshidian operations.
-
-<a id="bond-option-pricing-policies"></a>
-### [`bond_option_pricing_policies.cuh`](fixed_income/bond_option_pricing_policies.cuh)
-
-For $`\delta`$ the contractual accrual fraction and strike $`K`$, a rate
-option is transformed with
-
-```math
-X=1+K\delta,
-\qquad
-K_B=\frac{1}{X},
-\qquad
-N_B=N X.
-```
-
-| Type | Definition |
-|---|---|
-| `StandaloneRateOptionClosedFormPricingPolicy<Model, Side>` | Prices a caplet as a scaled bond put and a floorlet as a scaled bond call. |
-| `StandaloneZeroCouponBondOptionClosedFormPricingPolicy<Model, Side>` | Applies the model bond-option primitive to a standalone model row. |
-| `FittedRateOptionClosedFormPricingPolicy<Composition, Side>` | Same rate-option transformation after composing a model with its parametric curve. |
-| `FittedZeroCouponBondOptionClosedFormPricingPolicy<Composition, Side>` | Same bond-option payoff after fitted-model composition. |
-
-The model analytics remain responsible for `zero_coupon_bond_call_price` and
-`zero_coupon_bond_put_price`. A fitted `Composition` supplies only the model,
-curve and fitted-model types, `compose(...)`, and the analytical initial state.
 
 <a id="one-factor-affine"></a>
 ### [`one_factor_affine.cuh`](fixed_income/one_factor_affine.cuh)
@@ -562,7 +515,7 @@ V_{\mathrm{receiver}}(t)
 | Function | Definition |
 |---|---|
 | `jamshidian_cashflow_coefficient(...)` | Returns $`c_i=K\delta_i+\mathbf 1_{\{i=n\}}`$. |
-| `jamshidian_state_boundary(...)` | Solves the monotone scalar equation with safeguarded Newton steps and deterministic bisection fallback. |
+| `jamshidian_state_boundary(...)` | Solves the monotone scalar equation with safeguarded Newton steps and returns NaN when the final residual is not certified. |
 | `jamshidian_bond_strike(...)` | Evaluates one $`K_i^\star`$. |
 | `european_swaption_price<Side>(...)` | Reuses one expiry context and sums bond puts or calls. |
 
@@ -578,22 +531,12 @@ Reference: [Jamshidian (1989)](https://doi.org/10.1111/j.1540-6261.1989.tb02413.
 | `jamshidian_state_boundary_from_coefficients(...)` | Applies safeguarded Newton iterations to the coefficients prepared by the block. |
 | `cooperative_european_swaption_price<Side>(...)` | Distributes bond coefficients and bond options across the block, then accumulates cashflows in contractual order. |
 
-<a id="european-swaption-engine"></a>
-### [`european_swaption.cuh`](fixed_income/european_swaption.cuh)
+### [`bermudan_swaption_continuation_state.cuh`](fixed_income/bermudan_swaption_continuation_state.cuh)
 
 | Function or type | Definition |
 |---|---|
-| `PreparedEuropeanSwaptionRow` | Holds one prepared model, contract scalars and a regular or explicit schedule view. |
-| `prepare_european_swaption_row(...)` | Resolves standalone or fitted model inputs and the schedule representation. |
-| `evaluate_european_swaption_price<Side>(...)` | Calls the model's closed-form swaption analytic for one row. |
-| `OneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adapts standalone Jamshidian analytics and a schedule context to the common closed-form contract. |
-| `FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds a parametric curve to the same contract. |
-| `CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds a provider and the block-cooperative Jamshidian evaluation to a standalone row. |
-| `CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<...>` | Adds the same cooperative evaluation to a fitted model. |
-| `launch_one_factor_european_swaption<Side>(...)` | Builds `DeviceInputsWithContext` and launches the common closed-form kernel. |
-| `launch_fitted_one_factor_european_swaption<Side, Composition>(...)` | Adds fitted model/curve/product inputs through the shared model composition. |
-| `launch_cooperative_one_factor_european_swaption<Side, Provider>(...)` | Selects cooperative execution with scalar fallback for a standalone model. |
-| `launch_cooperative_fitted_one_factor_european_swaption<Side, Provider, Composition>(...)` | Selects the same execution for a fitted model. |
+| `OneFactorRateContinuationState<...>` | Stores one stochastic factor and the integrated short rate in SoA form, then applies the model's regression normalization. |
+| `TwoFactorRateContinuationState<...>` | Stores two stochastic factors and the integrated short rate in SoA form, then builds the two-factor regression input. |
 
 <a id="result-index"></a>
 ## [`result_index.cuh`](result_index.cuh)
@@ -602,8 +545,10 @@ Let `i` be a flattened result index and `P` the number of products.
 
 | Function | Definition |
 |---|---|
-| `decode_model_product_result_index(i, P, cartesian)` | Returns `ModelProductIndices {model_index, product_index}`. |
-| `decode_model_curve_product_result_index(i, C, P, cartesian)` | Returns `ModelCurveProductIndices {model_index, curve_index, product_index}`. |
+| `decode_model_product_result_index(i, P, construction)` | Returns `ModelProductIndices {model_index, product_index}` from the canonical `PriceConstruction` enum. |
+| `decode_model_curve_product_result_index(i, C, P, construction)` | Returns `ModelCurveProductIndices {model_index, curve_index, product_index}`. |
+| `decode_model_product_result_index_32(...)` | Uses the same mapping with validated `uint32_t` operands inside device kernels. |
+| `decode_model_curve_product_result_index_32(...)` | Uses the three-input mapping with validated `uint32_t` operands inside device kernels. |
 
 Aligned construction uses `(i,i)`. Cartesian construction lets products vary
 fastest:
@@ -624,50 +569,48 @@ For a model/curve/product Cartesian construction with `C` curves,
 \mathrm{product\_index}=i\bmod P.
 ```
 
-<a id="time-grid"></a>
-## [`time_grid.cuh`](time_grid.cuh)
-
-Let `n` be the positive number of grid steps per year and `k` an integer grid
-index. `TimeGrid(n)` stores
-
-```math
-\Delta t=\frac{1}{n}.
-```
-
-| Function | Definition |
-|---|---|
-| `TimeGrid(n)` | Builds `{steps_per_year = n, step_size = 1/n}`. |
-| `year_fraction(k, grid)` | Returns the grid time `t_k = k * grid.step_size`. |
-| `validate(grid)` | Requires a positive `n` and exactly `step_size = 1/n`. |
-| `index(t, grid, name)` | Returns the nearest integer index to `n t` after checking that `t` lies on the grid within `1e-4` grid step. |
+Public cardinalities and addresses remain `std::size_t`. CUDA launch validation
+rejects a logical result set above `uint32_max` and asks the caller to split
+it before the device-only decoders are used. On SM89, this specialization cut
+the indexing microbenchmark median from 0.270336 ms to 0.123904 ms while
+preserving every decoded identifier; compile-time specialization of the enum
+did not improve the `size_t` variant.
 
 <a id="sample"></a>
 ## [`sample.cuh`](sample.cuh)
 
-The three Philox domains `kParameterDomain`, `kScheduleDomain` and
-`kDynamicsDomain` keep parameter, calendar and path streams independent.
+`sample.cuh` is the façade for the policy-based model-only sampling engine.
+Parameter generation, calendar generation, observation and CUDA execution are
+orthogonal compile-time policies. `SamplingSeeds` gives parameter, schedule
+and dynamics streams independent public seeds; the parameter and schedule
+sources additionally use separate Philox domains.
 
-### Rows and bounds
+### Policies and sources
 
 | Type | Definition |
 |---|---|
 | `UniformBounds` | Closed interval `[minimum, maximum]`. |
-| `RandomCalendarRules` | Observation-time bounds and minimum interval between observations. |
-| `GeneratedTerminalTime` | Integer grid day and corresponding year fraction. |
-| `TerminalSampleRow<ModelParameters, SampleValues>` | Model parameters, maturity and terminal values. |
-| `CalendarSampleRow<ModelParameters, SampleValues, N>` | Model parameters, `N` observation times and `N` sampled values. |
-| `ModelPathIndices` | Decoded model-row and conditional-path indices. |
+| `ModelSamplingPolicy<Schedule, Observation>` | Complete compile-time definition of one model-only sample. |
+| `ExternallyPreparedSamplingPolicy<Policy>` | Markov sample whose numerical dynamics row is prepared on the host. |
+| `VolterraFftModelSamplingPolicy<Driver, Path, Schedule, Observation>` | Gaussian-Volterra sample composition shared by rough Bergomi, log-modulated rough Bergomi, rough SABR and rough Stein--Stein. |
+| `DeviceParameterSource<Parameters>` | Loads caller-materialized parameter rows. |
+| `GeneratedParameterSource<Sampler>` | Samples a model policy deterministically from `(parameter_seed, parameter_index)`. |
+| `ConstantCalendarSource<Calendar>` | Reuses a validated integer-day calendar. |
+| `DeviceCalendarSource<Calendar>` | Loads one materialized calendar per logical sample. |
+| `UniformMaturityCalendarSource` | Draws an unbiased integer maturity and optionally writes it to device output. |
+| `RandomIncreasingCalendarSource<Calendar, N>` | Draws a feasible increasing calendar and optionally writes observation-major days. |
+| `SpotSampleObservation<Dynamics>` | Writes the market spot observable. State and two-component observations are also provided. |
 
-Let `d_min` and `d_max` be the integer grid indices of the terminal bounds.
-`generate_terminal_time` draws
+Calendar sources are day-native. Let `d_min` and `d_max` be the integer
+business-day bounds. `UniformMaturityCalendarSource` draws
 
 ```math
 d\sim\mathcal{U}\{d_{\min},\ldots,d_{\max}\},
 \qquad
-T=d\,\Delta t.
+T=\frac{d}{252}.
 ```
 
-For a calendar of `N` observations, `generate_random_calendar` draws every
+For a calendar of `N` observations, `RandomIncreasingCalendarSource` draws every
 integer day uniformly from its currently feasible interval. Let `g` be the
 minimum gap, let `j` run from zero to `N-1`, and define
 
@@ -687,22 +630,28 @@ The next observation day is
 d_j\sim\mathcal{U}\{\ell_j,\ldots,u_j\}.
 ```
 
-| Function | Definition |
+### Execution
+
+| Function or type | Definition |
 |---|---|
-| `generate_terminal_time(integers, bounds, grid)` | Draws one terminal grid day and its year fraction. |
-| `generate_random_calendar<N>(...)` | Draws `N` strictly increasing feasible observation days. |
-| `validate_uniform_bounds(bounds, name)` | Requires finite ordered bounds. |
-| `validate_terminal_bounds(maturity, grid)` | Requires both terminal bounds to lie on the grid in increasing order. |
-| `validate_generated_sample_launch(...)` | Validates output memory, package boundaries, launch slice and geometry. |
-| `validate_random_calendar_rules<N>(rules, grid)` | Requires the requested minimum gaps to fit inside the allowed interval. |
-| `validate_fixed_calendar<N>(times, grid)` | Requires `N` non-null, on-grid, strictly increasing times. |
-| `decode_sample_index(i, P)` | Returns `{i / P, i % P}`, where `P` is the number of paths per model. |
-| `sample_count(M, P)` | Returns `M P`, where `M` is the model count, after zero and overflow checks. |
-| `validate_sample_launch(...)` | Validates model/sample arrays, launch slice, geometry and Philox seed range. |
-| `validate_terminal_time(T)` | Requires a positive finite maturity `T`. |
-| `validate_regular_calendar(t_1, delta, N)` | Requires positive finite first time and spacing, with `N > 0`. |
-| `rounded_step_count(interval, target_dt)` | Returns the nearest positive integer to `interval / target_dt`. |
-| `calendar_step_count(s_0, s, N)` | Returns `s_0 + (N-1)s` after `std::uint32_t` overflow checks. |
+| `launch_samples_cuda<Policy>(...)` | Validates the complete composition and launches the selected generic kernel. |
+| `launch_prepared_samples_cuda<Policy>(...)` | Uses the same thread/block strategies with caller-provided `PreparedInput` rows. |
+| `SampleExecutionStrategy::thread_grid_stride` | One physical thread processes one or more flattened samples. |
+| `SampleExecutionStrategy::parameter_block` | One block prepares invariant model coefficients once and its lanes process the conditional paths. |
+| `SampleExecutionStrategy::automatic` | Chooses grid-stride for `P = 1`, parameter-block otherwise. |
+| `volterra_fft::launch_samples_cuda<Policy>(...)` | Runs the block-cooperative cuFFTDx sampler with one reusable spectrum per parameter row. |
+| `decode_sample(i, P)` | Returns `{i / P, i % P}`. |
+| `total_sample_count(range)` | Returns `M P` after zero and overflow checks. |
+| `validate_sample_launch(...)` | Validates sources, calendars, output views, launch slice, geometry, time convention and seed ranges. |
+
+The canonical exact time configuration is `day_fraction = 1/252`. The
+canonical discretized configuration is `dt = 1/504` with two transitions per
+business day. Calendar outputs are written directly in time-major SoA order.
+`sample.cu` files below models are intentionally thin bindings. Markov models
+forward to the persistent thread/block engine. Rough Heston supplies its
+host-prepared Markovian lift to that same engine. Rough Bergomi and rough SABR
+forward to the separate FFT block engine while reusing the same parameter
+sources, calendar sources, observations, flattened indices and seed domains.
 
 <a id="philox"></a>
 ## [`philox.cuh`](philox.cuh)
@@ -929,6 +878,12 @@ follows the recurrence strategy of [Ding (1992)](https://doi.org/10.2307/2347584
 the large-noncentrality branch uses
 [Lugannani and Rice (1980)](https://doi.org/10.2307/1426607), and the continued
 fraction uses [Lentz (1976)](https://doi.org/10.1364/AO.15.000668).
+The large gamma, Poisson-mixture and saddlepoint helpers are deliberately
+`__noinline__`: on the SM89 CIR swaption workload this reduces the archive
+from 3.40 MB to 1.64 MB, lowers the representative kernel from 64 to 56
+registers and, for 16,384 results, improves its median from 1.158 ms to
+1.063 ms. Both kernel coefficients of variation stay below 1.3%. The
+force-inline variant remains a performance-only experiment target.
 
 <a id="reductions"></a>
 ## [`reductions.cuh`](reductions.cuh)
@@ -946,7 +901,7 @@ s_2=\sum_{i=1}^{M}Y_i^2.
 |---|---|
 | `reduce_block(sum, sumsq)` | Deterministically reduces one pair `(s_1,s_2)` across a whole CUDA block. |
 | `reduce_block_values<N>(values)` | Deterministically reduces `N` FP64 values into separate shared-memory totals. |
-| `compute_statistics(total, M, price, standard_error)` | Converts final moments into the sample mean and its standard error. |
+| `compute_statistics(total, M, price, standard_error)` | Validates the FP64 moments and sample count, then computes the mean and standard error with a bounded cancellation clamp. |
 
 ```math
 \widehat V=\frac{s_1}{M},
@@ -959,25 +914,72 @@ s_2=\sum_{i=1}^{M}Y_i^2.
 ```
 
 State evolution remains FP32; FP64 is used here for long reductions and final
-statistics.
+statistics. A mixed-scale non-negative stress benchmark rejects lowering this
+contract: compensated FP32 is faster but reaches `1.47e-2` absolute error,
+while 32-value FP32 chunks reach `1.43e-1`; the FP64 reference remains exact
+for the represented FP32 inputs.
 
 <a id="longstaff-schwartz"></a>
 ## [`longstaff_schwartz/`](longstaff_schwartz)
 
-[`exercise_schedule.cuh`](longstaff_schwartz/exercise_schedule.cuh) /
-[`exercise_schedule.cu`](longstaff_schwartz/exercise_schedule.cu) ·
-[`laguerre.cuh`](longstaff_schwartz/laguerre.cuh) ·
+[`basis/feature_vector.cuh`](longstaff_schwartz/basis/feature_vector.cuh) ·
+[`basis/laguerre.cuh`](longstaff_schwartz/basis/laguerre.cuh) ·
+[`basis/hermite.cuh`](longstaff_schwartz/basis/hermite.cuh) ·
+[`basis/hinge.cuh`](longstaff_schwartz/basis/hinge.cuh) ·
+[`concepts.cuh`](longstaff_schwartz/concepts.cuh) ·
+[`exercise_decision.cuh`](longstaff_schwartz/exercise_decision.cuh) ·
+[`execution_plan.cuh`](longstaff_schwartz/execution_plan.cuh) ·
 [`launch.cuh`](longstaff_schwartz/launch.cuh) /
 [`launch.cu`](longstaff_schwartz/launch.cu) ·
-[`linear_solver.cuh`](longstaff_schwartz/linear_solver.cuh) /
-[`linear_solver.cu`](longstaff_schwartz/linear_solver.cu) ·
-[`regression.cuh`](longstaff_schwartz/regression.cuh) /
-[`regression.cu`](longstaff_schwartz/regression.cu) ·
+[`linear_solver.cuh`](longstaff_schwartz/linear_solver.cuh) ·
+[`longstaff_schwartz_kernels.cuh`](longstaff_schwartz/longstaff_schwartz_kernels.cuh) ·
+[`regression_status.cuh`](longstaff_schwartz/regression_status.cuh) ·
+[`small_linear_regressor.cuh`](longstaff_schwartz/small_linear_regressor.cuh) ·
 [`workspace.cuh`](longstaff_schwartz/workspace.cuh) /
 [`workspace.cu`](longstaff_schwartz/workspace.cu)
 
-Contains all exercise scheduling, Laguerre basis, FP64 regression and Cholesky
-solve, workspace planning, batching, resources and launch metrics required by
-the Longstaff–Schwartz method. See
+For features `phi(X_i)` and discounted continuation targets `Y_i`, the small
+linear regressor forms
+
+```math
+G=\sum_i\phi(X_i)\phi(X_i)^{\mathsf T},
+\qquad
+h=\sum_i\phi(X_i)Y_i,
+```
+
+then solves
+
+```math
+\left(G+10^{-10}\frac{\mathrm{tr}(G)}{p}I\right)\beta=h
+```
+
+in FP64 by Cholesky. Paths, continuation states, features and cashflows remain
+FP32, while prediction and the immediate-exercise comparison stay FP64 until
+the cashflow is selected. The compile-time basis may contain at most eight
+features.
+
+| File or type | Definition |
+|---|---|
+| `LaguerrePolynomialTwoFactorBasis` | Six-feature map used by all current American-option datasets. |
+| `OneFactorLaguerreBasis<Degree>` | Compile-time Laguerre polynomial family. |
+| `OneFactorHermiteBasis<Degree>` | Compile-time probabilists' Hermite family. |
+| `CenteredHingeBasis<KnotSet>` | Intercept, linear term and compile-time ReLU hinges. |
+| `NormalEquationRegressor<Basis>` | FP64 accumulation, deterministic reductions, ridge, solve and prediction for one small basis. |
+| `RegressionStatus` | Distinguishes empty/underdetermined samples from non-finite statistics, Cholesky failure and non-finite coefficients. |
+| `RegressionDiagnostics` | Counts every typed outcome for one result row across the backward dates. |
+| `validate_regression_diagnostics(...)` | Rejects a host publication on a fatal regression cause and reports the first affected row. |
+| `select_exercise_cashflow(...)` | Promotes the immediate FP32 payoff and compares it directly with the FP64 continuation estimate before selecting the FP32 cashflow. |
+| `EarlyExerciseSchedulePolicy` | Requires a prepared exercise count and path simulation on that schedule. |
+| `EarlyExercisePricingPolicy` | Requires row planning/preparation, continuation-state access, payoff and discount hooks. |
+| `LongstaffSchwartzPolicy<Pricing, Regressor>` | Verifies the complete pricing/regression composition. |
+| `make_execution_plan<Pricing, Regressor>` | Derives row storage and memory-aware batches from host product inputs. |
+| `launch_longstaff_schwartz_cuda<Pricing, Regressor>` | Runs the seven shared multi-block kernels and returns timing, workspace and typed regression diagnostics. |
+| `WorkspaceLayout` | Aligned views over one persistent device buffer containing SoA states, FP32 cashflows and FP64 regression data. |
+| `plan_batches(...)` | Greedily forms consecutive batches under the available workspace budget. |
+| `LaunchResources` | Owns the single device workspace and CUDA timing events. |
+
+Maturity-aligned fixed-step and exact-transition exercise schedules live in
+[`simulation/early_exercise_schedule.cuh`](simulation/early_exercise_schedule.cuh).
+See
 [Longstaff and Schwartz (2001)](https://doi.org/10.1093/rfs/14.1.113) and the
 [`CUDA American and Bermudan pricing contract`](../../docs/cuda-american-and-bermudan-pricing-contract.md).

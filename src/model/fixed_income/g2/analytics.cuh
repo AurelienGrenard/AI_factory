@@ -1,6 +1,7 @@
 // Closed-form fixed-income analytics for the standalone G2 model.
 #pragma once
 
+#include "common/fixed_income/mean_reverting_gaussian.cuh"
 #include "model/fixed_income/g2/dynamics.cuh"
 #include "model/fixed_income/g2/state.hpp"
 
@@ -155,5 +156,87 @@ __device__ __forceinline__ float payer_swap_value(
     float fixed_rate,
     const ScheduleView& schedule
 );
+
+// Model-side analytics and regression projection used by Bermudan swaptions.
+struct BermudanSwaptionAnalyticsPolicy {
+    using PreparedModel = ModelParameters;
+
+    struct PreparedRegressionState {
+        float inverse_scale_x;
+        float inverse_scale_y;
+    };
+
+    __device__ __forceinline__ static PreparedRegressionState
+    prepare_regression_state(const ModelParameters& parameters) {
+        return {
+            ::ai_factory::workbench::fixed_income::
+                mean_reverting_gaussian::
+                    inverse_stationary_deviation_from_volatility(
+                        parameters.process.volatility_x,
+                        parameters.process.mean_reversion_x
+                    ),
+            ::ai_factory::workbench::fixed_income::
+                mean_reverting_gaussian::
+                    inverse_stationary_deviation_from_volatility(
+                        parameters.process.volatility_y,
+                        parameters.process.mean_reversion_y
+                    ),
+        };
+    }
+
+    __device__ __forceinline__ static float normalize_regression_state_x(
+        const PreparedRegressionState& prepared,
+        float state_x
+    ) {
+        return state_x * prepared.inverse_scale_x;
+    }
+
+    __device__ __forceinline__ static float normalize_regression_state_y(
+        const PreparedRegressionState& prepared,
+        float state_y
+    ) {
+        return state_y * prepared.inverse_scale_y;
+    }
+
+    __device__ __forceinline__ static PreparedModel prepare_model(
+        const ModelParameters& model
+    ) {
+        return model;
+    }
+
+    template<typename JointState>
+    __device__ __forceinline__ static State factor_state(
+        const JointState& state
+    ) {
+        return state.state;
+    }
+
+    __device__ __forceinline__ static float log_discount_factor(
+        const PreparedModel& model,
+        float state_integral,
+        float time
+    ) {
+        return g2::log_discount_factor(model, state_integral, time);
+    }
+
+    template<typename ScheduleView>
+    __device__ __forceinline__ static float payer_swap_value(
+        const PreparedModel& model,
+        const State& state,
+        float valuation_time,
+        float start_time,
+        float fixed_rate,
+        const ScheduleView& schedule
+    ) {
+        return g2::payer_swap_value(
+            model,
+            state,
+            valuation_time,
+            start_time,
+            fixed_rate,
+            schedule
+        );
+    }
+};
 
 }  // namespace ai_factory::workbench::model::fixed_income::g2

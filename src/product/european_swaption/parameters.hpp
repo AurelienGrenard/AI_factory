@@ -11,15 +11,15 @@ struct RegularEuropeanSwaptionParameters {
     float notional;
     float strike;
     float accrual_fraction;
-    std::uint32_t exercise_time;
-    std::uint32_t payment_interval;
+    std::uint32_t exercise_time_days;
+    std::uint32_t payment_interval_days;
     std::uint32_t payment_count;
 };
 
 struct ExplicitEuropeanSwaptionParameters {
     float notional;
     float strike;
-    std::uint32_t exercise_time;
+    std::uint32_t exercise_time_days;
     std::uint32_t payment_count;
     std::size_t schedule_offset;
 };

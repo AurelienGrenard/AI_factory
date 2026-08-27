@@ -2,6 +2,7 @@
 #include "common/longstaff_schwartz/workspace.cuh"
 
 #include "common/check_cuda.cuh"
+#include "common/longstaff_schwartz/regression_status.cuh"
 
 #include <algorithm>
 #include <cstddef>
@@ -130,14 +131,6 @@ WorkspaceLayout make_workspace_layout(
         product_name,
         "prepared rows"
     );
-    layout.exercise_counts = append_region(
-        cursor,
-        batch_size,
-        sizeof(std::uint32_t),
-        alignof(std::uint32_t),
-        product_name,
-        "exercise counts"
-    );
     layout.state_offsets = append_region(
         cursor,
         batch_size,
@@ -181,13 +174,21 @@ WorkspaceLayout make_workspace_layout(
         product_name,
         "regression coefficients"
     );
-    layout.regression_valid = append_region(
+    layout.regression_statuses = append_region(
         cursor,
         batch_size,
-        sizeof(std::uint32_t),
-        alignof(std::uint32_t),
+        sizeof(RegressionStatus),
+        alignof(RegressionStatus),
         product_name,
-        "regression flags"
+        "regression statuses"
+    );
+    layout.regression_diagnostics = append_region(
+        cursor,
+        batch_size,
+        sizeof(RegressionDiagnostics),
+        alignof(RegressionDiagnostics),
+        product_name,
+        "regression diagnostics"
     );
     layout.moment_partials = append_region(
         cursor,
@@ -213,12 +214,14 @@ ExecutionPlan plan_batches(
         throw std::invalid_argument("Early-exercise batch planning requires rows.");
     }
     ExecutionPlan plan{};
+    plan.descriptor = descriptor;
+    plan.rows = rows;
     std::size_t result_offset = 0U;
 
     while (result_offset < rows.size()) {
         std::size_t batch_size = 0U;
         std::size_t state_value_count = 0U;
-        std::uint32_t maximum_exercise_count = 0U;
+        std::uint32_t maximum_regression_count = 0U;
 
         while (result_offset + batch_size < rows.size()) {
             const EarlyExerciseRowPlan& row = rows[result_offset + batch_size];
@@ -244,8 +247,8 @@ ExecutionPlan plan_batches(
 
             ++batch_size;
             state_value_count = candidate_state_values;
-            maximum_exercise_count = std::max(
-                maximum_exercise_count, row.exercise_count
+            maximum_regression_count = std::max(
+                maximum_regression_count, row.regression_count
             );
         }
 
@@ -280,7 +283,7 @@ ExecutionPlan plan_batches(
             result_offset,
             batch_size,
             state_value_count,
-            maximum_exercise_count,
+            maximum_regression_count,
         });
         plan.maximum_workspace_bytes = std::max(
             plan.maximum_workspace_bytes, layout.total_bytes

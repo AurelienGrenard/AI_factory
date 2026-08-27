@@ -2,6 +2,8 @@
 // It keeps every call site explicit while standardizing the exception message.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include <cuda_runtime.h>
 
 #include <algorithm>
@@ -89,7 +91,7 @@ inline void validate_device_pointer(const void* pointer, const char* name) {
 inline void validate_model_product_construction(
     std::size_t model_count,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count
 ) {
     if (model_count == 0U || product_count == 0U || result_count == 0U) {
@@ -97,7 +99,13 @@ inline void validate_model_product_construction(
             "Model, product, and result counts must be positive."
         );
     }
-    if (!cartesian_product) {
+    if (result_count > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::overflow_error(
+            "CUDA pricing supports at most uint32_max result rows per "
+            "logical workload; split a larger construction before launch."
+        );
+    }
+    if (construction == PriceConstruction::Aligned) {
         if (model_count != product_count || result_count != model_count) {
             throw std::invalid_argument(
                 "Aligned construction requires equal model, product, and result counts."
@@ -120,7 +128,7 @@ inline void validate_model_curve_product_construction(
     std::size_t model_count,
     std::size_t curve_count,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count
 ) {
     if (model_count == 0U || curve_count == 0U || product_count == 0U
@@ -129,7 +137,13 @@ inline void validate_model_curve_product_construction(
             "Model, curve, product, and result counts must be positive."
         );
     }
-    if (!cartesian_product) {
+    if (result_count > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::overflow_error(
+            "CUDA pricing supports at most uint32_max result rows per "
+            "logical workload; split a larger construction before launch."
+        );
+    }
+    if (construction == PriceConstruction::Aligned) {
         if (model_count != curve_count || model_count != product_count
             || result_count != model_count) {
             throw std::invalid_argument(

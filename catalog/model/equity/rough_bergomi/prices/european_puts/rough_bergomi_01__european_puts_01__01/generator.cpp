@@ -1,15 +1,16 @@
 // Build one rough-Bergomi European-put price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough_bergomi/european_option.cuh"
-#include "model/equity/rough_bergomi/dataset.hpp"
+#include "model/equity/rough/rough_bergomi/european_option.cuh"
+#include "model/equity/rough/rough_bergomi/dataset.hpp"
 #include "product/european_option/dataset.hpp"
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/price_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cuda_runtime.h>
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -17,20 +18,23 @@
 
 namespace {
 
+namespace rough_bergomi =
+    ai_factory::workbench::model::equity::rough_bergomi;
+
 const std::filesystem::path model_dataset_path =
     "datasets/model/equity/rough_bergomi/parameters/rough_bergomi_01.json";
 const std::filesystem::path product_dataset_path =
     "datasets/product/equity/european_options/european_options_01.json";
 
-constexpr ai_factory::workbench::datasets::PriceConstruction construction =
-    ai_factory::workbench::datasets::PriceConstruction::Aligned;
+constexpr ai_factory::workbench::PriceConstruction construction =
+    ai_factory::workbench::PriceConstruction::Aligned;
 
 constexpr std::size_t monte_carlo_paths_per_price = 1U << 20U;
 constexpr float day_fraction = 1.0f / 252.0f;
 constexpr float target_dt = 1.0f / 360.0f;
-constexpr unsigned int threads_per_block = 512U;
-constexpr std::size_t results_per_kernel_launch = 1'000U;
-constexpr std::size_t block_count = 128U;
+constexpr std::size_t path_chunk_size = 65'536U;
+constexpr std::size_t chunks_per_price =
+    (monte_carlo_paths_per_price + path_chunk_size - 1U) / path_chunk_size;
 constexpr std::uint64_t seed = 910000001ULL;
 
 const std::string target_dt_description = "1 / 360";
@@ -52,35 +56,40 @@ const std::string numerical_method =
 int main() {
     using namespace ai_factory::workbench;
 
-    const std::vector<rough_bergomi::RoughBergomiModelParameters> models =
+    const std::vector<rough_bergomi::ModelParameters> models =
         rough_bergomi::load_models(model_dataset_path);
     const std::vector<product::EuropeanOptionParameters> products =
         product::load_european_options(product_dataset_path);
-    const std::size_t result_count = datasets::price_row_count(
+    const std::size_t result_count = ai_factory::workbench::price_row_count(
         models.size(), products.size(), construction
     );
-    const std::size_t kernel_launch_count =
-        (result_count + results_per_kernel_launch - 1U)
-        / results_per_kernel_launch;
-    const std::size_t maximum_block_count = bounded_block_count(
-        std::min(result_count, results_per_kernel_launch), block_count
-    );
-    const rough_bergomi::RoughBergomiWorkspacePlan workspace =
-        rough_bergomi::plan_european_option_workspace(
-            products.data(),
-            products.size(),
-            day_fraction,
-            target_dt,
-            threads_per_block,
-            maximum_block_count
+    std::size_t maximum_step_count = 1U;
+    for (const product::EuropeanOptionParameters& product : products) {
+        maximum_step_count = std::max(
+            maximum_step_count,
+            static_cast<std::size_t>(std::fmax(
+                1.0,
+                std::floor(
+                    static_cast<double>(product.maturity_days) * day_fraction
+                        / target_dt
+                    + 0.5
+                )
+            ))
+        );
+    }
+    const rough_bergomi::WorkspacePlan workspace =
+        rough_bergomi::plan_pricing_workspace(
+            maximum_step_count,
+            monte_carlo_paths_per_price,
+            path_chunk_size
         );
 
     std::vector<float> prices(result_count);
     std::vector<float> standard_errors(result_count);
 
-    rough_bergomi::RoughBergomiModelParameters* device_models = nullptr;
+    rough_bergomi::ModelParameters* device_models = nullptr;
     product::EuropeanOptionParameters* device_products = nullptr;
-    float* device_history_workspace = nullptr;
+    void* device_workspace = nullptr;
     float* device_prices = nullptr;
     float* device_standard_errors = nullptr;
     cudaEvent_t start_event = nullptr;
@@ -93,7 +102,7 @@ int main() {
             cudaMalloc(
                 &device_models,
                 models.size()
-                    * sizeof(rough_bergomi::RoughBergomiModelParameters)
+                    * sizeof(rough_bergomi::ModelParameters)
             ),
             "cudaMalloc rough-Bergomi models"
         );
@@ -105,8 +114,8 @@ int main() {
             "cudaMalloc European puts"
         );
         check_cuda(
-            cudaMalloc(&device_history_workspace, workspace.history_bytes),
-            "cudaMalloc rough-Bergomi put history"
+            cudaMalloc(&device_workspace, workspace.workspace_bytes),
+            "cudaMalloc rough-Bergomi put FFT workspace"
         );
         check_cuda(
             cudaMalloc(&device_prices, result_count * sizeof(float)),
@@ -124,7 +133,7 @@ int main() {
                 device_models,
                 models.data(),
                 models.size()
-                    * sizeof(rough_bergomi::RoughBergomiModelParameters),
+                    * sizeof(rough_bergomi::ModelParameters),
                 cudaMemcpyHostToDevice
             ),
             "cudaMemcpy rough-Bergomi models"
@@ -139,31 +148,31 @@ int main() {
             "cudaMemcpy European puts"
         );
 
-        const std::size_t warmup_row_count = std::min<std::size_t>(
-            64U, std::min(models.size(), products.size())
-        );
-        const std::size_t warmup_block_count = bounded_block_count(
-            warmup_row_count, block_count
-        );
+        const std::size_t warmup_steps = static_cast<std::size_t>(std::fmax(
+            1.0,
+            std::floor(
+                static_cast<double>(products.front().maturity_days) * day_fraction
+                    / target_dt
+                + 0.5
+            )
+        ));
         rough_bergomi::launch_rough_bergomi_european_option_cuda<
             OptionSide::put
         >(
             device_models,
-            warmup_row_count,
+            models.size(),
             device_products,
-            warmup_row_count,
-            false,
-            warmup_row_count,
+            products.size(),
+            construction,
+            result_count,
             0U,
-            warmup_row_count,
             monte_carlo_paths_per_price,
             day_fraction,
             target_dt,
-            threads_per_block,
-            warmup_block_count,
-            workspace.maximum_step_count,
-            device_history_workspace,
-            workspace.history_float_count,
+            warmup_steps,
+            path_chunk_size,
+            device_workspace,
+            workspace.workspace_bytes,
             seed,
             device_prices,
             device_standard_errors
@@ -174,15 +183,22 @@ int main() {
         check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
         check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
 
-        for (std::size_t result_offset = 0U;
-             result_offset < result_count;
-             result_offset += results_per_kernel_launch) {
-            const std::size_t launch_result_count = std::min(
-                results_per_kernel_launch, result_count - result_offset
-            );
-            const std::size_t launched_block_count = bounded_block_count(
-                launch_result_count, block_count
-            );
+        for (std::size_t result_index = 0U;
+             result_index < result_count;
+             ++result_index) {
+            const std::size_t product_index =
+                construction == PriceConstruction::CartesianProduct
+                ? result_index % products.size()
+                : result_index;
+            const std::size_t step_count =
+                static_cast<std::size_t>(std::fmax(
+                    1.0,
+                    std::floor(
+                        static_cast<double>(
+                            products[product_index].maturity_days
+                        ) * day_fraction / target_dt + 0.5
+                    )
+                ));
             rough_bergomi::launch_rough_bergomi_european_option_cuda<
                 OptionSide::put
             >(
@@ -190,19 +206,16 @@ int main() {
                 models.size(),
                 device_products,
                 products.size(),
-                construction
-                    == datasets::PriceConstruction::CartesianProduct,
+                construction,
                 result_count,
-                result_offset,
-                launch_result_count,
+                result_index,
                 monte_carlo_paths_per_price,
                 day_fraction,
                 target_dt,
-                threads_per_block,
-                launched_block_count,
-                workspace.maximum_step_count,
-                device_history_workspace,
-                workspace.history_float_count,
+                step_count,
+                path_chunk_size,
+                device_workspace,
+                workspace.workspace_bytes,
                 seed,
                 device_prices,
                 device_standard_errors
@@ -246,8 +259,7 @@ int main() {
         if (stop_event != nullptr) cudaEventDestroy(stop_event);
         if (device_models != nullptr) cudaFree(device_models);
         if (device_products != nullptr) cudaFree(device_products);
-        if (device_history_workspace != nullptr)
-            cudaFree(device_history_workspace);
+        if (device_workspace != nullptr) cudaFree(device_workspace);
         if (device_prices != nullptr) cudaFree(device_prices);
         if (device_standard_errors != nullptr)
             cudaFree(device_standard_errors);
@@ -259,8 +271,8 @@ int main() {
     check_cuda(cudaFree(device_models), "cudaFree rough-Bergomi models");
     check_cuda(cudaFree(device_products), "cudaFree European puts");
     check_cuda(
-        cudaFree(device_history_workspace),
-        "cudaFree rough-Bergomi put history"
+        cudaFree(device_workspace),
+        "cudaFree rough-Bergomi put FFT workspace"
     );
     check_cuda(cudaFree(device_prices), "cudaFree rough-Bergomi put prices");
     check_cuda(
@@ -285,19 +297,15 @@ int main() {
         monte_carlo_paths_per_price,
         target_dt_description,
         nlohmann::ordered_json{
-            {"block_count", maximum_block_count},
-            {"threads_per_block", threads_per_block},
-            {"kernel_launch_count", kernel_launch_count},
-            {
-                "maximum_prices_per_block",
-                (std::min(result_count, results_per_kernel_launch)
-                    + maximum_block_count - 1U)
-                    / maximum_block_count
-            },
+            {"path_chunk_size", path_chunk_size},
+            {"kernel_launch_count", (2U + 2U * chunks_per_price) * result_count},
             {"maximum_step_count", workspace.maximum_step_count},
-            {"history_workspace_bytes", workspace.history_bytes},
-            {"dynamic_shared_bytes", workspace.dynamic_shared_bytes},
-            {"history_layout", "block, step, thread"},
+            {"workspace_bytes", workspace.workspace_bytes},
+            {
+                "path_convolution_workspace_bytes",
+                workspace.convolution_bytes,
+            },
+            {"path_packing", "one complex FFT for two real paths"},
         },
         nlohmann::ordered_json::object(),
         seed,

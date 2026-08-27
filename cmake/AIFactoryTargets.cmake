@@ -1,13 +1,23 @@
 # Fine-grained build graph for CUDA pricing units and JSON dataset loaders.
 #
-# Numerical implementation files such as dynamics.cu and analytics.cu remain
+# Numerical implementation files such as dynamics_impl.cuh and analytics_impl.cuh remain
 # force-inlined includes of their consuming kernels. Only public launch units
 # are compiled here, so no relocatable-device-code boundary is introduced.
+
+# This checked-in fragment is generated beside every equity pricing binding;
+# CI compares both the C++ units and this registration matrix to one manifest.
+include(cmake/generated/EquityPricingBindings.cmake)
 
 function(ai_factory_configure_host_library target)
     target_include_directories(${target} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+    # Public headers expose CUDA Runtime types. Host-only consumers must see
+    # the headers belonging to the same toolkit as CMAKE_CUDA_COMPILER; the
+    # distribution's /usr/include/cuda_runtime.h may describe an older ABI.
+    target_include_directories(${target} SYSTEM PUBLIC
+        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     )
     target_link_libraries(${target} PUBLIC nlohmann_json::nlohmann_json)
     target_compile_features(${target} PUBLIC cxx_std_23)
@@ -33,7 +43,6 @@ add_library(ai_factory_runtime STATIC EXCLUDE_FROM_ALL
 ai_factory_configure_host_library(ai_factory_runtime)
 
 add_library(ai_factory_longstaff_schwartz STATIC EXCLUDE_FROM_ALL
-    src/common/longstaff_schwartz/exercise_schedule.cu
     src/common/longstaff_schwartz/launch.cu
     src/common/longstaff_schwartz/workspace.cu
 )
@@ -45,7 +54,7 @@ target_link_libraries(
 function(ai_factory_add_dataset_library target source)
     add_library(${target} STATIC EXCLUDE_FROM_ALL ${source})
     ai_factory_configure_host_library(${target})
-    target_link_libraries(${target} PUBLIC ai_factory_dataset_core)
+    target_link_libraries(${target} PUBLIC ai_factory_dataset_validation)
     set_property(
         GLOBAL APPEND PROPERTY AI_FACTORY_DATASET_TARGETS ${target}
     )
@@ -61,31 +70,13 @@ endforeach()
 
 set(_ai_factory_products
     american_option
-    asian_option
-    asset_or_nothing_option
-    athena_autocall
-    cliquet
-    digital_option
-    double_knock_out_option
-    down_and_in_option
-    down_and_out_option
-    european_option
+    bermudan_swaption
     european_swaption
-    forward_start_option
-    gap_option
-    geometric_asian_option
-    lookback_option
-    phoenix_autocall
-    phoenix_memory_autocall
-    range_accrual
     rate_option
-    straddle
-    up_and_in_option
-    up_and_out_option
-    up_no_touch
-    up_one_touch
     zero_coupon_bond_option
+    ${AI_FACTORY_GENERATED_EQUITY_PRODUCTS}
 )
+list(REMOVE_DUPLICATES _ai_factory_products)
 foreach(product IN LISTS _ai_factory_products)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/product/${product}/dataset.cpp")
         ai_factory_add_dataset_library(
@@ -95,18 +86,7 @@ foreach(product IN LISTS _ai_factory_products)
     endif()
 endforeach()
 
-set(_ai_factory_equity_models
-    bates
-    black_scholes
-    cev
-    heston
-    kou
-    merton
-    normal_inverse_gaussian
-    rough_bergomi
-    schobel_zhu
-    variance_gamma
-)
+set(_ai_factory_equity_models ${AI_FACTORY_GENERATED_EQUITY_MODELS})
 set(_ai_factory_fixed_income_models
     cir
     g2
@@ -116,10 +96,19 @@ set(_ai_factory_fixed_income_models
     vasicek
 )
 
+function(ai_factory_equity_model_family output model)
+    if(model IN_LIST AI_FACTORY_GENERATED_ROUGH_MODELS)
+        set(${output} rough PARENT_SCOPE)
+    else()
+        set(${output} markovian PARENT_SCOPE)
+    endif()
+endfunction()
+
 foreach(model IN LISTS _ai_factory_equity_models)
+    ai_factory_equity_model_family(model_family ${model})
     ai_factory_add_dataset_library(
         ai_factory_equity_${model}_dataset
-        src/model/equity/${model}/dataset.cpp
+        src/model/equity/${model_family}/${model}/dataset.cpp
     )
 endforeach()
 foreach(model IN LISTS _ai_factory_fixed_income_models)
@@ -135,7 +124,13 @@ endforeach()
 function(ai_factory_add_cuda_unit domain unit_path)
     string(REPLACE "/" "_" unit_id "${unit_path}")
     set(target ai_factory_${domain}_${unit_id})
-    set(source src/model/${domain}/${unit_path}.cu)
+    string(REGEX REPLACE "^([^/]+).*$" "\\1" model "${unit_path}")
+    if(domain STREQUAL "equity")
+        ai_factory_equity_model_family(model_family ${model})
+        set(source src/model/equity/${model_family}/${unit_path}.cu)
+    else()
+        set(source src/model/${domain}/${unit_path}.cu)
+    endif()
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
         return()
     endif()
@@ -143,7 +138,6 @@ function(ai_factory_add_cuda_unit domain unit_path)
     add_library(${target} STATIC EXCLUDE_FROM_ALL ${source})
     ai_factory_configure_cuda_library(${target})
 
-    string(REGEX REPLACE "^([^/]+).*$" "\\1" model "${unit_path}")
     get_filename_component(product "${unit_path}" NAME)
     set(dependencies
         ai_factory_runtime
@@ -151,15 +145,14 @@ function(ai_factory_add_cuda_unit domain unit_path)
     )
     if(TARGET ai_factory_product_${product}_dataset)
         list(APPEND dependencies ai_factory_product_${product}_dataset)
-    elseif(product STREQUAL "european_option_fft")
-        list(APPEND dependencies ai_factory_product_european_option_dataset)
     endif()
     if(unit_path MATCHES "^[^/]+/(nelson_siegel|svensson)/")
         list(APPEND dependencies
             ai_factory_curve_${CMAKE_MATCH_1}_dataset
         )
     endif()
-    if(product STREQUAL "american_option")
+    if(product STREQUAL "american_option"
+        OR product STREQUAL "bermudan_swaption")
         list(APPEND dependencies ai_factory_longstaff_schwartz)
     endif()
     target_link_libraries(${target} PUBLIC ${dependencies})
@@ -178,35 +171,18 @@ function(ai_factory_add_cuda_unit domain unit_path)
     )
 endfunction()
 
-set(_ai_factory_equity_products
-    american_option
-    asian_option
-    asset_or_nothing_option
-    athena_autocall
-    cliquet
-    digital_option
-    double_knock_out_option
-    down_and_in_option
-    down_and_out_option
-    european_option
-    forward_start_option
-    gap_option
-    geometric_asian_option
-    lookback_option
-    phoenix_autocall
-    phoenix_memory_autocall
-    range_accrual
-    straddle
-    up_and_in_option
-    up_and_out_option
-    up_no_touch
-    up_one_touch
-)
+foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS)
+    ai_factory_add_cuda_unit(equity ${unit_path})
+endforeach()
+
+# Samples and American exercise are deliberately outside the generated
+# non-American product matrix. Existence is the source of truth for these
+# exceptional units, so no second model-product list is maintained.
 foreach(model IN LISTS _ai_factory_equity_models)
-    ai_factory_add_cuda_unit(equity ${model}/sample)
-    foreach(product IN LISTS _ai_factory_equity_products)
-        ai_factory_add_cuda_unit(equity ${model}/${product})
-    endforeach()
+    if(NOT model IN_LIST AI_FACTORY_GENERATED_VOLTERRA_MODELS)
+        ai_factory_add_cuda_unit(equity ${model}/sample)
+    endif()
+    ai_factory_add_cuda_unit(equity ${model}/american_option)
 endforeach()
 
 if(AI_FACTORY_MATHDX_ROOT)
@@ -217,49 +193,73 @@ if(AI_FACTORY_MATHDX_ROOT)
     endif()
     if(NOT CUDA_WORKBENCH_ARCHITECTURES STREQUAL "89")
         message(FATAL_ERROR
-            "The tuned cuFFTDx rough-Bergomi pricer currently targets SM 8.9; "
+            "The tuned cuFFTDx Volterra pricers currently target SM 8.9; "
             "configure CUDA_WORKBENCH_ARCHITECTURES=89"
         )
     endif()
-    ai_factory_add_cuda_unit(
-        equity rough_bergomi/european_option_fft
-    )
-    target_include_directories(
-        ai_factory_equity_rough_bergomi_european_option_fft PRIVATE
-        ${AI_FACTORY_MATHDX_ROOT}/include
-        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-    )
-    target_compile_definitions(
-        ai_factory_equity_rough_bergomi_european_option_fft PUBLIC
-        AI_FACTORY_HAS_CUFFTDX=1
-    )
+    set(_ai_factory_rough_fft_targets)
+    foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS)
+        ai_factory_add_cuda_unit(equity ${unit_path})
+        string(REPLACE "/" "_" unit_id "${unit_path}")
+        list(APPEND _ai_factory_rough_fft_targets
+            ai_factory_equity_${unit_id}
+        )
+    endforeach()
+    foreach(model IN LISTS AI_FACTORY_GENERATED_VOLTERRA_MODELS)
+        if(EXISTS
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/model/equity/rough/${model}/sample.cu"
+        )
+            ai_factory_add_cuda_unit(equity ${model}/sample)
+            list(APPEND _ai_factory_rough_fft_targets
+                ai_factory_equity_${model}_sample
+            )
+        endif()
+    endforeach()
+    foreach(target IN LISTS _ai_factory_rough_fft_targets)
+        target_include_directories(
+            ${target} PRIVATE
+            ${AI_FACTORY_MATHDX_ROOT}/include
+            ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+        )
+        target_compile_definitions(
+            ${target} PUBLIC AI_FACTORY_HAS_CUFFTDX=1
+        )
+    endforeach()
 endif()
 
 set(_ai_factory_fixed_income_units
+    cir/bermudan_swaption
     cir/sample
     cir/european_swaption
     cir/rate_option
     cir/zero_coupon_bond_option
     g2/sample
+    g2/bermudan_swaption
     g2/rate_option
     g2/zero_coupon_bond_option
     g2_plus_plus/sample
+    g2_plus_plus/nelson_siegel/bermudan_swaption
     g2_plus_plus/nelson_siegel/rate_option
     g2_plus_plus/nelson_siegel/zero_coupon_bond_option
     g2_plus_plus/svensson/rate_option
     g2_plus_plus/svensson/zero_coupon_bond_option
+    g2_plus_plus/svensson/bermudan_swaption
     hull_white/sample
+    hull_white/nelson_siegel/bermudan_swaption
     hull_white/nelson_siegel/european_swaption
     hull_white/nelson_siegel/rate_option
     hull_white/nelson_siegel/zero_coupon_bond_option
     hull_white/svensson/european_swaption
     hull_white/svensson/rate_option
     hull_white/svensson/zero_coupon_bond_option
+    hull_white/svensson/bermudan_swaption
+    ornstein_uhlenbeck/bermudan_swaption
     ornstein_uhlenbeck/sample
     ornstein_uhlenbeck/european_swaption
     ornstein_uhlenbeck/rate_option
     ornstein_uhlenbeck/zero_coupon_bond_option
     vasicek/sample
+    vasicek/bermudan_swaption
     vasicek/european_swaption
     vasicek/rate_option
     vasicek/zero_coupon_bond_option
@@ -303,7 +303,7 @@ get_property(
 add_library(cuda_workbench INTERFACE)
 target_link_libraries(cuda_workbench INTERFACE
     ${_ai_factory_cuda_unit_targets}
-    ai_factory_dataset_core
+    ai_factory_dataset_validation
 )
 
 # Infer exact link dependencies from public project headers included by one
@@ -321,6 +321,14 @@ function(ai_factory_collect_source_dependencies output source)
         string(REGEX REPLACE
             ".*\"([^\"]+)\\.(cuh|hpp)\".*" "\\1"
             header_path "${include_line}"
+        )
+        # The equity family folders organize source files but deliberately do
+        # not participate in stable target names.
+        string(REGEX REPLACE
+            "^model/equity/(markovian|rough)/"
+            "model/equity/"
+            header_path
+            "${header_path}"
         )
         string(REGEX REPLACE "^model/" "" target_path "${header_path}")
         string(REPLACE "/" "_" target_id "${target_path}")

@@ -1,6 +1,6 @@
 // Generate 20 maturity-dependent upper barriers at each of 50 maturities.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cmath>
 #include <filesystem>
@@ -30,9 +30,9 @@ int main() {
     for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
         auto& row = rows.rows[index];
         const bool stress = index >= 900U;
-        const std::uint32_t maturity =
+        const std::uint32_t maturity_days =
             row.at("maturity").get<std::uint32_t>();
-        const float maturity_years = business_days_to_years(maturity);
+        const float maturity_years = business_days_to_years(maturity_days);
         const float log_strike = logf(row.at("strike").get<float>());
         const float regime_slope = stress
             ? log_moneyness_slope

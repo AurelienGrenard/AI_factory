@@ -1,9 +1,10 @@
 # Deferred work
 
-This file lists the projects that are intentionally postponed but remain part
-of the intended development roadmap. It contains planned work only. Ideas that
-were tested and rejected belong in `abandoned-work.md`; permanent engineering
-rules belong in the relevant implementation contract or extension workflow.
+This file lists general projects that are intentionally postponed but remain
+part of the intended development roadmap. It is not an audit registry: audit
+findings, including postponed ones, belong in `audit/response.md`; closed audit
+findings belong in `audit/closed.md`. Permanent engineering rules belong in
+the relevant implementation contract or extension workflow.
 
 ## Persistent equity-reference migration
 
@@ -79,43 +80,53 @@ fallbacks for the remaining rows. CIR uses QuantLib for all rows after both
 Premia finite-difference methods failed the numerical audit. The persistent
 caches include semantic and policy fingerprints and run cache-only in CI.
 
-G2/G2++ European implementations and all early-exercise swaption launchers
-remain deferred.
+G2/G2++ European implementations remain deferred. Co-terminal regular
+Bermudan payer/receiver launchers are implemented for OU, Vasicek, CIR, G2,
+Hull-White with either parametric curve, and G2++ with either parametric curve.
+They reuse the common multi-block Longstaff-Schwartz engine, pathwise rate
+integrals, a degree-three one-factor Hermite basis or a degree-two two-factor
+Hermite basis, and FP64 normal-equation reductions.
 
 European swaptions should use the best deterministic model-specific formula
 available. Add the G2 and G2++ European implementations only after selecting
 and documenting their non-Jamshidian numerical method. The current one-factor
 contract identifies exercise with the underlying swap start. Exact spot lags,
 distinct forward swap starts, and mid-curve swaptions require the corresponding
-generalized decomposition and remain deferred. American or Bermudan
-swaptions should reuse the existing
-early-exercise architecture: prepared rows, model-specific state simulation,
-Longstaff-Schwartz regression, backward cashflow updates, moment reduction, and
-memory-aware batch planning. Do not introduce a second early-exercise engine
-for fixed income unless the swap state creates a demonstrated incompatibility.
+generalized decomposition and remain deferred.
 
-The extension includes product and price datasets, independent QuantLib
-validation for every supported model/curve combination, tests, catalog
-metadata, and website equations and entries.
+Full independent Bermudan certification remains urgent. QuantLib tree/PDE
+cross-checks currently cover representative central and short-stress rows, and
+all one-factor rows are checked against the maximum analytical European
+exercise value. OU payer stress row `000957` remains unresolved: 65,536 paths
+produce a zero estimate while the analytical European lower bound is about
+`1.80e-6`. Premia exposes regular Hull-White Bermudan contracts, but its fixed
+exercise schedule and fitted-curve adapter did not provide a stable reference;
+do not run bulk Premia Bermudan validation. CIR also lacks a reliable QuantLib
+Bermudan engine in the tested binding, so its analytical European lower-bound
+check must remain visible rather than being presented as full certification.
+
+Still deferred are irregular exercise calendars, distinct exercise and swap
+start dates, independent full-row references, and website entries.
 
 ## Rough volatility models
 
-Implement these models as separate extensions:
+Rough Bergomi, log-modulated rough Bergomi, rough SABR and rough Stein--Stein
+now share the factored Gaussian-Volterra hybrid engine: one block-cooperative
+cuFFTDx convolution, bounded chunk staging, model path policies and four
+schedule families. All non-American equity products use the same canonical
+path-product policy in this engine. Rough Heston and quadratic rough Heston
+consume those policies through generic positive exponential-kernel
+representations, host-prepared fixed-factor lifts, and documented weak
+splitting schemes for 2, 3 and 7 factors. They cannot use the linear Gaussian
+FFT engine because their Volterra integrands depend on the evolving state.
 
-- rough Bergomi;
-- rough Heston;
-- quadratic rough Heston.
-
-Their Volterra memory makes them structurally different from the current
-Markov dynamics. Define and validate the discretization, covariance
-construction, memory layout, and random-consumption strategy before adding
-product kernels. Rough Bergomi should begin with a validated hybrid scheme.
-Rough Heston and quadratic rough Heston require their own documented numerical
-schemes rather than superficial adaptations of the Heston QE implementation.
-
-For each model, first validate simulated moments, covariance structure, and
-convergence on CPU and CUDA. Add pricing datasets only after the dynamics and
-their discretization bias have independent references.
+Still deferred are full independent production-price certification campaigns
+and price datasets/catalog entries for the rough families, together with an
+exact published BL2 quadrature implementation. The isolated Volterra
+validation suite checks driver identities, published limiting cases and the
+separation between lift error and time-scheme error, but is not a substitute
+for 1,000-row price certification. Add pricing datasets only after the
+numerical bias has an independent reference.
 
 ## LIBOR Market Model
 

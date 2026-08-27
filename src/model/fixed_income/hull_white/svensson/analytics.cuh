@@ -56,6 +56,9 @@ struct FittedModelComposition {
     }
 };
 
+using BermudanSwaptionAnalyticsPolicy =
+    fitted::BermudanSwaptionAnalyticsPolicy<FittedModelComposition>;
+
 using fitted::A;
 using fitted::B;
 using fitted::discount_factor;

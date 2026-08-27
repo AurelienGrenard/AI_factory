@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 
 // Include the implementation exactly as product kernels do.
-#include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics.cu"
+#include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics_impl.cuh"
 
 #include <cuda_runtime.h>
 

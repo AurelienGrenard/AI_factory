@@ -1,226 +1,47 @@
-// Persistent exact G2 terminal and regular-calendar sample kernels.
+// G2 composition over the common model-sampling engine.
 #include "model/fixed_income/g2/sample.cuh"
-
-#include "common/check_cuda.cuh"
-#include "common/cuda_kernel_diagnostics.cuh"
 #include "common/sample.cuh"
-#include "common/simulation/path_simulation.cuh"
-
-#include "model/fixed_income/g2/dynamics.cu"
-
-#include <cuda_runtime.h>
-
-#include <cstddef>
-#include <cstdint>
-#include <stdexcept>
-
+#include "common/simulation/schedule.cuh"
+#include "model/fixed_income/g2/dynamics_impl.cuh"
 namespace ai_factory::workbench::model::fixed_income::g2 {
 namespace {
-
-struct StateObservationWriter {
-    float* states_x;
-    float* states_y;
-    std::size_t observation_stride;
-
-    __device__ __forceinline__ bool on_initial_state(const State&) {
-        return true;
-    }
-
-    __device__ __forceinline__ bool on_observation(
-        std::uint32_t observation,
-        const State& state
-    ) {
-        const std::size_t output =
-            static_cast<std::size_t>(observation) * observation_stride;
-        states_x[output] = state.state_x;
-        states_y[output] = state.state_y;
-        return true;
-    }
-};
-
-__global__ void g2_terminal_samples_kernel(
-    const ModelParameters* __restrict__ models,
-    std::size_t paths_per_model,
-    float maturity,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    std::uint64_t base_seed,
-    float* __restrict__ states_x,
-    float* __restrict__ states_y
-) {
-    const std::size_t thread =
-        static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    const std::size_t stride =
-        static_cast<std::size_t>(gridDim.x) * blockDim.x;
-    for (std::size_t launch_index = thread;
-         launch_index < launch_sample_count;
-         launch_index += stride) {
-        const std::size_t sample_index = sample_offset + launch_index;
-        const sample::ModelPathIndices indices =
-            sample::decode_sample_index(sample_index, paths_per_model);
-        const ModelParameters model = models[indices.model_index];
-        const DynamicsPolicy::PreparedModel prepared_model =
-            DynamicsPolicy::prepare_model(model);
-        const DynamicsPolicy::PreparedTransition transition =
-            DynamicsPolicy::prepare_transition(prepared_model, maturity);
-        const State terminal =
-            simulation::simulate_exact_transition_terminal<DynamicsPolicy>(
-                prepared_model,
-                transition,
-                philox::make_key(base_seed + indices.model_index),
-                indices.path_index
-            );
-        states_x[sample_index] = terminal.state_x;
-        states_y[sample_index] = terminal.state_y;
-    }
+using Observation = sample::TwoStateMemberSampleObservation<
+    DynamicsPolicy, &State::state_x, &State::state_y>;
+using TerminalPolicy = sample::ModelSamplingPolicy<
+    simulation::ExactTransitionTerminalSchedule<DynamicsPolicy>, Observation>;
+using CalendarPolicy = sample::ModelSamplingPolicy<
+    simulation::ExactTransitionStubbedRegularSchedule<DynamicsPolicy>, Observation>;
+static_assert(sample::SamplingPolicy<TerminalPolicy>);
+static_assert(sample::SamplingPolicy<CalendarPolicy>);
 }
-
-__global__ void g2_calendar_samples_kernel(
-    const ModelParameters* __restrict__ models,
-    std::size_t paths_per_model,
-    std::size_t total_sample_count,
-    float first_observation_time,
-    float observation_interval,
-    std::uint32_t observation_count,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    std::uint64_t base_seed,
-    float* __restrict__ states_x,
-    float* __restrict__ states_y
-) {
-    const std::size_t thread =
-        static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    const std::size_t stride =
-        static_cast<std::size_t>(gridDim.x) * blockDim.x;
-    for (std::size_t launch_index = thread;
-         launch_index < launch_sample_count;
-         launch_index += stride) {
-        const std::size_t sample_index = sample_offset + launch_index;
-        const sample::ModelPathIndices indices =
-            sample::decode_sample_index(sample_index, paths_per_model);
-        const ModelParameters model = models[indices.model_index];
-        const DynamicsPolicy::PreparedModel prepared_model =
-            DynamicsPolicy::prepare_model(model);
-        const DynamicsPolicy::PreparedTransition initial_stub_transition =
-            DynamicsPolicy::prepare_transition(
-                prepared_model, first_observation_time
-            );
-        const DynamicsPolicy::PreparedTransition regular_transition =
-            DynamicsPolicy::prepare_transition(
-                prepared_model, observation_interval
-            );
-        StateObservationWriter writer{
-            states_x + sample_index,
-            states_y + sample_index,
-            total_sample_count,
-        };
-        simulation::simulate_exact_transition_stubbed_regular_schedule<
-            DynamicsPolicy
-        >(
-            prepared_model,
-            initial_stub_transition,
-            regular_transition,
-            observation_count,
-            philox::make_key(base_seed + indices.model_index),
-            indices.path_index,
-            writer
-        );
-    }
-}
-
-std::size_t validate_g2_sample_launch(
-    const ModelParameters* device_models,
-    std::size_t model_count,
-    std::size_t paths_per_model,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t base_seed,
-    const float* device_states_x,
-    const float* device_states_y
-) {
-    const std::size_t total = sample::validate_sample_launch(
-        device_models, model_count, paths_per_model, sample_offset,
-        launch_sample_count, threads_per_block, block_count, base_seed,
-        device_states_x
-    );
-    validate_device_pointer(device_states_y, "device_states_y");
-    return total;
-}
-
-}  // namespace
-
 void launch_g2_terminal_samples_cuda(
-    const ModelParameters* device_models,
-    std::size_t model_count,
-    std::size_t paths_per_model,
-    float maturity,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t base_seed,
-    float* device_states_x,
+    const ModelParameters* device_parameters, std::size_t parameter_count,
+    std::size_t paths_per_parameter, std::uint32_t maturity_days,
+    std::size_t sample_offset, std::size_t launch_sample_count,
+    unsigned int threads_per_block, std::size_t block_count,
+    std::uint64_t dynamics_seed, float* device_states_x,
     float* device_states_y
 ) {
-    validate_g2_sample_launch(
-        device_models, model_count, paths_per_model, sample_offset,
-        launch_sample_count, threads_per_block, block_count, base_seed,
-        device_states_x, device_states_y
-    );
-    sample::validate_terminal_time(maturity);
-    report_cuda_kernel_launch_if_enabled(
-        "g2.samples", "terminal", g2_terminal_samples_kernel,
-        dim3(static_cast<unsigned int>(block_count)),
-        dim3(threads_per_block)
-    );
-    g2_terminal_samples_kernel<<<
-        static_cast<unsigned int>(block_count), threads_per_block
-    >>>(
-        device_models, paths_per_model, maturity, sample_offset,
-        launch_sample_count, base_seed, device_states_x, device_states_y
-    );
-    check_cuda(cudaGetLastError(), "G2 terminal sample kernel");
+    sample::launch_device_terminal_samples_cuda<TerminalPolicy>(
+        device_parameters, parameter_count, paths_per_parameter, maturity_days,
+        sample_offset, launch_sample_count, threads_per_block, block_count,
+        dynamics_seed, {device_states_x, device_states_y}, "g2.samples",
+        "G2 terminal sample kernel");
 }
-
 void launch_g2_calendar_samples_cuda(
-    const ModelParameters* device_models,
-    std::size_t model_count,
-    std::size_t paths_per_model,
-    float first_observation_time,
-    float observation_interval,
-    std::uint32_t observation_count,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t base_seed,
-    float* device_states_x,
+    const ModelParameters* device_parameters, std::size_t parameter_count,
+    std::size_t paths_per_parameter, std::uint32_t first_observation_day,
+    std::uint32_t observation_interval_days, std::uint32_t observation_count,
+    std::size_t sample_offset, std::size_t launch_sample_count,
+    unsigned int threads_per_block, std::size_t block_count,
+    std::uint64_t dynamics_seed, float* device_states_x,
     float* device_states_y
 ) {
-    const std::size_t total_sample_count = validate_g2_sample_launch(
-        device_models, model_count, paths_per_model, sample_offset,
-        launch_sample_count, threads_per_block, block_count, base_seed,
-        device_states_x, device_states_y
-    );
-    sample::validate_regular_calendar(
-        first_observation_time, observation_interval, observation_count
-    );
-    report_cuda_kernel_launch_if_enabled(
-        "g2.samples", "calendar", g2_calendar_samples_kernel,
-        dim3(static_cast<unsigned int>(block_count)),
-        dim3(threads_per_block)
-    );
-    g2_calendar_samples_kernel<<<
-        static_cast<unsigned int>(block_count), threads_per_block
-    >>>(
-        device_models, paths_per_model, total_sample_count,
-        first_observation_time, observation_interval, observation_count,
-        sample_offset, launch_sample_count, base_seed,
-        device_states_x, device_states_y
-    );
-    check_cuda(cudaGetLastError(), "G2 calendar sample kernel");
+    sample::launch_device_calendar_samples_cuda<CalendarPolicy>(
+        device_parameters, parameter_count, paths_per_parameter,
+        first_observation_day, observation_interval_days, observation_count,
+        sample_offset, launch_sample_count, threads_per_block, block_count,
+        dynamics_seed, {device_states_x, device_states_y}, "g2.samples",
+        "G2 calendar sample kernel");
 }
-
 }  // namespace ai_factory::workbench::model::fixed_income::g2

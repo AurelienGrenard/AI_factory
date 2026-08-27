@@ -3,7 +3,7 @@
 #include "model/fixed_income/cir/european_swaption.cuh"
 #include "model/fixed_income/cir/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
-#include "tools/datasets/european_swaption_price_generation.hpp"
+#include "tools/pricing/european_swaption_price_generation.cuh"
 
 #include <filesystem>
 

@@ -1,12 +1,13 @@
 // Exercise both compile-time sides of the shared Heston American-option engine.
 #include "common/check_cuda.cuh"
-#include "model/equity/heston/american_option.cuh"
+#include "model/equity/markovian/heston/american_option.cuh"
 
 #include <cuda_runtime.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
@@ -21,6 +22,7 @@ constexpr std::size_t kBlocksPerPrice = 16U;
 constexpr float kDt = 1.0f / 504.0f;
 constexpr std::uint32_t kSimulationStepsPerDay = 2U;
 constexpr std::uint64_t kSeed = 900000001ULL;
+constexpr std::size_t kExpectedKernelLaunchCount = 154U;
 
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
@@ -58,7 +60,7 @@ ai_factory::workbench::longstaff_schwartz::LaunchResult price_once(
             products.data(),
             device.products,
             kRowCount,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             kRowCount,
             kPathsPerPrice,
             kDt,
@@ -112,11 +114,17 @@ void validate_side(
     const longstaff_schwartz::LaunchResult second = price_once<Side>(
         device, products, second_prices, second_errors
     );
+    longstaff_schwartz::validate_regression_diagnostics(
+        first, "Heston American option"
+    );
+    longstaff_schwartz::validate_regression_diagnostics(
+        second, "Heston American option"
+    );
 
     require(first.batch_count >= 1U, "no American-option batch was launched");
     require(
-        first.kernel_launch_count > 0U,
-        "no American-option kernel was launched"
+        first.kernel_launch_count == kExpectedKernelLaunchCount,
+        "the backward induction launched an unexpected kernel count"
     );
     require(
         first.maximum_prices_per_batch >= 1U,

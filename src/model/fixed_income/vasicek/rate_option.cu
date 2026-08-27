@@ -3,11 +3,11 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/fixed_income/bond_option_pricing_policies.cuh"
+#include "product/rate_option/pricing_policy.cuh"
 #include "common/time_configuration.cuh"
 
 // Keep the model-specific analytical primitives visible for device inlining.
-#include "model/fixed_income/vasicek/analytics.cu"
+#include "model/fixed_income/vasicek/analytics_impl.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::vasicek {
 namespace {
@@ -31,7 +31,7 @@ void launch_vasicek_rate_option_cuda(
     std::size_t model_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -46,7 +46,7 @@ void launch_vasicek_rate_option_cuda(
             model_count,
             device_products,
             product_count,
-            cartesian_product
+            construction
         ),
         result_count,
         result_offset,
@@ -64,13 +64,13 @@ void launch_vasicek_rate_option_cuda(
 template void launch_vasicek_rate_option_cuda<OptionSide::call>(
     const ModelParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
+    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
 template void launch_vasicek_rate_option_cuda<OptionSide::put>(
     const ModelParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
+    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
 

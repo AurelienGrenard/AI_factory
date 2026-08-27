@@ -50,6 +50,13 @@ Supported datasets are:
   one-factor European payer/receiver swaptions through an independent
   double-precision Jamshidian decomposition built from QuantLib bond and
   bond-option primitives;
+- Bermudan payer/receiver swaptions: targeted diagnostics through
+  `TreeSwaptionEngine`, `FdHullWhiteSwaptionEngine`, or `FdG2SwaptionEngine`.
+  The adapter uses a tree on ordinary expiries and finite differences at or
+  below three months because the QuantLib tree can omit the first very-short
+  exercise date. One-factor datasets additionally support a complete
+  analytical check against the maximum European exercise value. These checks
+  are diagnostic and are not yet persistent full-dataset certification;
 - Heston terminal-payoff families through specialized analytic engines;
 - Heston arithmetic and geometric Asians, discrete barriers, touches, double
   knock-outs, Athena, Phoenix, Cliquet, and Range Accrual products through

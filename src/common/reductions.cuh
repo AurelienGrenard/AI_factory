@@ -5,6 +5,7 @@
 
 #include <cmath>
 
+#include <cfloat>
 #include <cstddef>
 
 namespace ai_factory::workbench::reductions {
@@ -111,10 +112,35 @@ __device__ __forceinline__ void compute_statistics(
     double& standard_error
 ) {
     const double count = static_cast<double>(sample_count);
+    if (sample_count < 2U
+        || !isfinite(total.sum)
+        || !isfinite(total.sumsq)
+        || total.sumsq < 0.0) {
+        price = nan("");
+        standard_error = nan("");
+        return;
+    }
     price = total.sum / count;
+    const double centered_sum = total.sumsq - count * price * price;
+    const double cancellation_scale = fmax(
+        total.sumsq, fabs(count * price * price)
+    );
+    const double roundoff_tolerance =
+        64.0 * DBL_EPSILON * cancellation_scale;
+    if (!isfinite(price)
+        || !isfinite(centered_sum)
+        || centered_sum < -roundoff_tolerance) {
+        price = nan("");
+        standard_error = nan("");
+        return;
+    }
     const double sample_variance =
-        (total.sumsq - count * price * price) / (count - 1.0);
-    standard_error = sqrt(fmax(sample_variance, 0.0) / count);
+        fmax(centered_sum, 0.0) / (count - 1.0);
+    standard_error = sqrt(sample_variance / count);
+    if (!isfinite(standard_error)) {
+        price = nan("");
+        standard_error = nan("");
+    }
 }
 
 }  // namespace ai_factory::workbench::reductions

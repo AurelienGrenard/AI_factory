@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/bates/dynamics.cu"
+#include "model/equity/markovian/bates/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 

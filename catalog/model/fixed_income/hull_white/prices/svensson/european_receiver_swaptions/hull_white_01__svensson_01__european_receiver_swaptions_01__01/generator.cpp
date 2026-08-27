@@ -4,7 +4,7 @@
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
-#include "tools/datasets/european_swaption_price_generation.hpp"
+#include "tools/pricing/european_swaption_price_generation.cuh"
 
 #include <filesystem>
 

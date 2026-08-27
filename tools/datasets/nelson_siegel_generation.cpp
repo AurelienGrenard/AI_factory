@@ -1,6 +1,8 @@
 // Host implementation of constrained Nelson-Siegel dataset generation.
 #include "tools/datasets/nelson_siegel_generation.hpp"
 
+#include "curve/nelson_siegel/instantaneous_forward.cuh"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -35,21 +37,6 @@ void validate_bounds(
     }
 }
 
-// Return the instantaneous forward at the dimensionless maturity T / tau.
-double instantaneous_forward(
-    float beta0,
-    float beta1,
-    float beta2,
-    double scaled_maturity
-) {
-    return static_cast<double>(beta0)
-        + std::exp(-scaled_maturity)
-            * (
-                static_cast<double>(beta1)
-                + static_cast<double>(beta2) * scaled_maturity
-            );
-}
-
 // Check both endpoints and the curve's only possible interior extremum.
 bool has_admissible_forwards(
     float beta0,
@@ -69,9 +56,13 @@ bool has_admissible_forwards(
         const double critical_scaled_maturity =
             1.0 - static_cast<double>(beta1) / static_cast<double>(beta2);
         if (critical_scaled_maturity > 0.0) {
-            const double critical_forward = instantaneous_forward(
-                beta0, beta1, beta2, critical_scaled_maturity
-            );
+            const double critical_forward =
+                curve::nelson_siegel::instantaneous_forward_formula(
+                    static_cast<double>(beta0),
+                    static_cast<double>(beta1),
+                    static_cast<double>(beta2),
+                    critical_scaled_maturity
+                );
             minimum = std::min(minimum, critical_forward);
             maximum = std::max(maximum, critical_forward);
         }

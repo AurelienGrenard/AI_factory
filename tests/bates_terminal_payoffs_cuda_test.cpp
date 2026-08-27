@@ -1,20 +1,20 @@
 // Exercise Bates terminal-payoff launchers and payoff identities.
 #include "common/check_cuda.cuh"
-#include "model/equity/bates/asian_option.cuh"
-#include "model/equity/bates/asset_or_nothing_option.cuh"
-#include "model/equity/bates/digital_option.cuh"
-#include "model/equity/bates/double_knock_out_option.cuh"
-#include "model/equity/bates/down_and_in_option.cuh"
-#include "model/equity/bates/down_and_out_option.cuh"
-#include "model/equity/bates/european_option.cuh"
-#include "model/equity/bates/gap_option.cuh"
-#include "model/equity/bates/forward_start_option.cuh"
-#include "model/equity/bates/geometric_asian_option.cuh"
-#include "model/equity/bates/straddle.cuh"
-#include "model/equity/bates/up_and_in_option.cuh"
-#include "model/equity/bates/up_no_touch.cuh"
-#include "model/equity/bates/up_one_touch.cuh"
-#include "model/equity/bates/up_and_out_option.cuh"
+#include "model/equity/markovian/bates/asian_option.cuh"
+#include "model/equity/markovian/bates/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/bates/digital_option.cuh"
+#include "model/equity/markovian/bates/double_knock_out_option.cuh"
+#include "model/equity/markovian/bates/down_and_in_option.cuh"
+#include "model/equity/markovian/bates/down_and_out_option.cuh"
+#include "model/equity/markovian/bates/european_option.cuh"
+#include "model/equity/markovian/bates/gap_option.cuh"
+#include "model/equity/markovian/bates/forward_start_option.cuh"
+#include "model/equity/markovian/bates/geometric_asian_option.cuh"
+#include "model/equity/markovian/bates/straddle.cuh"
+#include "model/equity/markovian/bates/up_and_in_option.cuh"
+#include "model/equity/markovian/bates/up_no_touch.cuh"
+#include "model/equity/markovian/bates/up_one_touch.cuh"
+#include "model/equity/markovian/bates/up_and_out_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -77,7 +77,7 @@ void price_one(
     );
 
     launch(
-        device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+        device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device_price, device_standard_error
     );

@@ -1,0 +1,527 @@
+{
+  "formula_allowance": 0.02,
+  "maturities": [
+    {
+      "all_passed": true,
+      "expansion_parameter_eta_t_to_h": 0.9019604040012965,
+      "finest_atm_implied_volatility": 0.19427631980339388,
+      "finest_atm_implied_volatility_standard_error": 0.00024185257302243013,
+      "finest_time_steps": 4096,
+      "maturity": 0.1269841343164444,
+      "maturity_days": 32,
+      "max_abs_difference": 0.013345367714101108,
+      "max_refinement_indicator": 0.0019686883849242554,
+      "refinement_history": [
+        {
+          "coarse_time_steps": 1024,
+          "fine_time_steps": 2048,
+          "max_abs_normalized_implied_volatility_movement": 0.0024759898452539897
+        },
+        {
+          "coarse_time_steps": 2048,
+          "fine_time_steps": 4096,
+          "max_abs_normalized_implied_volatility_movement": 0.0019686883849242554
+        }
+      ],
+      "rows": [
+        {
+          "allowance": 0.029496945958823958,
+          "cuda_normalized_implied_volatility": 1.2477093111665816,
+          "cuda_normalized_standard_error": 0.0022090640194194107,
+          "difference": -0.013345367714101108,
+          "formula_normalized_implied_volatility": 1.2610546788806827,
+          "log_moneyness": -0.11244231027935785,
+          "passed": true,
+          "refinement_indicator": 0.0006606898811463147,
+          "scaled_log_moneyness": -0.45,
+          "side": "put",
+          "strike": 0.8936489224433899
+        },
+        {
+          "allowance": 0.03006011384971772,
+          "cuda_normalized_implied_volatility": 1.1683153537773399,
+          "cuda_normalized_standard_error": 0.0020450275109854246,
+          "difference": -0.006775232690336086,
+          "formula_normalized_implied_volatility": 1.175090586467676,
+          "log_moneyness": -0.07496154018623856,
+          "passed": true,
+          "refinement_indicator": 0.0018800038057760204,
+          "scaled_log_moneyness": -0.3,
+          "side": "put",
+          "strike": 0.9277791380882263
+        },
+        {
+          "allowance": 0.02842145513943758,
+          "cuda_normalized_implied_volatility": 1.0860168065482128,
+          "cuda_normalized_standard_error": 0.0019774452425614063,
+          "difference": -0.002048230464164469,
+          "formula_normalized_implied_volatility": 1.0880650370123772,
+          "log_moneyness": -0.03748077009311928,
+          "passed": true,
+          "refinement_indicator": 0.0005116741691919557,
+          "scaled_log_moneyness": -0.15,
+          "side": "put",
+          "strike": 0.9632129669189453
+        },
+        {
+          "allowance": 0.02,
+          "cuda_normalized_implied_volatility": 1.0,
+          "cuda_normalized_standard_error": 0.0,
+          "difference": 0.0,
+          "formula_normalized_implied_volatility": 1.0,
+          "log_moneyness": 0.0,
+          "passed": true,
+          "refinement_indicator": 0.0,
+          "scaled_log_moneyness": 0.0,
+          "side": "call",
+          "strike": 1.0
+        },
+        {
+          "allowance": 0.027749327996507218,
+          "cuda_normalized_implied_volatility": 0.9140400032299554,
+          "cuda_normalized_standard_error": 0.0014451599028957407,
+          "difference": 0.0029837623670899704,
+          "formula_normalized_implied_volatility": 0.9110562408628654,
+          "log_moneyness": 0.03748077009311928,
+          "passed": true,
+          "refinement_indicator": 0.0019686883849242554,
+          "scaled_log_moneyness": 0.15,
+          "side": "call",
+          "strike": 1.0381920337677002
+        },
+        {
+          "allowance": 0.02615226940621822,
+          "cuda_normalized_implied_volatility": 0.8248321708192583,
+          "cuda_normalized_standard_error": 0.001282590333852739,
+          "difference": 0.003129220059465254,
+          "formula_normalized_implied_volatility": 0.821702950759793,
+          "log_moneyness": 0.07496154018623856,
+          "passed": true,
+          "refinement_indicator": 0.0010219080708072648,
+          "scaled_log_moneyness": 0.3,
+          "side": "call",
+          "strike": 1.0778427124023438
+        },
+        {
+          "allowance": 0.025678550155739593,
+          "cuda_normalized_implied_volatility": 0.7350989387053145,
+          "cuda_normalized_standard_error": 0.0013354420103455222,
+          "difference": 0.0020136007422089097,
+          "formula_normalized_implied_volatility": 0.7330853379631056,
+          "log_moneyness": 0.11244231027935785,
+          "passed": true,
+          "refinement_indicator": 0.0003367821143575034,
+          "scaled_log_moneyness": 0.45,
+          "side": "call",
+          "strike": 1.1190077066421509
+        }
+      ],
+      "time_step_counts": [
+        1024,
+        2048,
+        4096
+      ]
+    },
+    {
+      "all_passed": true,
+      "expansion_parameter_eta_t_to_h": 0.9330329932668653,
+      "finest_atm_implied_volatility": 0.19372817462113898,
+      "finest_atm_implied_volatility_standard_error": 0.00024192084476474512,
+      "finest_time_steps": 4096,
+      "maturity": 0.2500000144354999,
+      "maturity_days": 63,
+      "max_abs_difference": 0.01384345400117093,
+      "max_refinement_indicator": 0.0019784741185866483,
+      "refinement_history": [
+        {
+          "coarse_time_steps": 1024,
+          "fine_time_steps": 2048,
+          "max_abs_normalized_implied_volatility_movement": 0.0026010898634980517
+        },
+        {
+          "coarse_time_steps": 2048,
+          "fine_time_steps": 4096,
+          "max_abs_normalized_implied_volatility_movement": 0.0019784741185866483
+        }
+      ],
+      "rows": [
+        {
+          "allowance": 0.029535480232386856,
+          "cuda_normalized_implied_volatility": 1.257501443915913,
+          "cuda_normalized_standard_error": 0.0022118615981580702,
+          "difference": -0.01384345400117093,
+          "formula_normalized_implied_volatility": 1.2713448979170838,
+          "log_moneyness": -0.15251603875995037,
+          "passed": true,
+          "refinement_indicator": 0.000688033839754576,
+          "scaled_log_moneyness": -0.45,
+          "side": "put",
+          "strike": 0.8585451245307922
+        },
+        {
+          "allowance": 0.030105039982842675,
+          "cuda_normalized_implied_volatility": 1.1748463024931834,
+          "cuda_normalized_standard_error": 0.0020542543263847982,
+          "difference": -0.007036416543088508,
+          "formula_normalized_implied_volatility": 1.181882719036272,
+          "log_moneyness": -0.10167735917330024,
+          "passed": true,
+          "refinement_indicator": 0.0018880226773034803,
+          "scaled_log_moneyness": -0.3,
+          "side": "put",
+          "strike": 0.9033209681510925
+        },
+        {
+          "allowance": 0.02843300205221509,
+          "cuda_normalized_implied_volatility": 1.0891883467235794,
+          "cuda_normalized_standard_error": 0.001984952580678351,
+          "difference": -0.0022425746451408823,
+          "formula_normalized_implied_volatility": 1.0914309213687203,
+          "log_moneyness": -0.05083867958665012,
+          "passed": true,
+          "refinement_indicator": 0.0004931917295016852,
+          "scaled_log_moneyness": -0.15,
+          "side": "put",
+          "strike": 0.9504320025444031
+        },
+        {
+          "allowance": 0.02,
+          "cuda_normalized_implied_volatility": 1.0,
+          "cuda_normalized_standard_error": 0.0,
+          "difference": 0.0,
+          "formula_normalized_implied_volatility": 1.0,
+          "log_moneyness": 0.0,
+          "passed": true,
+          "refinement_indicator": 0.0,
+          "scaled_log_moneyness": 0.0,
+          "side": "call",
+          "strike": 1.0
+        },
+        {
+          "allowance": 0.027765976490332137,
+          "cuda_normalized_implied_volatility": 0.910936373178333,
+          "cuda_normalized_standard_error": 0.001446875592936372,
+          "difference": 0.003196135552434476,
+          "formula_normalized_implied_volatility": 0.9077402376258985,
+          "log_moneyness": 0.05083867958665012,
+          "passed": true,
+          "refinement_indicator": 0.0019784741185866483,
+          "scaled_log_moneyness": 0.15,
+          "side": "call",
+          "strike": 1.0521531105041504
+        },
+        {
+          "allowance": 0.026087474304004273,
+          "cuda_normalized_implied_volatility": 0.818789329540014,
+          "cuda_normalized_standard_error": 0.0012755655562346265,
+          "difference": 0.003669167184445876,
+          "formula_normalized_implied_volatility": 0.8151201623555682,
+          "log_moneyness": 0.10167735917330024,
+          "passed": true,
+          "refinement_indicator": 0.000985212079065767,
+          "scaled_log_moneyness": 0.3,
+          "side": "call",
+          "strike": 1.107026219367981
+        },
+        {
+          "allowance": 0.02561448181898037,
+          "cuda_normalized_implied_volatility": 0.7266320223498595,
+          "cuda_normalized_standard_error": 0.001307027252865046,
+          "difference": 0.003303875552211788,
+          "formula_normalized_implied_volatility": 0.7233281467976477,
+          "log_moneyness": 0.15251603875995037,
+          "passed": true,
+          "refinement_indicator": 0.00038637280752018555,
+          "scaled_log_moneyness": 0.45,
+          "side": "call",
+          "strike": 1.1647611856460571
+        }
+      ],
+      "time_step_counts": [
+        1024,
+        2048,
+        4096
+      ]
+    },
+    {
+      "all_passed": true,
+      "expansion_parameter_eta_t_to_h": 0.9659363312147571,
+      "finest_atm_implied_volatility": 0.19305571192872203,
+      "finest_atm_implied_volatility_standard_error": 0.0002426161822517336,
+      "finest_time_steps": 4096,
+      "maturity": 0.5000000288709998,
+      "maturity_days": 126,
+      "max_abs_difference": 0.014406606666690802,
+      "max_refinement_indicator": 0.0019923306680921238,
+      "refinement_history": [
+        {
+          "coarse_time_steps": 1024,
+          "fine_time_steps": 2048,
+          "max_abs_normalized_implied_volatility_movement": 0.0027386209177013843
+        },
+        {
+          "coarse_time_steps": 2048,
+          "fine_time_steps": 4096,
+          "max_abs_normalized_implied_volatility_movement": 0.0019923306680921238
+        }
+      ],
+      "rows": [
+        {
+          "allowance": 0.029570675987954743,
+          "cuda_normalized_implied_volatility": 1.2713839576998647,
+          "cuda_normalized_standard_error": 0.00221958627980022,
+          "difference": -0.014406606666690802,
+          "formula_normalized_implied_volatility": 1.2857905643665555,
+          "log_moneyness": -0.2083430486392103,
+          "passed": true,
+          "refinement_indicator": 0.0006923308687538654,
+          "scaled_log_moneyness": -0.45,
+          "side": "put",
+          "strike": 0.8119284510612488
+        },
+        {
+          "allowance": 0.03012674908532123,
+          "cuda_normalized_implied_volatility": 1.1840443539157004,
+          "cuda_normalized_standard_error": 0.0020663139955972134,
+          "difference": -0.007350071137129266,
+          "formula_normalized_implied_volatility": 1.1913944250528297,
+          "log_moneyness": -0.1388953657594735,
+          "passed": true,
+          "refinement_indicator": 0.0018614931029323767,
+          "scaled_log_moneyness": -0.3,
+          "side": "put",
+          "strike": 0.8703190684318542
+        },
+        {
+          "allowance": 0.028449727488727504,
+          "cuda_normalized_implied_volatility": 1.0936559016681442,
+          "cuda_normalized_standard_error": 0.0019924863386397663,
+          "difference": -0.0024764178463649866,
+          "formula_normalized_implied_volatility": 1.0961323195145092,
+          "log_moneyness": -0.06944768287973675,
+          "passed": true,
+          "refinement_indicator": 0.0004797821341684383,
+          "scaled_log_moneyness": -0.15,
+          "side": "put",
+          "strike": 0.9329089522361755
+        },
+        {
+          "allowance": 0.02,
+          "cuda_normalized_implied_volatility": 1.0,
+          "cuda_normalized_standard_error": 0.0,
+          "difference": 0.0,
+          "formula_normalized_implied_volatility": 1.0,
+          "log_moneyness": 0.0,
+          "passed": true,
+          "refinement_indicator": 0.0,
+          "scaled_log_moneyness": 0.0,
+          "side": "call",
+          "strike": 1.0
+        },
+        {
+          "allowance": 0.027796020033608215,
+          "cuda_normalized_implied_volatility": 0.9065619625799255,
+          "cuda_normalized_standard_error": 0.0014509223413790226,
+          "difference": 0.0034290419305839093,
+          "formula_normalized_implied_volatility": 0.9031329206493416,
+          "log_moneyness": 0.06944768287973675,
+          "passed": true,
+          "refinement_indicator": 0.0019923306680921238,
+          "scaled_log_moneyness": 0.15,
+          "side": "call",
+          "strike": 1.0719159841537476
+        },
+        {
+          "allowance": 0.02602003580058534,
+          "cuda_normalized_implied_volatility": 0.8102682370396352,
+          "cuda_normalized_standard_error": 0.001268944485053474,
+          "difference": 0.004268991198002836,
+          "formula_normalized_implied_volatility": 0.8059992458416324,
+          "log_moneyness": 0.1388953657594735,
+          "passed": true,
+          "refinement_indicator": 0.0009442578603714447,
+          "scaled_log_moneyness": 0.3,
+          "side": "call",
+          "strike": 1.1490038633346558
+        },
+        {
+          "allowance": 0.02555875078668507,
+          "cuda_normalized_implied_volatility": 0.7146253317767761,
+          "cuda_normalized_standard_error": 0.0012822801409157936,
+          "difference": 0.004774162940745286,
+          "formula_normalized_implied_volatility": 0.7098511688360308,
+          "log_moneyness": 0.2083430486392103,
+          "passed": true,
+          "refinement_indicator": 0.0004296302230218929,
+          "scaled_log_moneyness": 0.45,
+          "side": "call",
+          "strike": 1.231635570526123
+        }
+      ],
+      "time_step_counts": [
+        1024,
+        2048,
+        4096
+      ]
+    },
+    {
+      "all_passed": true,
+      "expansion_parameter_eta_t_to_h": 1.0000000028871,
+      "finest_atm_implied_volatility": 0.19223082595921795,
+      "finest_atm_implied_volatility_standard_error": 0.0002442662592018174,
+      "finest_time_steps": 4096,
+      "maturity": 1.0000000577419996,
+      "maturity_days": 252,
+      "max_abs_difference": 0.01522506853086747,
+      "max_refinement_indicator": 0.0020150287439835157,
+      "refinement_history": [
+        {
+          "coarse_time_steps": 1024,
+          "fine_time_steps": 2048,
+          "max_abs_normalized_implied_volatility_movement": 0.0028889656163701982
+        },
+        {
+          "coarse_time_steps": 2048,
+          "fine_time_steps": 4096,
+          "max_abs_normalized_implied_volatility_movement": 0.0020150287439835157
+        }
+      ],
+      "rows": [
+        {
+          "allowance": 0.029630597030029977,
+          "cuda_normalized_implied_volatility": 1.2905064049458816,
+          "cuda_normalized_standard_error": 0.0022329225775764797,
+          "difference": -0.01522506853086747,
+          "formula_normalized_implied_volatility": 1.3057314734767491,
+          "log_moneyness": -0.2846049915091204,
+          "passed": true,
+          "refinement_indicator": 0.0006989067197240573,
+          "scaled_log_moneyness": -0.45,
+          "side": "put",
+          "strike": 0.7523113489151001
+        },
+        {
+          "allowance": 0.030031755713417624,
+          "cuda_normalized_implied_volatility": 1.1965726627729973,
+          "cuda_normalized_standard_error": 0.0020811582962651765,
+          "difference": -0.00790782132660417,
+          "formula_normalized_implied_volatility": 1.2044804840996015,
+          "log_moneyness": -0.18973666100608025,
+          "passed": true,
+          "refinement_indicator": 0.0017071225283569191,
+          "scaled_log_moneyness": -0.3,
+          "side": "put",
+          "strike": 0.8271769285202026
+        },
+        {
+          "allowance": 0.028428975987243116,
+          "cuda_normalized_implied_volatility": 1.0996438784278575,
+          "cuda_normalized_standard_error": 0.0019993256132592144,
+          "difference": -0.0029340309935339537,
+          "formula_normalized_implied_volatility": 1.1025779094213914,
+          "log_moneyness": -0.09486833050304012,
+          "passed": true,
+          "refinement_indicator": 0.0004316735342062561,
+          "scaled_log_moneyness": -0.15,
+          "side": "put",
+          "strike": 0.9094926714897156
+        },
+        {
+          "allowance": 0.02,
+          "cuda_normalized_implied_volatility": 1.0,
+          "cuda_normalized_standard_error": 0.0,
+          "difference": 0.0,
+          "formula_normalized_implied_volatility": 1.0,
+          "log_moneyness": 0.0,
+          "passed": true,
+          "refinement_indicator": 0.0,
+          "scaled_log_moneyness": 0.0,
+          "side": "call",
+          "strike": 1.0
+        },
+        {
+          "allowance": 0.027849192474394012,
+          "cuda_normalized_implied_volatility": 0.9005536159225475,
+          "cuda_normalized_standard_error": 0.001458540932602624,
+          "difference": 0.003691127945175232,
+          "formula_normalized_implied_volatility": 0.8968624879773722,
+          "log_moneyness": 0.09486833050304012,
+          "passed": true,
+          "refinement_indicator": 0.0020150287439835157,
+          "scaled_log_moneyness": 0.15,
+          "side": "call",
+          "strike": 1.099514126777649
+        },
+        {
+          "allowance": 0.025963487204471048,
+          "cuda_normalized_implied_volatility": 0.7985776204998125,
+          "cuda_normalized_standard_error": 0.0012631261120717178,
+          "difference": 0.004944287720779594,
+          "formula_normalized_implied_volatility": 0.7936333327790329,
+          "log_moneyness": 0.18973666100608025,
+          "passed": true,
+          "refinement_indicator": 0.0009109827561841755,
+          "scaled_log_moneyness": 0.3,
+          "side": "call",
+          "strike": 1.2089312076568604
+        },
+        {
+          "allowance": 0.025492015954183943,
+          "cuda_normalized_implied_volatility": 0.6980897577006536,
+          "cuda_normalized_standard_error": 0.0012618189309330022,
+          "difference": 0.006430793253235478,
+          "formula_normalized_implied_volatility": 0.6916589644474181,
+          "log_moneyness": 0.2846049915091204,
+          "passed": true,
+          "refinement_indicator": 0.00044474023045193434,
+          "scaled_log_moneyness": 0.45,
+          "side": "call",
+          "strike": 1.3292368650436401
+        }
+      ],
+      "time_step_counts": [
+        1024,
+        2048,
+        4096
+      ]
+    }
+  ],
+  "model": "rough_sabr",
+  "numerics": {
+    "day_fraction": 0.003968254197388887,
+    "hybrid_scheme": "AI_factory BLP kappa=1 L2 far cells",
+    "paper_finest_time_steps": 4096,
+    "path_chunk_size": 65536,
+    "path_count": 1048576,
+    "seed": 913000001
+  },
+  "parameters": {
+    "beta": 0.5,
+    "dividend_yield": 0.0,
+    "eta": 1.0,
+    "hurst_exponent": 0.05000000074505806,
+    "rho": -0.8999999761581421,
+    "risk_free_rate": 0.0,
+    "spot": 1.0,
+    "xi_0": 0.03999999910593033
+  },
+  "reference": {
+    "authors": "Masaaki Fukasawa and Jim Gatheral",
+    "doi": "10.3934/fmf.2021003",
+    "equations": [
+      "3.4",
+      "5.2",
+      "6.1"
+    ],
+    "paper_case": "Figure 6.4",
+    "title": "A rough SABR formula"
+  },
+  "standard_error_multiplier": 4.0,
+  "summary": {
+    "all_passed": true,
+    "maturity_count": 4,
+    "max_abs_normalized_implied_volatility_difference": 0.01522506853086747,
+    "max_refinement_indicator": 0.0020150287439835157,
+    "row_count": 28
+  }
+}

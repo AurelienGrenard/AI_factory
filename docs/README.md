@@ -1,8 +1,8 @@
 # Documentation index
 
-All maintained project documentation lives directly in this directory. File
-names describe both the subject and the role of each document; separate
-`research_notes` and nested planning folders are intentionally not used.
+All maintained project documentation lives in this tree. Most contracts remain
+directly under `docs`; the main audit and the deliberately separate validation
+audit use the symmetric `audit/` and `validation/` folders documented below.
 
 ## Extension workflows
 
@@ -36,6 +36,9 @@ names describe both the subject and the role of each document; separate
 - [`cuda-launch-validation-and-kernel-diagnostics.md`](cuda-launch-validation-and-kernel-diagnostics.md):
   common launch validation, CUDA error handling, resource inspection,
   theoretical occupancy, and diagnostics output.
+- [`../validation/performance/README.md`](../validation/performance/README.md):
+  versioned CUDA performance protocol, baselines, decision thresholds and
+  reproduction commands.
 
 ## Operations
 
@@ -45,12 +48,23 @@ names describe both the subject and the role of each document; separate
 
 ## Work tracking
 
-- [`audit-query.md`](audit-query.md): stable checklist for dynamics, analytics,
-  naming, project structure, `src`/`tools` ownership, and CUDA performance
-  audits.
-- [`audit-response.md`](audit-response.md): actionable audit findings that
-  remain open and are removed after verified resolution.
+- [`audit/query.md`](audit/query.md): stable audit protocol and checklists for
+  numerical code, architecture, build, ownership, and CUDA performance.
+- [`audit/status.md`](audit/status.md): revision, scope, exclusions, and
+  evidence for the latest execution of the main audits.
+- [`audit/response.md`](audit/response.md): actionable audit findings that
+  remain unresolved, including findings explicitly postponed within the audit.
+- [`audit/closed.md`](audit/closed.md): compact registry of corrected,
+  disproved, merged, or inapplicable findings, with evidence and reopening
+  conditions.
+- [`validation/query.md`](validation/query.md): separate, explicitly
+  triggered audit protocol for independent references, caches, provenance, and
+  reproducibility of published datasets.
+- [`validation/status.md`](validation/status.md): revision, scope,
+  exclusions, and evidence for the latest validation audit only.
+- [`validation/response.md`](validation/response.md): unresolved findings
+  owned by the separate validation audit.
+- [`validation/closed.md`](validation/closed.md): closed findings of the
+  validation audit, kept separate from the main audit registry.
 - [`deferred-work.md`](deferred-work.md): planned extensions that remain on the
   roadmap but are intentionally outside the current task.
-- [`abandoned-work.md`](abandoned-work.md): measured or analyzed ideas that were
-  rejected; this is evidence, not a backlog.

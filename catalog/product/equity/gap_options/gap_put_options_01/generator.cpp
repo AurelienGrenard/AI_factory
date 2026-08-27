@@ -1,6 +1,6 @@
 // Generate non-negative gap puts on the standard equity grid.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cmath>
 #include <filesystem>
@@ -28,15 +28,15 @@ int main() {
     );
     for (std::size_t index = 0U; index < rows.rows.size(); ++index) {
         const float trigger = rows.rows[index].at("strike").get<float>();
-        const std::uint32_t maturity =
+        const std::uint32_t maturity_days =
             rows.rows[index].at("maturity").get<std::uint32_t>();
-        const float maturity_years = business_days_to_years(maturity);
+        const float maturity_years = business_days_to_years(maturity_days);
         const float relative_gap = 0.05f * sqrtf(maturity_years / 3.0f);
         const float payoff_strike = trigger * expf(relative_gap);
         rows.rows[index] = {
             {"trigger_strike", trigger},
             {"payoff_strike", payoff_strike},
-            {"maturity", maturity},
+            {"maturity", maturity_days},
         };
     }
     rows.construction["grid"]["trigger_strike"] =

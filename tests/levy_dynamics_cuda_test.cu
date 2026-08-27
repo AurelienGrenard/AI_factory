@@ -2,8 +2,8 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/normal_inverse_gaussian/dynamics.cu"
-#include "model/equity/variance_gamma/dynamics.cu"
+#include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
+#include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 

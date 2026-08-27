@@ -5,15 +5,18 @@
 // This translation unit intentionally includes every factorized equity
 // implementation. It therefore also detects missing include guards and
 // duplicate private implementation symbols.
-#include "model/equity/bates/dynamics.cu"
-#include "model/equity/black_scholes/dynamics.cu"
-#include "model/equity/cev/dynamics.cu"
-#include "model/equity/heston/dynamics.cu"
-#include "model/equity/kou/dynamics.cu"
-#include "model/equity/merton/dynamics.cu"
-#include "model/equity/normal_inverse_gaussian/dynamics.cu"
-#include "model/equity/schobel_zhu/dynamics.cu"
-#include "model/equity/variance_gamma/dynamics.cu"
+#include "model/equity/markovian/bates/dynamics_impl.cuh"
+#include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
+#include "model/equity/markovian/cev/dynamics_impl.cuh"
+#include "model/equity/markovian/heston/dynamics_impl.cuh"
+#include "model/equity/markovian/heston_3_2/dynamics_impl.cuh"
+#include "model/equity/markovian/kou/dynamics_impl.cuh"
+#include "model/equity/markovian/merton/dynamics_impl.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
+#include "model/equity/markovian/sabr/dynamics_impl.cuh"
+#include "model/equity/markovian/schobel_zhu/dynamics_impl.cuh"
+#include "model/equity/markovian/stein_stein/dynamics_impl.cuh"
+#include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -52,6 +55,23 @@ struct SpotVolatilityInspector {
     template<typename State>
     __device__ __forceinline__ static bool finite(const State& state) {
         return isfinite(state.log_spot) && isfinite(state.volatility);
+    }
+};
+
+struct SpotReciprocalVarianceInspector {
+    template<typename State>
+    __device__ __forceinline__ static bool finite(const State& state) {
+        return isfinite(state.log_spot)
+            && isfinite(state.reciprocal_variance)
+            && state.reciprocal_variance > 0.0f;
+    }
+};
+
+struct SpotAlphaInspector {
+    template<typename State>
+    __device__ __forceinline__ static bool finite(const State& state) {
+        return isfinite(state.log_spot) && isfinite(state.alpha)
+            && state.alpha > 0.0f;
     }
 };
 
@@ -168,6 +188,53 @@ __global__ void equity_dynamics_policy_contract_kernel(
         key,
         path
     );
+    results[9] = fixed_contract_result<
+        ai_factory::workbench::model::equity::heston_3_2::DynamicsPolicy,
+        SpotReciprocalVarianceInspector
+    >(
+        {1.0f, 0.03f, 0.01f, 0.04f, 12.0f, 0.04f, 3.0f, -0.70f},
+        delta_t,
+        key,
+        path
+    );
+    results[10] = fixed_contract_result<
+        ai_factory::workbench::model::equity::sabr::DynamicsPolicy,
+        SpotAlphaInspector
+    >(
+        {1.7f, 0.03f, 0.01f, 0.22f, 0.80f, -0.50f, 0.65f},
+        delta_t,
+        key,
+        path
+    );
+    results[11] = fixed_contract_result<
+        ai_factory::workbench::model::equity::stein_stein::DynamicsPolicy,
+        SpotVolatilityInspector
+    >(
+        {1.0f, 0.03f, 0.01f, 0.20f, 2.0f, 0.30f, 0.0f},
+        delta_t,
+        key,
+        path
+    );
+    const auto low_spot_sabr =
+        ai_factory::workbench::model::equity::sabr::DynamicsPolicy::
+            prepare_dynamics(
+                {0.5f, 0.03f, 0.01f, 0.22f, 0.80f, -0.50f, 0.65f},
+                delta_t
+            );
+    const auto high_spot_sabr =
+        ai_factory::workbench::model::equity::sabr::DynamicsPolicy::
+            prepare_dynamics(
+                {3.0f, 0.03f, 0.01f, 0.22f, 0.80f, -0.50f, 0.65f},
+                delta_t
+            );
+    results[12] = static_cast<std::uint32_t>(
+        fabsf(
+            low_spot_sabr.initial_alpha / powf(0.5f, 0.35f) - 0.22f
+        ) < 2.0e-6f
+        && fabsf(
+            high_spot_sabr.initial_alpha / powf(3.0f, 0.35f) - 0.22f
+        ) < 2.0e-6f
+    );
 }
 
 }  // namespace
@@ -185,7 +252,7 @@ int main() {
         "Equity dynamics policy test cudaGetDeviceCount"
     );
 
-    constexpr std::size_t kResultCount = 9U;
+    constexpr std::size_t kResultCount = 13U;
     std::uint32_t* device_results = nullptr;
     workbench::check_cuda(
         cudaMalloc(&device_results, kResultCount * sizeof(std::uint32_t)),
@@ -218,7 +285,7 @@ int main() {
 
     constexpr std::uint32_t kFixedExpected = (1U << 6U) - 1U;
     constexpr std::uint32_t kExactExpected = (1U << 11U) - 1U;
-    for (std::size_t result = 0U; result < kResultCount; ++result) {
+    for (std::size_t result = 0U; result < 12U; ++result) {
         const bool exact = result == 0U
             || (result >= 4U && result <= 7U);
         const std::uint32_t expected = exact
@@ -229,6 +296,12 @@ int main() {
                 "An equity dynamics policy contract failed."
             );
         }
+    }
+    if (results[12] != 1U) {
+        throw std::runtime_error(
+            "SABR dimensional alpha does not preserve initial log-return "
+            "volatility across S0."
+        );
     }
     return 0;
 }

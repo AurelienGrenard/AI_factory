@@ -1,28 +1,5 @@
 # CIR
 
-<details>
-<summary>Implementation</summary>
-
-```text
-cir/
-├── README.md
-├── parameters.hpp
-├── dataset.hpp
-├── dataset.cpp
-├── dynamics.cuh
-├── dynamics.cu
-├── analytics.cuh
-├── analytics.cu
-├── european_swaption.cu
-├── european_swaption.cuh
-├── rate_option.cu
-├── rate_option.cuh
-├── zero_coupon_bond_option.cu
-└── zero_coupon_bond_option.cuh
-```
-
-</details>
-
 [Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
 ## Dynamics
@@ -359,3 +336,36 @@ V_{\mathrm{payer\ swaption}}(t)
 =N\sum_{i=1}^{n}
 c_i\,p_B(t;T_0,T_i,K_i^\star).
 ```
+
+### Bermudan swaption
+
+**Pricing method:** Monte Carlo — Longstaff–Schwartz.
+
+Parameters: notional $`N`$, fixed rate $`K`$, first exercise $`E_0`$, regular
+payment interval $`\Delta`$, contractual accrual $`\delta`$, payment count $`n`$,
+exercise count $`m\leq n`$, and side. Let
+
+```math
+E_j=E_0+j\Delta,\quad j=0,\ldots,m-1,
+\qquad
+T_i=E_0+i\Delta,\quad i=1,\ldots,n.
+```
+
+```math
+H_j^{\mathrm{payer}}
+=N\left[1-P(E_j,T_n)-K\delta\sum_{i=j+1}^{n}P(E_j,T_i)\right]^+,
+\qquad
+H_j^{\mathrm{receiver}}
+=N\left[P(E_j,T_n)+K\delta\sum_{i=j+1}^{n}P(E_j,T_i)-1\right]^+.
+```
+
+With $`I_t=\int_0^t r_u\,\mathrm du`$ and $`D(s,t)=e^{-(I_t-I_s)}`$, a
+degree-three Hermite regression of the standardized rate estimates
+
+```math
+C_j(r)=\mathbb E\!\left[D(E_j,E_{j+1})V_{j+1}\mid r_{E_j}=r\right].
+```
+
+Backward exercise uses $`H_j\geq\widehat C_j`$, and the price is
+$`\mathbb E[D(0,E_0)V_0]`$. CIR endpoints are exact; $`I_t`$ uses a fine
+trapezoidal grid with two simulation steps per business day.

@@ -3,7 +3,7 @@
 #include "common/simulation/path_simulation.cuh"
 
 // Include the implementation exactly as future product kernels will.
-#include "model/fixed_income/hull_white/nelson_siegel/analytics.cu"
+#include "model/fixed_income/hull_white/nelson_siegel/analytics_impl.cuh"
 
 #include <cuda_runtime.h>
 

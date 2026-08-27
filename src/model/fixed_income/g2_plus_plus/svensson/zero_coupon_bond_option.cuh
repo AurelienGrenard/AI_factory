@@ -1,6 +1,8 @@
 // Public launcher for G2++ Svensson zero-coupon bond options.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include "curve/svensson/parameters.hpp"
 #include "common/option_side.cuh"
 #include "model/fixed_income/g2_plus_plus/parameters.hpp"
@@ -19,7 +21,7 @@ void launch_g2_plus_plus_svensson_zero_coupon_bond_option_cuda(
     std::size_t curve_count,
     const product::ZeroCouponBondOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,

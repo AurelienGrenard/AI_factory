@@ -1,6 +1,6 @@
 // Generate options on zero-coupon bonds with broad strike coverage.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <filesystem>
 #include <string>
@@ -35,14 +35,14 @@ int main() {
                            const std::vector<float>& strikes,
                            const std::string& description) {
         GeneratedRows generated;
-        for (const std::uint32_t option_expiry : option_expiries) {
+        for (const std::uint32_t option_expiry_days : option_expiries) {
             for (const std::uint32_t bond_tenor : bond_tenors) {
                 for (const float strike : strikes) {
                     generated.rows.push_back({
                     {"notional", 1.0f},
                     {"strike", strike},
-                    {"option_expiry", option_expiry},
-                    {"bond_maturity", option_expiry + bond_tenor},
+                    {"option_expiry", option_expiry_days},
+                    {"bond_maturity", option_expiry_days + bond_tenor},
                     });
                 }
             }

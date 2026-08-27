@@ -1,28 +1,5 @@
 # Ornstein–Uhlenbeck short-rate model
 
-<details>
-<summary>Implementation</summary>
-
-```text
-ornstein_uhlenbeck/
-├── README.md
-├── parameters.hpp
-├── dataset.hpp
-├── dataset.cpp
-├── dynamics.cuh
-├── dynamics.cu
-├── analytics.cuh
-├── analytics.cu
-├── european_swaption.cu
-├── european_swaption.cuh
-├── rate_option.cu
-├── rate_option.cuh
-├── zero_coupon_bond_option.cu
-└── zero_coupon_bond_option.cuh
-```
-
-</details>
-
 [Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
 ## Dynamics
@@ -301,3 +278,41 @@ V_{\mathrm{payer\ swaption}}(t)
 =N\sum_{i=1}^{n}
 c_i\,p_B(t;T_0,T_i,K_i^\star).
 ```
+
+### Bermudan swaption
+
+**Pricing method:** Monte Carlo — Longstaff–Schwartz.
+
+Parameters: notional $`N`$, fixed rate $`K`$, first exercise $`E_0`$, regular
+payment interval $`\Delta`$, contractual accrual $`\delta`$, payment count $`n`$,
+exercise count $`m\leq n`$, and side. Define
+
+```math
+E_j=E_0+j\Delta,\quad j=0,\ldots,m-1,
+\qquad
+T_i=E_0+i\Delta,\quad i=1,\ldots,n.
+```
+
+At $`E_j`$, the payer and receiver exercise values are
+
+```math
+H_j^{\mathrm{payer}}
+=N\left[1-P(E_j,T_n)-K\delta\sum_{i=j+1}^{n}P(E_j,T_i)\right]^+,
+\qquad
+H_j^{\mathrm{receiver}}
+=N\left[P(E_j,T_n)+K\delta\sum_{i=j+1}^{n}P(E_j,T_i)-1\right]^+.
+```
+
+With $`I_t=\int_0^t r_u\,\mathrm du`$, paths use $`D(s,t)=e^{-(I_t-I_s)}`$.
+The continuation value is regressed on the standardized factor with a
+degree-three Hermite basis:
+
+```math
+C_j(x)=\mathbb E\!\left[D(E_j,E_{j+1})V_{j+1}\mid x_{E_j}=x\right],
+\qquad
+V_j=H_j\mathbf 1_{\{H_j\geq \widehat C_j\}}
++D(E_j,E_{j+1})V_{j+1}\mathbf 1_{\{H_j<\widehat C_j\}}.
+```
+
+The price is $`\mathbb E[D(0,E_0)V_0]`$. The joint Gaussian factor endpoint
+and rate integral are simulated exactly between exercise dates.

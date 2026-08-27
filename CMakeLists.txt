@@ -40,7 +40,7 @@ endif()
 # of an extracted mathDx package.
 set(
     AI_FACTORY_MATHDX_ROOT "" CACHE PATH
-    "Root of NVIDIA mathDx (enables the cuFFTDx rough-Bergomi pricer)"
+    "Root of NVIDIA mathDx (enables cuFFTDx Volterra pricers)"
 )
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -57,19 +57,61 @@ set(
 )
 set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
 
-# Host-only JSON validation and serialization used by every dataset family.
-add_library(ai_factory_dataset_core STATIC
-    tools/datasets/dataset.cpp
-    tools/datasets/dataset_validation.cpp
+# Host-only JSON validation shared by runtime loaders and offline tools.
+add_library(ai_factory_dataset_validation STATIC
+    src/common/dataset_validation.cpp
 )
-target_include_directories(ai_factory_dataset_core PUBLIC
+target_include_directories(ai_factory_dataset_validation PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_link_libraries(
-    ai_factory_dataset_core PUBLIC nlohmann_json::nlohmann_json
+    ai_factory_dataset_validation PUBLIC nlohmann_json::nlohmann_json
 )
-target_compile_features(ai_factory_dataset_core PUBLIC cxx_std_23)
-target_compile_options(ai_factory_dataset_core PRIVATE -O3)
+target_compile_features(ai_factory_dataset_validation PUBLIC cxx_std_23)
+target_compile_options(ai_factory_dataset_validation PRIVATE -O3)
+
+# Independent offline stages: pure sampling, artifact I/O, parameter assembly,
+# and price-result assembly.  Generator targets link only the stages they use.
+function(ai_factory_add_offline_library target source)
+    add_library(${target} STATIC ${source})
+    target_include_directories(${target} PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+    target_link_libraries(${target} PUBLIC nlohmann_json::nlohmann_json)
+    target_compile_features(${target} PUBLIC cxx_std_23)
+    target_compile_options(${target} PRIVATE -O3)
+endfunction()
+
+ai_factory_add_offline_library(
+    ai_factory_artifact_io tools/datasets/artifact_io.cpp
+)
+ai_factory_add_offline_library(
+    ai_factory_sampling tools/datasets/sampling.cpp
+)
+ai_factory_add_offline_library(
+    ai_factory_parameter_dataset tools/datasets/parameter_dataset.cpp
+)
+target_link_libraries(
+    ai_factory_parameter_dataset PUBLIC ai_factory_artifact_io ai_factory_sampling
+)
+ai_factory_add_offline_library(
+    ai_factory_price_dataset tools/datasets/price_dataset.cpp
+)
+target_link_libraries(
+    ai_factory_price_dataset PUBLIC
+    ai_factory_artifact_io
+    ai_factory_dataset_validation
+)
+
+# Compatibility aggregation is intentionally interface-only. New generators
+# must depend on the precise stages selected below.
+add_library(ai_factory_dataset_core INTERFACE)
+target_link_libraries(ai_factory_dataset_core INTERFACE
+    ai_factory_parameter_dataset
+    ai_factory_price_dataset
+)
 
 # Parameter-only construction helpers stay outside price-generator builds.
 set(_ai_factory_generation_helpers
@@ -88,19 +130,15 @@ foreach(helper IN LISTS _ai_factory_generation_helpers)
     add_library(
         ${target} STATIC EXCLUDE_FROM_ALL tools/datasets/${helper}.cpp
     )
-    target_include_directories(${target} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(${target} PUBLIC ai_factory_dataset_core)
+    target_include_directories(${target} PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+    target_link_libraries(${target} PUBLIC ai_factory_sampling)
     target_compile_features(${target} PUBLIC cxx_std_23)
     target_compile_options(${target} PRIVATE -O3)
     list(APPEND _ai_factory_generation_targets ${target})
 endforeach()
-
-# Compatibility umbrella for parameter generators and external consumers.
-add_library(ai_factory_dataset_tools INTERFACE)
-target_link_libraries(ai_factory_dataset_tools INTERFACE
-    ai_factory_dataset_core
-    ${_ai_factory_generation_targets}
-)
 
 include(cmake/AIFactoryTargets.cmake)
 
@@ -125,6 +163,38 @@ function(ai_factory_collect_generation_dependencies output source)
             list(APPEND dependencies ${candidate})
         endif()
     endforeach()
+    string(REGEX MATCHALL
+        "model/equity/(markovian|rough)/[a-z0-9_]+/dataset\\.hpp"
+        equity_model_dataset_headers
+        "${source_text}"
+    )
+    foreach(header IN LISTS equity_model_dataset_headers)
+        string(REGEX REPLACE
+            "model/equity/(markovian|rough)/([^/]+)/dataset\\.hpp"
+            "ai_factory_equity_\\2_dataset"
+            candidate
+            "${header}"
+        )
+        if(TARGET ${candidate})
+            list(APPEND dependencies ${candidate})
+        endif()
+    endforeach()
+    string(REGEX MATCHALL
+        "model/fixed_income/[a-z0-9_]+/dataset\\.hpp"
+        fixed_income_model_dataset_headers
+        "${source_text}"
+    )
+    foreach(header IN LISTS fixed_income_model_dataset_headers)
+        string(REGEX REPLACE
+            "model/fixed_income/([^/]+)/dataset\\.hpp"
+            "ai_factory_fixed_income_\\1_dataset"
+            candidate
+            "${header}"
+        )
+        if(TARGET ${candidate})
+            list(APPEND dependencies ${candidate})
+        endif()
+    endforeach()
     list(REMOVE_DUPLICATES dependencies)
     set(${output} ${dependencies} PARENT_SCOPE)
 endfunction()
@@ -133,7 +203,10 @@ function(add_parameter_generator target source)
     add_executable(${target} EXCLUDE_FROM_ALL ${source})
     ai_factory_collect_generation_dependencies(dependencies ${source})
     target_link_libraries(
-        ${target} PRIVATE ai_factory_dataset_core ${dependencies}
+        ${target} PRIVATE
+        ai_factory_parameter_dataset
+        ai_factory_dataset_validation
+        ${dependencies}
     )
     target_compile_features(${target} PRIVATE cxx_std_23)
     add_dependencies(parameter_generators ${target})
@@ -150,677 +223,203 @@ function(add_price_generator target source)
         )
     endif()
     target_link_libraries(
-        ${target} PRIVATE ${dependencies} ai_factory_dataset_core
+        ${target} PRIVATE ${dependencies} ai_factory_price_dataset
     )
     target_compile_features(${target} PRIVATE cxx_std_23)
     add_dependencies(price_generators ${target})
 endfunction()
 
-add_price_generator(
-    generate_heston_european_calls_01
-    catalog/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_european_puts_01
-    catalog/model/equity/heston/prices/european_puts/heston_01__european_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_rough_bergomi_european_calls_01
-    catalog/model/equity/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_rough_bergomi_european_puts_01
-    catalog/model/equity/rough_bergomi/prices/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_asian_puts_01
-    catalog/model/equity/heston/prices/asian_puts/heston_01__asian_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_digital_calls_01
-    catalog/model/equity/heston/prices/digital_calls/heston_01__digital_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_digital_puts_01
-    catalog/model/equity/heston/prices/digital_puts/heston_01__digital_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_asset_or_nothing_calls_01
-    catalog/model/equity/heston/prices/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_asset_or_nothing_puts_01
-    catalog/model/equity/heston/prices/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_gap_calls_01
-    catalog/model/equity/heston/prices/gap_calls/heston_01__gap_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_gap_puts_01
-    catalog/model/equity/heston/prices/gap_puts/heston_01__gap_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_straddles_01
-    catalog/model/equity/heston/prices/straddles/heston_01__straddles_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_caplets_01
-    catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_floorlets_01
-    catalog/model/fixed_income/g2/prices/floorlets/g2_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_nelson_siegel_caplets_01
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_nelson_siegel_floorlets_01
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_svensson_caplets_01
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_svensson_floorlets_01
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_asian_calls_01
-    catalog/model/equity/heston/prices/asian_calls/heston_01__asian_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_athena_autocalls_01
-    catalog/model/equity/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_phoenix_autocalls_01
-    catalog/model/equity/heston/prices/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_phoenix_memory_autocalls_01
-    catalog/model/equity/heston/prices/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_cliquets_01
-    catalog/model/equity/heston/prices/cliquets/heston_01__cliquets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_range_accruals_01
-    catalog/model/equity/heston/prices/range_accruals/heston_01__range_accruals_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_lookback_options_01
-    catalog/model/equity/heston/prices/lookback_options/heston_01__lookback_options_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_american_puts_01
-    catalog/model/equity/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_geometric_asian_calls_01
-    catalog/model/equity/heston/prices/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_geometric_asian_puts_01
-    catalog/model/equity/heston/prices/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_forward_start_calls_01
-    catalog/model/equity/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_forward_start_puts_01
-    catalog/model/equity/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_up_and_out_calls_01
-    catalog/model/equity/heston/prices/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_down_and_out_puts_01
-    catalog/model/equity/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_up_and_in_calls_01
-    catalog/model/equity/heston/prices/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_down_and_in_puts_01
-    catalog/model/equity/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_up_one_touches_01
-    catalog/model/equity/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_up_no_touches_01
-    catalog/model/equity/heston/prices/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_double_knock_out_calls_01
-    catalog/model/equity/heston/prices/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_double_knock_out_puts_01
-    catalog/model/equity/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_heston_american_calls_01
-    catalog/model/equity/heston/prices/american_calls/heston_01__american_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_european_calls_01
-    catalog/model/equity/bates/prices/european_calls/bates_01__european_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_european_puts_01
-    catalog/model/equity/bates/prices/european_puts/bates_01__european_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_asian_puts_01
-    catalog/model/equity/bates/prices/asian_puts/bates_01__asian_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_digital_calls_01
-    catalog/model/equity/bates/prices/digital_calls/bates_01__digital_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_digital_puts_01
-    catalog/model/equity/bates/prices/digital_puts/bates_01__digital_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_asset_or_nothing_calls_01
-    catalog/model/equity/bates/prices/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_asset_or_nothing_puts_01
-    catalog/model/equity/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_gap_calls_01
-    catalog/model/equity/bates/prices/gap_calls/bates_01__gap_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_gap_puts_01
-    catalog/model/equity/bates/prices/gap_puts/bates_01__gap_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_straddles_01
-    catalog/model/equity/bates/prices/straddles/bates_01__straddles_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_asian_calls_01
-    catalog/model/equity/bates/prices/asian_calls/bates_01__asian_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_athena_autocalls_01
-    catalog/model/equity/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_phoenix_autocalls_01
-    catalog/model/equity/bates/prices/phoenix_autocalls/bates_01__phoenix_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_phoenix_memory_autocalls_01
-    catalog/model/equity/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_cliquets_01
-    catalog/model/equity/bates/prices/cliquets/bates_01__cliquets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_range_accruals_01
-    catalog/model/equity/bates/prices/range_accruals/bates_01__range_accruals_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_lookback_options_01
-    catalog/model/equity/bates/prices/lookback_options/bates_01__lookback_options_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_american_puts_01
-    catalog/model/equity/bates/prices/american_puts/bates_01__american_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_geometric_asian_calls_01
-    catalog/model/equity/bates/prices/geometric_asian_calls/bates_01__geometric_asian_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_geometric_asian_puts_01
-    catalog/model/equity/bates/prices/geometric_asian_puts/bates_01__geometric_asian_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_forward_start_calls_01
-    catalog/model/equity/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_forward_start_puts_01
-    catalog/model/equity/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_up_and_out_calls_01
-    catalog/model/equity/bates/prices/up_and_out_calls/bates_01__up_and_out_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_down_and_out_puts_01
-    catalog/model/equity/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_up_and_in_calls_01
-    catalog/model/equity/bates/prices/up_and_in_calls/bates_01__up_and_in_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_down_and_in_puts_01
-    catalog/model/equity/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_up_one_touches_01
-    catalog/model/equity/bates/prices/up_one_touches/bates_01__up_one_touches_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_up_no_touches_01
-    catalog/model/equity/bates/prices/up_no_touches/bates_01__up_no_touches_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_double_knock_out_calls_01
-    catalog/model/equity/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_double_knock_out_puts_01
-    catalog/model/equity/bates/prices/double_knock_out_puts/bates_01__double_knock_out_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_bates_american_calls_01
-    catalog/model/equity/bates/prices/american_calls/bates_01__american_calls_01__01/generator.cpp
-)
+# Derive a stable executable name from the versioned catalog recipe id. For
+# example `heston_01__european_calls_01__01` remains the public target
+# `generate_heston_european_calls_01`; fitted recipes include their curve id.
+function(ai_factory_catalog_generator_target output source)
+    get_filename_component(recipe_directory "${source}" DIRECTORY)
+    get_filename_component(recipe_id "${recipe_directory}" NAME)
+    if(source MATCHES "/prices/")
+        string(REPLACE "__" ";" components "${recipe_id}")
+        list(POP_BACK components version)
+        set(target generate)
+        foreach(component IN LISTS components)
+            string(REGEX REPLACE "_[0-9]+$" "" component "${component}")
+            string(APPEND target "_${component}")
+        endforeach()
+        string(APPEND target "_${version}")
+    else()
+        set(target "generate_${recipe_id}")
+    endif()
+    set(${output} "${target}" PARENT_SCOPE)
+endfunction()
 
-# VG and NIG expose the same product-specialized launcher surface as Heston.
-set(_levy_equity_price_families
-    american_calls american_puts asian_calls asian_puts
-    asset_or_nothing_calls asset_or_nothing_puts athena_autocalls cliquets
-    digital_calls digital_puts double_knock_out_calls double_knock_out_puts
-    down_and_in_puts down_and_out_puts european_calls european_puts
-    forward_start_calls forward_start_puts gap_calls gap_puts
-    geometric_asian_calls geometric_asian_puts lookback_options
-    phoenix_autocalls phoenix_memory_autocalls range_accruals straddles
-    up_and_in_calls up_and_out_calls up_no_touches up_one_touches
+# The catalog tree itself is the source of truth for executable recipes. The
+# generated pricing-unit manifest remains the independent source of truth for
+# the model-product implementation matrix.
+file(GLOB_RECURSE _ai_factory_catalog_generators
+    CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/catalog/*/generator.cpp"
 )
-foreach(_levy_model IN ITEMS variance_gamma normal_inverse_gaussian)
-    foreach(_price_family IN LISTS _levy_equity_price_families)
-        add_price_generator(
-            generate_${_levy_model}_${_price_family}_01
-            catalog/model/equity/${_levy_model}/prices/${_price_family}/${_levy_model}_01__${_price_family}_01__01/generator.cpp
+list(SORT _ai_factory_catalog_generators)
+foreach(source IN LISTS _ai_factory_catalog_generators)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
+    if(NOT AI_FACTORY_MATHDX_ROOT
+        AND source_text MATCHES
+            "model/equity/rough/(rough_bergomi|rough_sabr|log_modulated_rough_bergomi|rough_stein_stein)/")
+        continue()
+    endif()
+    ai_factory_catalog_generator_target(target "${source}")
+    if(TARGET ${target})
+        message(FATAL_ERROR
+            "Duplicate catalog generator target ${target}: ${source}"
         )
-    endforeach()
+    endif()
+    if(source MATCHES "/prices/")
+        add_price_generator(${target} "${source}")
+    else()
+        add_parameter_generator(${target} "${source}")
+    endif()
 endforeach()
 
-# Black-Scholes path-dependent products retain the one-block-per-price Monte
-# Carlo surface; deterministic products are registered separately below.
-set(_black_scholes_monte_carlo_price_families
-    asian_calls asian_puts athena_autocalls cliquets
-    double_knock_out_calls double_knock_out_puts
-    down_and_in_puts down_and_out_puts lookback_options
-    phoenix_autocalls phoenix_memory_autocalls
-    up_and_in_calls up_and_out_calls up_no_touches up_one_touches
-)
-foreach(_price_family IN LISTS _black_scholes_monte_carlo_price_families)
-    add_price_generator(
-        generate_black_scholes_${_price_family}_01
-        catalog/model/equity/black_scholes/prices/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
-    )
-endforeach()
-set(_black_scholes_analytical_price_families
-    asset_or_nothing_calls asset_or_nothing_puts
-    digital_calls digital_puts european_calls european_puts
-    forward_start_calls forward_start_puts gap_calls gap_puts
-    geometric_asian_calls geometric_asian_puts range_accruals straddles
-)
-foreach(_price_family IN LISTS _black_scholes_analytical_price_families)
-    add_price_generator(
-        generate_black_scholes_${_price_family}_01
-        catalog/model/equity/black_scholes/prices/${_price_family}/black_scholes_01__${_price_family}_01__01/generator.cpp
-    )
-endforeach()
+add_custom_target(performance_benchmarks)
 
-# The V1 equity surface is Monte Carlo only for these four models. Calls and
-# puts remain separate datasets while sharing their option-side CUDA template.
-set(_new_equity_monte_carlo_price_families
-    asian_calls asian_puts asset_or_nothing_calls asset_or_nothing_puts
-    athena_autocalls cliquets digital_calls digital_puts
-    double_knock_out_calls double_knock_out_puts down_and_in_puts
-    down_and_out_puts european_calls european_puts forward_start_calls
-    forward_start_puts gap_calls gap_puts geometric_asian_calls
-    geometric_asian_puts lookback_options phoenix_autocalls
-    phoenix_memory_autocalls range_accruals straddles up_and_in_calls
-    up_and_out_calls up_no_touches up_one_touches
+add_executable(
+    ai_factory_generic_kernel_benchmark EXCLUDE_FROM_ALL
+    validation/performance/generic_kernel_benchmark.cu
 )
-foreach(_equity_model IN ITEMS merton kou cev schobel_zhu)
-    foreach(_price_family IN LISTS _new_equity_monte_carlo_price_families)
-        add_price_generator(
-            generate_${_equity_model}_${_price_family}_01
-            catalog/model/equity/${_equity_model}/prices/${_price_family}/${_equity_model}_01__${_price_family}_01__01/generator.cpp
+ai_factory_configure_cuda_library(ai_factory_generic_kernel_benchmark)
+target_link_libraries(
+    ai_factory_generic_kernel_benchmark PRIVATE
+    ai_factory_runtime
+    ai_factory_equity_black_scholes_european_option
+    ai_factory_equity_bates_phoenix_autocall
+    ai_factory_equity_bates_phoenix_memory_autocall
+    ai_factory_fixed_income_hull_white_nelson_siegel_european_swaption
+)
+add_dependencies(
+    performance_benchmarks ai_factory_generic_kernel_benchmark
+)
+
+add_library(
+    ai_factory_fixed_income_cir_european_swaption_inline_experiment
+    STATIC EXCLUDE_FROM_ALL
+    src/model/fixed_income/cir/european_swaption.cu
+)
+ai_factory_configure_cuda_library(
+    ai_factory_fixed_income_cir_european_swaption_inline_experiment
+)
+target_compile_definitions(
+    ai_factory_fixed_income_cir_european_swaption_inline_experiment PRIVATE
+    AI_FACTORY_NCX2_FORCE_INLINE=1
+)
+target_link_libraries(
+    ai_factory_fixed_income_cir_european_swaption_inline_experiment PUBLIC
+    ai_factory_runtime
+    ai_factory_fixed_income_cir_dataset
+    ai_factory_product_european_swaption_dataset
+)
+
+foreach(variant IN ITEMS inline noinline)
+    set(target ai_factory_cir_kernel_benchmark_${variant})
+    add_executable(
+        ${target} EXCLUDE_FROM_ALL
+        validation/performance/cir_kernel_benchmark.cu
+    )
+    ai_factory_configure_cuda_library(${target})
+    target_compile_definitions(
+        ${target} PRIVATE
+        AI_FACTORY_CIR_BENCHMARK_VARIANT="${variant}"
+    )
+    if(variant STREQUAL "inline")
+        target_link_libraries(
+            ${target} PRIVATE
+            ai_factory_fixed_income_cir_european_swaption_inline_experiment
         )
-    endforeach()
+    else()
+        target_link_libraries(
+            ${target} PRIVATE
+            ai_factory_fixed_income_cir_european_swaption
+        )
+    endif()
+    add_dependencies(performance_benchmarks ${target})
 endforeach()
-add_price_generator(
-    generate_hull_white_nelson_siegel_caplets_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_nelson_siegel_floorlets_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_caplets_01
-    catalog/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_floorlets_01
-    catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_caplets_01
-    catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_floorlets_01
-    catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/cir/prices/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_caplets_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_floorlets_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/ornstein_uhlenbeck_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_caplets_01
-    catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_floorlets_01
-    catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_zero_coupon_bond_calls_01
-    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_zero_coupon_bond_puts_01
-    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_european_payer_swaptions_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_ornstein_uhlenbeck_european_receiver_swaptions_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_european_payer_swaptions_01
-    catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_vasicek_european_receiver_swaptions_01
-    catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_european_payer_swaptions_01
-    catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_cir_european_receiver_swaptions_01
-    catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_nelson_siegel_european_payer_swaptions_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_nelson_siegel_european_receiver_swaptions_01
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_european_payer_swaptions_01
-    catalog/model/fixed_income/hull_white/prices/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
-)
-add_price_generator(
-    generate_hull_white_svensson_european_receiver_swaptions_01
-    catalog/model/fixed_income/hull_white/prices/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
-)
 
-add_parameter_generator(
-    generate_heston_01 catalog/model/equity/heston/parameters/heston_01/generator.cpp
-)
-add_parameter_generator(
-    generate_black_scholes_01
-    catalog/model/equity/black_scholes/parameters/black_scholes_01/generator.cpp
-)
-add_parameter_generator(
-    generate_bates_01 catalog/model/equity/bates/parameters/bates_01/generator.cpp
-)
-add_parameter_generator(
-    generate_variance_gamma_01
-    catalog/model/equity/variance_gamma/parameters/variance_gamma_01/generator.cpp
-)
-add_parameter_generator(
-    generate_normal_inverse_gaussian_01
-    catalog/model/equity/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01/generator.cpp
-)
-add_parameter_generator(
-    generate_merton_01 catalog/model/equity/merton/parameters/merton_01/generator.cpp
-)
-add_parameter_generator(
-    generate_kou_01 catalog/model/equity/kou/parameters/kou_01/generator.cpp
-)
-add_parameter_generator(
-    generate_cev_01 catalog/model/equity/cev/parameters/cev_01/generator.cpp
-)
-add_parameter_generator(
-    generate_schobel_zhu_01
-    catalog/model/equity/schobel_zhu/parameters/schobel_zhu_01/generator.cpp
-)
-add_parameter_generator(
-    generate_rough_bergomi_01
-    catalog/model/equity/rough_bergomi/parameters/rough_bergomi_01/generator.cpp
-)
-add_parameter_generator(
-    generate_g2_01 catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
-)
-add_parameter_generator(
-    generate_g2_plus_plus_01
-    catalog/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01/generator.cpp
-)
-add_parameter_generator(
-    generate_hull_white_01 catalog/model/fixed_income/hull_white/parameters/hull_white_01/generator.cpp
-)
-add_parameter_generator(
-    generate_ornstein_uhlenbeck_01
-    catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/generator.cpp
-)
-add_parameter_generator(
-    generate_vasicek_01
-    catalog/model/fixed_income/vasicek/parameters/vasicek_01/generator.cpp
-)
-add_parameter_generator(
-    generate_cir_01
-    catalog/model/fixed_income/cir/parameters/cir_01/generator.cpp
-)
-add_parameter_generator(
-    generate_nelson_siegel_01
-    catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
-)
-add_parameter_generator(
-    generate_svensson_01
-    catalog/curve/svensson/svensson_01/generator.cpp
-)
-add_parameter_generator(
-    generate_straddles_01
-    catalog/product/equity/straddles/straddles_01/generator.cpp
-)
-add_parameter_generator(
-    generate_lookback_options_01
-    catalog/product/equity/lookback_options/lookback_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_one_touches_01
-    catalog/product/equity/up_one_touches/up_one_touches_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_no_touches_01
-    catalog/product/equity/up_no_touches/up_no_touches_01/generator.cpp
-)
-add_parameter_generator(
-    generate_phoenix_autocalls_01
-    catalog/product/equity/phoenix_autocalls/phoenix_autocalls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_phoenix_memory_autocalls_01
-    catalog/product/equity/phoenix_memory_autocalls/phoenix_memory_autocalls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_athena_autocalls_01
-    catalog/product/equity/athena_autocalls/athena_autocalls_01/generator.cpp
-)
-add_parameter_generator(
-    generate_cliquets_01
-    catalog/product/equity/cliquets/cliquets_01/generator.cpp
-)
-add_parameter_generator(
-    generate_range_accruals_01
-    catalog/product/equity/range_accruals/range_accruals_01/generator.cpp
-)
-# Call/put orientation is selected by price generators; product grids are
-# shared whenever their construction is identical.
-add_parameter_generator(
-    generate_european_options_01
-    catalog/product/equity/european_options/european_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asian_options_01
-    catalog/product/equity/asian_options/asian_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_digital_options_01
-    catalog/product/equity/digital_options/digital_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_asset_or_nothing_options_01
-    catalog/product/equity/asset_or_nothing_options/asset_or_nothing_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_gap_call_options_01
-    catalog/product/equity/gap_options/gap_call_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_gap_put_options_01
-    catalog/product/equity/gap_options/gap_put_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_american_options_01
-    catalog/product/equity/american_options/american_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_geometric_asian_options_01
-    catalog/product/equity/geometric_asian_options/geometric_asian_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_forward_start_options_01
-    catalog/product/equity/forward_start_options/forward_start_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_and_out_options_01
-    catalog/product/equity/up_and_out_options/up_and_out_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_down_and_out_options_01
-    catalog/product/equity/down_and_out_options/down_and_out_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_up_and_in_options_01
-    catalog/product/equity/up_and_in_options/up_and_in_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_down_and_in_options_01
-    catalog/product/equity/down_and_in_options/down_and_in_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_double_knock_out_options_01
-    catalog/product/equity/double_knock_out_options/double_knock_out_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_rate_options_01
-    catalog/product/fixed_income/rate_options/rate_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_zero_coupon_bond_options_01
-    catalog/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01/generator.cpp
-)
-add_parameter_generator(
-    generate_european_swaptions_01
-    catalog/product/fixed_income/european_swaptions/european_swaptions_01/generator.cpp
-)
+if(AI_FACTORY_MATHDX_ROOT)
+    add_library(
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+        STATIC EXCLUDE_FROM_ALL
+        src/model/equity/rough/rough_bergomi/european_option.cu
+    )
+    ai_factory_configure_cuda_library(
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+    )
+    target_include_directories(
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+        PRIVATE
+        ${AI_FACTORY_MATHDX_ROOT}/include
+        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+    )
+    target_compile_definitions(
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+        PUBLIC AI_FACTORY_HAS_CUFFTDX=1
+        PRIVATE AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT=32
+    )
+    target_link_libraries(
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+        PUBLIC
+        ai_factory_runtime
+        ai_factory_equity_rough_bergomi_dataset
+        ai_factory_product_european_option_dataset
+    )
+
+    add_executable(
+        ai_factory_volterra_kernel_benchmark EXCLUDE_FROM_ALL
+        validation/volterra/kernel_benchmark.cu
+    )
+    ai_factory_configure_cuda_library(ai_factory_volterra_kernel_benchmark)
+    target_include_directories(
+        ai_factory_volterra_kernel_benchmark PRIVATE
+        ${AI_FACTORY_MATHDX_ROOT}/include
+        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+    )
+    target_link_libraries(
+        ai_factory_volterra_kernel_benchmark PRIVATE
+        ai_factory_runtime
+        ai_factory_equity_heston_european_option
+        ai_factory_equity_rough_heston_european_option
+        ai_factory_equity_rough_bergomi_european_option
+        ai_factory_equity_rough_sabr_european_option
+    )
+    add_dependencies(
+        performance_benchmarks ai_factory_volterra_kernel_benchmark
+    )
+
+    add_executable(
+        ai_factory_volterra_direct_kernel_benchmark EXCLUDE_FROM_ALL
+        validation/volterra/kernel_benchmark.cu
+    )
+    ai_factory_configure_cuda_library(
+        ai_factory_volterra_direct_kernel_benchmark
+    )
+    target_compile_definitions(
+        ai_factory_volterra_direct_kernel_benchmark PRIVATE
+        AI_FACTORY_VOLTERRA_BENCHMARK_VARIANT="direct_experiment"
+    )
+    target_include_directories(
+        ai_factory_volterra_direct_kernel_benchmark PRIVATE
+        ${AI_FACTORY_MATHDX_ROOT}/include
+        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+    )
+    target_link_libraries(
+        ai_factory_volterra_direct_kernel_benchmark PRIVATE
+        ai_factory_runtime
+        ai_factory_equity_heston_european_option
+        ai_factory_equity_rough_heston_european_option
+        ai_factory_equity_rough_bergomi_european_option_direct_experiment
+        ai_factory_equity_rough_sabr_european_option
+    )
+    add_dependencies(
+        performance_benchmarks ai_factory_volterra_direct_kernel_benchmark
+    )
+endif()
 
 if(BUILD_TESTING)
     add_custom_target(ai_factory_tests)
@@ -873,6 +472,26 @@ if(BUILD_TESTING)
         LABELS "workbench;catalog"
     )
 
+    function(add_offline_stage_test stage library)
+        set(target test_${stage}_stage)
+        add_executable(
+            ${target} EXCLUDE_FROM_ALL tests/${stage}_stage_test.cpp
+        )
+        target_link_libraries(${target} PRIVATE ${library})
+        target_compile_features(${target} PRIVATE cxx_std_23)
+        add_dependencies(ai_factory_host_tests ${target})
+        add_test(NAME ${stage}_stage COMMAND ${target})
+        set_tests_properties(${stage}_stage PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;${stage}"
+            TIMEOUT 30
+        )
+    endfunction()
+    add_offline_stage_test(sampling ai_factory_sampling)
+    add_offline_stage_test(artifact_io ai_factory_artifact_io)
+    add_offline_stage_test(parameter_dataset ai_factory_parameter_dataset)
+    add_offline_stage_test(price_dataset ai_factory_price_dataset)
+
     add_executable(
         test_dataset_loaders EXCLUDE_FROM_ALL tests/dataset_loaders_test.cpp
     )
@@ -888,6 +507,26 @@ if(BUILD_TESTING)
     set_tests_properties(dataset_loaders PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         LABELS "workbench;dataset"
+    )
+
+    add_executable(
+        test_rough_sabr_dataset_loader
+        EXCLUDE_FROM_ALL
+        tests/rough_sabr_dataset_loader_test.cpp
+    )
+    target_link_libraries(
+        test_rough_sabr_dataset_loader
+        PRIVATE ai_factory_equity_rough_sabr_dataset
+    )
+    target_compile_features(test_rough_sabr_dataset_loader PRIVATE cxx_std_23)
+    add_dependencies(ai_factory_host_tests test_rough_sabr_dataset_loader)
+    add_test(
+        NAME rough_sabr_dataset_loader
+        COMMAND test_rough_sabr_dataset_loader
+    )
+    set_tests_properties(rough_sabr_dataset_loader PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        LABELS "workbench;dataset;rough_sabr"
     )
 
     # Register independent QuantLib references only when its binding is present.
@@ -913,6 +552,18 @@ if(BUILD_TESTING)
                 ERROR_QUIET
             )
             if(_quantlib_python_status EQUAL 0)
+                add_test(
+                    NAME quantlib_bermudan_swaption_adapter
+                    COMMAND
+                        ${Python3_EXECUTABLE} -m unittest
+                        validation.quantlib.tests.test_bermudan_swaption
+                )
+                set_tests_properties(
+                    quantlib_bermudan_swaption_adapter
+                    PROPERTIES
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        LABELS "workbench;validation;quantlib;bermudan_swaption"
+                )
                 function(add_quantlib_validation_test name module dataset label)
                     add_test(
                         NAME quantlib_${name}
@@ -1371,6 +1022,33 @@ if(BUILD_TESTING)
     # rerun Premia, QuantLib, or Wine. Keep them available on any Python host.
     find_package(Python3 COMPONENTS Interpreter QUIET)
     if(Python3_Interpreter_FOUND)
+        add_test(
+            NAME pricing_binding_codegen
+            COMMAND
+                ${Python3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/tools/codegen/pricing_bindings/generate.py
+                --family all
+                --output
+                ${CMAKE_BINARY_DIR}/generated/pricing_bindings
+                --compare-root ${CMAKE_SOURCE_DIR}
+        )
+        set_tests_properties(pricing_binding_codegen PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;codegen;equity"
+            TIMEOUT 60
+        )
+        add_test(
+            NAME catalog_generator_boundaries
+            COMMAND
+                ${Python3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/tools/cuda/check_catalog_generators.py
+        )
+        set_tests_properties(catalog_generator_boundaries PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;catalog;architecture"
+            TIMEOUT 30
+        )
+
         function(add_cached_black_scholes_validation product folder)
             add_test(
                 NAME validation_black_scholes_${product}
@@ -1548,6 +1226,34 @@ if(BUILD_TESTING)
         philox_cuda tests/philox_cuda_test.cu philox 30
     )
     add_cuda_workbench_test(
+        numerical_robustness_cuda
+        tests/numerical_robustness_cuda_test.cu
+        numerical_robustness
+        30
+    )
+    add_cuda_workbench_test(
+        cuda_pricing_runner
+        tests/cuda_pricing_runner_test.cu
+        "offline;pricing_runner"
+        30
+    )
+    add_cuda_workbench_test(
+        longstaff_schwartz_regressor_cuda
+        tests/longstaff_schwartz_regressor_cuda_test.cu
+        longstaff_schwartz
+        30
+    )
+    target_link_libraries(
+        test_longstaff_schwartz_regressor_cuda PRIVATE
+        ai_factory_longstaff_schwartz
+    )
+    add_cuda_workbench_test(
+        bermudan_swaption_cuda
+        tests/bermudan_swaption_cuda_test.cpp
+        "longstaff_schwartz;bermudan_swaption"
+        120
+    )
+    add_cuda_workbench_test(
         noncentral_chi_square_cuda
         tests/noncentral_chi_square_cuda_test.cu
         distributions
@@ -1710,8 +1416,8 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
-        new_equity_dynamics_cuda
-        tests/new_equity_dynamics_cuda_test.cu
+        merton_kou_cev_schobel_zhu_dynamics_cuda
+        tests/merton_kou_cev_schobel_zhu_dynamics_cuda_test.cu
         equity_dynamics
         30
     )
@@ -1722,19 +1428,48 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
-        rough_bergomi_european_option_cuda
-        tests/rough_bergomi_european_option_cuda_test.cpp
-        rough_bergomi_products
-        60
+        volterra_driver_policy_cuda
+        tests/volterra_driver_policy_cuda_test.cu
+        "volterra;driver_policy"
+        30
     )
     if(AI_FACTORY_MATHDX_ROOT)
         add_cuda_workbench_test(
-            rough_bergomi_european_option_fft_cuda
-            tests/rough_bergomi_european_option_fft_cuda_test.cpp
-            rough_bergomi_products
+            rough_bergomi_european_option_cuda
+            tests/rough_bergomi_european_option_cuda_test.cpp
+            "rough_bergomi_products;rough_sabr_products"
             120
         )
+        add_cuda_workbench_test(
+            rough_volterra_product_policy_cuda
+            tests/rough_volterra_product_policy_cuda_test.cu
+            "rough_bergomi_products;product_policy"
+            120
+        )
+        add_cuda_workbench_test(
+            rough_volterra_samples_cuda
+            tests/rough_volterra_samples_cuda_test.cpp
+            "samples;rough_bergomi;rough_sabr"
+            120
+        )
+        target_include_directories(
+            test_rough_volterra_product_policy_cuda PRIVATE
+            ${AI_FACTORY_MATHDX_ROOT}/include
+            ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+        )
     endif()
+    add_cuda_workbench_test(
+        rough_heston_european_option_cuda
+        tests/rough_heston_european_option_cuda_test.cu
+        rough_heston_products
+        120
+    )
+    add_cuda_workbench_test(
+        rough_heston_samples_cuda
+        tests/rough_heston_samples_cuda_test.cu
+        "samples;rough_heston"
+        120
+    )
     add_cuda_workbench_test(
         black_scholes_cuda
         tests/black_scholes_cuda_test.cu
@@ -1766,9 +1501,27 @@ if(BUILD_TESTING)
         120
     )
     add_cuda_workbench_test(
+        levy_american_option_cuda
+        tests/levy_american_option_cuda_test.cpp
+        american_option
+        120
+    )
+    add_cuda_workbench_test(
+        additional_american_options_cuda
+        tests/additional_american_options_cuda_test.cpp
+        american_option
+        120
+    )
+    add_cuda_workbench_test(
         cuda_kernel_diagnostics
         tests/cuda_kernel_diagnostics_test.cu
         kernel_diagnostics
+        30
+    )
+    add_cuda_workbench_test(
+        policy_size_budgets_cuda
+        tests/policy_size_budgets_cuda_test.cu
+        "kernel_diagnostics;policy_budgets"
         30
     )
 

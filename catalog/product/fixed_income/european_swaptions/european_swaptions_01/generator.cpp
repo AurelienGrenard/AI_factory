@@ -1,6 +1,6 @@
 // Generate regular physical-settlement European swaptions.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -13,27 +13,27 @@ namespace {
 using ai_factory::workbench::datasets::GeneratedRows;
 
 struct ScheduleSpec {
-    std::uint32_t payment_interval;
+    std::uint32_t payment_interval_days;
     std::uint32_t payment_count;
     float accrual_fraction;
 };
 
 // Expand a traceable regular-schedule grid in deterministic row order.
 GeneratedRows regular_regime(
-    const std::vector<std::uint32_t>& exercise_times,
+    const std::vector<std::uint32_t>& exercise_times_days,
     const std::vector<ScheduleSpec>& schedules,
     const std::vector<float>& strikes,
     const std::string& description
 ) {
     GeneratedRows generated;
-    for (const std::uint32_t exercise_time : exercise_times) {
+    for (const std::uint32_t exercise_time_days : exercise_times_days) {
         for (const ScheduleSpec& schedule : schedules) {
             for (const float strike : strikes) {
                 generated.rows.push_back({
                     {"notional", 1.0f},
                     {"strike", strike},
-                    {"exercise_time", exercise_time},
-                    {"payment_interval", schedule.payment_interval},
+                    {"exercise_time", exercise_time_days},
+                    {"payment_interval", schedule.payment_interval_days},
                     {"payment_count", schedule.payment_count},
                     {"accrual_fraction", schedule.accrual_fraction},
                 });
@@ -44,7 +44,7 @@ GeneratedRows regular_regime(
     nlohmann::ordered_json schedule_rows = nlohmann::ordered_json::array();
     for (const ScheduleSpec& schedule : schedules) {
         schedule_rows.push_back({
-            {"payment_interval", schedule.payment_interval},
+            {"payment_interval", schedule.payment_interval_days},
             {"payment_count", schedule.payment_count},
             {"accrual_fraction", schedule.accrual_fraction},
         });
@@ -57,7 +57,7 @@ GeneratedRows regular_regime(
             "combination."
         },
         {"description", description},
-        {"exercise_times", exercise_times},
+        {"exercise_times", exercise_times_days},
         {"schedules", schedule_rows},
         {"strikes", strikes},
         {"notional", 1.0},

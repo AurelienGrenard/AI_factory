@@ -1,20 +1,20 @@
 // Exercise Heston terminal-payoff launchers and exact pathwise identities.
 #include "common/check_cuda.cuh"
-#include "model/equity/heston/asian_option.cuh"
-#include "model/equity/heston/asset_or_nothing_option.cuh"
-#include "model/equity/heston/digital_option.cuh"
-#include "model/equity/heston/double_knock_out_option.cuh"
-#include "model/equity/heston/down_and_in_option.cuh"
-#include "model/equity/heston/down_and_out_option.cuh"
-#include "model/equity/heston/european_option.cuh"
-#include "model/equity/heston/gap_option.cuh"
-#include "model/equity/heston/forward_start_option.cuh"
-#include "model/equity/heston/geometric_asian_option.cuh"
-#include "model/equity/heston/straddle.cuh"
-#include "model/equity/heston/up_and_in_option.cuh"
-#include "model/equity/heston/up_no_touch.cuh"
-#include "model/equity/heston/up_one_touch.cuh"
-#include "model/equity/heston/up_and_out_option.cuh"
+#include "model/equity/markovian/heston/asian_option.cuh"
+#include "model/equity/markovian/heston/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/heston/digital_option.cuh"
+#include "model/equity/markovian/heston/double_knock_out_option.cuh"
+#include "model/equity/markovian/heston/down_and_in_option.cuh"
+#include "model/equity/markovian/heston/down_and_out_option.cuh"
+#include "model/equity/markovian/heston/european_option.cuh"
+#include "model/equity/markovian/heston/gap_option.cuh"
+#include "model/equity/markovian/heston/forward_start_option.cuh"
+#include "model/equity/markovian/heston/geometric_asian_option.cuh"
+#include "model/equity/markovian/heston/straddle.cuh"
+#include "model/equity/markovian/heston/up_and_in_option.cuh"
+#include "model/equity/markovian/heston/up_no_touch.cuh"
+#include "model/equity/markovian/heston/up_one_touch.cuh"
+#include "model/equity/markovian/heston/up_and_out_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -70,7 +70,7 @@ void price_one(
     );
 
     launch(
-        device_model, 1U, device_product, 1U, false, 1U, 0U, 1U,
+        device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device_price, device_standard_error
     );
@@ -97,7 +97,7 @@ void price_one(
 
 }  // namespace
 
-// Verify all new launchers and identities using common random numbers.
+// Verify all launchers and identities using common random numbers.
 int main() {
     using namespace ai_factory::workbench;
 

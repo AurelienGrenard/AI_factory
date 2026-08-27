@@ -1,0 +1,1055 @@
+{
+  "model": "rough_sabr",
+  "paper_case": "Fukasawa--Gatheral Figure 6.4",
+  "paper": {
+    "authors": "Masaaki Fukasawa and Jim Gatheral",
+    "title": "A rough SABR formula",
+    "doi": "10.3934/fmf.2021003",
+    "equations": [
+      "3.4",
+      "5.2",
+      "6.1"
+    ]
+  },
+  "eta_convention": "d_xi_over_xi",
+  "parameters": {
+    "spot": 1.0,
+    "risk_free_rate": 0.0,
+    "dividend_yield": 0.0,
+    "xi_0": 0.03999999910593033,
+    "eta": 1.0,
+    "hurst_exponent": 0.05000000074505806,
+    "rho": -0.8999999761581421,
+    "beta": 0.5
+  },
+  "numerics": {
+    "path_count": 1048576,
+    "seed": 913000001,
+    "day_fraction": 0.003968254197388887,
+    "path_chunk_size": 65536,
+    "hybrid_scheme": "AI_factory BLP kappa=1 L2 far cells",
+    "paper_finest_time_steps": 4096
+  },
+  "runs": [
+    {
+      "maturity_days": 32,
+      "maturity": 0.1269841343164444,
+      "time_steps": 1024,
+      "effective_dt": 0.00012400794366840273,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.11244231027935785,
+          "strike": 0.8936489224433899,
+          "side": "put",
+          "estimate": {
+            "price": 0.0036879507824778557,
+            "standard_error": 1.7551550627104007e-05,
+            "milliseconds": 65.5656967163086
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.07496154018623856,
+          "strike": 0.9277791380882263,
+          "side": "put",
+          "estimate": {
+            "price": 0.007456094026565552,
+            "standard_error": 2.4956927518360317e-05,
+            "milliseconds": 52.48883056640625
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.03748077009311928,
+          "strike": 0.9632129669189453,
+          "side": "put",
+          "estimate": {
+            "price": 0.014610353857278824,
+            "standard_error": 3.4452958061592653e-05,
+            "milliseconds": 54.54595184326172
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.02762642130255699,
+            "standard_error": 3.438788917264901e-05,
+            "milliseconds": 54.96556854248047
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.03748077009311928,
+          "strike": 1.0381920337677002,
+          "side": "call",
+          "estimate": {
+            "price": 0.010979236103594303,
+            "standard_error": 2.098737058986444e-05,
+            "milliseconds": 54.97785568237305
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.07496154018623856,
+          "strike": 1.0778427124023438,
+          "side": "call",
+          "estimate": {
+            "price": 0.0026154222432523966,
+            "standard_error": 9.284012776333839e-06,
+            "milliseconds": 54.771873474121094
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.11244231027935785,
+          "strike": 1.1190077066421509,
+          "side": "call",
+          "estimate": {
+            "price": 0.00025922831264324486,
+            "standard_error": 2.5015792743943166e-06,
+            "milliseconds": 54.84729766845703
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 32,
+      "maturity": 0.1269841343164444,
+      "time_steps": 2048,
+      "effective_dt": 6.200397183420137e-05,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.11244231027935785,
+          "strike": 0.8936489224433899,
+          "side": "put",
+          "estimate": {
+            "price": 0.00370955397374928,
+            "standard_error": 1.760316990839783e-05,
+            "milliseconds": 113.04326629638672
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.07496154018623856,
+          "strike": 0.9277791380882263,
+          "side": "put",
+          "estimate": {
+            "price": 0.00747703667730093,
+            "standard_error": 2.494256114005111e-05,
+            "milliseconds": 112.42160034179688
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.03748077009311928,
+          "strike": 0.9632129669189453,
+          "side": "put",
+          "estimate": {
+            "price": 0.014612643979489803,
+            "standard_error": 3.447631752351299e-05,
+            "milliseconds": 112.46060943603516
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.02761439047753811,
+            "standard_error": 3.438458588789217e-05,
+            "milliseconds": 112.9106216430664
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.03748077009311928,
+          "strike": 1.0381920337677002,
+          "side": "call",
+          "estimate": {
+            "price": 0.010963447391986847,
+            "standard_error": 2.096911339322105e-05,
+            "milliseconds": 113.01644897460938
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.07496154018623856,
+          "strike": 1.0778427124023438,
+          "side": "call",
+          "estimate": {
+            "price": 0.0026140946429222822,
+            "standard_error": 9.284317457058933e-06,
+            "milliseconds": 114.52460479736328
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.11244231027935785,
+          "strike": 1.1190077066421509,
+          "side": "call",
+          "estimate": {
+            "price": 0.0002552322985138744,
+            "standard_error": 2.4631788164697355e-06,
+            "milliseconds": 115.00924682617188
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 32,
+      "maturity": 0.1269841343164444,
+      "time_steps": 4096,
+      "effective_dt": 3.100198591710068e-05,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.11244231027935785,
+          "strike": 0.8936489224433899,
+          "side": "put",
+          "estimate": {
+            "price": 0.0037016007117927074,
+            "standard_error": 1.756065285007935e-05,
+            "milliseconds": 355.9473876953125
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.07496154018623856,
+          "strike": 0.9277791380882263,
+          "side": "put",
+          "estimate": {
+            "price": 0.007443671580404043,
+            "standard_error": 2.4871458663255908e-05,
+            "milliseconds": 342.09912109375
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.03748077009311928,
+          "strike": 0.9632129669189453,
+          "side": "put",
+          "estimate": {
+            "price": 0.014623835682868958,
+            "standard_error": 3.452098462730646e-05,
+            "milliseconds": 341.22259521484375
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.02761327661573887,
+            "standard_error": 3.4361753932898864e-05,
+            "milliseconds": 342.6883239746094
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.03748077009311928,
+          "strike": 1.0381920337677002,
+          "side": "call",
+          "estimate": {
+            "price": 0.011009026318788528,
+            "standard_error": 2.1027011825935915e-05,
+            "milliseconds": 342.6646728515625
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.07496154018623856,
+          "strike": 1.0778427124023438,
+          "side": "call",
+          "estimate": {
+            "price": 0.0026260537561029196,
+            "standard_error": 9.306168067269027e-06,
+            "milliseconds": 341.69329833984375
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.11244231027935785,
+          "strike": 1.1190077066421509,
+          "side": "call",
+          "estimate": {
+            "price": 0.0002560126595199108,
+            "standard_error": 2.4737280455155997e-06,
+            "milliseconds": 340.6856994628906
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 63,
+      "maturity": 0.2500000144354999,
+      "time_steps": 1024,
+      "effective_dt": 0.0002441406390971679,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.15251603875995037,
+          "strike": 0.8585451245307922,
+          "side": "put",
+          "estimate": {
+            "price": 0.005656413733959198,
+            "standard_error": 2.5398021534783766e-05,
+            "milliseconds": 50.18214416503906
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.10167735917330024,
+          "strike": 0.9033209681510925,
+          "side": "put",
+          "estimate": {
+            "price": 0.010999631136655807,
+            "standard_error": 3.548598033376038e-05,
+            "milliseconds": 51.23222351074219
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.05083867958665012,
+          "strike": 0.9504320025444031,
+          "side": "put",
+          "estimate": {
+            "price": 0.020892376080155373,
+            "standard_error": 4.833872299059294e-05,
+            "milliseconds": 54.46416091918945
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.03864801675081253,
+            "standard_error": 4.8238547606160864e-05,
+            "milliseconds": 54.75139236450195
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.05083867958665012,
+          "strike": 1.0521531105041504,
+          "side": "call",
+          "estimate": {
+            "price": 0.015816137194633484,
+            "standard_error": 2.9939446903881617e-05,
+            "milliseconds": 54.84931182861328
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.10167735917330024,
+          "strike": 1.107026219367981,
+          "side": "call",
+          "estimate": {
+            "price": 0.0039297412149608135,
+            "standard_error": 1.3591209608421195e-05,
+            "milliseconds": 55.251136779785156
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.15251603875995037,
+          "strike": 1.1647611856460571,
+          "side": "call",
+          "estimate": {
+            "price": 0.0004128711298108101,
+            "standard_error": 3.789703896472929e-06,
+            "milliseconds": 55.240928649902344
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 63,
+      "maturity": 0.2500000144354999,
+      "time_steps": 2048,
+      "effective_dt": 0.00012207031954858394,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.15251603875995037,
+          "strike": 0.8585451245307922,
+          "side": "put",
+          "estimate": {
+            "price": 0.005689182784408331,
+            "standard_error": 2.5470644686720334e-05,
+            "milliseconds": 113.14848327636719
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.10167735917330024,
+          "strike": 0.9033209681510925,
+          "side": "put",
+          "estimate": {
+            "price": 0.011030075140297413,
+            "standard_error": 3.5470638977130875e-05,
+            "milliseconds": 112.33171081542969
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.05083867958665012,
+          "strike": 0.9504320025444031,
+          "side": "put",
+          "estimate": {
+            "price": 0.02089620567858219,
+            "standard_error": 4.836771040572785e-05,
+            "milliseconds": 112.84877014160156
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.03862980008125305,
+            "standard_error": 4.823259951081127e-05,
+            "milliseconds": 112.81641387939453
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.05083867958665012,
+          "strike": 1.0521531105041504,
+          "side": "call",
+          "estimate": {
+            "price": 0.015793530270457268,
+            "standard_error": 2.9910826924606226e-05,
+            "milliseconds": 112.92002868652344
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.10167735917330024,
+          "strike": 1.107026219367981,
+          "side": "call",
+          "estimate": {
+            "price": 0.003927840385586023,
+            "standard_error": 1.3592144568974618e-05,
+            "milliseconds": 112.26787567138672
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.15251603875995037,
+          "strike": 1.1647611856460571,
+          "side": "call",
+          "estimate": {
+            "price": 0.00040608886047266424,
+            "standard_error": 3.732558297997457e-06,
+            "milliseconds": 110.51538848876953
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 63,
+      "maturity": 0.2500000144354999,
+      "time_steps": 4096,
+      "effective_dt": 6.103515977429197e-05,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.15251603875995037,
+          "strike": 0.8585451245307922,
+          "side": "put",
+          "estimate": {
+            "price": 0.005677033215761185,
+            "standard_error": 2.5420848032808863e-05,
+            "milliseconds": 350.3772277832031
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.10167735917330024,
+          "strike": 0.9033209681510925,
+          "side": "put",
+          "estimate": {
+            "price": 0.01098230667412281,
+            "standard_error": 3.5373130231164396e-05,
+            "milliseconds": 340.6041564941406
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.05083867958665012,
+          "strike": 0.9504320025444031,
+          "side": "put",
+          "estimate": {
+            "price": 0.020911099389195442,
+            "standard_error": 4.842696580453776e-05,
+            "milliseconds": 340.3108825683594
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.03862807899713516,
+            "standard_error": 4.819966488867067e-05,
+            "milliseconds": 341.14990234375
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.05083867958665012,
+          "strike": 1.0521531105041504,
+          "side": "call",
+          "estimate": {
+            "price": 0.015858512371778488,
+            "standard_error": 2.9991520932526328e-05,
+            "milliseconds": 341.0752868652344
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.10167735917330024,
+          "strike": 1.107026219367981,
+          "side": "call",
+          "estimate": {
+            "price": 0.003944770433008671,
+            "standard_error": 1.3621927791973576e-05,
+            "milliseconds": 340.8904724121094
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.15251603875995037,
+          "strike": 1.1647611856460571,
+          "side": "call",
+          "estimate": {
+            "price": 0.00040749754407443106,
+            "standard_error": 3.7478450849448564e-06,
+            "milliseconds": 341.2122497558594
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 126,
+      "maturity": 0.5000000288709998,
+      "time_steps": 1024,
+      "effective_dt": 0.0004882812781943358,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2083430486392103,
+          "strike": 0.8119284510612488,
+          "side": "put",
+          "estimate": {
+            "price": 0.008711989037692547,
+            "standard_error": 3.6595472920453176e-05,
+            "milliseconds": 50.151424407958984
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.1388953657594735,
+          "strike": 0.8703190684318542,
+          "side": "put",
+          "estimate": {
+            "price": 0.016298724338412285,
+            "standard_error": 5.033012348576449e-05,
+            "milliseconds": 50.631839752197266
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.06944768287973675,
+          "strike": 0.9329089522361755,
+          "side": "put",
+          "estimate": {
+            "price": 0.030035635456442833,
+            "standard_error": 6.780125841032714e-05,
+            "milliseconds": 53.27897644042969
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.054447852075099945,
+            "standard_error": 6.834100349806249e-05,
+            "milliseconds": 54.1363525390625
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.06944768287973675,
+          "strike": 1.0719159841537476,
+          "side": "call",
+          "estimate": {
+            "price": 0.022924700751900673,
+            "standard_error": 4.312725650379434e-05,
+            "milliseconds": 54.19731140136719
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.1388953657594735,
+          "strike": 1.1490038633346558,
+          "side": "call",
+          "estimate": {
+            "price": 0.005899208597838879,
+            "standard_error": 2.0020228475914337e-05,
+            "milliseconds": 54.198177337646484
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2083430486392103,
+          "strike": 1.231635570526123,
+          "side": "call",
+          "estimate": {
+            "price": 0.0006423039012588561,
+            "standard_error": 5.713182872568723e-06,
+            "milliseconds": 54.22227096557617
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 126,
+      "maturity": 0.5000000288709998,
+      "time_steps": 2048,
+      "effective_dt": 0.0002441406390971679,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2083430486392103,
+          "strike": 0.8119284510612488,
+          "side": "put",
+          "estimate": {
+            "price": 0.008761926554143429,
+            "standard_error": 3.669671423267573e-05,
+            "milliseconds": 112.57933044433594
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.1388953657594735,
+          "strike": 0.8703190684318542,
+          "side": "put",
+          "estimate": {
+            "price": 0.016342107206583023,
+            "standard_error": 5.031881664763205e-05,
+            "milliseconds": 113.13321685791016
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.06944768287973675,
+          "strike": 0.9329089522361755,
+          "side": "put",
+          "estimate": {
+            "price": 0.030041342601180077,
+            "standard_error": 6.783352000638843e-05,
+            "milliseconds": 113.18854522705078
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.05442052334547043,
+            "standard_error": 6.83300822856836e-05,
+            "milliseconds": 113.43548583984375
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.06944768287973675,
+          "strike": 1.0719159841537476,
+          "side": "call",
+          "estimate": {
+            "price": 0.022891998291015625,
+            "standard_error": 4.30815780418925e-05,
+            "milliseconds": 113.28038024902344
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.1388953657594735,
+          "strike": 1.1490038633346558,
+          "side": "call",
+          "estimate": {
+            "price": 0.005896501708775759,
+            "standard_error": 2.00217491510557e-05,
+            "milliseconds": 112.70611572265625
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2083430486392103,
+          "strike": 1.231635570526123,
+          "side": "call",
+          "estimate": {
+            "price": 0.0006312401965260506,
+            "standard_error": 5.6258118092955556e-06,
+            "milliseconds": 110.63680267333984
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 126,
+      "maturity": 0.5000000288709998,
+      "time_steps": 4096,
+      "effective_dt": 0.00012207031954858394,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2083430486392103,
+          "strike": 0.8119284510612488,
+          "side": "put",
+          "estimate": {
+            "price": 0.008743911050260067,
+            "standard_error": 3.66438616765663e-05,
+            "milliseconds": 344.70501708984375
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.1388953657594735,
+          "strike": 0.8703190684318542,
+          "side": "put",
+          "estimate": {
+            "price": 0.016274787485599518,
+            "standard_error": 5.01891590829473e-05,
+            "milliseconds": 340.79534912109375
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.06944768287973675,
+          "strike": 0.9329089522361755,
+          "side": "put",
+          "estimate": {
+            "price": 0.030061306431889534,
+            "standard_error": 6.791026680730283e-05,
+            "milliseconds": 340.9725036621094
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.05441775545477867,
+            "standard_error": 6.828152254456654e-05,
+            "milliseconds": 340.59295654296875
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.06944768287973675,
+          "strike": 1.0719159841537476,
+          "side": "call",
+          "estimate": {
+            "price": 0.022985538467764854,
+            "standard_error": 4.31949993071612e-05,
+            "milliseconds": 340.6218566894531
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.1388953657594735,
+          "strike": 1.1490038633346558,
+          "side": "call",
+          "estimate": {
+            "price": 0.005920406896620989,
+            "standard_error": 2.0062036128365435e-05,
+            "milliseconds": 340.5784606933594
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2083430486392103,
+          "strike": 1.231635570526123,
+          "side": "call",
+          "estimate": {
+            "price": 0.0006336640217341483,
+            "standard_error": 5.648369551636279e-06,
+            "milliseconds": 341.10498046875
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 252,
+      "maturity": 1.0000000577419996,
+      "time_steps": 1024,
+      "effective_dt": 0.0009765625563886715,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2846049915091204,
+          "strike": 0.7523113489151001,
+          "side": "put",
+          "estimate": {
+            "price": 0.013319631107151508,
+            "standard_error": 5.1710358093259856e-05,
+            "milliseconds": 51.162113189697266
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.18973666100608025,
+          "strike": 0.8271769285202026,
+          "side": "put",
+          "estimate": {
+            "price": 0.023997975513339043,
+            "standard_error": 7.02159377397038e-05,
+            "milliseconds": 53.470497131347656
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.09486833050304012,
+          "strike": 0.9094926714897156,
+          "side": "put",
+          "estimate": {
+            "price": 0.0430070236325264,
+            "standard_error": 9.393667278345674e-05,
+            "milliseconds": 53.71446228027344
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.07661613076925278,
+            "standard_error": 9.70921028056182e-05,
+            "milliseconds": 54.16502380371094
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.09486833050304012,
+          "strike": 1.099514126777649,
+          "side": "call",
+          "estimate": {
+            "price": 0.033136382699012756,
+            "standard_error": 6.226369441719726e-05,
+            "milliseconds": 54.36201477050781
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.18973666100608025,
+          "strike": 1.2089312076568604,
+          "side": "call",
+          "estimate": {
+            "price": 0.008744393475353718,
+            "standard_error": 2.9406715839286335e-05,
+            "milliseconds": 54.82905578613281
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2846049915091204,
+          "strike": 1.3292368650436401,
+          "side": "call",
+          "estimate": {
+            "price": 0.0009569529793225229,
+            "standard_error": 8.455356692138594e-06,
+            "milliseconds": 55.02150344848633
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 252,
+      "maturity": 1.0000000577419996,
+      "time_steps": 2048,
+      "effective_dt": 0.0004882812781943358,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2846049915091204,
+          "strike": 0.7523113489151001,
+          "side": "put",
+          "estimate": {
+            "price": 0.013395133428275585,
+            "standard_error": 5.185874761082232e-05,
+            "milliseconds": 113.01500701904297
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.18973666100608025,
+          "strike": 0.8271769285202026,
+          "side": "put",
+          "estimate": {
+            "price": 0.024056710302829742,
+            "standard_error": 7.020438351901248e-05,
+            "milliseconds": 113.16665649414063
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.09486833050304012,
+          "strike": 0.9094926714897156,
+          "side": "put",
+          "estimate": {
+            "price": 0.04301031678915024,
+            "standard_error": 9.394540393259376e-05,
+            "milliseconds": 113.1088638305664
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.076575867831707,
+            "standard_error": 9.707185381557792e-05,
+            "milliseconds": 112.41426849365234
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.09486833050304012,
+          "strike": 1.099514126777649,
+          "side": "call",
+          "estimate": {
+            "price": 0.03308861702680588,
+            "standard_error": 6.219003262231126e-05,
+            "milliseconds": 112.44486236572266
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.18973666100608025,
+          "strike": 1.2089312076568604,
+          "side": "call",
+          "estimate": {
+            "price": 0.008740224875509739,
+            "standard_error": 2.9408183763734996e-05,
+            "milliseconds": 110.78278350830078
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2846049915091204,
+          "strike": 1.3292368650436401,
+          "side": "call",
+          "estimate": {
+            "price": 0.0009391796193085611,
+            "standard_error": 8.319654625665862e-06,
+            "milliseconds": 109.95651245117188
+          }
+        }
+      ]
+    },
+    {
+      "maturity_days": 252,
+      "maturity": 1.0000000577419996,
+      "time_steps": 4096,
+      "effective_dt": 0.0002441406390971679,
+      "rows": [
+        {
+          "scaled_log_moneyness": -0.45,
+          "log_moneyness": -0.2846049915091204,
+          "strike": 0.7523113489151001,
+          "side": "put",
+          "estimate": {
+            "price": 0.013368472456932068,
+            "standard_error": 5.18027700309176e-05,
+            "milliseconds": 344.8345947265625
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.3,
+          "log_moneyness": -0.18973666100608025,
+          "strike": 0.8271769285202026,
+          "side": "put",
+          "estimate": {
+            "price": 0.02396879717707634,
+            "standard_error": 7.006750092841685e-05,
+            "milliseconds": 340.57965087890625
+          }
+        },
+        {
+          "scaled_log_moneyness": -0.15,
+          "log_moneyness": -0.09486833050304012,
+          "strike": 0.9094926714897156,
+          "side": "put",
+          "estimate": {
+            "price": 0.043034180998802185,
+            "standard_error": 9.403700823895633e-05,
+            "milliseconds": 340.7607116699219
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.0,
+          "log_moneyness": 0.0,
+          "strike": 1.0,
+          "side": "call",
+          "estimate": {
+            "price": 0.07657109200954437,
+            "standard_error": 9.699905785964802e-05,
+            "milliseconds": 341.1401672363281
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.15,
+          "log_moneyness": 0.09486833050304012,
+          "strike": 1.099514126777649,
+          "side": "call",
+          "estimate": {
+            "price": 0.03322362154722214,
+            "standard_error": 6.234949250938371e-05,
+            "milliseconds": 341.0142822265625
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.3,
+          "log_moneyness": 0.18973666100608025,
+          "strike": 1.2089312076568604,
+          "side": "call",
+          "estimate": {
+            "price": 0.008773923851549625,
+            "standard_error": 2.9461411031661555e-05,
+            "milliseconds": 341.47442626953125
+          }
+        },
+        {
+          "scaled_log_moneyness": 0.45,
+          "log_moneyness": 0.2846049915091204,
+          "strike": 1.3292368650436401,
+          "side": "call",
+          "estimate": {
+            "price": 0.0009429079946130514,
+            "standard_error": 8.352538316103164e-06,
+            "milliseconds": 341.1756286621094
+          }
+        }
+      ]
+    }
+  ]
+}

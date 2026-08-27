@@ -30,20 +30,20 @@ struct WorkspaceDescriptor {
 // All common arrays required by one proposed early-exercise batch.
 struct WorkspaceLayout {
     WorkspaceRegion prepared_rows;
-    WorkspaceRegion exercise_counts;
     WorkspaceRegion state_offsets;
     std::vector<WorkspaceRegion> state_fields;
     WorkspaceRegion cashflows;
     WorkspaceRegion regression_partials;
     WorkspaceRegion regression_coefficients;
-    WorkspaceRegion regression_valid;
+    WorkspaceRegion regression_statuses;
+    WorkspaceRegion regression_diagnostics;
     WorkspaceRegion moment_partials;
     std::size_t total_bytes;
 };
 
 // Schedule and state-storage requirement for one result row.
 struct EarlyExerciseRowPlan {
-    std::uint32_t exercise_count;
+    std::uint32_t regression_count;
     std::size_t state_value_count;
 };
 
@@ -52,11 +52,13 @@ struct BatchPlan {
     std::size_t result_offset;
     std::size_t result_count;
     std::size_t state_value_count;
-    std::uint32_t maximum_exercise_count;
+    std::uint32_t maximum_regression_count;
 };
 
 // Complete memory-aware plan and maximum allocation dimensions for one launch.
 struct ExecutionPlan {
+    WorkspaceDescriptor descriptor;
+    std::vector<EarlyExerciseRowPlan> rows;
     std::vector<BatchPlan> batches;
     std::size_t maximum_workspace_bytes;
     std::size_t maximum_prices_per_batch;

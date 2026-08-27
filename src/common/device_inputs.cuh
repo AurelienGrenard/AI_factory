@@ -7,6 +7,7 @@
 #include <cuda_runtime.h>
 
 #include <cstddef>
+#include <stdexcept>
 #include <type_traits>
 
 namespace ai_factory::workbench {
@@ -20,15 +21,15 @@ struct ModelProductDeviceInputs {
     std::size_t model_count;
     const Product* products;
     std::size_t product_count;
-    bool cartesian_product;
+    PriceConstruction construction;
 
     __device__ __forceinline__ ModelProductIndices indices(
         std::size_t result_index
     ) const {
-        return decode_model_product_result_index(
-            result_index,
-            product_count,
-            cartesian_product
+        return decode_model_product_result_index_32(
+            static_cast<std::uint32_t>(result_index),
+            static_cast<std::uint32_t>(product_count),
+            construction
         );
     }
 
@@ -38,7 +39,7 @@ struct ModelProductDeviceInputs {
         validate_model_product_construction(
             model_count,
             product_count,
-            cartesian_product,
+            construction,
             result_count
         );
     }
@@ -63,6 +64,45 @@ struct ModelProductDeviceInputs {
     }
 };
 
+// Keep expensive dynamics plans indexed by model, not duplicated for every
+// model/product result. The product policy receives the plan selected by the
+// same decoded model index as the raw parameters.
+template<typename Model, typename Product, typename PreparedDynamics>
+struct PreparedModelProductDeviceInputs {
+    using ModelParameters = Model;
+    using ProductParameters = Product;
+
+    ModelProductDeviceInputs<Model, Product> primary;
+    const PreparedDynamics* prepared_models;
+    std::size_t prepared_model_count;
+
+    inline void validate(std::size_t result_count) const {
+        primary.validate(result_count);
+        validate_device_pointer(
+            prepared_models, "device_prepared_model_dynamics"
+        );
+        if (prepared_model_count != primary.model_count) {
+            throw std::invalid_argument(
+                "Prepared dynamics must contain one row per model."
+            );
+        }
+    }
+
+    template<typename PricingPolicy, typename TimeConfiguration>
+    __device__ __forceinline__ typename PricingPolicy::PreparedRow prepare_row(
+        std::size_t result_index,
+        const TimeConfiguration& time_configuration
+    ) const {
+        const ModelProductIndices row = primary.indices(result_index);
+        return PricingPolicy::prepare_row(
+            primary.models[row.model_index],
+            primary.products[row.product_index],
+            prepared_models[row.model_index],
+            time_configuration
+        );
+    }
+};
+
 template<typename Model, typename Curve, typename Product>
 struct ModelCurveProductDeviceInputs {
     using ModelParameters = Model;
@@ -75,16 +115,16 @@ struct ModelCurveProductDeviceInputs {
     std::size_t curve_count;
     const Product* products;
     std::size_t product_count;
-    bool cartesian_product;
+    PriceConstruction construction;
 
     __device__ __forceinline__ ModelCurveProductIndices indices(
         std::size_t result_index
     ) const {
-        return decode_model_curve_product_result_index(
-            result_index,
-            curve_count,
-            product_count,
-            cartesian_product
+        return decode_model_curve_product_result_index_32(
+            static_cast<std::uint32_t>(result_index),
+            static_cast<std::uint32_t>(curve_count),
+            static_cast<std::uint32_t>(product_count),
+            construction
         );
     }
 
@@ -96,7 +136,7 @@ struct ModelCurveProductDeviceInputs {
             model_count,
             curve_count,
             product_count,
-            cartesian_product,
+            construction,
             result_count
         );
     }
@@ -156,14 +196,39 @@ make_model_product_device_inputs(
     std::size_t model_count,
     const Product* products,
     std::size_t product_count,
-    bool cartesian_product
+    PriceConstruction construction
 ) {
     return {
         models,
         model_count,
         products,
         product_count,
-        cartesian_product,
+        construction,
+    };
+}
+
+template<typename Model, typename Product, typename PreparedDynamics>
+inline PreparedModelProductDeviceInputs<
+    Model, Product, PreparedDynamics
+> make_prepared_model_product_device_inputs(
+    const Model* models,
+    std::size_t model_count,
+    const Product* products,
+    std::size_t product_count,
+    PriceConstruction construction,
+    const PreparedDynamics* prepared_models,
+    std::size_t prepared_model_count
+) {
+    return {
+        make_model_product_device_inputs(
+            models,
+            model_count,
+            products,
+            product_count,
+            construction
+        ),
+        prepared_models,
+        prepared_model_count,
     };
 }
 
@@ -176,7 +241,7 @@ make_model_curve_product_device_inputs(
     std::size_t curve_count,
     const Product* products,
     std::size_t product_count,
-    bool cartesian_product
+    PriceConstruction construction
 ) {
     return {
         models,
@@ -185,7 +250,7 @@ make_model_curve_product_device_inputs(
         curve_count,
         products,
         product_count,
-        cartesian_product,
+        construction,
     };
 }
 

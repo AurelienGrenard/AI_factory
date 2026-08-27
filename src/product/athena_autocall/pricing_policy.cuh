@@ -5,6 +5,7 @@
 
 #include "common/equity/concepts.cuh"
 #include "common/equity/discount.cuh"
+#include "common/equity/path_product_policy.cuh"
 #include "common/simulation/schedule.cuh"
 #include "product/athena_autocall/parameters.hpp"
 
@@ -12,6 +13,108 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::product {
+
+struct AthenaAutocallPathPolicy {
+    using ProductParameters = AthenaAutocallParameters;
+    using Calendar = simulation::RegularCalendar;
+    static constexpr equity::ObservationCoordinate kObservationCoordinate =
+        equity::ObservationCoordinate::spot;
+
+    struct PreparedProduct {
+        std::uint32_t observation_count;
+        float autocall_barrier;
+        float protection_barrier;
+        float gain_per_observation;
+        float discount_per_observation;
+    };
+
+    struct Handler {
+        std::uint32_t observation_count;
+        float autocall_barrier;
+        float protection_barrier;
+        float gain_per_observation;
+        float discount_per_observation;
+        float discount = 1.0f;
+        float accumulated_gain = 0.0f;
+        float discounted_payoff = 0.0f;
+
+        __device__ __forceinline__ bool on_initial_value(float) {
+            return true;
+        }
+
+        __device__ __forceinline__ bool on_observation(
+            std::uint32_t observation,
+            float spot
+        ) {
+            discount *= discount_per_observation;
+            accumulated_gain += gain_per_observation;
+            const bool maturity = observation + 1U == observation_count;
+            if (!maturity && spot >= autocall_barrier) {
+                discounted_payoff = discount * (1.0f + accumulated_gain);
+                return false;
+            }
+            if (maturity) {
+                const float redemption = spot >= autocall_barrier
+                    ? 1.0f + accumulated_gain
+                    : (spot >= protection_barrier ? 1.0f : spot);
+                discounted_payoff = discount * redemption;
+                return false;
+            }
+            return true;
+        }
+    };
+
+    __host__ __device__ static Calendar calendar(
+        const ProductParameters& product
+    ) {
+        return {
+            product.observation_interval_days,
+            product.maturity_days / product.observation_interval_days,
+        };
+    }
+
+    template<typename ModelParameters>
+    __device__ __forceinline__ static PreparedProduct prepare_product(
+        const ModelParameters& model,
+        const ProductParameters& product,
+        equity::ProductPreparationContext context
+    ) {
+        const std::uint32_t observation_count =
+            product.maturity_days / product.observation_interval_days;
+        const float observation_years =
+            static_cast<float>(product.observation_interval_days)
+            * context.day_fraction;
+        return {
+            observation_count,
+            product.autocall_barrier,
+            product.protection_barrier,
+            product.annual_coupon_rate * observation_years,
+            expf(-model.risk_free_rate * observation_years),
+        };
+    }
+
+    __device__ __forceinline__ static Handler make_handler(
+        const PreparedProduct& product
+    ) {
+        return {
+            product.observation_count,
+            product.autocall_barrier,
+            product.protection_barrier,
+            product.gain_per_observation,
+            product.discount_per_observation,
+        };
+    }
+
+    template<typename StatePolicy>
+    __device__ __forceinline__ static float finalize(
+        const PreparedProduct&,
+        const typename StatePolicy::State&,
+        const Handler& handler
+    ) {
+        return handler.discounted_payoff;
+    }
+};
+
 namespace detail {
 
 template<equity::SpotDynamicsPolicy Dynamics>
@@ -89,11 +192,11 @@ struct AthenaAutocallPricingPolicy {
         const TimeConfiguration& time_configuration
     ) {
         const typename Schedule::Calendar calendar{
-            product.observation_interval,
-            product.maturity / product.observation_interval,
+            product.observation_interval_days,
+            product.maturity_days / product.observation_interval_days,
         };
         const float observation_years = simulation::day_count_year_fraction(
-            product.observation_interval,
+            product.observation_interval_days,
             time_configuration
         );
         return {

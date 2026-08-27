@@ -28,6 +28,7 @@ _PRODUCT_TIME_FIELDS = frozenset(
         "option_expiry",
         "bond_maturity",
         "exercise_time",
+        "first_exercise_time",
         "payment_interval",
     }
 )
@@ -552,6 +553,13 @@ def summarize_price_comparisons(
         + tolerances.bias_standard_errors
             * max(standard_error, reported_mean_standard_error)
     )
+    relations = {row.comparison_relation for row in comparisons}
+    if relations == {"generated_at_least_reference"}:
+        systematic_bias = mean_error < -bias_limit
+    elif relations == {"generated_at_most_reference"}:
+        systematic_bias = mean_error > bias_limit
+    else:
+        systematic_bias = abs(mean_error) > bias_limit
     maximum_absolute_index = max(
         range(row_count), key=absolute_errors.__getitem__
     )
@@ -577,7 +585,7 @@ def summarize_price_comparisons(
         root_mean_squared_standard_error=standard_error_rmse,
         signed_error_standard_error=standard_error,
         bias_limit=bias_limit,
-        systematic_bias=abs(mean_error) > bias_limit,
+        systematic_bias=systematic_bias,
         maximum_absolute_error=absolute_errors[maximum_absolute_index],
         maximum_absolute_error_row_id=comparisons[maximum_absolute_index].row_id,
         maximum_relative_error=relative_errors[maximum_relative_index],
@@ -652,6 +660,11 @@ def validation_from_reference(
     require_curve: bool = False,
     regime: ValidationRegime = "all",
     row_ids: Sequence[str] | None = None,
+    comparison_relation: Literal[
+        "absolute",
+        "generated_at_least_reference",
+        "generated_at_most_reference",
+    ] = "absolute",
 ) -> PriceValidationReport:
     """Apply one model/product reference function to every price JSON row."""
 
@@ -705,6 +718,7 @@ def validation_from_reference(
                 quantlib_price=quantlib_price,
                 generated_standard_error=row.generated_standard_error,
                 quantlib_standard_error=quantlib_standard_error,
+                comparison_relation=comparison_relation,
             )
         )
     return summarize_price_comparisons(

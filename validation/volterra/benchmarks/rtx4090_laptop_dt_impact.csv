@@ -1,0 +1,7 @@
+model,maturity_days,steps_per_day,time_steps,paths_per_price,price_count,tuning,repetitions,median_total_ms,median_ms_per_price
+heston,252,1,252,1048576,128,threads=1024,5,831.669250,6.49741602
+heston,252,2,504,1048576,128,threads=1024,5,1682.380620,13.14359860
+rough_heston_n7,252,1,252,1048576,64,threads=256,5,812.853149,12.70083050
+rough_heston_n7,252,2,504,1048576,64,threads=256,5,1708.957640,26.70246320
+rough_bergomi_fft,252,1,252,1048576,4,path_chunk=65536,5,44.057598,11.01439950
+rough_bergomi_fft,252,2,504,1048576,4,path_chunk=65536,5,102.038528,25.50963210

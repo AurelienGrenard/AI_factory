@@ -2,22 +2,22 @@
 #pragma once
 
 #include "common/option_side.cuh"
-#include "model/equity/{model}/parameters.hpp"
+#include "common/price_construction.cuh"
+#include "model/equity/markovian/{model}/parameters.hpp"
 #include "product/{product}/parameters.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
-namespace ai_factory::workbench::{model} {{
+namespace ai_factory::workbench::model::equity::{model} {{
 
 // Launch the persistent Philox pricing grid on caller-owned device arrays.
-template<OptionSide Side>
-void launch_{model}_{product}_cuda(
+{template_declaration}void launch_{model}_{product}_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
     const product::{product_type}Parameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -29,4 +29,4 @@ void launch_{model}_{product}_cuda(
     float* device_standard_errors
 );
 
-}}  // namespace ai_factory::workbench::{model}
+}}  // namespace ai_factory::workbench::model::equity::{model}

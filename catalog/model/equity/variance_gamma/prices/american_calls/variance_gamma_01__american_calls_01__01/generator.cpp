@@ -1,10 +1,10 @@
 // Build one VarianceGamma American-call price dataset from JSON inputs.
 #include "common/check_cuda.cuh"
-#include "model/equity/variance_gamma/american_option.cuh"
-#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/equity/markovian/variance_gamma/american_option.cuh"
+#include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/american_option/dataset.hpp"
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/price_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cuda_runtime.h>
 
@@ -23,8 +23,8 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path product_dataset_path =
     "datasets/product/equity/american_options/american_options_01.json";
 
-constexpr ai_factory::workbench::datasets::PriceConstruction construction =
-    ai_factory::workbench::datasets::PriceConstruction::Aligned;
+constexpr ai_factory::workbench::PriceConstruction construction =
+    ai_factory::workbench::PriceConstruction::Aligned;
 
 // Numerical and CUDA configuration used by the pricing algorithm.
 constexpr std::size_t monte_carlo_paths_per_price = 1U << 20U;
@@ -49,9 +49,13 @@ const std::string regression_basis = "Spot and log-moneyness six-term basis";
 
 }  // namespace
 
+namespace variance_gamma =
+    ai_factory::workbench::model::equity::variance_gamma;
+
 // Execute the configured pricing pipeline and write all dataset artifacts.
 int main() {
     using namespace ai_factory::workbench;
+    namespace variance_gamma = model::equity::variance_gamma;
 
     // 1. Load both datasets directly into contiguous FP32 vectors.
     const std::vector<variance_gamma::ModelParameters> models =
@@ -60,7 +64,7 @@ int main() {
         product::load_american_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
-    const std::size_t result_count = datasets::price_row_count(
+    const std::size_t result_count = ai_factory::workbench::price_row_count(
         models.size(), products.size(), construction
     );
     // Allocate the two output arrays in host memory.
@@ -136,7 +140,7 @@ int main() {
             products.data(),
             device_products,
             1U,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             1U,
             std::min(monte_carlo_paths_per_price, warmup_paths),
             day_fraction,
@@ -156,7 +160,7 @@ int main() {
             products.data(),
             device_products,
             products.size(),
-            construction == datasets::PriceConstruction::CartesianProduct,
+            construction,
             result_count,
             monte_carlo_paths_per_price,
             day_fraction,
@@ -165,6 +169,9 @@ int main() {
             seed,
             device_prices,
             device_standard_errors
+        );
+        longstaff_schwartz::validate_regression_diagnostics(
+            execution, "variance-gamma American call"
         );
 
         // Copy the final prices and standard errors back to host memory.

@@ -72,7 +72,7 @@ std::vector<float> launch_prices(
             models.size(),
             device_products,
             products.size(),
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             prices.size(),
             0U,
             prices.size(),

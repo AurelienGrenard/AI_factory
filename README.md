@@ -37,17 +37,22 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
-- `src/model/<asset_class>/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels, split between `equity` and `fixed_income`;
+- `src/model/equity/<markovian|rough>/<model>`: equity dynamics, analytics,
+  loaders and pricing kernels, classified by mathematical family rather than
+  by simulation algorithm;
+- `src/model/fixed_income/<model>`: fixed-income model implementations;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 - `src/generative`: reserved for method-neutral generative-model tooling.
 
 Each model defines its compact mathematical row in `parameters.hpp`; its
 `dataset.hpp/.cpp` pair only exposes and implements the host loader. Curves and
 products keep their compact rows with their dataset loaders. CUDA declarations
-and implementations retain descriptive names such as `dynamics.cuh/.cu` or
-`term_structure.cuh/.cu`. Curve-specific dataset construction helpers live
-under `tools/datasets`; catalog generators contain only their recipe constants
-and `main`.
+and implementations retain descriptive names: public interfaces use
+`dynamics.cuh` or `term_structure.cuh`, included device definitions use
+`dynamics_impl.cuh` or `term_structure_impl.cuh`, and standalone `.cu` launch
+units are registered in CMake. Curve-specific dataset construction helpers
+live under `tools/datasets`; catalog generators contain only their recipe
+constants and `main`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
@@ -254,7 +259,8 @@ fallback only when the Premia backend fails technically.
 
 As with Heston, `parameters.hpp` contains the compact model row and
 `dataset.hpp/.cpp` contains only its host JSON loader. Numerical functions used
-by kernels live in `.cuh/.cu` files.
+by kernels live in public `.cuh`, included `*_impl.cuh`, or standalone `.cu`
+files according to their compilation boundary.
 
 Bates composes the Heston QE-M transition with an independent compound-Poisson
 lognormal jump process. Each path owns one scalar uniform sequence and one
@@ -410,6 +416,17 @@ example `launch_heston_european_option_cuda<OptionSide::call>(...)`. Their
 `.cu` file explicitly instantiates the call and put versions, so ordinary C++
 generators can link either specialization without including CUDA
 implementations or keeping a runtime dispatch wrapper.
+
+The public C++ API deliberately uses two complementary naming rules. Product
+types share the flat `ai_factory::workbench::product` namespace and therefore
+carry a descriptive product prefix, such as `EuropeanOptionParameters` and
+`EuropeanOptionPricingPolicy`; product-private helpers remain in
+`product::detail` and carry the same descriptive prefix. Model launchers are
+external link symbols and retain the complete model/curve/operation name even
+inside their model namespace. Method-neutral implementation primitives instead
+use short role names inside their owning namespace, for example
+`closed_form::launch_closed_form_cuda`. These are stable API conventions, not
+an invitation to maintain short aliases in parallel.
 
 ## Build
 

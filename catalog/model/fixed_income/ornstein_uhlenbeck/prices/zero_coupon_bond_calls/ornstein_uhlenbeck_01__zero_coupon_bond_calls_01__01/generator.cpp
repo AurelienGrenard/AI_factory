@@ -1,15 +1,12 @@
 // Build one Ornstein-Uhlenbeck zero-coupon bond call price dataset.
-#include "common/check_cuda.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
-
-#include <cuda_runtime.h>
+#include "tools/datasets/price_dataset.hpp"
+#include "tools/cuda/pricing_runner.cuh"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
-#include <chrono>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -22,8 +19,8 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path product_dataset_path =
     "datasets/product/fixed_income/zero_coupon_bond_options/"
     "zero_coupon_bond_options_01.json";
-constexpr ai_factory::workbench::datasets::PriceConstruction construction =
-    ai_factory::workbench::datasets::PriceConstruction::Aligned;
+constexpr ai_factory::workbench::PriceConstruction construction =
+    ai_factory::workbench::PriceConstruction::Aligned;
 
 // CUDA configuration for the one-thread-per-price analytical kernel.
 constexpr unsigned int threads_per_block = 256U;
@@ -57,60 +54,22 @@ int main() {
         product::load_zero_coupon_bond_options(product_dataset_path);
 
     // 2. Count the rows in the final price dataset.
-    const std::size_t result_count = datasets::price_row_count(
+    const std::size_t result_count = ai_factory::workbench::price_row_count(
         models.size(), products.size(), construction
     );
     const auto block_count_for = [](std::size_t row_count) {
         return (row_count - 1U) / threads_per_block + 1U;
     };
     const std::size_t block_count = block_count_for(result_count);
-    std::vector<float> prices(result_count);
 
     // Declare model, product, and output arrays with CUDA timing events.
-    ou::ModelParameters* device_models = nullptr;
-    product::ZeroCouponBondOptionParameters* device_products = nullptr;
-    float* device_prices = nullptr;
-    cudaEvent_t start_event = nullptr;
-    cudaEvent_t stop_event = nullptr;
-    double kernel_seconds = 0.0;
-
-    // 3. Execute the complete GPU pipeline.
-    const auto wall_start = std::chrono::steady_clock::now();
-    try {
-        check_cuda(
-            cudaMalloc(&device_models, models.size() * sizeof(models.front())),
-            "cudaMalloc OU models"
-        );
-        check_cuda(
-            cudaMalloc(
-                &device_products, products.size() * sizeof(products.front())
-            ),
-            "cudaMalloc zero-coupon bond calls"
-        );
-        check_cuda(
-            cudaMalloc(&device_prices, result_count * sizeof(float)),
-            "cudaMalloc OU zero-coupon bond call prices"
-        );
-        check_cuda(
-            cudaMemcpy(
-                device_models,
-                models.data(),
-                models.size() * sizeof(models.front()),
-                cudaMemcpyHostToDevice
-            ),
-            "cudaMemcpy OU models"
-        );
-        check_cuda(
-            cudaMemcpy(
-                device_products,
-                products.data(),
-                products.size() * sizeof(products.front()),
-                cudaMemcpyHostToDevice
-            ),
-            "cudaMemcpy zero-coupon bond calls"
-        );
-
-        // Warm up the specialized analytical kernel.
+    const auto run = offline::cuda::run_analytical(
+        offline::cuda::inputs(models, products),
+        result_count,
+        [&](auto& execution) {
+        const auto* device_models = execution.template input<0U>();
+        const auto* device_products = execution.template input<1U>();
+        auto* device_prices = execution.prices();
         const std::size_t warmup_count = std::min<std::size_t>(
             64U, std::min(models.size(), products.size())
         );
@@ -119,7 +78,7 @@ int main() {
             warmup_count,
             device_products,
             warmup_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             warmup_count,
             0U,
             warmup_count,
@@ -128,17 +87,18 @@ int main() {
             block_count_for(warmup_count),
             device_prices
         );
-        check_cuda(cudaDeviceSynchronize(), "OU ZCB call warmup");
 
-        check_cuda(cudaEventCreate(&start_event), "cudaEventCreate start");
-        check_cuda(cudaEventCreate(&stop_event), "cudaEventCreate stop");
-        check_cuda(cudaEventRecord(start_event), "cudaEventRecord start");
+        },
+        [&](auto& execution) {
+        const auto* device_models = execution.template input<0U>();
+        const auto* device_products = execution.template input<1U>();
+        auto* device_prices = execution.prices();
         ou::launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<OptionSide::call>(
             device_models,
             models.size(),
             device_products,
             products.size(),
-            construction == datasets::PriceConstruction::CartesianProduct,
+            construction,
             result_count,
             0U,
             result_count,
@@ -147,49 +107,16 @@ int main() {
             block_count,
             device_prices
         );
-        check_cuda(cudaEventRecord(stop_event), "cudaEventRecord stop");
-        check_cuda(cudaEventSynchronize(stop_event), "cudaEventSynchronize stop");
-        float kernel_milliseconds = 0.0f;
-        check_cuda(
-            cudaEventElapsedTime(
-                &kernel_milliseconds, start_event, stop_event
-            ),
-            "cudaEventElapsedTime"
-        );
-        kernel_seconds = static_cast<double>(kernel_milliseconds) * 1.0e-3;
-        check_cuda(
-            cudaMemcpy(
-                prices.data(),
-                device_prices,
-                result_count * sizeof(float),
-                cudaMemcpyDeviceToHost
-            ),
-            "cudaMemcpy OU zero-coupon bond call prices"
-        );
-    } catch (...) {
-        if (start_event != nullptr) cudaEventDestroy(start_event);
-        if (stop_event != nullptr) cudaEventDestroy(stop_event);
-        if (device_models != nullptr) cudaFree(device_models);
-        if (device_products != nullptr) cudaFree(device_products);
-        if (device_prices != nullptr) cudaFree(device_prices);
-        throw;
-    }
 
-    check_cuda(cudaEventDestroy(start_event), "cudaEventDestroy start");
-    check_cuda(cudaEventDestroy(stop_event), "cudaEventDestroy stop");
-    check_cuda(cudaFree(device_models), "cudaFree OU models");
-    check_cuda(cudaFree(device_products), "cudaFree zero-coupon bond calls");
-    check_cuda(cudaFree(device_prices), "cudaFree OU ZCB call prices");
-    const double wall_seconds = std::chrono::duration<double>(
-        std::chrono::steady_clock::now() - wall_start
-    ).count();
+        }
+    );
 
     // 4. Write and structurally validate the analytical price dataset.
     datasets::write_analytical_price_dataset(
         model_dataset_path,
         product_dataset_path,
         construction,
-        prices,
+        run.prices,
         dataset_path,
         catalog_path,
         url,
@@ -200,8 +127,8 @@ int main() {
             {"kernel_launch_count", 1U},
             {"work_distribution", "one price per thread"},
         },
-        wall_seconds,
-        kernel_seconds
+        run.wall_seconds,
+        run.kernel_seconds
     );
     datasets::validate_price_dataset_file(dataset_path);
 }

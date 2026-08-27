@@ -1,9 +1,9 @@
 // Reusable CUDA analytics for the affine CIR short-rate model.
 #pragma once
 
+#include "common/fixed_income/cashflows.cuh"
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
-#include "product/european_swaption/schedule.cuh"
 
 #include <cuda_runtime.h>
 
@@ -136,7 +136,7 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     const ModelParameters& parameters,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
@@ -178,7 +178,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     float valuation_time,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
@@ -202,10 +202,79 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     float valuation_time,
     float exercise_time,
     float fixed_rate,
-    const std::uint32_t* __restrict__ payment_times,
+    const std::uint32_t* __restrict__ payment_times_days,
     const float* __restrict__ accrual_fractions,
     float time_day_fraction,
     std::uint32_t payment_count
 );
+
+// Model-side analytics and regression projection used by Bermudan swaptions.
+struct BermudanSwaptionAnalyticsPolicy {
+    using PreparedModel = ModelParameters;
+
+    struct PreparedRegressionState {
+        float center;
+        float inverse_scale;
+    };
+
+    __device__ __forceinline__ static PreparedRegressionState
+    prepare_regression_state(const ModelParameters& parameters) {
+        const float variance = parameters.process.long_term_mean
+            * parameters.process.volatility
+            * parameters.process.volatility
+            / (2.0f * parameters.process.mean_reversion);
+        return {
+            parameters.process.long_term_mean,
+            rsqrtf(fmaxf(variance, 1.0e-12f)),
+        };
+    }
+
+    __device__ __forceinline__ static float normalize_regression_state(
+        const PreparedRegressionState& prepared,
+        float state
+    ) {
+        return (state - prepared.center) * prepared.inverse_scale;
+    }
+
+    __device__ __forceinline__ static PreparedModel prepare_model(
+        const ModelParameters& model
+    ) {
+        return model;
+    }
+
+    template<typename JointState>
+    __device__ __forceinline__ static float factor_state(
+        const JointState& state
+    ) {
+        return state.state;
+    }
+
+    __device__ __forceinline__ static float log_discount_factor(
+        const PreparedModel& model,
+        float state_integral,
+        float time
+    ) {
+        return cir::log_discount_factor(model, state_integral, time);
+    }
+
+    template<typename ScheduleView>
+    __device__ __forceinline__ static float payer_swap_value(
+        const PreparedModel& model,
+        float state,
+        float valuation_time,
+        float start_time,
+        float fixed_rate,
+        const ScheduleView& schedule
+    ) {
+        return cir::payer_swap_value(
+            model,
+            state,
+            valuation_time,
+            start_time,
+            fixed_rate,
+            schedule
+        );
+    }
+};
 
 }  // namespace ai_factory::workbench::model::fixed_income::cir

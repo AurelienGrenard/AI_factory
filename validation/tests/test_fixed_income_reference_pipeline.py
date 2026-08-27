@@ -30,6 +30,22 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
                     "*.json"
                 )
                 if "prices" in path.parts
+                and not any(
+                    part.startswith("bermudan_") for part in path.parts
+                )
+            )
+        )
+
+    @staticmethod
+    def _bermudan_sources() -> tuple[Path, ...]:
+        return tuple(
+            sorted(
+                path
+                for path in (ROOT / "datasets/model/fixed_income").rglob(
+                    "*.json"
+                )
+                if "prices" in path.parts
+                and any(part.startswith("bermudan_") for part in path.parts)
             )
         )
 
@@ -45,6 +61,13 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
             / model_name
             / Path(*price_path)
         )
+
+    @staticmethod
+    def _catalog_validation(source: Path) -> dict:
+        source_document = json.loads(source.read_text(encoding="utf-8"))
+        catalog = ROOT / source_document["catalog"] / "dataset.yaml"
+        document = yaml.safe_load(catalog.read_text(encoding="utf-8"))
+        return document["validation"]
 
     def test_all_42_catalogs_publish_only_a_verified_cache(self) -> None:
         sources = self._sources()
@@ -76,6 +99,25 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
             )
             self.assertFalse((catalog / "validation.ipynb").exists())
             self.assertFalse((catalog / "validation_report.json").exists())
+
+    def test_new_bermudan_catalogs_remain_explicitly_pending(self) -> None:
+        sources = self._bermudan_sources()
+        self.assertEqual(len(sources), 16)
+        for source in sources:
+            self.assertEqual(
+                self._catalog_validation(source),
+                {
+                    "status": "pending",
+                    "verified": False,
+                    "reference": "none",
+                    "notebook": (
+                        json.loads(source.read_text(encoding="utf-8"))[
+                            "catalog"
+                        ]
+                        + "/validation.ipynb"
+                    ),
+                },
+            )
 
     def test_cache_validation_never_imports_external_pricers(self) -> None:
         """Routine publication checks must work without Premia or QuantLib."""

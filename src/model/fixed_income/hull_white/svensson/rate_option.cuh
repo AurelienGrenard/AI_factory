@@ -1,6 +1,8 @@
 // Public launcher for Hull-White Svensson rate_option analytics.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include "curve/svensson/parameters.hpp"
 #include "common/option_side.cuh"
 #include "model/fixed_income/hull_white/parameters.hpp"
@@ -19,7 +21,7 @@ void launch_hull_white_svensson_rate_option_cuda(
     std::size_t curve_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
