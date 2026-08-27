@@ -24,6 +24,30 @@ class RoughProductBinding:
     sided: bool = True
 
 
+@dataclass(frozen=True)
+class PriceVariant:
+    name: str
+    product: str
+    product_dataset_folder: str
+    product_dataset_id: str
+    product_loader: str
+    side: str | None = None
+    legacy_url_name: str | None = None
+    threads_per_block: int | None = None
+    side_aware_loader: bool = False
+    analytical_steps_per_day: int | None = None
+
+
+@dataclass(frozen=True)
+class ModelRecipeSpec:
+    name: str
+    display: str
+    backend: str
+    numerical_method: str
+    legacy_url_name: str | None = None
+    threads_per_block: int = 512
+
+
 # One canonical product description drives every Gaussian-Volterra binding
 # and both prepared N-factor rough-model lifts.
 ROUGH_PRODUCT_BINDINGS = (
@@ -220,4 +244,215 @@ BINDINGS = tuple(
     )
     for product in ROUGH_PRODUCT_BINDINGS
     if product.product in BLACK_SCHOLES_MONTE_CARLO_PRODUCTS
+)
+
+
+# Catalog publication is deliberately distinct from launcher support.  The
+# directional barriers expose call/put launchers, while the current public
+# catalog publishes only the conventional up-call and down-put variants.
+PRICE_VARIANTS = (
+    PriceVariant(
+        "asian_calls", "asian_option", "asian_options", "asian_options_01",
+        "load_asian_options", "call", "AsianCall"
+    ),
+    PriceVariant(
+        "asian_puts", "asian_option", "asian_options", "asian_options_01",
+        "load_asian_options", "put"
+    ),
+    PriceVariant(
+        "asset_or_nothing_calls", "asset_or_nothing_option",
+        "asset_or_nothing_options", "asset_or_nothing_options_01",
+        "load_asset_or_nothing_options", "call"
+    ),
+    PriceVariant(
+        "asset_or_nothing_puts", "asset_or_nothing_option",
+        "asset_or_nothing_options", "asset_or_nothing_options_01",
+        "load_asset_or_nothing_options", "put"
+    ),
+    PriceVariant(
+        "athena_autocalls", "athena_autocall", "athena_autocalls",
+        "athena_autocalls_01", "load_athena_autocalls", None,
+        "AthenaAutocall"
+    ),
+    PriceVariant(
+        "cliquets", "cliquet", "cliquets", "cliquets_01",
+        "load_cliquets", None, "Cliquet", threads_per_block=256
+    ),
+    PriceVariant(
+        "digital_calls", "digital_option", "digital_options",
+        "digital_options_01", "load_digital_options", "call"
+    ),
+    PriceVariant(
+        "digital_puts", "digital_option", "digital_options",
+        "digital_options_01", "load_digital_options", "put"
+    ),
+    PriceVariant(
+        "double_knock_out_calls", "double_knock_out_option",
+        "double_knock_out_options", "double_knock_out_options_01",
+        "load_double_knock_out_options", "call", "DoubleKnockOutCall"
+    ),
+    PriceVariant(
+        "double_knock_out_puts", "double_knock_out_option",
+        "double_knock_out_options", "double_knock_out_options_01",
+        "load_double_knock_out_options", "put"
+    ),
+    PriceVariant(
+        "down_and_in_puts", "down_and_in_option", "down_and_in_options",
+        "down_and_in_options_01", "load_down_and_in_options", "put"
+    ),
+    PriceVariant(
+        "down_and_out_puts", "down_and_out_option", "down_and_out_options",
+        "down_and_out_options_01", "load_down_and_out_options", "put"
+    ),
+    PriceVariant(
+        "european_calls", "european_option", "european_options",
+        "european_options_01", "load_european_options", "call",
+        "EuropeanCall"
+    ),
+    PriceVariant(
+        "european_puts", "european_option", "european_options",
+        "european_options_01", "load_european_options", "put"
+    ),
+    PriceVariant(
+        "forward_start_calls", "forward_start_option",
+        "forward_start_options", "forward_start_options_01",
+        "load_forward_start_options", "call", "ForwardStartCall"
+    ),
+    PriceVariant(
+        "forward_start_puts", "forward_start_option",
+        "forward_start_options", "forward_start_options_01",
+        "load_forward_start_options", "put"
+    ),
+    PriceVariant(
+        "gap_calls", "gap_option", "gap_options", "gap_call_options_01",
+        "load_gap_options", "call", side_aware_loader=True
+    ),
+    PriceVariant(
+        "gap_puts", "gap_option", "gap_options", "gap_put_options_01",
+        "load_gap_options", "put", side_aware_loader=True
+    ),
+    PriceVariant(
+        "geometric_asian_calls", "geometric_asian_option",
+        "geometric_asian_options", "geometric_asian_options_01",
+        "load_geometric_asian_options", "call", "GeometricAsianCall",
+        analytical_steps_per_day=2
+    ),
+    PriceVariant(
+        "geometric_asian_puts", "geometric_asian_option",
+        "geometric_asian_options", "geometric_asian_options_01",
+        "load_geometric_asian_options", "put", analytical_steps_per_day=2
+    ),
+    PriceVariant(
+        "lookback_options", "lookback_option", "lookback_options",
+        "lookback_options_01", "load_lookback_options", None,
+        "LookbackOption"
+    ),
+    PriceVariant(
+        "phoenix_autocalls", "phoenix_autocall", "phoenix_autocalls",
+        "phoenix_autocalls_01", "load_phoenix_autocalls", None,
+        "PhoenixAutocall"
+    ),
+    PriceVariant(
+        "phoenix_memory_autocalls", "phoenix_memory_autocall",
+        "phoenix_memory_autocalls", "phoenix_memory_autocalls_01",
+        "load_phoenix_memory_autocalls", None, "PhoenixMemoryAutocall"
+    ),
+    PriceVariant(
+        "range_accruals", "range_accrual", "range_accruals",
+        "range_accruals_01", "load_range_accruals", None, "RangeAccrual"
+    ),
+    PriceVariant(
+        "straddles", "straddle", "straddles", "straddles_01",
+        "load_straddles"
+    ),
+    PriceVariant(
+        "up_and_in_calls", "up_and_in_option", "up_and_in_options",
+        "up_and_in_options_01", "load_up_and_in_options", "call",
+        "UpAndInCall"
+    ),
+    PriceVariant(
+        "up_and_out_calls", "up_and_out_option", "up_and_out_options",
+        "up_and_out_options_01", "load_up_and_out_options", "call",
+        "UpAndOutCall"
+    ),
+    PriceVariant(
+        "up_no_touches", "up_no_touch", "up_no_touches",
+        "up_no_touches_01", "load_up_no_touches", None, "UpNoTouch"
+    ),
+    PriceVariant(
+        "up_one_touches", "up_one_touch", "up_one_touches",
+        "up_one_touches_01", "load_up_one_touches", None, "UpOneTouch"
+    ),
+)
+
+
+MODEL_RECIPE_SPECS = (
+    ModelRecipeSpec(
+        "bates", "Bates", "markovian",
+        "Andersen QE-M with compound-Poisson lognormal jumps", "Bates"
+    ),
+    ModelRecipeSpec(
+        "black_scholes", "Black-Scholes", "markovian",
+        "Exact Gaussian log-price transitions", "BlackScholes"
+    ),
+    ModelRecipeSpec(
+        "cev", "CEV", "markovian", "absorbed Milstein", "CEV"
+    ),
+    ModelRecipeSpec(
+        "heston", "Heston", "markovian", "Andersen QE-M", "Heston"
+    ),
+    ModelRecipeSpec(
+        "heston_3_2", "Heston 3/2", "markovian",
+        "full-truncation Euler 3/2 variance"
+    ),
+    ModelRecipeSpec(
+        "kou", "Kou", "markovian", "Exact Kou increments", "Kou"
+    ),
+    ModelRecipeSpec(
+        "merton", "Merton", "markovian", "Exact Merton increments",
+        "Merton"
+    ),
+    ModelRecipeSpec(
+        "normal_inverse_gaussian", "Normal-Inverse-Gaussian", "markovian",
+        "Exact inverse-Gaussian subordination", "NormalInverseGaussian"
+    ),
+    ModelRecipeSpec(
+        "sabr", "SABR", "markovian", "Lamperti SABR Euler"
+    ),
+    ModelRecipeSpec(
+        "schobel_zhu", "Schobel-Zhu", "markovian",
+        "exact OU factor with log-spot Euler", "SchobelZhu"
+    ),
+    ModelRecipeSpec(
+        "stein_stein", "Stein-Stein", "markovian",
+        "exact OU volatility with log-spot Euler"
+    ),
+    ModelRecipeSpec(
+        "variance_gamma", "Variance-Gamma", "markovian",
+        "Exact Gamma subordination", "VarianceGamma"
+    ),
+    ModelRecipeSpec(
+        "rough_bergomi", "Rough-Bergomi", "volterra",
+        "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)"
+    ),
+    ModelRecipeSpec(
+        "rough_sabr", "Rough-SABR", "volterra",
+        "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot"
+    ),
+    ModelRecipeSpec(
+        "log_modulated_rough_bergomi", "Log-modulated rough-Bergomi",
+        "volterra", "log-modulated hybrid FFT (kappa=1)"
+    ),
+    ModelRecipeSpec(
+        "rough_stein_stein", "Rough Stein-Stein", "volterra",
+        "fractional-resolvent hybrid FFT"
+    ),
+    ModelRecipeSpec(
+        "rough_heston", "Rough-Heston", "n_factor",
+        "7-factor Markovian lift", threads_per_block=256
+    ),
+    ModelRecipeSpec(
+        "quadratic_rough_heston", "Quadratic rough-Heston", "n_factor",
+        "7-factor Markovian lift", threads_per_block=256
+    ),
 )

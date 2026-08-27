@@ -4,18 +4,23 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+CODEGEN = ROOT / "tools" / "codegen" / "pricing_bindings"
+sys.path.insert(0, str(CODEGEN))
+
+from manifest import MODEL_RECIPE_SPECS, PRICE_VARIANTS  # noqa: E402
 RAW_CUDA = (
     "cudaMalloc", "cudaFree", "cudaMemcpy", "cudaEventCreate",
     "cudaEventDestroy",
 )
 
 # These are algorithmically atypical pipelines, not ordinary catalog recipes:
-# Longstaff--Schwartz owns extra regression state, while the legacy FFT recipe
-# owns a model-specific cuFFTDx workspace. New entries are intentionally not
-# accepted by this checker without changing this reviewed list.
+# Longstaff--Schwartz owns extra regression state and a backward execution
+# graph. New entries are intentionally not accepted by this checker without
+# changing this reviewed list.
 EXPLICIT_ESCAPE_HATCHES = {
     f"catalog/model/equity/{model}/prices/american_{side}s/"
     f"{model}_01__american_{side}s_01__01/generator.cpp"
@@ -23,11 +28,14 @@ EXPLICIT_ESCAPE_HATCHES = {
         "bates", "heston", "normal_inverse_gaussian", "variance_gamma"
     )
     for side in ("call", "put")
-} | {
-    "catalog/model/equity/rough_bergomi/prices/european_calls/"
-    "rough_bergomi_01__european_calls_01__01/generator.cpp",
-    "catalog/model/equity/rough_bergomi/prices/european_puts/"
-    "rough_bergomi_01__european_puts_01__01/generator.cpp",
+}
+
+GENERATED_EQUITY_RECIPES = {
+    "catalog/model/equity/"
+    f"{model.name}/prices/{variant.name}/"
+    f"{model.name}_01__{variant.name}_01__01/generator.cpp"
+    for model in MODEL_RECIPE_SPECS
+    for variant in PRICE_VARIANTS
 }
 
 
@@ -38,6 +46,22 @@ def relative(path: Path) -> str:
 def main() -> int:
     failures: list[str] = []
     generators = sorted((ROOT / "catalog").rglob("generator.cpp"))
+    generator_paths = {relative(path) for path in generators}
+    missing_generated = GENERATED_EQUITY_RECIPES - generator_paths
+    failures.extend(
+        f"missing generated equity recipe: {path}"
+        for path in sorted(missing_generated)
+    )
+    for path_text in sorted(GENERATED_EQUITY_RECIPES & generator_paths):
+        source = (ROOT / path_text).read_text()
+        if not source.startswith("// Generated "):
+            failures.append(
+                f"equity recipe is not codegen-owned: {path_text}"
+            )
+        if '"tools/pricing/equity_price_generation.cuh"' not in source:
+            failures.append(
+                f"generated equity recipe bypasses its orchestrator: {path_text}"
+            )
     raw = {
         relative(path)
         for path in generators
@@ -61,6 +85,8 @@ def main() -> int:
         source = path.read_text()
         if (
             "offline::cuda::run_" not in source
+            and "offline::pricing::generate_" not in source
+            and "pricing::generate_" not in source
             and '"tools/pricing/' not in source
         ):
             failures.append(
@@ -92,6 +118,7 @@ def main() -> int:
         return 1
     print(
         f"{len(generators)} catalog recipes checked; "
+        f"{len(GENERATED_EQUITY_RECIPES)} generated equity recipes; "
         f"{len(raw)} reviewed algorithmic escape hatches"
     )
     return 0

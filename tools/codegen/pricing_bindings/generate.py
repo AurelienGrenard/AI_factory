@@ -11,6 +11,8 @@ from manifest import (
     BINDINGS,
     BLACK_SCHOLES_CLOSED_FORM_PRODUCTS,
     MARKOVIAN_MODELS,
+    MODEL_RECIPE_SPECS,
+    PRICE_VARIANTS,
     ROUGH_PRODUCT_BINDINGS,
     ROUGH_MODELS,
     ROUGH_N_FACTOR_MODELS,
@@ -305,6 +307,169 @@ def generate_rough(output_root: Path) -> list[Path]:
     return generated
 
 
+def monte_carlo_paths(model: str, backend: str, variant: str) -> str:
+    if backend in ("volterra", "n_factor") or model == "kou":
+        return "1'048'576"
+    if model == "black_scholes":
+        return "65'536"
+    if model in ("merton", "variance_gamma") and variant in (
+        "european_calls", "european_puts"
+    ):
+        return "262'144"
+    return "16'384"
+
+
+def price_recipe_url(model, variant, database_id: str, closed_form: bool) -> str:
+    if (
+        not closed_form
+        and model.legacy_url_name is not None
+        and variant.legacy_url_name is not None
+    ):
+        return (
+            "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/"
+            f"{model.legacy_url_name}/{variant.legacy_url_name}/"
+            f"{database_id}.json"
+        )
+    return (
+        "https://datasets.ai-factory.example/v1/model/equity/"
+        f"{model.name}/prices/{variant.name}/{database_id}.json"
+    )
+
+
+def markovian_time_values(model: str, product: str) -> dict[str, str]:
+    binding = next(
+        candidate
+        for candidate in BINDINGS
+        if candidate.model == model and candidate.product == product
+    )
+    if binding.time_kind == "exact":
+        return {
+            "time_constants": "    constexpr float day_fraction = 1.0f / 252.0f;\n",
+            "time_arguments": "                        day_fraction,\n",
+            "delta_t_description": "exact transition dates",
+            "execution_metadata": "nlohmann::ordered_json::object()",
+        }
+    return {
+        "time_constants": (
+            "    constexpr float dt = 1.0f / 504.0f;\n"
+            "    constexpr std::uint32_t simulation_steps_per_day = 2U;\n"
+        ),
+        "time_arguments": (
+            "                        dt,\n"
+            "                        simulation_steps_per_day,\n"
+        ),
+        "delta_t_description": "1 / 504",
+        "execution_metadata": (
+            "nlohmann::ordered_json{"
+            "{\"simulation_steps_per_day\", simulation_steps_per_day}"
+            "}"
+        ),
+    }
+
+
+def generate_catalog_recipes(output_root: Path) -> list[Path]:
+    templates = {
+        "markovian": (
+            TEMPLATE_DIR / "catalog_markovian_generator.cpp.tpl"
+        ).read_text(),
+        "n_factor": (
+            TEMPLATE_DIR / "catalog_rough_n_factor_generator.cpp.tpl"
+        ).read_text(),
+        "volterra": (
+            TEMPLATE_DIR / "catalog_rough_volterra_generator.cpp.tpl"
+        ).read_text(),
+        "closed_form": (
+            TEMPLATE_DIR / "catalog_closed_form_generator.cpp.tpl"
+        ).read_text(),
+    }
+    generated: list[Path] = []
+    for model in MODEL_RECIPE_SPECS:
+        for variant in PRICE_VARIANTS:
+            database_id = (
+                f"{model.name}_01__{variant.name}_01__01"
+            )
+            closed_form = (
+                model.name == "black_scholes"
+                and variant.product in BLACK_SCHOLES_CLOSED_FORM_PRODUCTS
+            )
+            backend = "closed_form" if closed_form else model.backend
+            destination = (
+                output_root / "catalog" / "model" / "equity" / model.name
+                / "prices" / variant.name / database_id / "generator.cpp"
+            )
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            side_template = (
+                f"<OptionSide::{variant.side}>" if variant.side else ""
+            )
+            product_loader_expression = f"product::{variant.product_loader}"
+            if variant.side_aware_loader:
+                product_loader_expression = (
+                    "[](const auto& path) { return product::"
+                    f"{variant.product_loader}(path, OptionSide::{variant.side}); "
+                    "}"
+                )
+            values = {
+                "model": model.name,
+                "model_display": model.display,
+                "product": variant.product,
+                "product_loader_expression": product_loader_expression,
+                "variant_comment": variant.name.replace("_", "-"),
+                "side_template": side_template,
+                "template_arguments": (
+                    f"OptionSide::{variant.side}, factor_count"
+                    if variant.side else "factor_count"
+                ),
+                "model_dataset_path": (
+                    f"datasets/model/equity/{model.name}/parameters/"
+                    f"{model.name}_01.json"
+                ),
+                "product_dataset_path": (
+                    "datasets/product/equity/"
+                    f"{variant.product_dataset_folder}/"
+                    f"{variant.product_dataset_id}.json"
+                ),
+                "price_dataset_path": (
+                    f"datasets/model/equity/{model.name}/prices/"
+                    f"{variant.name}/{database_id}.json"
+                ),
+                "catalog_path": (
+                    f"catalog/model/equity/{model.name}/prices/"
+                    f"{variant.name}/{database_id}/dataset.yaml"
+                ),
+                "url": price_recipe_url(
+                    model, variant, database_id, closed_form
+                ),
+                "numerical_method": model.numerical_method,
+                "monte_carlo_paths": monte_carlo_paths(
+                    model.name, model.backend, variant.name
+                ),
+                "threads_per_block": str(
+                    variant.threads_per_block or model.threads_per_block
+                ),
+                "seed": "910000001" if model.backend == "volterra" else "900000001",
+            }
+            analytical_steps = variant.analytical_steps_per_day
+            values["analytical_profile_values"] = (
+                f"1.0f / {252 * analytical_steps}.0f, 256U, "
+                f"{analytical_steps}U"
+                if analytical_steps is not None
+                else "1.0f / 252.0f, 256U, 0U"
+            )
+            values["analytical_time_arguments"] = (
+                "                        context.day_fraction,\n"
+                "                        context.simulation_steps_per_day,"
+                if analytical_steps is not None
+                else "                        context.day_fraction,"
+            )
+            if backend == "markovian":
+                values.update(markovian_time_values(
+                    model.name, variant.product
+                ))
+            destination.write_text(templates[backend].format(**values))
+            generated.append(destination)
+    return generated
+
+
 def cmake_list(name: str, values: list[str]) -> str:
     body = "\n".join(f"    {value}" for value in values)
     return f"set({name}\n{body}\n)\n"
@@ -391,7 +556,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--family",
-        choices=("rough", "markovian", "prototype", "all"),
+        choices=("rough", "markovian", "prototype", "catalog", "all"),
         default="rough",
     )
     parser.add_argument("--compare-root", type=Path)
@@ -402,6 +567,8 @@ def main() -> int:
         generated.extend(generate_markovian(arguments.output))
     if arguments.family in ("rough", "all"):
         generated.extend(generate_rough(arguments.output))
+    if arguments.family in ("catalog", "all"):
+        generated.extend(generate_catalog_recipes(arguments.output))
     if arguments.family == "all":
         generated.extend(generate_cmake_manifest(arguments.output))
     for path in generated:

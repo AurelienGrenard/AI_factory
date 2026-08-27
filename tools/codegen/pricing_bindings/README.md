@@ -1,9 +1,10 @@
-# Pricing-binding code generation
+# Equity pricing code generation
 
-The generator emits model-product binding files from an explicit Python
-manifest. Product payoff logic, schedules and CUDA engines remain
-hand-written; generic generated files compose those policies and instantiate
-the public launchers. The eight specialized Black-Scholes closed-form units
+The generator emits both model-product binding files and ordinary equity
+price recipes from one explicit Python manifest. Product payoff logic,
+schedules, model dynamics and CUDA engines remain hand-written; generated
+files compose those policies, instantiate the public launchers and describe
+the offline dataset run. The eight specialized Black-Scholes closed-form units
 are copied from generator-owned analytical templates without altering their
 algorithms.
 
@@ -25,10 +26,43 @@ python3 tools/codegen/pricing_bindings/generate.py \
 ```
 
 The same comparison is registered as the `pricing_binding_codegen` CTest so
-CI detects any hand-edited binding that is no longer reproducible. The same
-manifest emits `cmake/generated/EquityPricingBindings.cmake`; model families,
-the 21-product matrix, ordinary units and mathDx-only Volterra units therefore
-cannot drift from the generated `.cu/.cuh` files.
+CI detects any hand-edited binding or ordinary recipe that is no longer
+reproducible. The same manifest emits
+`cmake/generated/EquityPricingBindings.cmake`; model families, the 21-product
+matrix, ordinary units and mathDx-only Volterra units therefore cannot drift
+from the generated `.cu/.cuh` files.
+
+## Generated price recipes
+
+The typed publication manifest crosses 18 equity models with 29 published
+product variants. It generates 522 versioned `generator.cpp` recipes for five
+execution contracts:
+
+- Black-Scholes analytical closed form;
+- Markovian fixed-step Monte Carlo;
+- exact-transition Monte Carlo;
+- seven-factor Markovian rough approximation;
+- hybrid Volterra FFT with an explicitly planned device workspace.
+
+The generated source only binds datasets, policies, numerical profiles and
+publication metadata. `tools/pricing/equity_price_generation.cuh` owns the
+common execution and publication flow; `tools/cuda/pricing_runner.cuh` owns
+CUDA buffers, transfers, timing and cleanup. The price JSON and
+`dataset.yaml` are written when the recipe executes, because the YAML contains
+the measured wall and kernel times and therefore cannot be a static codegen
+artifact.
+
+Adding an ordinary equity model now requires its dynamics/dataset contract and
+one `ModelRecipeSpec`; adding a product requires its payoff/schedule/dataset
+contract and one product/variant entry. No model/product cross-product source
+is then written manually. Model-parameter and product-parameter generators
+remain domain-owned sampling programs: their distributions are data-design
+choices rather than mechanical pricing bindings.
+
+Eight American/LSM recipes remain deliberate exceptions. Their backward
+regression, FP64 workspace and fail-closed diagnostics require a separate
+typed execution contract tracked by audit finding `STRUCT-012`; they are not
+silently forced through the ordinary templates.
 
 The product manifest covers all 21 non-American equity products. It records
 the terminal, dense, regular or two-date schedule family, whether the payoff
@@ -53,5 +87,6 @@ Generated equity bindings follow the source-family layout:
 `src/model/equity/markovian/<model>` for finite-state dynamics. The folder
 component is not part of public namespaces or target names.
 
-`--family markovian` and the backward-compatible `--family prototype` select
-the same complete Markovian binding matrix.
+`--family catalog` emits only the 522 price recipes. `--family markovian` and
+the backward-compatible `--family prototype` select the same complete
+Markovian binding matrix; `--family all` emits bindings, recipes and CMake.

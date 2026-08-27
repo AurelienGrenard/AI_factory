@@ -134,6 +134,24 @@ autorises, pas une recertification exhaustive de toutes les sections v2.
   sections du referentiel v2; les exclusions historiques sans constat actif
   restent decrites dans la couverture.
 
+## Quatrieme passage — codegen des recettes equity
+
+- Date d'ouverture : 2026-08-27.
+- Revision de base : `bde0a5540e9f217723c53afa76d866688875b196`.
+- Origine : revue utilisateur de la frontiere entre bindings generes et
+  recettes catalogue encore manuscrites.
+- Constats ouverts : `STRUCT-011`, puis `STRUCT-012` pour les huit exceptions
+  American/LSM revelees par la migration.
+- Comptabilite courante de la passe : 39 identifiants, dont 37 fermes dans
+  `closed.md` et 2 ouverts dans `response.md`.
+- Perimetre : recettes de prix equity non American et leurs cinq backends;
+  generation des parametres modele/produit et pipelines d'exercice anticipe
+  exclus tant qu'ils ne satisfont pas le meme contrat declaratif.
+- Remediation ordinaire terminee : 18 modeles x 29 variantes donnent 522
+  recettes de prix generees, en plus des 756 bindings `.cu/.cuh` et du
+  manifeste CMake. `STRUCT-011` reste volontairement ouvert tant que les huit
+  exceptions American/LSM de `STRUCT-012` ne sont pas generees.
+
 ## Meta-revue documentaire et snapshot post-remediation
 
 - Date du snapshot : 2026-08-27T11:53:56+02:00.
@@ -187,6 +205,7 @@ autorises, pas une recertification exhaustive de toutes les sections v2.
 | E19 | Build agrege `all_models ai_factory_host_tests ai_factory_cuda_tests performance_benchmarks`; CTest host puis `ctest -L cuda --output-on-failure`; `git diff --check`; parse JSON et compilation/aide du checker Python | Build SM89 termine en 563 etapes; 3/3 tests host et 50/50 tests CUDA passent sur GPU. Baseline JSON valide et verifier executable. |
 | E20 | Execution cache-only des six validations independantes CIR apres modification numerique de l'inlining | 0 comparaison executee : les six pipelines refusent fail-closed les empreintes source/policy obsoletes. Cette limite est explicite; aucune regeneration Premia/QuantLib ni modification de l'audit de validation. |
 | E21 | Configuration fraiche GCC 14/CUDA 13.3 SM89 sans mathDx; builds `price_generators`, `parameter_generators` et tests host; build `all_models` dans la configuration mathDx; generation temporaire avec `--compare-root`; checker d'architecture; test CUDA du runner hors sandbox; `git diff --check` | `price_generators` termine 1 156/1 156, tous les generateurs de parametres sont lies, et `all_models` mathDx termine 784/784. Neuf tests host/architecture passent, puis `cuda_pricing_runner` passe sur GPU en 2,41 s. Les 757 sorties codegen concordent, 382 recettes sont controlees, 293 utilisent le runner et exactement 10 echappatoires revues restent; aucun ancien monolithe/helper ni erreur de whitespace ne subsiste. |
+| E22 | Codegen final `--family all --compare-root`; checker des recettes; builds `price_generators` mathDx et quatre recettes representatives dans une configuration fraiche sans mathDx; test CUDA du runner; executions temporaires closed form, Markov fixe, transition exacte, rough N-facteurs, Volterra FFT et geometric-Asian | Les 1 279 sorties concordent : 756 bindings, 522 recettes et un manifeste CMake. Le build mathDx termine 1 172/1 172; le build sans mathDx lie Black-Scholes geometric-Asian, Heston, Merton et rough Heston. Le checker controle 641 recettes, reconnait les 522 recettes generees et limite les echappatoires a 8 American/LSM. Le runner workspace passe sur GPU; les six recettes ecrivent puis valident leurs JSON/YAML temporaires, avec 1 048 576 paths pour rough Heston et rough SABR. |
 
 Les chemins sous `/tmp`, les rapports Nsight et les objets de build sont des preuves locales non
 versionnees : leurs resultats chiffres sont recopies ci-dessus, mais aucun lien

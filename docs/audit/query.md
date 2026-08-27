@@ -1,6 +1,6 @@
 # Referentiel des audits d'architecture C++/CUDA
 
-Version du referentiel : 2, 2026-08-27.
+Version du referentiel : 3, 2026-08-27.
 
 ## Objet
 
@@ -8,908 +8,1000 @@ Ce document contient la liste stable des audits a effectuer sur l'architecture
 C++/CUDA du projet. Il formule les questions a poser et les invariants a
 verifier ; il ne contient aucun resultat d'audit.
 
-`status.md` conserve la date, la revision, le perimetre, les exclusions et
-les preuves du dernier passage de chaque audit, qu'il ait produit ou non un
+`status.md` conserve la date, la revision, le perimetre, les exclusions et les
+preuves du dernier passage de chaque audit, qu'il ait produit ou non un
 constat. Une section vide de `response.md` ne doit donc jamais servir a
 deduire qu'un audit est recent ou complet.
 
 La provenance doit identifier a la fois la version de ce referentiel et le
 contenu reellement audite. Sur un worktree propre, la revision Git suffit. Sur
 un worktree modifie, `status.md` conserve aussi l'etat porcelain, un manifeste
-des fichiers non suivis et une empreinte du diff suivi; si le contenu non suivi
-entre dans le perimetre, son manifeste doit egalement porter une empreinte de
-contenu. Le passage initial et l'etat apres remediation sont deux snapshots
-distincts. Lorsqu'un snapshot exact n'est pas reconstructible, le statut le dit
-explicitement et aucune revision seule ne doit etre presentee comme sa source
-complete.
+des fichiers non suivis et une empreinte du diff suivi ; si le contenu non
+suivi entre dans le perimetre, son manifeste doit egalement porter une
+empreinte de contenu. Le passage initial et l'etat apres remediation sont deux
+snapshots distincts. Lorsqu'un snapshot exact n'est pas reconstructible, le
+statut le dit explicitement et aucune revision seule ne doit etre presentee
+comme sa source complete.
 
-Tous les constats non resolus sont inscrits dans `response.md`, y compris
-ceux dont le traitement est explicitement reporte dans le cadre de l'audit.
-Toute section qui contient un constat doit reprendre le meme nom et le meme
-ordre que dans ce document. Chaque constat doit conserver un identifiant
-stable, un etat courant, une preuve dans le code ou les mesures disponibles et
-un critere de cloture.
+Tous les constats non resolus sont inscrits dans `response.md`, y compris ceux
+dont le traitement est explicitement reporte. Toute section qui contient un
+constat doit reprendre le meme nom et le meme ordre que dans ce document.
+Chaque constat conserve un identifiant stable, un etat courant, une preuve
+dans le code ou les mesures et un critere de cloture.
 
-`closed.md` est le registre compact de tous les constats corriges,
-refutes par mesure, fusionnes ou devenus inapplicables. Avant de creer un
-identifiant, l'auditeur doit rechercher dans `response.md` et `closed.md` une
-signature equivalente. L'identite d'un constat est definie par sa cause et son
-perimetre, pas par la correction envisagee ni par la formulation de son titre.
+`closed.md` est le registre compact de tous les constats corriges, refutes par
+mesure, fusionnes ou devenus inapplicables. Avant de creer un identifiant,
+l'auditeur doit rechercher dans `response.md` et `closed.md` une signature
+equivalente. L'identite d'un constat est definie par sa cause et son perimetre,
+pas par la correction envisagee ni par la formulation du titre.
+
+Le passage d'une version du referentiel a une autre ne reouvre pas les constats
+fermes et ne change jamais leur identifiant. Si une signature reapparait sous
+une nouvelle section, reutiliser l'identifiant historique. Une
+reclassification documentaire n'est ni une fermeture ni un nouveau probleme.
 
 Lorsqu'un constat est clos, transferer toute decision durable vers le contrat
 d'implementation concerne, puis le deplacer de `response.md` vers `closed.md`.
-Son entree fermee doit conserver un titre explicite, la nature de la cloture,
-la signature du probleme initial, la resolution ou la decision, la preuve et
-la condition de reouverture. Les rapports volumineux ne sont pas recopies si
-une preuve durable plus precise peut etre liee.
+Son entree fermee conserve un titre explicite, la nature de la cloture, la
+signature initiale, la resolution ou decision, la preuve et la condition de
+reouverture. Les rapports volumineux ne sont pas recopies si une preuve durable
+plus precise peut etre liee.
 
 Si le meme probleme reapparait, reutiliser son identifiant et redeplacer
-l'entree vers `response.md`, en conservant une ligne sur la cloture
-precedente et la raison de la reouverture. Un nouvel identifiant n'est permis
-que si la cause ou le perimetre differe reellement. Un identifiant possede
-exactement un etat courant : non resolu dans `response.md` ou ferme dans
-`closed.md`. `status.md` conserve la comptabilite et les preuves du
-passage, sans devenir un troisieme registre de constats.
+l'entree vers `response.md`, en conservant la cloture precedente et la raison
+de la reouverture. Un nouvel identifiant n'est permis que si la cause ou le
+perimetre differe reellement. Un identifiant possede exactement un etat
+courant : non resolu dans `response.md` ou ferme dans `closed.md`. `status.md`
+conserve la comptabilite et les preuves, sans devenir un troisieme registre.
 
 L'audit transversal des references independantes, caches, notebooks,
-fingerprints et artefacts publies est volontairement separe dans
-`../validation/query.md`. Il n'est pas execute pendant un passage ordinaire
-de ce referentiel. Les tests cibles necessaires aux audits proprietaires
-Dynamics, Analytics, Numerical robustness ou Build restent dans leur perimetre.
+fingerprints et artefacts publies reste separe dans `../validation/query.md`.
+Il n'est pas execute pendant un passage ordinaire de ce referentiel. Les tests
+cibles necessaires aux audits Homogeneity, Numerical robustness, CUDA safety,
+CMake ou Performance restent dans leur perimetre.
 
-Un audit doit distinguer explicitement :
+Un audit distingue explicitement :
 
 - les incoherences prouvees par le code ou les artefacts compiles ;
 - les risques qui necessitent une mesure pour etre confirmes ;
-- les choix deja satisfaisants qu'une correction doit preserver ;
-- les exceptions mathematiques necessaires, avec leur justification.
+- les choix satisfaisants qu'une correction doit preserver ;
+- les exceptions mathematiques necessaires et leur justification.
 
-Un constat transversal est inscrit une seule fois, sous la section qui porte sa
-cause primaire. Les autres audits concernes sont references depuis ce constat.
-Un choix satisfaisant n'est pas inscrit dans `response.md` : s'il exprime
-une decision durable, il est documente dans le contrat d'implementation qui en
-est proprietaire. Une exception necessaire suit la meme regle.
+Un constat transversal est inscrit une seule fois sous la section qui porte sa
+cause primaire. Les autres audits sont references depuis ce constat. Un choix
+satisfaisant n'est pas inscrit dans `response.md` : s'il exprime une decision
+durable, il est documente dans le contrat d'implementation proprietaire. Une
+exception necessaire suit la meme regle.
 
-L'auditeur doit partir du code, des dependances CMake, des tests et, pour les
-questions de performance, des artefacts compiles. Les noms de dossiers et les
-commentaires ne constituent pas a eux seuls une preuve de responsabilite ou de
-factorisation. Il ne doit pas supposer que l'architecture actuelle est bonne
-ou mauvaise, ni proposer une abstraction sans identifier ses consommateurs
-reels.
+L'auditeur part du code, des dependances CMake, des tests et, pour la
+performance, des artefacts compiles. Les noms de dossiers et commentaires ne
+constituent pas seuls une preuve de responsabilite ou de factorisation. Il ne
+propose aucune abstraction sans identifier ses consommateurs reels.
 
-Pour chaque audit, renseigner d'abord dans `status.md` la matrice de
-couverture effectivement inspectee. Chaque constat doit ensuite indiquer :
+Pour chaque audit, renseigner d'abord dans `status.md` la matrice de couverture
+effectivement inspectee. Chaque constat indique ensuite :
 
 - son **etat** : ouvert ou reporte par decision explicite ;
-- sa **severite**, c'est-a-dire l'impact technique si le probleme subsiste :
-  critique, haute, moyenne ou faible ;
-- sa **priorite**, c'est-a-dire l'ordre recommande de traitement : haute,
-  moyenne ou basse ;
+- sa **severite** : critique, haute, moyenne ou faible ;
+- sa **priorite** : haute, moyenne ou basse ;
 - sa **confiance** : prouvee, forte ou a mesurer ;
-- les fichiers et symboles concernes, la preuve, l'impact concret, la correction
-  minimale proposee et le test ou la mesure qui permettrait de le clore ;
-- la reference aux preuves du passage, la date de leur derniere verification et
-  un proprietaire explicite ou la mention `non attribue`.
+- fichiers et symboles, preuve, impact, correction minimale et test ou mesure
+  permettant la cloture ;
+- references de preuves, date de derniere verification et proprietaire ou
+  mention `non attribue`.
 
-Un constat reporte indique en plus la date et l'auteur de la decision, son
-motif, ainsi qu'un evenement de reexamen. Un report sans condition de reprise
-ne constitue pas un etat durable acceptable.
+Un constat reporte indique date et auteur de la decision, motif et evenement
+de reexamen. Un report sans condition de reprise n'est pas durable.
 
-Une preuve issue d'un binaire, d'un profil ou d'une mesure est attachee au
-snapshot, a la configuration de build et a l'artefact exacts. Elle est marquee
-`a rafraichir` des qu'un fichier ou une option susceptible de modifier cet
-artefact change. Une preuve fermee reste compacte, mais son origine durable
-doit permettre de reproduire la decision : commande, environnement, manifeste
-de workloads, sortie conservee ou lien vers un artefact versionne. Une
-affirmation chiffree sans cette provenance peut orienter une nouvelle mesure,
-mais ne constitue pas a elle seule une baseline courante.
+Une preuve issue d'un binaire, profil ou benchmark est attachee au snapshot, a
+la configuration et a l'artefact exacts. Elle est marquee `a rafraichir` des
+qu'un changement peut modifier cet artefact. Une decision chiffree doit rester
+reproductible par commande, environnement, manifeste de workloads, sortie
+conservee ou artefact versionne.
 
 Le statut `complet` signifie que toutes les preuves attendues de la section ont
-ete couvertes sur le perimetre declare. Des tests cibles executes pendant une
-remediation ne transforment pas retroactivement un audit partiel en audit
-complet; `status.md` distingue couverture d'audit et verification des
-corrections.
+ete couvertes sur le perimetre declare. Des tests cibles d'une remediation ne
+transforment pas retroactivement un audit partiel en audit complet.
 
-Lorsque deux constats partagent les memes fichiers, mesures ou une migration
-qui ne doit etre faite qu'une fois, ajouter un champ **Coordination** dans
-`response.md`. Il doit citer les identifiants concernes et preciser si le
-traitement commun est obligatoire, recommande ou simplement ordonne. Cette
-coordination ne fusionne pas deux causes distinctes et ne change pas leurs
-criteres de cloture.
+Lorsque deux constats partagent fichiers, mesures ou migration, ajouter un
+champ **Coordination** citant les identifiants et precisant si le traitement
+commun est obligatoire, recommande ou ordonne. Cela ne fusionne pas deux
+causes ni leurs criteres de cloture.
 
-Une opportunite non prouvee reste une hypothese a mesurer. Sa confiance est
-`a mesurer` et sa cloture consiste d'abord a accepter ou rejeter l'hypothese,
-pas a imposer prematurement une implementation.
+Une opportunite non prouvee reste une hypothese `a mesurer`. Sa cloture
+consiste d'abord a accepter ou rejeter l'hypothese, pas a imposer une
+implementation.
+
+## Principes de classement
+
+Les trois questions suivantes sont separees :
+
+- **Structure** : ou vit un composant, qui le possede et comment il se nomme ;
+- **Homogeneity** : deux composants qui jouent le meme role respectent-ils le
+  meme contrat ;
+- **Factorization** : des composants qui partagent les memes invariants
+  reutilisent-ils une implementation au bon niveau.
+
+Une difference de nom ou de chemin appartient a Structure. Une difference de
+signature entre dynamics homologues appartient a Homogeneity. Une boucle de
+simulation recopiee appartient a Factorization. Le cout chiffre de
+l'abstraction est ensuite mesure par Performance et CMake.
 
 ## Sommaire
 
-- [Dynamics](#dynamics)
-- [Analytics](#analytics)
-- [Numerical robustness](#numerical-robustness)
+- [Structure, conventions and ownership](#structure-conventions-and-ownership)
+  - [Repository tree and domain ownership](#repository-tree-and-domain-ownership)
+  - [File responsibilities and granularity](#file-responsibilities-and-granularity)
+  - [Naming and semantic conventions](#naming-and-semantic-conventions)
+  - [Dependency boundaries](#dependency-boundaries)
+  - [Cleanup and extension locality](#cleanup-and-extension-locality)
+- [Contract homogeneity](#contract-homogeneity)
+  - [Dynamics](#dynamics)
+  - [Analytics](#analytics)
+  - [Products, policies and exercise](#products-policies-and-exercise)
+- [Factorization pyramid](#factorization-pyramid)
+  - [Markovian factorization](#markovian-factorization)
+  - [Rough factorization](#rough-factorization)
+  - [Rough-Markovian factorization](#rough-markovian-factorization)
+  - [Closed-form factorization](#closed-form-factorization)
+  - [Fixed-income and equity factorization](#fixed-income-and-equity-factorization)
+  - [Factorization cost and limits](#factorization-cost-and-limits)
+- [Code generation and extension cost](#code-generation-and-extension-cost)
+  - [Minimum hand-written model and product](#minimum-hand-written-model-and-product)
+  - [Canonical capability manifest](#canonical-capability-manifest)
+  - [Generated bindings and catalogue recipes](#generated-bindings-and-catalogue-recipes)
+  - [Parameter dataset generation](#parameter-dataset-generation)
+  - [Regeneration, drift and exceptions](#regeneration-drift-and-exceptions)
+- [CMake and build graph](#cmake-and-build-graph)
+- [Numerical robustness and reproducibility](#numerical-robustness-and-reproducibility)
 - [CUDA execution and memory safety](#cuda-execution-and-memory-safety)
-- [Naming](#naming)
-- [Project structure](#project-structure)
-- [Exercise and dynamics-family boundaries](#exercise-and-dynamics-family-boundaries)
-- [Pricing policies and concepts](#pricing-policies-and-concepts)
-- [Tools and src ownership](#tools-and-src-ownership)
-- [Build and CUDA instantiations](#build-and-cuda-instantiations)
 - [Performance](#performance)
+  - [Common performance protocol and kernel strategy](#common-performance-protocol-and-kernel-strategy)
   - [Generic CUDA performance](#generic-cuda-performance)
   - [Early-exercise performance](#early-exercise-performance)
-  - [Rough FFT performance](#rough-fft-performance)
+  - [Rough performance](#rough-performance)
 
-## Dynamics
+## Structure, conventions and ownership
 
-Auditer les fichiers `parameters`, `state`, `dynamics.cuh` et `dynamics_impl.cuh` de
-tous les modeles concernes. Les modeles rough, dont l'ossature est differente
-par construction, doivent etre analyses separement lorsqu'ils entrent dans le
-perimetre.
+Auditer l'arborescence, les responsabilites, les noms et les frontieres de
+dependances comme un contrat de lisibilite architecturale. Cette section dit
+ou un composant doit vivre et comment il doit se nommer ; elle ne conclut pas
+qu'une implementation doit etre partagee, ce qui releve de Factorization.
 
-**Perimetre :** interfaces et implementations de dynamique, etats, preparation,
-consommation aleatoire et tests de contrat des modeles selectionnes.
+**Perimetre :** dossiers, fichiers, namespaces, types, fonctions, variables,
+targets, identifiants de catalogue, includes et liens entre domaines.
 
-**Hors perimetre :** formules de pricing, architecture rough specifique et
-performance des kernels, sauf lorsqu'elles prouvent une rupture du contrat de
-dynamique.
+**Hors perimetre :** differences d'API entre composants homologues et
+duplication d'implementation, sauf si elles prouvent un mauvais ownership.
 
-**Preuves attendues :** matrice des modeles et transitions, declarations,
-definitions, concepts, graphe d'includes, tests de compilation, lois et mapping
-Philox.
+**Preuves attendues :** arborescence complete, graphes d'includes et de liens,
+inventaire des conventions, consommateurs, tailles des fichiers et nombre de
+lieux modifies par une extension representative.
 
-**Livrable :** differences d'ossature classees en incoherences ou exceptions
-mathematiques, avec un proprietaire et un critere de cloture.
+**Livrable :** carte des domaines et dependances, contradictions de nommage ou
+placement, elements orphelins et localite mesuree d'un ajout modele/produit.
 
-Verifier notamment :
-
-- l'homogeneite des namespaces, avec la forme
-  `workbench::model::<asset_class>::<model>` ;
-- la presence et l'homogeneite des gardes d'inclusion, des includes et des
-  dependances entre couches ;
-- la meme separation entre declarations, definitions, parametres bruts,
-  modele prepare, transition preparee, dynamique preparee et etat mutable ;
-- l'emploi coherent des noms canoniques `ModelParameters` ou
-  `ProcessParameters`, `PreparedModel`, `PreparedTransition`,
-  `PreparedDynamics` et `State` ;
-- le meme ordre de declaration et de definition des types, helpers et
-  fonctions publiques dans chaque modele ;
-- l'homogeneite des noms, types de retour, qualificateurs CUDA, ordre des
-  arguments, passage par valeur ou reference et conventions `const` ;
-- l'interface commune de preparation du modele, preparation des transitions,
-  creation de l'etat initial, avance d'un pas et extraction des observables ;
-- la coherence entre processus exacts, schemas a pas fixe et wrappers de
-  processus, sans imposer une structure artificielle lorsque la mathematique
-  exige une exception ;
-- la reutilisation des briques communes et l'absence de duplication entre un
-  processus de base et ses compositions ou extensions ;
-- l'ordre et la stabilite de consommation des nombres aleatoires, notamment
-  pour les modeles a sauts et les transitions exactes ;
-- l'usage coherent de `std::uint32_t`, `std::size_t`, `float` et des structures
-  d'etat suivant leur role ;
-- la symetrie des tests de contrat, de compilation, de moments, de cas limites
-  et de consommation aleatoire entre les modeles.
-
-Signaler toute difference d'ossature. Pour chacune, determiner si elle est une
-incoherence a corriger ou une exception mathematique a documenter.
-
-## Analytics
-
-Auditer les analytics Black-Scholes et fixed income, leurs providers, concepts,
-wrappers, kernels closed form et tests.
-
-**Perimetre :** primitives analytiques, providers, concepts, compositions
-modele-courbe, surfaces publiques et tests Black-Scholes/fixed income.
-
-**Hors perimetre :** simulation des trajectoires, orchestration generale des
-kernels et policies produit sans formule analytique propre.
-
-**Preuves attendues :** matrice modele/primitive, call graph, definitions de
-formules, instanciations de concepts et references mathematiques independantes.
-
-**Livrable :** primitives canoniques, duplications ou bypass prouves et
-frontiere explicite de chaque provider.
+### Repository tree and domain ownership
 
 Verifier notamment :
 
-- que les formules partagees par les modeles de meme famille sont factorisees
-  au niveau le plus bas qui possede reellement les invariants necessaires ;
-- que les providers ne contiennent que les primitives partageables et que les
-  formules propres a un modele ou a un produit restent dans leur couche ;
-- l'homogeneite des namespaces, noms de fichiers, noms de fonctions, ordre des
-  declarations et definitions, types de retour, ordre des arguments,
-  qualificateurs CUDA et conventions `const` ;
-- l'existence d'une signature canonique pour chaque primitive commune : bond,
-  coefficient affine, taux, option de taux, valeur de swap payer/receiver et
-  formule closed form applicable ;
-- que les compositions, notamment les modeles ajustes a une courbe ou les
-  extensions multi-facteurs, reutilisent les analytics du processus de base
-  sans les redevelopper ;
-- l'absence de duplication de formules entre les modeles, les produits, les
-  launchers et les tests ;
-- la stricte utilisation des providers et concepts par tous les chemins, sans
-  bypass ponctuel de l'ossature commune ;
-- la proprete des dependances et l'absence d'include d'un produit ou d'un
-  dataset dans une couche analytique inferieure ;
-- la coherence semantique des unites et conventions, notamment spot contre
-  ratio normalise, temps absolu contre maturite residuelle, payer contre
-  receiver et signe du nominal ;
-- la symetrie des tests entre modeles et produits : API, compilation des
-  concepts, identites mathematiques, cas limites, references independantes et
-  invariance lorsque le contrat l'exige.
+- que `src/common`, `src/model`, `src/curve`, `src/product`, `src/generative`,
+  `tools`, `catalog`, `validation`, `tests`, `docs` et le site ne portent que
+  leurs responsabilites declarees ;
+- que `src/model/equity/markovian`, `src/model/equity/rough` et
+  `src/model/fixed_income` classent les modeles par famille mathematique et non
+  par commodite du moteur actuellement employe ;
+- que les dossiers modele restent centres sur parametres, datasets, dynamics,
+  analytics, sampling et primitives propres, sans devenir proprietaires de
+  tous les produits ;
+- que contrats produit, schedules, payoffs, pricing policies et continuation
+  states restent sous `src/product` lorsqu'ils ne dependent pas d'un modele ;
+- que les primitives mathematiques ou d'execution reellement neutres vivent
+  sous `src/common`, sans type concret de modele, courbe ou produit ;
+- que `tools` possede sampling offline, orchestration, serialisation,
+  publication et codegen, tandis que `catalog` contient les recettes et
+  metadonnees reproductibles ;
+- que `validation` ne devient pas une dependance du runtime ou des generateurs
+  ordinaires ;
+- que la structure des modeles markoviens, rough, fixed income, courbes et
+  produits est symetrique pour les responsabilites communes ;
+- que toute difference d'arborescence est justifiee par mathematique,
+  dependance optionnelle ou frontiere de compilation, et non par l'historique.
 
-Toute factorisation proposee doit expliciter la responsabilite du provider et
-eviter de creer une interface commune qui ne serait satisfaite que par des
-adaptateurs artificiels.
+### File responsibilities and granularity
 
-## Numerical robustness
+Verifier notamment :
+
+- que chaque fichier porte une responsabilite identifiable et des
+  consommateurs reels ;
+- que les headers publics exposent seulement les declarations necessaires,
+  les definitions device incluses vivent dans `*_impl.cuh` et les `.cu`
+  autonomes sont de vraies unites de traduction ;
+- qu'aucun `.cu` n'est inclus textuellement et qu'aucun `.cuh` ne simule une
+  unite autonome sans frontiere explicite ;
+- que les rows device restent compacts et independants des loaders,
+  validateurs et objets JSON host ;
+- qu'un fichier ne melange pas mathematique runtime, generation de parametres,
+  orchestration CUDA, assemblage de dataset et serialisation ;
+- que les gros modules sont separes lorsque leurs parties evoluent et se
+  testent independamment, sans micro-fichiers sans abstraction ;
+- que les wrappers modele-produit generes ne masquent pas une logique manuelle,
+  une exception ou une dependance non declaree ;
+- que toute fusion ou scission CUDA mesure compilation, incrementalite, taille
+  objets/cubins et ressources kernel.
+
+### Naming and semantic conventions
+
+Auditer dossiers, fichiers, namespaces, types, concepts, fonctions, arguments,
+variables, constantes, tests, targets et identifiants de catalogue. Le nom
+indique la responsabilite et le domaine reels, pas l'anciennete.
+
+Verifier notamment :
+
+- `snake_case` pour chemins, fichiers, fonctions et variables, `PascalCase`
+  pour types et concepts, et une convention unique pour les constantes ;
+- la correspondance arborescence/namespaces, sans namespace plat sous un
+  dossier specialise ni niveau sans responsabilite ;
+- singulier/pluriel coherent pour definition, famille, collection, dataset et
+  variante de prix ;
+- des noms de fichiers homologues stables : `parameters`, `dataset`,
+  `dynamics`, `analytics`, `concepts`, `pricing_policy`, `schedule`, `state`,
+  `sample`, `kernel`, `launch` et `workspace` ;
+- que les symboles ne repetent pas modele, courbe, produit ou methode deja
+  portes par leur namespace ;
+- les noms canoniques `ModelParameters`, `ProcessParameters`, `PreparedModel`,
+  `PreparedTransition`, `PreparedDynamics`, `State`, `DeviceInputs` et
+  `PreparedRow`, avec exceptions documentees ;
+- des verbes stables : `load`, `validate`, `prepare`, `compose`, `simulate`,
+  `advance`, `observe`, `evaluate`, `price`, `launch`, `write`, `generate` ;
+- les memes noms et ordre d'arguments entre declarations, definitions,
+  wrappers, tests, templates et code genere ;
+- les unites/domaines dans le nom : `_days`, `_years`, `_steps`, `_count`,
+  `_index`, `_offset`, `_bytes`, paths, prix, taux et accruals ;
+- que les booleens se lisent comme des predicats et qu'un enum remplace un
+  booleen de mode ;
+- que les symboles mathematiques courts restent dans les formules locales ;
+- l'absence de `new`, `old`, `legacy`, `temporary` ou `historical` dans les
+  noms permanents ;
+- que tout renommage est atomique dans sources, tests, CMake, codegen,
+  catalogue, validation, diagnostics et documentation ;
+- que les identifiants publies ne changent pas sans migration explicite.
+
+Seules les contradictions semantiques prouvees deviennent des constats. Les
+preferences stylistiques sans impact sont exclues.
+
+### Dependency boundaries
+
+La direction conceptuelle attendue est :
+
+```text
+common <- model / curve / product <- tools <- catalog
+                               \-> tests
+                               \-> validation
+```
+
+Verifier notamment :
+
+- qu'aucun fichier ou target runtime de `src` n'inclut ou ne lie `tools`, et
+  que les include roots rendent cette violation difficile ;
+- qu'un produit concret ne remonte pas dans une primitive de modele ou un
+  moteur generique ;
+- qu'un modele concret ne remonte pas dans un schedule, une reduction, un
+  regressor ou une infrastructure cross-asset ;
+- que taux, courbe, swap et accrual ne contaminent pas equity, et que spot,
+  dividende et payoff vanilla ne contaminent pas fixed income ;
+- que types de mode, conventions temporelles, cardinalites et mappings runtime
+  appartiennent a `src` ;
+- qu'une primitive mathematique partagee runtime/tools a une definition
+  canonique dans `src`, tandis que sampling/publication restent offline ;
+- que mathDx/cuFFTDx, Premia, QuantLib et dependances optionnelles restent
+  limites aux targets qui les consomment ;
+- que tout deplacement donne dependances avant/apres, consommateurs et tests
+  statiques de frontiere.
+
+### Cleanup and extension locality
+
+Rechercher systematiquement :
+
+- sources et headers sans consommateur ;
+- targets, options, facades, aliases et agregats inutilises ;
+- placeholders, prototypes non integres et READMEs obsoletes ;
+- compatibilites et implementations paralleles devenues sans usage ;
+- fragments generes orphelins ou fichiers manuels dupliquant le codegen ;
+- sources absentes du build et fichiers enregistres deux fois.
+
+Mesurer les fichiers, manifestes et listes a modifier pour ajouter un modele,
+un produit et un couple modele-produit. Un ajout ordinaire ne doit pas exiger
+plusieurs listes CMake, bindings, recettes, registres de tests et validations
+concurrents. Cette mesure alimente Code generation and extension cost.
+
+## Contract homogeneity
+
+Auditer la forme des contrats entre composants jouant le meme role. Une API
+similaire ne prouve pas qu'une implementation doit etre partagee ; la
+factorisation est examinee separement. Les exceptions mathematiques doivent
+rester visibles et testees.
+
+**Perimetre :** dynamics, analytics, produits, concepts, policies, schedules,
+droits d'exercice, types prepares et tests de contrat.
+
+**Hors perimetre :** placement/nommage purs, factorisation des implementations
+et cout detaille des kernels.
+
+**Preuves attendues :** matrices de capacites, declarations/definitions,
+concepts instancies, call graphs et tests homologues.
+
+**Livrable :** differences d'ossature classees en incoherences ou exceptions,
+avec contrat cible, preuve et critere de cloture.
+
+### Dynamics
+
+Auditer `parameters`, `state`, `dynamics.cuh` et `dynamics_impl.cuh` de tous les
+modeles selectionnes, en separant transitions exactes, pas fixe, rough FFT et
+lifts rough N-facteurs dans la couverture.
+
+Verifier notamment :
+
+- la meme separation entre parametres bruts, modele prepare, transition
+  preparee, dynamique preparee et etat mutable lorsque ces roles existent ;
+- le meme ordre de declaration/definition des types, helpers et fonctions
+  publiques homologues ;
+- types de retour, qualificateurs CUDA, ordre des arguments, valeur/reference
+  et conventions `const` coherents ;
+- une surface canonique pour preparation, transition, etat initial, avance et
+  extraction des observables ;
+- des concepts specialises pour les capacites optionnelles plutot qu'un
+  contrat de base toujours plus large ;
+- la coherence entre transition exacte, pas fixe, wrappers et lifts, sans type
+  artificiel ne portant aucun invariant ;
+- qu'un etat markovien contient toute l'information necessaire a la transition
+  suivante ;
+- qu'un lift N-facteurs reste identifie comme approximation rough meme s'il
+  utilise l'execution markovienne ;
+- l'ordre et la stabilite Philox pour sauts, tirages conditionnels, rejet et
+  transitions exactes ;
+- l'usage coherent des types entiers, FP32/FP64 et structures d'etat ;
+- la symetrie des tests compilation, moments, limites, convergence et RNG.
+
+### Analytics
+
+Auditer Black-Scholes et fixed income, providers, concepts, compositions
+modele-courbe, kernels closed form et tests.
+
+Verifier notamment :
+
+- une signature canonique pour coefficients affines, bond, taux, discount,
+  option de taux, swap et primitives lognormales ;
+- que les providers declarent leurs capacites minimales et possedees ;
+- que les compositions ajustees reutilisent le processus de base sans changer
+  sa semantique ;
+- types, arguments, qualificateurs, temps, payer/receiver et signes coherents ;
+- l'absence de formule produit dans une couche analytique inferieure ;
+- l'utilisation des providers/concepts sans bypass ponctuel ;
+- des tests symetriques d'API, compilation, identites, limites et invariance ;
+- qu'une exception propre a un modele ne grossit pas le provider commun.
+
+### Products, policies and exercise
+
+Auditer les concepts et policies composant dynamics, schedules, handlers,
+continuation states, regressors et kernels.
+
+Verifier notamment :
+
+- que chaque exigence de concept correspond a un appel reel ;
+- que `Schedule` parcourt les dates sans calculer payoff ou prix ;
+- que les handlers observent l'etat sans posseder dynamics ou launcher ;
+- que `PricingPolicy` transporte seulement inputs, ligne preparee et
+  evaluation propres au produit ;
+- que `ContinuationState` contient uniquement stockage et variables de
+  regression necessaires ;
+- que le regressor ne connait ni produit, ni modele, ni courbe ;
+- que les types device sont coherents, trivialement copiables et bornes par
+  des budgets documentes ;
+- que les compositions invalides echouent avec un concept ou `static_assert`
+  lisible ;
+- que les pricers europeens n'incluent aucun Longstaff-Schwartz ;
+- que les briques American/Bermudan partagees se limitent a backward,
+  regression, workspace, execution plan et continuation generiques ;
+- que payoff, normalisation, calendrier et variables restent sous le produit ;
+- que call/put et payer/receiver sont compile-time si seul payoff/signe change ;
+- que `AmericanOption` sur grille est documente comme approximation
+  bermudeenne avec resolution et limite continue ;
+- que les tests separent moteur, policy et composition modele-produit.
+
+## Factorization pyramid
+
+Auditer la reutilisation effective des implementations selon une pyramide
+d'invariants. La base contient les algorithmes specialises ; chaque niveau
+superieur ne conserve que ce qui est vrai pour tous ses consommateurs. Une
+ressemblance d'API, l'emploi commun du Monte-Carlo ou une ambition future ne
+suffisent pas a justifier une abstraction.
+
+La pyramide cible est :
+
+```text
+transition exacte --+
+schema a pas fixe ---+--> markovien general -------+
+                                                   +--> commun rough-markovien
+rough FFT -----------+                             |
+rough N-facteurs ----+--> rough general -----------+
+
+Black-Scholes closed form --+
+fixed income closed form ----+--> execution closed form commune
+
+equity -------+
+fixed income -+--> infrastructure cross-asset strictement neutre
+```
+
+**Perimetre :** implementations communes, concepts, templates, policies,
+engines, primitives mathematiques, composition, consommateurs et cout des
+abstractions.
+
+**Hors perimetre :** simple difference de nom/placement et opportunite sans
+consommateur reel.
+
+**Preuves attendues :** matrice producteurs/consommateurs/invariants,
+duplications, call graph, instanciations, tests de parite, objets/cubins et
+ressources des kernels affectes.
+
+**Livrable :** pour chaque niveau, une table `invariants communs`,
+`implementation partagee`, `partie specifique`, `consommateurs`, `exceptions`
+et `cout CUDA/build`.
+
+### Markovian factorization
+
+#### Exact transitions
+
+Verifier notamment :
+
+- une primitive commune pour preparation et avance sur intervalle arbitraire
+  lorsque la loi exacte le permet ;
+- des schedules terminal, regular et calendar reutilisant cette capacite sans
+  sous-pas artificiels ;
+- une consommation Philox stable entre terminal et dates contractuelles ;
+- que increments de Levy, sauts composes et diffusions exactes gardent leurs
+  lois specifiques derriere un contrat minimal ;
+- qu'un produit dense emploie les pas requis par son observation et ne pretend
+  pas beneficier d'une transition terminale exacte.
+
+#### Fixed-step Markovian schemes
+
+Verifier notamment :
+
+- une ossature unique pour preparation de `dt`, boucle de transitions,
+  observation et handlers ;
+- des schedules terminal, dense, regular et calendar sans simulateur recopie ;
+- que Euler, QE, full truncation ou autre schema restent dans la dynamics et
+  non dans le moteur de trajectoires ;
+- l'absence de branche runtime par modele ou schema dans la boucle chaude ;
+- que les etats multi-facteurs et tirages variables n'elargissent pas le
+  contrat de tous les modeles.
+
+#### General Markovian layer
+
+Verifier que transitions exactes et pas fixe partagent seulement :
+
+- preparation des inputs et cardinalites ;
+- creation de l'etat initial et observation ;
+- composition dynamics/schedule/handler/product ;
+- kernels Monte-Carlo et sampling quand les invariants coincident ;
+- construction des resultats, reductions et diagnostics ;
+- mapping deterministe resultat/trajectoire/sequence Philox.
+
+Le niveau general ne contient ni branche runtime `exact/fixed`, ni adaptateur
+vide, ni membre prepare inutilise dans l'un des chemins.
+
+### Rough factorization
+
+#### FFT and Gaussian-Volterra paths
+
+Verifier notamment :
+
+- la factorisation des kernels de Volterra, coefficients, convolution,
+  padding, plans FFT et reconstruction gaussienne ;
+- que les mappings propres a chaque modele rough restent sous le modele ;
+- que generation gaussienne, correlation, observation et reduction ne sont
+  pas recopies par modele ;
+- que cuFFTDx et specialisations de longueur sont isoles des autres familles.
+
+#### Markovian N-factor rough lifts
+
+Verifier notamment :
+
+- une representation commune des facteurs exponentiels et de leur
+  preparation ;
+- une specialisation compile-time ou objet compact pour le nombre de facteurs,
+  sans tableau local provoquant spills ;
+- la reutilisation du moteur markovien seulement pour l'execution semantiquement
+  compatible ;
+- que parametres de lift, erreur d'approximation et convergence restent
+  visibles dans modele et tests ;
+- qu'un lift n'est jamais presente comme transition exacte du processus rough.
+
+#### General rough layer
+
+Verifier ce qui peut etre partage entre FFT et N-facteurs :
+
+- contrat des parametres de rugosite et horizon ;
+- correlation et observables communes ;
+- policies produit, construction des prix, reductions et diagnostics ;
+- tests de convergence vers la dynamique rough cible ;
+- metadonnees necessaires au codegen et a la selection d'engine.
+
+Ne pas imposer une fausse `DynamicsPolicy` markovienne au chemin Volterra ni
+une dependance FFT au lift N-facteurs.
+
+### Rough-Markovian factorization
+
+Auditer l'intersection independante de la memoire du processus :
+
+- generation et adressage Philox ;
+- device inputs et validation des cardinalites ;
+- products, schedules compatibles, handlers et payoffs ;
+- construction aligned/cartesian ;
+- reductions, erreurs standards et publication ;
+- buffers RAII, diagnostics et propagation du stream ;
+- moteurs d'exercice anticipe seulement si un etat fini fournit les variables
+  de continuation necessaires.
+
+Refuser tout moteur universel ajoutant branche runtime rough/markovian, appel
+indirect, gros variant device, valeur vivante inutile ou dependance cuFFTDx aux
+targets markoviennes.
+
+### Closed-form factorization
+
+Auditer separement factorisation mathematique et factorisation d'execution.
+
+Verifier notamment :
+
+- les primitives lognormales/Black-Scholes partageables : normal CDF/PDF,
+  discount, forward, d1/d2 et symetries call/put ;
+- les primitives fixed income partageables : coefficients affines, Gaussian
+  bond options, Jamshidian, cashflows et compositions de courbe ;
+- qu'une primitive devient commune seulement si domaine, unites et conventions
+  de signe coincident ;
+- que les formules propres a CIR, Gaussian one/two-factor, Black-Scholes ou un
+  produit specialise restent dans leur proprietaire ;
+- la reutilisation des concepts, inputs, mappings, kernels scalaires ou
+  cooperatifs, launchers et diagnostics closed form ;
+- que le choix scalaire/cooperatif est une strategie mesuree, pas une
+  duplication de formule ;
+- que la factorisation ne force pas un provider universel rempli de capacites
+  optionnelles.
+
+### Fixed-income and equity factorization
+
+Le niveau cross-asset reste le sommet le plus strict. Verifier qu'il contient
+seulement :
+
+- checks CUDA, RAII, streams et evenements ;
+- Philox, reductions, moments et construction des resultats ;
+- moteurs Monte-Carlo, sampling et Longstaff-Schwartz reellement neutres ;
+- indexation, batching, workspace planning et diagnostics ;
+- infrastructure de loaders, datasets, codegen et publication independante de
+  la semantique financiere.
+
+Spot, dividende, taux court, courbe, accrual, swap, nominal, strike vanilla ou
+payer/receiver restent hors de ce niveau.
+
+### Factorization cost and limits
+
+Toute factorisation proposee compare avant/apres :
+
+- branches runtime, indirect calls et specialisations compile-time ;
+- taille des `Prepared*`, valeurs vivantes et donnees par thread ;
+- registres, spills, stack, shared memory et occupation ;
+- taille objets/archives/cubins et instruction cache ;
+- temps clean et incremental ;
+- lisibilite des erreurs de compilation ;
+- consommateurs et fichiers manuels supprimes ;
+- sorties, tolerances et mapping aleatoire.
+
+Refuser une abstraction fondee sur un consommateur futur, des adaptateurs
+vides, des branches de capacites ou une baisse de duplication qui augmente
+materiellement le cout runtime ou build.
+
+## Code generation and extension cost
+
+Auditer le chemin complet d'ajout d'un modele ou produit. L'auteur doit coder
+le minimum mathematique et semantique, puis une source typee derive bindings,
+recettes, inscriptions et controles sans masquer les exceptions.
+
+**Perimetre :** manifests, templates, generateurs Python, sorties `.cuh/.cu`,
+recettes catalogue, YAML, parametres, fragments CMake, tests et checkers.
+
+**Hors perimetre :** choix mathematique d'un schema/payoff et generation des
+references independantes traitee par l'audit de validation.
+
+**Preuves attendues :** generation temporaire comparee au tree, matrice de
+capacites/outputs, builds avec/sans dependances optionnelles, execution de
+chaque engine et compte des interventions manuelles.
+
+**Livrable :** contrat d'extension model/product, source de verite, outputs
+derives, exceptions explicites et cout manuel restant.
+
+### Minimum hand-written model and product
+
+Pour un nouveau modele, verifier que le minimum manuel est limite a :
+
+- parametres compacts, loader et schema ;
+- dynamics ou analytics mathematiques propres ;
+- primitives de preparation et observables specifiques ;
+- specification de generation des parametres core/stress ;
+- tests mathematiques et numeriques ;
+- declaration de capacites et dependances.
+
+Pour un nouveau produit, verifier que le minimum manuel est limite a :
+
+- parametres compacts et loader ;
+- schedule, observation et payoff/pricing policy ;
+- continuation state si l'exercice anticipe l'exige ;
+- specification de generation des parametres ;
+- tests semantiques ;
+- declaration des besoins d'engine et variantes de side.
+
+Un couple ordinaire ne doit pas exiger de recopier launcher, kernel, runner
+CUDA, recette complete ou liste CMake.
+
+### Canonical capability manifest
+
+Auditer une source typee exprimant au minimum :
+
+- `ModelSpec` : famille mathematique, transition, engine rough, analytics,
+  etat, dependances et architectures ;
+- `ProductSpec` : schedule, observation, exercice, policy, sidedness,
+  parametres et capacites requises ;
+- `EngineSpec` : concepts, templates, launchers, runners, dependances et
+  strategie d'instanciation ;
+- `DatasetSpec` : sources de parametres, aligned/cartesian, chemins catalogue,
+  profils numeriques et metadonnees derivables.
+
+Le resolver produit explicitement :
+
+```text
+(model, product, variant) -> engine -> bindings -> target -> catalogue recipe
+```
+
+Verifier notamment :
+
+- qu'une incompatibilite est refusee par resolver ou concept lisible ;
+- qu'aucune deuxieme liste manuelle ne recopie models, products, sides,
+  schedules, engines ou dependances ;
+- que transition exacte, pas fixe, rough FFT, rough N-facteurs, closed form et
+  early exercise sont representables sans champ ambigu ;
+- que les exceptions algorithmiques sont nommees, bornees et testees ;
+- que le manifeste ne redeveloppe pas les algorithmes C++ dans Python.
+
+### Generated bindings and catalogue recipes
+
+Verifier que les champs derivables produisent :
+
+- `<model>/<product>.cuh` et `<model>/<product>.cu` ;
+- specialisations call/put, payer/receiver ou non-sided ;
+- schedule, policy et engine ;
+- instanciations et fragment CMake ;
+- generateur executable de catalogue ;
+- `dataset.yaml` ou ses champs structurels derivables ;
+- tests de compilation et checkers d'architecture ;
+- squelette de validation seulement sans choix arbitraire d'une reference.
+
+Le catalogue actuel utilise `generator.cpp`. Le referentiel emploie le terme
+neutre **generateur de catalogue** : un passage a Python doit etre une decision
+explicite, pas une coexistence accidentelle de deux formats.
+
+Verifier que profils de chemins, trajectoires, time grids, seeds, batching et
+timings restent explicites dans la source de verite ou une specification
+versionnee. Aucun choix numerique important ne doit etre cache par default.
+
+### Parameter dataset generation
+
+Auditer la base de parametres et sa recette adjacente selon
+`model-and-product-parameter-dataset-generation.md`.
+
+Verifier notamment :
+
+- specification complete des domaines, contraintes et transformations ;
+- politique ordonnee 90/10 core/stress et provenance des lignes ;
+- generation reproductible JSON/YAML ;
+- coherence schema, loader, noms, unites et ordre des champs ;
+- infrastructure de sampling, assemblage et serialisation non recopiee ;
+- bornes, distributions, correlations et stress manuellement revus, meme si
+  leur rendu code/YAML est genere ;
+- aucun default silencieux produisant recette incomplete ou plage invalide.
+
+### Regeneration, drift and exceptions
+
+Verifier notamment :
+
+- generation idempotente et comparaison zero-diff ;
+- provenance/version du generator dans les outputs ;
+- detection de toute edition manuelle d'un fichier genere ;
+- detection des outputs manquants, excedentaires et orphelins ;
+- builds avec/sans mathDx/cuFFTDx et architectures declarees ;
+- tests de chaque template, resolver et engine, cas valides/invalides ;
+- escape hatch explicite avec proprietaire, justification et checker ;
+- suppression des outputs supersedes ;
+- incrementalite, taille des unites CUDA et diagnostics lisibles preserves.
+
+Mesurer pour une extension representative : fichiers manuels, lignes
+semantiques, entrees de manifeste, commandes de generation et modifications
+residuelles. Reduire le nombre de fichiers generes n'est pas un objectif si le
+code manuel augmente ou si la matrice de capacites devient opaque.
+
+## CMake and build graph
+
+Auditer CMake comme un graphe de responsabilites et non une liste de sources.
+L'objectif est un build lisible, minimal, sans targets/options inutiles, avec
+frontieres CUDA explicites et bonne incrementalite.
+
+**Perimetre :** CMake racine, modules, fragments generes, targets, sources,
+dependances, options, architectures, instanciations et artefacts compiles.
+
+**Hors perimetre :** ownership conceptuel deja traite par Structure et
+performance runtime non causee par le build.
+
+**Preuves attendues :** graphe de targets, depfiles, symboles, sources,
+builds clean/no-op/incrementaux, configurations optionnelles et tailles
+objets/archives/cubins.
+
+**Livrable :** sources orphelines/dupliquees, targets/options inutiles,
+dependances transitives et mesures de toute frontiere proposee.
+
+Verifier notamment :
+
+- que le CMake racine declare projet, options et orchestration de haut niveau,
+  puis delegue les targets par domaine ;
+- que chaque `.cpp` ou `.cu` autonome appartient exactement a une target et
+  qu'aucune source n'est absente ou enregistree deux fois ;
+- que les fragments generes viennent de la meme source de verite que bindings
+  et recettes, sans liste parallele ;
+- qu'aucun glob silencieux n'est la seule garantie de completude ; avec
+  `CONFIGURE_DEPENDS`, un checker valide le contenu attendu ;
+- que les targets sont assez fines sans micro-target sans responsabilite ;
+- que les agregats ne sont jamais lies comme bibliotheques locales ;
+- que chaque target publie seulement includes, definitions et bibliotheques
+  necessaires ;
+- que mathDx/cuFFTDx et dependances optionnelles n'affectent pas les autres
+  targets ;
+- que target, facade, alias, option, variable cache ou fonction sans
+  consommateur est supprime ;
+- qu'une fonction/specialisation non-inline a une definition unique et que les
+  instanciations side/model/curve/N-facteurs ne dupliquent pas le code ;
+- que les templates restent visibles au point d'instanciation sans exposer
+  toutes les implementations ;
+- que les architectures ne multiplient pas les cubins sans besoin explicite ;
+- que ccache/depfiles sont actifs et que clean, no-op et modifications d'un
+  produit, dynamics, analytics, curve ou manifeste recompilent la matrice
+  attendue ;
+- que temps par target, tailles objets/archives/cubins et erreurs de link sont
+  conserves pour les specialisations principales ;
+- que toute fusion/decomposition compare build clean/incremental, code genere,
+  ressources kernel et lisibilite des erreurs.
+
+## Numerical robustness and reproducibility
 
 Auditer la robustesse numerique des dynamics, analytics, solveurs, reductions,
-regressions et kernels de pricing. Cet audit est distinct d'une comparaison de
-performance : une optimisation n'est acceptable que si elle preserve le
-contrat numerique mesure sur le domaine utile et les cas limites publies.
+regressions et kernels. Une optimisation n'est acceptable que si elle preserve
+le contrat mesure sur le domaine utile et les cas limites publies.
 
-**Perimetre :** precision, domaines mathematiques, conditionnement, convergence,
-propagation d'erreur et reproductibilite numerique des chemins CPU/CUDA.
+**Perimetre :** precision, domaines mathematiques, conditionnement,
+convergence, propagation d'erreur et reproductibilite CPU/CUDA.
 
-**Hors perimetre :** gain de temps ou de ressources considere seul ; il releve
-de `Performance` et doit reutiliser les tolerances etablies ici.
+**Hors perimetre :** gain de temps ou ressources considere seul ; il releve de
+Performance et reutilise les tolerances etablies ici.
 
 **Preuves attendues :** domaines de parametres, budgets d'erreur absolue,
-relative, ULP ou statistique, tests de limites et references independantes.
+relative, ULP ou statistique, limites et references independantes.
 
 **Livrable :** contrat numerique par famille, cas non couverts, risques prouves
 et hypotheses de precision a mesurer.
 
 Verifier notamment :
 
-- que la politique de precision est explicite et respectee : calculs device et
-  etats en FP32 par defaut, FP64 reserve aux reductions, moments, regressions,
-  factorisations ou operations dont la sensibilite le justifie ;
-- que chaque emploi de FP64 dans un chemin GPU chaud possede une justification
-  numerique et que chaque remplacement par FP32 est valide par une mesure
-  d'erreur, pas seulement par un gain de temps ;
-- les domaines de `log`, `log1p`, `sqrt`, `pow`, divisions, exponentielles,
-  fonctions de repartition et inversions, ainsi que le comportement face aux
-  valeurs nulles, negatives, infinies ou sous-normales ;
-- la positivite ou les frontieres absorbantes imposees par les modeles, sans
-  projection silencieuse qui changerait la loi sans etre documentee ;
-- la stabilite des formules pour petits temps, faible volatilite, faible
-  mean-reversion, correlation proche de sa borne, intensite de saut faible ou
-  forte et parametres proches des limites d'admissibilite ;
-- les solveurs scalaires, notamment frontieres de Jamshidian et inversions de
-  lois : encadrement, convergence, nombre maximal d'iterations, critere
-  d'arret, monotonie requise et comportement en cas d'echec ;
-- le conditionnement des equations normales Longstaff-Schwartz, la
-  normalisation des etats, la regularisation, la factorisation de Cholesky et
-  le biais introduit par un terme de regularisation trop important ;
-- la stabilite des reductions inter-thread et inter-bloc, leur ordre
-  d'accumulation, les erreurs de cancellation et la reproductibilite attendue ;
-- la coherence des conventions temporelles, des fractions d'accrual, des
-  unites de taux et des transformations de calendrier a toutes les frontieres
-  host/device ;
-- la propagation des erreurs et l'absence de NaN ou Inf silencieux dans les
-  prix, erreurs standards, coefficients de regression et datasets publies ;
-- la presence de tests de limites, identites mathematiques, convergence de pas,
-  sensibilite a la precision et comparaison a une reference independante.
+- une politique de precision explicite : etats/calculs device FP32 par defaut,
+  FP64 pour reductions, moments, regressions, factorisations ou operations
+  sensibles ;
+- que chaque FP64 chaud est justifie et chaque remplacement FP32 mesure ;
+- domaines de `log`, `log1p`, `sqrt`, `pow`, divisions, exponentielles,
+  fonctions de repartition et inversions, y compris zero, negatif, infini et
+  sous-normal ;
+- positivite, frontieres absorbantes et contraintes sans projection
+  silencieuse changeant la loi ;
+- stabilite pour petits temps, faible volatilite/mean reversion, correlations
+  aux bornes, intensites extremes et limites d'admissibilite ;
+- solveurs : encadrement, monotonie, convergence, iterations max, arret et
+  comportement d'echec ;
+- conditionnement Longstaff-Schwartz, normalisation, regularisation, Cholesky
+  et biais ;
+- stabilite/ordre des reductions, cancellation et reproductibilite attendue ;
+- conventions temporelles, accruals, unites de taux et calendriers aux
+  frontieres host/device ;
+- propagation explicite des erreurs et absence de NaN/Inf silencieux dans
+  prix, erreurs standards, coefficients et datasets ;
+- convergence de pas, nombre de facteurs rough et approximations FFT/directes ;
+- tests de limites, identites, sensibilite et reference independante.
 
-Ne pas demander une egalite bit a bit entre deux algorithmes mathematiquement
-equivalents lorsqu'elle n'est pas contractuelle. Distinguer reproductibilite
-d'un meme chemin compile, tolerance numerique et convergence statistique.
+Ne pas demander l'egalite bit a bit entre algorithmes equivalents si elle
+n'est pas contractuelle. Distinguer reproductibilite d'un meme chemin,
+tolerance numerique et convergence statistique.
 
 ## CUDA execution and memory safety
 
-Auditer la surete d'execution host/device independamment de la justesse des
-formules et de la performance. L'absence d'un passage de sanitizer est une
-exclusion de couverture, pas un constat de code; un constat n'est cree qu'a
-partir d'un defaut ou d'un risque precis prouve par le code, un sanitizer ou un
-test cible.
+Auditer la surete host/device independamment de la justesse des formules et de
+la performance. L'absence d'un sanitizer est une exclusion, pas un constat ;
+un finding exige un defaut ou risque precis prouve.
 
-**Perimetre :** arithmetique de tailles et d'offsets, acces memoire, duree de vie
-et aliasing des buffers, streams, synchronisations, erreurs asynchrones et
-outils de detection host/CUDA.
+**Perimetre :** tailles/offsets, acces memoire, duree de vie et aliasing,
+streams, synchronisations, erreurs asynchrones et outils host/CUDA.
 
-**Hors perimetre :** ecart numerique d'une valeur finie, traite par `Numerical
-robustness`, et cout des synchronisations ou layouts valides, traite par
-`Performance`.
+**Hors perimetre :** ecart numerique fini et cout d'un layout ou d'une
+synchronisation valide.
 
-**Preuves attendues :** revue des launchers et workspaces, tests d'overflow et
-de cardinalites limites, AddressSanitizer/UndefinedBehaviorSanitizer pour les
-chemins host pertinents, puis `compute-sanitizer` memcheck, racecheck, initcheck
-et synccheck sur une matrice representative des familles CUDA supportees.
+**Preuves attendues :** revue launchers/workspaces, overflow, ASan/UBSan host,
+puis `compute-sanitizer` memcheck, racecheck, initcheck et synccheck sur une
+matrice representative.
 
 **Livrable :** erreurs de bornes, duree de vie, initialisation, concurrence ou
-propagation d'erreur prouvees, avec le sanitizer et le cas minimal qui les
-reproduisent; matrice explicite des familles non executees.
+propagation prouvees, cas minimal et familles non executees.
 
 Verifier notamment :
 
-- les multiplications et additions de cardinalites, tailles, strides, offsets
-  et alignements avant allocation ou lancement, avec detection d'overflow ;
-- que chaque pointeur device couvre la plage effectivement adressee et que les
-  vues ragged valident offsets, longueurs et pools associes ;
-- la duree de vie des buffers temporaires, plans, evenements et objets prepares
-  jusqu'a la derniere operation asynchrone qui les consomme ;
-- l'absence de data race entre blocs, streams ou appels concurrents, ainsi que
-  la portee correcte des atomiques, fences et synchronisations ;
-- l'initialisation de tous les champs, coefficients, flags et reductions avant
-  lecture, y compris sur les branches sans candidat ou les lots partiels ;
-- la capture des erreurs de lancement et des erreurs asynchrones au point ou
-  elles peuvent encore etre attribuees au kernel et a la ligne concernes ;
-- que le stream contractuel est propage sans synchronisation implicite ou usage
-  accidentel du stream par defaut ;
-- que les tests sanitizer utilisent des geometries et chemins assez riches pour
-  exercer regular/explicit, aligned/Cartesian, exact/fixed-step, early exercise
-  et rough lorsqu'ils sont disponibles.
+- multiplications/additions de cardinalites, strides, offsets, tailles et
+  alignements avant allocation/lancement, avec overflow ;
+- couverture des pointeurs et validation des vues ragged, offsets, longueurs,
+  strides et pools ;
+- duree de vie des buffers, plans, evenements et objets prepares jusqu'a la
+  derniere operation asynchrone ;
+- absence de data race entre blocs, streams/appels concurrents et portee des
+  atomiques, fences et synchronisations ;
+- initialisation de tous champs, coefficients, flags et reductions sur chaque
+  branche, lot partiel ou absence de candidat ;
+- capture des erreurs de lancement/asynchrones au point attribuable ;
+- propagation du stream sans synchronisation implicite ni default stream
+  accidentel ;
+- securite des workspaces reutilises, pools generes et buffers RAII dans les
+  exceptions ;
+- geometries sanitizer regular/explicit, aligned/cartesian, exact/fixed-step,
+  early exercise, rough FFT et rough N-facteurs.
 
 Un sanitizer non execute reste une exclusion dans `status.md`. Son absence ne
-doit pas etre transformee en finding generique ni masquer les preuves statiques
-deja disponibles.
-
-## Naming
-
-Auditer ensemble les noms de dossiers, fichiers, namespaces, types, concepts,
-fonctions, arguments, variables, constantes, tests, targets et identifiants de
-catalogue. Le nom doit indiquer la responsabilite reelle, pas l'historique de
-creation de l'element.
-
-**Perimetre :** tous les identifiants internes et publies ainsi que leur
-coherence avec les responsabilites, unites et niveaux de namespace.
-
-**Hors perimetre :** preferences stylistiques sans contradiction semantique,
-cout de migration ou changement d'identifiant publie sans plan explicite.
-
-**Preuves attendues :** inventaire des conventions, recherches globales,
-comparaison des familles homologues et references CMake/catalogue/tests.
-
-**Livrable :** contradictions objectivement verifiables, convention cible et
-plan de renommage atomique.
-
-Verifier notamment :
-
-- l'emploi systematique de `snake_case` pour les chemins, fichiers, fonctions
-  et variables, de `PascalCase` pour les types et concepts, et de la convention
-  choisie pour les constantes ;
-- la correspondance entre l'arborescence et les namespaces, en evitant a la
-  fois les namespaces plats sous des dossiers specialises et les niveaux de
-  namespace sans responsabilite propre ;
-- l'usage coherent du singulier et du pluriel pour une definition, une famille,
-  une collection, un dataset et une variante de prix ;
-- que l'extension d'un fichier decrit son mode de compilation : header public,
-  implementation incluse, unite de traduction hote ou unite CUDA compilee ;
-- que les noms de fichiers homologues suivent une meme convention, notamment
-  `concepts`, `kernel`, `pricing_policy`, `schedule`, `state`, `sample`,
-  `analytics`, `dynamics`, `launch` et `workspace` ;
-- que les symboles qualifies ne repetent pas inutilement leur modele, courbe,
-  produit ou methode deja portes par le namespace ;
-- que les types internes a un namespace de modele ne repetent pas le nom du
-  modele et utilisent les noms canoniques etablis par les contrats ;
-- que les fonctions emploient un verbe stable suivant leur responsabilite :
-  `load`, `validate`, `prepare`, `compose`, `simulate`, `advance`, `evaluate`,
-  `price`, `launch`, `write` ou `generate` ;
-- que deux fonctions equivalentes utilisent le meme nom, le meme ordre
-  d'arguments et les memes noms d'arguments dans les declarations,
-  definitions, wrappers, tests et generateurs ;
-- que les variables indiquent leur unite et leur domaine lorsque le type ne le
-  fait pas : jours, annees, pas, indices, offsets, nombres de lignes, paths,
-  prix, taux et fractions d'accrual ;
-- que les booleens se lisent comme des predicats et qu'un enum remplace un
-  booleen lorsque celui-ci selectionne un mode de construction ou d'execution ;
-- que les symboles mathematiques d'une lettre restent limites aux formules
-  locales evidentes ; les valeurs transportees entre plusieurs blocs utilisent
-  des noms semantiques ;
-- que les noms temporels tels que `new`, `old`, `legacy`, `temporary` ou
-  `historical` ne survivent pas dans une API ou un test permanent ;
-- que les renommages sont atomiques dans les headers, implementations, tests,
-  CMake, generateurs, validations, diagnostics et documentation ;
-- que les identifiants publies de datasets et URLs ne sont pas renommes sans
-  une migration explicite et verifiee.
-
-Le resultat doit separer les noms objectivement contradictoires des preferences
-de style. Toute nouvelle convention retenue doit pouvoir etre verifiee par une
-recherche ou un test statique.
-
-## Project structure
-
-Auditer l'arborescence du projet en meme temps que le nommage. Pour chaque
-fichier ou dossier, identifier son proprietaire conceptuel, ses dependances et
-la raison de sa frontiere de compilation. Rechercher les responsabilites mal
-placees, les duplications, les fragments devenus inutiles et les fichiers trop
-larges ou trop fins.
-
-**Perimetre :** responsabilite des dossiers et fichiers, taille des
-unites, duplication structurelle et chemins d'extension du projet.
-
-**Hors perimetre :** details d'API deja portes par `Dynamics`, `Analytics` ou
-`Pricing policies and concepts`, sauf lorsqu'ils expliquent un mauvais
-placement.
-
-**Preuves attendues :** arborescence, graphes d'includes et de liens,
-consommateurs, tailles/diffs de fichiers et chemins necessaires pour ajouter une
-combinaison.
-
-**Livrable :** carte des responsabilites et propositions de deplacement, fusion,
-scission ou suppression avec dependances avant/apres.
-
-Verifier notamment :
-
-- que `src/model`, `src/curve`, `src/product`, `src/common`, `src/generative`,
-  `tools`, `catalog`, `validation` et `tests` ne portent que leurs
-  responsabilites declarees ;
-- qu'une politique de pricing dependant d'un contrat produit appartient a la
-  couche produit, tandis que les primitives mathematiques ou d'execution
-  reellement independantes restent dans `common` ;
-- que les dossiers de modele restent centres sur parametres, dataset,
-  dynamique, analytics, sampling et compositions necessaires, sans devenir une
-  matrice manuelle de tous les produits ;
-- que les wrappers modele-produit repetitifs sont remplaces par une
-  factorisation typee ou une generation declarative lorsque cela conserve des
-  erreurs de compilation lisibles et des unites CUDA de taille maitrisee ;
-- que les moteurs American/Bermudan, sampling, closed form et Monte-Carlo ne
-  sont pas recopies par modele lorsque seules une policy et la mathematique du
-  modele changent ;
-- que les compositions modele-courbe reutilisent une implementation parametree
-  plutot que deux copies Nelson-Siegel/Svensson quasi identiques ;
-- que les implementations textuellement incluses sont rangees et nommees comme
-  telles, sans simuler une unite de traduction CUDA autonome ;
-- que les headers de parametres device restent compacts et independants des
-  loaders hote ; centraliser le parsing commun ne doit pas fusionner ces deux
-  couches ;
-- que les fichiers communs volumineux sont separes par responsabilite lorsque
-  leurs parties evoluent independamment, sans creer des micro-fichiers ne
-  portant aucune abstraction ;
-- que les generateurs de catalogue partagent les allocations RAII, copies,
-  warmups, evenements, batching, chronometrage et ecriture des artefacts, et ne
-  repetent que leur configuration specifique ;
-- que le CMake racine orchestre le projet mais delegue les manifestes de
-  targets par domaine au lieu d'accumuler toutes les recettes ;
-- que les dossiers vides, prototypes non integres, couches de compatibilite,
-  READMEs locaux non maintenus et code sans consommateur sont soit integres,
-  soit supprimes apres verification des usages externes ;
-- que toute fusion de fichiers CUDA compare le temps de compilation,
-  l'incrementalite, la taille des objets/cubins, les registres et les temps
-  kernel avant d'etre retenue.
-
-Une proposition de nouvelle arborescence doit minimiser simultanement la
-duplication, le nombre de lieux a modifier pour ajouter un modele-produit et la
-taille des unites de traduction. Ne pas fusionner des fichiers uniquement pour
-reduire leur nombre.
-
-## Exercise and dynamics-family boundaries
-
-Auditer les frontieres internes a `src` a partir de l'arborescence mais aussi du
-graphe reel des includes, des liens CMake et des instanciations de templates.
-Cet audit doit verifier deux separations orthogonales : droits d'exercice et
-nature de la dynamique. Il ne doit pas confondre produit europeen avec formule
-fermee, ni modele rough avec modele simplement simule en Monte-Carlo.
-
-**Perimetre :** frontieres European/early exercise et Markovian/rough ainsi que
-leurs composants reellement partageables.
-
-**Hors perimetre :** formule de payoff particuliere, calibration et optimisation
-detaillee des moteurs, traitees par leurs audits proprietaires.
-
-**Preuves attendues :** graphe d'includes et de targets, instanciations de
-templates, dependances optionnelles et matrices de tests par famille.
-
-**Livrable :** dependances injustifiees entre familles, composants communs
-legitimes et exceptions mathematiques documentees.
-
-### European and early exercise
-
-Un produit europeen possede une seule date d'exercice, quelle que soit sa
-methode de valorisation : formule fermee, semi-analytique ou Monte-Carlo. Un
-produit American/Bermudan possede une logique d'exercice anticipe et peut
-reutiliser une simulation markovienne, mais ne doit pas imposer son workspace ou
-sa regression aux pricers europeens.
-
-Verifier notamment :
-
-- que les pricers europeens n'incluent ni Longstaff-Schwartz, ni regressor, ni
-  workspace ou execution plan propres a l'exercice anticipe ;
-- que le moteur Longstaff-Schwartz commun ne depend d'aucun type concret de
-  payoff equity, taux de swap, courbe, modele ou convention produit ;
-- que les seules briques partagees entre options americaines et swaptions
-  bermudeennes sont generiques : kernels de backward induction, regression,
-  workspace, execution plan et contrats de continuation necessaires ;
-- que le payoff immediat, l'etat de continuation, les normalisations et le
-  calendrier contractuel restent sous le produit qui les definit ;
-- que la composition `Dynamics + Schedule + ContinuationState + Regressor`
-  reste une composition typee modele-produit et ne duplique pas le moteur ;
-- que les notions payer/receiver, swap, courbe et accrual ne remontent pas dans
-  le moteur American equity, et que spot, strike vanilla ou dividende ne
-  remontent pas dans le moteur Bermudan fixed income ;
-- que call/put et payer/receiver sont des specialisations compile-time lorsque
-  leur choix modifie seulement le payoff ou le signe, sans kernels recopies ;
-- que schedules d'exercice, simulation des etats, observation des dates,
-  regression et reduction finale possedent chacun un proprietaire conceptuel
-  clairement identifie ;
-- que les includes ne creent aucun chemin de dependance d'un produit europeen
-  vers un produit a exercice anticipe, meme indirectement ;
-- que les tests distinguent le moteur generique, chaque policy produit et les
-  compositions modele-produit.
-
-Le produit equity nomme `AmericanOption` est numeriquement exerce sur une grille
-discrete. Verifier que cette approximation bermudeenne est explicite dans les
-parametres, la documentation, les datasets et les validations : resolution de
-la grille, premier exercice, maturite alignee et limite vers l'exercice continu.
-Ne pas presenter ce calcul comme une solution exacte a exercice continu.
-
-### Markovian and rough dynamics
-
-Verifier notamment :
-
-- que les dynamiques markoviennes utilisent l'ossature commune seulement
-  lorsqu'un etat fini contient effectivement l'information necessaire a la
-  transition suivante ;
-- que les modeles rough/Volterra ne sont pas forces dans une fausse
-  `DynamicsPolicy` markovienne pour satisfaire un kernel existant ;
-- qu'aucun path simulator ou schedule markovien ne contient de branche runtime
-  `rough/non-rough` ou de dependance optionnelle a cuFFTDx ;
-- que convolution, noyaux de Volterra, historique, hybrid scheme, FFT et
-  plans associes restent dans des composants rough explicitement identifies ;
-- que les briques rough partagees entre Rough Bergomi et Rough Heston, lorsque
-  ces deux modeles appartiennent au perimetre, sont placees dans un niveau
-  commun uniquement si leurs invariants mathematiques et leurs layouts sont
-  reellement identiques ;
-- que les modeles rough peuvent reutiliser les composants independants de la
-  memoire du processus : Philox, device inputs, payoff terminal, reductions,
-  diagnostics CUDA et primitives de lancement pertinentes ;
-- que les dependances mathDx/cuFFTDx, architectures supportees et flags de
-  compilation restent optionnels et limites aux targets qui les consomment ;
-- qu'une approximation markovienne ou un lift eventuel est nomme comme tel et
-  ne modifie pas silencieusement le contrat de la dynamique rough ;
-- que l'ajout d'un modele markovien ne recompile pas les kernels FFT et que
-  l'ajout d'un modele rough n'etend pas les concepts markoviens artificiellement ;
-- que les tests de contrat, convergence et performance utilisent des matrices
-  separees pour les familles markovienne et rough.
-
-Pour chaque dependance commune, demander quel invariant justifie le partage.
-Une ressemblance d'API ou l'emploi commun du Monte-Carlo ne suffit pas.
-
-## Pricing policies and concepts
-
-Auditer les concepts et policies qui composent dynamics, schedules, handlers,
-continuation states, regressors et kernels. L'objectif est de verifier que les
-concepts expriment les besoins minimaux des consommateurs reels et que les
-policies transportent seulement les donnees necessaires a leur specialisation.
-
-**Perimetre :** concepts C++, policies, types prepares et points de composition
-entre dynamique, calendrier, observation, payoff, continuation et regression.
-
-**Hors perimetre :** exactitude des formules et cout detaille des kernels, sauf
-si l'interface impose une operation ou une ressource inutile.
-
-**Preuves attendues :** exigences de concepts reliees a leurs expressions
-consommatrices, instanciations valides/invalides, tailles de types et call graph.
-
-**Livrable :** exigences inutiles ou manquantes, policies trop larges et
-composition canonique minimale par famille.
-
-Verifier notamment :
-
-- que chaque exigence d'un concept correspond a un appel reel dans au moins un
-  template consommateur et qu'aucune methode hypothetique n'est imposee ;
-- que les capacites optionnelles, par exemple `spot`, `log_spot`, transition
-  exacte ou etat joint, utilisent des concepts specialises plutot qu'un contrat
-  de base toujours plus riche ;
-- que fixed step et exact transition partagent leur contrat commun sans
-  transporter `PreparedModel` ou `PreparedTransition` lorsqu'ils sont inutiles ;
-- que `Schedule` construit ou parcourt la sequence des dates et fournit les
-  transitions temporelles necessaires, mais ne calcule ni payoff, ni observable
-  produit, ni prix ;
-- que les handlers observent un etat aux dates decidees sans prendre possession
-  de la dynamique, du calendrier ou du launcher ;
-- que `PricingPolicy` definit les inputs, la ligne preparee et l'evaluation
-  propres au produit sans reimplementer simulation, reduction ou allocation ;
-- que `ContinuationState` definit uniquement le stockage et les variables de
-  regression requises par l'exercice anticipe ;
-- que le regressor definit base, accumulation, resolution et evaluation sans
-  connaitre le produit ou le modele ;
-- que les types `Parameters`, `PreparedDynamics`, `State`, `Calendar`,
-  `TimeConfiguration`, `DeviceInputs` et `PreparedRow` sont coherents entre les
-  policies composees et trivialement copiables lorsqu'ils traversent le device ;
-- que les limites de taille de `PreparedRow` ou d'autres objets device sont
-  justifiees par une ressource mesuree et non utilisees comme substitut a un
-  audit de registres ;
-- que les erreurs d'une composition invalide sont detectees au plus pres par un
-  concept ou `static_assert` lisible ;
-- que les tests de compilation couvrent les familles de policies et leurs
-  capacites optionnelles, sans multiplier des concepts redondants.
-
-Ne retenir un concept universel que si ses consommateurs partagent les memes
-invariants sans adaptateurs vides, branches runtime ni donnees inutiles. Ne
-retenir une specialisation par modele que si un contrat commun introduirait un
-cout compile/runtime ou masquerait une difference semantique.
-
-## Tools and src ownership
-
-Auditer explicitement la frontiere entre `src` et `tools`. La direction de
-dependance normale est `tools -> src` : `src` fournit les bibliotheques
-numeriques et d'acces aux donnees reutilisables, tandis que `tools` fabrique,
-valide et publie des artefacts offline. Une cible de `src` ne doit pas dependre
-d'un header, d'une bibliotheque ou d'une convention de catalogue situes dans
-`tools`.
-
-**Perimetre :** fichiers, fonctions, targets et dependances traversant la
-frontiere runtime/offline.
-
-**Hors perimetre :** organisation interne detaillee d'une couche lorsque rien
-ne traverse la frontiere ; elle releve de `Project structure`.
-
-**Preuves attendues :** includes dans les deux sens, liens CMake, include roots,
-consommateurs reels et nature runtime ou publication de chaque symbole partage.
-
-**Livrable :** table source/destination, DAG cible et tests statiques empechant
-le retour d'une dependance `src -> tools`.
-
-Verifier notamment :
-
-- qu'aucun fichier de `src` n'inclut `tools` et qu'aucune bibliotheque runtime
-  ou publique ne lie transitivement une cible de generation ;
-- que les include roots et les dependances CMake rendent cette direction
-  impossible a violer accidentellement, au lieu de seulement la documenter ;
-- que les parametres compacts, loaders publics, validations necessaires a la
-  lecture, dynamics, analytics, kernels, launchers et primitives de layout
-  reutilisables restent dans `src` ;
-- que les recettes de sampling, seeds de publication, bornes core/stress,
-  generation de lignes, ecriture JSON/YAML, URLs, chronometrage de generateur,
-  CLI et codegen restent dans `tools` ou `catalog` ;
-- qu'une formule mathematique deterministe utilisee par le runtime et par un
-  generateur possede une seule definition dans le domaine correspondant de
-  `src`, avec une surface host/device si necessaire ; le RNG, le rejet et les
-  metadonnees de construction restent dans `tools` ;
-- que les types de mode, conventions temporelles, calculs de cardinalite et
-  mappings d'indices consommes par les APIs de pricing appartiennent a `src`,
-  meme si leur premier consommateur est un generateur ;
-- que la validation de schema necessaire aux loaders de `src` est separee des
-  controles propres a la publication d'un artefact ou d'un catalogue ;
-- que les helpers CUDA de diagnostic restent dans `src` lorsqu'ils font partie
-  du comportement opt-in des launchers ; un outil d'analyse autonome ou un
-  export de rapport reste dans `tools` ;
-- qu'un faible nombre de consommateurs internes ne suffit pas a deplacer une
-  API numerique publique vers `tools`, et qu'a l'inverse le mot `reusable` ne
-  transforme pas une recette offline en bibliotheque runtime ;
-- que les fichiers de `tools` ne melangent pas sampling de parametres,
-  orchestration CUDA, assemblage des resultats, serialisation et publication
-  lorsqu'ils peuvent evoluer ou etre testes independamment ;
-- que les facades de compatibilite, targets sans consommateur, dossiers
-  placeholders et prototypes non integres sont supprimes apres verification
-  des usages externes ;
-- que toute proposition de deplacement fournit la table source/destination,
-  les dependances avant/apres, les consommateurs migres et les tests de
-  frontiere necessaires.
-
-Pour chaque fonction partagee, separer la mathematique pure de sa politique de
-generation. Ne pas deplacer un generateur complet dans `dynamics` uniquement
-parce qu'il reconstruit un parametre du modele ; seule la primitive
-mathematique canonique appartient alors a `src`.
-
-## Build and CUDA instantiations
-
-Auditer les frontieres de compilation C++/CUDA, les includes, les
-instanciations explicites, le graphe CMake et l'incrementalite du build. Le but
-n'est pas de minimiser le nombre de fichiers, mais de limiter les recompilations,
-les definitions dupliquees et les unites CUDA inutilement volumineuses.
-
-**Perimetre :** unites de traduction, templates, instanciations, targets,
-dependances optionnelles, artefacts compiles et incrementalite.
-
-**Hors perimetre :** organisation conceptuelle sans effet sur le build et
-performance runtime non causee par les frontieres de compilation.
-
-**Preuves attendues :** graphe CMake, depfiles, symboles, tailles
-objets/archives/cubins et mesures clean, no-op et incrementales.
-
-**Livrable :** source de verite des combinaisons, recompilations inattendues,
-definitions dupliquees et comparaison mesuree de toute nouvelle frontiere.
-
-Verifier notamment :
-
-- que chaque `.cpp` ou `.cu` autonome correspond a une unite de traduction
-  reelle et que chaque implementation textuellement incluse est identifiee et
-  protegee en consequence ;
-- que l'inclusion d'un `.cu` est necessaire a la visibilite de definitions
-  device force-inline ou de templates, et ne masque pas une frontiere de lien
-  mal concue ;
-- qu'une fonction ou specialisation non-inline possede une seule definition et
-  que les instanciations explicites call/put, payer/receiver et curve/model ne
-  produisent ni symbole manquant ni code duplique inutilement ;
-- que les templates generiques restent visibles au point d'instanciation sans
-  exposer toutes les implementations concretes dans tous les consommateurs ;
-- que chaque launcher compile dans une target fine avec uniquement ses loaders,
-  courbes, produits et bibliotheques communes necessaires ;
-- que les targets agreges ne deviennent pas des dependances transitives d'un
-  test ou d'un generateur local ;
-- que modifier un produit, une dynamics, un analytics ou une curve recompile
-  seulement la matrice de consommateurs attendue ;
-- qu'une source de verite explicite ou generee enumere completement les sources,
-  dependances et combinaisons supportees, et qu'un controle detecte tout fichier
-  orphelin ou entree manquante sans imposer le globbing comme solution ;
-- que les dependances optionnelles, notamment mathDx/cuFFTDx, n'affectent ni la
-  configuration ni la compilation des targets qui ne les utilisent pas ;
-- que les variantes d'architecture CUDA ne multiplient pas les cubins sans
-  besoin de distribution explicite ;
-- que ccache, depfiles et compilation incrementale sont effectivement actifs et
-  que les temps clean, no-op et incrementaux sont mesures separement ;
-- que la taille des objets, archives et cubins ainsi que le temps de compilation
-  par target sont suivis pour les principales specialisations.
-
-Toute proposition de fusion ou de deplacement doit comparer le temps de build
-clean et incremental, la taille du code genere, les ressources kernel et la
-lisibilite des erreurs de compilation.
+devient pas un finding generique et ne masque pas les preuves statiques.
 
 ## Performance
 
-Effectuer trois audits de performance distincts. Utiliser les memes regles de
-mesure et de reproductibilite, mais ne pas diluer les contraintes specifiques
-de Longstaff-Schwartz ou des modeles rough dans une liste CUDA generique.
+Effectuer trois audits de performance distincts avec protocole et gates de
+ressources communs. Pression registre, spills, strategie de kernel et cout des
+abstractions sont des criteres de premier rang, pas de simples informations
+d'occupation.
 
-**Perimetre :** performance runtime CUDA generique, early exercise et rough/FFT
-sur les architectures et charges officiellement supportees.
+**Perimetre :** runtime CUDA generique, early exercise et rough FFT/N-facteurs
+sur architectures et workloads officiellement supportes.
 
-**Hors perimetre :** toute optimisation sans baseline comparable ou dont le
-contrat numerique n'est pas etabli par `Numerical robustness`.
+**Hors perimetre :** optimisation sans baseline comparable ni contrat
+numerique etabli par Numerical robustness.
 
-**Preuves attendues :** binaires et ressources statiques, profils Nsight,
-benchmarks repetes, configuration materielle/logicielle et validation numerique.
+**Preuves attendues :** binaires, PTX/cubins, ressources statiques, profils
+Nsight, benchmarks repetes, environnement et validation numerique.
 
-**Livrable :** trois rapports separes, chacun avec baseline, mesures de
-ressources, mediane/p95, hypothese, resultat et decision.
+**Livrable :** trois rapports avec baseline, manifeste de workloads,
+ressources, mediane/p95/CV, hypothese, resultat et decision.
+
+### Common performance protocol and kernel strategy
+
+Pour chaque kernel et specialisation representative, consigner :
+
+- strategie thread/warp/bloc par resultat ou trajectoire ;
+- decomposition/fusion des phases et dependances qui la justifient ;
+- registres par thread, valeurs vivantes, spills, stack et local memory ;
+- shared statique/dynamique, banques et synchronisations ;
+- blocs/warps residents, occupation theorique et atteinte ;
+- taille machine, archives/cubins et risque instruction cache ;
+- geometrie grid/block et seuils de changement de strategie ;
+- trafic global, coalescence, caches, divergence et melange FP32/FP64 ;
+- allocations, copies, streams, evenements, validations et synchronisations ;
+- impact de toute factorisation, concept, template ou codegen sur la
+  specialisation exacte.
+
+Utiliser `ptxas` ou cubin pour les ressources statiques et Nsight Compute pour
+occupation, stalls, local memory, caches, branches, debit memoire et
+instructions. Un compteur inaccessible est une limite explicite.
+
+Avant l'experience, fixer GPU, architecture, compilateur, flags, power limit,
+frequences, etat thermique, workload, warmups, repetitions, chronometrage,
+traitement des outliers, variabilite maximale et seuil de gain utile. Conserver
+baseline et regle d'acceptation avant le resultat.
+
+Interdire `--use_fast_math`. Ne pas ajouter `__launch_bounds__` sans design
+architecture-aware et mesures sur chaque architecture cible. Une hausse de
+registres, apparition de spills ou baisse d'occupation ne peut etre masquee par
+une mediane unique.
 
 ### Generic CUDA performance
 
-Auditer les fonctions device, kernels, templates communs, launchers, layouts
-memoire et echanges hote-device des formules fermees, du Monte-Carlo markovien
-et du sampling. Les chemins early exercise et rough FFT font l'objet des deux
-sections suivantes.
+Auditer formules fermees, Monte-Carlo markovien, sampling, fonctions device,
+kernels communs, launchers, layouts et echanges host/device.
 
 Verifier notamment :
 
-- les flags de compilation, l'inlining, la taille du code machine et les
-  risques de pression sur l'instruction cache ;
-- l'emploi pertinent de `fmaf`, `expm1f`, `log1pf`, `sincosf` et des primitives
-  numeriquement stables, sans appliquer globalement `--use_fast_math` ni des
-  approximations rapides non validees ;
-- la presence de calculs invariants dans les boucles de trajectoire et leur
-  deplacement eventuel dans `PreparedModel`, `PreparedTransition` ou
-  `PreparedRow` ;
-- le choix des types : minimiser FP64 dans les chemins chauds tout en
-  conservant la precision requise pour les reductions, moments, regressions et
-  distributions sensibles ;
-- l'emploi de types d'index compacts sur le device, les divisions et modulos
-  entiers 64 bits, les promotions necessaires pour les adresses et le maintien
-  de compteurs 64 bits lorsque l'espace global l'exige ;
-- les registres par thread, spills, frames de stack locale, valeurs vivantes,
-  occupation theorique et occupation atteinte pour chaque specialisation ;
-- la geometrie des blocs et grilles, avec comparaison mesuree de plusieurs
-  tailles de bloc plutot qu'une valeur globale supposee optimale ;
-- la quantite et l'organisation de la shared memory, les synchronisations, les
-  broadcasts, les reductions et les conflits de banques ;
-- la contiguite, l'alignement et la coalescence des acces globaux, ainsi que le
-  choix AoS/SoA, l'ordre des dimensions, les strides et les schedules ragged ;
-- la divergence due aux branches, calendriers variables, algorithmes de rejet,
-  sauts et criteres d'arret iteratifs ;
-- le cout des reductions generiques et la pression registre induite par les
-  tableaux ou packs de valeurs conserves par chaque thread ;
-- l'absence de chevauchement des sequences Philox, de reutilisation non
-  contractuelle des tirages et de generation inutile, ainsi que la stabilite du
-  mapping entre resultat, trajectoire et sequence aleatoire ;
-- les copies, allocations, validations de pointeurs, requetes de proprietes du
-  device, synchronisations, streams et possibilites de reutilisation des
-  buffers ;
-- la pertinence de kernels generiques un-thread-par-resultat ou
-  un-bloc-par-resultat selon la quantite de travail et les reductions internes ;
-- les seuils de regression portant sur les registres, spills, stack, shared,
-  taille du code, temps median et p95, ainsi que la validation numerique de
-  toute optimisation.
+- inlining/noinline, taille code et instruction cache ;
+- invariants dans les boucles et preparation host/device ;
+- emploi de `fmaf`, `expm1f`, `log1pf`, `sincosf` et primitives stables sans
+  approximation globale ;
+- FP32 chaud et FP64 seulement selon contrat numerique ;
+- index device compact, divisions/modulos 64 bits et promotions d'adresse ;
+- geometries mesurees pour policies simples/riches et closed form
+  scalaire/cooperatif ;
+- AoS/SoA, alignement, dimensions, schedules ragged et coalescence ;
+- divergence des branches, calendriers, rejet, sauts et arrets iteratifs ;
+- reductions, tableaux locaux et packs de valeurs par thread ;
+- consommation Philox utile et absence de chevauchement ;
+- cout fixe des launchers, batching, reutilisation sure et synchronisations ;
+- comparaison un-thread, un-warp ou un-bloc par resultat ;
+- gates registres, spills, stack, shared, code size, mediane, p95 et numerique.
 
 ### Early-exercise performance
 
-Auditer separement le moteur Longstaff-Schwartz utilise par les options
-americaines et les swaptions bermudeennes. Couvrir au minimum un modele equity
-a un facteur, un modele equity a plusieurs etats, un modele de taux a un facteur
-et un modele de taux a deux facteurs. Utiliser un plan d'experience couvrant le
-nombre de prix, de trajectoires, de dates d'exercice, de champs de continuation
-et de blocs par prix, avec variations isolees et interactions representatives.
+Auditer Longstaff-Schwartz sur au moins un modele equity un facteur, un equity
+multi-etats, un taux un facteur et un taux deux facteurs. Couvrir prix, paths,
+dates, variables de continuation et blocs/prix.
 
 Verifier notamment :
 
-- l'exactitude arithmetique du calcul de `WorkspaceLayout`, des offsets, des
-  alignements et des tailles, y compris les protections contre overflow ;
-- que `ExecutionPlan` utilise un budget VRAM avec marge de securite, construit
-  des batches valides pour toutes les cardinalites et echoue proprement lorsqu'un
-  prix unique ne tient pas ;
-- que le plan prend en compte tous les champs SoA, cashflows, coefficients,
-  reductions, etats de regression, erreurs standards et buffers temporaires ;
-- que les allocations, copies host/device, evenements et synchronisations sont
-  faites par batch ou par lancement, jamais a chaque date d'exercice sans
-  necessite mesuree ;
-- qu'aucun aller-retour CPU n'intervient dans la backward induction du petit
-  regressor device ;
-- que les etats observes sont stockes en SoA coalescent et que les dates ou
-  schedules heterogenes ne provoquent pas de grands trous ou lectures inutiles ;
-- que la simulation forward, l'accumulation des equations normales, la
-  resolution, l'application de la decision d'exercice et la reduction finale
-  ont une decomposition en kernels justifiee par les dependances et les couts ;
-- que le nombre de lancements varie comme prevu avec les batches et dates, et
-  que fusionner deux phases n'augmente pas les registres, la shared ou les
-  synchronisations au-dela du gain mesure ;
-- que la base de regression est evaluee une seule fois par etat lorsque
-  possible, sans tableau local provoquant spills ou stack importante ;
-- que les equations normales et Cholesky utilisent FP64 la ou le
-  conditionnement le justifie, sans propager FP64 dans la simulation ou le
-  stockage massif des trajectoires ;
-- que shared memory, reductions inter-blocs, atomiques et synchronisations du
-  regressor conservent une bonne occupation et ne serialisent pas les prix ;
-- que `threads_per_block` et `blocks_per_price` sont mesures pour plusieurs
-  tailles de regression et nombres de trajectoires, sans valeur universelle
-  imposee par intuition ;
-- que les produits avec nombres de dates differents sont batches ou groupes de
-  facon mesuree, sans surcalcul excessif ni explosion du nombre de lancements ;
-- que le contrat precise si prix et erreurs standards doivent rester identiques
-  lorsque seul le decoupage en batches change, puis que cette invariance est
-  testee lorsqu'elle est requise ;
-- que les limites naturelles du prix, l'exercice immediat, l'exercice terminal
-  et la convergence quand la grille se raffine sont preserves par toute
-  optimisation.
+- arithmetique, offsets, alignements et overflow de `WorkspaceLayout` ;
+- budget VRAM/marge de `ExecutionPlan`, y compris un prix qui ne tient pas ;
+- tous champs SoA, cashflows, coefficients, reductions, etats et temporaires ;
+- allocations, copies, evenements et synchronisations par batch, jamais par
+  date sans preuve ;
+- absence d'aller-retour CPU dans backward ;
+- stockage SoA coalescent et cout des schedules heterogenes ;
+- decomposition forward, accumulation, resolution, decision et reduction ;
+- lancements et arbitrage fusion/separation selon registres/shared/sync ;
+- evaluation unique des bases et absence de tableaux locaux avec spills ;
+- FP64 limitee aux equations/regressions sensibles ;
+- reductions inter-blocs, atomiques et shared sans serialiser les prix ;
+- mesures `threads_per_block`/`blocks_per_price` selon base et paths ;
+- batching des dates heterogenes seulement si le gain couvre la permutation ;
+- invariance des prix/erreurs selon decoupage lorsque contractuelle ;
+- exercice immediat/terminal, limites naturelles et convergence de grille.
 
-Produire une table par specialisation avec workspace par prix, VRAM totale,
-registres, spills, stack, shared, occupation, lancements, temps forward,
-regression/backward et reduction finale. Distinguer cout fixe, debit asymptotique
-et point de saturation GPU.
+Produire par specialisation workspace/prix, VRAM, registres, spills, stack,
+shared, occupation, lancements et temps forward/backward/reduction. Distinguer
+cout fixe, debit asymptotique et saturation.
 
-### Rough FFT performance
+### Rough performance
 
-Auditer separement les chemins rough reposant sur convolution directe, hybrid
-scheme ou FFT/cuFFTDx. Les comparer uniquement a precision et discretisation
-equivalentes. Couvrir plusieurs maturites, nombres de pas, nombres de prix et
-trajectoires ainsi que les architectures CUDA officiellement supportees.
+Auditer les deux strategies rough puis leurs composants communs.
 
-Verifier notamment :
+Pour FFT/Volterra, verifier notamment :
 
-- la complexite et le seuil mesure de bascule entre convolution directe,
-  implementation hybride et FFT, sans supposer que la FFT gagne pour les
-  petites grilles ;
-- le choix des longueurs FFT, padding, batch size et layouts complexes, ainsi
-  que le cout memoire des zeros et frequences inutiles ;
-- la fusion ou separation de generation gaussienne, convolution, reconstruction
-  de variance, integration du spot, payoff et reduction ;
-- la shared memory statique et dynamique requise par cuFFTDx, les registres,
-  spills, occupation, nombre de blocs residents et limites par architecture ;
-- les transpositions, strides, alignements et coalescence des lectures/ecritures
-  entre l'espace temps et l'espace frequentiel ;
-- la reutilisation des coefficients de noyau, twiddles, plans ou objets FFT
-  entre trajectoires, prix et lancements ;
-- le trafic VRAM et les buffers temporaires, notamment lorsque l'historique ne
-  tient plus dans un bloc ou qu'un prix est traite par plusieurs blocs ;
-- le nombre et le cout des synchronisations de bloc, lancements, barrieres et
-  eventuelles copies intermediaires ;
-- le mapping Philox et les correlations gaussiennes, afin qu'une optimisation
-  FFT ne change pas silencieusement la loi simulee ;
-- la precision de convolution, les erreurs de padding, l'aliasing et la
-  convergence vers une implementation directe de reference ;
-- l'isolation des specialisations et dependances cuFFTDx pour ne pas augmenter
-  registres, taille du code ou temps de compilation des chemins markoviens ;
-- le comportement lorsque la taille demandee n'est pas supportee par une
-  specialisation compilee : erreur explicite, fallback documente et absence de
-  chemin lent silencieux.
+- crossover direct/hybride/FFT a precision/discretisation equivalentes ;
+- longueurs FFT, padding, batch, layouts complexes et zeros inutiles ;
+- fusion/separation generation, convolution, reconstruction, integration,
+  payoff et reduction ;
+- registres, shared cuFFTDx, spills, occupation et blocs residents par
+  architecture ;
+- transpositions, strides, coalescence et trafic VRAM ;
+- reutilisation des coefficients, plans et workspaces ;
+- chunking, streams et budget memoire ;
+- synchronisations, barrieres et copies intermediaires ;
+- Philox, correlations, precision, aliasing et convergence directe ;
+- isolation des specialisations et erreur explicite pour taille non supportee.
 
-Produire une courbe temps et debit selon le nombre de pas, avec decomposition
-simulation/convolution/payoff/reduction, ainsi qu'une table registres, shared,
-occupation, VRAM temporaire et erreur numerique pour chaque variante comparee.
+Pour les lifts rough N-facteurs, verifier notamment :
 
-Pour les trois audits de performance, consigner le GPU, l'architecture, le
-compilateur, les flags, la geometrie, la taille du jeu de donnees, les warmups,
-le power limit, les frequences, l'etat thermique, le mode de performance du GPU
-et la methode de chronometrage. Utiliser `ptxas` ou le cubin pour les ressources
-statiques et Nsight Compute pour l'occupation atteinte, les stalls, les acces
-locaux, les caches, les branches, le debit memoire et le melange
-d'instructions FP32/FP64. Comparer mediane et p95 sur plusieurs repetitions,
-conserver une baseline avant modification et valider numeriquement toute
-optimisation retenue.
+- cout de preparation/evaluation des facteurs exponentiels ;
+- croissance registres, stack, instructions et temps avec les facteurs ;
+- stockage compile-time, register/shared/global ;
+- reutilisation markovienne sans branche ni objet surdimensionne ;
+- geometrie selon facteur count, paths et produits ;
+- compromis nombre de facteurs, erreur d'approximation et debit ;
+- absence d'inflation des kernels markoviens sans rapport.
 
-Avant chaque experience, fixer le nombre de repetitions, la methode de rejet
-des valeurs aberrantes, l'incertitude ou la variabilite observee, le seuil
-minimal de gain techniquement utile et la regle d'acceptation ou de rejet. Le
-manifeste de workloads et cette regle sont conserves avec la baseline avant de
-voir le resultat; une mediane seule ou un gain inferieur au bruit mesure ne
-suffit pas a retenir une transformation.
+Produire courbes temps/debit selon pas ou facteurs, decomposition des phases et
+table registres/shared/spills/occupation/VRAM/erreur. Mesurer aussi les
+composants rough communs afin qu'une factorisation ne penalise ni FFT ni
+N-facteurs.
+
+Pour les trois audits, une mediane seule ou un gain inferieur au bruit ne
+suffit jamais. Toute optimisation retenue conserve contrat numerique, mapping
+aleatoire et baselines des artefacts affectes.

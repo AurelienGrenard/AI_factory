@@ -34,6 +34,20 @@ __global__ void monte_carlo_kernel(
     standard_errors[index] = 0.125f;
 }
 
+__global__ void workspace_kernel(
+    const float* inputs,
+    float* prices,
+    float* standard_errors,
+    float* workspace,
+    std::size_t workspace_count
+) {
+    const std::size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= workspace_count) return;
+    workspace[index] = inputs[index] + 1.0f;
+    prices[index] = workspace[index];
+    standard_errors[index] = 0.25f;
+}
+
 void require_close(float actual, float expected) {
     if (std::fabs(actual - expected) > 1.0e-6f) {
         throw std::runtime_error("offline CUDA runner returned wrong data");
@@ -93,8 +107,36 @@ int main() {
         require_close(monte_carlo.prices[index], 3.0f * inputs[index]);
         require_close(monte_carlo.standard_errors[index], 0.125f);
     }
+
+    const auto workspace_launch = [](auto& execution) {
+        if (execution.workspace_bytes() != 4U * sizeof(float)) {
+            throw std::runtime_error(
+                "offline CUDA runner allocated the wrong workspace"
+            );
+        }
+        workspace_kernel<<<1U, threads>>>(
+            execution.template input<0>(),
+            execution.prices(),
+            execution.standard_errors(),
+            static_cast<float*>(execution.workspace()),
+            4U
+        );
+    };
+    const offline_cuda::MonteCarloRun with_workspace =
+        offline_cuda::run_monte_carlo_with_workspace(
+            host_inputs,
+            inputs.size(),
+            inputs.size() * sizeof(float),
+            workspace_launch,
+            workspace_launch
+        );
+    for (std::size_t index = 0U; index < inputs.size(); ++index) {
+        require_close(with_workspace.prices[index], inputs[index] + 1.0f);
+        require_close(with_workspace.standard_errors[index], 0.25f);
+    }
     if (analytical.wall_seconds < analytical.kernel_seconds
-        || monte_carlo.wall_seconds < monte_carlo.kernel_seconds) {
+        || monte_carlo.wall_seconds < monte_carlo.kernel_seconds
+        || with_workspace.wall_seconds < with_workspace.kernel_seconds) {
         throw std::runtime_error("offline CUDA runner timing is inconsistent");
     }
     return 0;

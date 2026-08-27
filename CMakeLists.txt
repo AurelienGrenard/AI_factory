@@ -214,6 +214,13 @@ endfunction()
 
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
+    if(source MATCHES
+        "catalog/model/equity/(rough_heston|quadratic_rough_heston)/prices/")
+        # Host preparation includes the CUDA dynamics contract that defines
+        # PreparedDynamics<N>; compile these generated recipes with nvcc even
+        # though their entry-point extension remains generator.cpp.
+        set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
+    endif()
     add_executable(${target} EXCLUDE_FROM_ALL ${source})
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     ai_factory_collect_source_dependencies(dependencies ${source})
@@ -226,6 +233,10 @@ function(add_price_generator target source)
         ${target} PRIVATE ${dependencies} ai_factory_price_dataset
     )
     target_compile_features(${target} PRIVATE cxx_std_23)
+    set_target_properties(${target} PROPERTIES
+        CUDA_STANDARD 23
+        CUDA_STANDARD_REQUIRED YES
+    )
     add_dependencies(price_generators ${target})
 endfunction()
 
@@ -250,9 +261,9 @@ function(ai_factory_catalog_generator_target output source)
     set(${output} "${target}" PARENT_SCOPE)
 endfunction()
 
-# The catalog tree itself is the source of truth for executable recipes. The
-# generated pricing-unit manifest remains the independent source of truth for
-# the model-product implementation matrix.
+# The generated manifest owns the ordinary non-American equity recipes and
+# their implementation matrix. Tree discovery also registers the deliberately
+# manual American/LSM, fixed-income and parameter recipes.
 file(GLOB_RECURSE _ai_factory_catalog_generators
     CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"

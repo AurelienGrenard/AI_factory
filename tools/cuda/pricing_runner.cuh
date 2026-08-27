@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <tuple>
 #include <type_traits>
@@ -49,6 +50,7 @@ public:
 
     Value* data() noexcept { return data_; }
     const Value* data() const noexcept { return data_; }
+    std::size_t size() const noexcept { return count_; }
 
     void copy_from(const Value* source) {
         if (count_ == 0U) return;
@@ -110,10 +112,15 @@ auto inputs(const Containers&... containers) {
 template<bool WithStandardErrors, class... Values>
 class Execution {
 public:
-    Execution(const HostInputs<Values...>& host, std::size_t result_count)
+    Execution(
+        const HostInputs<Values...>& host,
+        std::size_t result_count,
+        std::size_t workspace_bytes = 0U
+    )
         : inputs_(make_buffers(host, std::index_sequence_for<Values...>{})),
           prices_(result_count),
-          standard_errors_(WithStandardErrors ? result_count : 0U) {
+          standard_errors_(WithStandardErrors ? result_count : 0U),
+          workspace_(workspace_bytes) {
         copy_inputs(host, std::index_sequence_for<Values...>{});
     }
 
@@ -130,6 +137,12 @@ public:
             "Analytical executions do not allocate standard errors."
         );
         return standard_errors_.data();
+    }
+
+    void* workspace() noexcept { return workspace_.data(); }
+
+    std::size_t workspace_bytes() const noexcept {
+        return workspace_.size();
     }
 
     void copy_prices_to(std::vector<float>& destination) const {
@@ -171,6 +184,7 @@ private:
     std::tuple<DeviceBuffer<Values>...> inputs_;
     DeviceBuffer<float> prices_;
     DeviceBuffer<float> standard_errors_;
+    DeviceBuffer<std::uint8_t> workspace_;
 };
 
 struct AnalyticalRun {
@@ -184,9 +198,10 @@ struct MonteCarloRun : AnalyticalRun {
 };
 
 template<bool WithStandardErrors, class... Values, class Warmup, class Launch>
-auto run(
+auto run_with_workspace(
     const HostInputs<Values...>& host_inputs,
     std::size_t result_count,
+    std::size_t workspace_bytes,
     Warmup&& warmup,
     Launch&& launch
 ) {
@@ -201,7 +216,7 @@ auto run(
 
     const auto wall_start = std::chrono::steady_clock::now();
     Execution<WithStandardErrors, Values...> execution(
-        host_inputs, result_count
+        host_inputs, result_count, workspace_bytes
     );
     std::invoke(std::forward<Warmup>(warmup), execution);
     check_cuda(cudaDeviceSynchronize(), "offline CUDA warmup");
@@ -232,6 +247,22 @@ auto run(
     return result;
 }
 
+template<bool WithStandardErrors, class... Values, class Warmup, class Launch>
+auto run(
+    const HostInputs<Values...>& host_inputs,
+    std::size_t result_count,
+    Warmup&& warmup,
+    Launch&& launch
+) {
+    return run_with_workspace<WithStandardErrors>(
+        host_inputs,
+        result_count,
+        0U,
+        std::forward<Warmup>(warmup),
+        std::forward<Launch>(launch)
+    );
+}
+
 template<class... Values, class Warmup, class Launch>
 MonteCarloRun run_monte_carlo(
     const HostInputs<Values...>& host_inputs,
@@ -242,6 +273,23 @@ MonteCarloRun run_monte_carlo(
     return run<true>(
         host_inputs,
         result_count,
+        std::forward<Warmup>(warmup),
+        std::forward<Launch>(launch)
+    );
+}
+
+template<class... Values, class Warmup, class Launch>
+MonteCarloRun run_monte_carlo_with_workspace(
+    const HostInputs<Values...>& host_inputs,
+    std::size_t result_count,
+    std::size_t workspace_bytes,
+    Warmup&& warmup,
+    Launch&& launch
+) {
+    return run_with_workspace<true>(
+        host_inputs,
+        result_count,
+        workspace_bytes,
         std::forward<Warmup>(warmup),
         std::forward<Launch>(launch)
     );
