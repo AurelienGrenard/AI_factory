@@ -22,6 +22,15 @@ set(AI_FACTORY_GENERATED_EQUITY_MODELS
     quadratic_rough_heston
 )
 
+set(AI_FACTORY_GENERATED_FIXED_INCOME_MODELS
+    cir
+    g2
+    g2_plus_plus
+    hull_white
+    ornstein_uhlenbeck
+    vasicek
+)
+
 set(AI_FACTORY_GENERATED_ROUGH_MODELS
     rough_bergomi
     rough_sabr
@@ -444,4 +453,73 @@ set(AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS
     rough_stein_stein/up_and_out_option
     rough_stein_stein/up_no_touch
     rough_stein_stein/up_one_touch
+)
+
+set(AI_FACTORY_GENERATED_EQUITY_EARLY_EXERCISE_UNITS
+    bates/american_option
+    heston/american_option
+    normal_inverse_gaussian/american_option
+    variance_gamma/american_option
+)
+
+set(AI_FACTORY_GENERATED_EQUITY_SAMPLE_UNITS
+    bates/sample
+    black_scholes/sample
+    cev/sample
+    heston/sample
+    heston_3_2/sample
+    kou/sample
+    merton/sample
+    normal_inverse_gaussian/sample
+    sabr/sample
+    schobel_zhu/sample
+    stein_stein/sample
+    variance_gamma/sample
+    rough_heston/sample
+    quadratic_rough_heston/sample
+)
+
+set(AI_FACTORY_GENERATED_EQUITY_MATHDX_SAMPLE_UNITS
+    rough_bergomi/sample
+    rough_sabr/sample
+    log_modulated_rough_bergomi/sample
+    rough_stein_stein/sample
+)
+
+set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
+    cir/bermudan_swaption
+    cir/european_swaption
+    cir/rate_option
+    cir/sample
+    cir/zero_coupon_bond_option
+    g2/bermudan_swaption
+    g2/rate_option
+    g2/sample
+    g2/zero_coupon_bond_option
+    g2_plus_plus/nelson_siegel/bermudan_swaption
+    g2_plus_plus/nelson_siegel/rate_option
+    g2_plus_plus/nelson_siegel/zero_coupon_bond_option
+    g2_plus_plus/sample
+    g2_plus_plus/svensson/bermudan_swaption
+    g2_plus_plus/svensson/rate_option
+    g2_plus_plus/svensson/zero_coupon_bond_option
+    hull_white/nelson_siegel/bermudan_swaption
+    hull_white/nelson_siegel/european_swaption
+    hull_white/nelson_siegel/rate_option
+    hull_white/nelson_siegel/zero_coupon_bond_option
+    hull_white/sample
+    hull_white/svensson/bermudan_swaption
+    hull_white/svensson/european_swaption
+    hull_white/svensson/rate_option
+    hull_white/svensson/zero_coupon_bond_option
+    ornstein_uhlenbeck/bermudan_swaption
+    ornstein_uhlenbeck/european_swaption
+    ornstein_uhlenbeck/rate_option
+    ornstein_uhlenbeck/sample
+    ornstein_uhlenbeck/zero_coupon_bond_option
+    vasicek/bermudan_swaption
+    vasicek/european_swaption
+    vasicek/rate_option
+    vasicek/sample
+    vasicek/zero_coupon_bond_option
 )

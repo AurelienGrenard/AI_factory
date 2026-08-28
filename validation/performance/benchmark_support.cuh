@@ -25,6 +25,7 @@ inline constexpr int kDefaultWarmups = 5;
 inline constexpr int kDefaultRepetitions = 21;
 inline constexpr double kMinimumAcceptedGain = 0.05;
 inline constexpr double kMaximumNoiseCoefficient = 0.05;
+inline constexpr double kMaximumPublicationNoiseCoefficient = 0.10;
 
 struct TimingStatistics {
     double minimum_ms;
@@ -133,6 +134,77 @@ Measurement measure_cuda(
     };
 }
 
+// Measure a host-orchestrated pipeline whose public launcher synchronizes and
+// returns its own enclosing CUDA-event interval in milliseconds. This avoids
+// counting host-side planning and event construction as kernel time while the
+// wall statistic continues to enclose the complete public call.
+template<typename Launch>
+Measurement measure_synchronous_cuda_pipeline(
+    Launch&& launch,
+    int warmups = kDefaultWarmups,
+    int repetitions = kDefaultRepetitions
+) {
+    if (warmups < 1 || repetitions < 3) {
+        throw std::invalid_argument(
+            "A benchmark requires at least one warmup and three repetitions."
+        );
+    }
+    for (int warmup = 0; warmup < warmups; ++warmup) {
+        static_cast<void>(launch());
+    }
+    check_cuda(cudaDeviceSynchronize(), "pipeline warmup synchronize");
+
+    std::vector<double> kernel_samples;
+    std::vector<double> wall_samples;
+    std::vector<double> raw_host_samples;
+    kernel_samples.reserve(static_cast<std::size_t>(repetitions));
+    wall_samples.reserve(static_cast<std::size_t>(repetitions));
+    raw_host_samples.reserve(static_cast<std::size_t>(repetitions));
+    for (int repetition = 0; repetition < repetitions; ++repetition) {
+        const auto wall_start = std::chrono::steady_clock::now();
+        const double kernel_milliseconds = launch();
+        const auto wall_stop = std::chrono::steady_clock::now();
+        const double wall_milliseconds = std::chrono::duration<
+            double, std::milli
+        >(wall_stop - wall_start).count();
+        kernel_samples.push_back(kernel_milliseconds);
+        raw_host_samples.push_back(wall_milliseconds);
+        wall_samples.push_back(std::max(
+            wall_milliseconds, kernel_milliseconds
+        ));
+    }
+    return {
+        summarize(kernel_samples),
+        summarize(wall_samples),
+        summarize(raw_host_samples),
+    };
+}
+
+template<typename Operation>
+TimingStatistics measure_host(
+    Operation&& operation,
+    int warmups = kDefaultWarmups,
+    int repetitions = kDefaultRepetitions
+) {
+    if (warmups < 1 || repetitions < 3) {
+        throw std::invalid_argument(
+            "A host benchmark requires at least one warmup and three repetitions."
+        );
+    }
+    for (int warmup = 0; warmup < warmups; ++warmup) operation();
+    std::vector<double> samples;
+    samples.reserve(static_cast<std::size_t>(repetitions));
+    for (int repetition = 0; repetition < repetitions; ++repetition) {
+        const auto start = std::chrono::steady_clock::now();
+        operation();
+        const auto stop = std::chrono::steady_clock::now();
+        samples.push_back(std::chrono::duration<double, std::milli>(
+            stop - start
+        ).count());
+    }
+    return summarize(std::move(samples));
+}
+
 inline nlohmann::ordered_json timing_json(
     const TimingStatistics& statistics
 ) {
@@ -187,9 +259,10 @@ inline void emit_measurement(
     nlohmann::ordered_json configuration,
     nlohmann::ordered_json numerical_check = nlohmann::ordered_json::object(),
     int warmups = kDefaultWarmups,
-    int repetitions = kDefaultRepetitions
+    int repetitions = kDefaultRepetitions,
+    nlohmann::ordered_json extra_timings = nlohmann::ordered_json::object()
 ) {
-    const nlohmann::ordered_json report{
+    nlohmann::ordered_json report{
         {"schema", "ai_factory_cuda_performance_baseline"},
         {"protocol_version", kProtocolVersion},
         {"finding", finding},
@@ -203,6 +276,8 @@ inline void emit_measurement(
             {"tail_statistic", "p95_ms"},
             {"minimum_accepted_gain", kMinimumAcceptedGain},
             {"maximum_noise_coefficient", kMaximumNoiseCoefficient},
+            {"maximum_publication_noise_coefficient",
+                kMaximumPublicationNoiseCoefficient},
             {"wall_semantics",
                 "max(raw_host_clock, enclosing_cuda_event_interval)"},
         }},
@@ -212,6 +287,9 @@ inline void emit_measurement(
         {"raw_host_clock", timing_json(measurement.raw_host_clock)},
         {"numerical_check", std::move(numerical_check)},
     };
+    for (auto& [name, value] : extra_timings.items()) {
+        report[name] = std::move(value);
+    }
     std::cout << report.dump() << '\n';
 }
 

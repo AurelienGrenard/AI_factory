@@ -1,7 +1,7 @@
 {
   "schema": "ai_factory_cuda_performance_baseline_summary",
   "protocol_version": 1,
-  "generated_at": "2026-08-27",
+  "generated_at": "2026-08-28",
   "environment": {
     "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
     "compute_capability": "8.9",
@@ -21,6 +21,7 @@
     "tail_statistic": "p95_ms",
     "minimum_effect_size": 0.05,
     "maximum_coefficient_of_variation": 0.05,
+    "maximum_publication_coefficient_of_variation": 0.10,
     "noisy_result": "inconclusive_and_rerun",
     "wall_semantics": "max(raw_host_clock, enclosing_cuda_event_interval)"
   },
@@ -29,19 +30,19 @@
       "finding": "PERF-001",
       "benchmark": "result_index_decode",
       "variant": "runtime_enum_size_t",
-      "configuration": {"result_count": 1048576, "product_count": 1000, "iterations_per_thread": 64},
-      "kernel": {"median_ms": 0.2703360021, "p95_ms": 0.2754560113, "coefficient_of_variation": 0.0072831951},
-      "wall": {"median_ms": 0.297523},
-      "numerical_check": {"checksum": 1533282110, "mapping_identical": true}
+      "configuration": {"result_count": 1048576, "product_count": 1000, "iterations_per_thread": 1024},
+      "kernel": {"median_ms": 4.2137598991, "p95_ms": 4.2547202110, "coefficient_of_variation": 0.0033902990},
+      "wall": {"median_ms": 4.2137598991},
+      "numerical_check": {"checksum": 67305624762, "mapping_identical": true}
     },
     {
       "finding": "PERF-001",
       "benchmark": "result_index_decode",
       "variant": "validated_uint32",
-      "configuration": {"result_count": 1048576, "product_count": 1000, "iterations_per_thread": 64},
-      "kernel": {"median_ms": 0.1239039972, "p95_ms": 0.1287679970, "coefficient_of_variation": 0.0129348701},
-      "wall": {"median_ms": 0.167278},
-      "numerical_check": {"checksum": 1533282110, "mapping_identical": true}
+      "configuration": {"result_count": 1048576, "product_count": 1000, "iterations_per_thread": 1024},
+      "kernel": {"median_ms": 1.8831360340, "p95_ms": 1.9149440527, "coefficient_of_variation": 0.0379380027},
+      "wall": {"median_ms": 1.8831360340},
+      "numerical_check": {"checksum": 67305624762, "mapping_identical": true}
     },
     {
       "finding": "PERF-002",
@@ -74,60 +75,61 @@
       "finding": "PERF-006",
       "benchmark": "explicit_schedule_layout",
       "variant": "regular_20_payments",
-      "configuration": {"result_count": 4096, "schedule_pool_elements": 0, "threads_per_block": 256},
-      "kernel": {"median_ms": 0.2856959999, "p95_ms": 0.3317759931, "coefficient_of_variation": 0.0618207501},
-      "wall": {"median_ms": 0.317991},
-      "numerical_check": {"finite_nonnegative": true, "price_sum": 110.7171478271}
+      "configuration": {"result_count": 65536, "schedule_pool_elements": 0, "threads_per_block": 256},
+      "kernel": {"median_ms": 0.7884799838, "p95_ms": 0.7946239710, "coefficient_of_variation": 0.0049590016},
+      "wall": {"median_ms": 0.7912960052},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 1771.4743652344}
     },
     {
       "finding": "PERF-006",
       "benchmark": "explicit_schedule_layout",
       "variant": "explicit_homogeneous_20_payments",
-      "configuration": {"result_count": 4096, "schedule_pool_elements": 81920, "threads_per_block": 256},
-      "kernel": {"median_ms": 0.2959359884, "p95_ms": 0.3348479867, "coefficient_of_variation": 0.0532959312},
-      "wall": {"median_ms": 0.3000319898},
-      "numerical_check": {"finite_nonnegative": true, "price_sum": 110.7171173096}
+      "configuration": {"result_count": 65536, "schedule_pool_elements": 1310720, "threads_per_block": 256},
+      "kernel": {"median_ms": 4.9838080406, "p95_ms": 5.0083842278, "coefficient_of_variation": 0.0021804803},
+      "wall": {"median_ms": 4.9838080406},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 1771.4738769531}
     },
     {
       "finding": "PERF-006",
       "benchmark": "explicit_schedule_layout",
       "variant": "explicit_heterogeneous_2_to_30_payments",
-      "configuration": {"result_count": 4096, "schedule_pool_elements": 122880, "threads_per_block": 256},
-      "kernel": {"median_ms": 0.2918399870, "p95_ms": 0.3153919876, "coefficient_of_variation": 0.0316976821},
-      "wall": {"median_ms": 0.332625},
-      "numerical_check": {"finite_nonnegative": true, "price_sum": 87.5339618279}
+      "configuration": {"result_count": 65536, "schedule_pool_elements": 1966080, "threads_per_block": 256},
+      "kernel": {"median_ms": 4.7071681023, "p95_ms": 4.7964158058, "coefficient_of_variation": 0.0065720071},
+      "wall": {"median_ms": 4.7071681023},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 1401.9821951818}
     },
     {
       "finding": "PERF-008",
       "benchmark": "hot_loop_accumulation",
       "variant": "fp64",
-      "configuration": {"value_count": 1048576, "iterations": 1024, "input_profile": "non_negative_mixed_scale"},
-      "kernel": {"median_ms": 11.7719039917, "p95_ms": 11.7934083939, "coefficient_of_variation": 0.0520320356},
-      "wall": {"median_ms": 11.7719039917},
+      "configuration": {"value_count": 4194304, "iterations": 1024, "input_profile": "non_negative_mixed_scale"},
+      "kernel": {"median_ms": 41.6857910156, "p95_ms": 41.7349433899, "coefficient_of_variation": 0.0025971794},
+      "wall": {"median_ms": 41.6857910156},
       "numerical_check": {"maximum_absolute_error": 0.0, "maximum_relative_error": 0.0}
     },
     {
       "finding": "PERF-008",
       "benchmark": "hot_loop_accumulation",
       "variant": "compensated_fp32",
-      "configuration": {"value_count": 1048576, "iterations": 1024, "input_profile": "non_negative_mixed_scale"},
-      "kernel": {"median_ms": 3.0975999832, "p95_ms": 3.1109120846, "coefficient_of_variation": 0.0021731730},
-      "wall": {"median_ms": 3.0975999832},
+      "configuration": {"value_count": 4194304, "iterations": 1024, "input_profile": "non_negative_mixed_scale"},
+      "kernel": {"median_ms": 12.3706884384, "p95_ms": 12.3822078705, "coefficient_of_variation": 0.0004025450},
+      "wall": {"median_ms": 12.3706884384},
       "numerical_check": {"maximum_absolute_error": 0.0146799510, "maximum_relative_error": 3.6699769922e-8}
     },
     {
       "finding": "PERF-008",
       "benchmark": "hot_loop_accumulation",
       "variant": "chunked_fp32_fp64",
-      "configuration": {"value_count": 1048576, "iterations": 1024, "chunk_size": 32, "input_profile": "non_negative_mixed_scale"},
-      "kernel": {"median_ms": 5.0380802155, "p95_ms": 5.0769920349, "coefficient_of_variation": 0.0075920592},
-      "wall": {"median_ms": 5.0380802155},
+      "configuration": {"value_count": 4194304, "iterations": 1024, "chunk_size": 32, "input_profile": "non_negative_mixed_scale"},
+      "kernel": {"median_ms": 20.0744953156, "p95_ms": 20.1052150726, "coefficient_of_variation": 0.0006910360},
+      "wall": {"median_ms": 20.0744953156},
       "numerical_check": {"maximum_absolute_error": 0.1428500169, "maximum_relative_error": 3.5712399493e-7}
     },
     {
       "finding": "PERF-009",
       "benchmark": "closed_form_launch_overhead",
       "variant": "validated_public_launcher",
+      "comparison_policy": "informational",
       "configuration": {"result_count": 1024, "threads_per_block": 128, "block_count": 8, "launches_per_sample": 256},
       "kernel": {"median_ms": 1.3465600014, "p95_ms": 2.2786240578, "coefficient_of_variation": 0.2255495396},
       "wall": {"median_ms": 1.384862},
@@ -146,46 +148,162 @@
       "finding": "PERF-012/PERF-013/PERF-014",
       "benchmark": "volterra_pricing_pipeline",
       "variant": "rough_bergomi_hybrid_fft",
-      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 1048576, "price_count": 1, "path_chunk_size": 4096},
-      "kernel": {"median_ms": 37.6831359863, "p95_ms": 38.4102401733, "coefficient_of_variation": 0.0228270821},
-      "wall": {"median_ms": 37.6831359863},
-      "numerical_check": {"finite": true, "price": 0.0737596974, "standard_error": 9.2775153462e-5, "median_ms_per_price": 37.6831359863}
+      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 2097152, "price_count": 1, "path_chunk_size": 4096},
+      "kernel": {"median_ms": 75.4860153198, "p95_ms": 76.8071670532, "coefficient_of_variation": 0.0056941110},
+      "wall": {"median_ms": 75.4860153198},
+      "numerical_check": {"finite": true, "price": 0.0738322884, "standard_error": 6.5644402639e-5, "median_ms_per_price": 75.4860153198}
     },
     {
       "finding": "PERF-012/PERF-013/PERF-014",
       "benchmark": "volterra_pricing_pipeline",
       "variant": "rough_bergomi_hybrid_fft",
-      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 1048576, "price_count": 1, "path_chunk_size": 16384},
-      "kernel": {"median_ms": 14.0707836151, "p95_ms": 14.1004800797, "coefficient_of_variation": 0.0475432013},
-      "wall": {"median_ms": 14.0707836151},
-      "numerical_check": {"finite": true, "price": 0.0737596974, "standard_error": 9.2775153462e-5, "median_ms_per_price": 14.0707836151}
+      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 2097152, "price_count": 1, "path_chunk_size": 16384},
+      "kernel": {"median_ms": 28.6791687012, "p95_ms": 28.8685760498, "coefficient_of_variation": 0.0130525166},
+      "wall": {"median_ms": 28.6791687012},
+      "numerical_check": {"finite": true, "price": 0.0738322884, "standard_error": 6.5644402639e-5, "median_ms_per_price": 28.6791687012}
     },
     {
       "finding": "PERF-012/PERF-013/PERF-014",
       "benchmark": "volterra_pricing_pipeline",
       "variant": "rough_bergomi_hybrid_fft",
-      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 1048576, "price_count": 1, "path_chunk_size": 65536},
-      "kernel": {"median_ms": 11.1677436829, "p95_ms": 11.2240638733, "coefficient_of_variation": 0.0345771320},
-      "wall": {"median_ms": 11.1677436829},
-      "numerical_check": {"finite": true, "price": 0.0737596974, "standard_error": 9.2775153462e-5, "median_ms_per_price": 11.1677436829}
+      "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 2097152, "price_count": 1, "path_chunk_size": 65536},
+      "kernel": {"median_ms": 25.2508163452, "p95_ms": 25.5251846313, "coefficient_of_variation": 0.0252178303},
+      "wall": {"median_ms": 25.2508163452},
+      "numerical_check": {"finite": true, "price": 0.0738322884, "standard_error": 6.5644402639e-5, "median_ms_per_price": 25.2508163452}
     },
     {
       "finding": "PERF-012/PERF-013/PERF-014",
       "benchmark": "volterra_pricing_pipeline",
       "variant": "rough_bergomi_hybrid_fft",
       "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 252, "steps_per_day": 1, "time_steps": 252, "paths_per_price": 1048576, "price_count": 8, "path_chunk_size": 65536},
-      "kernel": {"median_ms": 91.8272018433, "p95_ms": 94.4688949585, "coefficient_of_variation": 0.0203379612},
-      "wall": {"median_ms": 91.8272018433},
-      "numerical_check": {"finite": true, "price": 0.0737596974, "standard_error": 9.2775153462e-5, "median_ms_per_price": 11.4784002304}
+      "kernel": {"median_ms": 105.7464294434, "p95_ms": 105.7740478516, "coefficient_of_variation": 0.0001886615},
+      "wall": {"median_ms": 105.7464294434},
+      "numerical_check": {"finite": true, "price": 0.0737596974, "standard_error": 9.2775153462e-5, "median_ms_per_price": 13.2183036804}
     },
     {
       "finding": "PERF-012/PERF-013/PERF-014",
       "benchmark": "volterra_pricing_pipeline",
       "variant": "rough_bergomi_hybrid_fft",
       "configuration": {"model": "rough_bergomi_hybrid_fft", "maturity_days": 4096, "steps_per_day": 1, "time_steps": 4096, "paths_per_price": 65536, "price_count": 1, "path_chunk_size": 65536},
-      "kernel": {"median_ms": 17.8677768707, "p95_ms": 18.3336963654, "coefficient_of_variation": 0.0142854939},
-      "wall": {"median_ms": 17.8677768707},
-      "numerical_check": {"finite": true, "price": 0.2644624114, "standard_error": 0.0014763777, "median_ms_per_price": 17.8677768707}
+      "kernel": {"median_ms": 19.0698566437, "p95_ms": 19.2797431946, "coefficient_of_variation": 0.0211288435},
+      "wall": {"median_ms": 19.0698566437},
+      "numerical_check": {"finite": true, "price": 0.2644624114, "standard_error": 0.0014763777, "median_ms_per_price": 19.0698566437}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "longstaff_schwartz_pipeline",
+      "variant": "equity_one_factor_black_scholes",
+      "configuration": {"exercise_dates": 12, "transition": "exact", "row_count": 64, "paths_per_price": 16384, "threads_per_block": 128, "blocks_per_price": 32},
+      "kernel": {"median_ms": 4.4994559288, "p95_ms": 4.5045762062, "coefficient_of_variation": 0.0410917385},
+      "wall": {"median_ms": 6.868648},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 7.5431533232, "standard_error_sum": 0.0586540325, "kernel_launch_count": 37, "workspace_bytes": 50833920, "successful_regression_count": 704}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "longstaff_schwartz_pipeline",
+      "variant": "equity_multi_state_heston",
+      "configuration": {"exercise_dates": 12, "transition": "fixed_step_qem", "row_count": 64, "paths_per_price": 16384, "threads_per_block": 128, "blocks_per_price": 32},
+      "kernel": {"median_ms": 8.3220481873, "p95_ms": 8.3434562683, "coefficient_of_variation": 0.0010670666},
+      "wall": {"median_ms": 11.888081},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 5.9016633332, "standard_error_sum": 0.0526671433, "kernel_launch_count": 37, "workspace_bytes": 96973824, "successful_regression_count": 704}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "longstaff_schwartz_pipeline",
+      "variant": "fixed_income_one_factor_ou",
+      "configuration": {"exercise_dates": 8, "rate_factors": 1, "row_count": 64, "paths_per_price": 16384, "threads_per_block": 128, "blocks_per_price": 32},
+      "kernel": {"median_ms": 1.7336319685, "p95_ms": 1.7500159740, "coefficient_of_variation": 0.0042076613},
+      "wall": {"median_ms": 5.227678},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 0.1676225213, "standard_error_sum": 0.0032617731, "kernel_launch_count": 25, "workspace_bytes": 71595520, "successful_regression_count": 448}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "longstaff_schwartz_pipeline",
+      "variant": "fixed_income_two_factor_g2",
+      "configuration": {"exercise_dates": 8, "rate_factors": 2, "row_count": 64, "paths_per_price": 16384, "threads_per_block": 128, "blocks_per_price": 32},
+      "kernel": {"median_ms": 3.3228800297, "p95_ms": 3.3382399082, "coefficient_of_variation": 0.0021662799},
+      "wall": {"median_ms": 7.388796},
+      "numerical_check": {"finite_nonnegative": true, "price_sum": 0.0009586144, "standard_error_sum": 0.0001071410, "kernel_launch_count": 25, "workspace_bytes": 105369088, "successful_regression_count": 163}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "exact_markovian_3m_x_1",
+      "configuration": {"engine": "exact_markovian", "layout": "3m_x_1", "production_parameter_count": 3000000, "production_paths_per_parameter": 1, "benchmark_parameter_count": 3000000, "benchmark_paths_per_parameter": 1, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 256, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 12.1149444580, "p95_ms": 12.5624322891, "coefficient_of_variation": 0.0217954644},
+      "wall": {"median_ms": 12.1149444580},
+      "publication_wall": {"median_ms": 86.5311536250, "p95_ms": 93.6157376875, "coefficient_of_variation": 0.0894048373},
+      "numerical_check": {"finite": true, "samples_per_second": 63392779278.68357, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "exact_markovian_12000_x_250",
+      "configuration": {"engine": "exact_markovian", "layout": "12000_x_250", "production_parameter_count": 12000, "production_paths_per_parameter": 250, "benchmark_parameter_count": 12000, "benchmark_paths_per_parameter": 250, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 256, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 12.4926719666, "p95_ms": 13.0201597214, "coefficient_of_variation": 0.0273097453},
+      "wall": {"median_ms": 12.4926719666},
+      "publication_wall": {"median_ms": 84.0735767500, "p95_ms": 92.3716429375, "coefficient_of_variation": 0.0852396518},
+      "numerical_check": {"finite": true, "samples_per_second": 61476039878.11458, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "fixed_step_markovian_3m_x_1",
+      "configuration": {"engine": "fixed_step_markovian", "layout": "3m_x_1", "production_parameter_count": 3000000, "production_paths_per_parameter": 1, "benchmark_parameter_count": 3000000, "benchmark_paths_per_parameter": 1, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 55.6902389526, "p95_ms": 57.1748466492, "coefficient_of_variation": 0.0133332272},
+      "wall": {"median_ms": 55.6902389526},
+      "publication_wall": {"median_ms": 86.5311536250, "p95_ms": 93.6157376875, "coefficient_of_variation": 0.0894048373},
+      "numerical_check": {"finite": true, "samples_per_second": 53869404.34124, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "fixed_step_markovian_12000_x_250",
+      "configuration": {"engine": "fixed_step_markovian", "layout": "12000_x_250", "production_parameter_count": 12000, "production_paths_per_parameter": 250, "benchmark_parameter_count": 12000, "benchmark_paths_per_parameter": 250, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 56.0514869690, "p95_ms": 57.3306884766, "coefficient_of_variation": 0.0105041131},
+      "wall": {"median_ms": 56.0514869690},
+      "publication_wall": {"median_ms": 84.0735767500, "p95_ms": 92.3716429375, "coefficient_of_variation": 0.0852396518},
+      "numerical_check": {"finite": true, "samples_per_second": 53522219.69882, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "rough_n_factor_7_3m_x_1",
+      "configuration": {"engine": "rough_n_factor_7", "layout": "3m_x_1", "production_parameter_count": 3000000, "production_paths_per_parameter": 1, "benchmark_parameter_count": 3000000, "benchmark_paths_per_parameter": 1, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 107.7032012939, "p95_ms": 109.6560668945, "coefficient_of_variation": 0.0096611274},
+      "wall": {"median_ms": 107.7032012939},
+      "publication_wall": {"median_ms": 86.5311536250, "p95_ms": 93.6157376875, "coefficient_of_variation": 0.0894048373},
+      "numerical_check": {"finite": true, "samples_per_second": 27854325.25643, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "rough_n_factor_7_12000_x_250",
+      "configuration": {"engine": "rough_n_factor_7", "layout": "12000_x_250", "production_parameter_count": 12000, "production_paths_per_parameter": 250, "benchmark_parameter_count": 12000, "benchmark_paths_per_parameter": 250, "benchmark_sample_count": 3000000, "maturity_days": 504, "threads_per_block": 256, "block_count": 4096, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "full production layout"},
+      "kernel": {"median_ms": 108.5153274536, "p95_ms": 108.8368606567, "coefficient_of_variation": 0.0020180600},
+      "wall": {"median_ms": 108.5153274536},
+      "publication_wall": {"median_ms": 84.0735767500, "p95_ms": 92.3716429375, "coefficient_of_variation": 0.0852396518},
+      "numerical_check": {"finite": true, "samples_per_second": 27645864.14101, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "volterra_fft_3m_x_1",
+      "configuration": {"engine": "volterra_fft", "layout": "3m_x_1", "production_parameter_count": 3000000, "production_paths_per_parameter": 1, "benchmark_parameter_count": 8192, "benchmark_paths_per_parameter": 1, "benchmark_sample_count": 8192, "maturity_days": 504, "threads_per_block": 0, "block_count": 4096, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "preserves the production path package and at least 8192 independent FFT paths"},
+      "kernel": {"median_ms": 33.9804153442, "p95_ms": 34.0448303223, "coefficient_of_variation": 0.0011788079},
+      "wall": {"median_ms": 33.9804153442},
+      "publication_wall": {"median_ms": 86.5311536250, "p95_ms": 93.6157376875, "coefficient_of_variation": 0.0894048373},
+      "numerical_check": {"finite": true, "samples_per_second": 241080.04323, "philox_mapping": "parameter row key and path counter unchanged"}
+    },
+    {
+      "finding": "PERF-010",
+      "benchmark": "model_sample_pipeline",
+      "variant": "volterra_fft_12000_x_250",
+      "configuration": {"engine": "volterra_fft", "layout": "12000_x_250", "production_parameter_count": 12000, "production_paths_per_parameter": 250, "benchmark_parameter_count": 256, "benchmark_paths_per_parameter": 250, "benchmark_sample_count": 64000, "maturity_days": 504, "threads_per_block": 0, "block_count": 256, "launches_per_measurement": 1, "publication_row_count": 262144, "publication_batch_size": 16, "tuning_profile": "sm89_reference_v1", "reduction_rationale": "preserves the production path package and at least 8192 independent FFT paths"},
+      "kernel": {"median_ms": 153.6632690430, "p95_ms": 153.7218627930, "coefficient_of_variation": 0.0001983194},
+      "wall": {"median_ms": 153.6632690430},
+      "publication_wall": {"median_ms": 84.0735767500, "p95_ms": 92.3716429375, "coefficient_of_variation": 0.0852396518},
+      "numerical_check": {"finite": true, "samples_per_second": 416495.10907, "philox_mapping": "parameter row key and path counter unchanged"}
     }
   ],
   "policy_size_budgets": {

@@ -1,6 +1,7 @@
 // Rough-SABR state mapping for the normalized fractional driver.
 #pragma once
 
+#include "common/equity/absorbing_lamperti.cuh"
 #include "model/equity/rough/rough_sabr/dynamics.cuh"
 
 #include <cmath>
@@ -60,26 +61,16 @@ __device__ __forceinline__ void advance(
             + state.volatility * prepared_model.sqrt_time_step
                 * correlated_normal;
     } else {
-        const float spot = expf(state.log_spot);
-        const float transformed = powf(
-            spot,
-            prepared_model.one_minus_beta
-        ) / prepared_model.one_minus_beta;
-        const float next_transformed = fmaxf(
-            transformed
-                + prepared_model.one_minus_beta * transformed
-                    * prepared_model.drift_time_step
-                + state.volatility * prepared_model.sqrt_time_step
-                    * correlated_normal
-                - 0.5f * prepared_model.beta
-                    * state.volatility * state.volatility
-                    * prepared_model.time_step
-                    / (prepared_model.one_minus_beta * transformed),
-            1.0e-12f
+        ::ai_factory::workbench::equity::advance_absorbing_lamperti_log_spot(
+            prepared_model.beta,
+            prepared_model.one_minus_beta,
+            prepared_model.drift_time_step,
+            prepared_model.time_step,
+            prepared_model.sqrt_time_step,
+            state.volatility,
+            correlated_normal,
+            state.log_spot
         );
-        state.log_spot = logf(
-            prepared_model.one_minus_beta * next_transformed
-        ) / prepared_model.one_minus_beta;
     }
     state.volatility = expf(
         prepared_model.log_initial_volatility

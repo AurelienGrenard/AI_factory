@@ -16,8 +16,8 @@ int main() {
 
     constexpr std::size_t factor_count = 7U;
     constexpr float day_fraction = 1.0f / 252.0f;
-    constexpr float dt = 1.0f / 252.0f;
-    constexpr std::uint32_t simulation_steps_per_day = 1U;
+    constexpr float dt = 1.0f / 504.0f;
+    constexpr std::uint32_t simulation_steps_per_day = 2U;
     const pricing::EquityPriceRecipe recipe{
         "datasets/model/equity/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/equity/phoenix_autocalls/phoenix_autocalls_01.json",
@@ -31,9 +31,9 @@ int main() {
         1'048'576U,
         4'096U,
         4'096U,
-        256U,
+        ::ai_factory::workbench::offline::cuda_tuning::kNFactorThreadsPerBlock,
         900000001ULL,
-        "1 / 252",
+        "1 / 504",
         nlohmann::ordered_json{
             {"simulation_steps_per_day", simulation_steps_per_day},
             {"factor_count", factor_count},

@@ -13,7 +13,7 @@ int main() {
         "bermudan_swaptions_01.json";
     const auto models = rates::load_models(model_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = 1U << 16U;
+    constexpr std::size_t paths = 1U << 20U;
     constexpr std::uint64_t seed = 2'120'000'001ULL;
     datasets::generate_exact_bermudan_swaption_prices(
         model_path, product_path, models, products,

@@ -1,6 +1,6 @@
 # Referentiel des audits d'architecture C++/CUDA
 
-Version du referentiel : 3, 2026-08-27.
+Version du referentiel : 4, 2026-08-28.
 
 ## Objet
 
@@ -150,14 +150,20 @@ l'abstraction est ensuite mesure par Performance et CMake.
   - [Minimum hand-written model and product](#minimum-hand-written-model-and-product)
   - [Canonical capability manifest](#canonical-capability-manifest)
   - [Generated bindings and catalogue recipes](#generated-bindings-and-catalogue-recipes)
+  - [Model-sample bindings and recipes](#model-sample-bindings-and-recipes)
   - [Parameter dataset generation](#parameter-dataset-generation)
   - [Regeneration, drift and exceptions](#regeneration-drift-and-exceptions)
 - [CMake and build graph](#cmake-and-build-graph)
+- [Portability and hardware tuning](#portability-and-hardware-tuning)
+  - [Supported architecture matrix](#supported-architecture-matrix)
+  - [Portable defaults and retuning](#portable-defaults-and-retuning)
+  - [Cross-architecture evidence](#cross-architecture-evidence)
 - [Numerical robustness and reproducibility](#numerical-robustness-and-reproducibility)
 - [CUDA execution and memory safety](#cuda-execution-and-memory-safety)
 - [Performance](#performance)
   - [Common performance protocol and kernel strategy](#common-performance-protocol-and-kernel-strategy)
   - [Generic CUDA performance](#generic-cuda-performance)
+  - [Model-sample performance](#model-sample-performance)
   - [Early-exercise performance](#early-exercise-performance)
   - [Rough performance](#rough-performance)
 
@@ -207,6 +213,9 @@ Verifier notamment :
   produits est symetrique pour les responsabilites communes ;
 - que toute difference d'arborescence est justifiee par mathematique,
   dependance optionnelle ou frontiere de compilation, et non par l'historique.
+- que sampling modele, bindings `sample.cuh`/`sample.cu`, orchestration offline,
+  recettes `samples_01`/`samples_02` et artefacts publies restent dans leurs
+  domaines respectifs avec une symetrie explicite entre familles d'engine.
 
 ### File responsibilities and granularity
 
@@ -227,6 +236,9 @@ Verifier notamment :
   testent independamment, sans micro-fichiers sans abstraction ;
 - que les wrappers modele-produit generes ne masquent pas une logique manuelle,
   une exception ou une dependance non declaree ;
+- que les bindings et recettes de sample ne melangent pas dynamics modele,
+  generation de parametres, generation de calendriers, strategie CUDA,
+  assemblage du dataset et serialisation ;
 - que toute fusion ou scission CUDA mesure compilation, incrementalite, taille
   objets/cubins et ressources kernel.
 
@@ -362,6 +374,9 @@ Verifier notamment :
   transitions exactes ;
 - l'usage coherent des types entiers, FP32/FP64 et structures d'etat ;
 - la symetrie des tests compilation, moments, limites, convergence et RNG.
+- la symetrie des surfaces de sampling terminal/calendrier entre modeles de
+  meme engine, avec une absence explicite plutot qu'un binding manquant
+  decouvert seulement au link.
 
 ### Analytics
 
@@ -488,6 +503,11 @@ Verifier que transitions exactes et pas fixe partagent seulement :
 - construction des resultats, reductions et diagnostics ;
 - mapping deterministe resultat/trajectoire/sequence Philox.
 
+Pour le sampling modele, verifier en plus que les layouts `un chemin par
+parametre` et `plusieurs chemins conditionnels par parametre` reutilisent la
+meme preparation et le meme mapping logique, tout en autorisant des strategies
+de kernel distinctes lorsque leur cout mesure le justifie.
+
 Le niveau general ne contient ni branche runtime `exact/fixed`, ni adaptateur
 vide, ni membre prepare inutilise dans l'un des chemins.
 
@@ -503,6 +523,9 @@ Verifier notamment :
 - que generation gaussienne, correlation, observation et reduction ne sont
   pas recopies par modele ;
 - que cuFFTDx et specialisations de longueur sont isoles des autres familles.
+- que pricing et sampling reutilisent convolution, padding, dispatch de
+  longueur et preparation sans dupliquer une seconde table de tuning par
+  modele, tout en gardant leurs layouts de sortie propres.
 
 #### Markovian N-factor rough lifts
 
@@ -577,6 +600,8 @@ seulement :
 - checks CUDA, RAII, streams et evenements ;
 - Philox, reductions, moments et construction des resultats ;
 - moteurs Monte-Carlo, sampling et Longstaff-Schwartz reellement neutres ;
+- generation de parametres/calendriers, observations de sample et streaming
+  d'artefacts seulement lorsque leur contrat est independant de l'asset class ;
 - indexation, batching, workspace planning et diagnostics ;
 - infrastructure de loaders, datasets, codegen et publication independante de
   la semantique financiere.
@@ -629,7 +654,7 @@ Pour un nouveau modele, verifier que le minimum manuel est limite a :
 - primitives de preparation et observables specifiques ;
 - specification de generation des parametres core/stress ;
 - tests mathematiques et numeriques ;
-- declaration de capacites et dependances.
+- declaration de capacites, observables de sample et dependances.
 
 Pour un nouveau produit, verifier que le minimum manuel est limite a :
 
@@ -648,13 +673,13 @@ CUDA, recette complete ou liste CMake.
 Auditer une source typee exprimant au minimum :
 
 - `ModelSpec` : famille mathematique, transition, engine rough, analytics,
-  etat, dependances et architectures ;
+  etat, sampling, observables, dependances et architectures ;
 - `ProductSpec` : schedule, observation, exercice, policy, sidedness,
   parametres et capacites requises ;
 - `EngineSpec` : concepts, templates, launchers, runners, dependances et
   strategie d'instanciation ;
 - `DatasetSpec` : sources de parametres, aligned/cartesian, chemins catalogue,
-  profils numeriques et metadonnees derivables.
+  profils numeriques, layouts de sample et metadonnees derivables.
 
 Le resolver produit explicitement :
 
@@ -668,7 +693,8 @@ Verifier notamment :
 - qu'aucune deuxieme liste manuelle ne recopie models, products, sides,
   schedules, engines ou dependances ;
 - que transition exacte, pas fixe, rough FFT, rough N-facteurs, closed form et
-  early exercise sont representables sans champ ambigu ;
+  early exercise ainsi que sampling ordinaire, prepare et Volterra sont
+  representables sans champ ambigu ;
 - que les exceptions algorithmiques sont nommees, bornees et testees ;
 - que le manifeste ne redeveloppe pas les algorithmes C++ dans Python.
 
@@ -677,6 +703,7 @@ Verifier notamment :
 Verifier que les champs derivables produisent :
 
 - `<model>/<product>.cuh` et `<model>/<product>.cu` ;
+- `<model>/sample.cuh` et `<model>/sample.cu` lorsque la capacite est publiee ;
 - specialisations call/put, payer/receiver ou non-sided ;
 - schedule, policy et engine ;
 - instanciations et fragment CMake ;
@@ -692,6 +719,48 @@ explicite, pas une coexistence accidentelle de deux formats.
 Verifier que profils de chemins, trajectoires, time grids, seeds, batching et
 timings restent explicites dans la source de verite ou une specification
 versionnee. Aucun choix numerique important ne doit etre cache par default.
+
+### Model-sample bindings and recipes
+
+Auditer explicitement la chaine modele-seul, independamment de la matrice de
+prix :
+
+```text
+ModelSpec -> sample engine -> sample.cuh/cu -> samples_01/samples_02
+          -> generator.cpp -> dataset JSON + dataset.yaml
+```
+
+Verifier notamment :
+
+- que chaque modele declare `available`, `deferred` ou `unsupported` pour son
+  binding et pour chacune des deux recettes, sans inference par existence de
+  fichier ;
+- que les engines transition exacte, pas fixe, prepare N-facteurs et
+  Gaussian-Volterra possedent chacun un template ou une exception bornee ;
+- que les deux layouts contractuels, `12 000 x 250` et `3 000 000 x 1`,
+  reutilisent un pipeline hote commun sans recopier allocation, warmup,
+  launch, copie, streaming, YAML et validation ;
+- que la generation des parametres plausibles core, les bornes publiees et
+  leur ordre de champs derivent d'une meme specification revue, sans tripler
+  ces valeurs entre recette de parametres, code C++ et YAML ;
+- que domaines et seeds Philox des parametres, calendriers et dynamics sont
+  independants, versionnes et invariants au batching et a la geometrie ;
+- que noms et layouts des observables sont declares par modele, valides par le
+  binding et reproduits dans JSON/YAML ;
+- que le memory planning couvre toutes les valeurs simultanement vivantes,
+  refuse les overflows et permet un decoupage reproductible lorsqu'un dataset
+  ne tient pas sur le GPU ou l'hote cible ;
+- que `--smoke-test` execute exactement 1 000 lignes pour chaque layout,
+  recharge JSON et YAML, verifie schema, jours, `T`, dimensions, finitude,
+  repetitions conditionnelles et provenance ;
+- que CMake et les checkers enregistrent exactement les bindings et recettes
+  disponibles avec et sans dependances optionnelles ;
+- que generation temporaire et zero-diff couvrent aussi `sample.cuh/.cu`,
+  `generator.cpp` et les champs derivables de `dataset.yaml`.
+
+Une premiere recette manuelle peut servir de prototype, mais elle ne satisfait
+pas le contrat d'extension tant que sa logique derivable n'est pas representee
+dans le manifeste et regenerable.
 
 ### Parameter dataset generation
 
@@ -718,6 +787,8 @@ Verifier notamment :
 - detection de toute edition manuelle d'un fichier genere ;
 - detection des outputs manquants, excedentaires et orphelins ;
 - builds avec/sans mathDx/cuFFTDx et architectures declarees ;
+- builds et smoke tests des samples disponibles pour les deux layouts et pour
+  chaque famille d'engine active ;
 - tests de chaque template, resolver et engine, cas valides/invalides ;
 - escape hatch explicite avec proprietaire, justification et checker ;
 - suppression des outputs supersedes ;
@@ -763,6 +834,9 @@ Verifier notamment :
   necessaires ;
 - que mathDx/cuFFTDx et dependances optionnelles n'affectent pas les autres
   targets ;
+- que chaque binding `sample.cu`, bibliotheque de publication et recette de
+  sample appartient exactement a une cible, et que l'agregat
+  `sample_generators` ne publie aucune recette differee ou non linkable ;
 - que target, facade, alias, option, variable cache ou fonction sans
   consommateur est supprime ;
 - qu'une fonction/specialisation non-inline a une definition unique et que les
@@ -777,6 +851,101 @@ Verifier notamment :
   conserves pour les specialisations principales ;
 - que toute fusion/decomposition compare build clean/incremental, code genere,
   ressources kernel et lisibilite des erreurs.
+
+## Portability and hardware tuning
+
+Auditer separement compatibilite fonctionnelle et performance portable. Une
+RTX 4090 Laptop/SM89 peut etre le materiel de mesure et fournir les profils
+livres par defaut ; elle n'est pas, a elle seule, la cible architecturale du
+projet. Une valeur mesuree sur ce GPU reste un point de depart etiquete, jamais
+un optimum universel.
+
+Les invariants numeriques et reproductibles restent communs : pas de fast
+math, mapping Philox, ordre de reduction, FP64 sensible, calendriers et
+semantique des sorties. Les geometries, chunk sizes, longueurs/strategies FFT,
+nombre de streams et seuils de dispatch sont des parametres de tuning dont la
+validite performance depend du GPU, de la toolchain et du workload.
+
+**Perimetre :** compute capabilities, PTX/SASS, dependances optionnelles,
+presets, profils de lancement, ressources, limites memoire, baselines,
+fallbacks et documentation de deploiement, pour pricing et sampling.
+
+**Hors perimetre :** promesse de performance identique entre GPU et ajout
+d'une auto-optimisation runtime sans preuve qu'elle est necessaire.
+
+**Preuves attendues :** matrice declaree support/engine/architecture,
+configurations offline, executions sur materiel disponible, diagnostics de
+ressources, provenance des profils et procedure reproductible de retuning.
+
+**Livrable :** compatibilites dures, profils de reference, valeurs a retuner,
+fallbacks, exclusions et instructions utilisateur pour mesurer son propre GPU.
+
+### Supported architecture matrix
+
+Verifier notamment :
+
+- que les architectures de compilation, les GPU reellement testes et les GPU
+  seulement supposes compatibles sont trois ensembles distingues ;
+- que chaque engine declare son minimum CUDA/compute capability et ses
+  dependances, notamment cuFFTDx/mathDx ;
+- qu'un preset local SM89 ne devient pas l'unique chemin de build public et
+  qu'une configuration portable ou mono-architecture reste documentee ;
+- qu'aucun garde `architecture == 89`, type ou specialisation SM89 ne bloque
+  un GPU annonce sans justification issue de l'API utilisee ou d'un test ;
+- que fatbins multi-architectures, PTX de repli ou builds separes sont choisis
+  explicitement selon taille, temps de compilation et couverture voulue ;
+- qu'une incompatibilite reelle echoue a la configuration avec le nom de
+  l'engine, la capacite requise et une alternative, sans etre confondue avec
+  une geometrie simplement sous-optimale ;
+- que pricing, samples, tests et generateurs exposent la meme matrice de
+  disponibilite sur une architecture donnee.
+
+### Portable defaults and retuning
+
+Pour chaque famille de kernel, classer chaque valeur en invariant,
+dimension de dataset ou parametre de tuning. Auditer au minimum :
+
+- `threads_per_block`, blocs persistants, `blocks_per_price`, work par thread,
+  factor count, shared opt-in et seuils de strategie ;
+- chunks de paths/samples, taille des batches, streams et marge VRAM/RAM ;
+- dispatch direct/cooperatif, thread/warp/bloc, FFT length,
+  elements-per-thread et FFTs-per-block ;
+- seuils automatic/explicit et interaction avec registres, spills, shared,
+  occupation, SM count, bandwidth et instruction cache.
+
+Les valeurs livrees peuvent rester celles mesurees sur RTX 4090 Laptop/SM89,
+mais leur provenance doit apparaitre dans le profil ou la documentation. Elles
+doivent etre centralisees ou surchargeables sans modifier la mathematique ni
+le mapping aleatoire. L'utilisateur est explicitement invite a executer les
+benchmarks, diagnostics de kernels et tests numeriques sur son GPU avant de
+publier sa propre baseline ou de remplacer un profil.
+
+Refuser a la fois l'auto-tuning opaque qui change les sorties et la pretention
+qu'une geometrie unique est optimale partout. Une selection par architecture
+n'est necessaire que si des mesures montrent des profils durablement
+differents ; sinon une valeur portable, sure et clairement etiquetee suffit.
+
+### Cross-architecture evidence
+
+Verifier notamment :
+
+- compilation offline de chaque engine sur toutes les compute capabilities
+  annoncees, avec ressources SASS/PTX des specialisations representatives ;
+- tests runtime et sanitizers sur chaque architecture effectivement possedee,
+  sans extrapoler leurs temps aux autres GPU ;
+- baselines separees par GPU, architecture, toolchain, clocks/power et protocole,
+  jamais comparaison d'un candidat a une reference SM89 incompatible ;
+- tests de limites materielles : max threads, shared opt-in, grids, memoire,
+  FFT supportee et residence minimale ;
+- equivalence numerique et reproductibilite entre geometries sur un meme GPU,
+  puis tolerance documentee entre architectures lorsque le bit-a-bit n'est pas
+  contractuel ;
+- conservation des resultats, ressources et commandes brutes permettant a un
+  utilisateur de qualifier une nouvelle architecture.
+
+L'absence d'un GPU physique reste une exclusion de runtime dans `status.md`.
+Elle n'autorise ni une affirmation de performance, ni un blocage logiciel
+artificiel d'une architecture que les dependances et les builds supportent.
 
 ## Numerical robustness and reproducibility
 
@@ -817,8 +986,11 @@ Verifier notamment :
 - conventions temporelles, accruals, unites de taux et calendriers aux
   frontieres host/device ;
 - propagation explicite des erreurs et absence de NaN/Inf silencieux dans
-  prix, erreurs standards, coefficients et datasets ;
+  prix, erreurs standards, coefficients, samples et datasets ;
 - convergence de pas, nombre de facteurs rough et approximations FFT/directes ;
+- pour les samples, domaines de parametres, moments/lois terminales, support des
+  calendriers, independance des domaines RNG et invariance aux geometries,
+  strategies et decoupages ;
 - tests de limites, identites, sensibilite et reference independante.
 
 Ne pas demander l'egalite bit a bit entre algorithmes equivalents si elle
@@ -862,20 +1034,23 @@ Verifier notamment :
 - securite des workspaces reutilises, pools generes et buffers RAII dans les
   exceptions ;
 - geometries sanitizer regular/explicit, aligned/cartesian, exact/fixed-step,
-  early exercise, rough FFT et rough N-facteurs.
+  early exercise, samples `12 000 x 250`/`3 000 000 x 1`, rough FFT et rough
+  N-facteurs ;
+- ecritures sample-major/time-major, lots commencant ou finissant au milieu
+  d'un paquet conditionnel, derniers blocs partiels et streaming des sorties.
 
 Un sanitizer non execute reste une exclusion dans `status.md`. Son absence ne
 devient pas un finding generique et ne masque pas les preuves statiques.
 
 ## Performance
 
-Effectuer trois audits de performance distincts avec protocole et gates de
-ressources communs. Pression registre, spills, strategie de kernel et cout des
-abstractions sont des criteres de premier rang, pas de simples informations
-d'occupation.
+Effectuer quatre audits de performance distincts avec protocole et gates de
+ressources communs : CUDA generique, sampling modele, exercice anticipe et
+rough. Pression registre, spills, strategie de kernel et cout des abstractions
+sont des criteres de premier rang, pas de simples informations d'occupation.
 
-**Perimetre :** runtime CUDA generique, early exercise et rough FFT/N-facteurs
-sur architectures et workloads officiellement supportes.
+**Perimetre :** runtime CUDA generique, sampling modele, early exercise et
+rough FFT/N-facteurs sur architectures et workloads officiellement supportes.
 
 **Hors perimetre :** optimisation sans baseline comparable ni contrat
 numerique etabli par Numerical robustness.
@@ -883,7 +1058,7 @@ numerique etabli par Numerical robustness.
 **Preuves attendues :** binaires, PTX/cubins, ressources statiques, profils
 Nsight, benchmarks repetes, environnement et validation numerique.
 
-**Livrable :** trois rapports avec baseline, manifeste de workloads,
+**Livrable :** quatre rapports avec baseline, manifeste de workloads,
 ressources, mediane/p95/CV, hypothese, resultat et decision.
 
 ### Common performance protocol and kernel strategy
@@ -911,6 +1086,12 @@ frequences, etat thermique, workload, warmups, repetitions, chronometrage,
 traitement des outliers, variabilite maximale et seuil de gain utile. Conserver
 baseline et regle d'acceptation avant le resultat.
 
+Les baselines et geometries de reference livrees depuis RTX 4090 Laptop/SM89
+ne s'appliquent qu'a cet environnement. Pour tout autre GPU, executer le meme
+manifeste, inspecter ressources et limites, retuner les parametres explicitement
+classes comme tels, puis publier une baseline distincte. Aucun gate ne compare
+des environnements incompatibles.
+
 Interdire `--use_fast_math`. Ne pas ajouter `__launch_bounds__` sans design
 architecture-aware et mesures sur chaque architecture cible. Une hausse de
 registres, apparition de spills ou baisse d'occupation ne peut etre masquee par
@@ -918,8 +1099,9 @@ une mediane unique.
 
 ### Generic CUDA performance
 
-Auditer formules fermees, Monte-Carlo markovien, sampling, fonctions device,
-kernels communs, launchers, layouts et echanges host/device.
+Auditer formules fermees, Monte-Carlo markovien, fonctions device, kernels
+communs, launchers, layouts et echanges host/device. Le sampling modele possede
+en plus son audit dedie ci-dessous.
 
 Verifier notamment :
 
@@ -938,6 +1120,40 @@ Verifier notamment :
 - cout fixe des launchers, batching, reutilisation sure et synchronisations ;
 - comparaison un-thread, un-warp ou un-bloc par resultat ;
 - gates registres, spills, stack, shared, code size, mediane, p95 et numerique.
+
+### Model-sample performance
+
+Auditer chaque engine de sampling disponible sur les deux layouts contractuels
+et separer cout kernel, transferts, generation host, streaming JSON/YAML et
+validation de l'artefact.
+
+Verifier notamment :
+
+- thread grid-stride pour `3 000 000 x 1` contre parameter-block pour
+  `12 000 x 250`, ainsi que les seuils ou une autre strategie devient meilleure ;
+- amortissement de la preparation modele par parametre et cout des calendriers
+  aleatoires par sample ;
+- registres, spills, stack, shared, occupation, blocs residents et divergence
+  pour transition exacte, pas fixe, prepare N-facteurs et Volterra FFT ;
+- geometries `threads_per_block`/block count, saturation selon nombre de SM et
+  absence de plafond derive uniquement des 76 SM du GPU de reference ;
+- debit en samples/s, kernel median/p95/CV et cout wall de publication, sans
+  confondre serialisation host et simulation device ;
+- taille et reutilisation des buffers de parametres, maturites et observables,
+  copies D2H, pinned memory eventuelle et marge VRAM/RAM ;
+- batch/chunk sizes, invariance des sorties, effet sur reduction inexistante et
+  possibilite de traiter un GPU avec moins de memoire ;
+- pour Volterra, longueurs FFT, elements-per-thread, FFTs-per-block, shared
+  opt-in, nombre de paths conditionnels et reutilisation du spectre ;
+- pour N-facteurs, croissance des valeurs vivantes et ressources avec le
+  nombre de facteurs ;
+- profils de reference etiquetes par architecture et procedure de retuning
+  identique a celle des pricers.
+
+Le smoke test valide le pipeline mais n'est pas une baseline de debit. Une
+campagne de performance doit conserver les deux shapes de production ou une
+reduction explicitement justifiee qui preserve le regime de saturation et la
+pression memoire.
 
 ### Early-exercise performance
 
@@ -1002,6 +1218,6 @@ table registres/shared/spills/occupation/VRAM/erreur. Mesurer aussi les
 composants rough communs afin qu'une factorisation ne penalise ni FFT ni
 N-facteurs.
 
-Pour les trois audits, une mediane seule ou un gain inferieur au bruit ne
+Pour les quatre audits, une mediane seule ou un gain inferieur au bruit ne
 suffit jamais. Toute optimisation retenue conserve contrat numerique, mapping
 aleatoire et baselines des artefacts affectes.

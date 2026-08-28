@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/equity/absorbing_lamperti.cuh"
 #include "model/equity/markovian/sabr/dynamics.cuh"
 
 #include <cmath>
@@ -61,24 +62,16 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
             - 0.5f * state.alpha * state.alpha * dynamics.time_step
             + state.alpha * dynamics.sqrt_time_step * forward_normal;
     } else {
-        const float spot = expf(state.log_spot);
-        const float transformed = powf(
-            spot,
-            dynamics.one_minus_beta
-        ) / dynamics.one_minus_beta;
-        const float next_transformed = fmaxf(
-            transformed
-                + dynamics.one_minus_beta * transformed
-                    * dynamics.carry_time_step
-                + state.alpha * dynamics.sqrt_time_step * forward_normal
-                - 0.5f * dynamics.beta * state.alpha * state.alpha
-                    * dynamics.time_step
-                    / (dynamics.one_minus_beta * transformed),
-            1.0e-12f
+        ::ai_factory::workbench::equity::advance_absorbing_lamperti_log_spot(
+            dynamics.beta,
+            dynamics.one_minus_beta,
+            dynamics.carry_time_step,
+            dynamics.time_step,
+            dynamics.sqrt_time_step,
+            state.alpha,
+            forward_normal,
+            state.log_spot
         );
-        state.log_spot = logf(
-            dynamics.one_minus_beta * next_transformed
-        ) / dynamics.one_minus_beta;
     }
     state.alpha *= expf(
         dynamics.volatility_of_volatility_sqrt_dt * alpha_normal

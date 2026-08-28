@@ -16,8 +16,8 @@ int main() {{
 
     constexpr std::size_t factor_count = 7U;
     constexpr float day_fraction = 1.0f / 252.0f;
-    constexpr float dt = 1.0f / 252.0f;
-    constexpr std::uint32_t simulation_steps_per_day = 1U;
+    constexpr float dt = 1.0f / 504.0f;
+    constexpr std::uint32_t simulation_steps_per_day = 2U;
     const pricing::EquityPriceRecipe recipe{{
         "{model_dataset_path}",
         "{product_dataset_path}",
@@ -31,9 +31,9 @@ int main() {{
         {monte_carlo_paths}U,
         4'096U,
         4'096U,
-        {threads_per_block}U,
+        {threads_per_block},
         {seed}ULL,
-        "1 / 252",
+        "1 / 504",
         nlohmann::ordered_json{{
             {{"simulation_steps_per_day", simulation_steps_per_day}},
             {{"factor_count", factor_count}},

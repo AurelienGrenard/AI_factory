@@ -1,12 +1,21 @@
 # Model-sample dataset generation
 
-This document fixes the common contract for the generative-training datasets
-under `catalog/model/<asset_class>/<model>/samples/`.
+This document fixes the common contract for a generative-training dataset once
+its capability is published under
+`catalog/model/<asset_class>/<model>/samples/`. Availability is not inferred
+from the existence of a dynamics or parameter loader. The canonical matrix is
+`tools/codegen/pricing_bindings/capability_manifest.py`.
+
+The 48 production recipes (two for each of 24 models) and all corresponding
+CUDA bindings are published capabilities. They are generated from
+`tools/codegen/pricing_bindings/sample_manifest.py`; the generated thin
+recipes live under `catalog/model/**/samples/` and the generated model helpers
+under `tools/sampling/generated/`.
 
 ## Dataset shape
 
-Every model exposes two production recipes of exactly 3,000,000 terminal
-samples:
+Every model exposes
+exactly 3,000,000 terminal samples per recipe:
 
 ```text
 samples_01:    12,000 model parameter rows * 250 paths = 3,000,000 samples
@@ -54,8 +63,8 @@ reproducible independently of launch geometry and batch boundaries.
 
 ## CUDA launch contract
 
-Every ordinary Markov model provides a thin `sample.cuh` / `sample.cu`
-binding built from the common policies:
+A model with an available ordinary Markov sampling binding provides a thin
+`sample.cuh` / `sample.cu` composition built from the common policies:
 
 ```cpp
 using Schedule =
@@ -81,6 +90,16 @@ kernel for conditional packages. In the latter, one block prepares the
 parameter-dependent model coefficients once in shared memory, then its lanes
 cover all paths, including non-multiples of the block size such as `P = 250`.
 Both strategies preserve the same logical `(parameter_index, path_index)`.
+
+Launch geometry is a replaceable build profile rather than part of the sample
+law. Generated helpers consume `kSampleThreadsPerBlock` and
+`kSampleBlockCountLimit` from `tools/cuda/tuning_profile.hpp`; execution
+metadata records the profile identifier and its hardware provenance. The
+checked-in values `{256, 4096}` belong to `sm89_reference_v1`, measured on an
+RTX 4090 Laptop. They are safe starting values, not a portable optimum. A new
+GPU may override the corresponding `AI_FACTORY_CUDA_*` CMake cache variables,
+but must retain the same parameter-row keys, path counters, batch offsets and
+numerical time grid.
 
 Rough Heston uses the same Markov execution strategies after its fixed-factor
 lift has been prepared on the host:
@@ -139,10 +158,28 @@ target GPU. When batching is needed, `sample_offset` and
 `launch_sample_count` retain the same logical Philox indices, so batch
 boundaries do not change the dataset.
 
-Every generator accepts `--smoke-test`. That mode preserves the production
+Every published generator must accept `--smoke-test`. That mode preserves the production
 paths-per-model layout (4 * 250 for `samples_01`, 1,000 * 1 for `samples_02`),
 writes exactly 1,000 rows below
 `/tmp/ai_factory_sample_smoke/`, rejects non-finite outputs, then parses the
 JSON again and verifies the flat-row schema, maturity bounds, identity
 `T = maturity_days / 252`, dimensions, and finite outputs. The YAML still
 documents the production 3M recipe.
+
+## Performance qualification
+
+`ai_factory_model_sample_benchmark` covers exact Markovian, fixed-step
+Markovian, seven-factor rough and Volterra-FFT engines on both contractual
+layouts. Markovian and N-factor rows use the full three million samples; the
+reduced Volterra workloads explicitly preserve the path package and enough
+independent FFT blocks to saturate the reference GPU. The report separates
+kernel timing from streamed JSON/YAML publication wall time and records the
+production shape beside any reduction.
+
+For a new GPU or toolchain, first build a mono-architecture binary, inspect
+registers, spills, local/shared memory and theoretical occupancy with
+`AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1`, then run the complete versioned
+performance manifest. Publish a separate baseline and profile identifier;
+never compare that candidate against the SM89 baseline. A tuning change is
+accepted only after finite outputs, deterministic replay for the same logical
+path, and unchanged Philox addressing have been verified.

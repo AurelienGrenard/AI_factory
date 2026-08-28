@@ -111,7 +111,7 @@ std::uint64_t checksum(const std::vector<std::uint64_t>& values) {
 void benchmark_indexing() {
     constexpr std::size_t result_count = 1U << 20U;
     constexpr std::size_t product_count = 1'000U;
-    constexpr std::uint32_t iterations = 64U;
+    constexpr std::uint32_t iterations = 1'024U;
     const std::size_t block_count =
         (result_count + kThreads - 1U) / kThreads;
     DeviceBuffer output(result_count * sizeof(std::uint64_t));
@@ -292,7 +292,7 @@ Measurement measure_accumulation(
 }
 
 void benchmark_accumulation() {
-    constexpr std::size_t value_count = 1U << 20U;
+    constexpr std::size_t value_count = 1U << 22U;
     constexpr std::uint32_t iterations = 1'024U;
     DeviceBuffer output(value_count * sizeof(double));
     const Measurement fp64 = measure_accumulation<AccumulationMode::Fp64>(
@@ -565,7 +565,7 @@ void benchmark_ragged_schedules(ScheduleVariant variant) {
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
     namespace product = ai_factory::workbench::product;
     using ai_factory::workbench::SwaptionSide;
-    constexpr std::size_t result_count = 4'096U;
+    constexpr std::size_t result_count = 65'536U;
     const std::vector<hull_white::ModelParameters> models(
         result_count, {0.10f, 0.01f}
     );

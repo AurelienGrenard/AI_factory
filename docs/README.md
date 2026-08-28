@@ -12,8 +12,9 @@ audit use the symmetric `audit/` and `validation/` folders documented below.
 - [`model-and-product-parameter-dataset-generation.md`](model-and-product-parameter-dataset-generation.md):
   construction of ordered core and stress parameter rows and their YAML recipe.
 - [`model-sample-dataset-generation.md`](model-sample-dataset-generation.md):
-  3M-row generative-training datasets, in-memory Philox parameter generation,
-  persistent CUDA sampling, streaming JSON, and smoke-test contract.
+  availability matrix and contract for 3M-row generative-training datasets,
+  in-memory Philox parameter generation, persistent CUDA sampling, streaming
+  JSON, and smoke tests.
 - [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md):
   mandatory model-product-aware Premia-to-QuantLib hierarchy, row-level
   fallback, failure classification, persistent reference datasets,
@@ -66,5 +67,3 @@ audit use the symmetric `audit/` and `validation/` folders documented below.
   owned by the separate validation audit.
 - [`validation/closed.md`](validation/closed.md): closed findings of the
   validation audit, kept separate from the main audit registry.
-- [`deferred-work.md`](deferred-work.md): planned extensions that remain on the
-  roadmap but are intentionally outside the current task.

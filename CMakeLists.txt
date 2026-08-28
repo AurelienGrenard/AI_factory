@@ -57,6 +57,81 @@ set(
 )
 set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
 
+# Launch geometry is a replaceable build profile, not a numerical contract.
+# The checked-in defaults are the measured SM89 reference values; deployments
+# on another GPU should configure a new profile id and publish a separate
+# performance baseline after resource and numerical checks.
+set(AI_FACTORY_CUDA_TUNING_PROFILE_ID "sm89_reference_v1" CACHE STRING
+    "Identifier recorded with CUDA launch tuning metadata")
+set(AI_FACTORY_CUDA_MARKOVIAN_THREADS_PER_BLOCK 512 CACHE STRING
+    "Threads per block for ordinary Markovian Monte Carlo")
+set(AI_FACTORY_CUDA_MARKOVIAN_COMPACT_THREADS_PER_BLOCK 256 CACHE STRING
+    "Threads per block for compact/ragged Markovian policies")
+set(AI_FACTORY_CUDA_N_FACTOR_THREADS_PER_BLOCK 256 CACHE STRING
+    "Threads per block for rough Markovian N-factor lifts")
+set(AI_FACTORY_CUDA_ANALYTICAL_THREADS_PER_BLOCK 256 CACHE STRING
+    "Threads per block for scalar analytical kernels")
+set(AI_FACTORY_CUDA_EARLY_EXERCISE_THREADS_PER_BLOCK 128 CACHE STRING
+    "Threads per block for Longstaff-Schwartz kernels")
+set(AI_FACTORY_CUDA_EARLY_EXERCISE_BLOCKS_PER_PRICE 128 CACHE STRING
+    "Blocks per equity early-exercise price")
+set(AI_FACTORY_CUDA_FIXED_INCOME_LSM_BLOCKS_PER_PRICE 64 CACHE STRING
+    "Blocks per fixed-income early-exercise price")
+set(AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK 256 CACHE STRING
+    "Threads per block for Markovian model-sample kernels")
+set(AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT 4096 CACHE STRING
+    "Persistent block ceiling for model-sample kernels")
+set(AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE 65536 CACHE STRING
+    "Reusable path chunk for Volterra FFT pricing")
+
+if(NOT AI_FACTORY_CUDA_TUNING_PROFILE_ID MATCHES "^[A-Za-z0-9_.-]+$")
+    message(FATAL_ERROR
+        "AI_FACTORY_CUDA_TUNING_PROFILE_ID must contain only letters, digits, '.', '_' or '-'"
+    )
+endif()
+foreach(variable IN ITEMS
+    AI_FACTORY_CUDA_MARKOVIAN_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_MARKOVIAN_COMPACT_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_N_FACTOR_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_ANALYTICAL_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_EARLY_EXERCISE_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK
+)
+    if(NOT ${variable} MATCHES "^[0-9]+$"
+        OR ${variable} LESS 32 OR ${variable} GREATER 1024)
+        message(FATAL_ERROR "${variable} must be an integer in [32, 1024]")
+    endif()
+    math(EXPR remainder "${${variable}} % 32")
+    if(NOT remainder EQUAL 0)
+        message(FATAL_ERROR "${variable} must be a multiple of one warp (32)")
+    endif()
+endforeach()
+foreach(variable IN ITEMS
+    AI_FACTORY_CUDA_EARLY_EXERCISE_BLOCKS_PER_PRICE
+    AI_FACTORY_CUDA_FIXED_INCOME_LSM_BLOCKS_PER_PRICE
+    AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT
+    AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE
+)
+    if(NOT ${variable} MATCHES "^[0-9]+$" OR ${variable} LESS 1)
+        message(FATAL_ERROR "${variable} must be a positive integer")
+    endif()
+endforeach()
+
+add_library(ai_factory_cuda_tuning INTERFACE)
+target_compile_definitions(ai_factory_cuda_tuning INTERFACE
+    AI_FACTORY_CUDA_TUNING_PROFILE_ID=${AI_FACTORY_CUDA_TUNING_PROFILE_ID}
+    AI_FACTORY_CUDA_MARKOVIAN_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_MARKOVIAN_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_MARKOVIAN_COMPACT_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_MARKOVIAN_COMPACT_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_N_FACTOR_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_N_FACTOR_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_ANALYTICAL_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_ANALYTICAL_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_EARLY_EXERCISE_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_EARLY_EXERCISE_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_EARLY_EXERCISE_BLOCKS_PER_PRICE=${AI_FACTORY_CUDA_EARLY_EXERCISE_BLOCKS_PER_PRICE}
+    AI_FACTORY_CUDA_FIXED_INCOME_LSM_BLOCKS_PER_PRICE=${AI_FACTORY_CUDA_FIXED_INCOME_LSM_BLOCKS_PER_PRICE}
+    AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK}
+    AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT=${AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT}
+    AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE=${AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE}
+)
+
 # Host-only JSON validation shared by runtime loaders and offline tools.
 add_library(ai_factory_dataset_validation STATIC
     src/common/dataset_validation.cpp
@@ -104,6 +179,12 @@ target_link_libraries(
     ai_factory_artifact_io
     ai_factory_dataset_validation
 )
+ai_factory_add_offline_library(
+    ai_factory_sample_dataset tools/datasets/sample_dataset.cpp
+)
+target_link_libraries(
+    ai_factory_sample_dataset PUBLIC ai_factory_artifact_io
+)
 
 # Compatibility aggregation is intentionally interface-only. New generators
 # must depend on the precise stages selected below.
@@ -111,6 +192,7 @@ add_library(ai_factory_dataset_core INTERFACE)
 target_link_libraries(ai_factory_dataset_core INTERFACE
     ai_factory_parameter_dataset
     ai_factory_price_dataset
+    ai_factory_sample_dataset
 )
 
 # Parameter-only construction helpers stay outside price-generator builds.
@@ -145,6 +227,7 @@ include(cmake/AIFactoryTargets.cmake)
 # Register one host-only parameter generator with shared build settings.
 add_custom_target(parameter_generators)
 add_custom_target(price_generators)
+add_custom_target(sample_generators)
 
 function(ai_factory_collect_generation_dependencies output source)
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
@@ -240,6 +323,32 @@ function(add_price_generator target source)
     add_dependencies(price_generators ${target})
 endfunction()
 
+# Register one model-sample generator against its thin CUDA model binding.
+function(add_sample_generator target source)
+    if(source MATCHES
+        "catalog/model/equity/(rough_heston|quadratic_rough_heston)/samples/")
+        # Host N-factor preparation includes CUDA-decorated dynamics types.
+        set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
+    endif()
+    add_executable(${target} EXCLUDE_FROM_ALL ${source})
+    target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    ai_factory_collect_source_dependencies(dependencies ${source})
+    if(NOT dependencies)
+        message(FATAL_ERROR
+            "No compiled sample unit found for generator ${target}: ${source}"
+        )
+    endif()
+    target_link_libraries(
+        ${target} PRIVATE ${dependencies} ai_factory_sample_dataset
+    )
+    target_compile_features(${target} PRIVATE cxx_std_23)
+    set_target_properties(${target} PROPERTIES
+        CUDA_STANDARD 23
+        CUDA_STANDARD_REQUIRED YES
+    )
+    add_dependencies(sample_generators ${target})
+endfunction()
+
 # Derive a stable executable name from the versioned catalog recipe id. For
 # example `heston_01__european_calls_01__01` remains the public target
 # `generate_heston_european_calls_01`; fitted recipes include their curve id.
@@ -255,15 +364,18 @@ function(ai_factory_catalog_generator_target output source)
             string(APPEND target "_${component}")
         endforeach()
         string(APPEND target "_${version}")
+    elseif(source MATCHES
+        "catalog/model/(equity|fixed_income)/([^/]+)/samples/")
+        set(target "generate_${CMAKE_MATCH_2}_${recipe_id}")
     else()
         set(target "generate_${recipe_id}")
     endif()
     set(${output} "${target}" PARENT_SCOPE)
 endfunction()
 
-# The generated manifest owns the ordinary non-American equity recipes and
-# their implementation matrix. Tree discovery also registers the deliberately
-# manual American/LSM, fixed-income and parameter recipes.
+# The generated manifest owns the equity recipes and their implementation
+# matrix. Tree discovery registers fixed-income and parameter recipes while
+# the capability checker verifies their declared matrix.
 file(GLOB_RECURSE _ai_factory_catalog_generators
     CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -285,6 +397,8 @@ foreach(source IN LISTS _ai_factory_catalog_generators)
     endif()
     if(source MATCHES "/prices/")
         add_price_generator(${target} "${source}")
+    elseif(source MATCHES "/samples/")
+        add_sample_generator(${target} "${source}")
     else()
         add_parameter_generator(${target} "${source}")
     endif()
@@ -307,6 +421,23 @@ target_link_libraries(
 )
 add_dependencies(
     performance_benchmarks ai_factory_generic_kernel_benchmark
+)
+
+add_executable(
+    ai_factory_early_exercise_benchmark EXCLUDE_FROM_ALL
+    validation/performance/early_exercise_benchmark.cu
+)
+ai_factory_configure_cuda_library(ai_factory_early_exercise_benchmark)
+target_link_libraries(
+    ai_factory_early_exercise_benchmark PRIVATE
+    ai_factory_runtime
+    ai_factory_equity_black_scholes_american_option
+    ai_factory_equity_heston_american_option
+    ai_factory_fixed_income_ornstein_uhlenbeck_bermudan_swaption
+    ai_factory_fixed_income_g2_bermudan_swaption
+)
+add_dependencies(
+    performance_benchmarks ai_factory_early_exercise_benchmark
 )
 
 add_library(
@@ -354,6 +485,24 @@ foreach(variant IN ITEMS inline noinline)
 endforeach()
 
 if(AI_FACTORY_MATHDX_ROOT)
+    add_executable(
+        ai_factory_model_sample_benchmark EXCLUDE_FROM_ALL
+        validation/performance/model_sample_benchmark.cu
+    )
+    ai_factory_configure_cuda_library(ai_factory_model_sample_benchmark)
+    target_link_libraries(
+        ai_factory_model_sample_benchmark PRIVATE
+        ai_factory_runtime
+        ai_factory_cufftdx
+        ai_factory_equity_black_scholes_sample
+        ai_factory_equity_heston_sample
+        ai_factory_equity_rough_heston_sample
+        ai_factory_equity_rough_bergomi_sample
+    )
+    add_dependencies(
+        performance_benchmarks ai_factory_model_sample_benchmark
+    )
+
     add_library(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
         STATIC EXCLUDE_FROM_ALL
@@ -362,21 +511,15 @@ if(AI_FACTORY_MATHDX_ROOT)
     ai_factory_configure_cuda_library(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
     )
-    target_include_directories(
-        ai_factory_equity_rough_bergomi_european_option_direct_experiment
-        PRIVATE
-        ${AI_FACTORY_MATHDX_ROOT}/include
-        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-    )
     target_compile_definitions(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
-        PUBLIC AI_FACTORY_HAS_CUFFTDX=1
         PRIVATE AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT=32
     )
     target_link_libraries(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
         PUBLIC
         ai_factory_runtime
+        ai_factory_cufftdx
         ai_factory_equity_rough_bergomi_dataset
         ai_factory_product_european_option_dataset
     )
@@ -386,14 +529,10 @@ if(AI_FACTORY_MATHDX_ROOT)
         validation/volterra/kernel_benchmark.cu
     )
     ai_factory_configure_cuda_library(ai_factory_volterra_kernel_benchmark)
-    target_include_directories(
-        ai_factory_volterra_kernel_benchmark PRIVATE
-        ${AI_FACTORY_MATHDX_ROOT}/include
-        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-    )
     target_link_libraries(
         ai_factory_volterra_kernel_benchmark PRIVATE
         ai_factory_runtime
+        ai_factory_cufftdx
         ai_factory_equity_heston_european_option
         ai_factory_equity_rough_heston_european_option
         ai_factory_equity_rough_bergomi_european_option
@@ -414,14 +553,10 @@ if(AI_FACTORY_MATHDX_ROOT)
         ai_factory_volterra_direct_kernel_benchmark PRIVATE
         AI_FACTORY_VOLTERRA_BENCHMARK_VARIANT="direct_experiment"
     )
-    target_include_directories(
-        ai_factory_volterra_direct_kernel_benchmark PRIVATE
-        ${AI_FACTORY_MATHDX_ROOT}/include
-        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-    )
     target_link_libraries(
         ai_factory_volterra_direct_kernel_benchmark PRIVATE
         ai_factory_runtime
+        ai_factory_cufftdx
         ai_factory_equity_heston_european_option
         ai_factory_equity_rough_heston_european_option
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
@@ -501,6 +636,7 @@ if(BUILD_TESTING)
     add_offline_stage_test(sampling ai_factory_sampling)
     add_offline_stage_test(artifact_io ai_factory_artifact_io)
     add_offline_stage_test(parameter_dataset ai_factory_parameter_dataset)
+    add_offline_stage_test(sample_dataset ai_factory_sample_dataset)
     add_offline_stage_test(price_dataset ai_factory_price_dataset)
 
     add_executable(
@@ -1033,6 +1169,33 @@ if(BUILD_TESTING)
     # rerun Premia, QuantLib, or Wine. Keep them available on any Python host.
     find_package(Python3 COMPONENTS Interpreter QUIET)
     if(Python3_Interpreter_FOUND)
+        if(AI_FACTORY_MATHDX_ROOT)
+            add_custom_target(
+                performance_regression_gate
+                COMMAND
+                    ${Python3_EXECUTABLE}
+                    ${CMAKE_SOURCE_DIR}/validation/performance/run_baseline.py
+                    --baseline
+                    ${CMAKE_SOURCE_DIR}/validation/performance/baseline_sm89_v1.json
+                    --build-dir ${CMAKE_BINARY_DIR}
+                    --output
+                    ${CMAKE_BINARY_DIR}/performance_candidate_sm89_v1.ndjson
+                DEPENDS performance_benchmarks
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                USES_TERMINAL
+            )
+        endif()
+        add_test(
+            NAME performance_baseline_checker
+            COMMAND
+                ${Python3_EXECUTABLE} -m unittest
+                validation.performance.test_check_baseline
+        )
+        set_tests_properties(performance_baseline_checker PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;performance;baseline"
+            TIMEOUT 30
+        )
         add_test(
             NAME pricing_binding_codegen
             COMMAND
@@ -1047,6 +1210,17 @@ if(BUILD_TESTING)
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             LABELS "workbench;codegen;equity"
             TIMEOUT 60
+        )
+        add_test(
+            NAME pricing_capability_manifest
+            COMMAND
+                ${Python3_EXECUTABLE} -m unittest
+                tools.codegen.pricing_bindings.test_capability_manifest
+        )
+        set_tests_properties(pricing_capability_manifest PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;codegen;architecture"
+            TIMEOUT 30
         )
         add_test(
             NAME catalog_generator_boundaries
@@ -1439,6 +1613,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        sabr_absorbing_boundary_cuda
+        tests/sabr_absorbing_boundary_cuda_test.cpp
+        "sabr;absorbing_boundary"
+        60
+    )
+    add_cuda_workbench_test(
         volterra_driver_policy_cuda
         tests/volterra_driver_policy_cuda_test.cu
         "volterra;driver_policy"
@@ -1479,6 +1659,12 @@ if(BUILD_TESTING)
         rough_heston_samples_cuda
         tests/rough_heston_samples_cuda_test.cu
         "samples;rough_heston"
+        120
+    )
+    add_cuda_workbench_test(
+        quadratic_rough_heston_samples_cuda
+        tests/quadratic_rough_heston_samples_cuda_test.cu
+        "samples;quadratic_rough_heston;numerical_robustness"
         120
     )
     add_cuda_workbench_test(

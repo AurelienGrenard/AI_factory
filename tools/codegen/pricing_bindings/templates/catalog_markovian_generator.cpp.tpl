@@ -26,7 +26,7 @@ int main() {{
         {monte_carlo_paths}U,
         4'096U,
         4'096U,
-        {threads_per_block}U,
+        {threads_per_block},
         {seed}ULL,
         "{delta_t_description}",
         {execution_metadata},

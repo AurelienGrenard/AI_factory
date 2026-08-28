@@ -123,6 +123,47 @@ class QuadraticRoughHestonReferenceTest(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(paths.feedback)))
         self.assertTrue(np.all(np.isfinite(paths.log_spot)))
 
+    def test_balanced_cell_stabilizes_extreme_core_row_and_refines(self) -> None:
+        # Published samples_02 row 680, which made the raw explicit cell
+        # overflow even in FP64 before maturity.  The fixed kernel isolates
+        # time refinement from the separate N-factor fitting error.
+        extreme = QuadraticRoughHestonParameters(
+            spot=1.0,
+            risk_free_rate=0.00466305111,
+            dividend_yield=0.0262096468,
+            initial_feedback=0.134272352,
+            quadratic_scale=0.781992972,
+            quadratic_shift=0.135564595,
+            variance_floor=0.0120932357,
+            feedback_rate=2.99591398,
+            feedback_volatility=1.7327975,
+            hurst_exponent=0.0229686126,
+        )
+        fine_normals = np.random.default_rng(20260901).standard_normal(
+            (256, 504)
+        )
+        coarse_normals = fine_normals.reshape(256, 126, 4).sum(axis=2) / 2.0
+        medium_normals = (
+            fine_normals.reshape(256, 252, 2).sum(axis=2) / np.sqrt(2.0)
+        )
+        maturity = 358.0 / 252.0
+        coarse = simulate_exponential_lift(
+            extreme, self.kernel, maturity, coarse_normals
+        )
+        medium = simulate_exponential_lift(
+            extreme, self.kernel, maturity, medium_normals
+        )
+        fine = simulate_exponential_lift(
+            extreme, self.kernel, maturity, fine_normals
+        )
+        self.assertTrue(np.all(np.isfinite(coarse.feedback)))
+        self.assertTrue(np.all(np.isfinite(medium.feedback)))
+        self.assertTrue(np.all(np.isfinite(fine.feedback)))
+        self.assertTrue(np.all(np.isfinite(fine.log_spot)))
+        coarse_error = np.sqrt(np.mean((coarse.log_spot - fine.log_spot) ** 2))
+        medium_error = np.sqrt(np.mean((medium.log_spot - fine.log_spot) ** 2))
+        self.assertLess(medium_error, coarse_error)
+
 
 if __name__ == "__main__":
     unittest.main()

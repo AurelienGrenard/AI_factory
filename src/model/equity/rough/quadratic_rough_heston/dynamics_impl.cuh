@@ -63,17 +63,28 @@ __device__ __forceinline__ void DynamicsPolicy<FactorCount>::simulate_one_step(
     state.log_spot += dynamics.drift_dt - 0.5f * variance * dynamics.dt
         + sqrt_variance * dynamics.sqrt_dt * normal;
 
+    // A raw explicit cell can multiply the quadratic-feedback state by a
+    // large Gaussian factor when H is small.  Balance the complete Volterra
+    // cell contribution smoothly: x / hypot(1, x) is bounded, has no branch
+    // or arbitrary clipping threshold, and differs from x only at cubic
+    // order as the cell size tends to zero.
+    const float raw_force = fmaf(
+        dynamics.feedback_rate * dynamics.feedback_volatility
+            * dynamics.inverse_sqrt_dt,
+        sqrt_variance * normal,
+        -dynamics.feedback_rate * feedback
+    );
+    const float raw_cell_increment =
+        dynamics.feedback_cell_loading * raw_force;
+    const float balanced_force = raw_force
+        / hypotf(1.0f, raw_cell_increment);
+
     #pragma unroll
     for (std::size_t factor = 0U; factor < FactorCount; ++factor) {
         state.feedback_factors[factor] = fmaf(
             dynamics.factor_decay[factor],
             state.feedback_factors[factor],
-            -dynamics.factor_drift_integral[factor]
-                * dynamics.feedback_rate * feedback
-                + dynamics.factor_noise_loading[factor]
-                    * dynamics.feedback_rate
-                    * dynamics.feedback_volatility
-                    * sqrt_variance * normal
+            dynamics.factor_drift_integral[factor] * balanced_force
         );
     }
 }

@@ -5,7 +5,8 @@
 # are compiled here, so no relocatable-device-code boundary is introduced.
 
 # This checked-in fragment is generated beside every equity pricing binding;
-# CI compares both the C++ units and this registration matrix to one manifest.
+# CI compares the C++ units and the cross-domain registration matrix to the
+# composed capability manifests.
 include(cmake/generated/EquityPricingBindings.cmake)
 
 function(ai_factory_configure_host_library target)
@@ -41,6 +42,7 @@ add_library(ai_factory_runtime STATIC EXCLUDE_FROM_ALL
     src/common/cuda_kernel_diagnostics.cpp
 )
 ai_factory_configure_host_library(ai_factory_runtime)
+target_link_libraries(ai_factory_runtime PUBLIC ai_factory_cuda_tuning)
 
 add_library(ai_factory_longstaff_schwartz STATIC EXCLUDE_FROM_ALL
     src/common/longstaff_schwartz/launch.cu
@@ -88,12 +90,7 @@ endforeach()
 
 set(_ai_factory_equity_models ${AI_FACTORY_GENERATED_EQUITY_MODELS})
 set(_ai_factory_fixed_income_models
-    cir
-    g2
-    g2_plus_plus
-    hull_white
-    ornstein_uhlenbeck
-    vasicek
+    ${AI_FACTORY_GENERATED_FIXED_INCOME_MODELS}
 )
 
 function(ai_factory_equity_model_family output model)
@@ -175,15 +172,17 @@ foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS)
     ai_factory_add_cuda_unit(equity ${unit_path})
 endforeach()
 
-# Samples and American exercise are deliberately outside the generated
-# non-American product matrix. Existence is the source of truth for these
-# exceptional units, so no second model-product list is maintained.
-foreach(model IN LISTS _ai_factory_equity_models)
-    if(NOT model IN_LIST AI_FACTORY_GENERATED_VOLTERRA_MODELS)
-        ai_factory_add_cuda_unit(equity ${model}/sample)
-    endif()
-    ai_factory_add_cuda_unit(equity ${model}/american_option)
+foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_SAMPLE_UNITS)
+    ai_factory_add_cuda_unit(equity ${unit_path})
 endforeach()
+foreach(unit_path IN LISTS
+    AI_FACTORY_GENERATED_EQUITY_EARLY_EXERCISE_UNITS)
+    ai_factory_add_cuda_unit(equity ${unit_path})
+endforeach()
+# Black--Scholes American pricing is the exact-transition one-factor control
+# used by tests and performance baselines. It has no catalogue recipe, so it
+# is deliberately registered outside the generated recipe capability matrix.
+ai_factory_add_cuda_unit(equity black_scholes/american_option)
 
 if(AI_FACTORY_MATHDX_ROOT)
     if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
@@ -191,10 +190,70 @@ if(AI_FACTORY_MATHDX_ROOT)
             "AI_FACTORY_MATHDX_ROOT does not contain include/cufftdx.hpp"
         )
     endif()
-    if(NOT CUDA_WORKBENCH_ARCHITECTURES STREQUAL "89")
-        message(FATAL_ERROR
-            "The tuned cuFFTDx Volterra pricers currently target SM 8.9; "
-            "configure CUDA_WORKBENCH_ARCHITECTURES=89"
+    # cuFFTDx 26.06 requires Turing or newer and exposes explicit descriptors
+    # for the architectures below. A mono-architecture build uses its exact
+    # descriptor. A fatbin uses the oldest requested descriptor as a portable
+    # implementation profile while nvcc still emits code for every requested
+    # architecture. Per-GPU tuning belongs to a separate mono-architecture
+    # build and performance baseline.
+    set(_ai_factory_cufftdx_supported_architectures
+        75 80 86 87 89 90 100 103 110 120 121
+    )
+    set(_ai_factory_cufftdx_requested_architectures)
+    foreach(architecture IN LISTS CUDA_WORKBENCH_ARCHITECTURES)
+        if(NOT architecture MATCHES "^([0-9]+)(-real|-virtual)?$")
+            message(FATAL_ERROR
+                "Unsupported CUDA architecture spelling '${architecture}' "
+                "for cuFFTDx; use a numeric CMake architecture"
+            )
+        endif()
+        set(architecture_number "${CMAKE_MATCH_1}")
+        if(NOT architecture_number IN_LIST
+            _ai_factory_cufftdx_supported_architectures)
+            message(FATAL_ERROR
+                "cuFFTDx 26.06 does not expose an SM descriptor for "
+                "architecture ${architecture_number}; supported project "
+                "descriptors are ${_ai_factory_cufftdx_supported_architectures}"
+            )
+        endif()
+        list(APPEND _ai_factory_cufftdx_requested_architectures
+            "${architecture_number}"
+        )
+    endforeach()
+    list(REMOVE_DUPLICATES _ai_factory_cufftdx_requested_architectures)
+    list(SORT _ai_factory_cufftdx_requested_architectures
+        COMPARE NATURAL ORDER ASCENDING
+    )
+    list(GET _ai_factory_cufftdx_requested_architectures 0
+        _ai_factory_cufftdx_profile_architecture
+    )
+    math(EXPR _ai_factory_cufftdx_descriptor
+        "${_ai_factory_cufftdx_profile_architecture} * 10"
+    )
+    add_library(ai_factory_cufftdx INTERFACE)
+    target_include_directories(
+        ai_factory_cufftdx SYSTEM INTERFACE
+        ${AI_FACTORY_MATHDX_ROOT}/include
+        ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
+    )
+    target_compile_definitions(
+        ai_factory_cufftdx INTERFACE
+        AI_FACTORY_HAS_CUFFTDX=1
+        AI_FACTORY_CUFFTDX_ARCHITECTURE=${_ai_factory_cufftdx_descriptor}
+    )
+    list(LENGTH _ai_factory_cufftdx_requested_architectures
+        _ai_factory_cufftdx_architecture_count
+    )
+    if(_ai_factory_cufftdx_architecture_count GREATER 1)
+        message(STATUS
+            "cuFFTDx fatbin architectures "
+            "${_ai_factory_cufftdx_requested_architectures}; using portable "
+            "SM${_ai_factory_cufftdx_profile_architecture} FFT profile"
+        )
+    else()
+        message(STATUS
+            "cuFFTDx mono-architecture profile: "
+            "SM${_ai_factory_cufftdx_profile_architecture}"
         )
     endif()
     set(_ai_factory_rough_fft_targets)
@@ -205,66 +264,20 @@ if(AI_FACTORY_MATHDX_ROOT)
             ai_factory_equity_${unit_id}
         )
     endforeach()
-    foreach(model IN LISTS AI_FACTORY_GENERATED_VOLTERRA_MODELS)
-        if(EXISTS
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/model/equity/rough/${model}/sample.cu"
+    foreach(unit_path IN LISTS
+        AI_FACTORY_GENERATED_EQUITY_MATHDX_SAMPLE_UNITS)
+        ai_factory_add_cuda_unit(equity ${unit_path})
+        string(REPLACE "/" "_" unit_id "${unit_path}")
+        list(APPEND _ai_factory_rough_fft_targets
+            ai_factory_equity_${unit_id}
         )
-            ai_factory_add_cuda_unit(equity ${model}/sample)
-            list(APPEND _ai_factory_rough_fft_targets
-                ai_factory_equity_${model}_sample
-            )
-        endif()
     endforeach()
     foreach(target IN LISTS _ai_factory_rough_fft_targets)
-        target_include_directories(
-            ${target} PRIVATE
-            ${AI_FACTORY_MATHDX_ROOT}/include
-            ${AI_FACTORY_MATHDX_ROOT}/external/cutlass/include
-        )
-        target_compile_definitions(
-            ${target} PUBLIC AI_FACTORY_HAS_CUFFTDX=1
-        )
+        target_link_libraries(${target} PUBLIC ai_factory_cufftdx)
     endforeach()
 endif()
 
-set(_ai_factory_fixed_income_units
-    cir/bermudan_swaption
-    cir/sample
-    cir/european_swaption
-    cir/rate_option
-    cir/zero_coupon_bond_option
-    g2/sample
-    g2/bermudan_swaption
-    g2/rate_option
-    g2/zero_coupon_bond_option
-    g2_plus_plus/sample
-    g2_plus_plus/nelson_siegel/bermudan_swaption
-    g2_plus_plus/nelson_siegel/rate_option
-    g2_plus_plus/nelson_siegel/zero_coupon_bond_option
-    g2_plus_plus/svensson/rate_option
-    g2_plus_plus/svensson/zero_coupon_bond_option
-    g2_plus_plus/svensson/bermudan_swaption
-    hull_white/sample
-    hull_white/nelson_siegel/bermudan_swaption
-    hull_white/nelson_siegel/european_swaption
-    hull_white/nelson_siegel/rate_option
-    hull_white/nelson_siegel/zero_coupon_bond_option
-    hull_white/svensson/european_swaption
-    hull_white/svensson/rate_option
-    hull_white/svensson/zero_coupon_bond_option
-    hull_white/svensson/bermudan_swaption
-    ornstein_uhlenbeck/bermudan_swaption
-    ornstein_uhlenbeck/sample
-    ornstein_uhlenbeck/european_swaption
-    ornstein_uhlenbeck/rate_option
-    ornstein_uhlenbeck/zero_coupon_bond_option
-    vasicek/sample
-    vasicek/bermudan_swaption
-    vasicek/european_swaption
-    vasicek/rate_option
-    vasicek/zero_coupon_bond_option
-)
-foreach(unit_path IN LISTS _ai_factory_fixed_income_units)
+foreach(unit_path IN LISTS AI_FACTORY_GENERATED_FIXED_INCOME_UNITS)
     ai_factory_add_cuda_unit(fixed_income ${unit_path})
 endforeach()
 

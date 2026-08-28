@@ -1,4 +1,4 @@
-// Model-only rough-Bergomi sample launchers on the canonical FFT grid.
+// Generated model-only Rough-Bergomi sample launchers.
 #pragma once
 
 #include "model/equity/rough/rough_bergomi/parameters.hpp"
@@ -17,6 +17,21 @@ void launch_rough_bergomi_terminal_samples_cuda(
     std::size_t launch_sample_count,
     std::size_t block_count,
     std::uint64_t dynamics_seed,
+    float* device_spots
+);
+
+void launch_rough_bergomi_random_terminal_samples_cuda(
+    const ModelParameters* device_parameters,
+    std::size_t parameter_count,
+    std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days,
+    std::size_t sample_offset,
+    std::size_t launch_sample_count,
+    std::size_t block_count,
+    std::uint64_t schedule_seed,
+    std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days,
     float* device_spots
 );
 

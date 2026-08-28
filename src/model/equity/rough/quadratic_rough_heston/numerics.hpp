@@ -41,13 +41,18 @@ PreparedDynamics<FactorCount> prepare_dynamics(
     result.drift_dt = (model.risk_free_rate - model.dividend_yield) * dt;
     result.dt = dt;
     result.sqrt_dt = std::sqrt(dt);
+    result.inverse_sqrt_dt = 1.0f / result.sqrt_dt;
     for (std::size_t factor = 0U; factor < FactorCount; ++factor) {
         const float node = kernel.nodes[factor];
         const float decay = std::exp(-node * dt);
         const float drift_integral = -std::expm1(-node * dt) / node;
         result.factor_decay[factor] = decay;
         result.factor_drift_integral[factor] = drift_integral;
-        result.factor_noise_loading[factor] = drift_integral / std::sqrt(dt);
+        result.feedback_cell_loading = std::fma(
+            kernel.weights[factor],
+            drift_integral,
+            result.feedback_cell_loading
+        );
     }
     return result;
 }

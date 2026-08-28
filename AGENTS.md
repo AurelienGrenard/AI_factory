@@ -4,8 +4,7 @@
 
 - Read `README.md`, `docs/README.md`, the relevant file under `docs/`, and the
   corresponding CMake, test, generator, and validation entries.
-- Read `docs/deferred-work.md` before starting a planned extension. Before
-  opening or reopening an audit finding, read `docs/audit/closed.md` so a
+- Before opening or reopening an audit finding, read `docs/audit/closed.md` so a
   corrected or measured finding is not recreated under another identifier.
 - Read `docs/audit/query.md` before performing a main repository audit. The
   slower validation/reproducibility audit is separate, explicitly triggered,

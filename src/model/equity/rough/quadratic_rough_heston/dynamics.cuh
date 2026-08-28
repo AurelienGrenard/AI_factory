@@ -31,12 +31,13 @@ struct PreparedDynamics {
     float variance_floor;
     float factor_decay[FactorCount];
     float factor_drift_integral[FactorCount];
-    float factor_noise_loading[FactorCount];
+    float feedback_cell_loading;
     float feedback_rate;
     float feedback_volatility;
     float drift_dt;
     float dt;
     float sqrt_dt;
+    float inverse_sqrt_dt;
 };
 
 template<std::size_t FactorCount>

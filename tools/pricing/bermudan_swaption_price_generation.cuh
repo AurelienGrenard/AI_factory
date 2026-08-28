@@ -5,6 +5,7 @@
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/tuning_profile.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <algorithm>
@@ -53,8 +54,8 @@ make_bermudan_swaption_generation_configuration(
         + database_id;
     return {
         paths_per_price,
-        128U,
-        64U,
+        offline::cuda_tuning::kEarlyExerciseThreadsPerBlock,
+        offline::cuda_tuning::kFixedIncomeLsmBlocksPerPrice,
         seed,
         numerical_method,
         regression_basis,
@@ -86,8 +87,8 @@ make_fitted_bermudan_swaption_generation_configuration(
         + curve + "/" + product + "/" + database_id;
     return {
         paths_per_price,
-        128U,
-        64U,
+        offline::cuda_tuning::kEarlyExerciseThreadsPerBlock,
+        offline::cuda_tuning::kFixedIncomeLsmBlocksPerPrice,
         seed,
         numerical_method,
         regression_basis,
@@ -140,6 +141,10 @@ inline nlohmann::ordered_json bermudan_swaption_cuda_execution(
         {"batch_count", execution.batch_count},
         {"kernel_launch_count", execution.kernel_launch_count},
         {"workspace_bytes", execution.workspace_bytes},
+        {
+            "tuning_profile",
+            offline::cuda_tuning::metadata("fixed_income_early_exercise")
+        },
     };
     for (const auto& [name, value] : configuration.time_discretization.items()) {
         result[name] = value;

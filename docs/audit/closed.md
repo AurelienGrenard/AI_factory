@@ -109,14 +109,6 @@ historique de cloture.
 - **Preuve :** anciens chemins absents, documentation `src/common` alignee et builds agreges passes.
 - **Reouvrir seulement si :** chemins et namespaces divergent de nouveau ou un module commun redevient un regroupement sans responsabilite coherente.
 
-### STRUCT-010 — Supprimer les inventaires README locaux recopies et non maintenus
-
-- **Nature :** corrige et verifie le 2026-08-27.
-- **Signature :** des READMEs sous `src` recopiaient des arbres de fichiers et surfaces d'API sans reference entrante, donc devenaient faux apres chaque refactor.
-- **Cloture :** inventaires recopies retires; les decisions durables restent dans les contrats centraux et seuls les points d'entree locaux utiles subsistent.
-- **Preuve :** recherche finale sans arbres README recopies ni inventaire orphelin dans le perimetre audite.
-- **Reouvrir seulement si :** un README local non reference recommence a dupliquer l'arbre ou l'API d'implementation.
-
 ## Tools and src ownership
 
 ### BOUNDARY-001 — Supprimer toute dependance de `src` vers les composants de `tools`
@@ -278,14 +270,6 @@ historique de cloture.
 - **Preuve :** 256 appels par echantillon mesurent environ 5–7 microsecondes par lancement pour 1, 32 et 1 024 resultats. La variance dynamique est elevee (CV 22–28 %), donc le protocole classe les comparaisons fines comme inconclusives, mais confirme l'ordre de grandeur; les generateurs catalogue amortissent deja sur 1 000 resultats.
 - **Reouvrir seulement si :** un appel public unitaire devient un workload catalogue significatif, ou si une API de contexte possede explicitement et surement la duree de vie des allocations.
 
-### PERF-010 — Etablir une baseline CUDA reproductible et bloquante
-
-- **Nature :** corrige et verifie le 2026-08-27.
-- **Signature :** les temps publies dans les YAML n'etaient ni comparables, ni rattaches a une architecture, ni utilisables pour accepter ou refuser une regression.
-- **Cloture :** `validation/performance` possede un protocole v1, des harness generique/CIR/Volterra, une baseline SM89 versionnee et un verificateur fail-closed sur environnement, configuration et version. Cinq warmups, 21 repetitions, mediane, p95, CV, invariant numerique et seuil de 5 % sont obligatoires.
-- **Preuve :** JSON parse, aide et compilation Python passent; tous les benchmarks sont construits par `performance_benchmarks`; le checker refuse les configurations ou environnements non apparies et classe le bruit au-dessus de 5 % comme inconclusif. `kernel <= wall` est impose par la semantique de chronometrage documentee.
-- **Reouvrir seulement si :** une mesure de performance sert a une decision sans protocole/version/environnement, si le checker accepte une comparaison non appariee, ou si SM75/86 sont qualifies sans baseline runtime propre.
-
 ### PERF-012 — Mesurer le crossover convolution directe/FFT pour Volterra
 
 - **Nature :** hypothese de chemin direct refutee par mesure le 2026-08-27.
@@ -337,3 +321,179 @@ historique de cloture.
 - **Cloture :** le monolithe est supprime. `sampling.*`, `artifact_io.*`, `parameter_dataset.*` et `price_dataset.*` possedent des API et bibliotheques distinctes; l'execution CUDA vit sous `tools/cuda`, les orchestrations produit reutilisables sous `tools/pricing`, et les generateurs lient seulement les etapes qu'ils emploient. La facade `ai_factory_dataset_core` restante est une cible `INTERFACE` de compatibilite et ne reintroduit aucune implementation agregee.
 - **Preuve :** quatre tests de stage independants, les tests `dataset_catalog`, `dataset_loaders` et `rough_sabr_dataset_loader`, le test GPU autonome du runner et les deux matrices de generateurs passent. Le checker interdit le retour du monolithe et des anciens helpers. Preuve consolidee E21.
 - **Reouvrir seulement si :** sampling, serialisation, assemblage ou execution sont de nouveau fusionnes dans une implementation commune, si un generateur depend d'une etape inutilisee, ou si une etape perd son test independant.
+
+## Project structure — passage de remediation du 2026-08-28
+
+### STRUCT-010 — Supprimer les inventaires README locaux recopies et non maintenus
+
+- **Nature :** corrige une seconde fois et verifie le 2026-08-28.
+- **Signature :** un README local non reference recopiait l'arbre et l'API
+  d'implementation, tandis que le README racine decrivait encore des `.cu`
+  inclus textuellement.
+- **Cloture :** l'inventaire `src/common/README.md` de 985 lignes est retire;
+  le README racine decrit les definitions incluses `*_impl.cuh` et les `.cu`
+  autonomes sans recreer une seconde liste exhaustive.
+- **Preuve :** ancien fichier absent, aucun include textuel de `.cu` et aucune
+  occurrence documentaire restante de `dynamics.cu`/`analytics.cu` comme
+  headers d'implementation; preuve ciblee E23.
+- **Reouvrir seulement si :** un README local non reference recommence a
+  dupliquer arbre/API ou si la documentation de build cite une frontiere
+  source qui n'existe plus.
+
+### STRUCT-012 — Declarer et generer les recettes American/LSM
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** huit recettes American recopiaient manuellement le workspace,
+  l'execution, les diagnostics et la publication Longstaff-Schwartz derriere
+  une escape hatch du checker.
+- **Cloture :** `AmericanRecipeSpec`, un template commun et
+  `american_option_price_generation.cuh` generent les huit corps minces; le
+  checker ne conserve aucune escape hatch CUDA American.
+- **Preuve :** les huit recettes sont zero-diff dans la generation complete,
+  les huit executables compilent, les quatre tests CUDA American/LSM passent et
+  le checker refuse toute recette possedant de nouveau ses ressources CUDA;
+  preuve ciblee E23.
+- **Reouvrir seulement si :** une recette American redevient manuelle, sort du
+  manifeste, gere directement CUDA ou peut publier apres un diagnostic de
+  regression fatal.
+
+### STRUCT-011 — Etendre la source de verite typee a toute la matrice de capacites
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** prix equity, prix fixed income, LSM, parametres et samples
+  etaient decrits par des listes partielles ou concurrentes qui ne resolvaient
+  pas une matrice de capacites canonique et publiable.
+- **Cloture :** le manifeste type couvre 12 engines, 24 modeles, 26 produits et
+  689 datasets disponibles sans report sample; la specification samples derive
+  les 24 bindings, 24 helpers et 48 recettes, et la provenance SHA-256 accompagne
+  les sorties generees.
+- **Preuve :** le checker controle les 689 recettes, les quatre tests du
+  manifeste passent et la generation `--family all --compare-root .` est
+  zero-diff sur bindings, recettes, CMake et manifeste de capacites; preuves
+  E20 et E23.
+- **Reouvrir seulement si :** une capacite ordinaire disponible doit etre
+  declaree dans une liste concurrente, si une recette/binding/CMake derive
+  sans etre couvert par le zero-diff, ou si provenance et snapshot divergent.
+
+### STRUCT-013 — Publier les deux recettes de samples contractuelles par modele
+
+- **Nature :** corrige structurellement et verifie le 2026-08-28; le defaut
+  numerique isole est transfere sous `NUM-007`.
+- **Signature :** les 24 modeles ne possedaient pas tous leurs bindings
+  `sample.cuh/.cu` et leurs deux recettes contractuelles `samples_01` et
+  `samples_02`, imposant une extension manuelle incomplete.
+- **Cloture :** chaque modele possede ses deux corps minces generes, son helper
+  type et son binding; l'agregat CMake `sample_generators` est derive de
+  l'arborescence et les dependances Volterra restent conditionnees par mathDx.
+- **Preuve :** les 48 executables compilent sur SM89 avec mathDx; un build frais
+  sans mathDx compile les 40 recettes independantes en 168 etapes; 47/48 smoke
+  tests produisent et rechargent leur JSON/YAML. Le seul echec n'est ni une
+  absence ni un drift de codegen : Quadratic rough-Heston `samples_02` produit
+  une valeur non finie et reste ouvert sous `NUM-007`; preuves E20 et E22.
+- **Reouvrir seulement si :** un modele perd un des deux layouts, si un binding
+  ou une recette doit etre ajoute manuellement hors specification, si le
+  zero-diff ne couvre plus cette surface ou si un target disponible ne linke
+  plus avec ses dependances declarees.
+
+## Numerical robustness — passage de remediation du 2026-08-28
+
+### NUM-006 — Definir la frontiere CEV des dynamiques SABR au lieu de la projeter silencieusement
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** SABR et rough SABR projetaient la coordonnee de Lamperti sur
+  `1e-12` apres un franchissement de zero, permettant a une trajectoire CEV de
+  repartir sans condition de frontiere documentee.
+- **Cloture :** une primitive commune impose la frontiere absorbante : un spot
+  traverse devient `log_spot = -inf`, ne ressuscite pas, tandis que la
+  volatilite et la consommation Philox poursuivent leur contrat.
+- **Preuve :** contrat dynamics mis a jour; tests forces `beta=0` et `beta=0.5`;
+  comparaison SABR beta-zero a la loi brownienne tuee, raffinement de pas
+  rough-SABR, reproductibilite et trois tests CUDA cibles passes sur SM89;
+  preuve E23.
+- **Reouvrir seulement si :** une projection positive reapparait, une
+  trajectoire absorbee peut repartir, le mapping Philox change ou un domaine
+  publie montre un biais hors de la borne/convergence documentee.
+
+## CUDA safety — passage de remediation du 2026-08-28
+
+### CUDA-001 — Eliminer les lectures non initialisees du `PreparedRow` Bermudan
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** les copies structurelles du `PreparedRow` Bermudan lisaient
+  le padding non initialise du workspace, produisant 1 792 erreurs initcheck.
+- **Cloture :** le workspace `PreparedRow` est initialise deterministement
+  avant le kernel de preparation, sans changer sa representation ni les copies
+  device.
+- **Preuve :** `compute-sanitizer --tool initcheck` sur le test Bermudan OU/G2
+  passe de 1 792 a zero erreur; memcheck, racecheck et synccheck restent propres
+  et les sorties fonctionnelles restent reproductibles; preuve E23.
+- **Reouvrir seulement si :** initcheck signale de nouveau une lecture de row,
+  si l'initialisation ajoute un cout materiel mesure ou si un champ semantique
+  peut rester non initialise.
+
+## Remediation portabilite et samples du 2026-08-28
+
+### STRUCT-014 — Retirer la reference morte au registre volontairement supprime
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature originale :** `docs/deferred-work.md` avait ete volontairement
+  supprime, mais `AGENTS.md` exigeait encore sa lecture avant une extension et
+  rendait les instructions impossibles a suivre.
+- **Cloture :** l'instruction morte est retiree sans restaurer le registre ni
+  inventer de chemin de remplacement. Les mentions restantes sont uniquement
+  l'historique de cette fermeture dans les registres d'audit.
+- **Preuve :** aucun fichier d'instruction, index documentaire ou workflow ne
+  reference le chemin supprime; la suppression reste presente dans le diff.
+- **Reouvrir seulement si :** une instruction executable ou un index suivi
+  exige de nouveau un document absent, ou si le registre supprime est restaure
+  sans nouvelle responsabilite explicite.
+
+### BUILD-002 — Ne pas confondre tuning SM89 et compatibilite cuFFTDx
+
+- **Nature :** corrige par matrice explicite et builds representatifs le
+  2026-08-28.
+- **Signature originale :** activer mathDx imposait exactement `sm_89`, alors
+  que le projet annoncait `75;86;89`; une provenance de tuning bloquait ainsi
+  fonctionnellement les engines Gaussian-Volterra sur les autres GPU.
+- **Cloture :** cuFFTDx 26.06 accepte les descripteurs
+  `75,80,86,87,89,90,100,103,110,120,121`. Un build mono-architecture choisit
+  son descripteur exact; un fatbin choisit le plus ancien descripteur demande
+  comme profil d'implementation et emet chaque architecture nvcc. Includes et
+  definitions mathDx sont possedes par l'interface CMake unique
+  `ai_factory_cufftdx`.
+- **Preuve :** configurations et compilations fraiches pricing plus sample
+  passent avec mathDx pour SM75, SM86, SM89 et le fatbin `75;86;89`; le fatbin
+  sample s'execute sur le SM89 disponible. Le preset local SM89 et le build
+  sans mathDx restent utilisables; une architecture sans descripteur est
+  refusee avec la matrice supportee. README et messages CMake distinguent
+  compatibilite offline et runtime mesure.
+- **Reouvrir seulement si :** une version mathDx change sa matrice, si un
+  descripteur annonce ne compile plus un binding pricing ou sample, si un
+  fatbin selectionne une implementation non executable sur une cible, ou si
+  un profil de performance redevient une garde fonctionnelle.
+
+### PERF-015 — Etiqueter et rendre retunables les profils livres depuis SM89
+
+- **Nature :** corrige structurellement le 2026-08-28; aucune performance hors
+  SM89 n'est inferee.
+- **Signature originale :** threads, blocs, chunks Volterra et geometries
+  samples provenaient de la RTX 4090 Laptop/SM89 mais etaient disperses dans
+  manifests, templates et helpers, sans identifiant de profil ni workflow
+  complet de retuning.
+- **Cloture :** `tools/cuda/tuning_profile.hpp` et les variables cache
+  `AI_FACTORY_CUDA_*` centralisent les valeurs par famille. Le profil par
+  defaut `sm89_reference_v1` est compile dans les recettes et publie dans les
+  metadonnees pricing, LSM et samples; un utilisateur peut fournir un nouvel
+  identifiant et de nouvelles valeurs sans modifier les algorithmes ou le
+  codegen. Les contrats documentent diagnostics, invariants, workloads et
+  baseline separee par GPU/toolchain.
+- **Preuve :** generation complete zero-diff sur 1 407 sorties, checker des
+  689 recettes, builds representatifs Markovian, N-facteurs, Volterra,
+  analytique, American, Bermudan et samples. Le benchmark samples couvre les
+  quatre engines et deux layouts; le checker refuse un environnement
+  incompatible. Les valeurs par defaut sont inchangees et restent etiquetees
+  comme reference SM89, jamais comme optimum universel.
+- **Reouvrir seulement si :** une geometrie de production redevient codee hors
+  profil sans justification, si les artefacts perdent la provenance, si une
+  surcharge requiert d'editer les fichiers generes, ou si une baseline compare
+  des GPU/toolchains incompatibles.

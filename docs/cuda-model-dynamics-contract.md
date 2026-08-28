@@ -411,6 +411,16 @@ La puissance `S^beta` est calculée une fois par pas et réutilisée pour former
 `S^(2 beta - 1)`, afin d'éviter une seconde évaluation coûteuse de `powf` sans
 ajouter de registre persistant.
 
+SABR et rough SABR appliquent la même frontière absorbante pour `beta < 1`.
+Leur schéma évolue le spot dans la coordonnée de Lamperti
+`S^(1-beta)/(1-beta)` : une proposition finie non positive écrit
+`log_spot = -inf`, et les pas suivants ne peuvent pas ressusciter le spot. La
+volatilité continue néanmoins d'évoluer et la dynamique markovienne consomme
+les mêmes normales Philox, afin que l'absorption ne modifie ni la projection
+des autres composantes ni le contrat de reproductibilité. Une erreur `NaN`
+n'est jamais convertie en frontière valide. Le cas lognormal `beta = 1` reste
+strictement positif et conserve sa mise à jour en log-spot.
+
 Schöbel-Zhu tire exactement l'extrémité OU de la volatilité. L'innovation OU est
 couplée au Brownien de volatilité intégré sur le pas, puis au Brownien spot. Le
 log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc pas
@@ -488,12 +498,23 @@ Cette composition s'applique quand l'intégrale de Volterra est une convolution
 linéaire d'un bruit gaussien par un kernel stationnaire. Rough Heston et
 quadratic rough Heston ne rentrent pas dans cette classe car leur intégrande
 dépend de l'état simulé. Après approximation exponentielle, ils satisfont en revanche
-`PreparedFixedStepDynamicsPolicy` et réutilise les schedules et kernels Monte
+`PreparedFixedStepDynamicsPolicy` et réutilisent les schedules et kernels Monte
 Carlo communs. L'état joint CIR reste
 volontairement limité au contrat à pas fixe afin que son intégration
 trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
 grand intervalle. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
+
+Pour quadratic rough Heston, la récurrence factorielle équilibre la
+contribution de la cellule Volterra complète. Si `F` est la force explicite et
+`c` la somme des poids multipliés par les intégrales de décroissance sur la
+cellule, la force appliquée est `F / hypot(1, c F)`. La contribution immédiate
+reste ainsi bornée sans clamp, seuil arbitraire ni branche dans la boucle
+chaude. La transformation diffère de la cellule explicite seulement à l'ordre
+cubique lorsque `c F` tend vers zéro. Le schéma, sa référence
+dense/exponentielle et tout changement futur doivent conserver le mapping
+Philox, vérifier les lignes core extrêmes et démontrer la convergence par
+raffinement temporel et factoriel.
 
 ## Observations et résumés equity
 

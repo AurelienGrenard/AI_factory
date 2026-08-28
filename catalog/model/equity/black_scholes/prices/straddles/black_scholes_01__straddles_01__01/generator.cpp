@@ -20,7 +20,7 @@ int main() {
         "Black-Scholes closed-form straddles",
         PriceConstruction::Aligned,
     };
-    const pricing::AnalyticalProfile profile{1.0f / 252.0f, 256U, 0U};
+    const pricing::AnalyticalProfile profile{1.0f / 252.0f, ::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock, 0U};
 
     return pricing::generate_analytical_equity_price_dataset(
         recipe,

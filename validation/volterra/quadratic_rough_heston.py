@@ -93,7 +93,7 @@ def simulate_dense_convolution(
     normals: ArrayLike,
     cell_average_weights: ArrayLike,
 ) -> SimulatedPaths:
-    """O(N^2) Euler reference for an arbitrary supplied Volterra kernel."""
+    """O(N^2) balanced-cell reference for an arbitrary Volterra kernel."""
 
     normal_values = np.atleast_2d(np.asarray(normals, dtype=np.float64))
     path_count, step_count = normal_values.shape
@@ -114,14 +114,17 @@ def simulate_dense_convolution(
         normal = normal_values[:, step]
         log_spot += carry - 0.5 * variance * dt
         log_spot += np.sqrt(variance) * sqrt_dt * normal
-        forces[:, step] = (
-            -parameters.feedback_rate * current_feedback * dt
+        raw_force = (
+            -parameters.feedback_rate * current_feedback
             + parameters.feedback_rate
             * parameters.feedback_volatility
             * np.sqrt(variance)
-            * sqrt_dt
             * normal
+            / sqrt_dt
         )
+        raw_cell_increment = raw_force * weights[0] * dt
+        balanced_force = raw_force / np.hypot(1.0, raw_cell_increment)
+        forces[:, step] = balanced_force * dt
         feedback[:, step + 1] = parameters.initial_feedback + (
             forces[:, : step + 1] @ weights[: step + 1][::-1]
         )
@@ -134,7 +137,7 @@ def simulate_exponential_lift(
     maturity: float,
     normals: ArrayLike,
 ) -> SimulatedPaths:
-    """Production-equivalent exponential recurrence written independently."""
+    """Production-equivalent balanced recurrence written independently."""
 
     normal_values = np.atleast_2d(np.asarray(normals, dtype=np.float64))
     path_count, step_count = normal_values.shape
@@ -146,6 +149,7 @@ def simulate_exponential_lift(
     drift_integral = np.where(
         nodes > 0.0, -np.expm1(-nodes * dt) / nodes, dt
     )
+    feedback_cell_loading = float(weights @ drift_integral)
     factors = np.zeros((path_count, nodes.size), dtype=np.float64)
     feedback = np.empty((path_count, step_count + 1), dtype=np.float64)
     feedback[:, 0] = parameters.initial_feedback
@@ -158,7 +162,7 @@ def simulate_exponential_lift(
         normal = normal_values[:, step]
         log_spot += carry - 0.5 * variance * dt
         log_spot += np.sqrt(variance) * sqrt_dt * normal
-        forcing = (
+        raw_force = (
             -parameters.feedback_rate * current_feedback
             + parameters.feedback_rate
             * parameters.feedback_volatility
@@ -166,6 +170,8 @@ def simulate_exponential_lift(
             * normal
             / sqrt_dt
         )
+        raw_cell_increment = feedback_cell_loading * raw_force
+        forcing = raw_force / np.hypot(1.0, raw_cell_increment)
         factors = decay[None, :] * factors
         factors += forcing[:, None] * drift_integral[None, :]
         feedback[:, step + 1] = parameters.initial_feedback + factors @ weights

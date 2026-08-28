@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -42,7 +43,7 @@ int main() {
     sabr::ModelParameters sabr_model = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.5f, 0.10f, -0.70f, 1.0f,
     };
-    const product::EuropeanOptionParameters product = {1.0f, 126U};
+    product::EuropeanOptionParameters product = {1.0f, 126U};
     constexpr float day_fraction = 1.0f / 252.0f;
     constexpr float target_dt = 1.0f / 360.0f;
     constexpr std::size_t step_count = 180U;
@@ -203,6 +204,60 @@ int main() {
             std::isfinite(cev_call.first) && cev_call.first >= 0.0f
                 && std::isfinite(cev_call.second) && cev_call.second > 0.0f,
             "rough SABR CEV price statistics are invalid"
+        );
+
+        // Published stress edge: low spot, beta=0.5 and eta=5.  There is no
+        // closed-form rough-SABR reference, so enforce a refinement bound in
+        // addition to the beta=1 exact reduction above.
+        sabr_model = {
+            0.05f, 0.0f, 0.0f, 0.20f, 5.0f, 0.10f, -0.70f, 0.50f,
+        };
+        product = {0.05f, 126U};
+        check_cuda(
+            cudaMemcpy(
+                device_sabr_model,
+                &sabr_model,
+                sizeof(sabr_model),
+                cudaMemcpyHostToDevice
+            ),
+            "rough pricing stress SABR model copy"
+        );
+        check_cuda(
+            cudaMemcpy(
+                device_product,
+                &product,
+                sizeof(product),
+                cudaMemcpyHostToDevice
+            ),
+            "rough pricing stress product copy"
+        );
+        const auto stress_90 = launch_sabr(call, 90U);
+        const auto stress_180 = launch_sabr(call, 180U);
+        const auto stress_360 = launch_sabr(call, 360U);
+        const float coarse_refinement = std::fabs(
+            stress_90.first - stress_180.first
+        );
+        const float fine_refinement = std::fabs(
+            stress_180.first - stress_360.first
+        );
+        const float refinement_statistical_bound = 5.0f * std::hypot(
+            stress_180.second, stress_360.second
+        );
+        std::cerr
+            << "rough SABR beta=0.5 stress: 90=" << stress_90.first
+            << ", 180=" << stress_180.first
+            << ", 360=" << stress_360.first
+            << ", fine bound=" << refinement_statistical_bound
+            << '\n';
+        require(
+            fine_refinement
+                <= coarse_refinement + refinement_statistical_bound,
+            "rough SABR stress refinement does not contract statistically"
+        );
+        require(
+            fine_refinement
+                <= 0.10f * sabr_model.spot + refinement_statistical_bound,
+            "rough SABR beta=0.5 stress refinement exceeds its price bound"
         );
 
         // Compile and execute every tuned FFT dispatch boundary.

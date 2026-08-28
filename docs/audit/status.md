@@ -1,238 +1,369 @@
-# Etat des audits
+# Etat des audits principaux
 
 ## Objet
 
-Ce document conserve la provenance, la couverture, les exclusions et les
-preuves du dernier passage de chaque audit defini dans `query.md`. Les
-problemes non resolus sont exclusivement decrits dans `response.md`; les
-constats fermes sont dans `closed.md`. L'audit de validation possede son propre
-registre sous `../validation/` et ne figure pas dans cette matrice.
+Ce document consigne le snapshot, la couverture, les exclusions et les preuves
+du dernier passage du referentiel principal `query.md`. Les constats non
+resolus sont exclusivement dans `response.md`; les constats fermes sont dans
+`closed.md`. L'audit lent des references independantes reste dans
+`docs/validation/` et n'est pas inclus ici.
 
-La couverture historique initiale a ete produite avec la version 1 du
-referentiel. La meta-revue documentaire du 2026-08-27 a introduit la version 2
-de `query.md`; elle n'etait pas un nouveau passage technique. Le second passage
-de remediation du meme jour est une campagne ciblee sur les 16 constats encore
-autorises, pas une recertification exhaustive de toutes les sections v2.
+## Snapshot du passage partiel version 4
 
-## Provenance du passage
+- **Date :** 2026-08-28.
+- **Referentiel :** `docs/audit/query.md`, version 4 du 2026-08-28.
+- **Branche :** `refactor/unify-cuda-model-contracts`.
+- **Revision de base :** `1889f7fbbd0f81ce2b06cfb16645e48a43971aa0`.
+- **Portee :** passage partiel limite aux nouveaux axes portabilite/tuning GPU
+  et model samples, plus verification ciblee des remediations presentes. Les
+  autres axes ne sont pas recertifies sur ce worktree par ce passage.
+- **Etat audite initial :** worktree deja tres sale et modifie concurremment par
+  plusieurs agents. Avant la remediation, l'etat technique hors quatre fichiers
+  `docs/audit/{query,response,status,closed}.md` contient 300 lignes porcelain,
+  dont 101 fichiers non suivis. Empreinte de la liste d'etat :
+  `2d2ed3177c28a53e9c1b4322d94cada983a5d3af0f8bb5b6882224d63253dec4`;
+  empreinte du diff binaire suivi :
+  `9a5b03c5ad6b1927276f7cd02c00804da9fdf046f677aa09aaf32f3eae821867`;
+  empreinte agregee des noms/contenus non suivis :
+  `1d7bf75628c09183b5d80874d090465ef8d38b501dce816914696df75c7ae800`.
+- **Mutations :** le passage d'audit initial n'a modifie que son registre. La
+  remediation ulterieure a modifie code, CMake, tests, codegen, recettes et
+  contrats dans le meme worktree; E25 distingue les preuves acquises des deux
+  campagnes lourdes encore exclues. L'ensemble reste sale jusqu'au commit de
+  la pull request.
 
-- Date : 2026-08-26.
-- Branche : `refactor/unify-cuda-model-contracts`.
-- Revision auditee : `3bfb6a56449f60ce856f7e0734e2b72d60da1b7a`.
-- Worktree deja modifie avant l'audit : oui, 133 fichiers modifies, 9 supprimes
-  et 77 non suivis. Les documents `query` et `response`, avant leur deplacement
-  sous `docs/audit/`, etaient deja modifies; leur `status` etait non suivi.
-- Version du referentiel utilisee : version 1, anterieure a la meta-revue du
-  2026-08-27.
-- Limite de provenance : ni l'empreinte du diff suivi ni l'empreinte du contenu
-  non suivi du snapshot initial n'ont ete conservees. La revision Git et les
-  seuls comptes 133/9/77 ne suffisent donc pas a le reconstruire exactement.
-- Outils : CUDA 13.3, CMake 3.22.1, GCC 14.3.0, build `dev` cible SM89.
-- Mutation effectuee pendant le passage initial : uniquement les anciens
-  documents `query`, `response` et `status` de l'audit.
-- Separation documentaire effectuee le 2026-08-27 : quadriptyque principal
-  sous `docs/audit/` et quadriptyque de validation sous `docs/validation/`.
-  Aucun probleme de code ou artefact n'a ete corrige pendant cette separation.
+### Environnement d'execution version 4
 
-## Premier passage de remediation
+- CMake 3.22.1, GCC/G++ 14.3.0, nvcc CUDA 13.3.73, builds `Release`, sans
+  `--use_fast_math`; runtime RTX 4090 Laptop, compute capability 8.9.
+- mathDx/cuFFTDx 26.06.1 pour CUDA 13 disponible sous le chemin deja consigne
+  dans le snapshot version 3.
+- Les executions CUDA ont ete faites explicitement hors sandbox. Les essais
+  sandboxes refusent l'acces au driver et ne sont pas comptes comme echecs du
+  code.
 
-- Date : 2026-08-27.
-- Perimetre : uniquement `AI_factory`, sur le worktree modifie decrit ci-dessus.
-- Constats corriges, verifies et deplaces de `response.md` vers `closed.md` :
-  `ANALYTICS-001`, `NUM-001`, `NUM-002`, `NUM-003`, `NUM-004`, `NUM-005`, `NAME-004`,
-  `NAME-007`, `STRUCT-001`, `STRUCT-009`, `STRUCT-010`, `BOUNDARY-001`,
-  `BOUNDARY-003`, `BOUNDARY-005` et `BUILD-001`.
-- La construction reelle de `price_generators` sans mathDx a aussi expose deux
-  restes mecaniques de migrations deja engagees : 350 recettes incluaient
-  encore l'ancien chemin de validation sous `tools`, et 265 recettes equity
-  n'avaient pas encore qualifie leur namespace `model::equity`. Ces appels ont
-  ete alignes sur les API canoniques avant la validation finale.
-- `NUM-002` est ferme apres remplacement du booleen par six causes typees,
-  propagation d'un resume jusqu'a l'hote et blocage explicite des trois causes
-  numeriques fatales avant publication.
-- Chantiers explicitement reportes a l'issue de ce premier passage :
-  `STRUCT-003`, `STRUCT-006`, `STRUCT-007` et `BOUNDARY-004`; a ce stade ils
-  restaient dans `response.md` et n'etaient pas comptes comme resolus.
-- `PERF-011` est ferme parce que l'experience demandee existe deja sur 354
-  executions CUDA et conclut au rejet; sa signature, ses resultats et sa
-  condition de reouverture sont conserves dans `closed.md`.
-- `PERF-003` est ferme comme hypothese refutee : les deux reductions demandees
-  ont conserve les sorties G2 bit a bit, mais la separation Gram/second membre
-  regresse de 22,6 % et la distribution par warp d'environ un facteur 12.
-- A l'issue de ce premier passage, quinze constats restaient ouverts : trois
-  sujets de nommage, une migration de layout, un budget de policies et dix
-  hypotheses de performance. Les
-  migrations exigent un choix d'API non
-  univoque et les constats de performance un protocole de mesure dedie; aucune
-  transformation speculative n'a ete appliquee.
-- En particulier, `BOUNDARY-002` traverse 471 fichiers qui consomment encore
-  le booleen public `cartesian_product`. Ajouter seulement un enum canonique
-  sous `src/common` laisserait deux representations runtime; le constat reste
-  donc ouvert jusqu'au choix d'une migration atomique ou d'une compatibilite
-  publique transitoire explicite.
-- Comptabilite historique apres ce premier passage : sur 37 constats initiaux,
-  19 etaient non resolus dans `response.md` (15 ouverts et 4 reportes) et 18
-  fermes dans `closed.md` (15 corriges, 2 hypotheses refutees par mesure et 1
-  constat de nommage classe inapplicable faute d'impact technique etabli).
+## Registre des preuves version 4
 
-## Second passage de remediation ciblee
+- **E19 — Referentiel et contrats etendus.** Lecture des instructions, du
+  registre ferme et des contrats samples/dynamics/CMake/performance. La query
+  version 4 integre les samples dans structure, homogeneite, factorisation,
+  codegen, CMake, numerique, CUDA et performance. Elle ajoute un axe explicite
+  de portabilite : SM89 est un profil mesure de reference, pas la seule cible;
+  invariants et parametres de tuning sont separes et chaque autre GPU doit etre
+  rebenchmarke avec sa propre provenance.
+- **E20 — Matrice codegen et samples finale.** Le manifeste genere declare 12
+  engines, 24 modeles, 26 produits, 689 datasets disponibles, zero report et
+  1 407 sorties. Le tree contient 24 `sample.cu`, 24 `sample.cuh`, 24 helpers
+  types et 48 recettes. `generate.py --family all --compare-root .`, le checker
+  des 689 recettes et les quatre tests unitaires du manifeste passent; CMake
+  `dev` se configure et la generation est zero-diff.
+- **E21 — Portabilite de build.** Le preset local SM89 reste utilisable. Un
+  build frais sans mathDx compile les 40 recettes samples independantes en 168
+  etapes. A l'inverse, une configuration fraiche avec mathDx et
+  `CUDA_WORKBENCH_ARCHITECTURES=86` echoue avant compilation parce que
+  `AIFactoryTargets.cmake` exige exactement `89`, bien que le projet annonce
+  `75;86;89`; preuve de `BUILD-002`, pas preuve d'incompatibilite cuFFTDx.
+- **E22 — Execution des model samples.** L'agregat avec mathDx compile les 48
+  generateurs. Une campagne GPU execute les deux layouts des 24 modeles :
+  47/48 smoke tests ecrivent et rechargent 1 000 lignes conformes. Quadratic
+  rough-Heston `samples_02` echoue deux fois au meme endroit avec un spot non
+  fini ligne 77; ses bornes sont les bornes core du generateur de parametres.
+  L'orchestration memoire, les offsets Philox et les profils communs
+  `{256,4096}` ont aussi ete inspectes. Les harness/baselines performance ne
+  contiennent aucun workload sample. Les quatre tests communs
+  `sample_dataset_stage`, rough Volterra, rough Heston et Black-Scholes passent.
+- **E23 — Remediations ciblees presentes.** Les preuves deja obtenues sur ce
+  snapshot ferment `STRUCT-010`, `STRUCT-011`, `STRUCT-012`, `STRUCT-013`,
+  `NUM-006` et `CUDA-001` : zero-diff codegen, builds American/samples, tests
+  CUDA SABR/rough-SABR, smoke tests samples sauf le defaut transfere sous
+  `NUM-007`, et initcheck Bermudan passe de 1 792 a zero erreur. Le checker de
+  baseline est maintenant fail-closed sur ses 22 cles v3, mais `PERF-010`
+  reste ouvert pour la nouvelle surface samples v4.
+- **E24 — Retrait volontaire et reference morte.** Le proprietaire confirme
+  avoir demande la suppression de `docs/deferred-work.md`; le fichier et son
+  lien ne doivent donc pas etre restaures. `AGENTS.md` exige toutefois toujours
+  sa lecture. Cette seule instruction devenue impossible ouvre `STRUCT-014`.
+- **E25 — Remediation portabilite, QRH et baseline samples.** L'instruction
+  morte est retiree. cuFFTDx 26.06 utilise une matrice explicite et une cible
+  CMake d'interface; pricing et sample compilent fraichement pour SM75, SM86,
+  SM89 et le fatbin `75;86;89`, execute sur le SM89 disponible. Les geometries
+  pricing/LSM/samples sont centralisees sous le profil
+  `sm89_reference_v1`, surchargeables par CMake et publiees avec provenance;
+  codegen complet et checker des 689 recettes passent. QRH equilibre sa cellule
+  Volterra : regression CUDA ligne 77, smoke `samples_02` 1 000 lignes et
+  reference Python avec raffinement temporel passent. Le manifeste performance
+  contient 30 cles dont huit samples executes isolement; ses tests unitaires et
+  l'agregat de build passent. Le preflight QRH 3M/stress/facteurs et la campagne
+  performance complete de 30 cles n'ont pas ete acheves et restent requis sous
+  `NUM-007` et `PERF-010`.
 
-- Date : 2026-08-27.
-- Revision de base : `3bfb6a56449f60ce856f7e0734e2b72d60da1b7a`;
-  worktree volontairement modifie et partage avec les extensions American/LSM.
-  Au controle final avant mise a jour de ce registre, le porcelain contenait
-  1 032 entrees suivies modifiees, 46 supprimees et 120 entrees non suivies.
-- Autorisation utilisateur : traiter les 16 constats restants, y compris
-  `STRUCT-006`, en excluant exactement `STRUCT-003`, `STRUCT-007` et
-  `BOUNDARY-004`, pris en charge plus tard avec la generation automatique des
-  `.cu/.cuh`, des cibles et des runners.
-- Constats fermes pendant cette passe : `NAME-002`, `NAME-003`, `NAME-006`,
-  `STRUCT-006`, `POLICY-001`, `BOUNDARY-002`, `PERF-001`, `PERF-002`,
-  `PERF-004`, `PERF-006`, `PERF-008`, `PERF-009`, `PERF-010`, `PERF-012`,
-  `PERF-013` et `PERF-014`.
-- Comptabilite a l'issue de cette passe : 37 identifiants, dont 34 fermes dans
-  `closed.md` et 3 reportes dans `response.md`. Aucun constat ouvert non
-  reporte ne subsiste.
-- Les migrations d'API (`PriceConstruction`, noms rough et unites temporelles)
-  ont ete atomiques dans le worktree : aucune couche booleenne ou ancien nom
-  public n'est conserve. Les templates de bindings ont seulement ete alignes
-  sur ces API; la generation structurelle reportee n'a pas ete commencee.
-- La qualification performance runtime porte sur le RTX 4090 Laptop SM89
-  disponible. SM75 et SM86 ont recu les builds/probes de ressources de
-  `POLICY-001`, mais aucune baseline runtime n'est inferee sans materiel
-  correspondant.
-- La validation independante cache-only CIR a ete tentee mais s'est fermee
-  avant comparaison : les six caches existants portent des empreintes de
-  source/policy devenues obsoletes dans ce grand worktree. Aucun cache externe
-  n'a ete regenere et aucun resultat de prix independant n'est revendique par
-  cette passe; les tests fonctionnels et numeriques CUDA constituent la preuve
-  disponible.
+## Matrice de couverture du passage partiel version 4
 
-## Troisieme passage de remediation structurelle ciblee
+| Axe | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Structure et nettoyage lies aux samples | partiel | Arborescence, bindings, helpers, recettes et retrait volontaire du registre differe; instruction morte retiree | Revue generale de tous les renommages du worktree non reprise | E19, E20, E24, E25; fermeture `STRUCT-014` |
+| Codegen model samples | complet structurel | 24 modeles, deux layouts, bornes core, observables, CMake, provenance, zero-diff et builds avec/sans mathDx | Validite numerique du modele separee sous NUM | E20--E23; fermeture `STRUCT-011`, `STRUCT-013` |
+| CMake et matrice d'architectures | complet pour la compatibilite declaree | Builds mathDx SM75/86/89 et fatbin, runtime fatbin SM89, build sans mathDx, refus cible des descripteurs absents | Runtime SM75/SM86 et architectures futures faute de materiel | E21, E25; fermeture `BUILD-002` |
+| Portabilite et tuning materiel | complet structurel | Profil central, provenance, surcharges CMake, metadonnees et workflow pricing/samples/LSM/rough | Aucune mesure runtime hors RTX 4090 Laptop/SM89 | E19, E21, E22, E25; fermeture `PERF-015` |
+| Robustesse numerique des samples | partiel | Correction QRH, ligne 77, smoke 1 000 lignes, ligne extreme 680 et raffinement temporel | Preflight 3M, stress, facteurs et validations de prix independantes | E20, E22, E25; `NUM-007` |
+| Execution et memoire CUDA samples | partiel | Geometries, offsets, strategie persistent grid/block, garde memoire et deux layouts executes | Sanitizers representatifs non rejoues sur les 24 bindings; aucun autre GPU | E19, E22 |
+| Performance model samples | partiel | Huit workloads, deux layouts, kernel/publication wall, baseline SM89 et checker 30 cles | Campagne appariee complete interrompue; aucun runtime hors SM89 | E19, E22, E25; `PERF-010` |
 
-- Date : 2026-08-27.
-- Revision de base : `3bfb6a56449f60ce856f7e0734e2b72d60da1b7a`;
-  worktree volontairement modifie et partage avec les extensions de modeles,
-  produits, datasets et validations rough.
-- Autorisation utilisateur : terminer les trois constats reportes
-  `STRUCT-003`, `STRUCT-007` et `BOUNDARY-004`, puis aller au bout de leur
-  verification.
-- Le manifeste de bindings genere maintenant toute la matrice equity non
-  American et le fragment CMake consomme par les cibles. Le catalogue est
-  inscrit automatiquement depuis les recettes presentes dans l'arbre.
-- L'execution CUDA offline ordinaire est possedee par un runner RAII commun;
-  293 recettes ont ete migrees et 10 pipelines algorithmiquement atypiques
-  restent des echappatoires explicites controlees par test d'architecture.
-- Le monolithe `tools/datasets/dataset.*` est remplace par quatre etapes
-  compilees et testees independamment; les runners CUDA et les orchestrations
-  de pricing ont leur propre frontiere sous `tools`.
-- Constats fermes pendant cette passe : `STRUCT-003`, `STRUCT-007` et
-  `BOUNDARY-004`. Comptabilite courante exhaustive : 37 identifiants fermes
-  dans `closed.md`, aucun dans `response.md`.
-- Cette campagne ferme les trois signatures ciblees et construit leurs graphes
-  complets. Elle ne constitue pas une recertification exhaustive de toutes les
-  sections du referentiel v2; les exclusions historiques sans constat actif
-  restent decrites dans la couverture.
+## Exclusions du passage version 4
 
-## Quatrieme passage — codegen des recettes equity
+- Les axes version 3 non directement affectes par portabilite ou samples; leur
+  couverture historique reste ci-dessous mais n'est pas promue au snapshot
+  sale courant.
+- Les mesures runtime sur SM75, SM86 ou toute autre architecture, faute de
+  materiel correspondant. Aucune performance n'est inferee depuis le SM89.
+- L'execution complete des 48 datasets de 3 000 000 lignes, le preflight QRH
+  core/stress/multi-facteurs et les validations de prix independantes affectees.
+- La campagne performance appariee des 30 cles; son lancement a ete interrompu
+  et aucun resultat partiel n'est compte comme succes du gate.
+- L'audit lent `docs/validation/`, le contenu ignore du website et les compteurs
+  Nsight Compute deja inaccessibles dans le passage version 3.
 
-- Date d'ouverture : 2026-08-27.
-- Revision de base : `bde0a5540e9f217723c53afa76d866688875b196`.
-- Origine : revue utilisateur de la frontiere entre bindings generes et
-  recettes catalogue encore manuscrites.
-- Constats ouverts : `STRUCT-011`, puis `STRUCT-012` pour les huit exceptions
-  American/LSM revelees par la migration.
-- Comptabilite courante de la passe : 39 identifiants, dont 37 fermes dans
-  `closed.md` et 2 ouverts dans `response.md`.
-- Perimetre : recettes de prix equity non American et leurs cinq backends;
-  generation des parametres modele/produit et pipelines d'exercice anticipe
-  exclus tant qu'ils ne satisfont pas le meme contrat declaratif.
-- Remediation ordinaire terminee : 18 modeles x 29 variantes donnent 522
-  recettes de prix generees, en plus des 756 bindings `.cu/.cuh` et du
-  manifeste CMake. `STRUCT-011` reste volontairement ouvert tant que les huit
-  exceptions American/LSM de `STRUCT-012` ne sont pas generees.
+## Comptabilite des constats du passage version 4
 
-## Meta-revue documentaire et snapshot post-remediation
+- **Ouverts : 2** — `NUM-007` et `PERF-010`.
+- **Fermes : 44** dans `closed.md`; `STRUCT-014`, `BUILD-002` et `PERF-015`
+  quittent le registre apres remediation et preuves E25.
+- **Correction de code :** oui, dans la phase de remediation E25; le passage
+  d'audit qui a precede cette phase est reste read-only hors registre.
 
-- Date du snapshot : 2026-08-27T11:53:56+02:00.
-- Nature : audit des quatre documents d'audit, sans nouveau passage technique et
-  sans modification du code.
-- Revision de base toujours courante :
-  `3bfb6a56449f60ce856f7e0734e2b72d60da1b7a`.
-- Etat porcelain au moment du snapshot : 759 entrees suivies modifiees ou
-  ajoutees, 46 supprimees, aucune renommee et 117 entrees non suivies. Ces
-  nombres decrivent le worktree post-remediation, pas le snapshot initial.
-- Empreinte SHA-256 du diff binaire suivi contre `HEAD`, hors `docs/audit/` :
-  `e3088de5f0b000d1d05dc90c8e8e3ef91b7d32719c7ce4c6628e61eb8a91d7d6`.
-- Fichiers non suivis hors `docs/audit/` : 212 fichiers; empreinte SHA-256 du
-  manifeste trie :
-  `4ca73e994ff542321420d8ef545374121af97c0bd7b7ca388a17c08a99f9d87b`;
-  empreinte SHA-256 de la liste triee de leurs checksums de contenu :
-  `a0b0d7882a7dd009cb236710da6327fec5078a2f252934aebd80f1537d3e759f`.
-- `docs/audit/` est exclu de ces empreintes pour eviter une auto-reference; son
-  contenu exact devra etre capture par le commit qui versionnera le
-  quadriptyque.
-- `NAME-005` a ete retire des constats actionnables et transfere vers
-  `closed.md` : la notation affine et les types concernes sont deja codifies par
-  le contrat, et aucun impact technique distinct d'une preference de nommage
-  n'etait etabli.
-- Les valeurs de ressources E6 n'ont pas ete regenerees apres les corrections.
-  Elles restent des observations du snapshot initial et sont marquees a
-  rafraichir dans les hypotheses de performance qui les reutilisent.
+## Snapshot du passage version 3
+
+- **Date :** 2026-08-27.
+- **Referentiel :** `docs/audit/query.md`, version 3 du 2026-08-27.
+- **Branche :** `refactor/unify-cuda-model-contracts`.
+- **Revision auditee :** `1889f7fbbd0f81ce2b06cfb16645e48a43971aa0`.
+- **Etat initial :** worktree propre; `git status --porcelain=v1` et
+  `git ls-files --others --exclude-standard` ne produisaient aucune ligne. La
+  revision suffit donc a reconstruire le snapshot technique initial.
+- **Etat apres audit :** seuls `docs/audit/status.md` et
+  `docs/audit/response.md` ont ete reecrits; `docs/audit/closed.md` a perdu les
+  deux entrees reellement rouvertes `STRUCT-010` et `PERF-010`. Aucun code,
+  CMake, test, generateur, recette ou contrat d'implementation n'a ete corrige.
+- **Site :** `AI_factory_website/` est ignore par `.gitignore`, contient
+  `equations/`, `index.html` et `static/`, et resout vers le depot parent plutot
+  que vers une revision propre. Son contenu exact n'est pas reconstructible par
+  le snapshot Git et est exclu de la certification; seule sa frontiere avec le
+  depot suivi a ete inspectee.
+
+### Environnement d'execution
+
+- CMake 3.22.1, GCC/G++ 14.3.0, nvcc CUDA 13.3.73, build `Release`, sans
+  `--use_fast_math`, architecture runtime SM89.
+- NVIDIA GeForce RTX 4090 Laptop GPU, compute capability 8.9, 76 SM,
+  17 170 956 288 octets, driver API 13020, runtime 13030.
+- mathDx/cuFFTDx disponible sous
+  `/home/aurelieng/opt/nvidia-mathdx-26.06.1-cuda13/nvidia/mathdx/26.06`.
+- Nsight Systems 2026.1.3; Nsight Compute 2026.2.1 present. Un profilage d'un
+  kernel reel execute explicitement hors sandbox reste bloque par le pilote avec
+  `ERR_NVGPUCTRPERM`; un executable sans kernel se connecte mais ne collecte
+  naturellement aucun compteur.
 
 ## Registre des preuves
 
-| Ref. | Preuve executee ou inspectee | Resultat utile |
-|---|---|---|
-| E1 | `rg`, `rg --files`, `find`, `wc`, lecture des contrats, sources, CMake, catalogues, datasets et tests | Inventaire complet des familles et dependances; 376 generateurs, 46 loaders `src`, 27 `.cu` inclus a 304 endroits. Le journal exhaustif des commandes n'a pas ete conserve : sous le referentiel v2, E1 reste un inventaire historique et non une preuve exactement rejouable. |
-| E2 | `cmake --preset dev`; build `ai_factory_host_tests`; build `ai_factory_cuda_tests`; no-op `cmake --build build-dev --target ai_factory_cuda_tests -j2` | Configuration reussie avec mathDx; cibles host et CUDA compilees; no-op 0,03 s. |
-| E3 | `ctest --test-dir build-dev` cible sur les trois tests de datasets host | 3/3 tests host passes. |
-| E4 | `ctest --test-dir build-dev -L cuda --output-on-failure` apres build de la matrice CUDA | 47/47 tests retour 77 (`Skipped`) faute de GPU accessible; aucun resultat runtime n'est compte comme passe. |
-| E5 | Configuration fraiche dans `/tmp` avec `BUILD_TESTING=OFF`, sans `AI_FACTORY_MATHDX_ROOT`, puis build `generate_rough_bergomi_european_calls_01` | Configure reussi, link echoue sur CUDA runtime et `launch_european_option_cuda<call>` absents. |
-| E6 | `cuobjdump --dump-resource-usage`, `stat`, `ar` sur les archives SM89 du passage initial | LSM 88/80 registres; Bates Phoenix 93-94 registres et 32 octets stack; rough FFT8192 139 registres; archives rough 9,73 Mo; CIR swaption 8,3 fois Vasicek. Artefacts et commandes detaillees non conserves; preuve pre-remediation a rafraichir avant toute baseline ou decision. |
-| E7 | Comparaison reexecutee le 2026-08-27 : `rg -l -0 'wall_seconds:' catalog`, puis extraction AWK des deux flottants quotes et filtre `kernel_seconds > wall_seconds` pour chaque fichier | 9 catalogues : Bates American call/put, Heston American call/put, NIG American put, Variance Gamma American call/put et CIR Bermudan payer/receiver. Exces de 0,612 % a 6,469 %; le maximum est CIR Bermudan receiver. Les YAML appartiennent au snapshot post-remediation. |
-| E8 | Build `all_models` SM89 apres renommage des fragments inclus | 315 etapes terminees; toutes les familles equity, rough et fixed income compilees. |
-| E9 | Build agrege `ai_factory_cuda_tests ai_factory_host_tests` | Matrice complete compilee, y compris les nouveaux tests numeriques et les 48 executables CUDA. |
-| E10 | CTest cible sur les trois tests de datasets host, puis `ctest -L cuda` hors sandbox | 3/3 host et 48/48 CUDA passes sur GPU. Le test numerique couvre epuisement et stagnation FP32 Jamshidian scalaire/cooperatif, frontiere LSM FP64 avec ecart de cashflow borne, grille Schobel-Zhu FP64 de 10 points et mapping explicite de trois normales Philox. Un premier essai fail-fast LSM avait produit 2 echecs sur 48; il a ete retire parce que le booleen ne distinguait pas les causes, preuve conservee dans `NUM-002`. |
-| E11 | Configuration fraiche sans `AI_FACTORY_MATHDX_ROOT` dans `/tmp`, puis construction reelle de `price_generators` | Les 1 193 etapes de la cible passent; les 350 recettes utilisent la validation sous `common`, les 269 recettes equity markoviennes ont un namespace modele qualifie, et aucune cible rough dependante de mathDx n'est publiee. |
-| E12 | Recherches statiques finales et correspondance des `.cu` de `src`/`tests` avec `build-dev/build.ninja` | Aucun include `.cu`, include `tools` sous `src`, include produit dans les analytics modele, inventaire README recopie ou `.cu` de ce perimetre hors graphe CMake. |
-| E13 | Meta-revue : inventaire des identifiants, controles croises des champs, `git rev-parse HEAD`, `git status --porcelain=v1`, empreinte de `git diff --binary HEAD` et empreintes des fichiers non suivis hors `docs/audit/` | 37 identifiants avec un seul etat courant apres reclassement de `NAME-005`; 21 non resolus et 16 fermes; snapshot post-remediation consigne ci-dessus. |
-| E14 | Build SM89 agrege, sept tests LSM cibles puis matrice `ctest -L cuda`; `compute-sanitizer` memcheck sur regresseur et Bermudan, racecheck sur Bermudan; executions des generateurs OU/G2 sous `/tmp` | Toutes les causes `RegressionStatus` sont classees; seuls statistiques/coefficients non finis et Cholesky sont fatals. 49/49 tests CUDA et 5/5 tests host cibles passent, memcheck rend 0 erreur, racecheck 0 hazard, les prix OU/G2 payer/receiver sont reproductibles bit a bit et les anciens cas Heston/Levy sont diagnostiques `insufficient_candidates`. |
-| E15 | Diagnostics de kernels, profils Nsight Systems et comparaisons JSON sur les generateurs Heston American, OU et G2 Bermudan; deux prototypes temporaires mesures puis retires | Baseline G2 : regression 118 registres, aucun local, occupation theorique 33,3 %, environ 0,415 s kernel. Separation Gram/RHS : 103/78 registres, occupation Gram inchangee et +22,6 %. Distribution par warp : sorties bit-identiques mais environ x12. Le source final revient a la baseline combinee. |
-| E16 | Migration atomique et recherches statiques des APIs de nommage/indexation; tests `catalog_contract`, `dataset_loaders`, `rough_sabr_dataset_loader`; compilation manuelle du probe rough SABR | `PriceConstruction` remplace le booleen public; les launchers rough sont qualifies par modele; les noms temporels portent leur unite; 46 loaders utilisent la lecture commune. Les tests d'unites 252/360/365, erreurs de loader et transposition de schedules passent. |
-| E17 | `policy_size_budgets_cuda`, builds offline SM75/SM86, `cuobjdump --dump-resource-usage` et diagnostics runtime SM89 | Caps 128/256/2 048 octets verifies. SM75 : 64/63/5 registres; SM86 et SM89 : 40/40/8 pour les trois probes; shared exacte 2 048 octets, occupation theorique SM89 100 %, aucune taille hors cap acceptee. |
-| E18 | Protocole v1 et benchmarks generique, CIR, schedules et Volterra sur RTX 4090 Laptop SM89; JSON versionne et `check_baseline.py` | Decisions chiffrees de `PERF-001/002/004/006/008/009/012/013/014` conservees dans `validation/performance`. Gains retenus : decodeur 32 bits, noinline CIR, ELLPACK cooperatif, FFT8192 a 16 elements/thread et chunk Volterra 65 536. Hypotheses rejetees : geometries Phoenix plus petites, FP32 generique, cache de pointeurs, convolution directe et multi-stream. Les compteurs Nsight Compute de PERF-004 restent indisponibles (`ERR_NVGPUCTRPERM`). |
-| E19 | Build agrege `all_models ai_factory_host_tests ai_factory_cuda_tests performance_benchmarks`; CTest host puis `ctest -L cuda --output-on-failure`; `git diff --check`; parse JSON et compilation/aide du checker Python | Build SM89 termine en 563 etapes; 3/3 tests host et 50/50 tests CUDA passent sur GPU. Baseline JSON valide et verifier executable. |
-| E20 | Execution cache-only des six validations independantes CIR apres modification numerique de l'inlining | 0 comparaison executee : les six pipelines refusent fail-closed les empreintes source/policy obsoletes. Cette limite est explicite; aucune regeneration Premia/QuantLib ni modification de l'audit de validation. |
-| E21 | Configuration fraiche GCC 14/CUDA 13.3 SM89 sans mathDx; builds `price_generators`, `parameter_generators` et tests host; build `all_models` dans la configuration mathDx; generation temporaire avec `--compare-root`; checker d'architecture; test CUDA du runner hors sandbox; `git diff --check` | `price_generators` termine 1 156/1 156, tous les generateurs de parametres sont lies, et `all_models` mathDx termine 784/784. Neuf tests host/architecture passent, puis `cuda_pricing_runner` passe sur GPU en 2,41 s. Les 757 sorties codegen concordent, 382 recettes sont controlees, 293 utilisent le runner et exactement 10 echappatoires revues restent; aucun ancien monolithe/helper ni erreur de whitespace ne subsiste. |
-| E22 | Codegen final `--family all --compare-root`; checker des recettes; builds `price_generators` mathDx et quatre recettes representatives dans une configuration fraiche sans mathDx; test CUDA du runner; executions temporaires closed form, Markov fixe, transition exacte, rough N-facteurs, Volterra FFT et geometric-Asian | Les 1 279 sorties concordent : 756 bindings, 522 recettes et un manifeste CMake. Le build mathDx termine 1 172/1 172; le build sans mathDx lie Black-Scholes geometric-Asian, Heston, Merton et rough Heston. Le checker controle 641 recettes, reconnait les 522 recettes generees et limite les echappatoires a 8 American/LSM. Le runner workspace passe sur GPU; les six recettes ecrivent puis valident leurs JSON/YAML temporaires, avec 1 048 576 paths pour rough Heston et rough SABR. |
+- **E01 — Instructions et contrats.** Lecture complete de `AGENTS.md`,
+  `README.md`, `docs/README.md`, `docs/audit/{query,closed,status,response}.md`,
+  puis des contrats d'extension, dynamics, analytics,
+  pricing CUDA, early exercise, diagnostics de launch, generation de
+  parametres et samples, et protocole performance.
+- **E02 — Inventaire et ownership.** Parcours des arbres suivis, tailles,
+  extensions, includes, namespaces et consommateurs. Environ 7 376 fichiers
+  hors builds/datasets, dont 1 243 sous `src`, 1 025 sous `catalog`, 60 sous
+  `tests`, 59 sous `tools` et 4 956 sous `validation`; 478 `.cu`, 626 `.cuh`,
+  729 `.cpp` et 121 `.hpp`. Aucun include textuel de `.cu`, aucun header source
+  sans consommateur et aucune TU `src`/`tests` absente de `compile_commands.json`.
+- **E03 — Matrices de contrats.** Comparaison des dynamics exactes, pas fixe,
+  rough FFT et lifts N-facteurs, des analytics equity/fixed income et des
+  policies/schedules/continuation states avec leurs concepts et tests. Les
+  differences observees hors `NUM-006` sont justifiees par capacite
+  mathematique ou engine.
+- **E04 — Pyramide de factorisation.** Inspection des moteurs
+  `simulation`, `monte_carlo`, `closed_form`, `sample`, `volterra` et
+  `longstaff_schwartz`, de leurs consommateurs modeles/produits et des
+  specialisations fixed income/equity. Aucun adaptateur vide ni branche runtime
+  dans la boucle chaude n'a ete trouve.
+- **E05 — Codegen.** Le manifeste couvre 11 modeles markoviens plus le sous-
+  ensemble Black-Scholes, 6 modeles rough, 21 produits et 29 variantes. La
+  commande `python3 tools/codegen/pricing_bindings/generate.py --family all
+  --output /tmp/... --compare-root .` donne zero diff sur 1 279 sorties: 756
+  bindings `.cu/.cuh`, 522 recettes equity ordinaires et un fragment CMake.
+- **E06 — Recettes et checkers.** Inventaire de 641
+  `catalog/**/generator.cpp`: 530 prix equity, 58 prix fixed income et 53
+  parametres/courbes/produits. `python3 tools/cuda/check_catalog_generators.py`
+  passe: 641 recettes controlees, 522 recettes equity generees, 8 escape
+  hatches algorithmiques American. Les tests `pricing_binding_codegen` et
+  `catalog_generator_boundaries` passent.
+- **E07 — Parametres et samples.** Les 24 recettes de parametres modele et 27
+  recettes produit ont toutes 1 000 lignes, 900 core/100 stress et un YAML
+  adjacent complet. Dix-huit `sample.cu` existent pour 24 modeles catalogues;
+  aucun fichier n'existe sous `catalog/model/**/samples/`.
+- **E08 — Configuration et build courant.** `cmake --preset dev` reussit. Le
+  build agrege `all_models ai_factory_host_tests ai_factory_cuda_tests
+  performance_benchmarks parameter_generators price_generators -j2` reussit en
+  212 etapes sur le build existant; un second passage est no-op en 0,08 s.
+- **E09 — Architectures et ressources statiques.** Builds offline SM75, SM86
+  et SM89 de `test_policy_size_budgets_cuda` reussis. `cuobjdump` mesure pour
+  les probes payload thread 64/63 registres et 128/256 octets de stack en SM75,
+  40/40 et 128/256 en SM86/89; le probe shared utilise 2 048 octets et 5
+  registres en SM75, 8 en SM86/89. Le test runtime annonce 100 % d'occupation
+  theorique pour ses caps.
+- **E10 — Sanitizers host.** Build frais GCC 14 ASan+UBSan+LSan sous
+  `/tmp/ai-factory-audit-host-sanitize-gcc14`; 7/7 tests loaders, catalogues,
+  stages, codegen et frontieres passent. Le premier run sandboxe avait seulement
+  l'echec LSan `ptrace`; le meme binaire hors sandbox passe.
+- **E11 — Tests CUDA hors sandbox.** Les 52 tests du label CTest `cuda` ont ete
+  reexecutes explicitement hors sandbox: 52/52 passent en 22,27 s. Les 9 tests
+  host cibles passent en 0,23 s. Les cas couvrent closed form, simulations
+  exactes/pas fixe, samples, early exercise, rough FFT et rough N-facteurs.
+- **E12 — Compute Sanitizer hors sandbox.** La matrice a ete reexecutee
+  explicitement hors sandbox. Memcheck: 7/7 cas sans erreur; racecheck: 4/4
+  sans hazard; synccheck: 4/4 sans erreur. Initcheck: 4 cas equity/rough sans
+  erreur; `test_bermudan_swaption_cuda` reproduit exactement 1 792 lectures
+  globales non initialisees dans les copies de `PreparedRow`. Logs
+  `/tmp/ai-factory-outside-{memcheck,racecheck,initcheck,synccheck}-*.log`.
+- **E13 — Frontiere SABR.** Revue des deux `dynamics_impl.cuh`, des domaines
+  core/stress et des tests. Les deux engines appliquent le meme plancher
+  Lamperti `1e-12`; les tests couvrent finitude et limite `beta=1`, sans cas de
+  franchissement ni contrat de frontiere.
+- **E14 — Baseline performance SM89.** Reproduction des 18 cles exactes avec
+  5 warmups et 21 repetitions. Le checker retourne `PASS`, avec 4 resultats
+  inconclusifs pour CV > 5 %. Sur les comparaisons stables, aucune regression
+  ne depasse +5 %; delta maximal +3,52 %, CIR noinline -11,27 % et un petit cas
+  Volterra -8,83 %. Le +43,57 % du launcher court a des CV 36,0 %/22,6 % et
+  reste inconclusif, pas un constat.
+- **E15 — Profils et diagnostics.** Diagnostics runtime sans spill: OU
+  Bermudan regression 77 registres/50 % d'occupation; G2 118/33,3 %; Heston
+  American 88/33,3 %; Volterra 48/83,3 % avec 4 096 octets shared dynamiques;
+  rough Heston N7 77/50 %. Profils Nsight Systems conserves sous `/tmp` pour
+  Levy American, Heston American, Bermudan OU/G2 et Volterra. Les phases solve
+  et partials dominent les traces LSM; les compteurs Nsight Compute sont
+  exclus par permission.
+- **E16 — Documentation et nettoyage.** `src/common/README.md` compte 985
+  lignes et n'a aucune reference entrante; il enumere l'arbre et l'API. Le
+  README racine cite encore des `.cu` inclus. Le contrat samples impose deux
+  recettes par modele tandis que le README annonce explicitement leur absence.
+- **E17 — Exhaustivite de baseline.** La baseline versionnee contient 18
+  mesures. Le candidat exact de 18 cles passe avec 4 inconclusifs; le meme
+  checker execute sur une seule de ces cles retourne
+  `PASS: 1 measurement(s), 0 inconclusive`. Aucune cible CTest n'appelle
+  `check_baseline.py` et aucune des 18 cles ne couvre Longstaff-Schwartz.
+- **E18 — Dependances optionnelles.** Build frais avec mathDx du test et du
+  benchmark Volterra en 34 etapes, puis test CUDA passe. Configuration fraiche
+  sans mathDx et build complet `price_generators -j2` reussissent en 1 705
+  etapes (`real 1296,92 s`). Aucun fallback rough FFT n'est pretendu sans
+  mathDx; les targets independantes restent constructibles.
 
-Les chemins sous `/tmp`, les rapports Nsight et les objets de build sont des preuves locales non
-versionnees : leurs resultats chiffres sont recopies ci-dessus, mais aucun lien
-durable ne pretend les exposer. Cette limite interdit de les traiter comme une
-baseline courante sous le referentiel v2. E15 constitue une campagne ciblee de
-remediation, pas une baseline generale du projet. Aucun passage
-`compute-sanitizer` complet n'est deduit de ces profils.
+## Matrice de couverture version 3
 
-## Couverture courante
+Le snapshot de toutes les lignes ci-dessous est celui defini plus haut. Une
+ligne `partiel` indique precisement la preuve inaccessible ou le protocole
+manquant; elle n'est pas promue a `complet` par des tests voisins.
 
-Le statut `complet` de Naming reprend la conclusion historique du referentiel
-v1, completee par la verification ciblee E16. Les sections non recertifiees
-selon toute la matrice du referentiel v2 restent `partiel` ou `non execute`,
-meme lorsque tous leurs constats connus sont fermes.
+### Structure, conventions and ownership
 
-| Audit | Statut | Date | Revision | Perimetre et exclusions | Preuves |
-|---|---|---|---|---|---|
-| Dynamics | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Passage initial : tous les couples parameters/state/dynamics des modeles equity, rough et fixed income; concepts, mapping aleatoire et symetrie des tests inspectes; execution GPU d'audit exclue. Remediation : matrice fonctionnelle GPU executee, sans campagne de moments complete. | E1, E2, E4, E10 |
-| Analytics | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Passage initial : Black-Scholes, familles affines un/deux facteurs, compositions de courbes, concepts et call graph; references numeriques runtime GPU exclues. Remediation : tests fonctionnels GPU executes, sans campagne de reference exhaustive. | E1, E2, E4, E10 |
-| Numerical robustness | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Passage initial : dynamics, Jamshidian, noncentral-chi-square, LSM, reductions et rough inspectes; campagnes FP32/FP64 et GPU exclues. Remediation : tests limites cibles, matrice GPU et causes LSM typees executes, sans campagne de sensibilite exhaustive. | E1, E2, E4, E10, E14 |
-| CUDA execution and memory safety | non execute | 2026-08-27 | referentiel v2; snapshot post-remediation | Nouvelle section ajoutee par la meta-revue. Aucun passage ASan/UBSan, compute-sanitizer memcheck, racecheck, initcheck ou synccheck; aucune conclusion de surete ne doit etre deduite des seuls tests fonctionnels E10. | E10, E13 |
-| Naming | complet | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Namespaces, symboles publics, extensions, unites et noms temporels sur `src`, `tools`, `tests` et CMake; launchers rough, namespace produit et suffixes temporels recertifies. | E1, E16, E19 |
-| Project structure | partiel | 2026-08-26; verifications ciblees 2026-08-27 | `3bfb6a5`; worktree modifie | Loaders communs, matrice de bindings generee, inscriptions CMake et runners de generateurs corriges et verifies. Les constats connus de cette section sont fermes; aucun passage v2 complet de l'arbre n'est infere de cette campagne ciblee. | E1, E2, E16, E19, E21 |
-| Exercise and dynamics-family boundaries | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Passage initial : European/LSM, American/Bermudan, schedules, continuation states et separation Markov/rough inspectes; prix runtime GPU exclus. Remediation : tests fonctionnels GPU executes sans validation independante exhaustive des prix. | E1, E2, E4, E10 |
-| Pricing policies and concepts | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Concepts closed form, Monte Carlo, LSM, sample et rough; caps documentes et verifies par compilation SM75/86/89, ressources runtime mesurees seulement sur SM89. | E1, E2, E17, E19 |
-| Tools and src ownership | partiel | 2026-08-26; verifications ciblees 2026-08-27 | `3bfb6a5`; worktree modifie | Frontiere runtime/offline, indexation typee et decomposition sampling/assemblage/serialisation/execution verifiees. Les constats connus de cette section sont fermes; aucun passage v2 complet de tout `tools` n'est infere. | E1, E2, E16, E19, E21 |
-| Build and CUDA instantiations | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Configuration dev, build host/CUDA/performance, frontiere mathDx et generateurs sans mathDx; probes policy SM75/86. Build propre de tous les presets et runtime hors SM89 exclus. | E2, E5, E8, E9, E11, E17, E19 |
-| Generic CUDA performance | partiel | 2026-08-26; campagne ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Indexation, geometries, FP64, couts fixes, schedules, taille de code et baseline runtime SM89 mesures selon protocole v1. Baselines runtime SM75/86 et compteurs hardware detailles exclus. | E1, E7, E17, E18, E19 |
-| Early-exercise performance | partiel | 2026-08-26; verification ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Workspace, batching, boucle backward et reductions inspectes. Ressources et temps SM89 mesures sur Heston American, OU et G2 Bermudan; les deux reductions candidates de PERF-003 sont rejetees. La campagne ne couvre pas toutes les geometries ni architectures. | E1, E6, E14, E15 |
-| Rough FFT performance | partiel | 2026-08-26; campagne ciblee 2026-08-27 | `3bfb6a5`; worktree modifie | Crossover direct/FFT, courbe FFT, instanciation 8 192, workspace et chunking mesures sur SM89 avec baseline v1; runtime SM75/86 et profils de compteurs detailles exclus. | E1, E2, E18, E19 |
+| Sous-section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Repository tree and domain ownership | complet | Arbres `src/common/model/curve/product/generative`, `tools`, `catalog`, `validation`, `tests`, `docs`; classification markovian/rough/fixed income; frontiere du site | Contenu interne du site ignore non reconstructible | E01, E02 |
+| File responsibilities and granularity | complet | Headers publics/impl, TUs `.cu/.cpp`, rows device, gros fichiers, wrappers generes, consommateurs | Mesure avant/apres d'une refactorisation non proposee | E02, E04, E08, E09 |
+| Naming and semantic conventions | complet | Chemins/namespaces, noms canoniques, unites, sides, tests/targets/catalogue; recherche legacy/new/old | Preferences stylistiques sans impact | E02, E03 |
+| Dependency boundaries | complet | Graphes d'includes et liens: aucun `src -> tools/catalog/validation`, aucun common -> type concret, aucune contamination equity/fixed income; mathDx cible | References externes de l'audit de validation | E02, E04, E08, E18 |
+| Cleanup and extension locality | complet | Headers/TUs orphelins, doubles enregistrements, codegen/manuel, README, localite d'un ajout modele/produit/couple | Site ignore | E02, E05, E06, E16; `STRUCT-010`, `STRUCT-011` |
+
+### Contract homogeneity
+
+| Sous-section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Dynamics | complet | Exact, fixed-step, Levy/sauts, rough FFT, rough N-facteurs; parametres/preparation/etat/advance/observables/Philox et tests | References de prix independantes | E03, E11, E13; `NUM-006` |
+| Analytics | complet | Black-Scholes, affines un/deux facteurs, compositions courbe-modele, providers/concepts, signes payer/receiver et tests | Certification QuantLib/Premia | E03, E04, E11 |
+| Products, policies and exercise | complet | Concepts, schedules, handlers, policies, continuation states, regressors, sides compile-time, American/Bermudan | Mesure de biais LSM par reference externe | E03, E04, E11, E12 |
+
+### Factorization pyramid
+
+| Sous-section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Markovian factorization | complet | Schedules exact/fixed-step, simulation de paths, Monte Carlo, sampling et 11 familles equity plus 6 fixed income | Aucun | E03, E04, E11 |
+| Rough factorization | complet | Driver fractional, hybrid schedule, sampling/pricing Volterra, rough Bergomi/SABR et log-modulated variant | Compteurs materiels n'affectant que Performance | E04, E11, E15 |
+| Rough-Markovian factorization | complet | Rough Heston/quadratic/rough Stein-Stein, preparations host, factor counts 2/3/7, reutilisation du moteur markovien | Reference d'erreur N-facteurs de validation | E03, E04, E11 |
+| Closed-form factorization | complet | Kernels scalaires/cooperatifs, Black-Scholes, options de taux, Jamshidian, providers et sides | Aucun | E03, E04, E11 |
+| Fixed-income and equity factorization | complet | Primitives neutres, reductions, Philox, sample, LSM; specialisations financieres laissees aux domaines | Aucun | E02, E04 |
+| Factorization cost and limits | complet | Branches runtime, tailles/ressources probes, TUs et rebuilds; aucune nouvelle factorisation proposee sans consommateurs | Comparaison avant/apres sans changement, inapplicable | E04, E08, E09, E15 |
+
+### Code generation and extension cost
+
+| Sous-section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Minimum hand-written model and product | complet | Inventaire de ce qui reste manuel pour modele, produit et couple; launchers, recettes, parametres, tests et CMake | Squelette de reference independante | E05, E06, E07; `STRUCT-011`--`STRUCT-013` |
+| Canonical capability manifest | complet | Champs actuels, matrice resolue, doubles listes fixed income/samples/parametres/LSM et incompatibilites | Aucun | E05, E06, E07; `STRUCT-011` |
+| Generated bindings and catalogue recipes | complet | 756 bindings, 522 recettes ordinaires, 8 American, 58 fixed income, 0 sample; sides, policies, engines, fragments CMake | Execution 3M impossible faute de recettes, objet du constat | E05, E06, E07; `STRUCT-012`, `STRUCT-013` |
+| Parameter dataset generation | complet | 24 modeles et 27 produits, schemas, ordre 90/10, YAML adjacent, contraintes et tests loaders | Generation des references de prix | E06, E07, E10, E11 |
+| Regeneration, drift and exceptions | complet | Zero-diff, outputs attendus, checker, escapes, builds avec/sans mathDx, architectures, provenance des headers generes | Execution runtime SM75/SM86 faute de GPU; compile/resources couverts | E05, E06, E08, E09, E18 |
+
+### CMake and build graph
+
+| Section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| CMake and build graph | partiel | Racine/modules/fragments, toutes TUs, doubles inscriptions, globs/checkers, targets/agregats, includes/liens, mathDx, SM75/86/89, clean frais sans mathDx, build courant mathDx et no-op | Rebuild incremental apres les cinq mutations representatives et comparaison detaillee des tailles objet/archive/cubin non executes; depfiles et no-op controles | E02, E05, E06, E08, E09, E18 |
+
+### Numerical robustness and reproducibility
+
+| Section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Numerical robustness and reproducibility | complet | Domaines log/sqrt/pow/division, positivite/frontieres, limites, precision FP32/FP64, solveurs, LSM, reductions, temps, erreurs, convergence et mapping Philox dans toutes les familles | Certification de prix independante et notebooks, audit separe | E01, E03, E10, E11, E13, E14; `NUM-006` |
+
+### CUDA execution and memory safety
+
+| Section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| CUDA execution and memory safety | complet | Launchers/workspaces, overflow/offsets, pointeurs, RAII, streams/sync, erreurs async; ASan/UBSan/LSan; memcheck/racecheck/initcheck/synccheck sur exact/fixed, aligned/cartesian, samples, LSM, rough FFT/N-facteurs | Toutes les specialisations catalogue ne sont pas rejouees sous sanitizer; matrice representative exigee couverte | E10, E11, E12; `CUDA-001` |
+
+### Performance
+
+| Sous-section | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Common performance protocol and kernel strategy | partiel | Protocole v1, environnement SM89, 18 workloads, diagnostics de ressources, cubin SM75/86/89, Nsight Systems, flags et invariants | Compteurs Nsight Compute occupation atteinte/stalls/caches/branches/debit interdits par `ERR_NVGPUCTRPERM`; gate incomplet `PERF-010` | E09, E14, E15, E17; `PERF-010` |
+| Generic CUDA performance | partiel | Closed form, index, accumulation, geometries riches, CIR inline/noinline, schedules regular/ragged, overhead et ressources | Compteurs materiels Nsight Compute; les quatre comparaisons bruitees doivent etre rejouees | E09, E14, E15 |
+| Early-exercise performance | partiel | Profils descriptifs equity un etat NIG/VG, equity multi-etats Heston, taux un facteur OU et deux facteurs G2; workspace, phases, registres/spills/occupation | Pas de baseline versionnee multi-dimensions prix/paths/dates/blocs; pas de compteurs Nsight Compute. Toute geometrie alternative reste **a mesurer** | E11, E15, E17 |
+| Rough performance | partiel | Six workloads baseline Volterra, crossover/tuning/chunking historiques, complements Heston/rough Heston N7/rough SABR, ressources et decomposition Nsight Systems | Compteurs Nsight Compute; runtime SM75/86; courbe d'erreur N-facteurs independante reservee a validation | E09, E11, E14, E15 |
+
+## Exclusions transversales
+
+- L'audit `docs/validation/query.md`: Premia, QuantLib, caches de 1 000 prix,
+  fingerprints, notebooks et certification des 900/100 lignes. Aucun statut ni
+  artefact de cet audit separe n'a ete modifie.
+- Le contenu exact de `AI_factory_website/`, ignore et sans revision propre.
+- Les mesures runtime SM75 et SM86, faute de materiel; leurs builds et
+  ressources statiques sont couverts, aucune performance runtime n'en est
+  inferee.
+- Les compteurs Nsight Compute refuses par le pilote, y compris pour le kernel
+  Black-Scholes lance explicitement hors sandbox. Leur absence limite les
+  quatre sous-audits Performance et ne devient pas un constat generique.
+
+## Decisions et hypotheses de performance
+
+- **Decision mesuree :** aucune regression stable superieure au seuil v1 de
+  5 % sur les 18 workloads appariees. Les quatre CV excessifs sont
+  inconclusifs et ne justifient aucune correction ni mise a jour de baseline.
+- **A mesurer :** une autre geometrie ou decomposition LSM pour G2 (118
+  registres, 33,3 % d'occupation theorique) et Heston (88, 33,3 %). Les traces
+  montrent que regression partials/solve dominent, mais aucun gain n'est
+  presume sans matrice paths/dates/blocs et compteurs.
+- **A mesurer :** le compromis facteur/temps/erreur des lifts rough au-dela du
+  cas N7 observe. Le delta Heston 85,049 ms contre rough Heston N7 88,163 ms
+  sur un complement local ne constitue ni baseline versionnee ni preuve
+  d'erreur d'approximation.
+- **A mesurer :** les quatre workloads bruités de E14 dans un environnement
+  thermique/frequences mieux stabilise. Le bruit ne masque ni ne prouve une
+  regression.
+
+## Comptabilite des constats du passage version 3
+
+- **Ouverts : 7** — `STRUCT-010`, `STRUCT-011`, `STRUCT-012`, `STRUCT-013`,
+  `NUM-006`, `CUDA-001`, `PERF-010`.
+- **Rouverts pendant ce passage : 2** — `STRUCT-010`, `PERF-010`, chacun selon
+  le critere conserve dans son ancienne entree fermee.
+- **Identifiants historiques encore fermes : 35** dans `closed.md`.
+- **Correction de code pendant l'audit : aucune.**

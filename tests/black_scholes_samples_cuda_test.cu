@@ -346,6 +346,81 @@ void test_model_bindings() {
         "calendar sample copy"
     ));
 
+    auto* random_days = allocate_device<std::uint32_t>(
+        parameter_count,
+        "random-terminal maturity allocation"
+    );
+    auto* random_days_replay = allocate_device<std::uint32_t>(
+        parameter_count,
+        "random-terminal replay maturity allocation"
+    );
+    auto* random_spots = allocate_device<float>(
+        parameter_count,
+        "random-terminal spot allocation"
+    );
+    auto* random_spots_replay = allocate_device<float>(
+        parameter_count,
+        "random-terminal replay spot allocation"
+    );
+    black_scholes::launch_black_scholes_random_terminal_samples_cuda(
+        device_parameters, parameter_count, 1U, 63U, 504U,
+        0U, parameter_count, 128U, 4U,
+        881000004ULL, 881000005ULL, random_days, random_spots
+    );
+    black_scholes::launch_black_scholes_random_terminal_samples_cuda(
+        device_parameters, parameter_count, 1U, 63U, 504U,
+        0U, parameter_count, 512U, 1U,
+        881000004ULL, 881000005ULL,
+        random_days_replay, random_spots_replay
+    );
+    check_cuda(
+        cudaDeviceSynchronize(),
+        "random-terminal sample synchronize"
+    );
+    const auto random_days_host = copy_to_host(
+        random_days,
+        parameter_count,
+        "random-terminal maturity copy"
+    );
+    const auto random_days_replay_host = copy_to_host(
+        random_days_replay,
+        parameter_count,
+        "random-terminal replay maturity copy"
+    );
+    const auto random_spots_host = copy_to_host(
+        random_spots,
+        parameter_count,
+        "random-terminal spot copy"
+    );
+    const auto random_spots_replay_host = copy_to_host(
+        random_spots_replay,
+        parameter_count,
+        "random-terminal replay spot copy"
+    );
+    require(
+        random_days_host == random_days_replay_host,
+        "Random terminal maturities changed with launch geometry."
+    );
+    require(
+        std::memcmp(
+            random_spots_host.data(),
+            random_spots_replay_host.data(),
+            parameter_count * sizeof(float)
+        ) == 0,
+        "Random terminal samples changed with launch geometry."
+    );
+    for (std::uint32_t day : random_days_host) {
+        require(
+            day >= 63U && day <= 504U,
+            "A binding-generated maturity lies outside [63, 504]."
+        );
+    }
+    validate_finite_positive(random_spots_host);
+
+    check_cuda(cudaFree(random_spots_replay), "random replay spot free");
+    check_cuda(cudaFree(random_spots), "random spot free");
+    check_cuda(cudaFree(random_days_replay), "random replay maturity free");
+    check_cuda(cudaFree(random_days), "random maturity free");
     check_cuda(cudaFree(calendar), "calendar sample free");
     check_cuda(cudaFree(packaged), "packaged sample free");
     check_cuda(cudaFree(batched), "batched sample free");

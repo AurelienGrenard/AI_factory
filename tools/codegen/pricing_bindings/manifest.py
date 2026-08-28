@@ -48,6 +48,19 @@ class ModelRecipeSpec:
     threads_per_block: int = 512
 
 
+@dataclass(frozen=True)
+class AmericanRecipeSpec:
+    model: str
+    model_display: str
+    time_kind: str
+    numerical_method: str
+    regression_basis: str
+    basis_state: tuple[str, ...]
+    basis_normalization: tuple[str, ...]
+    basis_functions: tuple[str, ...]
+    regression_precision: str = "FP64 normal equations and Cholesky on GPU"
+
+
 # One canonical product description drives every Gaussian-Volterra binding
 # and both prepared N-factor rough-model lifts.
 ROUGH_PRODUCT_BINDINGS = (
@@ -454,5 +467,77 @@ MODEL_RECIPE_SPECS = (
     ModelRecipeSpec(
         "quadratic_rough_heston", "Quadratic rough-Heston", "n_factor",
         "7-factor Markovian lift", threads_per_block=256
+    ),
+)
+
+
+AMERICAN_RECIPE_SPECS = (
+    AmericanRecipeSpec(
+        "bates",
+        "Bates",
+        "fixed",
+        "Andersen QE-M with compound-Poisson lognormal jumps",
+        "Two-factor Laguerre degree 2",
+        ("spot", "instantaneous_variance"),
+        ("spot / strike", "variance / theta"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "variance / theta",
+            "(variance / theta)^2",
+            "L1(spot / strike) * variance / theta",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "heston",
+        "Heston",
+        "fixed",
+        "Andersen QE-M",
+        "Two-factor Laguerre degree 2",
+        ("spot", "instantaneous_variance"),
+        ("spot / strike", "variance / theta"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "variance / theta",
+            "(variance / theta)^2",
+            "L1(spot / strike) * variance / theta",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "normal_inverse_gaussian",
+        "Normal-Inverse-Gaussian",
+        "exact",
+        "Exact inverse-Gaussian subordination",
+        "Spot and log-moneyness six-term basis",
+        ("spot", "log_moneyness"),
+        ("spot / strike", "log(spot / strike)"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "log(spot / strike)",
+            "log(spot / strike)^2",
+            "L1(spot / strike) * log(spot / strike)",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "variance_gamma",
+        "Variance-Gamma",
+        "exact",
+        "Exact Gamma subordination",
+        "Spot and log-moneyness six-term basis",
+        ("spot", "log_moneyness"),
+        ("spot / strike", "log(spot / strike)"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "log(spot / strike)",
+            "log(spot / strike)^2",
+            "L1(spot / strike) * log(spot / strike)",
+        ),
     ),
 )

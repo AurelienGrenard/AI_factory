@@ -590,6 +590,15 @@ LaunchResult launch_longstaff_schwartz_cuda(
         );
         check_cuda(
             cudaMemset(
+                prepared_rows,
+                0,
+                batch.result_count
+                    * sizeof(typename PricingPolicy::PreparedRow)
+            ),
+            "cudaMemset early-exercise prepared rows"
+        );
+        check_cuda(
+            cudaMemset(
                 regression_statuses,
                 0,
                 batch.result_count * sizeof(RegressionStatus)

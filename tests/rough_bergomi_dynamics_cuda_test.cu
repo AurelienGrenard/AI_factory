@@ -1,6 +1,7 @@
 // Check the shared fractional driver and the two Gaussian-Volterra path maps.
 #include "common/check_cuda.cuh"
 #include "common/volterra/fractional_hybrid_driver.cuh"
+#include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
 
@@ -13,7 +14,9 @@ namespace {
 
 namespace bergomi =
     ai_factory::workbench::model::equity::rough_bergomi;
-namespace sabr = ai_factory::workbench::model::equity::rough_sabr;
+namespace markovian_sabr =
+    ai_factory::workbench::model::equity::sabr;
+namespace rough_sabr = ai_factory::workbench::model::equity::rough_sabr;
 
 struct Results {
     float first_weight;
@@ -23,6 +26,10 @@ struct Results {
     float sabr_log_spot;
     float sabr_volatility;
     float cev_log_spot;
+    float markovian_absorbed_log_spot;
+    float markovian_absorbed_alpha;
+    float rough_absorbed_log_spot;
+    float rough_absorbed_volatility;
 };
 
 __global__ void evaluate_dynamics(Results* output) {
@@ -34,21 +41,21 @@ __global__ void evaluate_dynamics(Results* output) {
     const bergomi::ModelParameters bergomi_parameters = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f,
     };
-    const sabr::ModelParameters lognormal_sabr_parameters = {
+    const rough_sabr::ModelParameters lognormal_sabr_parameters = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f, 1.0f,
     };
-    const sabr::ModelParameters cev_sabr_parameters = {
+    const rough_sabr::ModelParameters cev_sabr_parameters = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f, 0.70f,
     };
     const bergomi::PreparedModel bergomi_model =
         bergomi::prepare_model(bergomi_parameters, dt);
-    const sabr::PreparedModel sabr_model =
-        sabr::prepare_model(lognormal_sabr_parameters, dt);
-    const sabr::PreparedModel cev_model =
-        sabr::prepare_model(cev_sabr_parameters, dt);
+    const rough_sabr::PreparedModel sabr_model =
+        rough_sabr::prepare_model(lognormal_sabr_parameters, dt);
+    const rough_sabr::PreparedModel cev_model =
+        rough_sabr::prepare_model(cev_sabr_parameters, dt);
     bergomi::State bergomi_state = bergomi::initial_state(bergomi_model);
-    sabr::State sabr_state = sabr::initial_state(sabr_model);
-    sabr::State cev_state = sabr::initial_state(cev_model);
+    rough_sabr::State sabr_state = rough_sabr::initial_state(sabr_model);
+    rough_sabr::State cev_state = rough_sabr::initial_state(cev_model);
 
     float increments[16]{};
     for (unsigned int step = 0U; step < 16U; ++step) {
@@ -82,7 +89,7 @@ __global__ void evaluate_dynamics(Results* output) {
             spot_normal,
             bergomi_state
         );
-        sabr::advance(
+        rough_sabr::advance(
             sabr_model,
             value,
             variance,
@@ -90,7 +97,7 @@ __global__ void evaluate_dynamics(Results* output) {
             spot_normal,
             sabr_state
         );
-        sabr::advance(
+        rough_sabr::advance(
             cev_model,
             value,
             variance,
@@ -99,6 +106,57 @@ __global__ void evaluate_dynamics(Results* output) {
             cev_state
         );
     }
+
+    const markovian_sabr::ModelParameters absorbing_markovian_parameters = {
+        1.0e-4f, 0.0f, 0.0f, 1.0e6f, 0.1f, 0.0f, 0.0f,
+    };
+    const auto absorbing_markovian =
+        markovian_sabr::DynamicsPolicy::prepare_dynamics(
+            absorbing_markovian_parameters,
+            1.0f
+        );
+    markovian_sabr::State markovian_absorbed =
+        markovian_sabr::DynamicsPolicy::initial_state(absorbing_markovian);
+    ai_factory::workbench::philox::NormalRandomContext markovian_random(
+        ai_factory::workbench::philox::make_key(123456789ULL),
+        7U
+    );
+    markovian_sabr::DynamicsPolicy::simulate_one_step(
+        absorbing_markovian,
+        markovian_random,
+        markovian_absorbed
+    );
+    markovian_sabr::DynamicsPolicy::simulate_one_step(
+        absorbing_markovian,
+        markovian_random,
+        markovian_absorbed
+    );
+
+    const rough_sabr::ModelParameters absorbing_rough_parameters = {
+        1.0e-4f, 0.0f, 0.0f, 1.0f, 0.5f, 0.1f, 0.0f, 0.5f,
+    };
+    const rough_sabr::PreparedModel absorbing_rough =
+        rough_sabr::prepare_model(absorbing_rough_parameters, 1.0f);
+    rough_sabr::State rough_absorbed =
+        rough_sabr::initial_state(absorbing_rough);
+    rough_absorbed.volatility = 1.0e6f;
+    rough_sabr::advance(
+        absorbing_rough,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        rough_absorbed
+    );
+    rough_sabr::advance(
+        absorbing_rough,
+        0.0f,
+        1.0f,
+        0.0f,
+        5.0f,
+        rough_absorbed
+    );
+
     *output = {
         Driver::far_cell_weight(driver, 2U),
         Driver::variance(driver, 16.0f * dt),
@@ -107,6 +165,10 @@ __global__ void evaluate_dynamics(Results* output) {
         sabr_state.log_spot,
         sabr_state.volatility,
         cev_state.log_spot,
+        markovian_absorbed.log_spot,
+        markovian_absorbed.alpha,
+        rough_absorbed.log_spot,
+        rough_absorbed.volatility,
     };
 }
 
@@ -159,6 +221,18 @@ int main() {
     require(
         std::isfinite(results.cev_log_spot),
         "rough SABR CEV path produced a non-finite state"
+    );
+    require(
+        std::isinf(results.markovian_absorbed_log_spot)
+            && results.markovian_absorbed_log_spot < 0.0f
+            && std::isfinite(results.markovian_absorbed_alpha),
+        "markovian SABR revived after crossing the absorbing boundary"
+    );
+    require(
+        std::isinf(results.rough_absorbed_log_spot)
+            && results.rough_absorbed_log_spot < 0.0f
+            && std::isfinite(results.rough_absorbed_volatility),
+        "rough SABR revived after crossing the absorbing boundary"
     );
     return 0;
 }

@@ -692,6 +692,54 @@ requires VolterraFftSamplingPolicy<
     Policy,
     volterra::HybridTimeConfiguration
 >
+void launch_device_random_terminal_samples_cuda(
+    const typename Policy::Parameters* device_parameters,
+    std::size_t parameter_count,
+    std::size_t paths_per_parameter,
+    MaturityDayBounds maturity_bounds,
+    std::size_t sample_offset,
+    std::size_t launch_sample_count,
+    std::size_t block_count,
+    std::uint64_t schedule_seed,
+    std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days,
+    const typename Policy::Output& output,
+    const char* diagnostic_name,
+    const char* operation_name
+) {
+    static_assert(std::same_as<
+        typename Policy::Schedule::Calendar,
+        simulation::MaturityCalendar
+    >);
+    launch_samples_cuda<Policy>(
+        DeviceParameterSource<typename Policy::Parameters>{device_parameters},
+        UniformMaturityCalendarSource{
+            maturity_bounds,
+            device_maturity_days,
+        },
+        {
+            parameter_count,
+            paths_per_parameter,
+            sample_offset,
+            launch_sample_count,
+        },
+        {
+            canonical_sample_step_count(maturity_bounds.maximum),
+            block_count,
+        },
+        {0U, schedule_seed, dynamics_seed},
+        output,
+        diagnostic_name,
+        "random_terminal.parameter_block_fft",
+        operation_name
+    );
+}
+
+template<typename Policy>
+requires VolterraFftSamplingPolicy<
+    Policy,
+    volterra::HybridTimeConfiguration
+>
 void launch_device_calendar_samples_cuda(
     const typename Policy::Parameters* device_parameters,
     std::size_t parameter_count,

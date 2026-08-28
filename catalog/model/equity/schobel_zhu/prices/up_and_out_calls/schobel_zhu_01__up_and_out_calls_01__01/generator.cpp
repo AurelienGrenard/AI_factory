@@ -25,10 +25,10 @@ int main() {
         PriceConstruction::Aligned,
     };
     const pricing::BatchedMonteCarloProfile profile{
-        16'384U,
+        1'048'576U,
         4'096U,
         4'096U,
-        512U,
+        ::ai_factory::workbench::offline::cuda_tuning::kMarkovianThreadsPerBlock,
         900000001ULL,
         "1 / 504",
         nlohmann::ordered_json{{"simulation_steps_per_day", simulation_steps_per_day}},

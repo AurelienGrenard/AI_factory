@@ -10,6 +10,10 @@
 
 namespace ai_factory::workbench::volterra::hybrid_fft {
 
+#ifndef AI_FACTORY_CUFFTDX_ARCHITECTURE
+#error "AI_FACTORY_CUFFTDX_ARCHITECTURE must name the reviewed cuFFTDx SM profile"
+#endif
+
 // Random access to the exact normal produced by UniformSequence and
 // NormalPairCache at one scalar index. Cooperative FFT lanes can therefore
 // generate Brownian cells independently while preserving the canonical
@@ -41,7 +45,7 @@ struct FftTypes {
         + cufftdx::Size<Length>()
         + cufftdx::Type<cufftdx::fft_type::c2c>()
         + cufftdx::Precision<float>()
-        + cufftdx::SM<890>()
+        + cufftdx::SM<AI_FACTORY_CUFFTDX_ARCHITECTURE>()
         + cufftdx::ElementsPerThread<ElementsPerThread>()
         + cufftdx::FFTsPerBlock<FftsPerBlock>()
     );

@@ -27,7 +27,7 @@ int main() {
         1'048'576U,
         4'096U,
         4'096U,
-        512U,
+        ::ai_factory::workbench::offline::cuda_tuning::kMarkovianThreadsPerBlock,
         900000001ULL,
         "exact transition dates",
         nlohmann::ordered_json::object(),

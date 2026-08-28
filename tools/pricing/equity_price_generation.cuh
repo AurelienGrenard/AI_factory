@@ -5,6 +5,7 @@
 #include "common/price_construction.cuh"
 #include "common/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/tuning_profile.hpp"
 #include "tools/datasets/price_dataset.hpp"
 
 #include <nlohmann/json.hpp>
@@ -229,6 +230,11 @@ MonteCarloExecution execute_batched_monte_carlo(
     metadata["threads_per_block"] = profile.threads_per_block;
     metadata["kernel_launch_count"] = launch_count;
     metadata["maximum_prices_per_block"] = 1U;
+    metadata["tuning_profile"] = cuda_tuning::metadata(
+        metadata.contains("factor_count")
+            ? "rough_n_factor_pricing"
+            : "markovian_pricing"
+    );
     return {std::move(run), std::move(metadata)};
 }
 
@@ -321,6 +327,9 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     metadata["threads_per_block"] = profile.threads_per_block;
     metadata["kernel_launch_count"] = launch_count;
     metadata["maximum_prices_per_block"] = 1U;
+    metadata["tuning_profile"] = cuda_tuning::metadata(
+        "rough_n_factor_pricing"
+    );
     return {std::move(run), std::move(metadata)};
 }
 
@@ -413,6 +422,7 @@ MonteCarloExecution execute_volterra_monte_carlo(
             {"maximum_step_count", maximum_step_count},
             {"workspace_bytes", workspace.workspace_bytes},
             {"kernel_launch_count", result_count},
+            {"tuning_profile", cuda_tuning::metadata("volterra_fft_pricing")},
         }
     };
 }
@@ -485,6 +495,7 @@ AnalyticalExecution execute_analytical(
         {"threads_per_block", profile.threads_per_block},
         {"kernel_launch_count", 1U},
         {"work_distribution", "one price per thread"},
+        {"tuning_profile", cuda_tuning::metadata("analytical_pricing")},
     };
     if (profile.simulation_steps_per_day != 0U) {
         metadata["simulation_steps_per_day"] =

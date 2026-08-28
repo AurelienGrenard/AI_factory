@@ -17,7 +17,7 @@ int main() {
     const auto models = rates::load_models(model_path);
     const auto curves = curve::svensson::load_curves(curve_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = 1U << 16U;
+    constexpr std::size_t paths = 1U << 20U;
     constexpr std::uint64_t seed = 2'161'100'001ULL;
     datasets::generate_exact_fitted_bermudan_swaption_prices(
         model_path, curve_path, product_path, models, curves, products,

@@ -2,80 +2,102 @@
 
 ## Objet
 
-Ce document contient exclusivement les constats non resolus produits par les
-audits de `query.md`, y compris ceux dont le traitement est explicitement
-reporte. La provenance, la couverture et les preuves sont consignees dans
-`status.md`; les constats clos sont dans `closed.md`.
+Ce document contient exclusivement les constats non resolus du referentiel
+principal version 4. Le passage du 2026-08-28 est partiel et limite aux axes
+nouveaux portabilite GPU et model samples, ainsi qu'a la verification ciblee
+des remediations presentes dans le worktree. La provenance, la couverture, les
+exclusions et les preuves sont consignees dans `status.md`.
 
-## Etat courant
+Deux constats restent ouverts au 2026-08-28. Quarante-quatre identifiants
+historiques sont fermes dans `closed.md`.
 
-Deux constats sont ouverts au 2026-08-27. Les 37 identifiants historiques
-restent fermes dans `closed.md`; `STRUCT-011` a ete ouvert apres verification
-de la portee effective du codegen des bindings equity et `STRUCT-012` isole les
-recettes d'exercice anticipe qui ne satisfont pas encore le nouveau contrat.
+## Numerical robustness and reproducibility
 
-Une regression doit reprendre son identifiant historique, etre retiree de
-`closed.md` et etre reinscrite ici avec la nouvelle preuve.
+### NUM-007 — Stabiliser les samples Quadratic rough-Heston sur le domaine core publie
 
-## Project structure — generation des recettes equity
+- **Etat :** ouvert; remediation implementee, qualification complete requise.
+- **Severite :** haute.
+- **Priorite :** haute.
+- **Confiance :** prouvee pour l'echec initial et sa correction ciblee;
+  incomplete pour tout le domaine de production.
+- **Fichiers et symboles :**
+  `src/model/equity/rough/quadratic_rough_heston/{numerics.hpp,dynamics.cuh,dynamics_impl.cuh}`;
+  `validation/volterra/quadratic_rough_heston.py`; tests Python et CUDA QRH;
+  recette `catalog/model/equity/quadratic_rough_heston/samples/samples_02/`.
+- **Signature originale :** les 48 generateurs compilaient sur SM89 avec
+  mathDx, mais `quadratic_rough_heston/samples_02` echouait
+  deterministement avec un spot non fini ligne 77, sur les bornes core
+  publiees et avec les graines contractuelles.
+- **Remediation presente :** la recurrence N-facteurs equilibre sans clamp ni
+  branche la contribution de cellule Volterra complete,
+  `F / hypot(1, c F)`. Le contrat dynamics et les references independantes
+  dense/exponentielle decrivent le meme schema; le mapping Philox reste
+  `(parameter row key, path_index, local_group_index)`.
+- **Preuves acquises :** regression CUDA de la ligne 77 finie,
+  reproductible bit a bit et invariante entre deux geometries; smoke test
+  complet des 1 000 lignes publiees de `samples_02` passe; la ligne core 680,
+  qui explosait encore avec le schema explicite FP64, reste finie et l'erreur
+  terminale diminue entre 126, 252 et 504 pas face a la reference fine. Les
+  tests Python QRH passent. Les 47 autres smoke tests avaient deja passe avant
+  cette modification locale au modele QRH.
+- **Risque restant :** ces preuves ne constituent pas encore le preflight des
+  trois millions de lignes, ni un balayage core/stress multi-trajectoires et
+  multi-facteurs. La dynamique etant partagee par les pricers, la validation
+  de prix independante doit aussi etre rejouee avant publication.
+- **Correction restante :** executer le preflight production, le balayage
+  core/stress, le raffinement factoriel et les validations Premia/QuantLib
+  pertinentes; conserver les sorties et ressources du kernel exact teste.
+- **Test de cloture :** les 48 smoke tests passent avec les graines publiees;
+  le preflight production ne trouve aucune valeur non finie; les raffinements
+  temporel et factoriel et la reference CPU/haute precision bornent le
+  comportement sur core et stress; les validations independantes affectees
+  passent.
+- **References de preuve :** E20, E22, E25.
+- **Derniere verification :** 2026-08-28.
+- **Proprietaire :** non attribue.
 
-### STRUCT-011 — Deriver les recettes de prix equity du manifeste canonique
+## Performance
 
-- **Nature :** ouvert le 2026-08-27 a la demande utilisateur.
-- **Signature initiale :** `pricing_bindings` regenerait les paires `.cu/.cuh`
-  et leur inscription CMake, mais les
-  `catalog/model/equity/*/prices/*/generator.cpp` restaient materialises
-  manuellement. CMake les decouvrait et le checker imposait le runner commun
-  sans garantir leur completude, leur reproductibilite ou l'absence de derive
-  de leurs profils numeriques.
-- **Etat de remediation :** le manifeste type croise maintenant 18 modeles,
-  21 produits et 29 variantes publiees. Il regenere 756 bindings `.cu/.cuh`,
-  522 recettes de prix ordinaires et leur fragment CMake. Quatre templates de
-  recette couvrent closed form, Markov fixe/exact, rough N-facteurs et
-  Volterra FFT; l'orchestrateur commun possede chargement, workspace RAII,
-  timings, JSON, YAML et validation. Les particularites gap loader,
-  geometric-Asian analytique et geometrie N-facteurs sont des champs du
-  manifeste, pas des sources manuelles.
-- **Reste ouvert :** les huit recettes American/LSM sont les seules recettes
-  de prix equity non reproductibles par cette generation. Conformement a la
-  consigne utilisateur, le constat parent reste ouvert tant que l'exception
-  `STRUCT-012` subsiste, meme si la matrice ordinaire est corrigee.
-- **Correction attendue :** une description typee modele/produit/variante doit
-  generer les recettes ordinaires pour les backends analytique, markovien a
-  pas fixe, transition exacte, rough N-facteurs et Volterra FFT. L'execution
-  de ces recettes doit rester proprietaire du JSON de prix et du YAML catalogue
-  contenant les timings mesures. Les exceptions algorithmiques non exprimables
-  par ces contrats doivent recevoir un constat distinct et rester explicitement
-  controlees.
-- **Preuve requise :** regeneration temporaire comparee au tree, matrice de
-  recettes attendue complete, checker refusant toute recette ordinaire
-  manuscrite, builds avec et sans mathDx, tests des orchestrateurs et execution
-  CUDA representative de chaque backend disponible.
-- **Preuve courante :** E22 couvre la comparaison exacte des 1 279 sorties,
-  le checker des 522 recettes, le build exhaustif `price_generators` avec
-  mathDx, un build sans mathDx et six executions CUDA temporaires incluant les
-  cinq backends et le geometric-Asian analytique.
-- **Condition de fermeture :** aucune recette equity non American ordinaire
-  n'est ajoutee ou modifiee hors manifeste/templates et chaque exception
-  restante possede un identifiant, une justification et une condition de
-  reouverture propres.
+### PERF-010 — Rendre le controle de baseline exhaustif et bloquant
 
-### STRUCT-012 — Declarer et generer les recettes American/LSM
-
-- **Nature :** ouvert le 2026-08-27 comme exception explicite de `STRUCT-011`.
-- **Signature :** huit recettes American pour Bates, Heston,
-  Normal-Inverse-Gaussian et Variance-Gamma possedent un workspace de paths,
-  une regression backward, des diagnostics `RegressionStatus` et une
-  publication LSM qui ne se reduisent pas au contrat d'une recette Monte Carlo
-  scalaire. Elles restent ecrites a la main et constituent les seules recettes
-  de prix equity hors codegen.
-- **Correction attendue :** definir un `AmericanRecipeSpec`, un template de
-  recette LSM et un orchestrateur RAII qui possedent explicitement paths,
-  regression, exercice et diagnostics sans affaiblir les garanties FP64 et
-  fail-closed. Les huit sources doivent alors etre reproductibles depuis le
-  manifeste.
-- **Preuve requise :** comparaison codegen des huit recettes, tests LSM CUDA,
-  invariance des prix/diagnostics et checker ne contenant plus d'echappatoire
-  equity.
-- **Condition de fermeture :** aucune recette American ne gere directement
-  ses ressources CUDA ou ne vit hors du manifeste de generation.
+- **Etat :** rouvert; implementation complete, campagne bloquante finale
+  differee.
+- **Severite :** moyenne.
+- **Priorite :** moyenne.
+- **Confiance :** prouvee.
+- **Fichiers et symboles :**
+  `validation/performance/{model_sample_benchmark.cu,benchmark_support.cuh,check_baseline.py,run_baseline.py,baseline_sm89_v1.json}`
+  et leurs tests; `CMakeLists.txt`, cible `performance_benchmarks`.
+- **Signature originale :** le checker v3 etait exhaustif sur ses 22 cles,
+  mais son manifeste omettait entierement les model samples requis par la
+  query v4 : deux layouts, publication wall et familles
+  Markovian/N-facteurs/Volterra.
+- **Remediation presente :** le manifeste contient maintenant 30 cles, dont
+  huit workloads samples couvrant transition exacte, pas fixe, lift rough a
+  sept facteurs et Volterra FFT sur `3 000 000 x 1` et `12 000 x 250`. Les
+  shapes Markovian/N-facteurs sont completes; les reductions Volterra
+  documentent leur saturation. Kernel et publication JSON/YAML sont gates
+  separement. Le checker conserve 5 % de CV maximum pour CUDA et 10 % pour la
+  publication host batchee, refuse candidat manquant, duplique, inconnu ou
+  d'environnement incompatible, et selectionne seulement une campagne stable.
+- **Preuves acquises :** 11 tests unitaires du checker passent; les huit
+  workloads samples ont ete compiles et executes isolement sur le SM89 de
+  reference avec sorties finies, kernels sous le seuil de bruit et provenance
+  `sm89_reference_v1`. L'agregat `performance_benchmarks` compile en entier.
+- **Risque restant :** la campagne complete de 30 cles a ete interrompue avant
+  production d'un candidat apparie. Aucun succes du gate complet n'est donc
+  revendique et la baseline ne doit pas etre presentee comme recertifiee.
+- **Correction restante :** sur machine alimentee et thermiquement stable,
+  executer les trois campagnes de `performance_regression_gate`, conserver le
+  candidat NDJSON et resoudre toute cle en echec ou encore inconclusive.
+- **Test de cloture :** le gate complet contient exactement une fois chaque
+  workload generique, sample, LSM et rough requis; aucune cle bloquante n'est
+  manquante ou inconclusive; toute regression superieure au seuil echoue et
+  toute comparaison GPU/toolchain incompatible est refusee.
+- **Historique de cloture :** ferme le 2026-08-27 apres creation du protocole
+  v1, puis rouvert quand l'omission de references produisait tout de meme un
+  succes. L'exhaustivite structurelle est maintenant corrigee; seule sa
+  campagne de certification reste requise.
+- **References de preuve :** E08, E14, E15, E17, E20, E22, E25.
+- **Derniere verification :** 2026-08-28.
+- **Proprietaire :** non attribue.

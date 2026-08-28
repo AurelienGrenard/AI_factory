@@ -134,6 +134,10 @@ qu'un nouveau payoff l'utilise.
 
 ### Dataset de samples du modele
 
+- [ ] Consulter d'abord le `ModelSpec`, le `SampleModelSpec` et les deux
+      `DatasetSpec` de `tools/codegen/pricing_bindings/`. Ajouter la loi core,
+      l'observation et le backend au manifeste, puis regenerer bindings et
+      recettes; ne pas introduire une recette ad hoc.
 - [ ] Creer
       `catalog/model/<asset_class>/<model>/samples/<dataset_id>/generator.cpp`.
 - [ ] Generer le JSON complet sous
@@ -150,7 +154,8 @@ qu'un nouveau payoff l'utilise.
       `src/model/<asset_class>/<model>/`; ne pas reimplementer le modele dans la
       recette.
 - [ ] Produire exactement 3 000 000 de samples d'entrainement.
-- [ ] Fournir les deux recettes par modele: `samples_01` avec
+- [ ] Pour tout modele dont la publication samples est `available`, fournir les
+      deux recettes: `samples_01` avec
       `12 000 * 250 = 3 000 000`, puis `samples_02` avec
       `3 000 000 * 1 = 3 000 000` et des seeds independantes.
 - [ ] Tirer independamment chaque maturite selon la loi uniforme discrete sur

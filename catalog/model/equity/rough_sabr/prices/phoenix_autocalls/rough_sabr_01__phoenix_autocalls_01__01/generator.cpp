@@ -24,10 +24,10 @@ int main() {
     const pricing::VolterraMonteCarloProfile profile{
         1'048'576U,
         1.0f / 252.0f,
-        1.0f / 360.0f,
-        65'536U,
+        1.0f / 504.0f,
+        ::ai_factory::workbench::offline::cuda_tuning::kVolterraPathChunkSize,
         910000001ULL,
-        "1 / 360",
+        "1 / 504",
     };
 
     return pricing::generate_volterra_equity_price_dataset(

@@ -20,7 +20,7 @@ int main() {
         "Black-Scholes closed-form geometric-asian-puts",
         PriceConstruction::Aligned,
     };
-    const pricing::AnalyticalProfile profile{1.0f / 504.0f, 256U, 2U};
+    const pricing::AnalyticalProfile profile{1.0f / 504.0f, ::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock, 2U};
 
     return pricing::generate_analytical_equity_price_dataset(
         recipe,
