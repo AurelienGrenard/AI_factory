@@ -1,6 +1,6 @@
 // Build one CIR zero-coupon bond call price dataset.
 #include "model/fixed_income/cir/dataset.hpp"
-#include "model/fixed_income/cir/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/cir/product/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

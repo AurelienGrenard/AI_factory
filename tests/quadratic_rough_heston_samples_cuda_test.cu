@@ -1,6 +1,6 @@
 // Regression for the published quadratic rough-Heston samples_02 path 77.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/quadratic_rough_heston/sample.cuh"
 #include "tools/sampling/host_philox.hpp"
 

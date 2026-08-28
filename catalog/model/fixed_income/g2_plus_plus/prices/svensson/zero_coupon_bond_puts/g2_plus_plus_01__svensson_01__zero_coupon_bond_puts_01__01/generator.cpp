@@ -1,5 +1,5 @@
 // Build one G2++ Svensson zero-coupon bond put dataset.
-#include "model/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/g2_plus_plus/product/svensson/zero_coupon_bond_option.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/zero_coupon_bond_option/dataset.hpp"

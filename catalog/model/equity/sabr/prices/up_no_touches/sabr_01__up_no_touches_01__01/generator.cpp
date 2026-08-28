@@ -1,5 +1,5 @@
 // Generated SABR up-no-touches price-dataset recipe.
-#include "model/equity/markovian/sabr/up_no_touch.cuh"
+#include "model/equity/markovian/sabr/product/up_no_touch.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

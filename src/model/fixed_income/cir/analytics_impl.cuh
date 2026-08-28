@@ -1,4 +1,4 @@
-// Closed-form affine fixed-income analytics for the CIR model.
+// Included device definitions of the affine CIR fixed-income analytics contract.
 #pragma once
 
 #include "model/fixed_income/cir/analytics.cuh"

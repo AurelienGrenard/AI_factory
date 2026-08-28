@@ -1,4 +1,4 @@
-// Generated model-only Kou sample launchers.
+// Public generated Kou launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/kou/parameters.hpp"

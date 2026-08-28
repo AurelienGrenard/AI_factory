@@ -1,4 +1,4 @@
-// Exact CIR state simulation through the Poisson-Gamma representation.
+// Included device definitions for exact CIR simulation through the Poisson-Gamma representation.
 #pragma once
 
 #include "model/fixed_income/cir/dynamics.cuh"

@@ -1,5 +1,5 @@
 // Generated CEV range-accruals price-dataset recipe.
-#include "model/equity/markovian/cev/range_accrual.cuh"
+#include "model/equity/markovian/cev/product/range_accrual.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

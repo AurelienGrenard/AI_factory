@@ -1,5 +1,5 @@
 // Generated Heston 3/2 lookback-options price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/lookback_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/lookback_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

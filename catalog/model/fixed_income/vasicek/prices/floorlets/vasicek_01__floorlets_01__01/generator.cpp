@@ -1,6 +1,6 @@
 // Build one Vasicek floorlet price dataset.
 #include "model/fixed_income/vasicek/dataset.hpp"
-#include "model/fixed_income/vasicek/rate_option.cuh"
+#include "model/fixed_income/vasicek/product/rate_option.cuh"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

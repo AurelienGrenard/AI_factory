@@ -1,6 +1,6 @@
 // Generate Hull-White/Nelson-Siegel European receiver-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/hull_white/nelson_siegel/european_swaption.cuh"
+#include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"

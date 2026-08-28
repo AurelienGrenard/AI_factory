@@ -1,5 +1,5 @@
 // Build CIR Bermudan-receiver-swaption prices with Longstaff-Schwartz.
-#include "model/fixed_income/cir/bermudan_swaption.cuh"
+#include "model/fixed_income/cir/product/bermudan_swaption.cuh"
 #include "model/fixed_income/cir/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 

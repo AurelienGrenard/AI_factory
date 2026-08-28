@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi asian-calls Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/asian_option.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/asian_option.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

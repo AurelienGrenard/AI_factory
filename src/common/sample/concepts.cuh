@@ -3,6 +3,7 @@
 
 #include "common/philox.cuh"
 #include "common/simulation/concepts.cuh"
+#include "common/volterra/concepts.cuh"
 
 #include <concepts>
 #include <cstddef>
@@ -173,64 +174,11 @@ concept ExecutableSamplingPolicy =
 
 template<typename Path>
 concept VolterraPathPolicy =
-    simulation::StatePolicy<Path>
-    && std::is_trivially_copyable_v<typename Path::Parameters>
-    && std::is_trivially_copyable_v<typename Path::PreparedModel>
-    && requires(
-        const typename Path::Parameters& parameters,
-        const typename Path::PreparedModel& model,
-        typename Path::State& state,
-        float time_step,
-        float driver_value,
-        float driver_variance,
-        float rough_normal,
-        float independent_spot_normal
-    ) {
-        { Path::kUsesDriverVariance } -> std::convertible_to<bool>;
-        { Path::driver_parameters(parameters) };
-        {
-            Path::prepare_model(parameters, time_step)
-        } -> std::same_as<typename Path::PreparedModel>;
-        { Path::initial_state(model) } -> std::same_as<typename Path::State>;
-        {
-            Path::advance(
-                model,
-                driver_value,
-                driver_variance,
-                rough_normal,
-                independent_spot_normal,
-                state
-            )
-        } -> std::same_as<void>;
-    };
+    volterra::HybridPathPolicy<Path>;
 
-template<typename Driver>
-concept VolterraDriverPolicy =
-    std::is_trivially_copyable_v<typename Driver::PreparedDriver>
-    && requires(
-        const typename Driver::PreparedDriver& driver,
-        const typename Driver::Parameters& parameters,
-        float time_step,
-        float time,
-        float far_convolution,
-        float rough_normal,
-        float singular_normal,
-        unsigned int lag
-    ) {
-        {
-            Driver::prepare(parameters, time_step)
-        } -> std::same_as<typename Driver::PreparedDriver>;
-        { Driver::far_cell_weight(driver, lag) } -> std::same_as<float>;
-        { Driver::variance(driver, time) } -> std::same_as<float>;
-        {
-            Driver::value(
-                driver,
-                far_convolution,
-                rough_normal,
-                singular_normal
-            )
-        } -> std::same_as<float>;
-    };
+template<typename Kernel>
+concept VolterraKernelPolicy =
+    volterra::HybridKernelPolicy<Kernel>;
 
 template<typename Schedule, typename Path, typename Handler,
          typename TimeConfiguration>
@@ -264,15 +212,16 @@ concept VolterraSampleSchedulePolicy =
     } -> std::same_as<bool>;
 };
 
-template<typename DriverPolicy, typename PathPolicy, typename SchedulePolicy,
+template<typename KernelPolicy, typename PathPolicy, typename SchedulePolicy,
          typename ObservationPolicy>
 requires (
-    VolterraDriverPolicy<DriverPolicy>
+    VolterraKernelPolicy<KernelPolicy>
     && VolterraPathPolicy<PathPolicy>
+    && volterra::HybridPathPolicyFor<PathPolicy, KernelPolicy>
     && SampleObservationPolicyFor<ObservationPolicy, PathPolicy>
 )
 struct VolterraFftModelSamplingPolicy {
-    using Driver = DriverPolicy;
+    using Kernel = KernelPolicy;
     using Path = PathPolicy;
     using Parameters = typename Path::Parameters;
     using Schedule = SchedulePolicy;
@@ -282,7 +231,7 @@ struct VolterraFftModelSamplingPolicy {
 
 template<typename Policy, typename TimeConfiguration>
 concept VolterraFftSamplingPolicy =
-    VolterraDriverPolicy<typename Policy::Driver>
+    VolterraKernelPolicy<typename Policy::Kernel>
     && VolterraPathPolicy<typename Policy::Path>
     && SampleObservationPolicyFor<
         typename Policy::Observation,

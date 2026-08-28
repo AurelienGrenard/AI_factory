@@ -35,6 +35,33 @@ Volterra units therefore cannot drift from the declared capabilities.
 `PricingCapabilityManifest.json` records schema version plus source and output
 SHA-256 fingerprints for the complete generated tree.
 
+Templates are organized first by artifact, then by numerical engine. This is
+the navigation contract; new templates must not be added at the root:
+
+```text
+templates/
+|-- pricing/
+|   |-- markovian/product_binding.{cuh,cu}.tpl
+|   |-- rough/markovian_n_factor/product_binding.{cuh,cu}.tpl
+|   |-- rough/volterra_fft/product_binding.{cuh,cu}.tpl
+|   `-- closed_form/black_scholes/<product>.{cuh,cu}.tpl
+|-- sampling/
+|   |-- markovian/model_binding.{cuh,cu}.tpl
+|   |-- rough/markovian_n_factor/model_binding.{cuh,cu}.tpl
+|   |-- rough/volterra_fft/model_binding.{cuh,cu}.tpl
+|   `-- catalog/{recipe_support.cuh,generator.cpp}.tpl
+`-- catalog/pricing/
+    |-- markovian/generator.cpp.tpl
+    |-- rough/markovian_n_factor/generator.cpp.tpl
+    |-- rough/volterra_fft/generator.cpp.tpl
+    |-- black_scholes_closed_form/generator.cpp.tpl
+    `-- american_longstaff_schwartz/generator.cpp.tpl
+```
+
+Complete generated C++ artifacts live in this tree, not as multiline source
+strings in `generate.py`. Renderer code computes only bounded substitutions,
+instantiation fragments and paths.
+
 `manifest.py` owns the mechanical equity cross-products and recipe profiles;
 `sample_manifest.py` owns the 24 model-only sample bindings and parameter laws.
 `capability_manifest.py` composes it into `EngineSpec`, `ModelSpec`,
@@ -101,10 +128,18 @@ implementation units, stored as code-generation assets so the same command
 still regenerates every non-American equity `.cuh`/`.cu`. The specialized
 algorithms are preserved; only their source ownership moves to the generator.
 
-Generated equity bindings follow the source-family layout:
-`src/model/equity/rough/<model>` for this matrix and
-`src/model/equity/markovian/<model>` for finite-state dynamics. The folder
-component is not part of public namespaces or target names.
+Generated equity pricing bindings follow the source-family layout under
+`src/model/equity/rough/<model>/product/` for rough models and
+`src/model/equity/markovian/<model>/product/` for finite-state dynamics.
+Model-only sampling stays at `<model>/sample.cuh/.cu`. The `product` folder
+component is an ownership boundary and is deliberately absent from public
+namespaces and stable CMake target names.
+
+Fixed-income units are currently only inventoried by the typed capability
+manifest and generated CMake fragment. Their closed-form `.cuh/.cu` bindings
+and catalogue recipe bodies are not yet template-owned; main-audit finding
+`STRUCT-015` tracks that explicit extension gap. Bermudan Longstaff--Schwartz
+bindings are a separate early-exercise family and are not closed-form units.
 
 `--family catalog` emits only the 530 equity price recipes. `--family markovian` and
 the backward-compatible `--family prototype` select the same complete

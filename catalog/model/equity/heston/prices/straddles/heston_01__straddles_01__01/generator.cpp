@@ -1,5 +1,5 @@
 // Generated Heston straddles price-dataset recipe.
-#include "model/equity/markovian/heston/straddle.cuh"
+#include "model/equity/markovian/heston/product/straddle.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

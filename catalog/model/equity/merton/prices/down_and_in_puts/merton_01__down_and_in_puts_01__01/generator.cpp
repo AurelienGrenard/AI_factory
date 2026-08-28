@@ -1,5 +1,5 @@
 // Generated Merton down-and-in-puts price-dataset recipe.
-#include "model/equity/markovian/merton/down_and_in_option.cuh"
+#include "model/equity/markovian/merton/product/down_and_in_option.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/down_and_in_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

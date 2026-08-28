@@ -15,11 +15,11 @@ inline constexpr std::size_t kMaximumHybridFftStepCount = 4096U;
 inline constexpr std::size_t kMaximumHybridFftLength = 8192U;
 inline constexpr std::size_t kHybridFftSpectrumBytes =
     kMaximumHybridFftLength * sizeof(float2);
-inline constexpr std::size_t kHybridFftDriverVarianceBytes =
+inline constexpr std::size_t kHybridFftVolterraVarianceBytes =
     kMaximumHybridFftStepCount * sizeof(float);
 inline constexpr std::size_t kHybridFftPreparedRowBytes = 1024U;
 inline constexpr std::size_t kHybridFftPreparedRowOffset =
-    kHybridFftSpectrumBytes + kHybridFftDriverVarianceBytes;
+    kHybridFftSpectrumBytes + kHybridFftVolterraVarianceBytes;
 inline constexpr std::size_t kHybridFftConvolutionOffset =
     kHybridFftPreparedRowOffset + kHybridFftPreparedRowBytes;
 inline constexpr std::size_t kHybridFftPathThreads = 256U;
@@ -30,7 +30,7 @@ struct HybridFftWorkspacePlan {
     std::size_t monte_carlo_paths_per_price;
     std::size_t path_chunk_size;
     std::size_t spectrum_bytes;
-    std::size_t driver_variance_bytes;
+    std::size_t volterra_variance_bytes;
     std::size_t convolution_bytes;
     std::size_t partial_moment_count;
     std::size_t workspace_bytes;
@@ -117,7 +117,7 @@ inline HybridFftWorkspacePlan plan_hybrid_fft_workspace(
         monte_carlo_paths_per_price,
         path_chunk_size,
         kHybridFftSpectrumBytes,
-        kHybridFftDriverVarianceBytes,
+        kHybridFftVolterraVarianceBytes,
         convolution_bytes,
         partial_count,
         required_hybrid_fft_workspace_bytes(

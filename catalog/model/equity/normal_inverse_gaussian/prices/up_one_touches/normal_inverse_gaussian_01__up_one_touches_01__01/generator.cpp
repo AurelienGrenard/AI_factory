@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian up-one-touches price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/up_one_touch.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/up_one_touch.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

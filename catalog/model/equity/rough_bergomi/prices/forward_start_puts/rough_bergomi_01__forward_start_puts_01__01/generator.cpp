@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi forward-start-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/forward_start_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/forward_start_option.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

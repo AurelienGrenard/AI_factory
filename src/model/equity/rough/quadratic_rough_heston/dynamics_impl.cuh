@@ -1,3 +1,4 @@
+// Device transition definitions for the quadratic rough Heston N-factor dynamics policy.
 #pragma once
 
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"

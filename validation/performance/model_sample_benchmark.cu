@@ -4,7 +4,7 @@
 #include "model/equity/markovian/black_scholes/sample.cuh"
 #include "model/equity/markovian/heston/sample.cuh"
 #include "model/equity/rough/rough_bergomi/sample.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/rough_heston/sample.cuh"
 #include "tools/cuda/tuning_profile.hpp"
 

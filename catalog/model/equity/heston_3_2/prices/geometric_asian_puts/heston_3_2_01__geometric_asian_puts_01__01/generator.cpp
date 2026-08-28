@@ -1,5 +1,5 @@
 // Generated Heston 3/2 geometric-asian-puts price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/geometric_asian_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Stein-Stein range-accruals price-dataset recipe.
-#include "model/equity/markovian/stein_stein/range_accrual.cuh"
+#include "model/equity/markovian/stein_stein/product/range_accrual.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

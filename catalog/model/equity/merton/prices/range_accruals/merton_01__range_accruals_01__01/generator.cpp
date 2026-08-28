@@ -1,5 +1,5 @@
 // Generated Merton range-accruals price-dataset recipe.
-#include "model/equity/markovian/merton/range_accrual.cuh"
+#include "model/equity/markovian/merton/product/range_accrual.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated SABR asset-or-nothing-puts price-dataset recipe.
-#include "model/equity/markovian/sabr/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/sabr/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

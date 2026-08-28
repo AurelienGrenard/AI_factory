@@ -1,5 +1,5 @@
 // Generated Bates digital-puts price-dataset recipe.
-#include "model/equity/markovian/bates/digital_option.cuh"
+#include "model/equity/markovian/bates/product/digital_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

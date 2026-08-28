@@ -1,5 +1,5 @@
 // Generated CEV european-puts price-dataset recipe.
-#include "model/equity/markovian/cev/european_option.cuh"
+#include "model/equity/markovian/cev/product/european_option.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

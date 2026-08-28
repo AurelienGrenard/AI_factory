@@ -1,7 +1,7 @@
 // Generated Rough-SABR athena-autocalls Volterra-FFT price recipe.
-#include "model/equity/rough/rough_sabr/athena_autocall.cuh"
+#include "model/equity/rough/rough_sabr/product/athena_autocall.cuh"
 #include "model/equity/rough/rough_sabr/dataset.hpp"
-#include "model/equity/rough/rough_sabr/pricing_workspace.cuh"
+#include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

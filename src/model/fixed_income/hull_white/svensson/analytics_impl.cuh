@@ -1,4 +1,4 @@
-// Hull-White analytics fitted to a Svensson curve.
+// Included device definitions of Hull-White analytics fitted to a Svensson curve.
 #pragma once
 
 #include "curve/svensson/term_structure_impl.cuh"

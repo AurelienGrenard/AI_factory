@@ -1,5 +1,5 @@
 // Generated Bates asian-calls price-dataset recipe.
-#include "model/equity/markovian/bates/asian_option.cuh"
+#include "model/equity/markovian/bates/product/asian_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

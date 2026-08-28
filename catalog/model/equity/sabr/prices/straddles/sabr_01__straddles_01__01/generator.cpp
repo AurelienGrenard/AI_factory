@@ -1,5 +1,5 @@
 // Generated SABR straddles price-dataset recipe.
-#include "model/equity/markovian/sabr/straddle.cuh"
+#include "model/equity/markovian/sabr/product/straddle.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

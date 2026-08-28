@@ -1,7 +1,7 @@
 // Generated Rough-SABR up-one-touches Volterra-FFT price recipe.
-#include "model/equity/rough/rough_sabr/up_one_touch.cuh"
+#include "model/equity/rough/rough_sabr/product/up_one_touch.cuh"
 #include "model/equity/rough/rough_sabr/dataset.hpp"
-#include "model/equity/rough/rough_sabr/pricing_workspace.cuh"
+#include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

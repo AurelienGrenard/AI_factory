@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi lookback-options Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/lookback_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/lookback_option.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

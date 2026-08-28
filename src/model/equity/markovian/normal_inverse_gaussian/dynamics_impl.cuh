@@ -1,3 +1,4 @@
+// Device exact-transition definitions for the normal-inverse-Gaussian dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics.cuh"

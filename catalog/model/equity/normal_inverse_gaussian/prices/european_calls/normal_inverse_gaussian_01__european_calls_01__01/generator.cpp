@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian european-calls price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/european_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/european_option.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

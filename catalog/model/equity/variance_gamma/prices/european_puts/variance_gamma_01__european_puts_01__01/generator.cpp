@@ -1,5 +1,5 @@
 // Generated Variance-Gamma european-puts price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/european_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/european_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

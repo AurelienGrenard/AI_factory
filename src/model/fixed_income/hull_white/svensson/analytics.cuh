@@ -1,4 +1,4 @@
-// Hull-White analytics fitted to a Svensson curve.
+// Public Hull-White analytics declarations for pricing against a Svensson curve.
 #pragma once
 
 #include "curve/svensson/term_structure.cuh"

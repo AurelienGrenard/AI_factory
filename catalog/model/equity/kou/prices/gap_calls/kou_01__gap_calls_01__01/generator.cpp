@@ -1,5 +1,5 @@
 // Generated Kou gap-calls price-dataset recipe.
-#include "model/equity/markovian/kou/gap_option.cuh"
+#include "model/equity/markovian/kou/product/gap_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

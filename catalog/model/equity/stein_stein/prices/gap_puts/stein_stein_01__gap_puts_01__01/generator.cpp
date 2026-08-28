@@ -1,5 +1,5 @@
 // Generated Stein-Stein gap-puts price-dataset recipe.
-#include "model/equity/markovian/stein_stein/gap_option.cuh"
+#include "model/equity/markovian/stein_stein/product/gap_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

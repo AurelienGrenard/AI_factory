@@ -1,5 +1,5 @@
 // Generated SABR cliquets price-dataset recipe.
-#include "model/equity/markovian/sabr/cliquet.cuh"
+#include "model/equity/markovian/sabr/product/cliquet.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

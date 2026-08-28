@@ -1,4 +1,4 @@
-// G2++ analytics fitted to a Svensson curve.
+// Included device definitions of G2++ analytics fitted to a Svensson curve.
 #pragma once
 
 #include "curve/svensson/term_structure_impl.cuh"

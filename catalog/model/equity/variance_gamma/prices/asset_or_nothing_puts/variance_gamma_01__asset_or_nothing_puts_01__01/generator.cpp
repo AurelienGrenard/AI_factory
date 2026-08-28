@@ -1,5 +1,5 @@
 // Generated Variance-Gamma asset-or-nothing-puts price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

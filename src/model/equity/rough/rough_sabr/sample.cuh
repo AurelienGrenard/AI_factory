@@ -1,4 +1,4 @@
-// Generated model-only Rough-SABR sample launchers.
+// Public generated Rough-SABR Volterra FFT launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/rough_sabr/parameters.hpp"

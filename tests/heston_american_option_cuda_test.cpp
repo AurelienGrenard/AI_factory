@@ -1,6 +1,6 @@
 // Exercise both compile-time sides of the shared Heston American-option engine.
 #include "common/check_cuda.cuh"
-#include "model/equity/markovian/heston/american_option.cuh"
+#include "model/equity/markovian/heston/product/american_option.cuh"
 
 #include <cuda_runtime.h>
 

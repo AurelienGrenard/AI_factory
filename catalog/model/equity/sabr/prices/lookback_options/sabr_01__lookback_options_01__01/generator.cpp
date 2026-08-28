@@ -1,5 +1,5 @@
 // Generated SABR lookback-options price-dataset recipe.
-#include "model/equity/markovian/sabr/lookback_option.cuh"
+#include "model/equity/markovian/sabr/product/lookback_option.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

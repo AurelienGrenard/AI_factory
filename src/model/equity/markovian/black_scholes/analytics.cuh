@@ -1,4 +1,4 @@
-// Reusable closed-form analytics for the Black-Scholes model.
+// Public closed-form analytics declarations used by Black-Scholes pricing bindings.
 #pragma once
 
 #include "common/lognormal_option.cuh"

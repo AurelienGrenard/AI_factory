@@ -20,7 +20,7 @@ class SampleModelSpec:
     constructor: str
     derived: str = ""
     acceptance: str = "true"
-    driver: str | None = None
+    kernel: str | None = None
     extra_dynamics_include: str = ""
 
     @property
@@ -216,7 +216,7 @@ SAMPLE_MODELS = (
          u("dividend_yield", 0., .06), u("xi_0", .04, .04),
          u("eta", .5, 3.), u("hurst_exponent", .03, .25), u("rho", -.95, -.30)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho}",
-        driver="volterra::FractionalHybridDriverPolicy",
+        kernel="volterra::FractionalHybridKernelPolicy",
     ),
     SampleModelSpec(
         "rough_sabr", "Rough-SABR", "equity", "rough", "volterra", "fixed",
@@ -230,7 +230,7 @@ SAMPLE_MODELS = (
          u("eta", .5, 3.), u("hurst_exponent", .03, .25),
          u("rho", -.95, -.30), u("beta", .70, 1.)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho, beta}",
-        driver="volterra::FractionalHybridDriverPolicy",
+        kernel="volterra::FractionalHybridKernelPolicy",
     ),
     SampleModelSpec(
         "log_modulated_rough_bergomi", "Log-modulated rough-Bergomi", "equity",
@@ -245,7 +245,7 @@ SAMPLE_MODELS = (
         u("log_modulation_scale", .03, .30), u("log_modulation_power", 1.20, 4.)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho, "
         "log_modulation_scale, log_modulation_power}",
-        driver="volterra::LogModulatedHybridDriverPolicy",
+        kernel="volterra::LogModulatedHybridKernelPolicy",
     ),
     SampleModelSpec(
         "rough_stein_stein", "Rough Stein-Stein", "equity", "rough",
@@ -261,7 +261,7 @@ SAMPLE_MODELS = (
         u("hurst_exponent", .03, .25), u("rho", -.90, .10)),
         "{spot, risk_free_rate, dividend_yield, volatility_level, mean_reversion, "
         "volatility_of_volatility, hurst_exponent, rho}",
-        driver="volterra::FractionalResolventHybridDriverPolicy",
+        kernel="volterra::FractionalResolventHybridKernelPolicy",
     ),
     SampleModelSpec(
         "rough_heston", "Rough-Heston", "equity", "rough", "n_factor",

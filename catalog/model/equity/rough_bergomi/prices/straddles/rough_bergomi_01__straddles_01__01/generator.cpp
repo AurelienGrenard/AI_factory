@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi straddles Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/straddle.cuh"
+#include "model/equity/rough/rough_bergomi/product/straddle.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

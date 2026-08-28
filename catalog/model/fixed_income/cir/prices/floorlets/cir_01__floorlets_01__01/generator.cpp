@@ -1,6 +1,6 @@
 // Build one CIR floorlet price dataset.
 #include "model/fixed_income/cir/dataset.hpp"
-#include "model/fixed_income/cir/rate_option.cuh"
+#include "model/fixed_income/cir/product/rate_option.cuh"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

@@ -1,5 +1,5 @@
 // Generated Variance-Gamma up-no-touches price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/up_no_touch.cuh"
+#include "model/equity/markovian/variance_gamma/product/up_no_touch.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

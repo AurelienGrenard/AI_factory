@@ -1,5 +1,5 @@
 // Generated Heston 3/2 down-and-out-puts price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/down_and_out_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/down_and_out_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/down_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

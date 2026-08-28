@@ -1,7 +1,8 @@
+// Public path state and dynamics-policy declarations for rough Stein--Stein.
 #pragma once
 
 #include "common/equity/concepts.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_driver.cuh"
+#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"
 
 #include <cuda_runtime.h>
@@ -32,11 +33,11 @@ struct PathPolicy {
     using State = rough_stein_stein::State;
 
     static constexpr bool kNativeLogSpot = true;
-    static constexpr bool kUsesDriverVariance = false;
+    static constexpr bool kUsesVolterraVariance = false;
 
     __device__ __forceinline__ static
-    volterra::FractionalResolventHybridDriverPolicy::Parameters
-    driver_parameters(const Parameters& parameters);
+    volterra::FractionalResolventHybridKernelPolicy::Parameters
+    kernel_parameters(const Parameters& parameters);
     __device__ __forceinline__ static PreparedModel prepare_model(
         const Parameters& parameters,
         float time_step
@@ -46,8 +47,8 @@ struct PathPolicy {
     );
     __device__ __forceinline__ static void advance(
         const PreparedModel& model,
-        float driver_value,
-        float driver_variance,
+        float volterra_value,
+        float volterra_variance,
         float rough_normal,
         float independent_spot_normal,
         State& state

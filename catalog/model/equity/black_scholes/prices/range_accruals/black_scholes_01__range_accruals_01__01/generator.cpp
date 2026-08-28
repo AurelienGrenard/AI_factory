@@ -1,5 +1,5 @@
 // Generated Black-Scholes range-accruals analytical price recipe.
-#include "model/equity/markovian/black_scholes/range_accrual.cuh"
+#include "model/equity/markovian/black_scholes/product/range_accrual.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

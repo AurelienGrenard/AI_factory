@@ -2,7 +2,7 @@
 
 ## Model
 
-The CUDA implementation uses the normalized Gaussian Volterra driver
+The CUDA implementation uses the normalized Gaussian Volterra kernel
 
 ```math
 Y_t=\sqrt{2H}\int_0^t(t-s)^{H-1/2}\,\mathrm dW_s,
@@ -40,9 +40,9 @@ absorption.
 
 ## Execution
 
-Rough SABR does not own an FFT implementation. `hybrid_pricing.cuh` composes:
+Rough SABR does not own an FFT implementation. `volterra_fft_pricing.cuh` composes:
 
-- `FractionalHybridDriverPolicy`, the shared kappa=1 hybrid kernel;
+- `FractionalHybridKernelPolicy`, the shared kappa=1 hybrid kernel;
 - `rough_sabr::PathPolicy`, the transformations `Y_i -> alpha_i -> S_i`;
 - a model-independent product policy;
 - a terminal, dense, regular or static-calendar schedule.
@@ -54,7 +54,7 @@ occupancy. The chunk is reused for the next paths and the next price. No
 Brownian path array and no million-path convolution array are retained.
 
 `european_option.cuh/.cu` is the convenient concrete call/put binding.
-`hybrid_pricing.cuh` is the generic product/schedule API. Adding another
+`volterra_fft_pricing.cuh` is the generic product/schedule API. Adding another
 Gaussian rough-volatility model requires a parameter type and a `PathPolicy`;
 the FFT, schedules, workspace and reductions stay unchanged.
 

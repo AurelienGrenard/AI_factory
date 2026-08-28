@@ -1,5 +1,5 @@
 // Generated Black-Scholes european-puts analytical price recipe.
-#include "model/equity/markovian/black_scholes/european_option.cuh"
+#include "model/equity/markovian/black_scholes/product/european_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

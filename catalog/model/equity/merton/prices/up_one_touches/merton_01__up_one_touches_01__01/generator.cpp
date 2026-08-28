@@ -1,5 +1,5 @@
 // Generated Merton up-one-touches price-dataset recipe.
-#include "model/equity/markovian/merton/up_one_touch.cuh"
+#include "model/equity/markovian/merton/product/up_one_touch.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

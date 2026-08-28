@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston phoenix-memory-autocalls N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/phoenix_memory_autocall.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/phoenix_memory_autocall.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/phoenix_memory_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

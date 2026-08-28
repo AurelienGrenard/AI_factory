@@ -1,5 +1,5 @@
 // Generated CEV up-one-touches price-dataset recipe.
-#include "model/equity/markovian/cev/up_one_touch.cuh"
+#include "model/equity/markovian/cev/product/up_one_touch.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

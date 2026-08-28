@@ -1,8 +1,8 @@
 // Validate fixed-factor preparation and rough-Heston European pricing.
 #include "common/check_cuda.cuh"
 #include "common/volterra/fractional_kernel_approximation.hpp"
-#include "model/equity/rough/rough_heston/european_option.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/product/european_option.cuh"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 
 #include <cuda_runtime.h>
 

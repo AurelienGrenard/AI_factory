@@ -1,5 +1,5 @@
 // Generated Merton lookback-options price-dataset recipe.
-#include "model/equity/markovian/merton/lookback_option.cuh"
+#include "model/equity/markovian/merton/product/lookback_option.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

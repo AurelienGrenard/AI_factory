@@ -1,7 +1,7 @@
 // Generated Rough-Heston geometric-asian-puts N-factor price recipe.
-#include "model/equity/rough/rough_heston/geometric_asian_option.cuh"
+#include "model/equity/rough/rough_heston/product/geometric_asian_option.cuh"
 #include "model/equity/rough/rough_heston/dataset.hpp"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

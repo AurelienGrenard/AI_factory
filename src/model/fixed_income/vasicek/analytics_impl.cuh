@@ -1,4 +1,4 @@
-// Closed-form fixed-income analytics for the Vasicek model.
+// Included device definitions of the affine Vasicek fixed-income analytics contract.
 #pragma once
 
 #include "model/fixed_income/vasicek/analytics.cuh"

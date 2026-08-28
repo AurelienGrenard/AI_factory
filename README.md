@@ -22,13 +22,13 @@ AI_factory/
 All implementation contracts, workflows, derivations, and work-tracking notes
 live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
-- [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda-closed-form-and-monte-carlo-pricing-contract.md)
+- [`closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
   for closed-form and Monte Carlo pricers;
-- [`cuda-american-and-bermudan-pricing-contract.md`](docs/cuda-american-and-bermudan-pricing-contract.md)
+- [`american-and-bermudan-pricing-contract.md`](docs/cuda/american-and-bermudan-pricing-contract.md)
   for American and Bermudan pricers;
-- [`cuda-model-dynamics-contract.md`](docs/cuda-model-dynamics-contract.md) for
+- [`model-dynamics-contract.md`](docs/cuda/model-dynamics-contract.md) for
   reusable model-state simulation interfaces;
-- [`cuda-launch-validation-and-kernel-diagnostics.md`](docs/cuda-launch-validation-and-kernel-diagnostics.md)
+- [`launch-validation-and-kernel-diagnostics.md`](docs/cuda/launch-validation-and-kernel-diagnostics.md)
   for launch guards, kernel resource diagnostics, and their test coverage.
 
 ### `src`
@@ -38,9 +38,11 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
 - `src/model/equity/<markovian|rough>/<model>`: equity dynamics, analytics,
-  loaders and pricing kernels, classified by mathematical family rather than
-  by simulation algorithm;
-- `src/model/fixed_income/<model>`: fixed-income model implementations;
+  loaders and model-only sampling, classified by mathematical family rather
+  than by simulation algorithm; model-product launch units are isolated under
+  its `product/` subfolder;
+- `src/model/fixed_income/<model>`: fixed-income model infrastructure, with
+  standalone and curve-qualified launch units under `product/`;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 - `src/generative`: reserved for method-neutral generative-model tooling.
 
@@ -53,6 +55,13 @@ and implementations retain descriptive names: public interfaces use
 units are registered in CMake. Curve-specific dataset construction helpers
 live under `tools/datasets`; catalog generators contain only their recipe
 constants and `main`.
+
+Within one model, `product/<product>.cuh/.cu` owns only the thin composition
+between that model and one product. Fitted fixed-income compositions use
+`product/<curve>/<product>.cuh/.cu`. Everything outside `product/` is
+model-owned infrastructure and starts with a one-line summary of its role.
+Method-specific helpers spell out their engine, such as
+`volterra_fft_pricing.cuh` or `markovian_n_factor_preparation.hpp`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.

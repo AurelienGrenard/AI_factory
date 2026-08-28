@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian geometric-asian-calls price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/geometric_asian_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

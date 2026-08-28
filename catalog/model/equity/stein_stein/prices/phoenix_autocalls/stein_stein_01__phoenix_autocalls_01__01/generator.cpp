@@ -1,5 +1,5 @@
 // Generated Stein-Stein phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/stein_stein/phoenix_autocall.cuh"
+#include "model/equity/markovian/stein_stein/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

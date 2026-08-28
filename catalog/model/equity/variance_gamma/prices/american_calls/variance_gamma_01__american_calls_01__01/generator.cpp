@@ -1,5 +1,5 @@
 // Generated Variance-Gamma American-call price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/american_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/american_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 

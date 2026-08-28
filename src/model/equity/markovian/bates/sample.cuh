@@ -1,4 +1,4 @@
-// Generated model-only Bates sample launchers.
+// Public generated Bates launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/bates/parameters.hpp"

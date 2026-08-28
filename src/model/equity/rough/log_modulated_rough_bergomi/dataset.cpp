@@ -1,3 +1,4 @@
+// JSON loading and validation for log-modulated rough Bergomi parameter datasets.
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
 
 #include "common/dataset_validation.hpp"

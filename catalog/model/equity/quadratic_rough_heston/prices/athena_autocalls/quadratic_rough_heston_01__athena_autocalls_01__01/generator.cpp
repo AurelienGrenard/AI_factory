@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston athena-autocalls N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/athena_autocall.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/athena_autocall.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

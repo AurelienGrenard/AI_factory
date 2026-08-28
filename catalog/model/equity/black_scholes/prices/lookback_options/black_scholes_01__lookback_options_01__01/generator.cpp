@@ -1,5 +1,5 @@
 // Generated Black-Scholes lookback-options price-dataset recipe.
-#include "model/equity/markovian/black_scholes/lookback_option.cuh"
+#include "model/equity/markovian/black_scholes/product/lookback_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

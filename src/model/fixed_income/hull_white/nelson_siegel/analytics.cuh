@@ -1,4 +1,4 @@
-// Hull-White analytics fitted to a Nelson-Siegel curve.
+// Public Hull-White analytics declarations for pricing against a Nelson-Siegel curve.
 #pragma once
 
 #include "curve/nelson_siegel/term_structure.cuh"

@@ -1,5 +1,5 @@
 // Generated Merton forward-start-puts price-dataset recipe.
-#include "model/equity/markovian/merton/forward_start_option.cuh"
+#include "model/equity/markovian/merton/product/forward_start_option.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

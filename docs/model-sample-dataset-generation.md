@@ -123,7 +123,7 @@ Rough Bergomi and rough SABR compose the corresponding engine as follows:
 
 ```cpp
 using SamplingPolicy = sample::VolterraFftModelSamplingPolicy<
-    volterra::FractionalHybridDriverPolicy,
+    volterra::FractionalHybridKernelPolicy,
     PathPolicy,
     volterra::TerminalHybridSchedule,
     sample::SpotSampleObservation<PathPolicy>
@@ -135,8 +135,8 @@ static_assert(sample::VolterraFftSamplingPolicy<
 ```
 
 `sample::volterra_fft::launch_samples_cuda<SamplingPolicy>` always uses one
-persistent block per parameter row. The block prepares the fractional driver,
-model coefficients, driver variances and one FFT spectrum, then reuses them for
+persistent block per parameter row. The block prepares the fractional Volterra process,
+model coefficients, Volterra variances and one FFT spectrum, then reuses them for
 all packed pairs of conditional paths. Each path still loads its own calendar;
 the maximum calendar horizon selects the FFT length. The canonical support up
 to 504 business days requires at most 1,008 steps and a padded FFT length of

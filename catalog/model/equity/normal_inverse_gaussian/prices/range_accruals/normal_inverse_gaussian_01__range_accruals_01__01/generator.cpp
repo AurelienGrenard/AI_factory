@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian range-accruals price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/range_accrual.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/range_accrual.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

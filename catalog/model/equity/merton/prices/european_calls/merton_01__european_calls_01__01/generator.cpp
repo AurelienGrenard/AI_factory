@@ -1,5 +1,5 @@
 // Generated Merton european-calls price-dataset recipe.
-#include "model/equity/markovian/merton/european_option.cuh"
+#include "model/equity/markovian/merton/product/european_option.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

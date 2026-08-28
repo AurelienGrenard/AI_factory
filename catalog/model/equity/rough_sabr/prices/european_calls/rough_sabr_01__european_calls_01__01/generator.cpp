@@ -1,7 +1,7 @@
 // Generated Rough-SABR european-calls Volterra-FFT price recipe.
-#include "model/equity/rough/rough_sabr/european_option.cuh"
+#include "model/equity/rough/rough_sabr/product/european_option.cuh"
 #include "model/equity/rough/rough_sabr/dataset.hpp"
-#include "model/equity/rough/rough_sabr/pricing_workspace.cuh"
+#include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

@@ -1,4 +1,4 @@
-// Generated model-only Quadratic rough-Heston N-factor sample launchers.
+// Public generated Quadratic rough-Heston Markovian N-factor launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"

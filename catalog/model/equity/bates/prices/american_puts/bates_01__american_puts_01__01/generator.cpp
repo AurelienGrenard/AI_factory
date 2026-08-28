@@ -1,5 +1,5 @@
 // Generated Bates American-put price-dataset recipe.
-#include "model/equity/markovian/bates/american_option.cuh"
+#include "model/equity/markovian/bates/product/american_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 

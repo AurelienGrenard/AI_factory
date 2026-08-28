@@ -1,4 +1,4 @@
-// Closed-form fixed-income analytics for the Ornstein-Uhlenbeck model.
+// Included device definitions of the Ornstein-Uhlenbeck closed-form analytics contract.
 #pragma once
 
 #include "model/fixed_income/ornstein_uhlenbeck/analytics.cuh"

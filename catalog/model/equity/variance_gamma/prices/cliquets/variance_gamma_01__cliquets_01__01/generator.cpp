@@ -1,5 +1,5 @@
 // Generated Variance-Gamma cliquets price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/cliquet.cuh"
+#include "model/equity/markovian/variance_gamma/product/cliquet.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

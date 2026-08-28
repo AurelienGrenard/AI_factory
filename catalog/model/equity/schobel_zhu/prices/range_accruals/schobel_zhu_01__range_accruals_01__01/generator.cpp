@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu range-accruals price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/range_accrual.cuh"
+#include "model/equity/markovian/schobel_zhu/product/range_accrual.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

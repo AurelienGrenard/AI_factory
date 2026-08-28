@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi down-and-in-puts Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/down_and_in_option.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/down_and_in_option.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/down_and_in_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

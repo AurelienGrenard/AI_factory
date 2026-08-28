@@ -1,5 +1,5 @@
 // Generated Kou up-no-touches price-dataset recipe.
-#include "model/equity/markovian/kou/up_no_touch.cuh"
+#include "model/equity/markovian/kou/product/up_no_touch.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

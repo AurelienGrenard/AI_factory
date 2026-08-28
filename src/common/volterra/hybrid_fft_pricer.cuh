@@ -8,6 +8,7 @@
 #include "common/reductions.cuh"
 #include "common/result_index.cuh"
 #include "common/volterra/block_fft_convolution.cuh"
+#include "common/volterra/concepts.cuh"
 #include "common/volterra/hybrid_fft.cuh"
 #include "common/volterra/hybrid_fft_workspace.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
@@ -37,23 +38,26 @@ struct PartialMoments {
     double sumsq;
 };
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 struct PreparedRow {
-    using Driver = DriverPolicy;
+    using Kernel = KernelPolicy;
     using Path = ModelPathPolicy;
     using Product = ProductPolicy;
     using Schedule = SchedulePolicy;
 
-    typename Driver::PreparedDriver driver;
+    typename Kernel::PreparedKernel kernel;
     typename Path::PreparedModel model;
     typename Product::PreparedProduct product;
     typename Schedule::PreparedSchedule schedule;
     philox::PhiloxKey key;
+    float sqrt_time_step;
+
+    static_assert(HybridPathPolicyFor<Path, Kernel>);
 };
 
 #if AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT > 0
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 __global__ void prepare_direct_row_kernel(
     const typename ModelPathPolicy::Parameters* __restrict__ models,
@@ -64,16 +68,16 @@ __global__ void prepare_direct_row_kernel(
     std::uint32_t step_count,
     HybridTimeConfiguration time_configuration,
     std::uint64_t base_seed,
-    float* __restrict__ driver_variances,
+    float* __restrict__ volterra_variances,
     PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
     >* __restrict__ prepared_row
 ) {
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -93,18 +97,18 @@ __global__ void prepare_direct_row_kernel(
             time_configuration,
             step_count
         );
-    __shared__ typename DriverPolicy::PreparedDriver shared_driver;
+    __shared__ typename KernelPolicy::PreparedKernel shared_kernel;
     if (threadIdx.x == 0U) {
-        shared_driver = DriverPolicy::prepare(
-            ModelPathPolicy::driver_parameters(parameters),
+        shared_kernel = KernelPolicy::prepare(
+            ModelPathPolicy::kernel_parameters(parameters),
             schedule.time_step
         );
     }
     __syncthreads();
-    const typename DriverPolicy::PreparedDriver driver = shared_driver;
+    const typename KernelPolicy::PreparedKernel kernel = shared_kernel;
     if (threadIdx.x == 0U) {
         *prepared_row = Row{
-            driver,
+            kernel,
             ModelPathPolicy::prepare_model(parameters, schedule.time_step),
             ProductPolicy::prepare_product(
                 parameters,
@@ -116,6 +120,7 @@ __global__ void prepare_direct_row_kernel(
             ),
             schedule,
             philox::make_key(base_seed + result_index),
+            sqrtf(schedule.time_step),
         };
     }
     for (std::uint32_t step = threadIdx.x;
@@ -123,16 +128,19 @@ __global__ void prepare_direct_row_kernel(
          step += blockDim.x) {
         const float time = static_cast<float>(step + 1U)
             * schedule.time_step;
-        if constexpr (ModelPathPolicy::kUsesDriverVariance) {
-            driver_variances[step] = DriverPolicy::variance(driver, time);
+        if constexpr (ModelPathPolicy::kUsesVolterraVariance) {
+            volterra_variances[step] = KernelPolicy::volterra_variance(
+                kernel,
+                time
+            );
         } else {
-            driver_variances[step] = 0.0f;
+            volterra_variances[step] = 0.0f;
         }
     }
 }
 #endif
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy,
          unsigned int Length, class KernelForward>
 __global__ void prepare_row_kernel(
@@ -145,16 +153,16 @@ __global__ void prepare_row_kernel(
     HybridTimeConfiguration time_configuration,
     std::uint64_t base_seed,
     float2* __restrict__ kernel_spectrum,
-    float* __restrict__ driver_variances,
+    float* __restrict__ volterra_variances,
     PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
     >* __restrict__ prepared_row
 ) {
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -179,19 +187,19 @@ __global__ void prepare_row_kernel(
             time_configuration,
             step_count
         );
-    __shared__ typename DriverPolicy::PreparedDriver shared_driver;
+    __shared__ typename KernelPolicy::PreparedKernel shared_kernel;
     if (threadIdx.x == 0U && threadIdx.y == 0U) {
-        shared_driver = DriverPolicy::prepare(
-            ModelPathPolicy::driver_parameters(parameters),
+        shared_kernel = KernelPolicy::prepare(
+            ModelPathPolicy::kernel_parameters(parameters),
             schedule.time_step
         );
     }
     __syncthreads();
-    const typename DriverPolicy::PreparedDriver driver = shared_driver;
+    const typename KernelPolicy::PreparedKernel kernel = shared_kernel;
 
     if (threadIdx.x == 0U && threadIdx.y == 0U) {
         *prepared_row = Row{
-            driver,
+            kernel,
             ModelPathPolicy::prepare_model(
                 parameters,
                 schedule.time_step
@@ -206,6 +214,7 @@ __global__ void prepare_row_kernel(
             ),
             schedule,
             philox::make_key(base_seed + result_index),
+            sqrtf(schedule.time_step),
         };
     }
 
@@ -218,8 +227,8 @@ __global__ void prepare_row_kernel(
                 item * KernelForward::stride + threadIdx.x;
             float weight = 0.0f;
             if (index + 1U < step_count) {
-                weight = DriverPolicy::far_cell_weight(
-                    driver,
+                weight = KernelPolicy::far_cell_weight(
+                    kernel,
                     index + 2U
                 );
             }
@@ -227,11 +236,11 @@ __global__ void prepare_row_kernel(
             if (index < step_count) {
                 const float time =
                     static_cast<float>(index + 1U) * schedule.time_step;
-                if constexpr (ModelPathPolicy::kUsesDriverVariance) {
-                    driver_variances[index] =
-                        DriverPolicy::variance(driver, time);
+                if constexpr (ModelPathPolicy::kUsesVolterraVariance) {
+                    volterra_variances[index] =
+                        KernelPolicy::volterra_variance(kernel, time);
                 } else {
-                    driver_variances[index] = 0.0f;
+                    volterra_variances[index] = 0.0f;
                 }
             }
         }
@@ -257,14 +266,14 @@ __global__ void prepare_row_kernel(
     }
 }
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy,
          unsigned int Length, class Forward, class Inverse>
 __global__ void convolve_paths_kernel(
     std::size_t global_path_offset,
     std::size_t chunk_path_count,
     const PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -273,7 +282,7 @@ __global__ void convolve_paths_kernel(
     float2* __restrict__ convolutions
 ) {
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -301,13 +310,13 @@ __global__ void convolve_paths_kernel(
             float2 increment{0.0f, 0.0f};
             if (step < row.schedule.step_count
                 && first_local_path < chunk_path_count) {
-                increment.x = row.driver.sqrt_time_step * normal_at(
+                increment.x = row.sqrt_time_step * normal_at(
                     row.key,
                     first_global_path,
                     3ULL * step
                 );
                 if (first_local_path + 1U < chunk_path_count) {
-                    increment.y = row.driver.sqrt_time_step * normal_at(
+                    increment.y = row.sqrt_time_step * normal_at(
                         row.key,
                         first_global_path + 1U,
                         3ULL * step
@@ -345,23 +354,23 @@ __global__ void convolve_paths_kernel(
     );
 }
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 __global__ void evaluate_paths_kernel(
     std::size_t global_path_offset,
     std::size_t chunk_path_count,
     const PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
     >* __restrict__ prepared_row,
-    const float* __restrict__ driver_variances,
+    const float* __restrict__ volterra_variances,
     const float2* __restrict__ convolutions,
     PartialMoments* __restrict__ partial_moments
 ) {
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -412,16 +421,17 @@ __global__ void evaluate_paths_kernel(
                 ];
                 far_convolution = imaginary_lane ? packed.y : packed.x;
             }
-            const float driver_value = DriverPolicy::value(
-                row.driver,
-                far_convolution,
-                rough_normal,
-                singular_normal
-            );
+            const float volterra_value =
+                KernelPolicy::reconstruct_volterra_value(
+                    row.kernel,
+                    far_convolution,
+                    rough_normal,
+                    singular_normal
+                );
             ModelPathPolicy::advance(
                 row.model,
-                driver_value,
-                driver_variances[step],
+                volterra_value,
+                volterra_variances[step],
                 rough_normal,
                 spot_normal,
                 state
@@ -453,22 +463,22 @@ __global__ void evaluate_paths_kernel(
 }
 
 #if AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT > 0
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 __global__ void evaluate_direct_paths_kernel(
     std::size_t global_path_offset,
     std::size_t chunk_path_count,
     const PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
     >* __restrict__ prepared_row,
-    const float* __restrict__ driver_variances,
+    const float* __restrict__ volterra_variances,
     PartialMoments* __restrict__ partial_moments
 ) {
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -514,26 +524,25 @@ __global__ void evaluate_direct_paths_kernel(
             for (std::uint32_t prior_step = 0U;
                  prior_step < step;
                  ++prior_step) {
-                const float increment = row.driver.sqrt_time_step * normal_at(
-                    row.key,
-                    path,
-                    3ULL * prior_step
-                );
-                far_convolution += increment * DriverPolicy::far_cell_weight(
-                    row.driver,
-                    step - prior_step + 1U
-                );
+                const float increment = row.sqrt_time_step
+                    * normal_at(row.key, path, 3ULL * prior_step);
+                far_convolution += increment
+                    * KernelPolicy::far_cell_weight(
+                        row.kernel,
+                        step - prior_step + 1U
+                    );
             }
-            const float driver_value = DriverPolicy::value(
-                row.driver,
-                far_convolution,
-                rough_normal,
-                singular_normal
-            );
+            const float volterra_value =
+                KernelPolicy::reconstruct_volterra_value(
+                    row.kernel,
+                    far_convolution,
+                    rough_normal,
+                    singular_normal
+                );
             ModelPathPolicy::advance(
                 row.model,
-                driver_value,
-                driver_variances[step],
+                volterra_value,
+                volterra_variances[step],
                 rough_normal,
                 spot_normal,
                 state
@@ -597,7 +606,7 @@ static __global__ void finalize_price_kernel(
     }
 }
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 void validate_launch(
     const typename ModelPathPolicy::Parameters* device_models,
@@ -661,7 +670,7 @@ void validate_launch(
     }
 }
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy,
          unsigned int Length, unsigned int ElementsPerThread,
          unsigned int FftsPerBlock>
@@ -676,9 +685,9 @@ void launch_fft_length(
     HybridTimeConfiguration time_configuration,
     std::size_t path_chunk_size,
     float2* kernel_spectrum,
-    float* driver_variances,
+    float* volterra_variances,
     PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -705,7 +714,7 @@ void launch_fft_length(
     >;
     using KernelForward = typename PreparationTypes::Forward;
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -725,7 +734,7 @@ void launch_fft_length(
         check_cuda(
             cudaFuncSetAttribute(
                 prepare_row_kernel<
-                    DriverPolicy,
+                    KernelPolicy,
                     ModelPathPolicy,
                     ProductPolicy,
                     SchedulePolicy,
@@ -740,7 +749,7 @@ void launch_fft_length(
         check_cuda(
             cudaFuncSetAttribute(
                 convolve_paths_kernel<
-                    DriverPolicy,
+                    KernelPolicy,
                     ModelPathPolicy,
                     ProductPolicy,
                     SchedulePolicy,
@@ -758,7 +767,7 @@ void launch_fft_length(
             cudaOccupancyMaxActiveBlocksPerMultiprocessor(
                 &resident_blocks,
                 convolve_paths_kernel<
-                    DriverPolicy,
+                    KernelPolicy,
                     ModelPathPolicy,
                     ProductPolicy,
                     SchedulePolicy,
@@ -782,7 +791,7 @@ void launch_fft_length(
     }
 
     prepare_row_kernel<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy,
@@ -798,7 +807,7 @@ void launch_fft_length(
         time_configuration,
         base_seed,
         kernel_spectrum,
-        driver_variances,
+        volterra_variances,
         prepared_row
     );
     check_cuda(cudaGetLastError(), "Volterra hybrid FFT row preparation");
@@ -820,7 +829,7 @@ void launch_fft_length(
             diagnostic_name,
             diagnostic_variant,
             convolve_paths_kernel<
-                DriverPolicy,
+                KernelPolicy,
                 ModelPathPolicy,
                 ProductPolicy,
                 SchedulePolicy,
@@ -833,7 +842,7 @@ void launch_fft_length(
             execution_shared_bytes
         );
         convolve_paths_kernel<
-            DriverPolicy,
+            KernelPolicy,
             ModelPathPolicy,
             ProductPolicy,
             SchedulePolicy,
@@ -856,7 +865,7 @@ void launch_fft_length(
         const std::size_t path_block_count =
             (chunk_path_count + kPathThreads - 1U) / kPathThreads;
         evaluate_paths_kernel<
-            DriverPolicy,
+            KernelPolicy,
             ModelPathPolicy,
             ProductPolicy,
             SchedulePolicy
@@ -868,7 +877,7 @@ void launch_fft_length(
             path_offset,
             chunk_path_count,
             prepared_row,
-            driver_variances,
+            volterra_variances,
             convolutions,
             partial_moments
         );
@@ -893,7 +902,7 @@ void launch_fft_length(
 }
 
 #if AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT > 0
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 void launch_direct(
     const typename ModelPathPolicy::Parameters* device_models,
@@ -905,9 +914,9 @@ void launch_direct(
     std::uint32_t step_count,
     HybridTimeConfiguration time_configuration,
     std::size_t path_chunk_size,
-    float* driver_variances,
+    float* volterra_variances,
     PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -920,7 +929,7 @@ void launch_direct(
     const char* diagnostic_variant
 ) {
     prepare_direct_row_kernel<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -933,7 +942,7 @@ void launch_direct(
         step_count,
         time_configuration,
         base_seed,
-        driver_variances,
+        volterra_variances,
         prepared_row
     );
     check_cuda(cudaGetLastError(), "Volterra direct row preparation");
@@ -953,7 +962,7 @@ void launch_direct(
             diagnostic_name,
             diagnostic_variant,
             evaluate_direct_paths_kernel<
-                DriverPolicy,
+                KernelPolicy,
                 ModelPathPolicy,
                 ProductPolicy,
                 SchedulePolicy
@@ -963,7 +972,7 @@ void launch_direct(
             path_shared_bytes
         );
         evaluate_direct_paths_kernel<
-            DriverPolicy,
+            KernelPolicy,
             ModelPathPolicy,
             ProductPolicy,
             SchedulePolicy
@@ -975,7 +984,7 @@ void launch_direct(
             path_offset,
             chunk_path_count,
             prepared_row,
-            driver_variances,
+            volterra_variances,
             partial_moments
         );
         check_cuda(cudaGetLastError(), "Volterra direct path evaluation");
@@ -999,7 +1008,7 @@ void launch_direct(
 }
 #endif
 
-template<typename DriverPolicy, typename ModelPathPolicy,
+template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 void launch_pricing_cuda(
     const typename ModelPathPolicy::Parameters* device_models,
@@ -1022,7 +1031,7 @@ void launch_pricing_cuda(
     const char* diagnostic_variant
 ) {
     validate_launch<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -1047,11 +1056,11 @@ void launch_pricing_cuda(
 
     auto* const workspace = static_cast<unsigned char*>(device_workspace);
     auto* const spectrum = reinterpret_cast<float2*>(workspace);
-    auto* const driver_variances = reinterpret_cast<float*>(
+    auto* const volterra_variances = reinterpret_cast<float*>(
         workspace + kHybridFftSpectrumBytes
     );
     using Row = PreparedRow<
-        DriverPolicy,
+        KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
@@ -1072,7 +1081,7 @@ void launch_pricing_cuda(
 #if AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT > 0
     if (step_count <= kDirectMaximumStepCount) {
         launch_direct<
-            DriverPolicy,
+            KernelPolicy,
             ModelPathPolicy,
             ProductPolicy,
             SchedulePolicy
@@ -1086,7 +1095,7 @@ void launch_pricing_cuda(
             device_step_count,
             time_configuration,
             path_chunk_size,
-            driver_variances,
+            volterra_variances,
             prepared_row,
             partial_moments,
             base_seed,
@@ -1099,109 +1108,109 @@ void launch_pricing_cuda(
 #endif
     if (step_count <= 8U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             16U, 8U, 16U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 32U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             64U, 8U, 8U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 64U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             128U, 8U, 8U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 128U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             256U, 16U, 8U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 256U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             512U, 8U, 2U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 512U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             1024U, 16U, 1U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 1024U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             2048U, 16U, 1U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else if (step_count <= 2048U) {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             4096U, 16U, 1U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );
     } else {
         launch_fft_length<
-            DriverPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
+            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
             8192U, 16U, 1U
         >(
             device_models, device_products, product_count, construction,
             result_index, monte_carlo_paths_per_price, device_step_count,
             time_configuration, path_chunk_size, spectrum,
-            driver_variances, prepared_row, convolutions, partial_moments, base_seed,
+            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
             device_prices, device_standard_errors, diagnostic_name,
             diagnostic_variant
         );

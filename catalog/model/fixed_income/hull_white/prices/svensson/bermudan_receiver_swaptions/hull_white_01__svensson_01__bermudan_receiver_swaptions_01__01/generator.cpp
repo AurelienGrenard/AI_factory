@@ -1,5 +1,5 @@
 // Build Hull-White/Svensson Bermudan-receiver-swaption prices.
-#include "model/fixed_income/hull_white/svensson/bermudan_swaption.cuh"
+#include "model/fixed_income/hull_white/product/svensson/bermudan_swaption.cuh"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"

@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston lookback-options N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/lookback_option.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/lookback_option.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

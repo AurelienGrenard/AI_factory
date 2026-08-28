@@ -1,5 +1,5 @@
 // Generated Bates cliquets price-dataset recipe.
-#include "model/equity/markovian/bates/cliquet.cuh"
+#include "model/equity/markovian/bates/product/cliquet.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Merton straddles price-dataset recipe.
-#include "model/equity/markovian/merton/straddle.cuh"
+#include "model/equity/markovian/merton/product/straddle.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

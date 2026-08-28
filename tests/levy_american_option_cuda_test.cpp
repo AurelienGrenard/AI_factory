@@ -1,7 +1,7 @@
 // Exercise the shared early-exercise engine with both exact Levy schedules.
 #include "common/check_cuda.cuh"
-#include "model/equity/markovian/normal_inverse_gaussian/american_option.cuh"
-#include "model/equity/markovian/variance_gamma/american_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/american_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/american_option.cuh"
 
 #include <cuda_runtime.h>
 

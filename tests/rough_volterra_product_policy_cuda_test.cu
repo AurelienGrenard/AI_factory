@@ -1,8 +1,8 @@
 // Prove that a dense barrier product plugs into the shared rough FFT engine.
 #include "common/check_cuda.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
-#include "model/equity/rough/rough_bergomi/european_option.cuh"
-#include "model/equity/rough/rough_bergomi/hybrid_pricing.cuh"
+#include "model/equity/rough/rough_bergomi/product/european_option.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/asian_option/pricing_policy.cuh"
 #include "product/forward_start_option/pricing_policy.cuh"
 #include "product/up_and_out_option/pricing_policy.cuh"

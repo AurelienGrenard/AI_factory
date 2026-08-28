@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston up-one-touches N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/up_one_touch.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/up_one_touch.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

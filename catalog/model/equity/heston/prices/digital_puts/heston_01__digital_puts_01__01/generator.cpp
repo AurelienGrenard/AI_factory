@@ -1,5 +1,5 @@
 // Generated Heston digital-puts price-dataset recipe.
-#include "model/equity/markovian/heston/digital_option.cuh"
+#include "model/equity/markovian/heston/product/digital_option.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

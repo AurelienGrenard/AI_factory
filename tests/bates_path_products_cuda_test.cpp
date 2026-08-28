@@ -1,8 +1,8 @@
 // Compare the three uniform one-block Bates product launchers on CUDA.
 #include "common/check_cuda.cuh"
-#include "model/equity/markovian/bates/asian_option.cuh"
-#include "model/equity/markovian/bates/european_option.cuh"
-#include "model/equity/markovian/bates/lookback_option.cuh"
+#include "model/equity/markovian/bates/product/asian_option.cuh"
+#include "model/equity/markovian/bates/product/european_option.cuh"
+#include "model/equity/markovian/bates/product/lookback_option.cuh"
 
 #include <cuda_runtime.h>
 

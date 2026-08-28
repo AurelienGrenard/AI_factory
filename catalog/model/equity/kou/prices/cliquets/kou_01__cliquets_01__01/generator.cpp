@@ -1,5 +1,5 @@
 // Generated Kou cliquets price-dataset recipe.
-#include "model/equity/markovian/kou/cliquet.cuh"
+#include "model/equity/markovian/kou/product/cliquet.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

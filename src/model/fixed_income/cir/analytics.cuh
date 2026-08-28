@@ -1,4 +1,4 @@
-// Reusable CUDA analytics for the affine CIR short-rate model.
+// Public affine CIR analytics declarations used by fixed-income pricing bindings.
 #pragma once
 
 #include "common/fixed_income/cashflows.cuh"

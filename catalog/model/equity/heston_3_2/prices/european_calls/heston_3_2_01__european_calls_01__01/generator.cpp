@@ -1,5 +1,5 @@
 // Generated Heston 3/2 european-calls price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/european_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/european_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

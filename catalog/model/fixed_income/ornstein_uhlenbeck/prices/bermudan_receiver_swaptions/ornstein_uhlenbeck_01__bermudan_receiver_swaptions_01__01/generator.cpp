@@ -1,5 +1,5 @@
 // Build OU Bermudan-receiver-swaption prices with Longstaff-Schwartz.
-#include "model/fixed_income/ornstein_uhlenbeck/bermudan_swaption.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/bermudan_swaption.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 

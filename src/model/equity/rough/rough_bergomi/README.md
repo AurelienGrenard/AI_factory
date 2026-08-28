@@ -29,9 +29,9 @@ There is one production implementation: the kappa=1 hybrid scheme evaluated
 by the common cuFFTDx engine. The former direct `O(N^2)` and separate
 `european_option_fft` entry points do not exist.
 
-`hybrid_pricing.cuh` composes four independent policies:
+`volterra_fft_pricing.cuh` composes four independent policies:
 
-1. `FractionalHybridDriverPolicy` owns the singular current cell and the
+1. `FractionalHybridKernelPolicy` owns the singular current cell and the
    stationary far-cell kernel;
 2. `rough_bergomi::PathPolicy` owns `Y_i -> v_i -> S_i`;
 3. a `SchedulePolicy` maps contractual integer days to terminal, dense,
@@ -53,7 +53,7 @@ transform while retaining the block's FFT resources. On the reference RTX
 against about 10.4 ms for the bounded staging design.
 
 `european_option.cuh/.cu` is the concrete call/put binding.
-`hybrid_pricing.cuh` is the generic product/schedule entry point. The GPU tests
+`volterra_fft_pricing.cuh` is the generic product/schedule entry point. The GPU tests
 instantiate terminal vanilla, dense barrier, dense Asian and two-date
 forward-start policies through the same FFT implementation.
 

@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein cliquets Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/cliquet.cuh"
+#include "model/equity/rough/rough_stein_stein/product/cliquet.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

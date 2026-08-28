@@ -1,4 +1,4 @@
-// Closed-form fixed-income analytics for the standalone G2 model.
+// Public closed-form analytics declarations used by standalone G2 pricing bindings.
 #pragma once
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"

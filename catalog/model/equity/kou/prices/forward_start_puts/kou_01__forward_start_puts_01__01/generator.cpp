@@ -1,5 +1,5 @@
 // Generated Kou forward-start-puts price-dataset recipe.
-#include "model/equity/markovian/kou/forward_start_option.cuh"
+#include "model/equity/markovian/kou/product/forward_start_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

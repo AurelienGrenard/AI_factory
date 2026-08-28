@@ -1,4 +1,4 @@
-// Generated Rough-Heston composition over the prepared sample engine.
+// Generated Rough-Heston composition over the prepared Markovian N-factor sample engine.
 #include "model/equity/rough/rough_heston/sample.cuh"
 
 #include "common/sample.cuh"

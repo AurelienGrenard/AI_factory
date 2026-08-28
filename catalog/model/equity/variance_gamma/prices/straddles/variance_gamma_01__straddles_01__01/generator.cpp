@@ -1,5 +1,5 @@
 // Generated Variance-Gamma straddles price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/straddle.cuh"
+#include "model/equity/markovian/variance_gamma/product/straddle.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

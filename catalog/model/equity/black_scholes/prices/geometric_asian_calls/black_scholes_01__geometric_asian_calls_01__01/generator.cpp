@@ -1,5 +1,5 @@
 // Generated Black-Scholes geometric-asian-calls analytical price recipe.
-#include "model/equity/markovian/black_scholes/geometric_asian_option.cuh"
+#include "model/equity/markovian/black_scholes/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

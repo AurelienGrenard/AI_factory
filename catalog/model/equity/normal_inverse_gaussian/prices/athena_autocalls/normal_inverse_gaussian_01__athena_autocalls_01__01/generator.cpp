@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian athena-autocalls price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/athena_autocall.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/athena_autocall.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Variance-Gamma lookback-options price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/lookback_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/lookback_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Stein-Stein straddles price-dataset recipe.
-#include "model/equity/markovian/stein_stein/straddle.cuh"
+#include "model/equity/markovian/stein_stein/product/straddle.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

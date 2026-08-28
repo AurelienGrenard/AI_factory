@@ -1,5 +1,5 @@
 // Generated Heston athena-autocalls price-dataset recipe.
-#include "model/equity/markovian/heston/athena_autocall.cuh"
+#include "model/equity/markovian/heston/product/athena_autocall.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

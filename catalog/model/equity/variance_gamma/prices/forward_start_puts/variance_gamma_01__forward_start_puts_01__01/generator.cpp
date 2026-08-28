@@ -1,5 +1,5 @@
 // Generated Variance-Gamma forward-start-puts price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/forward_start_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/forward_start_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

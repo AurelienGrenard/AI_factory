@@ -1,5 +1,5 @@
 // Generated Merton phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/merton/phoenix_autocall.cuh"
+#include "model/equity/markovian/merton/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

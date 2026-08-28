@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi down-and-out-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/down_and_out_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/down_and_out_option.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/down_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

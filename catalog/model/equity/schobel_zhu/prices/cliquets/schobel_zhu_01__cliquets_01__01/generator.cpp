@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu cliquets price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/cliquet.cuh"
+#include "model/equity/markovian/schobel_zhu/product/cliquet.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

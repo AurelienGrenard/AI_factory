@@ -1,5 +1,5 @@
 // Generated Black-Scholes straddles analytical price recipe.
-#include "model/equity/markovian/black_scholes/straddle.cuh"
+#include "model/equity/markovian/black_scholes/product/straddle.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

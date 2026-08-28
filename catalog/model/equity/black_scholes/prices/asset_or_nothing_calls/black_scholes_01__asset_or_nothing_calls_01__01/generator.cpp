@@ -1,5 +1,5 @@
 // Generated Black-Scholes asset-or-nothing-calls analytical price recipe.
-#include "model/equity/markovian/black_scholes/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/black_scholes/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

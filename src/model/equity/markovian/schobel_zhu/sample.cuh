@@ -1,4 +1,4 @@
-// Generated model-only Schobel-Zhu sample launchers.
+// Public generated Schobel-Zhu launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/schobel_zhu/parameters.hpp"

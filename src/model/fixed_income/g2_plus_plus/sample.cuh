@@ -1,4 +1,4 @@
-// Generated model-only G2++ sample launchers.
+// Public generated G2++ launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/fixed_income/g2_plus_plus/parameters.hpp"

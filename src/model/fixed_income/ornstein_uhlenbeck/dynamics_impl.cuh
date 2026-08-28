@@ -1,4 +1,4 @@
-// Exact Ornstein-Uhlenbeck state and optional state-integral simulation.
+// Included device definitions for exact Ornstein-Uhlenbeck state and state-integral simulation.
 #pragma once
 
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics.cuh"

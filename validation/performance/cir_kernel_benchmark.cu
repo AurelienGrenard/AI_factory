@@ -2,7 +2,7 @@
 #include "validation/performance/benchmark_support.cuh"
 
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/cir/european_swaption.cuh"
+#include "model/fixed_income/cir/product/european_swaption.cuh"
 
 #include <cuda_runtime.h>
 

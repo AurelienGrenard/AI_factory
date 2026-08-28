@@ -1,5 +1,5 @@
 // Generated Variance-Gamma double-knock-out-puts price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/double_knock_out_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/double_knock_out_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

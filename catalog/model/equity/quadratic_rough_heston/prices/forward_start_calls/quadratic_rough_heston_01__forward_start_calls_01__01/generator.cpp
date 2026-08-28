@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston forward-start-calls N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/forward_start_option.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/forward_start_option.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

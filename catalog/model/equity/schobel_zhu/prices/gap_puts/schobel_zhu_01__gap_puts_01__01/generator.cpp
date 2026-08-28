@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu gap-puts price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/gap_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/gap_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein down-and-in-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/down_and_in_option.cuh"
+#include "model/equity/rough/rough_stein_stein/product/down_and_in_option.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/down_and_in_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

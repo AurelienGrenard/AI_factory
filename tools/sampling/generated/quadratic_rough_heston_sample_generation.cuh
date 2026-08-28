@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/equity/rough/quadratic_rough_heston/sample.cuh"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "tools/sampling/host_philox.hpp"
 #include "tools/sampling/model_sample_generation.cuh"
 

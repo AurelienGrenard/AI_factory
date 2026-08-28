@@ -1,6 +1,6 @@
 // Build one Ornstein-Uhlenbeck zero-coupon bond put price dataset.
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
-#include "model/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

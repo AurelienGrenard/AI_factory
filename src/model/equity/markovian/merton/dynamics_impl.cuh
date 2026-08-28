@@ -1,3 +1,4 @@
+// Device exact-transition definitions for the Merton jump-diffusion dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/merton/dynamics.cuh"

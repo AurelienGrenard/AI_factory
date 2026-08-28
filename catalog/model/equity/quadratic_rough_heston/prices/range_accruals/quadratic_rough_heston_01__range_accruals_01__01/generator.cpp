@@ -1,7 +1,7 @@
 // Generated Quadratic rough-Heston range-accruals N-factor price recipe.
-#include "model/equity/rough/quadratic_rough_heston/range_accrual.cuh"
+#include "model/equity/rough/quadratic_rough_heston/product/range_accrual.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
-#include "model/equity/rough/quadratic_rough_heston/numerics.hpp"
+#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

@@ -1,7 +1,7 @@
 // Generated Rough-Heston up-no-touches N-factor price recipe.
-#include "model/equity/rough/rough_heston/up_no_touch.cuh"
+#include "model/equity/rough/rough_heston/product/up_no_touch.cuh"
 #include "model/equity/rough/rough_heston/dataset.hpp"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

@@ -1,5 +1,5 @@
 // Generated CEV lookback-options price-dataset recipe.
-#include "model/equity/markovian/cev/lookback_option.cuh"
+#include "model/equity/markovian/cev/product/lookback_option.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

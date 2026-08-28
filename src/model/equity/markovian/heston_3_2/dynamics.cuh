@@ -1,3 +1,4 @@
+// Public state and fixed-step dynamics-policy declarations for the Heston 3/2 model.
 #pragma once
 
 #include "common/equity/concepts.cuh"

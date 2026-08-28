@@ -62,7 +62,8 @@ Avant de creer un dossier, separer les couches reellement nouvelles:
   `catalog/model/<asset_class>/<model>/parameters/` ou `samples/`;
 - une courbe appartient a `src/curve/` et a `catalog/curve/`;
 - le pricing d'un couple modele-produit appartient au modele, dans
-  `src/model/<asset_class>/<model>/[<curve>/]`;
+  `src/model/<asset_class>/<model>/product/[<curve>/]`; aucun launcher produit
+  ne reste au milieu de `dynamics`, `analytics`, `dataset` ou `sample` ;
 - une base de prix conserve son propre generateur et YAML sous
   `catalog/model/<asset_class>/<model>/prices/`; un dataset migre ne stocke ni
   rapport ni notebook dans ce dossier, ses references vivent sous
@@ -255,9 +256,9 @@ changement de signe.
 
 Pour les signatures, l'ordre des fonctions et la strategie de kernel, suivre
 le contrat
-[`cuda-closed-form-and-monte-carlo-pricing-contract.md`](cuda-closed-form-and-monte-carlo-pricing-contract.md)
+[`cuda/closed-form-and-monte-carlo-pricing-contract.md`](cuda/closed-form-and-monte-carlo-pricing-contract.md)
 ou, pour l'exercice anticipe,
-[`cuda-american-and-bermudan-pricing-contract.md`](cuda-american-and-bermudan-pricing-contract.md).
+[`cuda/american-and-bermudan-pricing-contract.md`](cuda/american-and-bermudan-pricing-contract.md).
 
 ## Ajouter une base de prix
 

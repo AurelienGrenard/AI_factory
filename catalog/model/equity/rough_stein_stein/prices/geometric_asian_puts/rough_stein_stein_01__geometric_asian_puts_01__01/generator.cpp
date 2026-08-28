@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein geometric-asian-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/geometric_asian_option.cuh"
+#include "model/equity/rough/rough_stein_stein/product/geometric_asian_option.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

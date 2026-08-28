@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu european-calls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/european_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/european_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

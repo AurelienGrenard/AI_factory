@@ -1,4 +1,4 @@
-// Generated model-only Variance-Gamma sample launchers.
+// Public generated Variance-Gamma launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/variance_gamma/parameters.hpp"

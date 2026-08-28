@@ -1,5 +1,5 @@
 // Generated Black-Scholes digital-puts analytical price recipe.
-#include "model/equity/markovian/black_scholes/digital_option.cuh"
+#include "model/equity/markovian/black_scholes/product/digital_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Stein-Stein european-puts price-dataset recipe.
-#include "model/equity/markovian/stein_stein/european_option.cuh"
+#include "model/equity/markovian/stein_stein/product/european_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

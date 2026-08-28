@@ -1,5 +1,5 @@
 // Generated CEV cliquets price-dataset recipe.
-#include "model/equity/markovian/cev/cliquet.cuh"
+#include "model/equity/markovian/cev/product/cliquet.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

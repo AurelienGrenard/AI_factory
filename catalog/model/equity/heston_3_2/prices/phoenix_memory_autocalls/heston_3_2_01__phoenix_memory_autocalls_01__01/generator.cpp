@@ -1,5 +1,5 @@
 // Generated Heston 3/2 phoenix-memory-autocalls price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/phoenix_memory_autocall.cuh"
+#include "model/equity/markovian/heston_3_2/product/phoenix_memory_autocall.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/phoenix_memory_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

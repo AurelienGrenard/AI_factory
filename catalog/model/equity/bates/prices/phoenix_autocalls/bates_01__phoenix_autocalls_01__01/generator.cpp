@@ -1,5 +1,5 @@
 // Generated Bates phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/bates/phoenix_autocall.cuh"
+#include "model/equity/markovian/bates/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

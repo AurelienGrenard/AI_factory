@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian down-and-out-puts price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/down_and_out_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/down_and_out_option.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/down_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

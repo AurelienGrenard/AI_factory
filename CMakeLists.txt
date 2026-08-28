@@ -443,7 +443,7 @@ add_dependencies(
 add_library(
     ai_factory_fixed_income_cir_european_swaption_inline_experiment
     STATIC EXCLUDE_FROM_ALL
-    src/model/fixed_income/cir/european_swaption.cu
+    src/model/fixed_income/cir/product/european_swaption.cu
 )
 ai_factory_configure_cuda_library(
     ai_factory_fixed_income_cir_european_swaption_inline_experiment
@@ -506,7 +506,7 @@ if(AI_FACTORY_MATHDX_ROOT)
     add_library(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
         STATIC EXCLUDE_FROM_ALL
-        src/model/equity/rough/rough_bergomi/european_option.cu
+        src/model/equity/rough/rough_bergomi/product/european_option.cu
     )
     ai_factory_configure_cuda_library(
         ai_factory_equity_rough_bergomi_european_option_direct_experiment
@@ -1223,6 +1223,17 @@ if(BUILD_TESTING)
             TIMEOUT 30
         )
         add_test(
+            NAME model_source_layout
+            COMMAND
+                ${Python3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/tools/cuda/check_model_layout.py
+        )
+        set_tests_properties(model_source_layout PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;codegen;architecture"
+            TIMEOUT 30
+        )
+        add_test(
             NAME catalog_generator_boundaries
             COMMAND
                 ${Python3_EXECUTABLE}
@@ -1619,9 +1630,9 @@ if(BUILD_TESTING)
         60
     )
     add_cuda_workbench_test(
-        volterra_driver_policy_cuda
-        tests/volterra_driver_policy_cuda_test.cu
-        "volterra;driver_policy"
+        volterra_kernel_policy_cuda
+        tests/volterra_kernel_policy_cuda_test.cu
+        "volterra;kernel_policy"
         30
     )
     if(AI_FACTORY_MATHDX_ROOT)

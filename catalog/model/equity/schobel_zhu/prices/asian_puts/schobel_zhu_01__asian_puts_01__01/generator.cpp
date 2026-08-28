@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu asian-puts price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/asian_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/asian_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

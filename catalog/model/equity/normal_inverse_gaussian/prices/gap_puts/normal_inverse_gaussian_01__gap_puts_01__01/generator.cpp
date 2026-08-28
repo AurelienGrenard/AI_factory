@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian gap-puts price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/gap_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/gap_option.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

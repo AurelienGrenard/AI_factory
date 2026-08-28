@@ -1,5 +1,5 @@
 // Build G2++/NS Bermudan-payer-swaption prices.
-#include "model/fixed_income/g2_plus_plus/nelson_siegel/bermudan_swaption.cuh"
+#include "model/fixed_income/g2_plus_plus/product/nelson_siegel/bermudan_swaption.cuh"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"

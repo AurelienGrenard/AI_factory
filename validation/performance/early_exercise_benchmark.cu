@@ -4,10 +4,10 @@
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/option_side.cuh"
-#include "model/equity/markovian/black_scholes/american_option.cuh"
-#include "model/equity/markovian/heston/american_option.cuh"
-#include "model/fixed_income/g2/bermudan_swaption.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/bermudan_swaption.cuh"
+#include "model/equity/markovian/black_scholes/product/american_option.cuh"
+#include "model/equity/markovian/heston/product/american_option.cuh"
+#include "model/fixed_income/g2/product/bermudan_swaption.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/bermudan_swaption.cuh"
 
 #include <cuda_runtime.h>
 

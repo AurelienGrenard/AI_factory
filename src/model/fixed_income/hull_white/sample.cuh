@@ -1,4 +1,4 @@
-// Generated model-only Hull-White sample launchers.
+// Public generated Hull-White launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/fixed_income/hull_white/parameters.hpp"

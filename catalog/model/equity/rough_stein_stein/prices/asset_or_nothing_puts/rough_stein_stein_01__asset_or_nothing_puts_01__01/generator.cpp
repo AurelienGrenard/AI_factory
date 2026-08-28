@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein asset-or-nothing-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/asset_or_nothing_option.cuh"
+#include "model/equity/rough/rough_stein_stein/product/asset_or_nothing_option.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

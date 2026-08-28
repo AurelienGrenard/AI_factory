@@ -1,5 +1,5 @@
 // Generated Bates up-and-in-calls price-dataset recipe.
-#include "model/equity/markovian/bates/up_and_in_option.cuh"
+#include "model/equity/markovian/bates/product/up_and_in_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/up_and_in_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

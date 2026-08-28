@@ -1,5 +1,5 @@
 // Generated Bates range-accruals price-dataset recipe.
-#include "model/equity/markovian/bates/range_accrual.cuh"
+#include "model/equity/markovian/bates/product/range_accrual.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

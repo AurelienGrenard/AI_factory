@@ -1,5 +1,5 @@
 // Build one G2++ Svensson floorlet price dataset.
-#include "model/fixed_income/g2_plus_plus/svensson/rate_option.cuh"
+#include "model/fixed_income/g2_plus_plus/product/svensson/rate_option.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/rate_option/dataset.hpp"

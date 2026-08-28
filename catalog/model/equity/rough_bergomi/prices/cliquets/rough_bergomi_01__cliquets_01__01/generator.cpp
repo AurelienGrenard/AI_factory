@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi cliquets Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/cliquet.cuh"
+#include "model/equity/rough/rough_bergomi/product/cliquet.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

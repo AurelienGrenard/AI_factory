@@ -1,5 +1,5 @@
 // Generated Heston 3/2 asset-or-nothing-calls price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

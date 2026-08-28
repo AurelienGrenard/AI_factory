@@ -1,5 +1,5 @@
 // Generated Heston 3/2 up-and-out-calls price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/up_and_out_option.cuh"
+#include "model/equity/markovian/heston_3_2/product/up_and_out_option.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/up_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

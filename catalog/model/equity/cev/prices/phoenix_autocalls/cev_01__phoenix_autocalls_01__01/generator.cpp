@@ -1,5 +1,5 @@
 // Generated CEV phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/cev/phoenix_autocall.cuh"
+#include "model/equity/markovian/cev/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

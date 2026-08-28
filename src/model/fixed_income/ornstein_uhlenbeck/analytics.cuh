@@ -1,4 +1,4 @@
-// Reusable CUDA analytics for the Ornstein-Uhlenbeck process.
+// Public Ornstein-Uhlenbeck analytics declarations used by fixed-income pricing bindings.
 #pragma once
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"

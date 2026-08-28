@@ -1,5 +1,5 @@
 // Build one Vasicek caplet price dataset.
-#include "model/fixed_income/vasicek/rate_option.cuh"
+#include "model/fixed_income/vasicek/product/rate_option.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"

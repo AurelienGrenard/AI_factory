@@ -1,10 +1,10 @@
 // Exercise the shared early-exercise engine through every remaining model.
 #include "common/check_cuda.cuh"
-#include "model/equity/markovian/black_scholes/american_option.cuh"
-#include "model/equity/markovian/cev/american_option.cuh"
-#include "model/equity/markovian/kou/american_option.cuh"
-#include "model/equity/markovian/merton/american_option.cuh"
-#include "model/equity/markovian/schobel_zhu/american_option.cuh"
+#include "model/equity/markovian/black_scholes/product/american_option.cuh"
+#include "model/equity/markovian/cev/product/american_option.cuh"
+#include "model/equity/markovian/kou/product/american_option.cuh"
+#include "model/equity/markovian/merton/product/american_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/american_option.cuh"
 
 #include <cuda_runtime.h>
 

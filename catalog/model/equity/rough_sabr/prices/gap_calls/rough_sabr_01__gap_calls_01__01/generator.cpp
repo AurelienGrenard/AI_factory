@@ -1,7 +1,7 @@
 // Generated Rough-SABR gap-calls Volterra-FFT price recipe.
-#include "model/equity/rough/rough_sabr/gap_option.cuh"
+#include "model/equity/rough/rough_sabr/product/gap_option.cuh"
 #include "model/equity/rough/rough_sabr/dataset.hpp"
-#include "model/equity/rough/rough_sabr/pricing_workspace.cuh"
+#include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

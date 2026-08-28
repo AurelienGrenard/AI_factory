@@ -1,5 +1,5 @@
 // Build one Hull-White Nelson-Siegel floorlet price dataset.
-#include "model/fixed_income/hull_white/nelson_siegel/rate_option.cuh"
+#include "model/fixed_income/hull_white/product/nelson_siegel/rate_option.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/rate_option/dataset.hpp"

@@ -3,13 +3,54 @@
 ## Objet
 
 Ce document contient exclusivement les constats non resolus du referentiel
-principal version 4. Le passage du 2026-08-28 est partiel et limite aux axes
-nouveaux portabilite GPU et model samples, ainsi qu'a la verification ciblee
-des remediations presentes dans le worktree. La provenance, la couverture, les
-exclusions et les preuves sont consignees dans `status.md`.
+principal version 4. Le dernier passage du 2026-08-28 est partiel et cible la
+structure/naming de `src/model`, la navigabilite du codegen, les frontieres des
+policies Gaussian-Volterra et les remediations presentes dans le worktree. La
+provenance, la couverture, les exclusions et les preuves sont consignees dans
+`status.md`.
 
-Deux constats restent ouverts au 2026-08-28. Quarante-quatre identifiants
+Trois constats restent ouverts au 2026-08-28. Quarante-neuf identifiants
 historiques sont fermes dans `closed.md`.
+
+## Code generation and extension locality
+
+### STRUCT-015 — Generer les bindings et recettes fixed-income closed form
+
+- **Etat :** ouvert; explicitement reporte.
+- **Severite :** haute.
+- **Priorite :** haute.
+- **Confiance :** prouvee.
+- **Fichiers et symboles :** les 42 fichiers closed form sous
+  `src/model/fixed_income/<model>/product/[<curve>/]`; les recettes
+  correspondantes sous `catalog/model/fixed_income/**/prices/`;
+  `tools/codegen/pricing_bindings/{capability_manifest.py,generate.py,templates/}`.
+- **Signature originale :** la source de verite typee inventorie les capacites
+  fixed income et leurs unites CMake, mais codegen ne possede aucun template
+  `.cuh/.cu` fixed-income closed form. Les launchers standalone affines et les
+  compositions ajustees a Nelson--Siegel ou Svensson restent recopies a la
+  main. Les recettes fixed income restent elles aussi une exception explicite
+  du manifeste (`CAP-FI-RECIPE-BODY`) au lieu d'etre rendues depuis des
+  templates canoniques.
+- **Risque :** ajouter un modele, une courbe ou un produit fixed income exige
+  des editions transversales difficiles a inventorier; des signatures, includes,
+  sides, geometries ou metadonnees peuvent diverger silencieusement entre des
+  compositions mathematiquement equivalentes. La pyramide de factorisation
+  closed form n'est donc pas traduite dans l'architecture du generateur.
+- **Correction requise :** ajouter un manifeste de bindings fixed income et
+  une branche explicite `templates/pricing/fixed_income/closed_form/`, separee
+  au minimum entre affine standalone un facteur, affine standalone deux
+  facteurs et modele ajuste a une courbe. Generer egalement leurs recettes
+  catalogue depuis une branche nommee symetriquement. Les Bermudans
+  Longstaff--Schwartz appartiennent a une branche `early_exercise` distincte et
+  sont hors de ce constat.
+- **Test de cloture :** une generation dans un dossier temporaire reproduit
+  bit a bit tous les `.cuh/.cu` et toutes les recettes fixed-income closed form
+  suivies; aucun nouveau couple compatible ne demande de copier un launcher ou
+  une recette; le checker de frontiere refuse un artefact manuel equivalent et
+  les builds/tests fixed income cibles passent.
+- **References de preuve :** E20, E26; inventaire structurel du 2026-08-28.
+- **Derniere verification :** 2026-08-28.
+- **Proprietaire :** non attribue; remediation reportee a une passe ulterieure.
 
 ## Numerical robustness and reproducibility
 
@@ -21,7 +62,7 @@ historiques sont fermes dans `closed.md`.
 - **Confiance :** prouvee pour l'echec initial et sa correction ciblee;
   incomplete pour tout le domaine de production.
 - **Fichiers et symboles :**
-  `src/model/equity/rough/quadratic_rough_heston/{numerics.hpp,dynamics.cuh,dynamics_impl.cuh}`;
+  `src/model/equity/rough/quadratic_rough_heston/{markovian_n_factor_preparation.hpp,dynamics.cuh,dynamics_impl.cuh}`;
   `validation/volterra/quadratic_rough_heston.py`; tests Python et CUDA QRH;
   recette `catalog/model/equity/quadratic_rough_heston/samples/samples_02/`.
 - **Signature originale :** les 48 generateurs compilaient sur SM89 avec

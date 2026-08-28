@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian straddles price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/straddle.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/straddle.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

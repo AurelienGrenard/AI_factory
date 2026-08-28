@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi double-knock-out-puts Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/double_knock_out_option.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/double_knock_out_option.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

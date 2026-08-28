@@ -1,5 +1,5 @@
 // Generated Variance-Gamma digital-puts price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/digital_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/digital_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/digital_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

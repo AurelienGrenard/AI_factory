@@ -1,7 +1,7 @@
 // Generated Rough-SABR down-and-in-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_sabr/down_and_in_option.cuh"
+#include "model/equity/rough/rough_sabr/product/down_and_in_option.cuh"
 #include "model/equity/rough/rough_sabr/dataset.hpp"
-#include "model/equity/rough/rough_sabr/pricing_workspace.cuh"
+#include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/down_and_in_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

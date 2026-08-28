@@ -1,3 +1,4 @@
+// Device transition definitions for the SABR dynamics policy.
 #pragma once
 
 #include "common/equity/absorbing_lamperti.cuh"

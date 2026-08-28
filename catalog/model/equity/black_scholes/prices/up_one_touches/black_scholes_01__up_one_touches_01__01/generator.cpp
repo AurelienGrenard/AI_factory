@@ -1,5 +1,5 @@
 // Generated Black-Scholes up-one-touches price-dataset recipe.
-#include "model/equity/markovian/black_scholes/up_one_touch.cuh"
+#include "model/equity/markovian/black_scholes/product/up_one_touch.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

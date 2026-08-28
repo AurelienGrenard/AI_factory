@@ -79,7 +79,7 @@ historique de cloture.
 
 - **Nature :** devenu inapplicable apres meta-revue le 2026-08-27; aucun changement de code.
 - **Signature :** les analytics fixed income exposent `log_A`, `A` et `B`, certains types ajustes repetent le modele dans leur nom et plusieurs implementations emploient `a`/`b` localement.
-- **Cloture :** [`cuda-model-analytics-contract.md`](../cuda-model-analytics-contract.md) definit explicitement `log_A`, `A` et `B` comme la surface canonique des coefficients affines et distingue le loading `B` a un ou deux facteurs. Cette notation mathematique publique est donc une exception documentee, pas une incoherence. La seule repetition d'un nom de modele dans un type ne prouve ni ambiguite, ni collision, ni impact technique et reste une preference de style exclue de l'audit.
+- **Cloture :** [`cuda/model-analytics-contract.md`](../cuda/model-analytics-contract.md) definit explicitement `log_A`, `A` et `B` comme la surface canonique des coefficients affines et distingue le loading `B` a un ou deux facteurs. Cette notation mathematique publique est donc une exception documentee, pas une incoherence. La seule repetition d'un nom de modele dans un type ne prouve ni ambiguite, ni collision, ni impact technique et reste une preference de style exclue de l'audit.
 - **Preuve :** section `Signatures fixed income`, contrat des providers et section `Nommage` du meme contrat; meta-revue E13.
 - **Reouvrir seulement si :** une ambiguite, collision, erreur d'usage ou divergence entre modeles est attribuee a ces noms, ou si le contrat canonique abandonne explicitement cette notation.
 
@@ -497,3 +497,121 @@ historique de cloture.
   profil sans justification, si les artefacts perdent la provenance, si une
   surcharge requiert d'editer les fichiers generes, ou si une baseline compare
   des GPU/toolchains incompatibles.
+
+## Naming et frontieres de policies — passage de remediation du 2026-08-28
+
+### NAME-100 — Nommer une policy d'apres la responsabilite qu'elle implemente
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** les types `*HybridDriverPolicy`, `PreparedDriver` et les
+  methodes `driver_parameters`, `variance` et `value` etaient presentes comme
+  un driver de chemin, alors que leur responsabilite etait exclusivement la
+  discretisation d'un noyau Volterra, ses poids, sa variance et la
+  reconstruction de la cellule singuliere. Le terme masquait la separation
+  entre convolution et transformation propre au modele.
+- **Cloture :** les trois implementations sont desormais des
+  `*HybridKernelPolicy` avec `PreparedKernel`, `kernel_parameters`,
+  `volterra_variance` et `reconstruct_volterra_value`. Le vocabulaire est
+  propage dans le pricer FFT, le sampling, les quatre modeles Volterra, les
+  tests, CMake, le manifeste et le template codegen. Le contrat et le schema de
+  composition sont documentes dans
+  [`cuda/pricing-policy-composition.md`](../cuda/pricing-policy-composition.md).
+- **Preuve :** recherche statique sans ancien symbole ou ancien header sous
+  `src`, `tools` et `tests`, hors signatures historiques de ce registre;
+  generation samples `--compare-root .`
+  zero-diff; compilation des quatre pricers europeens et des quatre samplers
+  Volterra; cinq tests CUDA cibles passes sur SM89; preuve E27.
+- **Reouvrir seulement si :** une policy est nommee comme une source aleatoire,
+  un modele ou un produit alors qu'elle ne possede que le noyau mathematique,
+  ou si des noms generiques comme `value`/`variance` rendent de nouveau
+  ambigu le passage convolution -> valeur Volterra -> etat du modele.
+
+### POLICY-002 — Ne pas faire dependre un moteur generique des champs internes d'une policy
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature :** le moteur FFT lisait directement
+  `PreparedDriver::sqrt_time_step`, bien que ce champ ne fasse pas partie du
+  contrat annonce. Une nouvelle implementation conforme aux methodes
+  documentees pouvait donc echouer seulement a l'instanciation profonde du
+  kernel CUDA.
+- **Cloture :** `volterra::HybridKernelPolicy` impose exactement `prepare`,
+  `far_cell_weight`, `volterra_variance` et
+  `reconstruct_volterra_value`; `HybridPathPolicyFor` impose le contrat de
+  chemin et l'egalite du type retourne par `kernel_parameters`. Le moteur
+  conserve lui-meme `sqrt_time_step` dans son `PreparedRow` et traite
+  `PreparedKernel` comme opaque. Chaque noyau concret et chaque composition
+  modele/noyau sont controles par `static_assert`.
+- **Preuve :** les trois kernels satisfont le concept commun; les quatre
+  compositions pricing et sampling compilent; `volterra_kernel_policy_cuda`,
+  `rough_bergomi_dynamics_cuda`, `rough_bergomi_european_option_cuda`,
+  `rough_volterra_product_policy_cuda` et `rough_volterra_samples_cuda`
+  passent sur GPU; preuve E27.
+- **Reouvrir seulement si :** un moteur generique accede a un membre concret
+  d'une policy hors types explicitement contractuels, si une relation de types
+  entre deux policies n'est verifiee qu'au fond d'un kernel, ou si une nouvelle
+  policy exige de modifier le moteur malgre un contrat semantiquement
+  identique.
+
+## Structure et naming — remediation du 2026-08-28
+
+### STRUCT-016 — Isoler les compositions modele-produit de l'infrastructure modele
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature originale :** 832 fichiers de bindings produit partageaient la
+  racine de chaque modele avec dynamics, analytics, parametres, datasets,
+  sampling et helpers; une exploration ne permettait pas de separer le
+  catalogue de produits de l'infrastructure du modele.
+- **Cloture :** chaque paire modele-produit vit sous
+  `src/model/equity/<family>/<model>/product/` ou
+  `src/model/fixed_income/<model>/product/[<curve>/]`. Le dossier `product/`
+  ne contient reciproquement aucune infrastructure, et les noms de targets
+  CMake publics restent stables malgre le deplacement physique.
+- **Preuve :** inventaire exhaustif de 832 fichiers et 416 paires; checker de
+  profondeur/ownership/references, codegen zero-diff, configuration CMake,
+  CTests architecture et builds representatifs passes; preuve E26.
+- **Reouvrir seulement si :** un binding produit revient a la racine d'un
+  modele, une infrastructure entre sous `product/`, un niveau non semantique
+  apparait ou un target public derive a cause du chemin physique.
+
+### STRUCT-017 — Classer les templates codegen par artefact et engine
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature originale :** les templates pricing, samples et recettes etaient
+  entasses sous des noms plats; `header.tpl`/`source.tpl` ne revelaient ni
+  l'artefact ni l'engine et plusieurs fichiers C++ complets restaient encodes
+  en chaines Python dans `generate.py`.
+- **Cloture :** les 35 templates vivent sous `pricing/`, `sampling/` ou
+  `catalog/`, puis sous `markovian`, `rough/markovian_n_factor`,
+  `rough/volterra_fft`, `closed_form/black_scholes` ou la branche de recette
+  explicite. Le renderer assemble ces templates sans cacher un artefact C++
+  complet inline. La lacune fixed-income closed form reste separee sous
+  `STRUCT-015` et n'est pas masquee par cette cloture.
+- **Preuve :** aucun template plat, aucun ancien chemin reference, checker
+  bloquant, regeneration bit a bit des 1 407 sorties et CTests codegen passes;
+  preuve E26.
+- **Reouvrir seulement si :** un template generique plat reapparait, une
+  methode ne peut plus etre localisee depuis son chemin, un artefact complet
+  retourne dans le renderer ou la generation diverge du tree suivi.
+
+### NAME-011 — Rendre le role des fichiers d'infrastructure modele immediatement lisible
+
+- **Nature :** corrige et verifie le 2026-08-28.
+- **Signature originale :** des helpers comme `hybrid_pricing.cuh`,
+  `pricing_workspace.cuh`, `markovian_pricing.cuh` et `numerics.hpp` ne
+  nommaient pas leur engine; plusieurs fichiers canoniques hors produits,
+  notamment des couples `dynamics.cuh`/`dynamics_impl.cuh`, n'expliquaient pas
+  immediatement la difference entre contrat, preparation host et definitions
+  device.
+- **Cloture :** les helpers portent les qualificatifs
+  `volterra_fft_*`/`markovian_n_factor_*`. Les 199 fichiers C++/CUDA
+  d'infrastructure hors `product/` commencent par une phrase courte de contenu
+  et d'utilite; les headers publics et leurs `*_impl.cuh` ont des roles
+  explicitement distincts. Le checker refuse nom non revu, nom ambigu,
+  en-tete generique, profondeur inattendue et paire publique/impl mal decrite.
+- **Preuve :** inventaire exhaustif des 199 fichiers, zero ancien basename ou
+  reference, checker `model_source_layout`, regeneration et builds
+  representatifs passes; preuve E26.
+- **Reouvrir seulement si :** le role d'un fichier ne peut plus etre deduit de
+  son chemin et de son nom, si son en-tete n'en precise pas contenu et utilite,
+  si deux engines partagent un helper non qualifie ou si le checker est
+  contourne par une nouvelle exception non documentee.

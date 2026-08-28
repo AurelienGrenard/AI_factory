@@ -1,5 +1,5 @@
 // Generated Heston 3/2 range-accruals price-dataset recipe.
-#include "model/equity/markovian/heston_3_2/range_accrual.cuh"
+#include "model/equity/markovian/heston_3_2/product/range_accrual.cuh"
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

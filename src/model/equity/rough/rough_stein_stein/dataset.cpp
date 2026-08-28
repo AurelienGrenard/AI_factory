@@ -1,3 +1,4 @@
+// JSON loading and validation for rough Stein--Stein parameter datasets.
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
 
 #include "common/dataset_validation.hpp"

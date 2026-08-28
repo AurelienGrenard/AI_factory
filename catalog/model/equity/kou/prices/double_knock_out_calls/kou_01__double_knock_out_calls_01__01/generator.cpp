@@ -1,5 +1,5 @@
 // Generated Kou double-knock-out-calls price-dataset recipe.
-#include "model/equity/markovian/kou/double_knock_out_option.cuh"
+#include "model/equity/markovian/kou/product/double_knock_out_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

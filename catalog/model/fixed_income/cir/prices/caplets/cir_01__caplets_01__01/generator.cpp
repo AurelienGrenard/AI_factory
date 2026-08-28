@@ -1,5 +1,5 @@
 // Build one CIR caplet price dataset.
-#include "model/fixed_income/cir/rate_option.cuh"
+#include "model/fixed_income/cir/product/rate_option.cuh"
 #include "model/fixed_income/cir/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"

@@ -1,9 +1,9 @@
 // Validate every one-factor Jamshidian launcher against independent FP64 data.
 #include "common/check_cuda.cuh"
-#include "model/fixed_income/cir/european_swaption.cuh"
-#include "model/fixed_income/hull_white/nelson_siegel/european_swaption.cuh"
-#include "model/fixed_income/hull_white/svensson/european_swaption.cuh"
-#include "model/fixed_income/vasicek/european_swaption.cuh"
+#include "model/fixed_income/cir/product/european_swaption.cuh"
+#include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
+#include "model/fixed_income/hull_white/product/svensson/european_swaption.cuh"
+#include "model/fixed_income/vasicek/product/european_swaption.cuh"
 #include "product/european_swaption/schedule.cuh"
 
 // Instantiate both schedule-view paths directly in this test translation unit.

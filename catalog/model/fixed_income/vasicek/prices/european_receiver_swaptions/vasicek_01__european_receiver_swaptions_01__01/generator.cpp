@@ -1,6 +1,6 @@
 // Generate Vasicek European receiver-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/vasicek/european_swaption.cuh"
+#include "model/fixed_income/vasicek/product/european_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
 #include "tools/pricing/european_swaption_price_generation.cuh"

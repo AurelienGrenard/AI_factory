@@ -1,3 +1,4 @@
+// Device path-update definitions for the log-modulated rough Bergomi Volterra dynamics.
 #pragma once
 
 #include "model/equity/rough/log_modulated_rough_bergomi/dynamics.cuh"
@@ -6,9 +7,9 @@
 
 namespace ai_factory::workbench::model::equity::log_modulated_rough_bergomi {
 
-__device__ __forceinline__ auto PathPolicy::driver_parameters(
+__device__ __forceinline__ auto PathPolicy::kernel_parameters(
     const Parameters& parameters
-) -> volterra::LogModulatedHybridDriverPolicy::Parameters {
+) -> volterra::LogModulatedHybridKernelPolicy::Parameters {
     return {
         parameters.hurst_exponent,
         parameters.log_modulation_scale,
@@ -42,8 +43,8 @@ __device__ __forceinline__ PathPolicy::State PathPolicy::initial_state(
 
 __device__ __forceinline__ void PathPolicy::advance(
     const PreparedModel& model,
-    float driver_value,
-    float driver_variance,
+    float volterra_value,
+    float volterra_variance,
     float rough_normal,
     float independent_spot_normal,
     State& state
@@ -60,8 +61,8 @@ __device__ __forceinline__ void PathPolicy::advance(
             - 0.5f * state.variance * model.time_step
     );
     state.variance = expf(
-        model.log_initial_variance + model.eta * driver_value
-        - model.half_eta_squared * driver_variance
+        model.log_initial_variance + model.eta * volterra_value
+        - model.half_eta_squared * volterra_variance
     );
 }
 

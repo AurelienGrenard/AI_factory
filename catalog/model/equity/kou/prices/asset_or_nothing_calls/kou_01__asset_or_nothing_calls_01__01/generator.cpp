@@ -1,5 +1,5 @@
 // Generated Kou asset-or-nothing-calls price-dataset recipe.
-#include "model/equity/markovian/kou/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/kou/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Stein-Stein lookback-options price-dataset recipe.
-#include "model/equity/markovian/stein_stein/lookback_option.cuh"
+#include "model/equity/markovian/stein_stein/product/lookback_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

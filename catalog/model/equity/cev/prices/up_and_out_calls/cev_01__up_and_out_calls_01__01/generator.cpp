@@ -1,5 +1,5 @@
 // Generated CEV up-and-out-calls price-dataset recipe.
-#include "model/equity/markovian/cev/up_and_out_option.cuh"
+#include "model/equity/markovian/cev/product/up_and_out_option.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/up_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

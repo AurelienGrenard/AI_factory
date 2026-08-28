@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein lookback-options Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/lookback_option.cuh"
+#include "model/equity/rough/rough_stein_stein/product/lookback_option.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/lookback_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

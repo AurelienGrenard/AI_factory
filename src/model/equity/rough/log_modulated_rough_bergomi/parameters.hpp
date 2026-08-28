@@ -1,3 +1,4 @@
+// Compact host/device parameter row for the log-modulated rough Bergomi model.
 #pragma once
 
 #include <type_traits>

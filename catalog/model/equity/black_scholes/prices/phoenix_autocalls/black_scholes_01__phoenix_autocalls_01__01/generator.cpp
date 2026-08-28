@@ -1,5 +1,5 @@
 // Generated Black-Scholes phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/black_scholes/phoenix_autocall.cuh"
+#include "model/equity/markovian/black_scholes/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

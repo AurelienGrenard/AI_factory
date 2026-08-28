@@ -1,3 +1,4 @@
+// Device exact-transition definitions for the Kou jump-diffusion dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/kou/dynamics.cuh"

@@ -4,10 +4,10 @@
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/result_index.cuh"
 #include "curve/nelson_siegel/parameters.hpp"
-#include "model/equity/markovian/bates/phoenix_autocall.cuh"
-#include "model/equity/markovian/bates/phoenix_memory_autocall.cuh"
-#include "model/equity/markovian/black_scholes/european_option.cuh"
-#include "model/fixed_income/hull_white/nelson_siegel/european_swaption.cuh"
+#include "model/equity/markovian/bates/product/phoenix_autocall.cuh"
+#include "model/equity/markovian/bates/product/phoenix_memory_autocall.cuh"
+#include "model/equity/markovian/black_scholes/product/european_option.cuh"
+#include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
 
 #include <cuda_runtime.h>
 

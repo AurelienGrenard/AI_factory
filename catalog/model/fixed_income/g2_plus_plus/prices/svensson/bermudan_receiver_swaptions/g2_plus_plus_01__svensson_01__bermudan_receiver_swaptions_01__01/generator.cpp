@@ -1,5 +1,5 @@
 // Build G2++/Svensson Bermudan-receiver-swaption prices.
-#include "model/fixed_income/g2_plus_plus/svensson/bermudan_swaption.cuh"
+#include "model/fixed_income/g2_plus_plus/product/svensson/bermudan_swaption.cuh"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"

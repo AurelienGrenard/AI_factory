@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu up-one-touches price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/up_one_touch.cuh"
+#include "model/equity/markovian/schobel_zhu/product/up_one_touch.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

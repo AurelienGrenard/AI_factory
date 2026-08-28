@@ -1,7 +1,7 @@
 // Offline rough-Heston CUDA probe. This is validation code, not a src target.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough/rough_heston/european_option.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/product/european_option.cuh"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 
 #include <cuda_runtime.h>
 

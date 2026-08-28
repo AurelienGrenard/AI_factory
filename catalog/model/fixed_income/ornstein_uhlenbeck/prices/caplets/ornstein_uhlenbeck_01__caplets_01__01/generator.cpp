@@ -1,5 +1,5 @@
 // Build one Ornstein-Uhlenbeck caplet price dataset.
-#include "model/fixed_income/ornstein_uhlenbeck/rate_option.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/rate_option.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"

@@ -1,5 +1,5 @@
 // Generated Stein-Stein double-knock-out-puts price-dataset recipe.
-#include "model/equity/markovian/stein_stein/double_knock_out_option.cuh"
+#include "model/equity/markovian/stein_stein/product/double_knock_out_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

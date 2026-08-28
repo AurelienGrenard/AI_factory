@@ -1,5 +1,5 @@
 // Generated Bates european-calls price-dataset recipe.
-#include "model/equity/markovian/bates/european_option.cuh"
+#include "model/equity/markovian/bates/product/european_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Generated Heston up-no-touches price-dataset recipe.
-#include "model/equity/markovian/heston/up_no_touch.cuh"
+#include "model/equity/markovian/heston/product/up_no_touch.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

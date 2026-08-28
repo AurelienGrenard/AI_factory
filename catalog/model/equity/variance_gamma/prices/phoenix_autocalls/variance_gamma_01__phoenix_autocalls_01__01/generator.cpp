@@ -1,5 +1,5 @@
 // Generated Variance-Gamma phoenix-autocalls price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/phoenix_autocall.cuh"
+#include "model/equity/markovian/variance_gamma/product/phoenix_autocall.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/phoenix_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

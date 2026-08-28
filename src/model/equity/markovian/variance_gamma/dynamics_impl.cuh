@@ -1,3 +1,4 @@
+// Device exact-transition definitions for the variance-gamma dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/variance_gamma/dynamics.cuh"

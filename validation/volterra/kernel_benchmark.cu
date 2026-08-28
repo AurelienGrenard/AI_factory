@@ -1,11 +1,11 @@
 // Kernel-only timing harness for Heston and rough-volatility call pricing.
 #include "common/check_cuda.cuh"
 #include "validation/performance/benchmark_support.cuh"
-#include "model/equity/markovian/heston/european_option.cuh"
-#include "model/equity/rough/rough_bergomi/european_option.cuh"
-#include "model/equity/rough/rough_heston/european_option.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
-#include "model/equity/rough/rough_sabr/european_option.cuh"
+#include "model/equity/markovian/heston/product/european_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/european_option.cuh"
+#include "model/equity/rough/rough_heston/product/european_option.cuh"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
+#include "model/equity/rough/rough_sabr/product/european_option.cuh"
 
 #include <cuda_runtime.h>
 

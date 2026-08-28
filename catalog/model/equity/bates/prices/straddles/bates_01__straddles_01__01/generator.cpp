@@ -1,5 +1,5 @@
 // Generated Bates straddles price-dataset recipe.
-#include "model/equity/markovian/bates/straddle.cuh"
+#include "model/equity/markovian/bates/product/straddle.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

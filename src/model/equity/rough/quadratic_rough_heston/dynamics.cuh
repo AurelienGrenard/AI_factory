@@ -1,3 +1,4 @@
+// Public state, N-factor preparation and dynamics-policy declarations for quadratic rough Heston.
 #pragma once
 
 #include "common/equity/concepts.cuh"

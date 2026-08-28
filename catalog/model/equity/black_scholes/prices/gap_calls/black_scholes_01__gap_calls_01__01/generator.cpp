@@ -1,5 +1,5 @@
 // Generated Black-Scholes gap-calls analytical price recipe.
-#include "model/equity/markovian/black_scholes/gap_option.cuh"
+#include "model/equity/markovian/black_scholes/product/gap_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

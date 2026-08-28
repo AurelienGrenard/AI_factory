@@ -1,4 +1,4 @@
-// Generated model-only Merton sample launchers.
+// Public generated Merton launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/merton/parameters.hpp"

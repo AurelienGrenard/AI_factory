@@ -1,7 +1,7 @@
 // Generated Rough Stein-Stein range-accruals Volterra-FFT price recipe.
-#include "model/equity/rough/rough_stein_stein/range_accrual.cuh"
+#include "model/equity/rough/rough_stein_stein/product/range_accrual.cuh"
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
-#include "model/equity/rough/rough_stein_stein/pricing_workspace.cuh"
+#include "model/equity/rough/rough_stein_stein/volterra_fft_workspace.cuh"
 #include "product/range_accrual/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

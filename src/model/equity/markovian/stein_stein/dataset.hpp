@@ -1,3 +1,4 @@
+// Loader declarations for Stein--Stein parameter datasets.
 #pragma once
 
 #include "model/equity/markovian/stein_stein/parameters.hpp"

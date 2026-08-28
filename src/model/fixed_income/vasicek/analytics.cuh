@@ -1,4 +1,4 @@
-// Reusable CUDA analytics for the affine Vasicek short-rate model.
+// Public affine Vasicek analytics declarations used by fixed-income pricing bindings.
 #pragma once
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"

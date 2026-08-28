@@ -1,8 +1,8 @@
-// Generated Rough Stein-Stein composition over the shared FFT sampler.
+// Generated Rough Stein-Stein composition over the shared Volterra FFT sampler.
 #include "model/equity/rough/rough_stein_stein/sample.cuh"
 
 #include "common/sample.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_driver.cuh"
+#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"
 
@@ -10,9 +10,9 @@ namespace ai_factory::workbench::model::equity::rough_stein_stein {
 namespace {
 using Observation = sample::SpotSampleObservation<PathPolicy>;
 using TerminalPolicy = sample::VolterraFftModelSamplingPolicy<
-    volterra::FractionalResolventHybridDriverPolicy, PathPolicy, volterra::TerminalHybridSchedule, Observation>;
+    volterra::FractionalResolventHybridKernelPolicy, PathPolicy, volterra::TerminalHybridSchedule, Observation>;
 using CalendarPolicy = sample::VolterraFftModelSamplingPolicy<
-    volterra::FractionalResolventHybridDriverPolicy, PathPolicy, volterra::StubbedRegularHybridSchedule, Observation>;
+    volterra::FractionalResolventHybridKernelPolicy, PathPolicy, volterra::StubbedRegularHybridSchedule, Observation>;
 static_assert(sample::VolterraFftSamplingPolicy<
     TerminalPolicy, volterra::HybridTimeConfiguration>);
 static_assert(sample::VolterraFftSamplingPolicy<

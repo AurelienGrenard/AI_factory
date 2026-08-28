@@ -8,6 +8,7 @@ import difflib
 import hashlib
 import json
 from pathlib import Path
+from string import Template
 
 from manifest import (
     AMERICAN_RECIPE_SPECS,
@@ -93,389 +94,65 @@ def _sample_output_pointer_name(name: str) -> str:
     }.get(name, name + "s")
 
 
-def _markov_sample_header(model: SampleModelSpec) -> str:
-    output_declarations = _sample_output_declarations(model)
-    namespace = _sample_namespace(model)
-    return f'''// Generated model-only {model.display} sample launchers.
-#pragma once
-
-#include "model/{model.source_folder}/parameters.hpp"
-
-#include <cstddef>
-#include <cstdint>
-
-namespace ai_factory::workbench::{namespace} {{
-
-void launch_{model.name}_terminal_samples_cuda(
-    const ModelParameters* device_parameters,
-    std::size_t parameter_count,
-    std::size_t paths_per_parameter,
-    std::uint32_t maturity_days,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t dynamics_seed{output_declarations}
-);
-
-void launch_{model.name}_random_terminal_samples_cuda(
-    const ModelParameters* device_parameters,
-    std::size_t parameter_count,
-    std::size_t paths_per_parameter,
-    std::uint32_t minimum_maturity_days,
-    std::uint32_t maximum_maturity_days,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t schedule_seed,
-    std::uint64_t dynamics_seed,
-    std::uint32_t* device_maturity_days{output_declarations}
-);
-
-void launch_{model.name}_calendar_samples_cuda(
-    const ModelParameters* device_parameters,
-    std::size_t parameter_count,
-    std::size_t paths_per_parameter,
-    std::uint32_t first_observation_day,
-    std::uint32_t observation_interval_days,
-    std::uint32_t observation_count,
-    std::size_t sample_offset,
-    std::size_t launch_sample_count,
-    unsigned int threads_per_block,
-    std::size_t block_count,
-    std::uint64_t dynamics_seed{output_declarations}
-);
-
-}}  // namespace ai_factory::workbench::{namespace}
-'''
+def _render_dollar_template(relative_path: str, values: dict[str, str]) -> str:
+    """Render a named template without making C++ braces special."""
+    template = Template((TEMPLATE_DIR / relative_path).read_text())
+    return template.substitute(values)
 
 
-def _markov_sample_source(model: SampleModelSpec) -> str:
-    prefix = "ExactTransition" if model.time_kind == "exact" else "FixedStep"
-    dynamics = "DynamicsPolicy"
-    observation = _sample_observation(model, dynamics)
-    outputs = _sample_output_values(model)
-    namespace = _sample_namespace(model)
-    extra = model.extra_dynamics_include
-    dynamics_header = (
-        f"model/{model.source_folder}/dynamics.cuh"
-        if extra else f"model/{model.source_folder}/dynamics_impl.cuh"
-    )
-    return f'''// Generated {model.display} composition over the common sample engine.
-#include "model/{model.source_folder}/sample.cuh"
-
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
-#include "{dynamics_header}"
-{extra}
-namespace ai_factory::workbench::{namespace} {{
-namespace {{
-using State = typename DynamicsPolicy::State;
-using Observation = {observation};
-using TerminalPolicy = sample::ModelSamplingPolicy<
-    simulation::{prefix}TerminalSchedule<DynamicsPolicy>, Observation>;
-using CalendarPolicy = sample::ModelSamplingPolicy<
-    simulation::{prefix}StubbedRegularSchedule<DynamicsPolicy>, Observation>;
-static_assert(sample::SamplingPolicy<TerminalPolicy>);
-static_assert(sample::SamplingPolicy<CalendarPolicy>);
-}}  // namespace
-
-void launch_{model.name}_terminal_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t maturity_days,
-    std::size_t sample_offset, std::size_t launch_sample_count,
-    unsigned int threads_per_block, std::size_t block_count,
-    std::uint64_t dynamics_seed{_sample_output_declarations(model)}
-) {{
-    sample::launch_device_terminal_samples_cuda<TerminalPolicy>(
-        device_parameters, parameter_count, paths_per_parameter, maturity_days,
-        sample_offset, launch_sample_count, threads_per_block, block_count,
-        dynamics_seed, {{{outputs}}}, "{model.name}.samples",
-        "{model.display} terminal sample kernel");
-}}
-
-void launch_{model.name}_random_terminal_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t minimum_maturity_days,
-    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t schedule_seed,
-    std::uint64_t dynamics_seed, std::uint32_t* device_maturity_days
-    {_sample_output_declarations(model).lstrip()}
-) {{
-    sample::launch_device_random_terminal_samples_cuda<TerminalPolicy>(
-        device_parameters, parameter_count, paths_per_parameter,
-        {{minimum_maturity_days, maximum_maturity_days}}, sample_offset,
-        launch_sample_count, threads_per_block, block_count, schedule_seed,
-        dynamics_seed, device_maturity_days, {{{outputs}}},
-        "{model.name}.samples", "{model.display} random terminal sample kernel");
-}}
-
-void launch_{model.name}_calendar_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t first_observation_day,
-    std::uint32_t observation_interval_days, std::uint32_t observation_count,
-    std::size_t sample_offset, std::size_t launch_sample_count,
-    unsigned int threads_per_block, std::size_t block_count,
-    std::uint64_t dynamics_seed{_sample_output_declarations(model)}
-) {{
-    sample::launch_device_calendar_samples_cuda<CalendarPolicy>(
-        device_parameters, parameter_count, paths_per_parameter,
-        first_observation_day, observation_interval_days, observation_count,
-        sample_offset, launch_sample_count, threads_per_block, block_count,
-        dynamics_seed, {{{outputs}}}, "{model.name}.samples",
-        "{model.display} calendar sample kernel");
-}}
-
-}}  // namespace ai_factory::workbench::{namespace}
-'''
-
-
-def _volterra_driver_header(driver: str) -> str:
-    return {
-        "volterra::FractionalHybridDriverPolicy":
-            "common/volterra/fractional_hybrid_driver.cuh",
-        "volterra::LogModulatedHybridDriverPolicy":
-            "common/volterra/log_modulated_hybrid_driver.cuh",
-        "volterra::FractionalResolventHybridDriverPolicy":
-            "common/volterra/fractional_resolvent_hybrid_driver.cuh",
-    }[driver]
-
-
-def _volterra_sample_header(model: SampleModelSpec) -> str:
-    return _markov_sample_header(model).replace(
-        "    unsigned int threads_per_block,\n", ""
-    )
-
-
-def _volterra_sample_source(model: SampleModelSpec) -> str:
-    outputs = _sample_output_values(model)
-    namespace = _sample_namespace(model)
-    driver = model.driver
-    assert driver is not None
-    return f'''// Generated {model.display} composition over the shared FFT sampler.
-#include "model/{model.source_folder}/sample.cuh"
-
-#include "common/sample.cuh"
-#include "{_volterra_driver_header(driver)}"
-#include "common/volterra/hybrid_schedule.cuh"
-#include "model/{model.source_folder}/dynamics_impl.cuh"
-
-namespace ai_factory::workbench::{namespace} {{
-namespace {{
-using Observation = sample::SpotSampleObservation<PathPolicy>;
-using TerminalPolicy = sample::VolterraFftModelSamplingPolicy<
-    {driver}, PathPolicy, volterra::TerminalHybridSchedule, Observation>;
-using CalendarPolicy = sample::VolterraFftModelSamplingPolicy<
-    {driver}, PathPolicy, volterra::StubbedRegularHybridSchedule, Observation>;
-static_assert(sample::VolterraFftSamplingPolicy<
-    TerminalPolicy, volterra::HybridTimeConfiguration>);
-static_assert(sample::VolterraFftSamplingPolicy<
-    CalendarPolicy, volterra::HybridTimeConfiguration>);
-}}  // namespace
-
-void launch_{model.name}_terminal_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t maturity_days,
-    std::size_t sample_offset, std::size_t launch_sample_count,
-    std::size_t block_count, std::uint64_t dynamics_seed
-    {_sample_output_declarations(model)}
-) {{
-    sample::volterra_fft::launch_device_terminal_samples_cuda<TerminalPolicy>(
-        device_parameters, parameter_count, paths_per_parameter, maturity_days,
-        sample_offset, launch_sample_count, block_count, dynamics_seed,
-        {{{outputs}}}, "{model.name}.samples",
-        "{model.display} terminal FFT sample kernel");
-}}
-
-void launch_{model.name}_random_terminal_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t minimum_maturity_days,
-    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, std::size_t block_count,
-    std::uint64_t schedule_seed, std::uint64_t dynamics_seed,
-    std::uint32_t* device_maturity_days{_sample_output_declarations(model)}
-) {{
-    sample::volterra_fft::launch_device_random_terminal_samples_cuda<
-        TerminalPolicy>(
-        device_parameters, parameter_count, paths_per_parameter,
-        {{minimum_maturity_days, maximum_maturity_days}}, sample_offset,
-        launch_sample_count, block_count, schedule_seed, dynamics_seed,
-        device_maturity_days, {{{outputs}}}, "{model.name}.samples",
-        "{model.display} random terminal FFT sample kernel");
-}}
-
-void launch_{model.name}_calendar_samples_cuda(
-    const ModelParameters* device_parameters, std::size_t parameter_count,
-    std::size_t paths_per_parameter, std::uint32_t first_observation_day,
-    std::uint32_t observation_interval_days, std::uint32_t observation_count,
-    std::size_t sample_offset, std::size_t launch_sample_count,
-    std::size_t block_count, std::uint64_t dynamics_seed
-    {_sample_output_declarations(model)}
-) {{
-    sample::volterra_fft::launch_device_calendar_samples_cuda<CalendarPolicy>(
-        device_parameters, parameter_count, paths_per_parameter,
-        first_observation_day, observation_interval_days, observation_count,
-        sample_offset, launch_sample_count, block_count, dynamics_seed,
-        {{{outputs}}}, "{model.name}.samples",
-        "{model.display} calendar FFT sample kernel");
-}}
-
-}}  // namespace ai_factory::workbench::{namespace}
-'''
-
-
-def _n_factor_sample_header(model: SampleModelSpec) -> str:
-    outputs = _sample_output_declarations(model)
-    namespace = _sample_namespace(model)
-    return f'''// Generated model-only {model.display} N-factor sample launchers.
-#pragma once
-
-#include "model/{model.source_folder}/dynamics.cuh"
-
-#include <cstddef>
-#include <cstdint>
-
-namespace ai_factory::workbench::{namespace} {{
-
-template<std::size_t FactorCount>
-void launch_{model.name}_terminal_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t dynamics_seed{outputs});
-
-template<std::size_t FactorCount>
-void launch_{model.name}_random_terminal_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t minimum_maturity_days,
-    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t schedule_seed,
-    std::uint64_t dynamics_seed, std::uint32_t* device_maturity_days{outputs});
-
-template<std::size_t FactorCount>
-void launch_{model.name}_calendar_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t first_observation_day,
-    std::uint32_t observation_interval_days,
-    std::uint32_t observation_count, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t dynamics_seed{outputs});
-
-}}  // namespace ai_factory::workbench::{namespace}
-'''
-
-
-def _n_factor_sample_source(model: SampleModelSpec) -> str:
-    namespace = _sample_namespace(model)
-    outputs = _sample_output_values(model)
+def _sample_binding_template_values(model: SampleModelSpec) -> dict[str, str]:
     declarations = _sample_output_declarations(model)
-    output_types = ", float*" * len(model.outputs)
-    return f'''// Generated {model.display} composition over the prepared sample engine.
-#include "model/{model.source_folder}/sample.cuh"
+    values = {
+        "display": model.display,
+        "model_name": model.name,
+        "namespace": _sample_namespace(model),
+        "source_folder": model.source_folder,
+        "output_declarations": declarations,
+        "output_declarations_inline": declarations.lstrip(),
+        "output_values": _sample_output_values(model),
+        "output_types": ", float*" * len(model.outputs),
+        "schedule_prefix": (
+            "ExactTransition" if model.time_kind == "exact" else "FixedStep"
+        ),
+        "dynamics_header": (
+            f"model/{model.source_folder}/dynamics.cuh"
+            if model.extra_dynamics_include
+            else f"model/{model.source_folder}/dynamics_impl.cuh"
+        ),
+        "extra_include": model.extra_dynamics_include,
+        "observation": _sample_observation(model, "DynamicsPolicy"),
+        "kernel": model.kernel or "",
+        "kernel_header": (
+            _volterra_kernel_header(model.kernel) if model.kernel else ""
+        ),
+    }
+    return values
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
-#include "model/{model.source_folder}/dynamics_impl.cuh"
 
-namespace ai_factory::workbench::{namespace} {{
-namespace {{
-template<std::size_t FactorCount>
-using Observation = sample::SpotSampleObservation<DynamicsPolicy<FactorCount>>;
-template<std::size_t FactorCount>
-using TerminalPolicy = sample::ModelSamplingPolicy<
-    simulation::FixedStepTerminalSchedule<DynamicsPolicy<FactorCount>>,
-    Observation<FactorCount>>;
-template<std::size_t FactorCount>
-using CalendarPolicy = sample::ModelSamplingPolicy<
-    simulation::FixedStepStubbedRegularSchedule<DynamicsPolicy<FactorCount>>,
-    Observation<FactorCount>>;
-static_assert(sample::ExternallyPreparedSamplingPolicy<TerminalPolicy<2U>>);
-static_assert(sample::ExternallyPreparedSamplingPolicy<CalendarPolicy<7U>>);
-}}  // namespace
+def _render_sample_binding(model: SampleModelSpec, suffix: str) -> str:
+    family = {
+        "markovian": "markovian",
+        "volterra": "rough/volterra_fft",
+        "n_factor": "rough/markovian_n_factor",
+    }[model.backend]
+    return _render_dollar_template(
+        f"sampling/{family}/model_binding.{suffix}.tpl",
+        _sample_binding_template_values(model),
+    )
 
-template<std::size_t FactorCount>
-void launch_{model.name}_terminal_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t dynamics_seed{declarations}
-) {{
-    sample::launch_device_prepared_terminal_samples_cuda<
-        TerminalPolicy<FactorCount>>(
-        device_prepared_dynamics, parameter_count, paths_per_parameter,
-        maturity_days, sample_offset, launch_sample_count, threads_per_block,
-        block_count, dynamics_seed, {{{outputs}}}, "{model.name}.samples",
-        "{model.display} terminal sample kernel");
-}}
 
-template<std::size_t FactorCount>
-void launch_{model.name}_random_terminal_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t minimum_maturity_days,
-    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t schedule_seed,
-    std::uint64_t dynamics_seed, std::uint32_t* device_maturity_days
-    {declarations.lstrip()}
-) {{
-    sample::launch_device_prepared_random_terminal_samples_cuda<
-        TerminalPolicy<FactorCount>>(
-        device_prepared_dynamics, parameter_count, paths_per_parameter,
-        {{minimum_maturity_days, maximum_maturity_days}}, sample_offset,
-        launch_sample_count, threads_per_block, block_count, schedule_seed,
-        dynamics_seed, device_maturity_days, {{{outputs}}},
-        "{model.name}.samples", "{model.display} random terminal sample kernel");
-}}
 
-template<std::size_t FactorCount>
-void launch_{model.name}_calendar_samples_cuda(
-    const PreparedDynamics<FactorCount>* device_prepared_dynamics,
-    std::size_t parameter_count, std::size_t paths_per_parameter,
-    std::uint32_t first_observation_day,
-    std::uint32_t observation_interval_days,
-    std::uint32_t observation_count, std::size_t sample_offset,
-    std::size_t launch_sample_count, unsigned int threads_per_block,
-    std::size_t block_count, std::uint64_t dynamics_seed{declarations}
-) {{
-    sample::launch_device_prepared_calendar_samples_cuda<
-        CalendarPolicy<FactorCount>>(
-        device_prepared_dynamics, parameter_count, paths_per_parameter,
-        first_observation_day, observation_interval_days, observation_count,
-        sample_offset, launch_sample_count, threads_per_block, block_count,
-        dynamics_seed, {{{outputs}}}, "{model.name}.samples",
-        "{model.display} calendar sample kernel");
-}}
+def _volterra_kernel_header(kernel: str) -> str:
+    return {
+        "volterra::FractionalHybridKernelPolicy":
+            "common/volterra/fractional_hybrid_kernel.cuh",
+        "volterra::LogModulatedHybridKernelPolicy":
+            "common/volterra/log_modulated_hybrid_kernel.cuh",
+        "volterra::FractionalResolventHybridKernelPolicy":
+            "common/volterra/fractional_resolvent_hybrid_kernel.cuh",
+    }[kernel]
 
-#define AI_FACTORY_INSTANTIATE_SAMPLE(FACTORS) \\
-    template void launch_{model.name}_terminal_samples_cuda<FACTORS>( \\
-        const PreparedDynamics<FACTORS>*, std::size_t, std::size_t, \\
-        std::uint32_t, std::size_t, std::size_t, unsigned int, std::size_t, \\
-        std::uint64_t{output_types}); \\
-    template void launch_{model.name}_random_terminal_samples_cuda<FACTORS>( \\
-        const PreparedDynamics<FACTORS>*, std::size_t, std::size_t, \\
-        std::uint32_t, std::uint32_t, std::size_t, std::size_t, unsigned int, \\
-        std::size_t, std::uint64_t, std::uint64_t, std::uint32_t* \\
-        {output_types}); \\
-    template void launch_{model.name}_calendar_samples_cuda<FACTORS>( \\
-        const PreparedDynamics<FACTORS>*, std::size_t, std::size_t, \\
-        std::uint32_t, std::uint32_t, std::uint32_t, std::size_t, std::size_t, \\
-        unsigned int, std::size_t, std::uint64_t{output_types})
 
-AI_FACTORY_INSTANTIATE_SAMPLE(2U);
-AI_FACTORY_INSTANTIATE_SAMPLE(3U);
-AI_FACTORY_INSTANTIATE_SAMPLE(7U);
-#undef AI_FACTORY_INSTANTIATE_SAMPLE
-
-}}  // namespace ai_factory::workbench::{namespace}
-'''
 
 
 def _cpp_float(value: float) -> str:
@@ -570,16 +247,22 @@ def _sample_launch_lambda(model: SampleModelSpec) -> str:
     }}'''
 
 
-def _sample_generation_header(model: SampleModelSpec) -> str:
-    namespace = _sample_namespace(model)
+
+
+def _render_sample_generation_header(model: SampleModelSpec) -> str:
     include_numerics = ""
-    type_arguments = "ModelParameters"
     generate_call = "generate_model_sample_dataset<ModelParameters>"
     prepare_argument = ""
     if model.backend == "n_factor":
-        include_numerics = f'#include "model/{model.source_folder}/numerics.hpp"\n'
-        type_arguments = "ModelParameters, model_binding::PreparedDynamics<factor_count>"
-        generate_call = f"generate_prepared_model_sample_dataset<{type_arguments}>"
+        include_numerics = (
+            f'#include "model/{model.source_folder}/markovian_n_factor_preparation.hpp"\n'
+        )
+        type_arguments = (
+            "ModelParameters, model_binding::PreparedDynamics<factor_count>"
+        )
+        generate_call = (
+            f"generate_prepared_model_sample_dataset<{type_arguments}>"
+        )
         prepare_argument = '''
         [](const std::vector<ModelParameters>& parameters,
            std::uint32_t maximum_maturity_days) {
@@ -589,7 +272,6 @@ def _sample_generation_header(model: SampleModelSpec) -> str:
                 1.0f / 504.0f
             );
         },'''
-    output_names = ", ".join(f'"{name}"' for name in model.outputs)
     numerical = {
         ("markovian", "exact"): "exact finite-horizon transition",
         ("markovian", "fixed"): "fixed-step transition at dt=1/504",
@@ -607,111 +289,62 @@ def _sample_generation_header(model: SampleModelSpec) -> str:
         f'{{"{name}", {{{{"description", "Terminal {name}."}}, '
         f'{{"layout", "sample-major"}}}}}}' for name in model.outputs
     )
-    escaped_acceptance = model.acceptance.replace('"', '\\"')
-    return f'''// Generated {model.display} model-sample recipe composition.
-#pragma once
-
-#include "model/{model.source_folder}/sample.cuh"
-{include_numerics}#include "tools/sampling/host_philox.hpp"
-#include "tools/sampling/model_sample_generation.cuh"
-
-#include <algorithm>
-#include <cmath>
-#include <span>
-#include <stdexcept>
-#include <vector>
-
-namespace ai_factory::workbench::offline::sampling::{model.name} {{
-
-namespace model_binding = ai_factory::workbench::{namespace};
-using ModelParameters = model_binding::ModelParameters;
-inline constexpr std::size_t factor_count = 7U;
-
-{_sample_parameter_factory(model)}
-
-{_sample_parameter_json(model)}
-
-inline datasets::ModelSampleRecipe recipe(
-    const char* database_id,
-    std::size_t parameter_count,
-    std::size_t paths_per_parameter,
-    datasets::ModelSampleSeeds seeds
-) {{
-    const std::string id(database_id);
-    return {{
-        id,
-        "{model.display}",
-        "datasets/model/{model.asset_class}/{model.name}/samples/" + id + ".json",
-        "catalog/model/{model.asset_class}/{model.name}/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/{model.asset_class}/{model.name}/samples/" + id + ".json",
-        parameter_count,
-        paths_per_parameter,
-        63U,
-        504U,
-        seeds,
-        "{numerical}",
-        {{
-            {{"regime", "plausible core only"}},
-            {{"distribution", "independent Philox uniform proposals by parameter row"}},
-            {{"latent_uniform_bounds", {_sample_bounds_json(model)}}},
-            {{"acceptance", "{escaped_acceptance}"}},
-        }},
-        {{
-            {output_metadata}
-        }},
-        {grid},
-    }};
-}}
-
-inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {{
-    return {generate_call}(
-        argc,
-        argv,
-        std::move(value),
-        {{
-            ::ai_factory::workbench::offline::cuda_tuning::kSampleThreadsPerBlock,
-            ::ai_factory::workbench::offline::cuda_tuning::kSampleBlockCountLimit,
-            "{model.backend}_samples"
-        }},
-        {{{output_names}}},
-        generate_core_parameters,{prepare_argument}
-        parameter_json,
-        {_sample_launch_lambda(model)}
-    );
-}}
-
-}}  // namespace ai_factory::workbench::offline::sampling::{model.name}
-'''
+    return _render_dollar_template(
+        "sampling/catalog/recipe_support.cuh.tpl",
+        {
+            "display": model.display,
+            "source_folder": model.source_folder,
+            "include_numerics": include_numerics,
+            "model_name": model.name,
+            "namespace": _sample_namespace(model),
+            "parameter_factory": _sample_parameter_factory(model),
+            "parameter_json": _sample_parameter_json(model),
+            "asset_class": model.asset_class,
+            "numerical": numerical,
+            "sample_bounds": _sample_bounds_json(model),
+            "escaped_acceptance": model.acceptance.replace('"', '\\"'),
+            "output_metadata": output_metadata,
+            "grid": grid,
+            "generate_call": generate_call,
+            "backend_samples": f"{model.backend}_samples",
+            "output_names": ", ".join(
+                f'"{name}"' for name in model.outputs
+            ),
+            "prepare_argument": prepare_argument,
+            "launch_lambda": _sample_launch_lambda(model),
+        },
+    )
 
 
-def _sample_recipe_source(model: SampleModelSpec, recipe_index: int) -> str:
+def _render_sample_recipe_source(
+    model: SampleModelSpec,
+    recipe_index: int,
+) -> str:
     if recipe_index == 1:
-        parameters, paths, seeds = "12'000U", "250U", (101, 102, 103)
-        comment = "conditional"
+        parameter_count, paths_per_parameter = "12'000U", "250U"
+        seed_offsets = (101, 102, 103)
+        sample_kind = "conditional"
     else:
-        parameters, paths, seeds = "3'000'000U", "1U", (111, 112, 113)
-        comment = "unconditional"
+        parameter_count, paths_per_parameter = "3'000'000U", "1U"
+        seed_offsets = (111, 112, 113)
+        sample_kind = "unconditional"
     model_index = SAMPLE_MODELS.index(model) + 1
     seed_prefix = 930_000_000 + model_index * 1_000
-    return f'''// Generated {model.display} {comment} model-sample recipe.
-#include "model/{model.source_folder}/sample.cuh"
-#include "tools/sampling/generated/{model.name}_sample_generation.cuh"
-
-int main(int argc, char** argv) {{
-    using namespace ai_factory::workbench;
-    namespace sampling = offline::sampling::{model.name};
-    return sampling::generate(
-        argc,
-        argv,
-        sampling::recipe(
-            "samples_{recipe_index:02d}",
-            {parameters},
-            {paths},
-            {{{seed_prefix + seeds[0]}ULL, {seed_prefix + seeds[1]}ULL, {seed_prefix + seeds[2]}ULL}}
-        )
-    );
-}}
-'''
+    return _render_dollar_template(
+        "sampling/catalog/generator.cpp.tpl",
+        {
+            "display": model.display,
+            "sample_kind": sample_kind,
+            "source_folder": model.source_folder,
+            "model_name": model.name,
+            "database_id": f"samples_{recipe_index:02d}",
+            "parameter_count": parameter_count,
+            "paths_per_parameter": paths_per_parameter,
+            "parameter_seed": str(seed_prefix + seed_offsets[0]),
+            "schedule_seed": str(seed_prefix + seed_offsets[1]),
+            "dynamics_seed": str(seed_prefix + seed_offsets[2]),
+        },
+    )
 
 
 def generate_samples(output_root: Path) -> list[Path]:
@@ -721,17 +354,8 @@ def generate_samples(output_root: Path) -> list[Path]:
         source_directory.mkdir(parents=True, exist_ok=True)
         header = source_directory / "sample.cuh"
         source = source_directory / "sample.cu"
-        if model.backend == "markovian":
-            header.write_text(_markov_sample_header(model))
-            source.write_text(_markov_sample_source(model))
-        elif model.backend == "volterra":
-            header.write_text(_volterra_sample_header(model))
-            source.write_text(_volterra_sample_source(model))
-        elif model.backend == "n_factor":
-            header.write_text(_n_factor_sample_header(model))
-            source.write_text(_n_factor_sample_source(model))
-        else:
-            raise ValueError(f"Unsupported sample backend: {model.backend}")
+        header.write_text(_render_sample_binding(model, "cuh"))
+        source.write_text(_render_sample_binding(model, "cu"))
         generated.extend((header, source))
 
         helper = (
@@ -739,7 +363,7 @@ def generate_samples(output_root: Path) -> list[Path]:
             / f"{model.name}_sample_generation.cuh"
         )
         helper.parent.mkdir(parents=True, exist_ok=True)
-        helper.write_text(_sample_generation_header(model))
+        helper.write_text(_render_sample_generation_header(model))
         generated.append(helper)
         for recipe_index in (1, 2):
             recipe = (
@@ -748,7 +372,7 @@ def generate_samples(output_root: Path) -> list[Path]:
                 / "generator.cpp"
             )
             recipe.parent.mkdir(parents=True, exist_ok=True)
-            recipe.write_text(_sample_recipe_source(model, recipe_index))
+            recipe.write_text(_render_sample_recipe_source(model, recipe_index))
             generated.append(recipe)
     return generated
 
@@ -840,13 +464,14 @@ def render(template: str, binding: Binding) -> str:
 
 
 def generate_markovian(output_root: Path) -> list[Path]:
-    header_template = (TEMPLATE_DIR / "header.tpl").read_text()
-    source_template = (TEMPLATE_DIR / "source.tpl").read_text()
+    binding_template_dir = TEMPLATE_DIR / "pricing" / "markovian"
+    header_template = (binding_template_dir / "product_binding.cuh.tpl").read_text()
+    source_template = (binding_template_dir / "product_binding.cu.tpl").read_text()
     generated: list[Path] = []
     for binding in BINDINGS:
         destination = (
             output_root / "src" / "model" / "equity" / "markovian"
-            / binding.model
+            / binding.model / "product"
         )
         destination.mkdir(parents=True, exist_ok=True)
         header = destination / f"{binding.product}.cuh"
@@ -854,10 +479,12 @@ def generate_markovian(output_root: Path) -> list[Path]:
         header.write_text(render(header_template, binding))
         source.write_text(render(source_template, binding))
         generated.extend((header, source))
-    analytical_template_dir = TEMPLATE_DIR / "black_scholes_closed_form"
+    analytical_template_dir = (
+        TEMPLATE_DIR / "pricing" / "closed_form" / "black_scholes"
+    )
     analytical_destination = (
         output_root / "src" / "model" / "equity" / "markovian"
-        / "black_scholes"
+        / "black_scholes" / "product"
     )
     analytical_destination.mkdir(parents=True, exist_ok=True)
     for product in BLACK_SCHOLES_CLOSED_FORM_PRODUCTS:
@@ -994,16 +621,20 @@ def rough_values(
 def generate_rough(output_root: Path) -> list[Path]:
     templates = {
         "volterra_header": (
-            TEMPLATE_DIR / "rough_volterra_header.tpl"
+            TEMPLATE_DIR / "pricing" / "rough" / "volterra_fft"
+            / "product_binding.cuh.tpl"
         ).read_text(),
         "volterra_source": (
-            TEMPLATE_DIR / "rough_volterra_source.tpl"
+            TEMPLATE_DIR / "pricing" / "rough" / "volterra_fft"
+            / "product_binding.cu.tpl"
         ).read_text(),
         "n_factor_header": (
-            TEMPLATE_DIR / "rough_n_factor_header.tpl"
+            TEMPLATE_DIR / "pricing" / "rough" / "markovian_n_factor"
+            / "product_binding.cuh.tpl"
         ).read_text(),
         "n_factor_source": (
-            TEMPLATE_DIR / "rough_n_factor_source.tpl"
+            TEMPLATE_DIR / "pricing" / "rough" / "markovian_n_factor"
+            / "product_binding.cu.tpl"
         ).read_text(),
     }
     generated: list[Path] = []
@@ -1012,6 +643,7 @@ def generate_rough(output_root: Path) -> list[Path]:
             values = rough_values(binding, model, display, "volterra")
             destination = (
                 output_root / "src" / "model" / "equity" / "rough" / model
+                / "product"
             )
             destination.mkdir(parents=True, exist_ok=True)
             header = destination / f"{binding.product}.cuh"
@@ -1024,6 +656,7 @@ def generate_rough(output_root: Path) -> list[Path]:
             values = rough_values(binding, model, display, "n_factor")
             destination = (
                 output_root / "src" / "model" / "equity" / "rough" / model
+                / "product"
             )
             destination.mkdir(parents=True, exist_ok=True)
             header = destination / f"{binding.product}.cuh"
@@ -1088,19 +721,24 @@ def markovian_time_values(model: str, product: str) -> dict[str, str]:
 def generate_catalog_recipes(output_root: Path) -> list[Path]:
     templates = {
         "markovian": (
-            TEMPLATE_DIR / "catalog_markovian_generator.cpp.tpl"
+            TEMPLATE_DIR / "catalog" / "pricing" / "markovian"
+            / "generator.cpp.tpl"
         ).read_text(),
         "n_factor": (
-            TEMPLATE_DIR / "catalog_rough_n_factor_generator.cpp.tpl"
+            TEMPLATE_DIR / "catalog" / "pricing" / "rough"
+            / "markovian_n_factor" / "generator.cpp.tpl"
         ).read_text(),
         "volterra": (
-            TEMPLATE_DIR / "catalog_rough_volterra_generator.cpp.tpl"
+            TEMPLATE_DIR / "catalog" / "pricing" / "rough"
+            / "volterra_fft" / "generator.cpp.tpl"
         ).read_text(),
         "closed_form": (
-            TEMPLATE_DIR / "catalog_closed_form_generator.cpp.tpl"
+            TEMPLATE_DIR / "catalog" / "pricing"
+            / "black_scholes_closed_form" / "generator.cpp.tpl"
         ).read_text(),
         "american": (
-            TEMPLATE_DIR / "catalog_american_generator.cpp.tpl"
+            TEMPLATE_DIR / "catalog" / "pricing"
+            / "american_longstaff_schwartz" / "generator.cpp.tpl"
         ).read_text(),
     }
     generated: list[Path] = []
@@ -1272,16 +910,16 @@ def generate_cmake_manifest(output_root: Path) -> list[Path]:
     ]
     products = [binding.product for binding in ROUGH_PRODUCT_BINDINGS]
     regular_units = [
-        f"{model}/{product}"
+        f"{model}/product/{product}"
         for model in markovian_models
         for product in products
     ] + [
-        f"{model}/{product}"
+        f"{model}/product/{product}"
         for model, _ in ROUGH_N_FACTOR_MODELS
         for product in products
     ]
     volterra_units = [
-        f"{model}/{product}"
+        f"{model}/product/{product}"
         for model, _ in ROUGH_VOLTERRA_MODELS
         for product in products
     ]

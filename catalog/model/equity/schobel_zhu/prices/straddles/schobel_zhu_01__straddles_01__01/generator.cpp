@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu straddles price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/straddle.cuh"
+#include "model/equity/markovian/schobel_zhu/product/straddle.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

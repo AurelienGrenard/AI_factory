@@ -1,5 +1,5 @@
 // Generated Kou geometric-asian-calls price-dataset recipe.
-#include "model/equity/markovian/kou/geometric_asian_option.cuh"
+#include "model/equity/markovian/kou/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

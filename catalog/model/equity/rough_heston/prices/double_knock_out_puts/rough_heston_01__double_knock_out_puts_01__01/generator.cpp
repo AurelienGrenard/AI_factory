@@ -1,7 +1,7 @@
 // Generated Rough-Heston double-knock-out-puts N-factor price recipe.
-#include "model/equity/rough/rough_heston/double_knock_out_option.cuh"
+#include "model/equity/rough/rough_heston/product/double_knock_out_option.cuh"
 #include "model/equity/rough/rough_heston/dataset.hpp"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

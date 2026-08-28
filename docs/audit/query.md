@@ -74,9 +74,13 @@ durable, il est documente dans le contrat d'implementation proprietaire. Une
 exception necessaire suit la meme regle.
 
 L'auditeur part du code, des dependances CMake, des tests et, pour la
-performance, des artefacts compiles. Les noms de dossiers et commentaires ne
-constituent pas seuls une preuve de responsabilite ou de factorisation. Il ne
-propose aucune abstraction sans identifier ses consommateurs reels.
+performance, des artefacts compiles. L'arborescence et les noms sont toutefois
+une interface de navigation a part entiere : ils doivent permettre de predire
+le role d'un fichier avant de l'ouvrir. Le commentaire d'en-tete confirme et
+precise ce role; il ne peut jamais compenser un mauvais placement ou un nom
+ambigu. Noms, dossiers et commentaires ne constituent pas seuls une preuve de
+responsabilite ou de factorisation. L'auditeur ne propose aucune abstraction
+sans identifier ses consommateurs reels.
 
 Pour chaque audit, renseigner d'abord dans `status.md` la matrice de couverture
 effectivement inspectee. Chaque constat indique ensuite :
@@ -186,6 +190,10 @@ lieux modifies par une extension representative.
 
 **Livrable :** carte des domaines et dependances, contradictions de nommage ou
 placement, elements orphelins et localite mesuree d'un ajout modele/produit.
+Le passage inventorie exhaustivement les chemins inspectes et leur classe
+(`infrastructure`, `product`, `generated`, `test`, `validation` ou
+`documentation`); un echantillon de noms ne suffit pas a declarer cet axe
+complet.
 
 ### Repository tree and domain ownership
 
@@ -197,9 +205,18 @@ Verifier notamment :
 - que `src/model/equity/markovian`, `src/model/equity/rough` et
   `src/model/fixed_income` classent les modeles par famille mathematique et non
   par commodite du moteur actuellement employe ;
+- que chaque niveau de dossier represente un axe durable et nomme : domaine,
+  famille mathematique, modele, responsabilite puis variante eventuelle; un
+  niveau cree seulement pour contourner un nom ambigu, un dossier fourre-tout
+  ou une exception historique est un constat ;
 - que les dossiers modele restent centres sur parametres, datasets, dynamics,
-  analytics, sampling et primitives propres, sans devenir proprietaires de
-  tous les produits ;
+  analytics, sampling et primitives propres; chaque unite de composition
+  modele-produit vit exclusivement sous le sous-dossier `product/`, qui ne
+  contient reciproquement aucune infrastructure de modele ;
+- que le dossier `product/` est lui-meme plat pour une composition directe et
+  n'ajoute qu'un niveau de courbe explicitement nomme lorsqu'une composition
+  fixed-income la possede; produit, infrastructure et strategie de pricing ne
+  se melangent jamais au meme niveau ;
 - que contrats produit, schedules, payoffs, pricing policies et continuation
   states restent sous `src/product` lorsqu'ils ne dependent pas d'un modele ;
 - que les primitives mathematiques ou d'execution reellement neutres vivent
@@ -223,6 +240,16 @@ Verifier notamment :
 
 - que chaque fichier porte une responsabilite identifiable et des
   consommateurs reels ;
+- que **chaque** fichier C++/CUDA d'infrastructure sous `src/model`, hors
+  `product/`, commence par une phrase courte, specifique et autonome nommant
+  son contenu **et son utilite**, avant `#pragma once` ou le premier include;
+  un nom canonique comme `dynamics.cuh` reste stable mais son commentaire doit
+  distinguer transition exacte, schema a pas, Volterra FFT ou lift N-facteurs;
+  `dynamics.cuh` annonce le contrat public et `dynamics_impl.cuh` les
+  definitions device, jamais deux descriptions interchangeables ;
+- que l'en-tete n'est ni un marqueur generique (`generated`, `utilities`,
+  `implementation`) ni la simple repetition du nom : il nomme au minimum
+  modele ou domaine, responsabilite et consommateur/phase d'utilisation ;
 - que les headers publics exposent seulement les declarations necessaires,
   les definitions device incluses vivent dans `*_impl.cuh` et les `.cu`
   autonomes sont de vraies unites de traduction ;
@@ -252,6 +279,9 @@ Verifier notamment :
 
 - `snake_case` pour chemins, fichiers, fonctions et variables, `PascalCase`
   pour types et concepts, et une convention unique pour les constantes ;
+- que le chemin et le nom suffisent a repondre, sans ouvrir le fichier, a
+  « quel domaine ? quel modele/produit ? quel role ? quelle strategie lorsque
+  plusieurs existent ? »; si une de ces reponses manque, le nom est ambigu ;
 - la correspondance arborescence/namespaces, sans namespace plat sous un
   dossier specialise ni niveau sans responsabilite ;
 - singulier/pluriel coherent pour definition, famille, collection, dataset et
@@ -259,6 +289,16 @@ Verifier notamment :
 - des noms de fichiers homologues stables : `parameters`, `dataset`,
   `dynamics`, `analytics`, `concepts`, `pricing_policy`, `schedule`, `state`,
   `sample`, `kernel`, `launch` et `workspace` ;
+- qu'un helper non canonique encode sa strategie reelle dans son nom : par
+  exemple `volterra_fft_*` ou `markovian_n_factor_*`, jamais `hybrid`,
+  `numerics` ou `pricing` seuls lorsque plusieurs engines coexistent ;
+- l'absence de noms fourre-tout tels que `misc`, `utils`, `helpers`, `base`,
+  `core`, `common`, `shared`, `generic`, `stuff` ou `tmp` lorsqu'ils ne sont
+  pas qualifies par une responsabilite precise et une frontiere verifiable ;
+- qu'un nom comme `state`, `kernel`, `workspace`, `preparation` ou `pricing`
+  n'est accepte seul que s'il est canonique et sans ambiguite dans son dossier;
+  des que plusieurs methodes ou phases coexistent, le nom porte leur
+  qualificatif semantique ;
 - que les symboles ne repetent pas modele, courbe, produit ou methode deja
   portes par leur namespace ;
 - les noms canoniques `ModelParameters`, `ProcessParameters`, `PreparedModel`,
@@ -279,8 +319,11 @@ Verifier notamment :
   catalogue, validation, diagnostics et documentation ;
 - que les identifiants publies ne changent pas sans migration explicite.
 
-Seules les contradictions semantiques prouvees deviennent des constats. Les
-preferences stylistiques sans impact sont exclues.
+Une exploration qui oblige a ouvrir plusieurs fichiers pour distinguer leurs
+roles, ou a connaitre l'histoire du projet pour comprendre leur placement, est
+un impact architectural et devient un constat. Seules les preferences
+stylistiques sans effet sur navigation, ownership, extension ou maintenance
+restent exclues.
 
 ### Dependency boundaries
 
@@ -702,7 +745,7 @@ Verifier notamment :
 
 Verifier que les champs derivables produisent :
 
-- `<model>/<product>.cuh` et `<model>/<product>.cu` ;
+- `<model>/product/<product>.cuh` et `<model>/product/<product>.cu` ;
 - `<model>/sample.cuh` et `<model>/sample.cu` lorsque la capacite est publiee ;
 - specialisations call/put, payer/receiver ou non-sided ;
 - schedule, policy et engine ;
@@ -711,6 +754,15 @@ Verifier que les champs derivables produisent :
 - `dataset.yaml` ou ses champs structurels derivables ;
 - tests de compilation et checkers d'architecture ;
 - squelette de validation seulement sans choix arbitraire d'une reference.
+
+Les templates suivent la meme taxonomie que les engines et les artefacts. Un
+lecteur doit trouver sans recherche globale, dans deux chemins differents, le
+binding pricing et le binding sampling de `markovian`,
+`rough/markovian_n_factor` ou `rough/volterra_fft`. Closed form equity,
+closed form fixed income et `early_exercise` restent trois branches nommees.
+Les fichiers generes complets ne vivent pas comme chaines C++ multilignes dans
+le renderer Python; les fragments calcules y restent bornes a des valeurs ou
+petites declarations injectees dans un template visible.
 
 Le catalogue actuel utilise `generator.cpp`. Le referentiel emploie le terme
 neutre **generateur de catalogue** : un passage a Python doit etre une decision

@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi european-calls Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/european_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/european_option.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

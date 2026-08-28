@@ -1,4 +1,4 @@
-// Closed-form fixed-income analytics for the standalone G2 model.
+// Included device definitions of the standalone G2 closed-form analytics contract.
 #pragma once
 
 #include "model/fixed_income/g2/analytics.cuh"

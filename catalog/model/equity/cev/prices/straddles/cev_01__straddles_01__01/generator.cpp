@@ -1,5 +1,5 @@
 // Generated CEV straddles price-dataset recipe.
-#include "model/equity/markovian/cev/straddle.cuh"
+#include "model/equity/markovian/cev/product/straddle.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

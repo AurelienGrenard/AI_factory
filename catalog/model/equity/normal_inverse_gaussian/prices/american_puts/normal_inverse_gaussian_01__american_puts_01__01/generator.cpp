@@ -1,5 +1,5 @@
 // Generated Normal-Inverse-Gaussian American-put price-dataset recipe.
-#include "model/equity/markovian/normal_inverse_gaussian/american_option.cuh"
+#include "model/equity/markovian/normal_inverse_gaussian/product/american_option.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 

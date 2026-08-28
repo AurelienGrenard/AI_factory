@@ -1,4 +1,4 @@
-// Exact Black-Scholes preparation and path simulation.
+// Included device definitions for exact Black-Scholes preparation and path simulation.
 #pragma once
 
 #include "model/equity/markovian/black_scholes/dynamics.cuh"

@@ -1,4 +1,4 @@
-// Generated model-only Black-Scholes sample launchers.
+// Public generated Black-Scholes launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/black_scholes/parameters.hpp"

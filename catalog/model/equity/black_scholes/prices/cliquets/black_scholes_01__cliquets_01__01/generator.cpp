@@ -1,5 +1,5 @@
 // Generated Black-Scholes cliquets price-dataset recipe.
-#include "model/equity/markovian/black_scholes/cliquet.cuh"
+#include "model/equity/markovian/black_scholes/product/cliquet.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

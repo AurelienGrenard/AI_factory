@@ -1,5 +1,5 @@
 // Build Vasicek Bermudan-receiver-swaption prices with Longstaff-Schwartz.
-#include "model/fixed_income/vasicek/bermudan_swaption.cuh"
+#include "model/fixed_income/vasicek/product/bermudan_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 

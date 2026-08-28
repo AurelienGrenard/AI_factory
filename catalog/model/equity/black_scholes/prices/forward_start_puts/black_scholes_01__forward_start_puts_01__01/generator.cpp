@@ -1,5 +1,5 @@
 // Generated Black-Scholes forward-start-puts analytical price recipe.
-#include "model/equity/markovian/black_scholes/forward_start_option.cuh"
+#include "model/equity/markovian/black_scholes/product/forward_start_option.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

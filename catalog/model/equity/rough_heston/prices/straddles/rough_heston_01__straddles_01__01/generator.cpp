@@ -1,7 +1,7 @@
 // Generated Rough-Heston straddles N-factor price recipe.
-#include "model/equity/rough/rough_heston/straddle.cuh"
+#include "model/equity/rough/rough_heston/product/straddle.cuh"
 #include "model/equity/rough/rough_heston/dataset.hpp"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

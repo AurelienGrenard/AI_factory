@@ -480,7 +480,7 @@ def resolve_price_capability(
 
 
 EQUITY_EARLY_EXERCISE_UNITS = tuple(
-    f"{model.model}/american_option" for model in AMERICAN_RECIPE_SPECS
+    f"{model.model}/product/american_option" for model in AMERICAN_RECIPE_SPECS
 )
 EQUITY_SAMPLE_UNITS = tuple(
     f"{model.name}/sample"
@@ -509,7 +509,7 @@ def _fixed_income_units() -> tuple[str, ...]:
         for variant in variants:
             product = FIXED_INCOME_VARIANTS[variant]
             curve_path = f"{curve}/" if curve is not None else ""
-            units.add(f"{model}/{curve_path}{product}")
+            units.add(f"{model}/product/{curve_path}{product}")
     return tuple(sorted(units))
 
 

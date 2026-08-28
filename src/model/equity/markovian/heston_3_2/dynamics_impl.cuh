@@ -1,3 +1,4 @@
+// Device transition definitions for the Heston 3/2 dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/heston_3_2/dynamics.cuh"

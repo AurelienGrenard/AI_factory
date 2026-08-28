@@ -1,4 +1,4 @@
-// Generated model-only CIR sample launchers.
+// Public generated CIR launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/fixed_income/cir/parameters.hpp"

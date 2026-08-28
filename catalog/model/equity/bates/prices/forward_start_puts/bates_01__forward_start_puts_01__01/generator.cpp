@@ -1,5 +1,5 @@
 // Generated Bates forward-start-puts price-dataset recipe.
-#include "model/equity/markovian/bates/forward_start_option.cuh"
+#include "model/equity/markovian/bates/product/forward_start_option.cuh"
 #include "model/equity/markovian/bates/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

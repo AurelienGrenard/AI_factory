@@ -1,5 +1,5 @@
 // Build G2 Bermudan-receiver-swaption prices with Longstaff-Schwartz.
-#include "model/fixed_income/g2/bermudan_swaption.cuh"
+#include "model/fixed_income/g2/product/bermudan_swaption.cuh"
 #include "model/fixed_income/g2/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 

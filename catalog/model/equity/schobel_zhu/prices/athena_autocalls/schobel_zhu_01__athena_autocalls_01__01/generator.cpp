@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu athena-autocalls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/athena_autocall.cuh"
+#include "model/equity/markovian/schobel_zhu/product/athena_autocall.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

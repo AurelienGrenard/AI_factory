@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu forward-start-calls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/forward_start_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/forward_start_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

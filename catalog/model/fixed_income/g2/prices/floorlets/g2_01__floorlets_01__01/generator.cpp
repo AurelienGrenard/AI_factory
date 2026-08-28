@@ -1,6 +1,6 @@
 // Build one G2 floorlet price dataset.
 #include "model/fixed_income/g2/dataset.hpp"
-#include "model/fixed_income/g2/rate_option.cuh"
+#include "model/fixed_income/g2/product/rate_option.cuh"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

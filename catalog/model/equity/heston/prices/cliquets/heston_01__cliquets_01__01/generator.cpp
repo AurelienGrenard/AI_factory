@@ -1,5 +1,5 @@
 // Generated Heston cliquets price-dataset recipe.
-#include "model/equity/markovian/heston/cliquet.cuh"
+#include "model/equity/markovian/heston/product/cliquet.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

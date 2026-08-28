@@ -1,5 +1,5 @@
 // Generated Variance-Gamma asian-calls price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/asian_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/asian_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

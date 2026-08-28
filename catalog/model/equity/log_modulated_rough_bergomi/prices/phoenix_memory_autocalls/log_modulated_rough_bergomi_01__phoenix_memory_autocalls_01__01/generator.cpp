@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi phoenix-memory-autocalls Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/phoenix_memory_autocall.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/phoenix_memory_autocall.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/phoenix_memory_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

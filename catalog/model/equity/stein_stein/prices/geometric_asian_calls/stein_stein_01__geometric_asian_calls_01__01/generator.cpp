@@ -1,5 +1,5 @@
 // Generated Stein-Stein geometric-asian-calls price-dataset recipe.
-#include "model/equity/markovian/stein_stein/geometric_asian_option.cuh"
+#include "model/equity/markovian/stein_stein/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

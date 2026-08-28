@@ -1,5 +1,5 @@
 // Generated Black-Scholes athena-autocalls price-dataset recipe.
-#include "model/equity/markovian/black_scholes/athena_autocall.cuh"
+#include "model/equity/markovian/black_scholes/product/athena_autocall.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

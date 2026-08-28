@@ -1,3 +1,4 @@
+// Device transition definitions for the CEV dynamics policy and absorbing boundary.
 #pragma once
 
 #include "model/equity/markovian/cev/dynamics.cuh"

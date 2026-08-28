@@ -1,5 +1,5 @@
 // Generated CEV gap-puts price-dataset recipe.
-#include "model/equity/markovian/cev/gap_option.cuh"
+#include "model/equity/markovian/cev/product/gap_option.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/gap_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

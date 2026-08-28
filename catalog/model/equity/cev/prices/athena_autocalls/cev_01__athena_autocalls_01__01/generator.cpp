@@ -1,5 +1,5 @@
 // Generated CEV athena-autocalls price-dataset recipe.
-#include "model/equity/markovian/cev/athena_autocall.cuh"
+#include "model/equity/markovian/cev/product/athena_autocall.cuh"
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

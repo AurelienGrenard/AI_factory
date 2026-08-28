@@ -93,4 +93,4 @@ forbidden.
 Related navigation: [curve catalog](../../../catalog/curve/svensson/),
 [Hull–White consumer](../../model/fixed_income/hull_white/),
 [G2++ consumer](../../model/fixed_income/g2_plus_plus/), and
-[pricing contract](../../../docs/cuda-closed-form-and-monte-carlo-pricing-contract.md).
+[pricing contract](../../../docs/cuda/closed-form-and-monte-carlo-pricing-contract.md).

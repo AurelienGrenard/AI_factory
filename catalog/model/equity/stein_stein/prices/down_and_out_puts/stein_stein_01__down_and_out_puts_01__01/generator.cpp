@@ -1,5 +1,5 @@
 // Generated Stein-Stein down-and-out-puts price-dataset recipe.
-#include "model/equity/markovian/stein_stein/down_and_out_option.cuh"
+#include "model/equity/markovian/stein_stein/product/down_and_out_option.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/down_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

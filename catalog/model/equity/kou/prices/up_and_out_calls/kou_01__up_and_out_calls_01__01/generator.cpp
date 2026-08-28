@@ -1,5 +1,5 @@
 // Generated Kou up-and-out-calls price-dataset recipe.
-#include "model/equity/markovian/kou/up_and_out_option.cuh"
+#include "model/equity/markovian/kou/product/up_and_out_option.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/up_and_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

@@ -1,5 +1,5 @@
 // Build one G2++ Nelson-Siegel floorlet price dataset.
-#include "model/fixed_income/g2_plus_plus/nelson_siegel/rate_option.cuh"
+#include "model/fixed_income/g2_plus_plus/product/nelson_siegel/rate_option.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/rate_option/dataset.hpp"

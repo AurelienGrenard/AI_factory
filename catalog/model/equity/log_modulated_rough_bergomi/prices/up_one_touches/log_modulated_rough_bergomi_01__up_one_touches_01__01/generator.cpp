@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi up-one-touches Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/up_one_touch.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/up_one_touch.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/up_one_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

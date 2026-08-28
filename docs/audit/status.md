@@ -8,6 +8,96 @@ resolus sont exclusivement dans `response.md`; les constats fermes sont dans
 `closed.md`. L'audit lent des references independantes reste dans
 `docs/validation/` et n'est pas inclus ici.
 
+## Snapshot du passage structure, naming et codegen version 4
+
+- **Date :** 2026-08-28.
+- **Referentiel :** `docs/audit/query.md`, version 4 du 2026-08-28, durci sur
+  la navigabilite de l'arborescence, les noms de fichiers et les en-tetes.
+- **Branche :** `refactor/model-layout-codegen-volterra`, empilee sur
+  `refactor/unify-cuda-model-contracts`.
+- **Revision de base :** `b85097e58edb1d038402230515786ecd5ce51b6d`.
+- **Portee :** passage partiel exhaustif sur les 1 031 fichiers C++/CUDA sous
+  `src/model` (832 bindings modele-produit et 199 fichiers
+  d'infrastructure), leurs references CMake/tests/catalogue/validation, et les
+  35 templates du codegen pricing/sampling/catalogue. La query Structure est
+  durcie pour les futurs passages sur le reste du depot, mais ce passage ne
+  recertifie pas tous les autres dossiers.
+- **Etat audite :** worktree deja sale et modifie concurremment. Le snapshot
+  initial exact de ce passage n'est pas reconstructible. Apres remediation et
+  hors les quatre registres `docs/audit/{query,response,status,closed}.md`,
+  l'etat contient 1 639 lignes porcelain apres detection des renommages.
+  Empreinte de cette liste :
+  `45e8936c0d42e006fc512e51c35ae64c7a0d2de06b9359f8ce6a1e6d705a5277`;
+  empreinte du diff binaire suivi :
+  `b9d273dcb8052d478d76334172decfd90ea6f5f6c337af1687d0f53fa324124a`.
+  Aucun fichier non suivi ne subsiste dans ce snapshot.
+- **Mutations :** oui. Les bindings modele-produit ont ete isoles, les noms
+  de helpers ambigus et les en-tetes d'infrastructure ont ete corriges, les
+  templates ont ete classes par artefact et engine, et un checker bloquant a
+  ete ajoute. Le constat fixed-income closed form `STRUCT-015` est seulement
+  documente et reste reporte.
+
+### Registre des preuves structure, naming et codegen
+
+- **E26 — Navigation modele et codegen.** Les 832 fichiers modele-produit
+  forment 416 paires `.cuh/.cu` exclusivement sous `product/`; aucun fichier
+  d'infrastructure n'y subsiste. Les 199 fichiers d'infrastructure hors
+  `product/` utilisent un vocabulaire de noms explicitement revu et commencent
+  par une phrase specifique; les paires publiques/`*_impl.cuh` distinguent
+  contrat et definitions. Les helpers rough portent maintenant
+  `volterra_fft_*` ou `markovian_n_factor_*`. Les 35 templates sont classes
+  sous `pricing/`, `sampling/` et `catalog/`, puis par engine, et les artefacts
+  C++ complets ne vivent plus en chaines multilignes dans `generate.py`.
+  `check_model_layout.py` couvre chemins, profondeur, ownership, noms,
+  en-tetes, paires et references obsoletes. La regeneration compare bit a bit
+  1 407 sorties; les quatre tests unitaires du manifeste, le checker des 689
+  recettes, la configuration CMake et les quatre CTests architecture/codegen
+  passent. Les builds representatifs precedemment compiles sur ce worktree
+  passent 84/84. Ce sous-passage n'execute aucune mesure de performance ni
+  nouveau test CUDA runtime; E27 consigne separement les executions GPU de la
+  remediation Volterra parallele.
+- **E27 — Contrats Gaussian-Volterra FFT.** Le vocabulaire de driver est
+  remplace atomiquement par `HybridKernelPolicy`, `PreparedKernel`,
+  `kernel_parameters`, `volterra_variance` et
+  `reconstruct_volterra_value`. `src/common/volterra/concepts.cuh` formalise
+  les contrats kernel/path et leur relation de types. Le moteur possede
+  `sqrt(dt)` dans son `PreparedRow` et traite `PreparedKernel` comme opaque;
+  equations, ordre numerique et mapping Philox restent inchanges. Les quatre
+  pricers europeens et quatre samplers compilent; cinq tests CUDA cibles
+  passent sur SM89. La verification finale execute aussi 35 tests Python
+  Volterra, la generation complete zero-diff, les quatre CTests
+  architecture/codegen et la recherche sans ancien symbole sous code,
+  codegen, tests, validation et CMake.
+
+### Matrice de couverture structure, naming et codegen
+
+| Axe | Statut | Couverture | Exclusions | Preuves |
+|---|---|---|---|---|
+| Structure et ownership de `src/model` | complet sur le perimetre | 1 031 fichiers, profondeur, paires produit, courbes fixed income, references et CMake | Autres arbres `src/common`, `src/product`, `tools` hors codegen | E26; fermeture `STRUCT-016` |
+| Naming et en-tetes de `src/model` | complet sur le perimetre | 199 fichiers hors `product/`, noms canoniques ou method-specific, phrase de contenu/utilite, distinction public/impl | Noms de symboles et variables non reaudites exhaustivement | E26; fermeture `NAME-011` |
+| Navigabilite du codegen | complet hors fixed income closed form | 35 templates classes par artefact/engine, renderer sans artefact complet inline, zero-diff 1 407 sorties | Templates fixed-income closed form reportes | E26; fermeture `STRUCT-017`; `STRUCT-015` |
+| Naming et frontieres des policies Volterra | complet | Kernel/path concepts, relation de types, `PreparedKernel` opaque, propagation pricing/sampling/modeles | Aucun benchmark de performance rejoue | E27; fermetures `NAME-100`, `POLICY-002` |
+
+### Exclusions du passage structure, naming et codegen
+
+- L'audit exhaustif des noms, en-tetes et profondeurs dans les autres arbres du
+  depot; la query durcie les exigera lors d'un passage complet ulterieur.
+- Les templates et recettes fixed-income closed form, reportes sous
+  `STRUCT-015`; aucun debut de remediation n'est revendique.
+- Les axes homogeneity, factorization, numerique, CUDA safety, performance et
+  validation independante non directement affectes.
+- Toute campagne de performance, conformement a l'indisponibilite actuelle de
+  la machine pour une mesure stable; aucun resultat SM89 ou autre GPU n'est
+  infere.
+
+### Comptabilite apres ce passage
+
+- **Ouverts : 3** — `STRUCT-015`, `NUM-007` et `PERF-010`.
+- **Fermes : 49** dans `closed.md`; `STRUCT-016`, `STRUCT-017` et `NAME-011`
+  y sont transferes apres remediation et preuves E26.
+- **Correction de code :** oui, limitee aux frontieres, noms, en-tetes,
+  codegen, references et gardes structurelles de ce passage.
+
 ## Snapshot du passage partiel version 4
 
 - **Date :** 2026-08-28.
@@ -125,7 +215,7 @@ resolus sont exclusivement dans `response.md`; les constats fermes sont dans
 
 ## Comptabilite des constats du passage version 4
 
-- **Ouverts : 2** — `NUM-007` et `PERF-010`.
+- **Ouverts : 3** — `STRUCT-015`, `NUM-007` et `PERF-010`.
 - **Fermes : 44** dans `closed.md`; `STRUCT-014`, `BUILD-002` et `PERF-015`
   quittent le registre apres remediation et preuves E25.
 - **Correction de code :** oui, dans la phase de remediation E25; le passage

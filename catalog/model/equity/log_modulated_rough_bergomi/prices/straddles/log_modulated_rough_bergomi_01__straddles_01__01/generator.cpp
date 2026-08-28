@@ -1,7 +1,7 @@
 // Generated Log-modulated rough-Bergomi straddles Volterra-FFT price recipe.
-#include "model/equity/rough/log_modulated_rough_bergomi/straddle.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/product/straddle.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
-#include "model/equity/rough/log_modulated_rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

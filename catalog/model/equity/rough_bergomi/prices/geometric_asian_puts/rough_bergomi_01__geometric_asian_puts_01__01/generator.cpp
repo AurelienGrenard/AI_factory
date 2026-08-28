@@ -1,7 +1,7 @@
 // Generated Rough-Bergomi geometric-asian-puts Volterra-FFT price recipe.
-#include "model/equity/rough/rough_bergomi/geometric_asian_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/geometric_asian_option.cuh"
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "model/equity/rough/rough_bergomi/pricing_workspace.cuh"
+#include "model/equity/rough/rough_bergomi/volterra_fft_workspace.cuh"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 

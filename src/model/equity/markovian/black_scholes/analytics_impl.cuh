@@ -1,4 +1,4 @@
-// Reusable closed-form analytics for the Black-Scholes model.
+// Included device definitions of the Black-Scholes closed-form analytics contract.
 #pragma once
 
 #include "model/equity/markovian/black_scholes/analytics.cuh"

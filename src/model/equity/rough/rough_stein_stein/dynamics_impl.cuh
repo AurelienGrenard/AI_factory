@@ -1,3 +1,4 @@
+// Device path-update definitions for the rough Stein--Stein Volterra dynamics.
 #pragma once
 
 #include "model/equity/rough/rough_stein_stein/dynamics.cuh"
@@ -6,9 +7,9 @@
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {
 
-__device__ __forceinline__ auto PathPolicy::driver_parameters(
+__device__ __forceinline__ auto PathPolicy::kernel_parameters(
     const Parameters& parameters
-) -> volterra::FractionalResolventHybridDriverPolicy::Parameters {
+) -> volterra::FractionalResolventHybridKernelPolicy::Parameters {
     return {parameters.hurst_exponent, parameters.mean_reversion};
 }
 
@@ -36,7 +37,7 @@ __device__ __forceinline__ PathPolicy::State PathPolicy::initial_state(
 
 __device__ __forceinline__ void PathPolicy::advance(
     const PreparedModel& model,
-    float driver_value,
+    float volterra_value,
     float,
     float rough_normal,
     float independent_spot_normal,
@@ -55,7 +56,7 @@ __device__ __forceinline__ void PathPolicy::advance(
             - 0.5f * volatility * volatility * model.time_step
     );
     state.volatility = model.volatility_level
-        + model.volatility_of_volatility * driver_value;
+        + model.volatility_of_volatility * volterra_value;
 }
 
 __device__ __forceinline__ float PathPolicy::spot(const State& state) {

@@ -68,9 +68,9 @@ __device__ __forceinline__ std::uint64_t maturity_days(
     }
 }
 
-template<typename DriverPolicy, typename PathPolicy>
+template<typename KernelPolicy, typename PathPolicy>
 struct PreparedParameter {
-    typename DriverPolicy::PreparedDriver driver;
+    typename KernelPolicy::PreparedKernel kernel;
     typename PathPolicy::PreparedModel model;
     philox::PhiloxKey dynamics_key;
     float sqrt_time_step;
@@ -106,11 +106,11 @@ __global__ void parameter_block_sample_kernel(
     SamplingSeeds seeds,
     typename Policy::Output output
 ) {
-    using Driver = typename Policy::Driver;
+    using Kernel = typename Policy::Kernel;
     using Path = typename Policy::Path;
     using Schedule = typename Policy::Schedule;
     using Observation = typename Policy::Observation;
-    using Row = PreparedParameter<Driver, Path>;
+    using Row = PreparedParameter<Kernel, Path>;
     using Complex = typename Forward::value_type;
     constexpr unsigned int ffts_per_block = Forward::ffts_per_block;
     constexpr std::size_t spectrum_bytes =
@@ -138,7 +138,7 @@ __global__ void parameter_block_sample_kernel(
     auto* const packed_outputs = reinterpret_cast<float2*>(
         shared_storage + spectrum_bytes
     );
-    auto* const driver_variances = reinterpret_cast<float*>(
+    auto* const volterra_variances = reinterpret_cast<float*>(
         shared_storage + spectrum_bytes + execution_bytes
     );
 
@@ -160,7 +160,10 @@ __global__ void parameter_block_sample_kernel(
                 parameter_source.load(parameter_index, seeds.parameters);
             constexpr float time_step = kSampleFixedStepDt;
             row = {
-                Driver::prepare(Path::driver_parameters(parameters), time_step),
+                Kernel::prepare(
+                    Path::kernel_parameters(parameters),
+                    time_step
+                ),
                 Path::prepare_model(parameters, time_step),
                 philox::make_key(seeds.dynamics + parameter_index),
                 sqrtf(time_step),
@@ -171,13 +174,13 @@ __global__ void parameter_block_sample_kernel(
         for (std::uint32_t step = flat_thread;
              step < maximum_step_count;
              step += threads_per_block) {
-            if constexpr (Path::kUsesDriverVariance) {
-                driver_variances[step] = Driver::variance(
-                    row.driver,
+            if constexpr (Path::kUsesVolterraVariance) {
+                volterra_variances[step] = Kernel::volterra_variance(
+                    row.kernel,
                     static_cast<float>(step + 1U) * kSampleFixedStepDt
                 );
             } else {
-                driver_variances[step] = 0.0f;
+                volterra_variances[step] = 0.0f;
             }
         }
 
@@ -191,8 +194,8 @@ __global__ void parameter_block_sample_kernel(
                     item * Forward::stride + threadIdx.x;
                 float weight = 0.0f;
                 if (index + 1U < maximum_step_count) {
-                    weight = Driver::far_cell_weight(
-                        row.driver,
+                    weight = Kernel::far_cell_weight(
+                        row.kernel,
                         index + 2U
                     );
                 }
@@ -382,16 +385,17 @@ __global__ void parameter_block_sample_kernel(
                                     ? packed.x
                                     : packed.y;
                             }
-                            const float driver_value = Driver::value(
-                                row.driver,
-                                far_convolution,
-                                rough_normal,
-                                singular_normal
-                            );
+                            const float volterra_value =
+                                Kernel::reconstruct_volterra_value(
+                                    row.kernel,
+                                    far_convolution,
+                                    rough_normal,
+                                    singular_normal
+                                );
                             Path::advance(
                                 row.model,
-                                driver_value,
-                                driver_variances[step],
+                                volterra_value,
+                                volterra_variances[step],
                                 rough_normal,
                                 spot_normal,
                                 state

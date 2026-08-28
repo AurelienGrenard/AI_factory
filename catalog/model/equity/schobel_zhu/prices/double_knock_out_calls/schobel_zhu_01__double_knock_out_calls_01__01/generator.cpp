@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu double-knock-out-calls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/double_knock_out_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/double_knock_out_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/double_knock_out_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

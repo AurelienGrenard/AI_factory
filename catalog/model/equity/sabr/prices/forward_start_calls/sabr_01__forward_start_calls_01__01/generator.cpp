@@ -1,5 +1,5 @@
 // Generated SABR forward-start-calls price-dataset recipe.
-#include "model/equity/markovian/sabr/forward_start_option.cuh"
+#include "model/equity/markovian/sabr/product/forward_start_option.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/forward_start_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

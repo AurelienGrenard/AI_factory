@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu phoenix-memory-autocalls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/phoenix_memory_autocall.cuh"
+#include "model/equity/markovian/schobel_zhu/product/phoenix_memory_autocall.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/phoenix_memory_autocall/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

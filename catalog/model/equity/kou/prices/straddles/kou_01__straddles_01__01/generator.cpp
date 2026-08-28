@@ -1,5 +1,5 @@
 // Generated Kou straddles price-dataset recipe.
-#include "model/equity/markovian/kou/straddle.cuh"
+#include "model/equity/markovian/kou/product/straddle.cuh"
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "product/straddle/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

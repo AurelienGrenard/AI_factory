@@ -1,5 +1,5 @@
 // Generated SABR european-calls price-dataset recipe.
-#include "model/equity/markovian/sabr/european_option.cuh"
+#include "model/equity/markovian/sabr/product/european_option.cuh"
 #include "model/equity/markovian/sabr/dataset.hpp"
 #include "product/european_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

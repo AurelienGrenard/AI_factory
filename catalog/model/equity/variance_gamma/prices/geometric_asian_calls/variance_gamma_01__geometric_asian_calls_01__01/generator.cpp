@@ -1,5 +1,5 @@
 // Generated Variance-Gamma geometric-asian-calls price-dataset recipe.
-#include "model/equity/markovian/variance_gamma/geometric_asian_option.cuh"
+#include "model/equity/markovian/variance_gamma/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

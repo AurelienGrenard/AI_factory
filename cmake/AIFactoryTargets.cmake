@@ -119,7 +119,10 @@ endforeach()
 # the loaders that its generators need; changing another model or product does
 # not enter its dependency graph.
 function(ai_factory_add_cuda_unit domain unit_path)
-    string(REPLACE "/" "_" unit_id "${unit_path}")
+    # `product/` is a physical ownership boundary, not part of the stable
+    # target identifier exposed to existing build consumers.
+    string(REPLACE "/product/" "/" logical_unit_path "${unit_path}")
+    string(REPLACE "/" "_" unit_id "${logical_unit_path}")
     set(target ai_factory_${domain}_${unit_id})
     string(REGEX REPLACE "^([^/]+).*$" "\\1" model "${unit_path}")
     if(domain STREQUAL "equity")
@@ -143,7 +146,7 @@ function(ai_factory_add_cuda_unit domain unit_path)
     if(TARGET ai_factory_product_${product}_dataset)
         list(APPEND dependencies ai_factory_product_${product}_dataset)
     endif()
-    if(unit_path MATCHES "^[^/]+/(nelson_siegel|svensson)/")
+    if(unit_path MATCHES "^[^/]+/product/(nelson_siegel|svensson)/")
         list(APPEND dependencies
             ai_factory_curve_${CMAKE_MATCH_1}_dataset
         )
@@ -182,7 +185,7 @@ endforeach()
 # Black--Scholes American pricing is the exact-transition one-factor control
 # used by tests and performance baselines. It has no catalogue recipe, so it
 # is deliberately registered outside the generated recipe capability matrix.
-ai_factory_add_cuda_unit(equity black_scholes/american_option)
+ai_factory_add_cuda_unit(equity black_scholes/product/american_option)
 
 if(AI_FACTORY_MATHDX_ROOT)
     if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
@@ -259,7 +262,8 @@ if(AI_FACTORY_MATHDX_ROOT)
     set(_ai_factory_rough_fft_targets)
     foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS)
         ai_factory_add_cuda_unit(equity ${unit_path})
-        string(REPLACE "/" "_" unit_id "${unit_path}")
+        string(REPLACE "/product/" "/" logical_unit_path "${unit_path}")
+        string(REPLACE "/" "_" unit_id "${logical_unit_path}")
         list(APPEND _ai_factory_rough_fft_targets
             ai_factory_equity_${unit_id}
         )
@@ -343,6 +347,7 @@ function(ai_factory_collect_source_dependencies output source)
             header_path
             "${header_path}"
         )
+        string(REPLACE "/product/" "/" header_path "${header_path}")
         string(REGEX REPLACE "^model/" "" target_path "${header_path}")
         string(REPLACE "/" "_" target_id "${target_path}")
         set(candidate ai_factory_${target_id})

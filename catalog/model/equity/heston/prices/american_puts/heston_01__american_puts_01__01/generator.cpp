@@ -1,5 +1,5 @@
 // Generated Heston American-put price-dataset recipe.
-#include "model/equity/markovian/heston/american_option.cuh"
+#include "model/equity/markovian/heston/product/american_option.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 

@@ -1,5 +1,5 @@
 // Generated Schobel-Zhu geometric-asian-calls price-dataset recipe.
-#include "model/equity/markovian/schobel_zhu/geometric_asian_option.cuh"
+#include "model/equity/markovian/schobel_zhu/product/geometric_asian_option.cuh"
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "product/geometric_asian_option/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"

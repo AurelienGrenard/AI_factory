@@ -1,6 +1,6 @@
 // Build one G2 zero-coupon bond call price dataset.
 #include "model/fixed_income/g2/dataset.hpp"
-#include "model/fixed_income/g2/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/g2/product/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"

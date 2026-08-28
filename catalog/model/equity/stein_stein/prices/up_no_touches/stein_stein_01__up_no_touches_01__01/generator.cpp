@@ -1,5 +1,5 @@
 // Generated Stein-Stein up-no-touches price-dataset recipe.
-#include "model/equity/markovian/stein_stein/up_no_touch.cuh"
+#include "model/equity/markovian/stein_stein/product/up_no_touch.cuh"
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 #include "product/up_no_touch/dataset.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
