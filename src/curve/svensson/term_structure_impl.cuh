@@ -22,10 +22,10 @@ __device__ __forceinline__ float level_loading(float x) {
 // Evaluate the standard continuously compounded zero curve.
 __device__ __forceinline__ float zero_rate(
     const SvenssonParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    const float x1 = maturity / parameters.tau1;
-    const float x2 = maturity / parameters.tau2;
+    const float x1 = maturity_years / parameters.tau1;
+    const float x2 = maturity_years / parameters.tau2;
     const float decay1 = expf(-x1);
     const float decay2 = expf(-x2);
     const float loading1 = level_loading(x1);
@@ -39,23 +39,23 @@ __device__ __forceinline__ float zero_rate(
 // Evaluate log P(0,T) directly for stable discount-ratio calculations.
 __device__ __forceinline__ float log_discount_factor(
     const SvenssonParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    return -maturity * zero_rate(parameters, maturity);
+    return -maturity_years * zero_rate(parameters, maturity_years);
 }
 
 // Convert the zero rate into its continuously compounded discount factor.
 __device__ __forceinline__ float discount_factor(
     const SvenssonParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    return expf(log_discount_factor(parameters, maturity));
+    return expf(log_discount_factor(parameters, maturity_years));
 }
 
 // Evaluate the analytical instantaneous forward implied by Svensson.
 __device__ __forceinline__ float instantaneous_forward(
     const SvenssonParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
     return instantaneous_forward_formula(
         parameters.beta0,
@@ -64,17 +64,17 @@ __device__ __forceinline__ float instantaneous_forward(
         parameters.beta3,
         parameters.tau1,
         parameters.tau2,
-        maturity
+        maturity_years
     );
 }
 
-// Differentiate the analytical instantaneous forward with respect to time.
+// Differentiate the analytical instantaneous forward with respect to time_years.
 __device__ __forceinline__ float forward_derivative(
     const SvenssonParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    const float x1 = maturity / parameters.tau1;
-    const float x2 = maturity / parameters.tau2;
+    const float x1 = maturity_years / parameters.tau1;
+    const float x2 = maturity_years / parameters.tau2;
     const float first_component = expf(-x1)
         * (-parameters.beta1 + parameters.beta2 * (1.0f - x1))
         / parameters.tau1;
@@ -86,13 +86,13 @@ __device__ __forceinline__ float forward_derivative(
 // Derive one finite-period forward directly from two log-discount factors.
 __device__ __forceinline__ float forward_rate(
     const SvenssonParameters& parameters,
-    float start,
-    float end
+    float start_years,
+    float end_years
 ) {
     return (
-        log_discount_factor(parameters, start)
-        - log_discount_factor(parameters, end)
-    ) / (end - start);
+        log_discount_factor(parameters, start_years)
+        - log_discount_factor(parameters, end_years)
+    ) / (end_years - start_years);
 }
 
 }  // namespace ai_factory::workbench::curve::svensson

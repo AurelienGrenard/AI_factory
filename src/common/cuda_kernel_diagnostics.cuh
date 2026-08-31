@@ -15,6 +15,7 @@ namespace ai_factory::workbench {
 
 // Resources and theoretical occupancy for one kernel and launch geometry.
 struct CudaKernelLaunchDiagnostics {
+    std::string compiled_symbol;
     int device_index;
     std::string device_name;
     int compute_capability_major;
@@ -85,6 +86,16 @@ CudaKernelLaunchDiagnostics inspect_cuda_kernel_launch(
         cudaFuncGetAttributes(&attributes, kernel),
         "cudaFuncGetAttributes for kernel diagnostics"
     );
+    const char* compiled_symbol = nullptr;
+    check_cuda(
+        cudaFuncGetName(&compiled_symbol, kernel),
+        "cudaFuncGetName for kernel diagnostics"
+    );
+    if (compiled_symbol == nullptr || compiled_symbol[0] == '\0') {
+        throw std::runtime_error(
+            "CUDA kernel diagnostics require a compiled symbol name."
+        );
+    }
 
     int active_blocks = 0;
     check_cuda(
@@ -122,6 +133,7 @@ CudaKernelLaunchDiagnostics inspect_cuda_kernel_launch(
         * static_cast<std::uint64_t>(grid.z);
 
     return {
+        compiled_symbol,
         device_index,
         properties.name,
         properties.major,

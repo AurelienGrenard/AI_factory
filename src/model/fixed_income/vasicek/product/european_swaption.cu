@@ -1,4 +1,4 @@
-// Closed-form European swaptions under the Vasicek short rate.
+// Generated Closed-form European swaptions under the Vasicek short rate.
 #include "model/fixed_income/vasicek/product/european_swaption.cuh"
 
 #include "product/european_swaption/pricing_policy.cuh"

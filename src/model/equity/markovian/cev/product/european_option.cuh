@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_cev_european_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::EuropeanOptionParameters* host_products,
     const product::EuropeanOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

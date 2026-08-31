@@ -31,7 +31,7 @@ model_dataset:
   url: "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/parameters/vasicek_01.json"
 product_dataset:
   id: "zero_coupon_bond_options_01"
-  catalog: "catalog/product/fixed_income/zero_coupon_bond_options/zero_coupon_bond_options_01"
+  catalog: "catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01"
   url: "https://datasets.ai-factory.example/v1/product/zero_coupon_bond_options/zero_coupon_bond_options_01.json"
 price_construction:
   method: "Aligned"

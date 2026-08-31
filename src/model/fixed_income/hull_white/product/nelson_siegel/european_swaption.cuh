@@ -1,4 +1,4 @@
-// Public launcher for Hull-White Nelson-Siegel European swaptions.
+// Generated Public launcher for Hull-White Nelson-Siegel European swaptions.
 #pragma once
 
 #include "common/price_construction.cuh"

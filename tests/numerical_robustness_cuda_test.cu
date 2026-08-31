@@ -114,8 +114,8 @@ struct NumericalResults {
     double fp64_prediction;
     float fp64_exercise_cashflow;
     float narrowed_exercise_cashflow;
-    double nelson_siegel_forward;
-    double svensson_forward;
+    float nelson_siegel_forward;
+    float svensson_forward;
     float stationary_volatility;
     schobel_zhu::PreparedModel small_mean_reversion_model;
     schobel_zhu::PreparedModel schobel_zhu_grid[kSchobelZhuGridSize];
@@ -249,12 +249,12 @@ __global__ void exercise_numerical_robustness_kernel(
         static_cast<double>(static_cast<float>(boundary_prediction)),
         0.25f
     );
-    const double nelson_siegel_forward =
+    const float nelson_siegel_forward =
         nelson_siegel::instantaneous_forward_formula(
-            0.02, -0.01, 0.03, 1.25
+            0.02f, -0.01f, 0.03f, 1.25f
         );
-    const double svensson_forward = svensson::instantaneous_forward_formula(
-        0.02, -0.01, 0.03, 0.015, 1.5, 4.0, 2.25
+    const float svensson_forward = svensson::instantaneous_forward_formula(
+        0.02f, -0.01f, 0.03f, 0.015f, 1.5f, 4.0f, 2.25f
     );
     const float stationary_volatility =
         mean_reverting_gaussian::volatility_from_stationary_deviation(
@@ -525,21 +525,42 @@ int main() {
         std::fabs(
             results.nelson_siegel_forward
             - nelson_siegel::instantaneous_forward_formula(
-                0.02, -0.01, 0.03, 1.25
+                0.02f, -0.01f, 0.03f, 1.25f
             )
-        ) < 1.0e-14
+        ) < 1.0e-7f
             && std::fabs(
                 results.svensson_forward
                 - svensson::instantaneous_forward_formula(
-                    0.02, -0.01, 0.03, 0.015, 1.5, 4.0, 2.25
+                    0.02f, -0.01f, 0.03f, 0.015f, 1.5f, 4.0f, 2.25f
                 )
-            ) < 1.0e-14
+            ) < 1.0e-7f
             && std::fabs(
                 results.stationary_volatility
                 - mean_reverting_gaussian::
                     volatility_from_stationary_deviation(0.025f, 0.7f)
             ) < 1.0e-7f,
-        "Host and device canonical fixed-income formulas disagree."
+        "Host and device FP32 fixed-income formulas disagree."
+    );
+    const long double nelson_siegel_reference = 0.02L
+        + std::exp(-1.25L) * (-0.01L + 0.03L * 1.25L);
+    const long double svensson_x1 = 2.25L / 1.5L;
+    const long double svensson_x2 = 2.25L / 4.0L;
+    const long double svensson_reference = 0.02L
+        + std::exp(-svensson_x1)
+            * (-0.01L + 0.03L * svensson_x1)
+        + 0.015L * svensson_x2 * std::exp(-svensson_x2);
+    require(
+        std::fabs(
+            nelson_siegel::instantaneous_forward_formula(
+                0.02, -0.01, 0.03, 1.25
+            ) - static_cast<double>(nelson_siegel_reference)
+        ) < 1.0e-15
+            && std::fabs(
+                svensson::instantaneous_forward_formula(
+                    0.02, -0.01, 0.03, 0.015, 1.5, 4.0, 2.25
+                ) - static_cast<double>(svensson_reference)
+            ) < 1.0e-15,
+        "Host FP64 fixed-income formulas disagree with long double."
     );
     require(
         std::isfinite(

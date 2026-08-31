@@ -88,6 +88,7 @@ void emit_cuda_kernel_launch_diagnostics(
         {"type", "cuda_kernel_launch_diagnostics"},
         {"kernel", kernel_name},
         {"variant", variant},
+        {"compiled_symbol", diagnostics.compiled_symbol},
         {"device", {
             {"index", diagnostics.device_index},
             {"name", diagnostics.device_name},

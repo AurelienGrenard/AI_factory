@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_heston_asian_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::AsianOptionParameters* host_products,
     const product::AsianOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

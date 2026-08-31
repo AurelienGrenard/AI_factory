@@ -1,4 +1,4 @@
-// Generate Vasicek European payer-swaption prices.
+// Generated Generate Vasicek European payer-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/product/european_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
@@ -14,7 +14,7 @@ int main() {
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/fixed_income/european_swaptions/"
+        "datasets/product/european_swaption/"
         "european_swaptions_01.json";
     datasets::generate_regular_european_swaption_prices(
         model_path,

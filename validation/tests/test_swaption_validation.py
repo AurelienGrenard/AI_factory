@@ -56,7 +56,7 @@ class SwaptionValidationTest(unittest.TestCase):
         )["000001"]
         product = load_parameter_rows(
             ROOT
-            / "datasets/product/fixed_income/european_swaptions/"
+            / "datasets/product/european_swaption/"
             "european_swaptions_01.json",
             "products",
         )["000001"]

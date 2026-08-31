@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_black_scholes_double_knock_out_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::DoubleKnockOutOptionParameters* host_products,
     const product::DoubleKnockOutOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

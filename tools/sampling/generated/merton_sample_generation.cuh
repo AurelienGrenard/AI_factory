@@ -63,9 +63,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Merton",
-        "datasets/model/equity/merton/samples/" + id + ".json",
-        "catalog/model/equity/merton/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/merton/samples/" + id + ".json",
+        "datasets/model/equity/markovian/merton/samples/" + id + ".json",
+        "catalog/model/equity/markovian/merton/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -84,7 +84,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"jump_log_mean", {-0.2f, 0.08f}},
                 {"jump_log_volatility", {0.03f, 0.3f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

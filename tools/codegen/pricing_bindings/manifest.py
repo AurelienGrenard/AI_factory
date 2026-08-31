@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from sample_manifest import SAMPLE_MODELS
+
 
 @dataclass(frozen=True)
 class Binding:
@@ -22,6 +24,9 @@ class RoughProductBinding:
     path_policy: str
     schedule_kind: str
     sided: bool = True
+    observation_coordinate: str = "spot"
+    exercise_contract: str = "none"
+    required_capabilities: tuple[str, ...] = ("spot",)
 
 
 @dataclass(frozen=True)
@@ -107,7 +112,9 @@ ROUGH_PRODUCT_BINDINGS = (
     ),
     RoughProductBinding(
         "geometric_asian_option", "GeometricAsianOption",
-        "GeometricAsianOptionPathPolicy", "dense"
+        "GeometricAsianOptionPathPolicy", "dense",
+        observation_coordinate="log_spot",
+        required_capabilities=("log_spot",),
     ),
     RoughProductBinding(
         "lookback_option", "LookbackOption", "LookbackOptionPathPolicy",
@@ -123,7 +130,8 @@ ROUGH_PRODUCT_BINDINGS = (
     ),
     RoughProductBinding(
         "range_accrual", "RangeAccrual", "RangeAccrualPathPolicy",
-        "regular", False
+        "regular", False, observation_coordinate="log_spot",
+        required_capabilities=("log_spot",),
     ),
     RoughProductBinding(
         "straddle", "Straddle", "StraddlePathPolicy", "terminal", False
@@ -146,33 +154,55 @@ ROUGH_PRODUCT_BINDINGS = (
 )
 
 
+# The 24 model contracts, including sample laws, live in SAMPLE_MODELS.  Every
+# pricing view below is derived from those same entries, so model identity,
+# family and transition kind cannot drift between pricing and sampling.
+def derive_model_recipe_specs(models) -> tuple[ModelRecipeSpec, ...]:
+    return tuple(
+        ModelRecipeSpec(
+            model.name,
+            model.display,
+            model.backend,
+            model.pricing_numerical_method,
+            model.legacy_url_name,
+            model.threads_per_block,
+        )
+        for model in models
+        if model.asset_class == "equity"
+    )
+
+
+def validate_derived_model_recipe_specs(models, recipes) -> None:
+    if tuple(recipes) != derive_model_recipe_specs(models):
+        raise ValueError(
+            "pricing model view diverges from the canonical model contracts"
+        )
+
+
+MODEL_RECIPE_SPECS = derive_model_recipe_specs(SAMPLE_MODELS)
+validate_derived_model_recipe_specs(SAMPLE_MODELS, MODEL_RECIPE_SPECS)
+
 # Schedule selection is product metadata crossed with a model's numerical
-# contract.  Dense monitoring always uses fixed steps, including for models
+# contract. Dense monitoring always uses fixed steps, including for models
 # that also expose exact finite-horizon transitions.
-MARKOVIAN_MODELS = (
-    ("bates", "Bates", "fixed"),
-    ("cev", "CEV", "fixed"),
-    ("heston", "Heston", "fixed"),
-    ("heston_3_2", "Heston 3/2", "fixed"),
-    ("kou", "Kou", "exact"),
-    ("merton", "Merton", "exact"),
-    ("normal_inverse_gaussian", "Normal-Inverse-Gaussian", "exact"),
-    ("sabr", "SABR", "fixed"),
-    ("schobel_zhu", "Schobel-Zhu", "fixed"),
-    ("stein_stein", "Stein-Stein", "fixed"),
-    ("variance_gamma", "Variance-Gamma", "exact"),
+MARKOVIAN_MODELS = tuple(
+    (model.name, model.display, model.time_kind)
+    for model in SAMPLE_MODELS
+    if model.asset_class == "equity"
+    and model.backend == "markovian"
+    and model.name != "black_scholes"
 )
 
-ROUGH_VOLTERRA_MODELS = (
-    ("rough_bergomi", "Rough-Bergomi"),
-    ("rough_sabr", "Rough-SABR"),
-    ("log_modulated_rough_bergomi", "Log-modulated rough-Bergomi"),
-    ("rough_stein_stein", "Rough Stein-Stein"),
+ROUGH_VOLTERRA_MODELS = tuple(
+    (model.name, model.display)
+    for model in SAMPLE_MODELS
+    if model.asset_class == "equity" and model.backend == "volterra"
 )
 
-ROUGH_N_FACTOR_MODELS = (
-    ("rough_heston", "Rough-Heston"),
-    ("quadratic_rough_heston", "Quadratic rough-Heston"),
+ROUGH_N_FACTOR_MODELS = tuple(
+    (model.name, model.display)
+    for model in SAMPLE_MODELS
+    if model.asset_class == "equity" and model.backend == "n_factor"
 )
 
 ROUGH_MODELS = ROUGH_VOLTERRA_MODELS + ROUGH_N_FACTOR_MODELS
@@ -399,78 +429,6 @@ PRICE_VARIANTS = (
 )
 
 
-MODEL_RECIPE_SPECS = (
-    ModelRecipeSpec(
-        "bates", "Bates", "markovian",
-        "Andersen QE-M with compound-Poisson lognormal jumps", "Bates"
-    ),
-    ModelRecipeSpec(
-        "black_scholes", "Black-Scholes", "markovian",
-        "Exact Gaussian log-price transitions", "BlackScholes"
-    ),
-    ModelRecipeSpec(
-        "cev", "CEV", "markovian", "absorbed Milstein", "CEV"
-    ),
-    ModelRecipeSpec(
-        "heston", "Heston", "markovian", "Andersen QE-M", "Heston"
-    ),
-    ModelRecipeSpec(
-        "heston_3_2", "Heston 3/2", "markovian",
-        "full-truncation Euler 3/2 variance"
-    ),
-    ModelRecipeSpec(
-        "kou", "Kou", "markovian", "Exact Kou increments", "Kou"
-    ),
-    ModelRecipeSpec(
-        "merton", "Merton", "markovian", "Exact Merton increments",
-        "Merton"
-    ),
-    ModelRecipeSpec(
-        "normal_inverse_gaussian", "Normal-Inverse-Gaussian", "markovian",
-        "Exact inverse-Gaussian subordination", "NormalInverseGaussian"
-    ),
-    ModelRecipeSpec(
-        "sabr", "SABR", "markovian", "Lamperti SABR Euler"
-    ),
-    ModelRecipeSpec(
-        "schobel_zhu", "Schobel-Zhu", "markovian",
-        "exact OU factor with log-spot Euler", "SchobelZhu"
-    ),
-    ModelRecipeSpec(
-        "stein_stein", "Stein-Stein", "markovian",
-        "exact OU volatility with log-spot Euler"
-    ),
-    ModelRecipeSpec(
-        "variance_gamma", "Variance-Gamma", "markovian",
-        "Exact Gamma subordination", "VarianceGamma"
-    ),
-    ModelRecipeSpec(
-        "rough_bergomi", "Rough-Bergomi", "volterra",
-        "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)"
-    ),
-    ModelRecipeSpec(
-        "rough_sabr", "Rough-SABR", "volterra",
-        "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot"
-    ),
-    ModelRecipeSpec(
-        "log_modulated_rough_bergomi", "Log-modulated rough-Bergomi",
-        "volterra", "log-modulated hybrid FFT (kappa=1)"
-    ),
-    ModelRecipeSpec(
-        "rough_stein_stein", "Rough Stein-Stein", "volterra",
-        "fractional-resolvent hybrid FFT"
-    ),
-    ModelRecipeSpec(
-        "rough_heston", "Rough-Heston", "n_factor",
-        "7-factor Markovian lift", threads_per_block=256
-    ),
-    ModelRecipeSpec(
-        "quadratic_rough_heston", "Quadratic rough-Heston", "n_factor",
-        "7-factor Markovian lift", threads_per_block=256
-    ),
-)
-
-
 AMERICAN_RECIPE_SPECS = (
     AmericanRecipeSpec(
         "bates",
@@ -487,6 +445,23 @@ AMERICAN_RECIPE_SPECS = (
             "variance / theta",
             "(variance / theta)^2",
             "L1(spot / strike) * variance / theta",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "cev",
+        "CEV",
+        "fixed",
+        "absorbed Milstein",
+        "Spot and log-moneyness six-term basis",
+        ("spot", "log_moneyness"),
+        ("spot / strike", "log(spot / strike)"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "log(spot / strike)",
+            "log(spot / strike)^2",
+            "L1(spot / strike) * log(spot / strike)",
         ),
     ),
     AmericanRecipeSpec(
@@ -507,6 +482,40 @@ AMERICAN_RECIPE_SPECS = (
         ),
     ),
     AmericanRecipeSpec(
+        "kou",
+        "Kou",
+        "exact",
+        "Exact Kou increments",
+        "Spot and log-moneyness six-term basis",
+        ("spot", "log_moneyness"),
+        ("spot / strike", "log(spot / strike)"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "log(spot / strike)",
+            "log(spot / strike)^2",
+            "L1(spot / strike) * log(spot / strike)",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "merton",
+        "Merton",
+        "exact",
+        "Exact Merton increments",
+        "Spot and log-moneyness six-term basis",
+        ("spot", "log_moneyness"),
+        ("spot / strike", "log(spot / strike)"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "log(spot / strike)",
+            "log(spot / strike)^2",
+            "L1(spot / strike) * log(spot / strike)",
+        ),
+    ),
+    AmericanRecipeSpec(
         "normal_inverse_gaussian",
         "Normal-Inverse-Gaussian",
         "exact",
@@ -521,6 +530,23 @@ AMERICAN_RECIPE_SPECS = (
             "log(spot / strike)",
             "log(spot / strike)^2",
             "L1(spot / strike) * log(spot / strike)",
+        ),
+    ),
+    AmericanRecipeSpec(
+        "schobel_zhu",
+        "Schobel-Zhu",
+        "fixed",
+        "exact OU factor with log-spot Euler",
+        "Two-factor Laguerre degree 2",
+        ("spot", "volatility"),
+        ("spot / strike", "volatility / long_run_volatility"),
+        (
+            "1",
+            "L1(spot / strike)",
+            "L2(spot / strike)",
+            "volatility / long_run_volatility",
+            "(volatility / long_run_volatility)^2",
+            "L1(spot / strike) * volatility / long_run_volatility",
         ),
     ),
     AmericanRecipeSpec(

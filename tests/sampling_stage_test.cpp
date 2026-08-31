@@ -1,3 +1,4 @@
+// Verify deterministic uniform and Cartesian row sampling for dataset generators.
 #include "tools/datasets/sampling.hpp"
 
 #include <stdexcept>

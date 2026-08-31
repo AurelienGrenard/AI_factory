@@ -1,4 +1,4 @@
-// Closed-form rate-option composition under the OU short-rate model.
+// Generated Closed-form rate-option composition under the Ornstein-Uhlenbeck short-rate model.
 #include "model/fixed_income/ornstein_uhlenbeck/product/rate_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"
@@ -57,7 +57,7 @@ void launch_ornstein_uhlenbeck_rate_option_cuda(
         device_prices,
         "ornstein_uhlenbeck.rate_option",
         option_side_name(Side),
-        "OU rate_option kernel"
+        "Ornstein-Uhlenbeck rate_option kernel"
     );
 }
 

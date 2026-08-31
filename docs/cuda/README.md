@@ -31,5 +31,5 @@ superieur, car leur responsabilite ne se limite pas a CUDA.
 
 - [`rtx4090-laptop-memory-map.ipynb`](rtx4090-laptop-memory-map.ipynb) : carte
   courte des limites CUDA du GPU SM89 de reference.
-- [`../../validation/performance/README.md`](../../validation/performance/README.md) :
+- [`../performance-regression-protocol.md`](../performance-regression-protocol.md) :
   protocole de benchmark, profils de tuning et baselines mesurees.

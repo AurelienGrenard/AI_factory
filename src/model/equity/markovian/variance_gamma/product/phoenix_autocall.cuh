@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::variance_gamma {
 void launch_variance_gamma_phoenix_autocall_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::PhoenixAutocallParameters* host_products,
     const product::PhoenixAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

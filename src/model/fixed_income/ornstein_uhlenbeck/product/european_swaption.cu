@@ -1,9 +1,8 @@
-// Closed-form European swaptions under the Ornstein-Uhlenbeck short rate.
+// Generated Closed-form European swaptions under the Ornstein-Uhlenbeck short rate.
 #include "model/fixed_income/ornstein_uhlenbeck/product/european_swaption.cuh"
 
 #include "product/european_swaption/pricing_policy.cuh"
 
-// Include analytics so NVCC can inline the Jamshidian decomposition.
 #include "model/fixed_income/ornstein_uhlenbeck/analytics_impl.cuh"
 
 #include <cstddef>
@@ -89,34 +88,26 @@ void launch_ornstein_uhlenbeck_european_swaption_cuda(
     );
 }
 
-template void launch_ornstein_uhlenbeck_european_swaption_cuda<
-    SwaptionSide::payer
->(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::payer>(
     const ModelParameters*, std::size_t,
     const product::RegularEuropeanSwaptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-template void launch_ornstein_uhlenbeck_european_swaption_cuda<
-    SwaptionSide::receiver
->(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::receiver>(
     const ModelParameters*, std::size_t,
     const product::RegularEuropeanSwaptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-template void launch_ornstein_uhlenbeck_european_swaption_cuda<
-    SwaptionSide::payer
->(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::payer>(
     const ModelParameters*, std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
     const std::uint32_t*, const float*, std::size_t, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*, std::uint32_t
 );
-template void launch_ornstein_uhlenbeck_european_swaption_cuda<
-    SwaptionSide::receiver
->(
+template void launch_ornstein_uhlenbeck_european_swaption_cuda<SwaptionSide::receiver>(
     const ModelParameters*, std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
     const std::uint32_t*, const float*, std::size_t, std::size_t,

@@ -1,4 +1,4 @@
-// Closed-form G2++ zero-coupon-bond-option composition.
+// Generated Closed-form G2++ zero-coupon-bond-option composition.
 #include "model/fixed_income/g2_plus_plus/product/svensson/zero_coupon_bond_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"

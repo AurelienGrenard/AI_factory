@@ -22,6 +22,7 @@ template<OptionSide Side>
 void launch_schobel_zhu_gap_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::GapOptionParameters* host_products,
     const product::GapOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -49,6 +50,7 @@ void launch_schobel_zhu_gap_option_cuda(
             product_count,
             construction
         ),
+        {host_products, product_count, construction},
         result_count,
         result_offset,
         launch_result_count,
@@ -67,6 +69,7 @@ void launch_schobel_zhu_gap_option_cuda(
 
 template void launch_schobel_zhu_gap_option_cuda<OptionSide::call>(
     const ModelParameters*, std::size_t,
+    const product::GapOptionParameters*,
     const product::GapOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, std::uint64_t,
@@ -74,6 +77,7 @@ template void launch_schobel_zhu_gap_option_cuda<OptionSide::call>(
 );
 template void launch_schobel_zhu_gap_option_cuda<OptionSide::put>(
     const ModelParameters*, std::size_t,
+    const product::GapOptionParameters*,
     const product::GapOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, std::uint64_t,

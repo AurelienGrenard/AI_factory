@@ -1,4 +1,4 @@
-// Public launcher for G2++ Nelson-Siegel zero-coupon bond options.
+// Generated Public launcher for G2++ Nelson-Siegel zero-coupon bond options.
 #pragma once
 
 #include "common/price_construction.cuh"

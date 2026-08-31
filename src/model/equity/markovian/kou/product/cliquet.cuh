@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::kou {
 void launch_kou_cliquet_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::CliquetParameters* host_products,
     const product::CliquetParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

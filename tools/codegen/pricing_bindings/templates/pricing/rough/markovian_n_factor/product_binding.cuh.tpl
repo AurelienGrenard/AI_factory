@@ -16,6 +16,7 @@ namespace ai_factory::workbench::model::equity::{model} {{
     std::size_t model_count,
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const product::{product_type}Parameters* host_products,
     const product::{product_type}Parameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

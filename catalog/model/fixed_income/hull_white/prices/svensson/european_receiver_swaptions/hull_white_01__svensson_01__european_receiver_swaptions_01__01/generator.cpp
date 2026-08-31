@@ -1,4 +1,4 @@
-// Generate Hull-White/Svensson European receiver-swaption prices.
+// Generated Generate Hull-White/Svensson European receiver-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/hull_white/product/svensson/european_swaption.cuh"
 #include "curve/svensson/dataset.hpp"
@@ -12,21 +12,21 @@ int main() {
     using namespace ai_factory::workbench;
     namespace hw = model::fixed_income::hull_white;
     namespace fitted = hw::svensson;
-    namespace sv = curve::svensson;
+    namespace ns = curve::svensson;
 
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json";
     const std::filesystem::path curve_path =
         "datasets/curve/svensson/svensson_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/fixed_income/european_swaptions/"
+        "datasets/product/european_swaption/"
         "european_swaptions_01.json";
     datasets::generate_regular_european_swaption_prices(
         model_path,
         curve_path,
         product_path,
         hw::load_models(model_path),
-        sv::load_curves(curve_path),
+        ns::load_curves(curve_path),
         product::load_european_swaptions(product_path),
         [](auto... arguments) {
             fitted::launch_hull_white_svensson_european_swaption_cuda<

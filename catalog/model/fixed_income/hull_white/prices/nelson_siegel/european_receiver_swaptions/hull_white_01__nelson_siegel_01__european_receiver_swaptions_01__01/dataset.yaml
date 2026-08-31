@@ -36,7 +36,7 @@ curve_dataset:
   url: "https://datasets.ai-factory.example/v1/curve/nelson_siegel/nelson_siegel_01.json"
 product_dataset:
   id: "european_swaptions_01"
-  catalog: "catalog/product/fixed_income/european_swaptions/european_swaptions_01"
+  catalog: "catalog/product/european_swaption/european_swaptions_01"
   url: "https://datasets.ai-factory.example/v1/product/european_swaptions/european_swaptions_01.json"
 price_construction:
   method: "Aligned"

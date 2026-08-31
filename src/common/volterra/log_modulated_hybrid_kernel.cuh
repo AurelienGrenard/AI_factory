@@ -33,9 +33,9 @@ struct LogModulatedHybridKernelPolicy {
 
     __host__ __device__ static float modulation(
         const Parameters& parameters,
-        float time
+        float time_years
     ) {
-        const float logarithm = logf(1.0f / time);
+        const float logarithm = logf(1.0f / time_years);
         return powf(
             fmaxf(parameters.log_modulation_scale * logarithm, 1.0f),
             -parameters.log_modulation_power
@@ -44,10 +44,10 @@ struct LogModulatedHybridKernelPolicy {
 
     __host__ __device__ static float unnormalized_kernel(
         const Parameters& parameters,
-        float time
+        float time_years
     ) {
-        return powf(time, parameters.hurst_exponent - 0.5f)
-            * modulation(parameters, time);
+        return powf(time_years, parameters.hurst_exponent - 0.5f)
+            * modulation(parameters, time_years);
     }
 
     // Integrate K_unscaled^q from zero to upper.  The logarithmic change of
@@ -145,10 +145,10 @@ struct LogModulatedHybridKernelPolicy {
 
     __host__ __device__ static float volterra_variance(
         const PreparedKernel& kernel,
-        float time
+        float time_years
     ) {
         return kernel.normalization * kernel.normalization
-            * unnormalized_power_integral(kernel.parameters, time, 2.0f);
+            * unnormalized_power_integral(kernel.parameters, time_years, 2.0f);
     }
 
     __host__ __device__ static float reconstruct_volterra_value(

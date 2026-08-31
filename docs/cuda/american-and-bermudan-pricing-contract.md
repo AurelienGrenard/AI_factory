@@ -196,6 +196,39 @@ prix et l'erreur standard. Les générateurs appellent en plus
 `validate_regression_diagnostics` avant toute publication afin de rendre la
 cause et l'indice de la première ligne fautive immédiatement visibles.
 
+### Qualification de précision du régresseur
+
+`longstaff_schwartz_precision_cuda` qualifie séparément les trois zones FP64
+du régresseur à six features. Il doit être rejoué sur chaque architecture
+cible avec inspection des registres, spills, stack/local, shared et occupation;
+ses timings ne constituent pas un réglage propre à SM89.
+
+- La formation du Gram et du second membre promeut les features, discounts et
+  cashflows FP32 avant multiplication. Le produit de deux FP32 est alors exact
+  avant l'accumulation FP64. Le test balaie 32 768 observations de base core et
+  presque colinéaires/stress contre une référence `long double`, puis compare
+  les produits FP64 aux produits FP32 promus. Le budget relatif FP64 est
+  `2e-12` sur chaque statistique.
+- La résolution Cholesky FP64 est comparée à une élimination haute précision
+  sur un système bien conditionné et un système SPD de conditionnement voisin
+  de `1e8`, après le ridge contractuel. Le budget relatif des coefficients est
+  `2e-7`; une résolution FP32 qui échoue ou dépasse `1e-3` sur le cas stress
+  interdit de réduire la précision du solveur.
+- La prédiction et la décision comparent FP64, FP32 et une variante sélective
+  munie d'une borne d'erreur conservative sur `2^20` cas. Le sweep réserve
+  16 384 marges sous `1e-7` et exige au moins une divergence FP32, aucune
+  divergence de la variante sélective et un prix synthétique identique au
+  chemin FP64 pour cette dernière. Une variante sélective n'est admissible en
+  production que si elle gagne aussi end-to-end et n'augmente pas la pression
+  de ressources sur American et Bermudan.
+
+Les tests end-to-end `heston_american_option_cuda` et
+`bermudan_swaption_cuda` (OU et G2, payer et receiver) restent les consommateurs
+réels : ils exigent résultats finis, diagnostics non fatals et replay bitwise.
+Une nouvelle base, une taille supérieure à six, un domaine de features plus
+large ou une autre régularisation impose de reprendre les trois comparaisons,
+pas seulement le solveur isolé.
+
 ## Kernels partagés
 
 `longstaff_schwartz_kernels.cuh` contient les sept kernels communs :

@@ -67,9 +67,9 @@ struct FractionalHybridKernelPolicy {
 
     __host__ __device__ static float volterra_variance(
         const PreparedKernel& kernel,
-        float time
+        float time_years
     ) {
-        return kernel.kernel.normalized_variance(time);
+        return kernel.kernel.normalized_variance(time_years);
     }
 
     __host__ __device__ static float reconstruct_volterra_value(

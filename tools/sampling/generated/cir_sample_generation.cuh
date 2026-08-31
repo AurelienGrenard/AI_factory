@@ -74,7 +74,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"long_term_mean", {0.001f, 0.08f}},
                 {"initial_state", {0.001f, 0.08f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"state", {{"description", "Terminal state."}, {"layout", "sample-major"}}}

@@ -1,4 +1,4 @@
-// Closed-form Hull-White/Svensson European swaptions.
+// Generated Closed-form Hull-White/Svensson European swaptions.
 #include "model/fixed_income/hull_white/product/svensson/european_swaption.cuh"
 
 #include "product/european_swaption/pricing_policy.cuh"
@@ -27,7 +27,8 @@ void launch_hull_white_svensson_european_swaption_cuda(
     float* device_prices
 ) {
     ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
-        Side, FittedModelComposition
+        Side,
+        FittedModelComposition
     >(
         "hull_white.svensson.european_swaption",
         device_models,
@@ -70,7 +71,9 @@ void launch_hull_white_svensson_european_swaption_cuda(
     std::uint32_t maximum_payment_count
 ) {
     ::ai_factory::workbench::fixed_income::launch_cooperative_fitted_one_factor_european_swaption<
-        Side, FittedAnalyticsProvider, FittedModelComposition
+        Side,
+        FittedAnalyticsProvider,
+        FittedModelComposition
     >(
         "hull_white.svensson.european_swaption",
         device_models,
@@ -100,40 +103,82 @@ void launch_hull_white_svensson_european_swaption_cuda(
 template void launch_hull_white_svensson_european_swaption_cuda<
     SwaptionSide::payer
 >(
-    const ModelParameters*, std::size_t,
-    const curve::svensson::SvenssonParameters*, std::size_t,
-    const product::RegularEuropeanSwaptionParameters*, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*
+    const ModelParameters*,
+    std::size_t,
+    const curve::svensson::SvenssonParameters*,
+    std::size_t,
+    const product::RegularEuropeanSwaptionParameters*,
+    std::size_t,
+    PriceConstruction,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
 );
 template void launch_hull_white_svensson_european_swaption_cuda<
     SwaptionSide::receiver
 >(
-    const ModelParameters*, std::size_t,
-    const curve::svensson::SvenssonParameters*, std::size_t,
-    const product::RegularEuropeanSwaptionParameters*, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*
+    const ModelParameters*,
+    std::size_t,
+    const curve::svensson::SvenssonParameters*,
+    std::size_t,
+    const product::RegularEuropeanSwaptionParameters*,
+    std::size_t,
+    PriceConstruction,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*
 );
 template void launch_hull_white_svensson_european_swaption_cuda<
     SwaptionSide::payer
 >(
-    const ModelParameters*, std::size_t,
-    const curve::svensson::SvenssonParameters*, std::size_t,
+    const ModelParameters*,
+    std::size_t,
+    const curve::svensson::SvenssonParameters*,
+    std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
-    const std::uint32_t*, const float*, std::size_t, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    const std::uint32_t*,
+    const float*,
+    std::size_t,
+    std::size_t,
+    PriceConstruction,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*,
+    std::uint32_t
 );
 template void launch_hull_white_svensson_european_swaption_cuda<
     SwaptionSide::receiver
 >(
-    const ModelParameters*, std::size_t,
-    const curve::svensson::SvenssonParameters*, std::size_t,
+    const ModelParameters*,
+    std::size_t,
+    const curve::svensson::SvenssonParameters*,
+    std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
-    const std::uint32_t*, const float*, std::size_t, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    const std::uint32_t*,
+    const float*,
+    std::size_t,
+    std::size_t,
+    PriceConstruction,
+    std::size_t,
+    std::size_t,
+    std::size_t,
+    float,
+    unsigned int,
+    std::size_t,
+    float*,
+    std::uint32_t
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::hull_white::svensson

@@ -78,7 +78,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"volatility_y", {0.0015f, 0.012f}},
                 {"correlation", {-0.75f, 0.25f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"state_x", {{"description", "Terminal state_x."}, {"layout", "sample-major"}}},

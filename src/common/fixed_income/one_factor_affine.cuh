@@ -16,12 +16,12 @@ __device__ __forceinline__ float log_zero_coupon_bond(
     const Provider& provider,
     const Parameters& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     const OneFactorAffineBondCoefficients coefficients =
         provider.affine_bond_coefficients(
-            parameters, valuation_time, maturity
+            parameters, valuation_time_years, maturity_years
         );
     return fmaf(
         -coefficients.B,
@@ -36,11 +36,11 @@ __device__ __forceinline__ float zero_coupon_bond(
     const Provider& provider,
     const Parameters& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return expf(log_zero_coupon_bond(
-        provider, parameters, state, valuation_time, maturity
+        provider, parameters, state, valuation_time_years, maturity_years
     ));
 }
 

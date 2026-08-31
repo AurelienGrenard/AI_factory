@@ -1,4 +1,4 @@
-// Public launcher for CIR zero-coupon bond options.
+// Generated Public launcher for CIR zero-coupon bond options.
 #pragma once
 
 #include "common/price_construction.cuh"

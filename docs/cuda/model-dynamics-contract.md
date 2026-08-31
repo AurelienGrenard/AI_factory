@@ -505,6 +505,14 @@ trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
 grand intervalle. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
 
+Les preparations hote N-facteurs valident leur surface publique complete,
+meme lorsqu'un loader catalogue applique deja les memes domaines. Parametres
+modele et temporels doivent etre finis, les nodes et weights d'un noyau
+exponentiel explicite sont strictement positifs, et aucun coefficient prepare
+non fini n'est transmis au device. La surcharge recevant un noyau deja ajuste
+ne conserve pas d'horizon inutilise; l'horizon appartient uniquement a la
+surcharge qui effectue effectivement l'ajustement.
+
 Pour quadratic rough Heston, la récurrence factorielle équilibre la
 contribution de la cellule Volterra complète. Si `F` est la force explicite et
 `c` la somme des poids multipliés par les intégrales de décroissance sur la
@@ -516,6 +524,14 @@ dense/exponentielle et tout changement futur doivent conserver le mapping
 Philox, vérifier les lignes core extrêmes et démontrer la convergence par
 raffinement temporel et factoriel.
 
+La recette sample QRH à trois millions de paramètres factorise uniquement la
+préparation hôte : 257 fits L2 positifs couvrent `H in [0.01, 0.20]`, puis les
+nodes et weights correspondants sont interpolés linéairement. Cette grille ne
+modifie ni `DynamicsPolicy`, ni le schéma device, ni les pricers, qui gardent
+leur fit exact par ligne. Toute modification de la grille doit conserver la
+positivité, la borne L2 analytique, la comparaison aux fits exacts hors grille,
+les sweeps core/stress `N=2/3/7` et la convergence des prix en temps/facteurs.
+
 ## Observations et résumés equity
 
 Chaque `pricing_policy.cuh` définit le handler minimal de son payoff. Une option
@@ -524,10 +540,17 @@ et un lookback son extremum. Les templates de chemin restent identiques pour
 tous les modèles et le dispatch statique permet au compilateur d'inliner le
 handler sans coût virtuel.
 
-Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
-dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes suit
-ce contrat pour ses pricers Monte Carlo. Rough Bergomi expose un `StatePolicy`
-spot/log-spot aux mêmes handlers, mais conserve son exécution FFT spécialisée.
+La precision d'un handler n'est pas choisie par convention generale : chaque
+accumulation chaude doit avoir un budget numerique et une comparaison de cout
+et de ressources sur les architectures ciblees. Les moyennes arithmetiques et
+geometriques utilisent actuellement `CompensatedFloatSum`, une somme de Kahan
+FP32 qualifiee jusqu'a 4 097 observations; le range accrual analytique
+Black--Scholes reutilise la meme primitive jusqu'a 1 764 probabilites. Une
+reintroduction FP64 dans ces handlers exige de rouvrir les domaines, mesures et
+budgets correspondants. La reduction des moments de prix et les parties
+Longstaff--Schwartz explicitement qualifiees conservent, elles, leur FP64
+contractuel. Rough Bergomi expose un `StatePolicy` spot/log-spot aux memes
+handlers, mais conserve son execution FFT specialisee.
 
 Le test générique `tests/common/dynamics_contract.cuh` vérifie pour chaque
 policy concernée la reproductibilité, l'isolation des chemins, la neutralité
@@ -562,6 +585,12 @@ sous-espace de compteur :
 ```text
 (path_index: uint64, local_group_index: uint64)
 ```
+
+Les `base_seed` des recettes de production proviennent exclusivement des
+domaines versionnés décrits dans
+`docs/model-and-product-parameter-dataset-generation.md`; ce contrat de
+dynamique définit le mapping à l'intérieur d'un dataset, pas l'allocation entre
+datasets.
 
 Le code de simulation construit `UniformSequence(key, path)` une seule fois.
 Chaque uniforme scalaire est obtenu par `uniforms.next()`, y compris les

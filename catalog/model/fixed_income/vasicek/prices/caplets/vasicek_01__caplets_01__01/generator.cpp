@@ -1,4 +1,4 @@
-// Build one Vasicek caplet price dataset.
+// Generated Build one Vasicek caplet price dataset.
 #include "model/fixed_income/vasicek/product/rate_option.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
@@ -17,7 +17,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/rate_options/rate_options_01.json";
+    "datasets/product/rate_option/rate_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;
 

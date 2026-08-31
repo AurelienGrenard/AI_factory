@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::schobel_zhu {
 void launch_schobel_zhu_lookback_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::LookbackOptionParameters* host_products,
     const product::LookbackOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

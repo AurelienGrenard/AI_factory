@@ -6,6 +6,8 @@
 #include "common/simulation/schedule.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 
+#include <stdexcept>
+
 namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
@@ -55,6 +57,7 @@ template<OptionSide Side>
 void launch_black_scholes_geometric_asian_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::GeometricAsianOptionParameters* host_products,
     const product::GeometricAsianOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -68,6 +71,31 @@ void launch_black_scholes_geometric_asian_option_cuda(
     float* device_prices
 ) {
     using PricingPolicy = GeometricAsianOptionClosedFormPricingPolicy<Side>;
+    if (host_products == nullptr || product_count == 0U) {
+        throw std::invalid_argument(
+            "Geometric-Asian host products must be non-empty."
+        );
+    }
+    if (construction == PriceConstruction::Aligned
+        && product_count != result_count) {
+        throw std::invalid_argument(
+            "Aligned Geometric-Asian host products must match results."
+        );
+    }
+    const simulation::FixedStepTimeConfiguration time_configuration{
+        dt,
+        simulation_steps_per_day,
+    };
+    for (std::size_t product_index = 0U;
+         product_index < product_count;
+         ++product_index) {
+        simulation::validate_calendar(
+            simulation::MaturityCalendar{
+                host_products[product_index].maturity_days
+            },
+            time_configuration
+        );
+    }
     closed_form::launch_closed_form_cuda<PricingPolicy>(
         make_model_product_device_inputs(
             device_models,
@@ -79,10 +107,7 @@ void launch_black_scholes_geometric_asian_option_cuda(
         result_count,
         result_offset,
         launch_result_count,
-        simulation::FixedStepTimeConfiguration{
-            dt,
-            simulation_steps_per_day,
-        },
+        time_configuration,
         threads_per_block,
         block_count,
         device_prices,
@@ -96,6 +121,7 @@ template void launch_black_scholes_geometric_asian_option_cuda<
     OptionSide::call
 >(
     const ModelParameters*, std::size_t,
+    const product::GeometricAsianOptionParameters*,
     const product::GeometricAsianOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, float*
@@ -104,6 +130,7 @@ template void launch_black_scholes_geometric_asian_option_cuda<
     OptionSide::put
 >(
     const ModelParameters*, std::size_t,
+    const product::GeometricAsianOptionParameters*,
     const product::GeometricAsianOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, float*

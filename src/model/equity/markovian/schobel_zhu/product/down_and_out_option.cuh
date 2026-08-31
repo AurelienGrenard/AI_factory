@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_schobel_zhu_down_and_out_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::DownAndOutOptionParameters* host_products,
     const product::DownAndOutOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

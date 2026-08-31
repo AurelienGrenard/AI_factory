@@ -1,459 +1,459 @@
-# Etat des audits principaux
+# État des audits principaux
 
-## Objet
+## Objet et verdict du passage version 7
 
-Ce document consigne le snapshot, la couverture, les exclusions et les preuves
-du dernier passage du referentiel principal `query.md`. Les constats non
-resolus sont exclusivement dans `response.md`; les constats fermes sont dans
-`closed.md`. L'audit lent des references independantes reste dans
-`docs/validation/` et n'est pas inclus ici.
+Ce document consigne le snapshot, les inventaires exhaustifs, les matrices de
+couverture, les exclusions et les preuves du passage indépendant demandé le
+2026-08-30. Le code, les tests, CMake, les générateurs, manifests, baselines et
+contrats d'implémentation n'ont pas été corrigés. Les constats ouverts sont
+exclusivement dans `docs/audit/response.md`; les entrées encore fermées sont
+dans `docs/audit/closed.md`.
 
-## Snapshot du passage structure, naming et codegen version 4
+Verdict global : **non conforme et partiel**. Onze constats sont ouverts, dont
+sept nouveaux (`STRUCT-019`, `CUDA-003`, `POLICY-003`, `BUILD-005`,
+`STRUCT-020`, `NAME-013`, `STRUCT-021`) et quatre réouvertures (`STRUCT-011`,
+`NAME-006`, `STRUCT-010`, `NAME-007`). Les inventaires structurels, codegen,
+FP64, RNG et launches CUDA sont exhaustifs statiquement. Les axes CMake,
+portabilité, robustesse numérique, sûreté CUDA et Performance restent partiels
+selon leurs conditions strictes de complétude version 7.
 
-- **Date :** 2026-08-28.
-- **Referentiel :** `docs/audit/query.md`, version 4 du 2026-08-28, durci sur
-  la navigabilite de l'arborescence, les noms de fichiers et les en-tetes.
-- **Branche :** `refactor/model-layout-codegen-volterra`, empilee sur
-  `refactor/unify-cuda-model-contracts`.
-- **Revision de base :** `b85097e58edb1d038402230515786ecd5ce51b6d`.
-- **Portee :** passage partiel exhaustif sur les 1 031 fichiers C++/CUDA sous
-  `src/model` (832 bindings modele-produit et 199 fichiers
-  d'infrastructure), leurs references CMake/tests/catalogue/validation, et les
-  35 templates du codegen pricing/sampling/catalogue. La query Structure est
-  durcie pour les futurs passages sur le reste du depot, mais ce passage ne
-  recertifie pas tous les autres dossiers.
-- **Etat audite :** worktree deja sale et modifie concurremment. Le snapshot
-  initial exact de ce passage n'est pas reconstructible. Apres remediation et
-  hors les quatre registres `docs/audit/{query,response,status,closed}.md`,
-  l'etat contient 1 639 lignes porcelain apres detection des renommages.
-  Empreinte de cette liste :
-  `45e8936c0d42e006fc512e51c35ae64c7a0d2de06b9359f8ce6a1e6d705a5277`;
-  empreinte du diff binaire suivi :
-  `b9d273dcb8052d478d76334172decfd90ea6f5f6c337af1687d0f53fa324124a`.
-  Aucun fichier non suivi ne subsiste dans ce snapshot.
-- **Mutations :** oui. Les bindings modele-produit ont ete isoles, les noms
-  de helpers ambigus et les en-tetes d'infrastructure ont ete corriges, les
-  templates ont ete classes par artefact et engine, et un checker bloquant a
-  ete ajoute. Le constat fixed-income closed form `STRUCT-015` est seulement
-  documente et reste reporte.
+## Snapshot et limites de provenance
 
-### Registre des preuves structure, naming et codegen
+- **Date / timezone :** 2026-08-30, Europe/Paris.
+- **Référentiel :** `docs/audit/query.md`, version 7, SHA-256
+  `44446a1c1871e7b6591a21d56e5a0f300913a16f6938e5be921a8e95e2dd2b06`.
+- **Branche :** `refactor/model-layout-codegen-volterra`, amont à `+0/-0`.
+- **HEAD :** `5d65c23cf709173a65ab809baff0da2566b58acf`.
+- **Worktree source avant rédaction de l'audit :** 1 303 chemins suivis
+  différents de HEAD, soit 372 modifiés et 931 supprimés; 989 chemins non
+  suivis; index vide; diff suivi `+7 771/-68 497` lignes.
+- **SHA-256 porcelain v2 NUL avec branche :**
+  `42bfc69b994512e6da49fe2f219847e6314e616a33c62e0c6d5f89767667d410`.
+- **SHA-256 diff binaire suivi depuis HEAD :**
+  `678a548fbdcb313b0ef7f5f9bf93f0e58389adf268ec27abde95c72c2ee8b128`.
+- **SHA-256 index :**
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- **SHA-256 manifeste trié des chemins non suivis :**
+  `f8d3770cfce3770d9b78a47600985792c4b975c0663edb6e3534b274b86ee256`.
+- **SHA-256 agrégat initial du contenu non suivi :**
+  `4419fd0978b6b0088be4f352d6ba3321bdcb05be287f6e20ab5c6f25e2422c42`.
+- **SHA-256 agrégat du contenu non suivi après exécution et avant rédaction :**
+  `3cac9bb5118120e9c36eb2c2ec67b38c683eb577cc0b0c8deef06b100321c12e`;
+  le manifeste de chemins et son cardinal sont inchangés.
+- **Mutation produite par ce passage :** seulement les trois registres
+  `docs/audit/status.md`, `docs/audit/response.md` et
+  `docs/audit/closed.md` sont édités intentionnellement. Les scripts Python et
+  CTest ont aussi rafraîchi des caches `.pyc` non suivis préexistants sous
+  `tools/**/__pycache__` et `validation/performance/__pycache__`; aucun source,
+  manifest, baseline ou dataset n'a été modifié. Les artefacts de build et logs
+  nouveaux sont sous `build-dev` déjà ignoré ou `/tmp`.
 
-- **E26 — Navigation modele et codegen.** Les 832 fichiers modele-produit
-  forment 416 paires `.cuh/.cu` exclusivement sous `product/`; aucun fichier
-  d'infrastructure n'y subsiste. Les 199 fichiers d'infrastructure hors
-  `product/` utilisent un vocabulaire de noms explicitement revu et commencent
-  par une phrase specifique; les paires publiques/`*_impl.cuh` distinguent
-  contrat et definitions. Les helpers rough portent maintenant
-  `volterra_fft_*` ou `markovian_n_factor_*`. Les 35 templates sont classes
-  sous `pricing/`, `sampling/` et `catalog/`, puis par engine, et les artefacts
-  C++ complets ne vivent plus en chaines multilignes dans `generate.py`.
-  `check_model_layout.py` couvre chemins, profondeur, ownership, noms,
-  en-tetes, paires et references obsoletes. La regeneration compare bit a bit
-  1 407 sorties; les quatre tests unitaires du manifeste, le checker des 689
-  recettes, la configuration CMake et les quatre CTests architecture/codegen
-  passent. Les builds representatifs precedemment compiles sur ce worktree
-  passent 84/84. Ce sous-passage n'execute aucune mesure de performance ni
-  nouveau test CUDA runtime; E27 consigne separement les executions GPU de la
-  remediation Volterra parallele.
-- **E27 — Contrats Gaussian-Volterra FFT.** Le vocabulaire de driver est
-  remplace atomiquement par `HybridKernelPolicy`, `PreparedKernel`,
-  `kernel_parameters`, `volterra_variance` et
-  `reconstruct_volterra_value`. `src/common/volterra/concepts.cuh` formalise
-  les contrats kernel/path et leur relation de types. Le moteur possede
-  `sqrt(dt)` dans son `PreparedRow` et traite `PreparedKernel` comme opaque;
-  equations, ordre numerique et mapping Philox restent inchanges. Les quatre
-  pricers europeens et quatre samplers compilent; cinq tests CUDA cibles
-  passent sur SM89. La verification finale execute aussi 35 tests Python
-  Volterra, la generation complete zero-diff, les quatre CTests
-  architecture/codegen et la recherche sans ancien symbole sous code,
-  codegen, tests, validation et CMake.
+Le passage a observé le worktree réel, fichiers non suivis inclus. Les hashes
+ci-dessus précèdent les trois sorties d'audit afin d'éviter l'auto-référence du
+rapport et permettent de détecter une différence avec cet état. Ils ne
+permettent toutefois pas de le reconstruire : ni le porcelain complet, ni le
+manifeste des 989 chemins non suivis, ni le diff suivi correspondant n'ont été
+conservés comme artefacts durables. La provenance du passage est donc
+identifiée mais partielle, et HEAD seul n'est pas présenté comme sa source.
 
-### Matrice de couverture structure, naming et codegen
+## Gates P0
 
-| Axe | Statut | Couverture | Exclusions | Preuves |
+| Gate | État | Preuve / limite |
+|---|---|---|
+| `P0-SNAPSHOT` | partial | Branche, HEAD, cardinalités, hashes, toolchain, build et GPU sont identifiés, mais porcelain, manifeste non suivi et diff ne sont pas conservés : le snapshot n'est pas reconstructible. |
+| `P0-INVENTORY` | pass | Inventaires physiques et canoniques exhaustifs établis avant échantillonnage. |
+| `P0-SCOPE` | partial | Le gate Performance principal n'a pas de propriétaire hors `validation/**`; `STRUCT-019`. |
+| `P0-COVERAGE` | pass | Toute case non exécutée ou matériellement indisponible reste `partial`/`excluded`, jamais succès implicite. |
+| `P0-IDENTITY` | pass | Les trois registres sous `docs/audit` ont été recherchés par cause et périmètre avant attribution des IDs. |
+| `P0-NUMERICS` | partial | Matrice et FP64 classés, mais toutes les références core/stress/limites n'ont pas été rejouées sur le snapshot. |
+| `P0-PERF-STATS` | partial | Aucune campagne principale v7 recevable; l'artefact v2 sous validation n'est que complémentaire. |
+| `P0-REBASELINE` | excluded | Aucun rebaseline exécuté; la baseline existante n'a pas été modifiée. |
+| `P0-EVIDENCE` | partial | Commandes/résultats et hash des logs sanitizer sont conservés ici, mais les logs bruts sous `/tmp` ne sont pas versionnés. |
+
+## Inventaire canonique
+
+### Arbre physique
+
+| Racine | Fichiers | Dossiers | État d'inventaire |
+|---|---:|---:|---|
+| `src` | 1 257 | 105 | exhaustif |
+| `tools` | 148 | 47 | exhaustif |
+| `catalog` | 1 081 | 1 429 | exhaustif |
+| `datasets` | 382 | 433 | exhaustif |
+| `tests` | 73 | 2 | exhaustif |
+| `docs` | 22 | 4 | exhaustif hors registres réécrits |
+| `cmake` | 3 | 2 | exhaustif |
+
+- 1 278 unités autonomes `.cpp/.cu` dans `src`, `tools`, `tests` et
+  `catalog`; 783 headers sous `src`/`tools`; 74 templates codegen.
+- Empreinte triée des chemins du périmètre principal :
+  `17e650b03563d0bb432f3b4a61c27740727ccefbfd74a4704bd76bc93ce4e363`.
+- Le checker classe 871 fichiers générés et 578 handwritten, plus quatre
+  manifests et trois préambules de format.
+
+### Matrice canonique et publications
+
+- 12 engines, 24 modèles, 26 produits, 2 courbes.
+- 416 `ProductBindingSpec`, dont 399 sorties générées et 17 handwritten.
+- 697 `DatasetSpec`, tous disponibles : 628 recettes générées et 69
+  handwritten; zéro sample différé.
+- 588 domaines RNG; 697 générateurs de catalogue; 382 YAML et 382 JSON locaux
+  matérialisés; 832 fichiers modèle-produit; 1 500 sorties codegen.
+
+| Famille | Modèles | Transition / préparation | Produits / exercice | Sampling |
+|---|---:|---|---|---|
+| Equity Markov exact | 5 | exact, compatible fixed-step | 21 ordinaires; LSM optionnel | disponible |
+| Equity Markov fixed | 7 | fixed-step | 21 ordinaires; 4 familles LSM | disponible |
+| Rough Gaussian-Volterra | 4 | hybrid FFT, mathDx | 21 ordinaires; exercice non supporté | conditionnel mathDx |
+| Rough N-facteurs | 2 | lift préparé 2/3/7 facteurs | 21 ordinaires; exercice non supporté | disponible |
+| Fixed income standalone | 4 | état exact; joint CIR fixed, autres exacts | closed form et Bermudan selon modèle | disponible |
+| Fixed income fitted | 2 × 2 courbes | adaptation exacte état/intégrale | closed form et Bermudan | disponible |
+
+Produits equity ordinaires : 5 terminal, 10 dense, 5 regular et 1 calendrier à
+deux dates; 19 observent `spot`, 2 `log_spot`; 12 sont call/put compile-time et
+9 non sided. Décompte des compositions : 244 Markov, 84 Volterra, 42
+N-facteurs, 21 FI closed form, 8 Black-Scholes closed form, 8 FI LSM, 5 equity
+LSM exact et 4 equity LSM fixed.
+
+## Couverture par axe
+
+| Axe | État | Couverture obtenue | Cause de non-complétude |
+|---|---|---|---|
+| Structure, ownership, naming | partial | Arbre, 783 headers, dépendances et docs inspectés exhaustivement; exercices de navigation ciblés | Huit constats touchent structure/nommage; cinq exercices contrôlés sans recherche globale non formalisés. |
+| Contract homogeneity | partial | 24 modèles, 26 produits, transitions, analytics, schedules et 416 bindings croisés | Concept produit et contrat CIR/manifeste non homogènes. |
+| Factorization pyramid | partial | Markov, rough, N-facteurs, closed form, FI et LSM relus; 21 alias `same_as` confirmés | Coûts complets de chaque frontière non remesurés sous protocole v7. |
+| Code generation / extension | partial | Zero-diff 1 500 sorties, 14 tests de manifeste, inventaire bidirectionnel 697/832 | Source de vérité fragmentée; aucun dry-run réel ajout/retrait complet. |
+| CMake / build graph | partial | Unités/compile DB, configs avec/sans mathDx, builds clean ciblés et no-op | Root monolithique; matrice de mutations et revue exhaustive `PUBLIC/PRIVATE` absentes. |
+| Portability / tuning | partial | Compilation SM75 mono et fat 75/86/89 représentative; runtime SM89 | Aucun GPU physique SM75/SM86, ni qualification/runtime/profil séparé hors SM89. |
+| Numerical robustness / reproducibility | partial | FP64 device exhaustif, RNG, solveurs et contrats relus; tests numériques disponibles exécutés dans la suite GPU | Toutes les références et convergences core/stress/limites n'ont pas été isolément rejouées; `CUDA-003`. |
+| CUDA execution / memory safety | partial | 23 sites de launch relus; ASan/UBSan host; 32 runs Compute Sanitizer; 77 CTests | La matrice obligatoire de huit scénarios n'est pas entièrement mappée aux layouts/streams/concurrence prescrits. |
+| Performance CUDA générique | partial | Binaires construits; baseline de validation lue comme consommateur | Aucun propriétaire principal ni campagne v7 recevable; pas de profil Nsight. |
+| Performance model-sample | partial | Harness complémentaire et shapes déclarées inspectés | Même défaut d'ownership; campagne v7 non exécutée. |
+| Performance early exercise | partial | Binaire complémentaire et tests LSM exécutés | Même défaut d'ownership; campagne/ressources v7 non exécutées. |
+| Performance rough | partial | Binaires Volterra/N-facteurs construits et testés | Même défaut d'ownership; crossover/profil v7 non exécuté. |
+
+## Factorisation et frontières positives à préserver
+
+| Frontière | Producteur / consommateurs | Conclusion |
+|---|---|---|
+| Schedules/dynamics | `common/simulation` vers 12 equity Markov, 6 FI et 2 N-facteurs | Réutilisation sans branche runtime; conserver la séparation exact/fixed. |
+| Path products | 21 policies produit vers Markov, N-facteurs et Volterra | Les 16 anciens corps directs sont absents et les 21 surfaces sont des alias; `FACTOR-001` reste fermé. |
+| Volterra | 3 kernel policies et 4 path policies vers pricing/sampling FFT | `PreparedKernel` reste opaque; `POLICY-002` reste fermé. |
+| Analytics FI | providers standalone/fitted vers quatre produits FI | Zéro include produit dans 18 headers analytics; `ANALYTICS-001` reste fermé. |
+| LSM | moteur, regression et workspace communs vers American/Bermudan | Payoff, continuation et normalisation restent au produit; aucune copie de moteur prouvée. |
+| Closed form | kernel scalaire/cooperatif vers 8 BS et 21 FI | Sides compile-time et providers spécifiques restent factorisés. |
+
+Les dépendances interdites sont absentes : `src -> tools/catalog/validation`,
+`common -> model/curve/product`, `curve -> model/product`, `product ->
+model/curve` et includes textuels de `.cu` valent tous zéro. L'homonyme
+`src/common/sample.cuh` + `src/common/sample/` est une façade documentée avec
+28 consommateurs, pas un constat.
+
+## Codegen et coût d'extension
+
+| Preuve | Résultat |
+|---|---|
+| `tools/codegen/pricing_bindings/generate.py --family all --compare-root .` | 1 500 sorties, zéro diff |
+| `test_capability_manifest` | 14/14 tests passés, fixtures négatives incluses |
+| `tools/cuda/check_model_layout.py` | 832 modèle-produit, 199 infrastructure, 74 templates, 871 générés/578 handwritten |
+| `tools/cuda/check_catalog_generators.py` | 697 recettes, 628 générées, zéro différée, aucune escape hatch CUDA brute |
+
+Le zero-diff et l'exhaustivité des outputs sont valides, mais ne compensent pas
+`STRUCT-011`: l'identité modèle et les sémantiques pricing/sample/variant sont
+encore réparties entre plusieurs specs. `STRUCT-003`, `STRUCT-015` et
+`STRUCT-018` restent fermés sur leurs signatures propres.
+
+## CMake, configurations et incrémentalité
+
+### Matrice de configuration exécutée
+
+| Configuration | Configure | Build | Run | Conclusion |
 |---|---|---|---|---|
-| Structure et ownership de `src/model` | complet sur le perimetre | 1 031 fichiers, profondeur, paires produit, courbes fixed income, references et CMake | Autres arbres `src/common`, `src/product`, `tools` hors codegen | E26; fermeture `STRUCT-016` |
-| Naming et en-tetes de `src/model` | complet sur le perimetre | 199 fichiers hors `product/`, noms canoniques ou method-specific, phrase de contenu/utilite, distinction public/impl | Noms de symboles et variables non reaudites exhaustivement | E26; fermeture `NAME-011` |
-| Navigabilite du codegen | complet hors fixed income closed form | 35 templates classes par artefact/engine, renderer sans artefact complet inline, zero-diff 1 407 sorties | Templates fixed-income closed form reportes | E26; fermeture `STRUCT-017`; `STRUCT-015` |
-| Naming et frontieres des policies Volterra | complet | Kernel/path concepts, relation de types, `PreparedKernel` opaque, propagation pricing/sampling/modeles | Aucun benchmark de performance rejoue | E27; fermetures `NAME-100`, `POLICY-002` |
+| Release SM89, CUDA 13.3, mathDx en cache, tests ON | pass | host + CUDA + performance pass | 77/77 hors validation | preuve principale locale |
+| Release SM75, sans mathDx | pass | `ai_factory_host_tests`, 128 étapes | 12 CTests host/architecture/codegen pass | compilation portable ciblée |
+| Release SM75, avec mathDx | pass | rough Bergomi représentatif pass | test host QRH pass | cuFFTDx compile SM75 |
+| Release fat 75/86/89, avec mathDx | pass | rough Bergomi représentatif pass | non exécuté | compilation offline uniquement |
+| Debug | non exécuté | unknown | unknown | exclusion de couverture |
+| Runtime SM75 / SM86 | non exécuté | n/a | matériel absent | exclusion matérielle |
 
-### Exclusions du passage structure, naming et codegen
+La compile DB mathDx contient 1 287 entrées / 1 283 sources uniques; le graphe
+sans mathDx 1 064 entrées. Les 1 278 unités physiques du périmètre sont
+enregistrées; les doublons restants sont des expériences explicitement
+nommées. La racine CMake de 1 802 lignes motive `BUILD-005`.
 
-- L'audit exhaustif des noms, en-tetes et profondeurs dans les autres arbres du
-  depot; la query durcie les exigera lors d'un passage complet ulterieur.
-- Les templates et recettes fixed-income closed form, reportes sous
-  `STRUCT-015`; aucun debut de remediation n'est revendique.
-- Les axes homogeneity, factorization, numerique, CUDA safety, performance et
-  validation independante non directement affectes.
-- Toute campagne de performance, conformement a l'indisponibilite actuelle de
-  la machine pour une mesure stable; aucun resultat SM89 ou autre GPU n'est
-  infere.
+### Matrice d'incrémentalité
 
-### Comptabilite apres ce passage
+| Mutation | Attendu | Mesuré |
+|---|---|---|
+| no-op host + CUDA + performance | aucune opération | pass, `ninja: no work to do`, 0,07 s |
+| produit | binding/consommateurs ciblés | non exécuté |
+| dynamics | bindings du modèle | non exécuté |
+| analytics | spécialisation concernée | non exécuté |
+| courbe | fitted consumers | non exécuté |
+| primitive common | consommateurs réels | non exécuté |
+| template | sorties possédées puis consommateurs | non exécuté |
+| manifeste | régénération matrice exacte | non exécuté |
 
-- **Ouverts : 3** — `STRUCT-015`, `NUM-007` et `PERF-010`.
-- **Fermes : 49** dans `closed.md`; `STRUCT-016`, `STRUCT-017` et `NAME-011`
-  y sont transferes apres remediation et preuves E26.
-- **Correction de code :** oui, limitee aux frontieres, noms, en-tetes,
-  codegen, references et gardes structurelles de ce passage.
+Aucun fichier source n'a été touché pour simuler ces mutations; cette matrice
+manquante maintient l'axe partiel.
 
-## Snapshot du passage partiel version 4
+## Numérique, RNG et reproductibilité
 
-- **Date :** 2026-08-28.
-- **Referentiel :** `docs/audit/query.md`, version 4 du 2026-08-28.
-- **Branche :** `refactor/unify-cuda-model-contracts`.
-- **Revision de base :** `1889f7fbbd0f81ce2b06cfb16645e48a43971aa0`.
-- **Portee :** passage partiel limite aux nouveaux axes portabilite/tuning GPU
-  et model samples, plus verification ciblee des remediations presentes. Les
-  autres axes ne sont pas recertifies sur ce worktree par ce passage.
-- **Etat audite initial :** worktree deja tres sale et modifie concurremment par
-  plusieurs agents. Avant la remediation, l'etat technique hors quatre fichiers
-  `docs/audit/{query,response,status,closed}.md` contient 300 lignes porcelain,
-  dont 101 fichiers non suivis. Empreinte de la liste d'etat :
-  `2d2ed3177c28a53e9c1b4322d94cada983a5d3af0f8bb5b6882224d63253dec4`;
-  empreinte du diff binaire suivi :
-  `9a5b03c5ad6b1927276f7cd02c00804da9fdf046f677aa09aaf32f3eae821867`;
-  empreinte agregee des noms/contenus non suivis :
-  `1d7bf75628c09183b5d80874d090465ef8d38b501dce816914696df75c7ae800`.
-- **Mutations :** le passage d'audit initial n'a modifie que son registre. La
-  remediation ulterieure a modifie code, CMake, tests, codegen, recettes et
-  contrats dans le meme worktree; E25 distingue les preuves acquises des deux
-  campagnes lourdes encore exclues. L'ensemble reste sale jusqu'au commit de
-  la pull request.
+### Inventaire FP64 device
 
-### Environnement d'execution version 4
+L'inventaire lexical touche 39 fichiers, dont 18 faux positifs
+`double-knock-out`; les 21 fichiers sémantiques sont tous classés.
 
-- CMake 3.22.1, GCC/G++ 14.3.0, nvcc CUDA 13.3.73, builds `Release`, sans
-  `--use_fast_math`; runtime RTX 4090 Laptop, compute capability 8.9.
-- mathDx/cuFFTDx 26.06.1 pour CUDA 13 disponible sous le chemin deja consigne
-  dans le snapshot version 3.
-- Les executions CUDA ont ete faites explicitement hors sandbox. Les essais
-  sandboxes refusent l'acces au driver et ne sont pas comptes comme echecs du
-  code.
+| Classe | Propriétaires | État |
+|---|---|---|
+| Moments MC / Volterra | `monte_carlo_kernel`, `reductions`, `hybrid_fft_pricer` | qualifiés historiquement par `NUM-005`, `NUM-010`, `NUM-020` |
+| Formation/réduction LSM | `longstaff_schwartz_kernels`, `small_linear_regressor` | `NUM-002`, `NUM-016` |
+| Solveur LSM | `linear_solver`, Cholesky/substitutions | `NUM-003`, `NUM-017` |
+| Prédiction/décision LSM | `exercise_decision`, policies American/Bermudan | `NUM-003`, `NUM-018` |
+| Calculs FP64 host | fits rough, préparation, courbes, diagnostics/timings | pas d'opération device additionnelle; courbes `NUM-019` |
 
-## Registre des preuves version 4
+Aucun `long double`, `__float128`, `double2` applicatif ou atomic FP64 device
+supplémentaire n'est atteint. Les clôtures FP64 restent donc supportées par
+l'inventaire, sans prétendre que toute leur campagne numérique a été rejouée.
 
-- **E19 — Referentiel et contrats etendus.** Lecture des instructions, du
-  registre ferme et des contrats samples/dynamics/CMake/performance. La query
-  version 4 integre les samples dans structure, homogeneite, factorisation,
-  codegen, CMake, numerique, CUDA et performance. Elle ajoute un axe explicite
-  de portabilite : SM89 est un profil mesure de reference, pas la seule cible;
-  invariants et parametres de tuning sont separes et chaque autre GPU doit etre
-  rebenchmarke avec sa propre provenance.
-- **E20 — Matrice codegen et samples finale.** Le manifeste genere declare 12
-  engines, 24 modeles, 26 produits, 689 datasets disponibles, zero report et
-  1 407 sorties. Le tree contient 24 `sample.cu`, 24 `sample.cuh`, 24 helpers
-  types et 48 recettes. `generate.py --family all --compare-root .`, le checker
-  des 689 recettes et les quatre tests unitaires du manifeste passent; CMake
-  `dev` se configure et la generation est zero-diff.
-- **E21 — Portabilite de build.** Le preset local SM89 reste utilisable. Un
-  build frais sans mathDx compile les 40 recettes samples independantes en 168
-  etapes. A l'inverse, une configuration fraiche avec mathDx et
-  `CUDA_WORKBENCH_ARCHITECTURES=86` echoue avant compilation parce que
-  `AIFactoryTargets.cmake` exige exactement `89`, bien que le projet annonce
-  `75;86;89`; preuve de `BUILD-002`, pas preuve d'incompatibilite cuFFTDx.
-- **E22 — Execution des model samples.** L'agregat avec mathDx compile les 48
-  generateurs. Une campagne GPU execute les deux layouts des 24 modeles :
-  47/48 smoke tests ecrivent et rechargent 1 000 lignes conformes. Quadratic
-  rough-Heston `samples_02` echoue deux fois au meme endroit avec un spot non
-  fini ligne 77; ses bornes sont les bornes core du generateur de parametres.
-  L'orchestration memoire, les offsets Philox et les profils communs
-  `{256,4096}` ont aussi ete inspectes. Les harness/baselines performance ne
-  contiennent aucun workload sample. Les quatre tests communs
-  `sample_dataset_stage`, rough Volterra, rough Heston et Black-Scholes passent.
-- **E23 — Remediations ciblees presentes.** Les preuves deja obtenues sur ce
-  snapshot ferment `STRUCT-010`, `STRUCT-011`, `STRUCT-012`, `STRUCT-013`,
-  `NUM-006` et `CUDA-001` : zero-diff codegen, builds American/samples, tests
-  CUDA SABR/rough-SABR, smoke tests samples sauf le defaut transfere sous
-  `NUM-007`, et initcheck Bermudan passe de 1 792 a zero erreur. Le checker de
-  baseline est maintenant fail-closed sur ses 22 cles v3, mais `PERF-010`
-  reste ouvert pour la nouvelle surface samples v4.
-- **E24 — Retrait volontaire et reference morte.** Le proprietaire confirme
-  avoir demande la suppression de `docs/deferred-work.md`; le fichier et son
-  lien ne doivent donc pas etre restaures. `AGENTS.md` exige toutefois toujours
-  sa lecture. Cette seule instruction devenue impossible ouvre `STRUCT-014`.
-- **E25 — Remediation portabilite, QRH et baseline samples.** L'instruction
-  morte est retiree. cuFFTDx 26.06 utilise une matrice explicite et une cible
-  CMake d'interface; pricing et sample compilent fraichement pour SM75, SM86,
-  SM89 et le fatbin `75;86;89`, execute sur le SM89 disponible. Les geometries
-  pricing/LSM/samples sont centralisees sous le profil
-  `sm89_reference_v1`, surchargeables par CMake et publiees avec provenance;
-  codegen complet et checker des 689 recettes passent. QRH equilibre sa cellule
-  Volterra : regression CUDA ligne 77, smoke `samples_02` 1 000 lignes et
-  reference Python avec raffinement temporel passent. Le manifeste performance
-  contient 30 cles dont huit samples executes isolement; ses tests unitaires et
-  l'agregat de build passent. Le preflight QRH 3M/stress/facteurs et la campagne
-  performance complete de 30 cles n'ont pas ete acheves et restent requis sous
-  `NUM-007` et `PERF-010`.
+### Philox
 
-## Matrice de couverture du passage partiel version 4
+Les 588 domaines déclarent un stride `2^32` et une capacité par flux `2^30`.
+Le calcul indépendant des clés transformées trouve 96 clés fixed-source, 588
+clés dynamics et zéro collision. Uniformes ouverts, rejet entier sans biais et
+garde de seed de ligne ont été relus; `NUM-008` reste fermé.
 
-| Axe | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Structure et nettoyage lies aux samples | partiel | Arborescence, bindings, helpers, recettes et retrait volontaire du registre differe; instruction morte retiree | Revue generale de tous les renommages du worktree non reprise | E19, E20, E24, E25; fermeture `STRUCT-014` |
-| Codegen model samples | complet structurel | 24 modeles, deux layouts, bornes core, observables, CMake, provenance, zero-diff et builds avec/sans mathDx | Validite numerique du modele separee sous NUM | E20--E23; fermeture `STRUCT-011`, `STRUCT-013` |
-| CMake et matrice d'architectures | complet pour la compatibilite declaree | Builds mathDx SM75/86/89 et fatbin, runtime fatbin SM89, build sans mathDx, refus cible des descripteurs absents | Runtime SM75/SM86 et architectures futures faute de materiel | E21, E25; fermeture `BUILD-002` |
-| Portabilite et tuning materiel | complet structurel | Profil central, provenance, surcharges CMake, metadonnees et workflow pricing/samples/LSM/rough | Aucune mesure runtime hors RTX 4090 Laptop/SM89 | E19, E21, E22, E25; fermeture `PERF-015` |
-| Robustesse numerique des samples | partiel | Correction QRH, ligne 77, smoke 1 000 lignes, ligne extreme 680 et raffinement temporel | Preflight 3M, stress, facteurs et validations de prix independantes | E20, E22, E25; `NUM-007` |
-| Execution et memoire CUDA samples | partiel | Geometries, offsets, strategie persistent grid/block, garde memoire et deux layouts executes | Sanitizers representatifs non rejoues sur les 24 bindings; aucun autre GPU | E19, E22 |
-| Performance model samples | partiel | Huit workloads, deux layouts, kernel/publication wall, baseline SM89 et checker 30 cles | Campagne appariee complete interrompue; aucun runtime hors SM89 | E19, E22, E25; `PERF-010` |
+Le débordement temporel `CUDA-003` est la seule nouvelle défaillance numérique
+prouvée. L'absence d'une requalification isolée de chaque matrice historique
+est une exclusion, pas un finding générique.
 
-## Exclusions du passage version 4
+## CUDA, sanitizers et GPU
 
-- Les axes version 3 non directement affectes par portabilite ou samples; leur
-  couverture historique reste ci-dessous mais n'est pas promue au snapshot
-  sale courant.
-- Les mesures runtime sur SM75, SM86 ou toute autre architecture, faute de
-  materiel correspondant. Aucune performance n'est inferee depuis le SM89.
-- L'execution complete des 48 datasets de 3 000 000 lignes, le preflight QRH
-  core/stress/multi-facteurs et les validations de prix independantes affectees.
-- La campagne performance appariee des 30 cles; son lancement a ete interrompu
-  et aucun resultat partiel n'est compte comme succes du gate.
-- L'audit lent `docs/validation/`, le contenu ignore du website et les compteurs
-  Nsight Compute deja inaccessibles dans le passage version 3.
+### Environnement
 
-## Comptabilite des constats du passage version 4
+- NVIDIA GeForce RTX 4090 Laptop GPU, UUID
+  `GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4`, compute capability 8.9,
+  driver 596.08, 16 376 MiB.
+- Toolchain du build : CMake 3.22.1, Ninja 1.10.1, GCC 14.3, NVCC
+  13.3.73; Compute Sanitizer 2026.2.1.0.
+- Preflight : 63 °C, P0, SM 2 040 MHz, mémoire 9 001 MHz, 42,24 W, aucun
+  processus compute. Postflight : 67 °C, P0, mêmes clocks, 45,03 W, 0 MiB
+  utilisé et aucun processus compute résiduel.
 
-- **Ouverts : 3** — `STRUCT-015`, `NUM-007` et `PERF-010`.
-- **Fermes : 44** dans `closed.md`; `STRUCT-014`, `BUILD-002` et `PERF-015`
-  quittent le registre apres remediation et preuves E25.
-- **Correction de code :** oui, dans la phase de remediation E25; le passage
-  d'audit qui a precede cette phase est reste read-only hors registre.
+### Tests fonctionnels
 
-## Snapshot du passage version 3
+- Build `ai_factory_host_tests`, `ai_factory_cuda_tests` et
+  `performance_benchmarks` : 142 étapes recompilées, succès.
+- CTest host/architecture/codegen hors CUDA/validation : 13/13.
+- CTest principal hors `validation` : 77/77 en 87,56 s, dont 64 labels CUDA;
+  equity, fixed income, LSM, Volterra, N-facteurs, samples, limites workspace,
+  diagnostics kernel et budgets de policy passent.
+- Une tentative complémentaire du CTest total a fait passer les 71 premiers
+  tests QuantLib puis rencontré l'interdiction sandbox de binder un socket Wine
+  dans les cas Premia. Elle a été arrêtée vers le test 136; `validation/**`
+  étant hors périmètre, cette limite n'est ni un échec produit ni un finding.
 
-- **Date :** 2026-08-27.
-- **Referentiel :** `docs/audit/query.md`, version 3 du 2026-08-27.
-- **Branche :** `refactor/unify-cuda-model-contracts`.
-- **Revision auditee :** `1889f7fbbd0f81ce2b06cfb16645e48a43971aa0`.
-- **Etat initial :** worktree propre; `git status --porcelain=v1` et
-  `git ls-files --others --exclude-standard` ne produisaient aucune ligne. La
-  revision suffit donc a reconstruire le snapshot technique initial.
-- **Etat apres audit :** seuls `docs/audit/status.md` et
-  `docs/audit/response.md` ont ete reecrits; `docs/audit/closed.md` a perdu les
-  deux entrees reellement rouvertes `STRUCT-010` et `PERF-010`. Aucun code,
-  CMake, test, generateur, recette ou contrat d'implementation n'a ete corrige.
-- **Site :** `AI_factory_website/` est ignore par `.gitignore`, contient
-  `equations/`, `index.html` et `static/`, et resout vers le depot parent plutot
-  que vers une revision propre. Son contenu exact n'est pas reconstructible par
-  le snapshot Git et est exclu de la certification; seule sa frontiere avec le
-  depot suivi a ete inspectee.
+### ASan/UBSan host
 
-### Environnement d'execution
+Configuration fraîche `/tmp/ai-factory-audit-v7-host-sanitize.2Uo98W`, GCC 14,
+`-fsanitize=address,undefined -fno-omit-frame-pointer`; build host 128/128.
+Les huit tests loaders/planners/offline passent 8/8 avec ASan/UBSan. LSan seul
+est exclu : il termine fatalement sous le `ptrace` imposé par l'environnement;
+le rerun documenté emploie `ASAN_OPTIONS=detect_leaks=0` sans désactiver ASan
+ni UBSan.
 
-- CMake 3.22.1, GCC/G++ 14.3.0, nvcc CUDA 13.3.73, build `Release`, sans
-  `--use_fast_math`, architecture runtime SM89.
-- NVIDIA GeForce RTX 4090 Laptop GPU, compute capability 8.9, 76 SM,
-  17 170 956 288 octets, driver API 13020, runtime 13030.
-- mathDx/cuFFTDx disponible sous
-  `/home/aurelieng/opt/nvidia-mathdx-26.06.1-cuda13/nvidia/mathdx/26.06`.
-- Nsight Systems 2026.1.3; Nsight Compute 2026.2.1 present. Un profilage d'un
-  kernel reel execute explicitement hors sandbox reste bloque par le pilote avec
-  `ERR_NVGPUCTRPERM`; un executable sans kernel se connecte mais ne collecte
-  naturellement aucun compteur.
+### Compute Sanitizer
 
-## Registre des preuves
+Les quatre modes `memcheck`, `racecheck`, `synccheck`, `initcheck` passent sur
+chacun des huit exécutables suivants, soit 32/32 runs et zéro erreur :
 
-- **E01 — Instructions et contrats.** Lecture complete de `AGENTS.md`,
-  `README.md`, `docs/README.md`, `docs/audit/{query,closed,status,response}.md`,
-  puis des contrats d'extension, dynamics, analytics,
-  pricing CUDA, early exercise, diagnostics de launch, generation de
-  parametres et samples, et protocole performance.
-- **E02 — Inventaire et ownership.** Parcours des arbres suivis, tailles,
-  extensions, includes, namespaces et consommateurs. Environ 7 376 fichiers
-  hors builds/datasets, dont 1 243 sous `src`, 1 025 sous `catalog`, 60 sous
-  `tests`, 59 sous `tools` et 4 956 sous `validation`; 478 `.cu`, 626 `.cuh`,
-  729 `.cpp` et 121 `.hpp`. Aucun include textuel de `.cu`, aucun header source
-  sans consommateur et aucune TU `src`/`tests` absente de `compile_commands.json`.
-- **E03 — Matrices de contrats.** Comparaison des dynamics exactes, pas fixe,
-  rough FFT et lifts N-facteurs, des analytics equity/fixed income et des
-  policies/schedules/continuation states avec leurs concepts et tests. Les
-  differences observees hors `NUM-006` sont justifiees par capacite
-  mathematique ou engine.
-- **E04 — Pyramide de factorisation.** Inspection des moteurs
-  `simulation`, `monte_carlo`, `closed_form`, `sample`, `volterra` et
-  `longstaff_schwartz`, de leurs consommateurs modeles/produits et des
-  specialisations fixed income/equity. Aucun adaptateur vide ni branche runtime
-  dans la boucle chaude n'a ete trouve.
-- **E05 — Codegen.** Le manifeste couvre 11 modeles markoviens plus le sous-
-  ensemble Black-Scholes, 6 modeles rough, 21 produits et 29 variantes. La
-  commande `python3 tools/codegen/pricing_bindings/generate.py --family all
-  --output /tmp/... --compare-root .` donne zero diff sur 1 279 sorties: 756
-  bindings `.cu/.cuh`, 522 recettes equity ordinaires et un fragment CMake.
-- **E06 — Recettes et checkers.** Inventaire de 641
-  `catalog/**/generator.cpp`: 530 prix equity, 58 prix fixed income et 53
-  parametres/courbes/produits. `python3 tools/cuda/check_catalog_generators.py`
-  passe: 641 recettes controlees, 522 recettes equity generees, 8 escape
-  hatches algorithmiques American. Les tests `pricing_binding_codegen` et
-  `catalog_generator_boundaries` passent.
-- **E07 — Parametres et samples.** Les 24 recettes de parametres modele et 27
-  recettes produit ont toutes 1 000 lignes, 900 core/100 stress et un YAML
-  adjacent complet. Dix-huit `sample.cu` existent pour 24 modeles catalogues;
-  aucun fichier n'existe sous `catalog/model/**/samples/`.
-- **E08 — Configuration et build courant.** `cmake --preset dev` reussit. Le
-  build agrege `all_models ai_factory_host_tests ai_factory_cuda_tests
-  performance_benchmarks parameter_generators price_generators -j2` reussit en
-  212 etapes sur le build existant; un second passage est no-op en 0,08 s.
-- **E09 — Architectures et ressources statiques.** Builds offline SM75, SM86
-  et SM89 de `test_policy_size_budgets_cuda` reussis. `cuobjdump` mesure pour
-  les probes payload thread 64/63 registres et 128/256 octets de stack en SM75,
-  40/40 et 128/256 en SM86/89; le probe shared utilise 2 048 octets et 5
-  registres en SM75, 8 en SM86/89. Le test runtime annonce 100 % d'occupation
-  theorique pour ses caps.
-- **E10 — Sanitizers host.** Build frais GCC 14 ASan+UBSan+LSan sous
-  `/tmp/ai-factory-audit-host-sanitize-gcc14`; 7/7 tests loaders, catalogues,
-  stages, codegen et frontieres passent. Le premier run sandboxe avait seulement
-  l'echec LSan `ptrace`; le meme binaire hors sandbox passe.
-- **E11 — Tests CUDA hors sandbox.** Les 52 tests du label CTest `cuda` ont ete
-  reexecutes explicitement hors sandbox: 52/52 passent en 22,27 s. Les 9 tests
-  host cibles passent en 0,23 s. Les cas couvrent closed form, simulations
-  exactes/pas fixe, samples, early exercise, rough FFT et rough N-facteurs.
-- **E12 — Compute Sanitizer hors sandbox.** La matrice a ete reexecutee
-  explicitement hors sandbox. Memcheck: 7/7 cas sans erreur; racecheck: 4/4
-  sans hazard; synccheck: 4/4 sans erreur. Initcheck: 4 cas equity/rough sans
-  erreur; `test_bermudan_swaption_cuda` reproduit exactement 1 792 lectures
-  globales non initialisees dans les copies de `PreparedRow`. Logs
-  `/tmp/ai-factory-outside-{memcheck,racecheck,initcheck,synccheck}-*.log`.
-- **E13 — Frontiere SABR.** Revue des deux `dynamics_impl.cuh`, des domaines
-  core/stress et des tests. Les deux engines appliquent le meme plancher
-  Lamperti `1e-12`; les tests couvrent finitude et limite `beta=1`, sans cas de
-  franchissement ni contrat de frontiere.
-- **E14 — Baseline performance SM89.** Reproduction des 18 cles exactes avec
-  5 warmups et 21 repetitions. Le checker retourne `PASS`, avec 4 resultats
-  inconclusifs pour CV > 5 %. Sur les comparaisons stables, aucune regression
-  ne depasse +5 %; delta maximal +3,52 %, CIR noinline -11,27 % et un petit cas
-  Volterra -8,83 %. Le +43,57 % du launcher court a des CV 36,0 %/22,6 % et
-  reste inconclusif, pas un constat.
-- **E15 — Profils et diagnostics.** Diagnostics runtime sans spill: OU
-  Bermudan regression 77 registres/50 % d'occupation; G2 118/33,3 %; Heston
-  American 88/33,3 %; Volterra 48/83,3 % avec 4 096 octets shared dynamiques;
-  rough Heston N7 77/50 %. Profils Nsight Systems conserves sous `/tmp` pour
-  Levy American, Heston American, Bermudan OU/G2 et Volterra. Les phases solve
-  et partials dominent les traces LSM; les compteurs Nsight Compute sont
-  exclus par permission.
-- **E16 — Documentation et nettoyage.** `src/common/README.md` compte 985
-  lignes et n'a aucune reference entrante; il enumere l'arbre et l'API. Le
-  README racine cite encore des `.cu` inclus. Le contrat samples impose deux
-  recettes par modele tandis que le README annonce explicitement leur absence.
-- **E17 — Exhaustivite de baseline.** La baseline versionnee contient 18
-  mesures. Le candidat exact de 18 cles passe avec 4 inconclusifs; le meme
-  checker execute sur une seule de ces cles retourne
-  `PASS: 1 measurement(s), 0 inconclusive`. Aucune cible CTest n'appelle
-  `check_baseline.py` et aucune des 18 cles ne couvre Longstaff-Schwartz.
-- **E18 — Dependances optionnelles.** Build frais avec mathDx du test et du
-  benchmark Volterra en 34 etapes, puis test CUDA passe. Configuration fraiche
-  sans mathDx et build complet `price_generators -j2` reussissent en 1 705
-  etapes (`real 1296,92 s`). Aucun fallback rough FFT n'est pretendu sans
-  mathDx; les targets independantes restent constructibles.
+| Exécutable | Famille principale |
+|---|---|
+| `test_black_scholes_cuda` | closed form |
+| `test_heston_path_products_cuda` | Markov fixed/path products |
+| `test_bermudan_swaption_cuda` | fixed income LSM |
+| `test_heston_american_option_cuda` | equity LSM multi-state |
+| `test_rough_volterra_product_policy_cuda` | Volterra FFT pricing/workspace |
+| `test_rough_volterra_samples_cuda` | Volterra sampling, deux layouts |
+| `test_quadratic_rough_heston_samples_cuda` | N-facteurs 7, sampling |
+| `test_volterra_fft_workspace_bounds_cuda` | bornes/dernier lot/workspace |
 
-## Matrice de couverture version 3
+Logs : `/tmp/ai-factory-audit-v7-sanitizers.wXD0dR`, agrégat SHA-256
+`b29b8e8543853bdb243ce298f29660941c8b0248377ca9f3063eb94844f6a00c`.
 
-Le snapshot de toutes les lignes ci-dessous est celui defini plus haut. Une
-ligne `partiel` indique precisement la preuve inaccessible ou le protocole
-manquant; elle n'est pas promue a `complet` par des tests voisins.
+La revue statique couvre 23 sites de launch : 3 closed form, 1 Monte Carlo,
+4 sampling générique, 1 sampling Volterra, 7 LSM et 7 pricing Volterra; chacun
+est suivi d'un `cudaGetLastError` à sa phase attribuable. Aucun nouvel OOB,
+champ non initialisé ou défaut de workspace précis n'est prouvé après
+`CUDA-001`/`CUDA-002`. La surface actuelle n'expose pas de stream non-default;
+le scénario est non applicable, mais la couverture des combinaisons exactes
+regular/aligned, ragged/cartesian, réutilisation et concurrence n'est pas
+entièrement démontrée : l'axe reste partiel.
 
-### Structure, conventions and ownership
+## Performance
 
-| Sous-section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Repository tree and domain ownership | complet | Arbres `src/common/model/curve/product/generative`, `tools`, `catalog`, `validation`, `tests`, `docs`; classification markovian/rough/fixed income; frontiere du site | Contenu interne du site ignore non reconstructible | E01, E02 |
-| File responsibilities and granularity | complet | Headers publics/impl, TUs `.cu/.cpp`, rows device, gros fichiers, wrappers generes, consommateurs | Mesure avant/apres d'une refactorisation non proposee | E02, E04, E08, E09 |
-| Naming and semantic conventions | complet | Chemins/namespaces, noms canoniques, unites, sides, tests/targets/catalogue; recherche legacy/new/old | Preferences stylistiques sans impact | E02, E03 |
-| Dependency boundaries | complet | Graphes d'includes et liens: aucun `src -> tools/catalog/validation`, aucun common -> type concret, aucune contamination equity/fixed income; mathDx cible | References externes de l'audit de validation | E02, E04, E08, E18 |
-| Cleanup and extension locality | complet | Headers/TUs orphelins, doubles enregistrements, codegen/manuel, README, localite d'un ajout modele/produit/couple | Site ignore | E02, E05, E06, E16; `STRUCT-010`, `STRUCT-011` |
+La baseline complémentaire sous `validation/performance` déclare 22 commandes,
+41 mesures et trois campagnes sur SM89; SHA-256
+`2e93b4dc7d44db7174b7e168d2de1194c2bfe4ef636af9bfc5e01d501ebd0697`.
+Elle n'a pas été modifiée ni rebaselinée. Conformément à la version 7, son
+placement exclusif sous validation interdit de la traiter comme preuve
+principale; son implémentation interne ne produit pas de finding dans ce
+référentiel.
 
-### Contract homogeneity
+Sa lecture comme outil complémentaire montre en outre que
+`best_stable_manifest` sélectionne encore, clé par clé, la plus petite médiane
+kernel parmi les essais stables. Ce best-of-N n'est pas enregistré comme un
+constat interne à `validation/**`, mais interdit de clore `STRUCT-019` par un
+simple déplacement des fichiers : le futur propriétaire principal devra
+adopter une agrégation complète non opportuniste conforme à la version 7.
 
-| Sous-section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Dynamics | complet | Exact, fixed-step, Levy/sauts, rough FFT, rough N-facteurs; parametres/preparation/etat/advance/observables/Philox et tests | References de prix independantes | E03, E11, E13; `NUM-006` |
-| Analytics | complet | Black-Scholes, affines un/deux facteurs, compositions courbe-modele, providers/concepts, signes payer/receiver et tests | Certification QuantLib/Premia | E03, E04, E11 |
-| Products, policies and exercise | complet | Concepts, schedules, handlers, policies, continuation states, regressors, sides compile-time, American/Bermudan | Mesure de biais LSM par reference externe | E03, E04, E11, E12 |
+Aucune campagne principale v7, aucun profil Nsight et aucune décision
+`accept/reject/inconclusive/unavailable` par workload n'ont donc été produits.
+Les quatre sous-audits Performance restent partiels pour `STRUCT-019`, et non
+par assimilation silencieuse de la baseline historique à une preuve actuelle.
 
-### Factorization pyramid
+## Exclusions et limites explicites
 
-| Sous-section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Markovian factorization | complet | Schedules exact/fixed-step, simulation de paths, Monte Carlo, sampling et 11 familles equity plus 6 fixed income | Aucun | E03, E04, E11 |
-| Rough factorization | complet | Driver fractional, hybrid schedule, sampling/pricing Volterra, rough Bergomi/SABR et log-modulated variant | Compteurs materiels n'affectant que Performance | E04, E11, E15 |
-| Rough-Markovian factorization | complet | Rough Heston/quadratic/rough Stein-Stein, preparations host, factor counts 2/3/7, reutilisation du moteur markovien | Reference d'erreur N-facteurs de validation | E03, E04, E11 |
-| Closed-form factorization | complet | Kernels scalaires/cooperatifs, Black-Scholes, options de taux, Jamshidian, providers et sides | Aucun | E03, E04, E11 |
-| Fixed-income and equity factorization | complet | Primitives neutres, reductions, Philox, sample, LSM; specialisations financieres laissees aux domaines | Aucun | E02, E04 |
-| Factorization cost and limits | complet | Branches runtime, tailles/ressources probes, TUs et rebuilds; aucune nouvelle factorisation proposee sans consommateurs | Comparaison avant/apres sans changement, inapplicable | E04, E08, E09, E15 |
+- Pas de correction, refactor, rebaseline, régénération de dataset, commit ou
+  push.
+- `validation/**` et `docs/validation/**` lus/exécutés seulement comme
+  consommateurs ou preuves complémentaires; l'échec Wine est exclu.
+- Pas de GPU physique SM75/SM86, donc aucune conclusion runtime, numérique ou
+  performance sur ces architectures.
+- Pas de build Debug complet, build clean de toutes les 1 278 unités dans une
+  même configuration, ni matrice réelle de mutations CMake.
+- Pas de dry-run complet ajout/retrait modèle/produit/composition, de smoke des
+  697 recettes ou de régénération des 382 datasets matérialisés.
+- Pas de campagne numérique isolée complète pour chaque core/stress/limite et
+  pas de profilage Nsight.
+- Les logs sanitizer sous `/tmp` ne sont pas une preuve versionnée durable.
 
-### Code generation and extension cost
+Ces exclusions maintiennent les axes concernés partiels; elles ne créent pas
+de constat sans défaut précis.
 
-| Sous-section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Minimum hand-written model and product | complet | Inventaire de ce qui reste manuel pour modele, produit et couple; launchers, recettes, parametres, tests et CMake | Squelette de reference independante | E05, E06, E07; `STRUCT-011`--`STRUCT-013` |
-| Canonical capability manifest | complet | Champs actuels, matrice resolue, doubles listes fixed income/samples/parametres/LSM et incompatibilites | Aucun | E05, E06, E07; `STRUCT-011` |
-| Generated bindings and catalogue recipes | complet | 756 bindings, 522 recettes ordinaires, 8 American, 58 fixed income, 0 sample; sides, policies, engines, fragments CMake | Execution 3M impossible faute de recettes, objet du constat | E05, E06, E07; `STRUCT-012`, `STRUCT-013` |
-| Parameter dataset generation | complet | 24 modeles et 27 produits, schemas, ordre 90/10, YAML adjacent, contraintes et tests loaders | Generation des references de prix | E06, E07, E10, E11 |
-| Regeneration, drift and exceptions | complet | Zero-diff, outputs attendus, checker, escapes, builds avec/sans mathDx, architectures, provenance des headers generes | Execution runtime SM75/SM86 faute de GPU; compile/resources couverts | E05, E06, E08, E09, E18 |
+## Commandes principales et résultats
 
-### CMake and build graph
+```text
+python3 tools/codegen/pricing_bindings/generate.py --family all --compare-root .
+# 1 500 sorties, zéro diff
 
-| Section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| CMake and build graph | partiel | Racine/modules/fragments, toutes TUs, doubles inscriptions, globs/checkers, targets/agregats, includes/liens, mathDx, SM75/86/89, clean frais sans mathDx, build courant mathDx et no-op | Rebuild incremental apres les cinq mutations representatives et comparaison detaillee des tailles objet/archive/cubin non executes; depfiles et no-op controles | E02, E05, E06, E08, E09, E18 |
+python3 -m unittest -v tools.codegen.pricing_bindings.test_capability_manifest
+# 14/14
 
-### Numerical robustness and reproducibility
+python3 tools/cuda/check_model_layout.py
+# 832 model-product, 199 infrastructure, 74 templates,
+# 871 generated / 578 handwritten
 
-| Section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Numerical robustness and reproducibility | complet | Domaines log/sqrt/pow/division, positivite/frontieres, limites, precision FP32/FP64, solveurs, LSM, reductions, temps, erreurs, convergence et mapping Philox dans toutes les familles | Certification de prix independante et notebooks, audit separe | E01, E03, E10, E11, E13, E14; `NUM-006` |
+python3 tools/cuda/check_catalog_generators.py
+# 697 recettes, 628 générées, zéro différée
 
-### CUDA execution and memory safety
+cmake --preset dev
+cmake --build build-dev --target \
+  ai_factory_host_tests ai_factory_cuda_tests performance_benchmarks -j2
+ctest --test-dir build-dev --output-on-failure -LE validation
+# 77/77
 
-| Section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| CUDA execution and memory safety | complet | Launchers/workspaces, overflow/offsets, pointeurs, RAII, streams/sync, erreurs async; ASan/UBSan/LSan; memcheck/racecheck/initcheck/synccheck sur exact/fixed, aligned/cartesian, samples, LSM, rough FFT/N-facteurs | Toutes les specialisations catalogue ne sont pas rejouees sous sanitizer; matrice representative exigee couverte | E10, E11, E12; `CUDA-001` |
+env ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 \
+  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+  ctest --test-dir /tmp/ai-factory-audit-v7-host-sanitize.2Uo98W \
+  --output-on-failure -I 1,8
+# 8/8
 
-### Performance
+compute-sanitizer --tool {memcheck,racecheck,synccheck,initcheck} \
+  --error-exitcode=99 ./build-dev/<8 executables>
+# 32/32, zéro erreur
 
-| Sous-section | Statut | Couverture | Exclusions | Preuves |
-|---|---|---|---|---|
-| Common performance protocol and kernel strategy | partiel | Protocole v1, environnement SM89, 18 workloads, diagnostics de ressources, cubin SM75/86/89, Nsight Systems, flags et invariants | Compteurs Nsight Compute occupation atteinte/stalls/caches/branches/debit interdits par `ERR_NVGPUCTRPERM`; gate incomplet `PERF-010` | E09, E14, E15, E17; `PERF-010` |
-| Generic CUDA performance | partiel | Closed form, index, accumulation, geometries riches, CIR inline/noinline, schedules regular/ragged, overhead et ressources | Compteurs materiels Nsight Compute; les quatre comparaisons bruitees doivent etre rejouees | E09, E14, E15 |
-| Early-exercise performance | partiel | Profils descriptifs equity un etat NIG/VG, equity multi-etats Heston, taux un facteur OU et deux facteurs G2; workspace, phases, registres/spills/occupation | Pas de baseline versionnee multi-dimensions prix/paths/dates/blocs; pas de compteurs Nsight Compute. Toute geometrie alternative reste **a mesurer** | E11, E15, E17 |
-| Rough performance | partiel | Six workloads baseline Volterra, crossover/tuning/chunking historiques, complements Heston/rough Heston N7/rough SABR, ressources et decomposition Nsight Systems | Compteurs Nsight Compute; runtime SM75/86; courbe d'erreur N-facteurs independante reservee a validation | E09, E11, E14, E15 |
+env CCACHE_DISABLE=1 /usr/bin/time cmake --build build-dev --target \
+  ai_factory_host_tests ai_factory_cuda_tests performance_benchmarks -j2
+# no-op, 0,07 s
+```
 
-## Exclusions transversales
+## Remediation partielle du 2026-08-30 — `CUDA-003`
 
-- L'audit `docs/validation/query.md`: Premia, QuantLib, caches de 1 000 prix,
-  fingerprints, notebooks et certification des 900/100 lignes. Aucun statut ni
-  artefact de cet audit separe n'a ete modifie.
-- Le contenu exact de `AI_factory_website/`, ignore et sans revision propre.
-- Les mesures runtime SM75 et SM86, faute de materiel; leurs builds et
-  ressources statiques sont couverts, aucune performance runtime n'en est
-  inferee.
-- Les compteurs Nsight Compute refuses par le pilote, y compris pour le kernel
-  Black-Scholes lance explicitement hors sandbox. Leur absence limite les
-  quatre sous-audits Performance et ne devient pas un constat generique.
+- **Revision :** `5d65c23cf709173a65ab809baff0da2566b58acf`, branche
+  `refactor/model-layout-codegen-volterra`.
+- **Worktree :** sale avant et apres la remediation; 1 908 chemins suivis
+  modifies/supprimes et 990 chemins non suivis au releve final. Les changements
+  sans rapport presents dans ce worktree partage n'ont pas ete nettoyes.
+- **Couverture :** arithmetique host checked pour tous les calendriers
+  fixed-step, schedules d'exercice, launchers pricing ordinaires/N-factor/LSM,
+  formule geometric Asian et sources de calendriers sample; generation de la
+  matrice complete et build de l'agregat CUDA.
+- **Exclusions :** aucune mesure de performance ni changement de geometrie;
+  l'arithmetique device et le mapping Philox restent inchanges. Le timeout
+  CTest de 30 secondes du test QRH de preparation est traite avec `BUILD-005`.
+- **Preuve :** `simulation_schedule_validation` passe; codegen 1 500 sorties
+  zero-diff; agregat `ai_factory_cuda_tests` compile; 63/64 CTests CUDA passent
+  et le seul timeout passe directement en environ 61 secondes; memcheck,
+  racecheck, initcheck et synccheck passent sans erreur/hazard sur
+  `path_product_factorization_cuda`.
 
-## Decisions et hypotheses de performance
+## Remediation partielle du 2026-08-30 — `STRUCT-011`
 
-- **Decision mesuree :** aucune regression stable superieure au seuil v1 de
-  5 % sur les 18 workloads appariees. Les quatre CV excessifs sont
-  inconclusifs et ne justifient aucune correction ni mise a jour de baseline.
-- **A mesurer :** une autre geometrie ou decomposition LSM pour G2 (118
-  registres, 33,3 % d'occupation theorique) et Heston (88, 33,3 %). Les traces
-  montrent que regression partials/solve dominent, mais aucun gain n'est
-  presume sans matrice paths/dates/blocs et compteurs.
-- **A mesurer :** le compromis facteur/temps/erreur des lifts rough au-dela du
-  cas N7 observe. Le delta Heston 85,049 ms contre rough Heston N7 88,163 ms
-  sur un complement local ne constitue ni baseline versionnee ni preuve
-  d'erreur d'approximation.
-- **A mesurer :** les quatre workloads bruités de E14 dans un environnement
-  thermique/frequences mieux stabilise. Le bruit ne masque ni ne prouve une
-  regression.
+- **Revision :** `5d65c23cf709173a65ab809baff0da2566b58acf`, branche
+  `refactor/model-layout-codegen-volterra`.
+- **Worktree :** sale avant et apres; les modifications paralleles de
+  catalogue, validation et codegen ont ete preservees.
+- **Couverture :** source canonique des 24 modeles, contrats minimaux des 12
+  engines, 26 produits et 697 datasets, resolution des 416 compositions et cas
+  FI LSM CIR.
+- **Exclusions :** pas de smoke runtime des 697 recettes et pas de mesure GPU;
+  ce passage porte sur la coherence statique et la regeneration exhaustive.
+- **Preuve :** 19/19 tests du manifeste; ajout/retrait modele, produit et
+  composition; fixture de table divergente; codegen 1 500 sorties zero-diff;
+  provenance regeneree en schema 2.
 
-## Comptabilite des constats du passage version 3
+## Remediation partielle du 2026-08-30 — `BUILD-005`
 
-- **Ouverts : 7** — `STRUCT-010`, `STRUCT-011`, `STRUCT-012`, `STRUCT-013`,
-  `NUM-006`, `CUDA-001`, `PERF-010`.
-- **Rouverts pendant ce passage : 2** — `STRUCT-010`, `PERF-010`, chacun selon
-  le critere conserve dans son ancienne entree fermee.
-- **Identifiants historiques encore fermes : 35** dans `closed.md`.
-- **Correction de code pendant l'audit : aucune.**
+- **Revision :** `5d65c23cf709173a65ab809baff0da2566b58acf`, branche
+  `refactor/model-layout-codegen-volterra`.
+- **Worktree :** sale avant et apres; les changements paralleles de catalogue,
+  validation, codegen et datasets ont ete preserves.
+- **Couverture :** extraction des propriétaires runtime, catalogue,
+  performance, tests et validation; configurations native SM89 avec mathDx,
+  SM75 sans mathDx et fatbin SM75/86/89; inventaire, builds et no-op.
+- **Exclusions :** la matrice de mutation n'est pas prétendue exhaustive : le
+  dry-run par timestamp n'était pas discriminant. Une régénération codegen
+  réelle et ses 229 consommateurs recompilés fournissent la preuve de
+  propagation disponible.
+- **Preuve :** racine 1 833 vers 127 lignes; 573 targets strictement identiques;
+  builds host/CUDA/performance réussis; 12/12 tests SM75; cinq CTests principaux
+  réussis, dont la préparation QRH en 36,54 s avec timeout explicite de 120 s;
+  second build sans travail en 0,12 s.
+
+## Remediation partielle du 2026-08-31 — `STRUCT-019`
+
+- **Revision de depart :** `5d65c23cf709173a65ab809baff0da2566b58acf`,
+  branche `refactor/model-layout-codegen-volterra`.
+- **Worktree :** partage et deja massivement sale avant la remediation; les
+  changements de structure, catalogue, codegen, numerique et validation des
+  passages precedents sont consolides dans la meme branche sans nettoyage
+  destructif.
+- **Couverture realisee :** les sources, fixtures et baselines principales de
+  performance appartiennent maintenant a `tests/performance`; runners et
+  checker appartiennent a `tools/performance`; le protocole durable est dans
+  `docs/performance-regression-protocol.md` et le graphe de targets dans
+  `cmake/AIFactoryPerformance.cmake`. Le protocole version 3 impose 41 mesures,
+  quatre rapports, quatre frontieres de temps, trois campagnes eligibles sans
+  best-of-N, ressources compilees par symbole, budgets numeriques/VRAM/binaires,
+  provenance et preflight fail-closed.
+- **Durcissement environnemental :** alimentation secteur, processus compute,
+  temperature, derive thermique, raisons de throttling et enveloppe de
+  puissance NVIDIA sont verifies. Une limite courante inferieure a 140 W est
+  refusee pour le profil SM89; le journal de campagnes est persiste
+  incrementiellement et peut etre repris seulement apres verification de ses
+  SHA-256 et nombres de lignes.
+- **Preuve disponible :** 17/17 tests unitaires du protocole passent; le build
+  des benchmarks passe; deux campagnes SM89 completes sont eligibles et
+  conservees parmi quatre tentatives. Une campagne de chauffe a ete rejetee
+  pour derive thermique et un preflight a ete refuse apres une breve bascule
+  batterie/secteur.
+- **Blocage volontaire :** le pilote expose actuellement une limite de 55 W
+  contre 150 W par defaut, avec `software_thermal_slowdown` actif. Aucune mesure
+  sous ce profil degrade n'est acceptee et la cinquieme tentative n'est pas
+  consommee.
+- **Suite obligatoire :** retablir le profil 150 W, reprendre l'unique tentative
+  restante, produire l'agregat et les quatre rapports, conserver le
+  predecesseur avec un diff exhaustif, enregistrer les profils Nsight
+  representatifs, rejouer le checker puis seulement deplacer `STRUCT-019` vers
+  `closed.md`. Le constat reste donc explicitement ouvert dans cette PR.

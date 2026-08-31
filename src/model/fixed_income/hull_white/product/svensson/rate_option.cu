@@ -1,4 +1,4 @@
-// Closed-form Hull-White rate-option composition fitted to a parametric curve.
+// Generated Closed-form Hull-White rate-option composition fitted to a parametric curve.
 #include "model/fixed_income/hull_white/product/svensson/rate_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"
@@ -65,14 +65,18 @@ void launch_hull_white_svensson_rate_option_cuda(
     );
 }
 
-template void launch_hull_white_svensson_rate_option_cuda<OptionSide::call>(
+template void launch_hull_white_svensson_rate_option_cuda<
+    OptionSide::call
+>(
     const ModelParameters*, std::size_t,
     const FittedModelComposition::CurveParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-template void launch_hull_white_svensson_rate_option_cuda<OptionSide::put>(
+template void launch_hull_white_svensson_rate_option_cuda<
+    OptionSide::put
+>(
     const ModelParameters*, std::size_t,
     const FittedModelComposition::CurveParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,

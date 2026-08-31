@@ -19,6 +19,7 @@ static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 void launch_sabr_up_no_touch_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::UpNoTouchParameters* host_products,
     const product::UpNoTouchParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -46,6 +47,7 @@ void launch_sabr_up_no_touch_cuda(
             product_count,
             construction
         ),
+        {host_products, product_count, construction},
         result_count,
         result_offset,
         launch_result_count,

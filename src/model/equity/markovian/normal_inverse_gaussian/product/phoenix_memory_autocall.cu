@@ -19,6 +19,7 @@ static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::PhoenixMemoryAutocallParameters* host_products,
     const product::PhoenixMemoryAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -44,6 +45,7 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_cuda(
             product_count,
             construction
         ),
+        {host_products, product_count, construction},
         result_count,
         result_offset,
         launch_result_count,

@@ -1,0 +1,153 @@
+title: "Bermudan Swaptions parameter dataset bermudan_swaptions_01"
+database_id: "bermudan_swaptions_01"
+product_family: "Bermudan Swaptions"
+catalog: "catalog/product/bermudan_swaption/bermudan_swaptions_01"
+url: "https://datasets.ai-factory.example/v1/product/bermudan_swaptions/bermudan_swaptions_01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+parameters:
+  notional: "Contract notional N."
+  strike: "Fixed swap rate K."
+  accrual_fraction: "Constant contractual coupon year fraction delta."
+  first_exercise_time: "First exercise and initial swap-start date in business days."
+  payment_interval: "Business days between payments and exercise opportunities."
+  payment_count: "Payments from first exercise to final maturity."
+  exercise_count: "Co-terminal exercise opportunities."
+payoff:
+  expression: "max over exercise policy of N * max(omega * (1 - P(t,T_N) - K * sum_{i>j} delta * P(t,T_i)), 0), omega = +1 payer / -1 receiver"
+  exercise_dates: "first_exercise_time + j * payment_interval, j = 0,...,exercise_count-1"
+  underlying: "At exercise j, the remaining co-terminal swap."
+  settlement: "physical"
+  normalization: "N = 1"
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "Cartesian grid"
+      rule: "Every first exercise time, co-terminal regular schedule, and strike combination."
+      description: "Six-month to thirty-year first exercise dates; two-to-twenty-year co-terminal swaps; annual or semiannual fixed legs; and two-to-ten exercise opportunities at ordinary fixed rates."
+      first_exercise_times:
+        - 126
+        - 252
+        - 504
+        - 756
+        - 1260
+        - 1764
+        - 2520
+        - 3780
+        - 5040
+        - 7560
+      schedules:
+        -
+          payment_interval: 252
+          payment_count: 2
+          exercise_count: 2
+          accrual_fraction: 1.0
+        -
+          payment_interval: 252
+          payment_count: 3
+          exercise_count: 3
+          accrual_fraction: 1.0
+        -
+          payment_interval: 252
+          payment_count: 5
+          exercise_count: 5
+          accrual_fraction: 1.0
+        -
+          payment_interval: 252
+          payment_count: 7
+          exercise_count: 5
+          accrual_fraction: 1.0
+        -
+          payment_interval: 252
+          payment_count: 10
+          exercise_count: 5
+          accrual_fraction: 1.0
+        -
+          payment_interval: 252
+          payment_count: 10
+          exercise_count: 10
+          accrual_fraction: 1.0
+        -
+          payment_interval: 126
+          payment_count: 4
+          exercise_count: 4
+          accrual_fraction: 0.5
+        -
+          payment_interval: 126
+          payment_count: 10
+          exercise_count: 6
+          accrual_fraction: 0.5
+        -
+          payment_interval: 126
+          payment_count: 20
+          exercise_count: 10
+          accrual_fraction: 0.5
+        -
+          payment_interval: 126
+          payment_count: 40
+          exercise_count: 10
+          accrual_fraction: 0.5
+      strikes:
+        - 0.004999999888241291
+        - 0.012500000186264515
+        - 0.019999999552965164
+        - 0.027499999850988388
+        - 0.03500000014901161
+        - 0.042500000447034836
+        - 0.05000000074505806
+        - 0.06499999761581421
+        - 0.07999999821186066
+      notional: 1.0
+  stress:
+    row_count: 100
+    generation:
+      method: "Cartesian grid"
+      rule: "Every first exercise time, co-terminal regular schedule, and strike combination."
+      description: "One-day through thirty-year first exercises, daily through annual fixed legs, two-payment through hundred-year co-terminal swaps, and zero or unusually high fixed rates."
+      first_exercise_times:
+        - 1
+        - 5
+        - 21
+        - 3780
+        - 7560
+      schedules:
+        -
+          payment_interval: 1
+          payment_count: 2
+          exercise_count: 2
+          accrual_fraction: 0.003968254197388887
+        -
+          payment_interval: 5
+          payment_count: 12
+          exercise_count: 4
+          accrual_fraction: 0.01984127052128315
+        -
+          payment_interval: 21
+          payment_count: 120
+          exercise_count: 12
+          accrual_fraction: 0.0833333358168602
+        -
+          payment_interval: 63
+          payment_count: 200
+          exercise_count: 8
+          accrual_fraction: 0.25
+        -
+          payment_interval: 252
+          payment_count: 100
+          exercise_count: 10
+          accrual_fraction: 1.0
+      strikes:
+        - 0.0
+        - 0.0010000000474974513
+        - 0.15000000596046448
+        - 0.3499999940395355
+      notional: 1.0

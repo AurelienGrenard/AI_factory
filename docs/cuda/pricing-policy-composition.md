@@ -7,10 +7,27 @@ composes. Il complete les contrats normatifs de dynamique et de pricing sans
 les remplacer. Il privilegie les flux de donnees et le cycle de vie des objets
 afin de rendre visible l'origine de chaque information.
 
-La premiere section couvre le Monte Carlo markovien. La seconde couvre les
-modeles a noyau Volterra gaussien simules par schema hybride et FFT. Les
-sections closed form et rough par approximation markovienne N-facteurs seront
-ajoutees apres validation de leurs schemas respectifs.
+Les sections couvrent toutes les familles actives du manifeste de capacites :
+Monte Carlo markovien, Volterra gaussien hybride FFT, approximation rough
+markovienne N-facteurs, formules fermees equity et fixed income,
+Longstaff--Schwartz et sampling modele. Le manifeste type reste proprietaire de
+l'inventaire des compositions; ce document explique leurs frontieres sans
+recopier la matrice modele-produit.
+
+| Engine du manifeste | Composition expliquee |
+|---|---|
+| `equity_markovian` | section 1 |
+| `equity_volterra_fft` | section 2 |
+| `equity_n_factor` | section 3 |
+| `equity_closed_form` | section 4 |
+| `fixed_income_closed_form` | section 4 |
+| `equity_lsm_fixed` | section 5 |
+| `equity_lsm_exact` | section 5 |
+| `fixed_income_lsm` | section 5 |
+| `sample_markovian` | section 6 |
+| `sample_n_factor` | section 6 |
+| `sample_volterra_fft` | section 6 |
+| `sample_fixed_income` | section 6 |
 
 ## 1. Monte Carlo markovien
 
@@ -548,21 +565,19 @@ PreparedSchedule + European PreparedProduct
     -> payoff terminal
 ```
 
-### 1.8 Deux presentations produit dans le code actuel
+### 1.8 Une composition produit, plusieurs alias publics
 
-La factorisation conceptuelle precedente est unique, mais le code markovien
-presente encore deux facades equivalentes :
+La factorisation produit est unique. Une surface publique specialisee telle
+que `AsianOptionPricingPolicy<Schedule, Side>` est un alias de la composition
+canonique
+`PathProductMonteCarloPricingPolicy<Schedule, AsianOptionPathPolicy<Side>>`;
+elle ne possede ni second corps, ni second calendrier, ni payoff duplique.
 
-1. une policy finale specialisee telle que
-   `AsianOptionPricingPolicy<Schedule, Side>` ;
-2. une `AsianOptionPathPolicy<Side>` independante du moteur, composee par
-   `PathProductMonteCarloPricingPolicy<Schedule, ProductPathPolicy>`.
-
-La seconde forme rend explicites `calendar`, `PreparedProduct`, `Handler` et
-`finalize`. Elle est partageable sans duplication par un schedule markovien,
-un lift N-facteurs ou un executeur Volterra FFT. La premiere forme conserve le
-meme flux de donnees mais assemble directement le schedule et le payoff dans
-la policy propre au produit.
+`ProductPathPolicy` rend explicites `calendar`, `PreparedProduct`, `Handler` et
+`finalize`. La meme policy produit est composee sans duplication par un
+schedule markovien, un lift N-facteurs ou l'executeur Volterra FFT. Le test
+`path_product_factorization_cuda` impose l'identite de type des alias publics
+markoviens avec cette composition canonique pour les 21 produits concernes.
 
 ### 1.9 Invariants a retenir
 
@@ -829,3 +844,108 @@ seules les dates demandees par le schedule sont observees.
 - Deux chemins reels partagent une transformee C2C par empaquetage complexe.
 - Le moteur ne materialise en VRAM ni les browniens, ni les spots, ni les
   volatilites complets.
+
+## 3. Approximation rough markovienne N-facteurs
+
+### 3.1 Preparation hote, execution Monte Carlo commune
+
+Les lifts rough Heston et quadratic rough Heston approchent leur noyau par une
+somme exponentielle a 2, 3 ou 7 facteurs. L'ajustement des nodes, weights et
+coefficients recurrents est une preparation hote couteuse, executee une fois
+par ligne de modele. Le device recoit ensuite un
+`PreparedDynamics<FactorCount>` compact.
+
+```mermaid
+flowchart LR
+    MP[ModelParameters] --> FIT[Preparation N-facteurs hote]
+    FIT --> PD[PreparedDynamics&lt;N&gt; device]
+    PP[ProductParameters] --> PPATH[ProductPathPolicy]
+    PD --> INPUTS[PreparedModelProductDeviceInputs]
+    PPATH --> INPUTS
+    INPUTS --> MC[Kernel Monte Carlo generique]
+```
+
+`launch_prepared_path_product_cuda` adapte ces dynamiques deja preparees a
+`PathProductMonteCarloPricingPolicy`. Schedules, calendriers, handlers,
+reduction des moments et geometrie de kernel restent ceux de la section 1. Le
+lift ne reimplemente donc aucun produit et ne doit pas introduire un moteur
+Monte Carlo concurrent.
+
+### 3.2 Invariants
+
+- la preparation N-facteurs est validee avant sa copie device;
+- le nombre de facteurs est un parametre de template, sans boucle ou dispatch
+  runtime sur la variante dans le kernel;
+- `PreparedDynamics` est aligne avec la ligne modele correspondante;
+- la policy produit et le schedule fixed-step sont exactement ceux du chemin
+  markovien canonique;
+- toute modification du fit doit verifier convergence en temps et en facteurs,
+  reproductibilite Philox, registres, spills et cout end-to-end.
+
+## 4. Formules fermees equity et fixed income
+
+### 4.1 Contrat d'execution commun
+
+Une formule fermee expose une `ClosedFormPricingPolicy` avec :
+
+```cpp
+using DeviceInputs;
+using TimeConfiguration;
+using PreparedRow;
+
+static PreparedRow prepare_row(...);
+static float evaluate_price(const PreparedRow& row);
+```
+
+`closed_form::launch_closed_form_cuda` valide les dimensions, prepare une ligne
+par thread et choisit statiquement le kernel direct ou grid-stride selon la
+geometrie. Il n'y a ni etat de chemin, ni Philox, ni reduction Monte Carlo.
+Les lignes preparees restent sous le budget per-thread du contrat closed form.
+
+### 4.2 Black--Scholes et formules fixed income
+
+Les compositions Black--Scholes combinent analytics lognormales et contrat
+produit. La geometric Asian valide en plus son calendrier host avant lancement;
+le range accrual utilise une somme FP32 compensee qualifiee numeriquement.
+
+Les compositions fixed income selectionnent a la compilation un provider
+analytique autonome ou ajuste a Nelson--Siegel/Svensson. Les branches de
+templates sont separees par factorisation mathematique : affine un facteur
+CIR, affine gaussienne un facteur, affine deux facteurs, courbe ajustee un
+facteur et courbe ajustee deux facteurs. Les schedules variables restent des
+vues de donnees produit; ils ne deviennent pas une dependance des analytics
+modele.
+
+## 5. Longstaff--Schwartz equity et fixed income
+
+Les moteurs early exercise possedent une execution distincte parce qu'ils
+stockent les etats/cashflows aux dates d'exercice puis effectuent une induction
+backward et des regressions. La policy produit fournit calendrier d'exercice,
+valeur immediate, etat de regression et actualisation; l'execution generique
+possede workspace, moments, Cholesky et diagnostics.
+
+Les modeles equity selectionnent un schedule fixed-step ou exact selon leur
+dynamique. En fixed income, les modeles gaussiens emploient leur transition
+jointe exacte et CIR emploie explicitement la dynamique jointe fixed-step avec
+integrale trapezoidale. CIR ne doit donc jamais etre publie comme transition
+jointe exacte dans le manifeste.
+
+Le contrat normatif complet, y compris les decisions FP64 mesurees de la
+regression et de la frontiere d'exercice, est
+[`american-and-bermudan-pricing-contract.md`](american-and-bermudan-pricing-contract.md).
+
+## 6. Sampling modele
+
+Le sampling ne compose aucun produit : une source de parametres, une source de
+calendriers et une policy d'observation construisent des trajectoires modele.
+Il reutilise les memes dynamiques et les memes familles de preparation que le
+pricing : markovien fixed/exact, N-facteurs prepare ou Volterra hybride FFT.
+Les calendriers aleatoires sont valides cote host sur leur borne maximale avant
+lancement.
+
+Les bindings `sample.cuh`/`sample.cu`, helpers de generation et recettes YAML
+sont derives du manifeste. Ajouter un modele ne doit pas conduire a recopier un
+kernel sample : seules les capacites et fonctions propres au modele sont
+declarees, puis le codegen choisit la famille de templates. Le contrat de
+dataset et les layouts publies sont decrits dans
+[`../model-sample-dataset-generation.md`](../model-sample-dataset-generation.md).

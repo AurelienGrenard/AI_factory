@@ -24,10 +24,10 @@ __device__ __forceinline__ float stochastic_short_rate(const State& state) {
 __device__ __forceinline__ float short_rate(
     const ModelParameters& parameters,
     const State& state,
-    float time
+    float time_years
 ) {
     static_cast<void>(parameters);
-    static_cast<void>(time);
+    static_cast<void>(time_years);
     return stochastic_short_rate(state);
 }
 
@@ -111,11 +111,11 @@ using BondOptionContext =
 __device__ __forceinline__ BondOptionContext prepare_bond_option_context(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float option_expiry
+    float valuation_time_years,
+    float option_expiry_years
 ) {
     const float expiry_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, option_expiry
+        parameters, state, valuation_time_years, option_expiry_years
     );
     return {expiry_log_bond, expf(expiry_log_bond)};
 }
@@ -126,18 +126,18 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const ModelParameters& parameters,
     const State& state,
     float option_sign,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, bond_maturity
+        parameters, state, valuation_time_years, bond_maturity_years
     );
     const float total_volatility = bond_option_total_volatility(
         parameters.process,
-        option_expiry - valuation_time,
-        bond_maturity - option_expiry
+        option_expiry_years - valuation_time_years,
+        bond_maturity_years - option_expiry_years
     );
     return ::ai_factory::workbench::fixed_income::discounted_lognormal_bond_option_price(
         context,
@@ -152,21 +152,21 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const ModelParameters& parameters,
     const State& state,
     float option_sign,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         ),
         parameters,
         state,
         option_sign,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -176,11 +176,11 @@ struct AnalyticsProvider {
     __device__ __forceinline__ float zero_coupon_bond(
         const ModelParameters& parameters,
         const State& state,
-        float valuation_time,
-        float maturity
+        float valuation_time_years,
+        float maturity_years
     ) const {
         return g2::zero_coupon_bond(
-            parameters, state, valuation_time, maturity
+            parameters, state, valuation_time_years, maturity_years
         );
     }
 
@@ -188,11 +188,11 @@ struct AnalyticsProvider {
     prepare_bond_option_context(
         const ModelParameters& parameters,
         const State& state,
-        float valuation_time,
-        float option_expiry
+        float valuation_time_years,
+        float option_expiry_years
     ) const {
         return g2::prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         );
     }
 
@@ -201,9 +201,9 @@ struct AnalyticsProvider {
         const ModelParameters& parameters,
         const State& state,
         float option_sign,
-        float valuation_time,
-        float option_expiry,
-        float bond_maturity,
+        float valuation_time_years,
+        float option_expiry_years,
+        float bond_maturity_years,
         float strike
     ) const {
         return g2::zero_coupon_bond_option_price(
@@ -211,9 +211,9 @@ struct AnalyticsProvider {
             parameters,
             state,
             option_sign,
-            valuation_time,
-            option_expiry,
-            bond_maturity,
+            valuation_time_years,
+            option_expiry_years,
+            bond_maturity_years,
             strike
         );
     }
@@ -241,30 +241,30 @@ static_assert(
 // Return the logarithm of the multiplicative affine prefactor.
 __device__ __forceinline__ float log_A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return affine_bond_coefficients(
-        parameters.process, maturity - valuation_time
+        parameters.process, maturity_years - valuation_time_years
     ).log_A;
 }
 
 // Exponentiate the affine prefactor only for callers requesting A itself.
 __device__ __forceinline__ float A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
-    return expf(log_A(parameters, valuation_time, maturity));
+    return expf(log_A(parameters, valuation_time_years, maturity_years));
 }
 
 // Return both factor loadings in one value.
 __device__ __forceinline__ TwoFactorAffineBondLoadings B(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
-    const float delta = maturity - valuation_time;
+    const float delta = maturity_years - valuation_time_years;
     return {
         mean_reverting_gaussian::integral_state_loading(
             parameters.process.mean_reversion_x, delta
@@ -279,11 +279,11 @@ __device__ __forceinline__ TwoFactorAffineBondLoadings B(
 __device__ __forceinline__ float log_zero_coupon_bond(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     const TwoFactorAffineBondCoefficients coefficients = affine_bond_coefficients(
-        parameters.process, maturity - valuation_time
+        parameters.process, maturity_years - valuation_time_years
     );
     return fmaf(
         -coefficients.B.state_x,
@@ -300,10 +300,10 @@ __device__ __forceinline__ float log_zero_coupon_bond(
 __device__ __forceinline__ float log_discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
     static_cast<void>(parameters);
-    static_cast<void>(time);
+    static_cast<void>(time_years);
     return -state_integral;
 }
 
@@ -311,20 +311,20 @@ __device__ __forceinline__ float log_discount_factor(
 __device__ __forceinline__ float discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
-    return expf(log_discount_factor(parameters, state_integral, time));
+    return expf(log_discount_factor(parameters, state_integral, time_years));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
 __device__ __forceinline__ float zero_coupon_bond(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return expf(log_zero_coupon_bond(
-        parameters, state, valuation_time, maturity
+        parameters, state, valuation_time_years, maturity_years
     ));
 }
 
@@ -332,18 +332,18 @@ __device__ __forceinline__ float zero_coupon_bond(
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -352,18 +352,18 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         -1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -372,18 +372,18 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 __device__ __forceinline__ float forward_rate(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
-    float end_time,
+    float valuation_time_years,
+    float start_time_years,
+    float end_time_years,
     float accrual_fraction
 ) {
     return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
-        end_time,
+        valuation_time_years,
+        start_time_years,
+        end_time_years,
         accrual_fraction
     );
 }
@@ -392,16 +392,16 @@ template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     const ScheduleView& schedule
 ) {
     return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         schedule
     );
 }
@@ -410,8 +410,8 @@ template<typename ScheduleView>
 __device__ __forceinline__ float payer_swap_value(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     float fixed_rate,
     const ScheduleView& schedule
 ) {
@@ -419,8 +419,8 @@ __device__ __forceinline__ float payer_swap_value(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         fixed_rate,
         schedule
     );

@@ -1,17 +1,14 @@
 // Geometric-average payoff composed with a dense equity schedule.
 #pragma once
 
-#include "common/device_inputs.cuh"
-
+#include "common/compensated_sum.cuh"
 #include "common/equity/concepts.cuh"
-#include "common/equity/discount.cuh"
+#include "common/equity/path_product_monte_carlo_policy.cuh"
 #include "common/equity/path_product_policy.cuh"
 #include "common/simulation/schedule.cuh"
-#include "common/equity/handlers.cuh"
 #include "common/payoff/vanilla_option.cuh"
 #include "product/geometric_asian_option/parameters.hpp"
 
-#include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::product {
@@ -29,11 +26,11 @@ struct GeometricAsianOptionPathPolicy {
     };
 
     struct Handler {
-        double log_sum = 0.0;
+        CompensatedFloatSum log_sum;
         std::uint32_t count = 0U;
 
         __device__ __forceinline__ bool observe(float log_spot) {
-            log_sum += static_cast<double>(log_spot);
+            log_sum.add(log_spot);
             ++count;
             return true;
         }
@@ -80,9 +77,9 @@ struct GeometricAsianOptionPathPolicy {
         const typename StatePolicy::State&,
         const Handler& handler
     ) {
-        const float geometric_mean = expf(static_cast<float>(
-            handler.log_sum / static_cast<double>(handler.count)
-        ));
+        const float geometric_mean = expf(
+            handler.log_sum.value() / static_cast<float>(handler.count)
+        );
         return product.discount * payoff::vanilla_option_payoff<Side>(
             geometric_mean,
             product.strike
@@ -95,55 +92,10 @@ template<
     OptionSide Side
 >
 requires equity::LogSpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
-struct GeometricAsianOptionPricingPolicy {
-    using Schedule = SchedulePolicy;
-    using Dynamics = typename Schedule::Dynamics;
-    using ModelParameters = typename Dynamics::Parameters;
-    using ProductParameters = GeometricAsianOptionParameters;
-    using DeviceInputs =
-        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
-    using TimeConfiguration = typename Schedule::TimeConfiguration;
-
-    struct PreparedRow {
-        typename Schedule::PreparedSchedule schedule;
-        float strike;
-        float discount;
-    };
-
-    __device__ __forceinline__ static PreparedRow prepare_row(
-        const ModelParameters& model,
-        const ProductParameters& product,
-        const TimeConfiguration& time_configuration
-    ) {
-        const typename Schedule::Calendar calendar{product.maturity_days};
-        return {
-            Schedule::prepare(model, calendar, time_configuration),
-            product.strike,
-            equity::constant_rate_discount_factor(
-                model,
-                simulation::day_count_year_fraction(
-                    product.maturity_days,
-                    time_configuration
-                )
-            ),
-        };
-    }
-
-    __device__ __forceinline__ static float evaluate_path(
-        const PreparedRow& row,
-        philox::PhiloxKey key,
-        std::size_t path
-    ) {
-        equity::GeometricMeanObservationHandler<Dynamics> handler;
-        Schedule::simulate(row.schedule, key, path, handler);
-        return row.discount * payoff::vanilla_option_payoff<Side>(
-            handler.geometric_mean(
-                Schedule::observation_count(row.schedule) + 1U
-            ),
-            row.strike
-        );
-    }
-
-};
+using GeometricAsianOptionPricingPolicy =
+    equity::PathProductMonteCarloPricingPolicy<
+        SchedulePolicy,
+        GeometricAsianOptionPathPolicy<Side>
+    >;
 
 }  // namespace ai_factory::workbench::product

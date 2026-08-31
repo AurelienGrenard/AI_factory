@@ -1,6 +1,6 @@
 # Referentiel des audits d'architecture C++/CUDA
 
-Version du referentiel : 4, 2026-08-28.
+Version du referentiel : 7, 2026-08-30.
 
 ## Objet
 
@@ -60,6 +60,29 @@ Il n'est pas execute pendant un passage ordinaire de ce referentiel. Les tests
 cibles necessaires aux audits Homogeneity, Numerical robustness, CUDA safety,
 CMake ou Performance restent dans leur perimetre.
 
+`validation/**` et `docs/validation/**` sont hors perimetre de tous les axes du
+present referentiel, y compris Structure, Naming et Code generation. Ils
+peuvent etre lus ou executes comme consommateurs, preuves de non-regression ou
+outils de comparaison, mais leur arborescence, leur nommage, leurs abstractions,
+leurs moteurs, leurs caches et leur reproductibilite ne produisent jamais un
+constat dans `docs/audit/response.md`. Tout probleme dont la cause primaire vit
+dans ces arbres appartient exclusivement a `../validation/query.md`. Une
+remediation principale peut devoir adapter un consommateur sous `validation/**`
+pour conserver le build ou le contrat public ; cela ne transfere pas son audit
+interne dans le present referentiel.
+
+Les composants qui produisent une decision du present audit ne sont pas des
+outils de validation externe. Les sources de benchmarks et leurs fixtures,
+manifestes et baselines principales sont possedes par `tests/performance` ;
+les runners, checkers, outils de profilage et procedures de retuning le sont
+par `tools/performance`. Leur protocole durable vit sous `docs`. Un composant
+autoritatif de gate Performance place uniquement sous `validation/**` ne peut
+pas servir de preuve principale : l'audit ouvre alors un constat Structure sur
+l'absence ou le mauvais ownership de l'infrastructure principale, sans auditer
+pour autant l'implementation interne de la validation externe. Une sortie de
+`validation/**` peut rester une preuve complementaire, jamais l'unique source
+d'une decision du present referentiel.
+
 Un audit distingue explicitement :
 
 - les incoherences prouvees par le code ou les artefacts compiles ;
@@ -107,6 +130,12 @@ Le statut `complet` signifie que toutes les preuves attendues de la section ont
 ete couvertes sur le perimetre declare. Des tests cibles d'une remediation ne
 transforment pas retroactivement un audit partiel en audit complet.
 
+Chaque section possede en outre une **condition de completude**. Si une case
+obligatoire est absente, non executee ou inconnue, le passage reste `partiel`
+pour cette section, meme si aucun defaut n'a ete trouve. Une preuve manquante
+est une exclusion de couverture, pas automatiquement un constat. Inversement,
+une exclusion ne permet jamais de conclure positivement sur la case omise.
+
 Lorsque deux constats partagent fichiers, mesures ou migration, ajouter un
 champ **Coordination** citant les identifiants et precisant si le traitement
 commun est obligatoire, recommande ou ordonne. Cela ne fusionne pas deux
@@ -131,14 +160,39 @@ signature entre dynamics homologues appartient a Homogeneity. Une boucle de
 simulation recopiee appartient a Factorization. Le cout chiffre de
 l'abstraction est ensuite mesure par Performance et CMake.
 
+## Gates P0 obligatoires
+
+Avant les checklists detaillees, `status.md` reproduit cette table compacte en
+ajoutant pour chaque gate applicable un etat `pass`, `partial` ou `excluded` et
+une preuve durable. Un gate applicable `partial`, `excluded` sans justification
+contractuelle ou sans preuve maintient les sections concernees partielles.
+
+| Gate | Condition obligatoire |
+|---|---|
+| `P0-SNAPSHOT` | Revision, dirty worktree, fichiers non suivis, empreintes, build, toolchain et artefacts mesures identifient un snapshot exact. |
+| `P0-INVENTORY` | Un inventaire canonique exhaustif precede l'echantillonnage et chaque element du perimetre possede un etat. |
+| `P0-SCOPE` | Chaque preuve et chaque outil autoritatif ont un proprietaire dans le perimetre principal ; `validation/**` ne porte aucun gate principal. |
+| `P0-COVERAGE` | Une valeur requise absente, inconnue, stale, indisponible ou non executee echoue fermement la case au lieu d'etre assimilee a un succes. |
+| `P0-IDENTITY` | `response.md` et `closed.md` ont ete recherches par cause et perimetre avant toute creation ou reouverture d'identifiant. |
+| `P0-NUMERICS` | Domaines, references et budgets numeriques sont fixes independamment du resultat candidat et couvrent core, stress et limites. |
+| `P0-PERF-STATS` | Protocole, campagnes completes, agregation et exclusions sont predeclares ; aucun best-of-N ni assemblage opportuniste n'est admis. |
+| `P0-REBASELINE` | Toute nouvelle baseline conserve l'ancienne, explique chaque delta et ne transforme pas sa propre sortie en preuve de conformite. |
+| `P0-EVIDENCE` | Toute conclusion renvoie a une commande, un artefact, un environnement et une sortie conserves et mutuellement compatibles. |
+
+Ces gates ne remplacent aucune condition de completude plus stricte. Ils sont
+le minimum lisible et automatisable qui empeche une conclusion positive
+lorsqu'une preuve critique manque.
+
 ## Sommaire
 
+- [Gates P0 obligatoires](#gates-p0-obligatoires)
 - [Structure, conventions and ownership](#structure-conventions-and-ownership)
   - [Repository tree and domain ownership](#repository-tree-and-domain-ownership)
   - [File responsibilities and granularity](#file-responsibilities-and-granularity)
   - [Naming and semantic conventions](#naming-and-semantic-conventions)
   - [Dependency boundaries](#dependency-boundaries)
   - [Cleanup and extension locality](#cleanup-and-extension-locality)
+  - [Navigation exercises and completion gate](#navigation-exercises-and-completion-gate)
 - [Contract homogeneity](#contract-homogeneity)
   - [Dynamics](#dynamics)
   - [Analytics](#analytics)
@@ -163,6 +217,11 @@ l'abstraction est ensuite mesure par Performance et CMake.
   - [Portable defaults and retuning](#portable-defaults-and-retuning)
   - [Cross-architecture evidence](#cross-architecture-evidence)
 - [Numerical robustness and reproducibility](#numerical-robustness-and-reproducibility)
+  - [Precision and mathematical domains](#precision-and-mathematical-domains)
+  - [Solvers and linear algebra](#solvers-and-linear-algebra)
+  - [Stochastic dynamics and convergence](#stochastic-dynamics-and-convergence)
+  - [Determinism and random-number mapping](#determinism-and-random-number-mapping)
+  - [Failure propagation and completion gate](#failure-propagation-and-completion-gate)
 - [CUDA execution and memory safety](#cuda-execution-and-memory-safety)
 - [Performance](#performance)
   - [Common performance protocol and kernel strategy](#common-performance-protocol-and-kernel-strategy)
@@ -179,29 +238,82 @@ ou un composant doit vivre et comment il doit se nommer ; elle ne conclut pas
 qu'une implementation doit etre partagee, ce qui releve de Factorization.
 
 **Perimetre :** dossiers, fichiers, namespaces, types, fonctions, variables,
-targets, identifiants de catalogue, includes et liens entre domaines.
+targets, identifiants de catalogue, includes et liens entre domaines sous
+`src`, `tools`, `catalog`, les chemins logiques de `datasets`, `tests`, `cmake`,
+les CMake racine et la documentation principale.
 
 **Hors perimetre :** differences d'API entre composants homologues et
 duplication d'implementation, sauf si elles prouvent un mauvais ownership.
 
-**Preuves attendues :** arborescence complete, graphes d'includes et de liens,
-inventaire des conventions, consommateurs, tailles des fichiers et nombre de
-lieux modifies par une extension representative.
+**Preuves attendues :** arborescence complete par racine, graphes d'includes et
+de liens, inventaire exhaustif des conventions et exceptions, consommateurs,
+tailles des fichiers, exercices de navigation et nombre de lieux modifies par
+une extension representative.
 
 **Livrable :** carte des domaines et dependances, contradictions de nommage ou
 placement, elements orphelins et localite mesuree d'un ajout modele/produit.
 Le passage inventorie exhaustivement les chemins inspectes et leur classe
-(`infrastructure`, `product`, `generated`, `test`, `validation` ou
-`documentation`); un echantillon de noms ne suffit pas a declarer cet axe
-complet.
+(`runtime-infrastructure`, `model-product-binding`, `offline-tool`,
+`catalog-recipe`, `generated`, `test`, `build` ou `documentation`); un
+echantillon de noms ne suffit pas a declarer cet axe complet.
+
+La grammaire attendue des chemins est auditee explicitement :
+
+| Racine | Responsabilite autorisee | Signal de mauvais ownership |
+|---|---|---|
+| `src/common` | Primitives runtime/CUDA/numeriques reutilisables | Modele, courbe, produit ou publication concret |
+| `src/model/<asset_class>/<family?>/<model>` | Parametres, dataset, dynamics, analytics et sampling du modele | Payoff ou binding produit hors `product/` |
+| `src/model/**/product/[<curve>/]<product>` | Composition mince modele-produit | Dynamics, analytics, moteur generique ou outil offline |
+| `src/curve/<curve>` | Parametres, loader et analytics de courbe | Produit ou modele concret non requis par la courbe |
+| `src/product/<asset_class?>/<product>` | Parametres et semantique propres au produit | Dynamics ou launcher lie a un modele concret |
+| `src/generative` | Code generatif independant d'une methode financiere | Copie d'un moteur pricing/sampling existant |
+| `tools/<responsibility>` | Codegen, construction de datasets, orchestration et publication offline | Formule runtime canonique ou dependance circulaire vers `catalog` |
+| `catalog/<domain>/.../<dataset_id>` | Recette et metadonnees d'un dataset | Infrastructure partagee ou variante implicite |
+| `datasets/<domain>/...` | Artefacts locaux suivant la meme taxonomie d'entites que `src` et `catalog` | Hierarchie propre, famille omise ou renommage d'entite |
+| `tests/<domain-or-contract>` | Preuve nommee du proprietaire ou contrat teste | Seconde implementation de production ou fichier fourre-tout |
+| `cmake` et CMake racine | Definition declarative du graphe de build | Inventaire concurrent de capacites metier |
+| `docs` hors `docs/validation` | Contrats, workflows et registres principaux | Description obsolete d'une implementation supprimee |
+
+Une racine peut conserver quelques primitives canoniques directement a son
+niveau, mais la coexistence d'un fichier et d'un dossier homonymes, une liste
+croissante de primitives sans domaine, ou un niveau `common/core/utils` sans
+frontiere testable doit etre justifie fichier par fichier.
+
+`src` est l'unique taxonomie canonique des courbes, modeles et produits.
+`catalog` et `datasets` en heritent ; ils n'en definissent pas une seconde. Pour
+chaque entite, le prefixe relatif est identique dans les trois arbres :
+
+```text
+src/model/<asset_class>/<family?>/<model>
+catalog/model/<asset_class>/<family?>/<model>/<dataset_kind>/<dataset_id>
+datasets/model/<asset_class>/<family?>/<model>/<dataset_kind>/<dataset_id>.json
+
+src/curve/<curve>
+catalog/curve/<curve>/<dataset_id>
+datasets/curve/<curve>/<dataset_id>.json
+
+src/product/<relative_product_path>/<product>
+catalog/product/<relative_product_path>/<product>/<dataset_id>
+datasets/product/<relative_product_path>/<product>/<dataset_id>.json
+```
+
+Les suffixes propres aux datasets (`parameters`, `samples`, `prices`, courbe,
+produit, variante et `dataset_id`) commencent seulement apres ce prefixe. Si
+`src` distingue `equity/rough`, `equity/markovian`, `fixed_income` ou une
+future famille, `catalog` et `datasets` reproduisent exactement cette decision
+au lieu d'omettre le niveau ou de la reencoder dans un nom. Singularisation,
+pluralisation, alias historique et chemin special dans un renderer ne doivent
+pas changer l'identite de l'entite. Une exception exige un mapping declaratif,
+un motif durable et un test ; la convention implicite n'est pas une exception.
 
 ### Repository tree and domain ownership
 
 Verifier notamment :
 
 - que `src/common`, `src/model`, `src/curve`, `src/product`, `src/generative`,
-  `tools`, `catalog`, `validation`, `tests`, `docs` et le site ne portent que
-  leurs responsabilites declarees ;
+  `tools`, `catalog`, `datasets`, `tests`, `cmake`, les CMake racine, `docs` hors
+  `docs/validation` et la frontiere du site ne portent que leurs
+  responsabilites declarees ;
 - que `src/model/equity/markovian`, `src/model/equity/rough` et
   `src/model/fixed_income` classent les modeles par famille mathematique et non
   par commodite du moteur actuellement employe ;
@@ -220,16 +332,36 @@ Verifier notamment :
 - que contrats produit, schedules, payoffs, pricing policies et continuation
   states restent sous `src/product` lorsqu'ils ne dependent pas d'un modele ;
 - que les primitives mathematiques ou d'execution reellement neutres vivent
-  sous `src/common`, sans type concret de modele, courbe ou produit ;
+  sous `src/common`, sans type concret de modele, courbe ou produit, et que ses
+  sous-dossiers nomment une responsabilite stable plutot qu'une accumulation
+  historique de headers a la racine ;
+- que la racine de `src/common` ne conserve que les primitives veritablement
+  transversales ; des familles telles que simulation, Volterra, Monte-Carlo,
+  sample, payoff, closed form ou fixed income ont chacune un ownership nomme,
+  sans fichier homonyme partage entre racine et sous-dossier ;
+- que chaque `src/product/<product>` expose une ossature predicible
+  (`parameters`, `dataset`, `schedule`, `pricing_policy`, continuation si
+  necessaire) et que tout fichier supplementaire nomme sa phase ou son
+  invariant au lieu de `core`, `impl`, `helper` ou `common` non qualifie ;
 - que `tools` possede sampling offline, orchestration, serialisation,
   publication et codegen, tandis que `catalog` contient les recettes et
   metadonnees reproductibles ;
-- que `validation` ne devient pas une dependance du runtime ou des generateurs
-  ordinaires ;
+- que `tools/codegen`, `tools/datasets`, outils CUDA, runners, checkers et
+  profils de tuning sont ranges par responsabilite et consommateur ; un meme
+  dossier ne melange pas templates, execution de pricing, controle
+  d'architecture et donnees de tuning sans sous-frontiere explicite ;
+- que chaque `ModelSpec`, `ProductSpec` et courbe possede un prefixe canonique
+  derive du chemin `src`, reutilise sans seconde table par `catalog`,
+  `datasets`, YAML, generateurs et documentation ;
+- que l'audit compare la bijection des prefixes reellement suivis dans
+  `catalog`, des chemins `datasets` references par les recettes/YAML et, lorsque
+  les artefacts locaux sont disponibles, de leur arborescence effective ;
+- que `validation/**`, lu seulement comme consommateur externe eventuel, ne
+  devient pas une dependance du runtime ou des generateurs ordinaires ;
 - que la structure des modeles markoviens, rough, fixed income, courbes et
   produits est symetrique pour les responsabilites communes ;
 - que toute difference d'arborescence est justifiee par mathematique,
-  dependance optionnelle ou frontiere de compilation, et non par l'historique.
+  dependance optionnelle ou frontiere de compilation, et non par l'historique ;
 - que sampling modele, bindings `sample.cuh`/`sample.cu`, orchestration offline,
   recettes `samples_01`/`samples_02` et artefacts publies restent dans leurs
   domaines respectifs avec une symetrie explicite entre familles d'engine.
@@ -240,16 +372,23 @@ Verifier notamment :
 
 - que chaque fichier porte une responsabilite identifiable et des
   consommateurs reels ;
-- que **chaque** fichier C++/CUDA d'infrastructure sous `src/model`, hors
-  `product/`, commence par une phrase courte, specifique et autonome nommant
-  son contenu **et son utilite**, avant `#pragma once` ou le premier include;
-  un nom canonique comme `dynamics.cuh` reste stable mais son commentaire doit
-  distinguer transition exacte, schema a pas, Volterra FFT ou lift N-facteurs;
+- que **chaque** fichier d'implementation ou d'automatisation ecrit a la main
+  sous `src`, `tools`, `tests` et `cmake`, hors bindings generes sous
+  `src/model/**/product/**`, commence par une phrase courte, specifique et
+  autonome nommant son contenu **et son utilite**, avant `#pragma once`, le
+  premier include ou le code du module ; employer un commentaire C++/CMake ou
+  une docstring Python selon le langage ;
+- qu'un nom canonique comme `dynamics.cuh` reste stable mais que son en-tete
+  distingue transition exacte, schema a pas, Volterra FFT ou lift N-facteurs;
   `dynamics.cuh` annonce le contrat public et `dynamics_impl.cuh` les
   definitions device, jamais deux descriptions interchangeables ;
 - que l'en-tete n'est ni un marqueur generique (`generated`, `utilities`,
   `implementation`) ni la simple repetition du nom : il nomme au minimum
   modele ou domaine, responsabilite et consommateur/phase d'utilisation ;
+- que les exceptions a cette regle sont limitees aux outputs marques comme
+  generes, aux fichiers de donnees/manifeste declaratifs, aux recettes de
+  catalogue volontairement minimales et aux fichiers dont le format impose un
+  preambule ; chaque exception est classee, pas devinee ;
 - que les headers publics exposent seulement les declarations necessaires,
   les definitions device incluses vivent dans `*_impl.cuh` et les `.cu`
   autonomes sont de vraies unites de traduction ;
@@ -275,6 +414,14 @@ Auditer dossiers, fichiers, namespaces, types, concepts, fonctions, arguments,
 variables, constantes, tests, targets et identifiants de catalogue. Le nom
 indique la responsabilite et le domaine reels, pas l'anciennete.
 
+L'inventaire des noms de dossiers et fichiers est exhaustif. Il consigne pour
+chaque chemin : role predit sans ouverture, role confirme par l'en-tete et les
+consommateurs, convention appliquee, ambiguite et verdict. Les symboles publics
+et targets sont eux aussi exhaustifs ; les symboles prives, arguments et
+variables sont couverts par recherches systematiques des noms interdits/unites
+manquantes puis revue des composants de chaque famille. Un simple echantillon
+de fichiers bien nommes ne certifie jamais Naming.
+
 Verifier notamment :
 
 - `snake_case` pour chemins, fichiers, fonctions et variables, `PascalCase`
@@ -289,6 +436,9 @@ Verifier notamment :
 - des noms de fichiers homologues stables : `parameters`, `dataset`,
   `dynamics`, `analytics`, `concepts`, `pricing_policy`, `schedule`, `state`,
   `sample`, `kernel`, `launch` et `workspace` ;
+- que les tests nomment proprietaire, comportement et nature CPU/CUDA, et
+  qu'un terme tel que `additional`, `misc`, `all`, `new` ou un numero d'ordre
+  ne remplace jamais le contrat teste ;
 - qu'un helper non canonique encode sa strategie reelle dans son nom : par
   exemple `volterra_fft_*` ou `markovian_n_factor_*`, jamais `hybrid`,
   `numerics` ou `pricing` seuls lorsque plusieurs engines coexistent ;
@@ -316,7 +466,9 @@ Verifier notamment :
 - l'absence de `new`, `old`, `legacy`, `temporary` ou `historical` dans les
   noms permanents ;
 - que tout renommage est atomique dans sources, tests, CMake, codegen,
-  catalogue, validation, diagnostics et documentation ;
+  catalogue, diagnostics et documentation principale ; les consommateurs sous
+  `validation/**` peuvent servir de preuve de compatibilite sans que leur
+  nommage interne soit audite ici ;
 - que les identifiants publies ne changent pas sans migration explicite.
 
 Une exploration qui oblige a ouvrir plusieurs fichiers pour distinguer leurs
@@ -332,7 +484,7 @@ La direction conceptuelle attendue est :
 ```text
 common <- model / curve / product <- tools <- catalog
                                \-> tests
-                               \-> validation
+                               \-> validation (consommateur hors audit)
 ```
 
 Verifier notamment :
@@ -367,8 +519,39 @@ Rechercher systematiquement :
 
 Mesurer les fichiers, manifestes et listes a modifier pour ajouter un modele,
 un produit et un couple modele-produit. Un ajout ordinaire ne doit pas exiger
-plusieurs listes CMake, bindings, recettes, registres de tests et validations
-concurrents. Cette mesure alimente Code generation and extension cost.
+plusieurs listes CMake, bindings, recettes et registres de tests concurrents.
+Cette mesure alimente Code generation and extension cost.
+
+### Navigation exercises and completion gate
+
+Executer les exercices suivants depuis la seule arborescence, sans recherche
+globale initiale et sans connaissance historique du depot :
+
+1. trouver la dynamics publique, ses definitions device, son sampling et ses
+   produits pour un modele markovien, rough FFT, rough N-facteurs et fixed
+   income ;
+2. trouver, depuis un produit, son contrat, sa composition avec un modele, son
+   launcher, sa recette catalogue, son artefact dataset, son target CMake et
+   ses tests, en suivant le meme prefixe d'entite ;
+3. trouver les templates pricing et sampling de chaque engine, leur renderer,
+   leur manifeste, leurs outputs et leur checker de derive ;
+4. distinguer immediatement formule mathematique, policy, moteur generique,
+   workspace, launch unit, outil offline et recette ;
+5. retrouver le proprietaire d'une primitive de `src/common`, d'un outil CUDA,
+   d'un test et d'un module CMake sans ouvrir une serie de fichiers ambigus.
+
+Chaque exercice consigne le chemin attendu, le chemin trouve, les fichiers
+ambigus ouverts et toute connaissance externe necessaire. Un chemin finalement
+trouve ne compense pas une navigation trompeuse.
+
+La section n'est `complete` que si toutes les racines du tableau ont ete
+classifiees exhaustivement, que les exceptions de profondeur/noms/en-tetes sont
+inventoriees, que la bijection `src -> catalog -> datasets` a ete verifiee pour
+chaque entite declaree, que les dependances interdites et orphelins ont ete
+recherches, et que les cinq exercices ont ete executes. L'absence locale des
+datasets est notee comme exclusion de l'arborescence physique, mais les chemins
+declares restent auditables. Un checker existant n'est qu'une preuve parmi
+d'autres : ses propres hypotheses et angles morts sont audites.
 
 ## Contract homogeneity
 
@@ -389,11 +572,24 @@ concepts instancies, call graphs et tests homologues.
 **Livrable :** differences d'ossature classees en incoherences ou exceptions,
 avec contrat cible, preuve et critere de cloture.
 
+Le passage construit une matrice de capacites exhaustive, et non une liste
+d'exemples. Une ligne correspond a chaque modele, courbe, produit, engine et
+composition declares ; les colonnes indiquent `required`, `provided`,
+`optional`, `unsupported` ou `not_applicable` pour preparation, transition,
+observables, analytics, schedule, exercise, side, sampling et pricing. Toute
+case absente est `unknown` et interdit le statut `complet`.
+
+Pour chaque contrat/concept, compiler au moins une composition positive par
+famille et les compositions negatives correspondant aux capacites interdites
+ou manquantes. Une erreur negative doit etre rejetee au concept ou au
+`static_assert` proprietaire avec un diagnostic lisible, pas plus tard au link
+ou dans un template sans rapport.
+
 ### Dynamics
 
 Auditer `parameters`, `state`, `dynamics.cuh` et `dynamics_impl.cuh` de tous les
-modeles selectionnes, en separant transitions exactes, pas fixe, rough FFT et
-lifts rough N-facteurs dans la couverture.
+modeles actifs declares, en separant transitions exactes, pas fixe, rough FFT
+et lifts rough N-facteurs dans la couverture.
 
 Verifier notamment :
 
@@ -467,6 +663,16 @@ Verifier notamment :
   bermudeenne avec resolution et limite continue ;
 - que les tests separent moteur, policy et composition modele-produit.
 
+Chaque difference observee est classee explicitement en `incoherence`,
+`exception mathematique`, `capacite optionnelle`, `non applicable` ou
+`unsupported`. Une exception cite son invariant et son test ; `different` ou
+`historique` ne sont pas des justifications.
+
+La section n'est `complete` que si la matrice couvre toutes les declarations du
+manifeste et tous les composants suivis, si declarations et definitions ont ete
+comparees, si les tests positifs/negatifs des concepts ont ete executes, et si
+chaque difference a recu l'une des cinq classifications.
+
 ## Factorization pyramid
 
 Auditer la reutilisation effective des implementations selon une pyramide
@@ -505,6 +711,19 @@ ressources des kernels affectes.
 **Livrable :** pour chaque niveau, une table `invariants communs`,
 `implementation partagee`, `partie specifique`, `consommateurs`, `exceptions`
 et `cout CUDA/build`.
+
+Chaque abstraction existante ou proposee recoit une ligne dans une matrice de
+decision contenant au minimum :
+
+| Abstraction | Producteurs | Consommateurs reels | Invariants partages | Duplication supprimee | Adaptateurs/exceptions | Branches runtime | Cout CUDA | Cout build | Decision |
+|---|---|---|---|---|---|---|---|---|---|
+
+`Cout CUDA` couvre taille des types prepares, valeurs vivantes, registres,
+spills, shared, occupation et taille machine ; `Cout build` couvre nombre
+d'instanciations, objets/cubins, clean et incremental. Une cellule inconnue
+reste `a mesurer`. Une abstraction sans au moins deux consommateurs reels, ou
+qui n'encode qu'un consommateur futur, est rejetee ou maintenue explicitement
+locale ; la seule similarite syntaxique ne constitue pas un invariant.
 
 ### Markovian factorization
 
@@ -569,6 +788,21 @@ Verifier notamment :
 - que pricing et sampling reutilisent convolution, padding, dispatch de
   longueur et preparation sans dupliquer une seconde table de tuning par
   modele, tout en gardant leurs layouts de sortie propres.
+
+La composition Gaussian-Volterra est inspectee comme exemple obligatoire de
+frontiere de policies :
+
+- la `KernelPolicy` possede uniquement les parametres/preparations du noyau de
+  covariance, sa variance Volterra et la reconstruction de sa valeur ;
+- la `PathPolicy` possede l'etat, la correlation, les observables et la mise a
+  jour propres au chemin du modele ;
+- le moteur FFT possede `dt`, `sqrt(dt)`, padding, plans, dispatch, buffers et
+  execution, et traite le noyau prepare comme opaque ;
+- la policy produit ne fuit ni dans le noyau Volterra ni dans le plan FFT ;
+- les concepts verifient la relation exacte entre types de parametres kernel et
+  path, avec compositions positives et negatives ;
+- pricing et sampling partagent ces invariants sans forcer le meme layout de
+  sortie ni recopier une preparation du noyau.
 
 #### Markovian N-factor rough lifts
 
@@ -669,6 +903,13 @@ Refuser une abstraction fondee sur un consommateur futur, des adaptateurs
 vides, des branches de capacites ou une baisse de duplication qui augmente
 materiellement le cout runtime ou build.
 
+La section n'est `complete` que si tous les moteurs et abstractions communs du
+graphe ont une ligne de decision, si les duplications ont ete recherchees dans
+tous leurs consommateurs reels, si les exceptions sont bornees, et si chaque
+cout est mesure ou demontre immateriel. Une case `a mesurer` maintient la
+section partielle et interdit une conclusion positive sur le cout, sans imposer
+a elle seule une refactorisation.
+
 ## Code generation and extension cost
 
 Auditer le chemin complet d'ajout d'un modele ou produit. L'auteur doit coder
@@ -687,6 +928,22 @@ chaque engine et compte des interventions manuelles.
 
 **Livrable :** contrat d'extension model/product, source de verite, outputs
 derives, exceptions explicites et cout manuel restant.
+
+Chaque combinaison `model x product x variant`, chaque binding sample et chaque
+recette possede un etat d'ownership explicite parmi : `generated`,
+`hand_written`, `explicit_exception`, `unsupported` ou `deferred`. L'existence
+ou l'absence d'un fichier ne sert jamais a inferer cet etat. Une exception ou
+un report nomme son proprietaire, sa justification et sa condition de sortie.
+
+Pour chaque output, le passage fournit une trace exacte :
+
+```text
+declaration source -> resolver -> template -> renderer -> chemin output
+                   -> target CMake -> recette/YAML -> checker
+```
+
+Un maillon sans source de verite ou recopie dans une seconde table est un
+defaut de contrat, meme si la regeneration courante est zero-diff.
 
 ### Minimum hand-written model and product
 
@@ -730,6 +987,11 @@ Le resolver produit explicitement :
 (model, product, variant) -> engine -> bindings -> target -> catalogue recipe
 ```
 
+Il derive aussi le prefixe canonique d'entite depuis `src`; ce meme prefixe est
+injecte dans `catalog` et `datasets`, y compris le niveau de famille
+`markovian`, `rough` ou toute future famille. Aucun template ou renderer ne
+reconstruit manuellement un chemin plus court, pluriel ou historique.
+
 Verifier notamment :
 
 - qu'une incompatibilite est refusee par resolver ou concept lisible ;
@@ -752,8 +1014,16 @@ Verifier que les champs derivables produisent :
 - instanciations et fragment CMake ;
 - generateur executable de catalogue ;
 - `dataset.yaml` ou ses champs structurels derivables ;
-- tests de compilation et checkers d'architecture ;
-- squelette de validation seulement sans choix arbitraire d'une reference.
+- tests de compilation et checkers d'architecture.
+
+Pour chaque engine pricing genere — markovien, rough N-facteurs, Volterra FFT,
+Black-Scholes closed form, fixed-income closed form et early exercise —
+retrouver une paire de templates binding `.cuh/.cu` et le template de
+generateur de catalogue correspondant, ou un etat d'ownership non genere
+explicite. Une famille fixed-income closed form ne peut etre consideree couverte
+par le seul template Black-Scholes ou par une chaine inline dans le renderer :
+leurs inputs, providers, courbes et produits doivent partager des invariants
+prouves ou conserver des templates distincts et nommes.
 
 Les templates suivent la meme taxonomie que les engines et les artefacts. Un
 lecteur doit trouver sans recherche globale, dans deux chemins differents, le
@@ -791,7 +1061,7 @@ Verifier notamment :
   Gaussian-Volterra possedent chacun un template ou une exception bornee ;
 - que les deux layouts contractuels, `12 000 x 250` et `3 000 000 x 1`,
   reutilisent un pipeline hote commun sans recopier allocation, warmup,
-  launch, copie, streaming, YAML et validation ;
+  launch, copie, streaming, YAML et controle de schema ;
 - que la generation des parametres plausibles core, les bornes publiees et
   leur ordre de champs derivent d'une meme specification revue, sans tripler
   ces valeurs entre recette de parametres, code C++ et YAML ;
@@ -838,6 +1108,9 @@ Verifier notamment :
 - provenance/version du generator dans les outputs ;
 - detection de toute edition manuelle d'un fichier genere ;
 - detection des outputs manquants, excedentaires et orphelins ;
+- tests negatifs supprimant temporairement un output, renommant une entite,
+  ajoutant un output orphelin et cassant un mapping `src/catalog/datasets`, avec
+  refus attribuable du checker ;
 - builds avec/sans mathDx/cuFFTDx et architectures declarees ;
 - builds et smoke tests des samples disponibles pour les deux layouts et pour
   chaque famille d'engine active ;
@@ -846,10 +1119,19 @@ Verifier notamment :
 - suppression des outputs supersedes ;
 - incrementalite, taille des unites CUDA et diagnostics lisibles preserves.
 
-Mesurer pour une extension representative : fichiers manuels, lignes
-semantiques, entrees de manifeste, commandes de generation et modifications
-residuelles. Reduire le nombre de fichiers generes n'est pas un objectif si le
-code manuel augmente ou si la matrice de capacites devient opaque.
+Mesurer separement, pour l'ajout d'un modele, d'un produit et d'une composition
+representative : nombre de fichiers manuels, lignes semantiques, entrees de
+manifeste, listes/targets touchees, commandes, outputs generes et modifications
+residuelles. La mesure inclut un dry-run d'ajout puis de retrait afin de prouver
+l'absence d'orphelin. Reduire le nombre de fichiers generes n'est pas un
+objectif si le code manuel augmente ou si la matrice de capacites devient
+opaque.
+
+La section n'est `complete` que si tous les outputs attendus ont un etat
+d'ownership, si leur trace source-vers-checker est fermee, si generation et
+tests negatifs passent, si les chemins `src/catalog/datasets` sont bijectifs,
+et si les trois couts d'extension ont ete chiffres. `validation/**` ne fait pas
+partie des outputs ni du cout manuel de ce codegen.
 
 ## CMake and build graph
 
@@ -870,6 +1152,21 @@ objets/archives/cubins.
 **Livrable :** sources orphelines/dupliquees, targets/options inutiles,
 dependances transitives et mesures de toute frontiere proposee.
 
+Le passage commence par deux matrices fermees :
+
+1. **Configuration** — build portable par defaut, chaque architecture annoncee,
+   fatbin annonce, dependances optionnelles presentes/absentes, tests
+   actives/desactives et profils Release/diagnostic necessaires ; chaque case
+   vaut `configure`, `build`, `run`, `unsupported` ou `not_applicable` avec la
+   commande et le resultat.
+2. **Mutation/incrementalite** — no-op, modification d'un produit, d'une
+   dynamics, d'une analytics, d'une courbe, d'une primitive `common`, d'un
+   template et du manifeste ; chaque ligne donne les targets attendues puis les
+   targets reellement regenerees/recompilees/relinkees.
+
+Une configuration non executee reste `unknown`, jamais implicitement validee
+par une configuration voisine.
+
 Verifier notamment :
 
 - que le CMake racine declare projet, options et orchestration de haut niveau,
@@ -883,7 +1180,8 @@ Verifier notamment :
 - que les targets sont assez fines sans micro-target sans responsabilite ;
 - que les agregats ne sont jamais lies comme bibliotheques locales ;
 - que chaque target publie seulement includes, definitions et bibliotheques
-  necessaires ;
+  necessaires, et que chaque dependance `PUBLIC`, `PRIVATE` ou `INTERFACE` est
+  justifiee par l'usage de ses headers et symboles plutot que par commodite ;
 - que mathDx/cuFFTDx et dependances optionnelles n'affectent pas les autres
   targets ;
 - que chaque binding `sample.cu`, bibliotheque de publication et recette de
@@ -903,6 +1201,17 @@ Verifier notamment :
   conserves pour les specialisations principales ;
 - que toute fusion/decomposition compare build clean/incremental, code genere,
   ressources kernel et lisibilite des erreurs.
+
+Pour chaque source autonome, consigner son unique target proprietaire ; pour
+chaque target, consigner type, responsabilite, sources, dependances directes,
+usage requirements publics et consommateurs. Comparer ce graphe au manifeste
+codegen afin qu'aucune ownership ne soit definie concurremment.
+
+La section n'est `complete` que si toutes les cases applicables des deux
+matrices ont un resultat, si chaque `.cpp/.cu` et target a un proprietaire
+unique, si la visibilite des dependances a ete revue, et si les mesures clean,
+no-op et incrementales ont ete conservees. Une impossibilite materielle ou de
+dependance est une exclusion explicite et maintient l'axe partiel sur la case.
 
 ## Portability and hardware tuning
 
@@ -931,6 +1240,18 @@ ressources, provenance des profils et procedure reproductible de retuning.
 
 **Livrable :** compatibilites dures, profils de reference, valeurs a retuner,
 fallbacks, exclusions et instructions utilisateur pour mesurer son propre GPU.
+
+Pour chaque `engine x architecture`, publier une ligne contenant au minimum :
+
+| Engine | Architecture | Configure | Compile | Runtime teste | Numerique teste | Fallback | Profil de tuning | Performance mesuree | Conclusion |
+|---|---|---|---|---|---|---|---|---|---|
+
+Les conclusions autorisees sont distinctes : `compilable`, `executable`,
+`numerically_qualified`, `retunable` et `performance_profiled`. Elles se
+cumulent seulement avec leurs preuves propres. Un build offline autorise
+`compilable`, jamais `executable` ni une affirmation de performance. Un profil
+SM89 peut etre propose comme fallback etiquete sur une autre architecture sans
+etre presente comme retune ou optimal.
 
 ### Supported architecture matrix
 
@@ -999,6 +1320,14 @@ L'absence d'un GPU physique reste une exclusion de runtime dans `status.md`.
 Elle n'autorise ni une affirmation de performance, ni un blocage logiciel
 artificiel d'une architecture que les dependances et les builds supportent.
 
+La section n'est `complete` que si chaque engine et architecture annonces ont
+une ligne, si toute conclusion est soutenue par son niveau de preuve, si les
+fallbacks et parametres retunables sont explicites, et si la procedure de
+qualification d'un nouveau GPU couvre build, tests numeriques, sanitizers,
+ressources et benchmark. Les cases runtime impossibles faute de materiel sont
+des exclusions honnetes ; elles n'invalident pas la couverture structurelle de
+la matrice mais interdisent la qualification runtime correspondante.
+
 ## Numerical robustness and reproducibility
 
 Auditer la robustesse numerique des dynamics, analytics, solveurs, reductions,
@@ -1017,37 +1346,131 @@ relative, ULP ou statistique, limites et references independantes.
 **Livrable :** contrat numerique par famille, cas non couverts, risques prouves
 et hypotheses de precision a mesurer.
 
+Le passage construit une matrice par primitive/famille avec : domaine core et
+stress, precision stockage/calcul/accumulation, reference locale, tolerance,
+invariant ou ordre de convergence, mode d'echec et tests CPU/CUDA. Une case
+sans reference ou budget reste `unknown` et ne peut etre certifiee par la seule
+finitude d'une sortie.
+
+Chaque tolerance numerique est definie avant d'observer le resultat candidat.
+Elle provient d'un contrat mathematique, d'une reference de precision
+superieure, d'une propagation d'erreur, d'un ordre de convergence ou d'un jeu
+de qualification distinct. Une regle telle que `resultat observe * marge`, une
+tolerance deduite du seul run que l'on cherche a accepter ou un ajustement
+apres echec est interdit. Une calibration empirique utilise des donnees
+separees des cas qui certifient ensuite le budget et conserve son protocole.
+
+Dans ce referentiel, une **reference independante** est une identite
+mathematique, une formule locale distincte, une implementation CPU simple, une
+evaluation haute precision ou une limite analytique appartenant aux tests du
+composant. L'inventaire Premia/QuantLib, les caches et la certification de prix
+publies appartiennent exclusivement a `../validation/query.md`.
+
+### Precision and mathematical domains
+
 Verifier notamment :
 
-- une politique de precision explicite : etats/calculs device FP32 par defaut,
-  FP64 pour reductions, moments, regressions, factorisations ou operations
-  sensibles ;
-- que chaque FP64 chaud est justifie et chaque remplacement FP32 mesure ;
-- domaines de `log`, `log1p`, `sqrt`, `pow`, divisions, exponentielles,
-  fonctions de repartition et inversions, y compris zero, negatif, infini et
-  sous-normal ;
-- positivite, frontieres absorbantes et contraintes sans projection
-  silencieuse changeant la loi ;
-- stabilite pour petits temps, faible volatilite/mean reversion, correlations
-  aux bornes, intensites extremes et limites d'admissibilite ;
-- solveurs : encadrement, monotonie, convergence, iterations max, arret et
-  comportement d'echec ;
-- conditionnement Longstaff-Schwartz, normalisation, regularisation, Cholesky
-  et biais ;
-- stabilite/ordre des reductions, cancellation et reproductibilite attendue ;
-- conventions temporelles, accruals, unites de taux et calendriers aux
-  frontieres host/device ;
-- propagation explicite des erreurs et absence de NaN/Inf silencieux dans
-  prix, erreurs standards, coefficients, samples et datasets ;
-- convergence de pas, nombre de facteurs rough et approximations FFT/directes ;
-- pour les samples, domaines de parametres, moments/lois terminales, support des
-  calendriers, independance des domaines RNG et invariance aux geometries,
-  strategies et decoupages ;
-- tests de limites, identites, sensibilite et reference independante.
+- une politique explicite pour stockage, calcul device, accumulation et sortie :
+  FP32 par defaut seulement lorsqu'il respecte le budget, FP64 pour reductions,
+  moments, regressions, factorisations ou operations sensibles ;
+- que chaque FP64 dans une boucle chaude est justifie et que chaque descente en
+  FP32 est mesuree contre la reference et le domaine complet ;
+- inventorier tout calcul FP64 atteignable depuis du code device, y compris
+  preparation, kernels auxiliaires, reductions et fonctions
+  `__host__ __device__`. Pour chacun : frequence d'appel, volume d'operations,
+  justification numerique, alternative FP32/mixte/host, ressources compilees
+  et cout mesure. Une justification mathematique sans comparaison numerique et
+  performance ne suffit pas ;
+- domaines de `log`, `log1p`, `sqrt`, `pow`, divisions, exponentielles, CDF/PDF,
+  fonctions inverses et speciales, y compris zero, negatif, infini, sous-normal
+  et valeurs proches des frontieres ;
+- positivite, bornes de correlation, frontieres absorbantes/reflechissantes et
+  contraintes, sans clamp ou projection silencieuse changeant la loi ;
+- stabilite pour petits temps, faible volatilite ou mean reversion,
+  correlations aux bornes, intensites extremes et limites d'admissibilite ;
+- cancellation, overflow/underflow, echelles de prix/taux/accrual et formules
+  alternatives stables (`log1p`, `expm1`, series ou limites) ;
+- conventions temporelles, day counts, accruals, unites et calendriers aux
+  frontieres host/device et dans les rows publiees.
+
+### Solvers and linear algebra
+
+Verifier notamment :
+
+- encadrement, monotonie, critere d'arret, iterations maximales et precision
+  effective de chaque recherche de racine ou inversion ;
+- conditionnement, pivot/regularisation, normalisation et propagation d'erreur
+  de Cholesky, moindres carres, equations normales et regressions ;
+- conditionnement Longstaff-Schwartz selon bases, variables, paths et dates,
+  ainsi que distinction entre erreur de solveur, bruit MC et biais d'exercice ;
+- comportement sur systeme singulier, quasi-singulier, aucun candidat, faible
+  variance et coefficients non finis ;
+- reduction FP64, ordre des sommes, compensation eventuelle et budget d'erreur
+  lorsque le nombre de paths ou de facteurs croit ;
+- reference locale de petite taille permettant de distinguer formule, stockage,
+  solveur et orchestration CUDA.
+
+### Stochastic dynamics and convergence
+
+Verifier notamment :
+
+- moments, lois terminales, positivite et limites des transitions exactes ;
+- convergence forte/faible des schemas a pas, sans sous-pas artificiel sur une
+  transition exacte ou une date contractuelle ;
+- biais et ordre selon `dt`, resolution FFT, approximation directe/hybride,
+  nombre de facteurs rough et grille d'exercice ;
+- stabilite des sauts, rejets, tirages conditionnels et correlations extremes ;
+- pour les samples, domaines de parametres, calendriers, observables et deux
+  layouts contractuels, sur lignes core et stress representatives ;
+- separation mesuree entre erreur de discretisation, erreur statistique,
+  approximation rough/FFT et erreur arithmetique ;
+- invariance des lois et tolerances lorsque batching, chunking, geometrie ou
+  strategie de kernel change.
+
+### Determinism and random-number mapping
+
+Verifier notamment :
+
+- mapping Philox contractuel `(path_index: uint64, local_group_index: uint64)`
+  sous la cle de ligne, sans reservation aplatie dependante du batching ;
+- domaines/seeds independants pour parametres, calendriers, dynamics et
+  variantes, avec absence de chevauchement prouvee ;
+- ordre et cardinalite de consommation stables pour transitions exactes,
+  fixed-step, sauts, rejet, rough FFT/N-facteurs et exercise ;
+- reproductibilite contractuelle entre executions, lots, streams et geometries
+  sur une meme architecture ;
+- politique explicite entre egalite bit a bit, tolerance numerique et intervalle
+  statistique, y compris entre CPU/CUDA ou architectures differentes ;
+- ordre des reductions et toute source de non-determinisme atomique documentes.
 
 Ne pas demander l'egalite bit a bit entre algorithmes equivalents si elle
-n'est pas contractuelle. Distinguer reproductibilite d'un meme chemin,
-tolerance numerique et convergence statistique.
+n'est pas contractuelle. Ne pas relacher non plus un mapping aleatoire ou un
+ordre de reduction contractuel sous pretexte que les distributions semblent
+equivalentes.
+
+### Failure propagation and completion gate
+
+Verifier notamment :
+
+- validation des inputs avant lancement et erreurs attribuables au modele,
+  produit, ligne, parametre ou solveur concerne ;
+- absence de NaN/Inf silencieux dans prix, erreurs standards, coefficients,
+  etats, samples et datasets ;
+- propagation distincte des echecs de domaine, convergence, allocation,
+  lancement CUDA et sortie ;
+- aucun default, clamp, fallback numerique ou changement de methode silencieux
+  ne transformant un echec en valeur finie plausible ;
+- tests negatifs des domaines invalides et tests des frontieres valides, avec
+  meme semantique host/device lorsque les deux existent.
+
+La section n'est `complete` que si toutes les familles de dynamics, analytics,
+solveurs, reductions, pricing et sampling actifs ont une ligne de matrice, si
+domaines core/stress et limites applicables sont couverts, si chaque tolerance
+a une reference locale et si chaque mode d'echec est teste. Une reference
+externe de validation peut completer la confiance mais ne remplace aucune de
+ces preuves proprietaires. Toute occurrence FP64 atteignable depuis le device
+qui reste non classee, non justifiee ou non mesuree maintient la section
+partielle.
 
 ## CUDA execution and memory safety
 
@@ -1063,10 +1486,31 @@ synchronisation valide.
 
 **Preuves attendues :** revue launchers/workspaces, overflow, ASan/UBSan host,
 puis `compute-sanitizer` memcheck, racecheck, initcheck et synccheck sur une
-matrice representative.
+matrice minimale fermee.
 
 **Livrable :** erreurs de bornes, duree de vie, initialisation, concurrence ou
 propagation prouvees, cas minimal et familles non executees.
+
+La matrice sanitizer contient une ligne par cas et quatre colonnes obligatoires
+`memcheck`, `racecheck`, `initcheck`, `synccheck`, chacune avec commande,
+artefact, resultat et logs conserves. Elle couvre au minimum :
+
+1. closed form scalaire et cooperatif lorsque les deux strategies existent ;
+2. pricing markovien transition exacte, schedule regular et layout aligned ;
+3. pricing markovien fixed-step, schedule explicit/ragged et layout cartesian ;
+4. Longstaff-Schwartz equity multi-etats et fixed income deux facteurs, avec
+   workspace reutilise ;
+5. Volterra FFT pricing puis sampling dans les deux layouts contractuels ;
+6. rough N-facteurs pricing puis sampling avec le plus grand facteur publie ;
+7. lots minimaux, derniers blocs partiels, tailles non multiples et un lot
+   traversant une frontiere de paths conditionnels ;
+8. stream non-default, appels repetes, workspace/buffers reutilises et au moins
+   un scenario concurrent supporte par l'API.
+
+Un executable peut couvrir plusieurs lignes, mais `status.md` montre la
+correspondance exacte entre cas, engine, layout, batch, stream et workspace.
+ASan/UBSan couvrent en plus loaders, planners, arithmetique de tailles et
+orchestration host representatifs de chaque famille.
 
 Verifier notamment :
 
@@ -1094,6 +1538,13 @@ Verifier notamment :
 Un sanitizer non execute reste une exclusion dans `status.md`. Son absence ne
 devient pas un finding generique et ne masque pas les preuves statiques.
 
+La section n'est `complete` que si la revue statique couvre tous les launchers
+et workspaces actifs, si les huit lignes applicables sont mappees a des cas, si
+ASan/UBSan et les quatre modes `compute-sanitizer` passent pour chaque cas, et
+si les scenarii de lots/streams/reutilisation sont executes. Une ligne
+inapplicable est justifiee par le contrat ; une ligne simplement indisponible
+maintient la section partielle.
+
 ## Performance
 
 Effectuer quatre audits de performance distincts avec protocole et gates de
@@ -1113,6 +1564,39 @@ Nsight, benchmarks repetes, environnement et validation numerique.
 **Livrable :** quatre rapports avec baseline, manifeste de workloads,
 ressources, mediane/p95/CV, hypothese, resultat et decision.
 
+Un manifeste de workloads unique possede toutes les cles de performance. Pour
+chaque cle, il declare engine, binding/specialisation, executable, inputs,
+shape, layout, side, schedule, paths/steps/facteurs, profil de tuning,
+dependances, metriques requises et budget numerique/ressources/temps. Harness,
+baseline et checker consomment cette source ; aucune seconde liste manuelle ne
+peut omettre silencieusement un workload. Le checker rejette toute cle
+manquante, inconnue, dupliquee, stale ou sans baseline compatible.
+
+Le manifeste separe deux niveaux. Le noyau independant de l'architecture porte
+l'identite stable du workload, les inputs, shapes, variantes algorithmiques,
+invariants et budgets numeriques contractuels. Un profil par environnement
+porte GPU/architecture, toolchain, flags, hashes binaires, parametres
+retunables, ressources compilees et baselines de temps. Ajouter un GPU ne
+duplique ni ne renomme les cles communes ; comparer deux profils incompatibles
+ou laisser un profil redefinir silencieusement le workload est interdit.
+
+Chaque workload produit quatre temps distincts lorsqu'ils s'appliquent, avec
+les frontieres exactes du chronometrage consignees :
+
+- **kernel** : events CUDA autour de l'execution device mesuree ;
+- **public API** : temps wall a la frontiere de l'appel public, incluant toute
+  preparation, allocation, copie ou synchronisation effectuee par cet appel ;
+- **pipeline** : job appelant complet, incluant preparation externe, creation
+  ou reutilisation du workspace, batching, copies situees hors de l'API et
+  recuperation des sorties, mais excluant leur serialisation ;
+- **publication** : generation/streaming/serialisation/verification de
+  l'artefact, sans l'attribuer au kernel.
+
+Une optimisation recoit exactement une decision `accept`, `reject`,
+`inconclusive` ou `unavailable`. `Inconclusive` couvre bruit ou signal trop
+faible ; `unavailable` couvre compteur, GPU ou artefact absent. Ces deux etats
+ne passent aucun gate et n'autorisent aucune conclusion positive.
+
 ### Common performance protocol and kernel strategy
 
 Pour chaque kernel et specialisation representative, consigner :
@@ -1129,14 +1613,68 @@ Pour chaque kernel et specialisation representative, consigner :
 - impact de toute factorisation, concept, template ou codegen sur la
   specialisation exacte.
 
-Utiliser `ptxas` ou cubin pour les ressources statiques et Nsight Compute pour
-occupation, stalls, local memory, caches, branches, debit memoire et
-instructions. Un compteur inaccessible est une limite explicite.
+Pour la specialisation et le binaire exacts, distinguer explicitement
+registres/thread, spill loads, spill stores, stack frame, tableaux ou memoire
+locale, shared statique, shared dynamique, code machine et occupation a la
+geometrie lancee. `cudaFuncAttributes.localSizeBytes` seul ne prouve ni
+l'absence de spills ni leur cout ; la taille de l'executable ou de l'archive
+entiere ne remplace pas la taille SASS/cubin de chaque specialisation de
+kernel. Croiser selon le besoin rapports `ptxas`, attributs runtime,
+`cuobjdump`/cubin et Nsight Compute pour occupation, stalls, trafic local,
+caches, branches, debit memoire et instructions. Tout ecart entre les sources
+est explique ; un compteur inaccessible est une limite explicite et fail-closed
+s'il est requis par le manifeste.
 
 Avant l'experience, fixer GPU, architecture, compilateur, flags, power limit,
 frequences, etat thermique, workload, warmups, repetitions, chronometrage,
 traitement des outliers, variabilite maximale et seuil de gain utile. Conserver
 baseline et regle d'acceptation avant le resultat.
+
+Executer un preflight de stabilite avant et apres la campagne : identite GPU et
+driver, clocks/power, temperature/thermal throttling, processus concurrents,
+toolchain, hash des binaires et inputs. Une campagne dont l'environnement sort
+des bornes publiees est `inconclusive`, pas nettoyee a posteriori.
+
+Une campagne est une execution complete du manifeste obligatoire dans un
+environnement stable. Au moins une campagne complete doit satisfaire les
+bornes de stabilite. La methode d'agregation entre campagnes est fixee avant
+leur execution et reste non opportuniste : mediane des medianes de campagnes
+eligibles, campagne complete centrale ou autre estimateur robuste documente.
+Il est interdit de choisir le minimum, le meilleur essai, le meilleur sous-lot
+ou de recomposer une baseline en prenant pour chaque cle la campagne la plus
+favorable. Les runs rejetes et les valeurs brutes restent conserves avec leur
+motif ; une exclusion d'outlier suit uniquement la regle predeclaree.
+
+Les budgets sont fail-closed et portent au minimum sur : tolerance numerique,
+registres/thread, spills, stack/local memory, shared, occupation/residence,
+taille cubin/code, VRAM, mediane, p95 et CV. Chaque budget donne valeur absolue
+et/ou delta autorise ainsi que sa raison. Une metrique requise manquante ou
+`unknown` fait echouer le gate du workload ; elle n'est jamais interpretee
+comme zero ou `unchanged`.
+
+Le budget numerique reutilise le contrat independant etabli par Numerical
+robustness et est fige avant la campagne ; il n'est jamais calcule depuis la
+sortie observee ou depuis la candidate a accepter. Les budgets de ressources
+et de temps peuvent etre exprimes relativement a une baseline compatible,
+mais leur seuil et leur justification precedent eux aussi la mesure candidate.
+
+La VRAM est ventilee au minimum entre inputs persistants, workspace possede par
+l'appelant, allocations transitoires de l'appel, sorties et marge. Le pic
+d'allocations possedees pendant l'appel est mesure, pas extrapole depuis le
+seul etat final. Contexte/driver, cache de plans ou pools persistants et usage
+d'autres processus sont releves separement afin de ne pas etre attribues au
+kernel. Un simple delta `total-free` apres l'appel ne mesure ni le pic ni
+l'ownership et ne peut servir que de controle de fuite complementaire.
+
+Un rebaselining est une operation versionnee et revue, jamais une correction
+a lui seul. Il conserve l'ancienne baseline, son hash et son environnement,
+les sorties brutes candidates, puis produit un diff exhaustif ancien/nouveau.
+Chaque budget depasse ou relache indique la cause, l'effet numerique et
+ressources, la famille concernee, la justification et l'approbation explicite.
+Executer le checker contre la baseline que l'on vient de remplacer ne prouve
+pas l'absence de regression et ne clot aucun constat par construction. Une
+premiere initialisation sans predecessor est nommee comme telle et ne pretend
+pas mesurer un delta ; toute mise a jour ulterieure suit la procedure complete.
 
 Les baselines et geometries de reference livrees depuis RTX 4090 Laptop/SM89
 ne s'appliquent qu'a cet environnement. Pour tout autre GPU, executer le meme
@@ -1273,3 +1811,10 @@ N-facteurs.
 Pour les quatre audits, une mediane seule ou un gain inferieur au bruit ne
 suffit jamais. Toute optimisation retenue conserve contrat numerique, mapping
 aleatoire et baselines des artefacts affectes.
+
+La section n'est `complete` que si le manifeste couvre toutes les familles et
+strategies officiellement actives, si chaque workload a une baseline de meme
+environnement, si tous les budgets requis ont une mesure, si kernel/public API/
+pipeline/publication sont separes, et si chaque hypothese a l'une des quatre
+decisions. Une campagne partielle, un compteur indisponible ou un workload non
+construit reste visible et empeche la certification du sous-audit concerne.

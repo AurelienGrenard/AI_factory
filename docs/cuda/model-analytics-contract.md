@@ -98,6 +98,16 @@ courbe ne fournissent que `log_discount_factor(curve, time)` et
 `instantaneous_forward(curve, time)` au noyau fitted générique ; elles ne
 recopient aucune formule de modèle.
 
+Les formules canoniques d'instantaneous forward Nelson--Siegel et Svensson
+exposent deux surcharges distinctes. La surcharge FP32 est `__host__
+__device__` et constitue l'unique API atteignable par les analytics CUDA. La
+surcharge FP64 est host-only et sert aux contrôles d'extrema et grilles des
+générateurs de datasets. Ne pas réintroduire un template `__host__ __device__`
+qui rendrait implicitement `double` disponible dans un kernel. Le test
+`numerical_robustness_cuda` compare la surcharge device FP32 à son homologue
+hôte et la surcharge hôte FP64 à une expression `long double`; les tests fitted
+Hull--White et G2++ couvrent les consommateurs device.
+
 ## Primitive lognormale
 
 `common/normal_distribution.cuh` contient l'unique CDF normale device.

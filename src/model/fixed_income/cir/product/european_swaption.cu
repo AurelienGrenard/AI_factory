@@ -1,4 +1,4 @@
-// Closed-form European swaptions under the CIR short rate.
+// Generated Closed-form European swaptions under the CIR short rate.
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 
 #include "product/european_swaption/pricing_policy.cuh"

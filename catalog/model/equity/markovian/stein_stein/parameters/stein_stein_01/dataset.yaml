@@ -1,0 +1,68 @@
+title: "Stein-Stein parameter dataset stein_stein_01"
+database_id: "stein_stein_01"
+model_family: "Stein-Stein"
+catalog: "catalog/model/equity/markovian/stein_stein/parameters/stein_stein_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/parameters/stein_stein_01.json"
+row_count: 1000
+parameters:
+  spot: "Initial spot; fixed to 1."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_volatility: "Initial arithmetic volatility."
+  mean_reversion: "Zero-mean OU rate."
+  volatility_of_volatility: "OU diffusion coefficient."
+  rho: "Fixed to zero for the original Stein-Stein model."
+dynamics:
+  spot: "dS/S=(r-q)dt+X dW_S."
+  volatility: "dX=-kappa X dt+nu dW_X."
+  simulation: "Exact OU endpoint coupled to the Euler stock increment."
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - 0.001
+          - 0.08
+        dividend_yield:
+          - 0.0
+          - 0.06
+        initial_volatility:
+          - 0.1
+          - 0.35
+        mean_reversion:
+          - 0.5
+          - 8.0
+        volatility_of_volatility:
+          - 0.05
+          - 0.5
+  stress:
+    row_count: 100
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - -0.03
+          - 0.12
+        dividend_yield:
+          - 0.0
+          - 0.1
+        initial_volatility:
+          - 0.0
+          - 0.8
+        mean_reversion:
+          - 0.05
+          - 15.0
+        volatility_of_volatility:
+          - 0.01
+          - 1.5
+  fixed_parameters:
+    spot: 1.0
+    rho: 0.0

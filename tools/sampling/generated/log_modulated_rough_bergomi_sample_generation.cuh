@@ -67,9 +67,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Log-modulated rough-Bergomi",
-        "datasets/model/equity/log_modulated_rough_bergomi/samples/" + id + ".json",
-        "catalog/model/equity/log_modulated_rough_bergomi/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/log_modulated_rough_bergomi/samples/" + id + ".json",
+        "datasets/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
+        "catalog/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -90,7 +90,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"log_modulation_scale", {0.03f, 0.3f}},
                 {"log_modulation_power", {1.2f, 4.0f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

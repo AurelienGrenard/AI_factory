@@ -252,7 +252,7 @@ __device__ __forceinline__ float european_swaption_price(
     const Provider& provider,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -263,7 +263,7 @@ __device__ __forceinline__ float european_swaption_price(
     if (!isfinite(boundary)) return boundary;
 
     const auto option_context = provider.prepare_bond_option_context(
-        parameters, state, valuation_time, exercise_time
+        parameters, state, valuation_time_years, exercise_time
     );
     constexpr float option_sign =
         Side == SwaptionSide::payer ? -1.0f : 1.0f;
@@ -294,7 +294,7 @@ __device__ __forceinline__ float european_swaption_price(
                 parameters,
                 state,
                 option_sign,
-                valuation_time,
+                valuation_time_years,
                 exercise_time,
                 payment_time,
                 bond_strike

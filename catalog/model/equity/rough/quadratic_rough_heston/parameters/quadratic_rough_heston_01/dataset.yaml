@@ -1,0 +1,93 @@
+title: "quadratic rough Heston parameter dataset quadratic_rough_heston_01"
+database_id: "quadratic_rough_heston_01"
+model_family: "quadratic rough Heston"
+catalog: "catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json"
+row_count: 1000
+parameters:
+  spot: "Initial spot; fixed to 1."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  initial_feedback: "Initial feedback factor Z0."
+  quadratic_scale: "Positive coefficient a."
+  quadratic_shift: "Quadratic center b."
+  variance_floor: "Strictly positive floor c."
+  feedback_rate: "Feedback rate lambda."
+  feedback_volatility: "Feedback volatility eta."
+  hurst_exponent: "Fractional roughness H."
+dynamics:
+  variance: "V=a(Z-b)^2+c."
+  feedback: "Z=Z0-lambda K*Z dt+lambda eta K*sqrt(V)dW."
+  spot: "dS/S=(r-q)dt+sqrt(V)dW with the same W."
+  simulation: "Positive exponential N-factor lift."
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - 0.001
+          - 0.08
+        dividend_yield:
+          - 0.0
+          - 0.06
+        initial_feedback:
+          - 0.03
+          - 0.2
+        quadratic_scale:
+          - 0.1
+          - 0.8
+        quadratic_shift:
+          - 0.02
+          - 0.2
+        variance_floor:
+          - 0.0005
+          - 0.02
+        feedback_rate:
+          - 0.3
+          - 3.0
+        feedback_volatility:
+          - 0.3
+          - 2.0
+        hurst_exponent:
+          - 0.01
+          - 0.2
+  stress:
+    row_count: 100
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - -0.03
+          - 0.12
+        dividend_yield:
+          - 0.0
+          - 0.1
+        initial_feedback:
+          - -0.3
+          - 0.5
+        quadratic_scale:
+          - 0.02
+          - 2.0
+        quadratic_shift:
+          - -0.2
+          - 0.5
+        variance_floor:
+          - 0.0001
+          - 0.1
+        feedback_rate:
+          - 0.05
+          - 6.0
+        feedback_volatility:
+          - 0.05
+          - 4.0
+        hurst_exponent:
+          - 0.005
+          - 0.45

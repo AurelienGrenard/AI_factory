@@ -1,4 +1,4 @@
-// Public launcher for Hull-White Svensson European swaptions.
+// Generated Public launcher for Hull-White Svensson European swaptions.
 #pragma once
 
 #include "common/price_construction.cuh"

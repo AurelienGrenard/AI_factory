@@ -2,6 +2,7 @@
 #include "model/equity/markovian/black_scholes/product/range_accrual.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"
+#include "common/compensated_sum.cuh"
 #include "common/device_inputs.cuh"
 #include "common/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
@@ -56,25 +57,23 @@ struct RangeAccrualClosedFormPricingPolicy {
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {
-        double probability_sum = 0.0;
+        CompensatedFloatSum probability_sum;
         for (std::uint32_t observation = 1U;
              observation <= row.observation_count;
              ++observation) {
             const float observation_time =
                 static_cast<float>(observation)
                 * row.observation_interval_years;
-            probability_sum += static_cast<double>(
-                lognormal_log_interval_probability(
-                    row.evolution,
-                    row.log_lower_barrier,
-                    row.log_upper_barrier,
-                    observation_time
-                )
-            );
+            probability_sum.add(lognormal_log_interval_probability(
+                row.evolution,
+                row.log_lower_barrier,
+                row.log_upper_barrier,
+                observation_time
+            ));
         }
         return fmaf(
             row.discounted_coupon_per_observation,
-            static_cast<float>(probability_sum),
+            probability_sum.value(),
             row.maturity_discount
         );
     }

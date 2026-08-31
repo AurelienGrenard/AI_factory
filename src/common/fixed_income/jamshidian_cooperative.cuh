@@ -200,7 +200,7 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
     const Provider& provider,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule,
@@ -214,7 +214,7 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
         provider.prepare_bond_option_context(
             parameters,
             state,
-            valuation_time,
+            valuation_time_years,
             exercise_time
         )
     );
@@ -268,7 +268,7 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
             option_context = provider.prepare_bond_option_context(
                 parameters,
                 state,
-                valuation_time,
+                valuation_time_years,
                 exercise_time
             );
         }
@@ -307,7 +307,7 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
             parameters,
             state,
             option_sign,
-            valuation_time,
+            valuation_time_years,
             exercise_time,
             payment_time,
             bond_strike

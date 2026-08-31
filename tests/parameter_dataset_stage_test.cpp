@@ -1,3 +1,4 @@
+// Verify model-parameter dataset assembly and metadata serialization.
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 

@@ -1,4 +1,4 @@
-// Closed-form rate-option composition under the G2 short-rate model.
+// Generated Closed-form rate-option composition under the G2 short-rate model.
 #include "model/fixed_income/g2/product/rate_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"

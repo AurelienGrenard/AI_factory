@@ -31,9 +31,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "$display",
-        "datasets/model/$asset_class/$model_name/samples/" + id + ".json",
-        "catalog/model/$asset_class/$model_name/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/$asset_class/$model_name/samples/" + id + ".json",
+        "datasets/model/$source_folder/samples/" + id + ".json",
+        "catalog/model/$source_folder/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/$source_folder/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -44,7 +44,7 @@ inline datasets::ModelSampleRecipe recipe(
             {"regime", "plausible core only"},
             {"distribution", "independent Philox uniform proposals by parameter row"},
             {"latent_uniform_bounds", $sample_bounds},
-            {"acceptance", "$escaped_acceptance"},
+            {"acceptance", "$escaped_acceptance"}$preparation_metadata
         },
         {
             $output_metadata

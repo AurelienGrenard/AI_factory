@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 void launch_normal_inverse_gaussian_up_no_touch_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::UpNoTouchParameters* host_products,
     const product::UpNoTouchParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

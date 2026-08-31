@@ -177,6 +177,26 @@ modèles Gaussian-Volterra la consomment dans le kernel hybride FFT. Le payoff
 et son calendrier ne sont donc
 pas dupliqués entre ces moteurs.
 
+#### Corps produit unique
+
+Chaque produit equity Monte Carlo ordinaire définit exactement un corps
+sémantique : sa `PathProductPolicy`. Elle possède le calendrier contractuel,
+la préparation des seuls paramètres produit, le handler d'observation et la
+finalisation du payoff. La surface publique `*PricingPolicy` n'est qu'un alias
+vers `equity::PathProductMonteCarloPricingPolicy<Schedule, PathPolicy>`.
+Le moteur markovien, le lift rough N-facteurs et le moteur Volterra FFT
+consomment ainsi le même payoff et le même calendrier ; aucun produit ne doit
+réintroduire une seconde implémentation de `prepare_row` ou `evaluate_path`.
+
+Une exception n'est recevable que si une spécialisation mesurée démontre un
+gain end-to-end sur une architecture cible sans divergence pathwise, sans
+modifier le mapping Philox et sans dégrader les budgets de registres, spills,
+mémoire locale/shared ou taille de code. L'exception reste bornée au moteur et
+au produit mesurés, avec un test de parité face à la `PathProductPolicy`.
+`path_product_factorization_cuda` impose l'identité de type des 21 surfaces
+publiques avec leur composition canonique et rejoue toutes les catégories de
+calendrier/handler sur des graines identiques.
+
 ### `PricingPolicy`
 
 Une politique située dans `src/product/<product>/pricing_policy.cuh` reçoit le
@@ -451,7 +471,7 @@ restent baselinées séparément, car son calcul peut dominer son payload.
 Les `static_assert` nomment le budget exact et l'alternative attendue. Toute
 augmentation exige de régénérer les probes SM75/86/89 et la baseline runtime
 de l'architecture déployée selon
-[`validation/performance/README.md`](../../validation/performance/README.md).
+[`performance-regression-protocol.md`](../performance-regression-protocol.md).
 
 ## Temps, grilles et convention
 
@@ -521,3 +541,84 @@ responsabilités distinctes.
 - Ne pas déplacer `PreparedRow` vers une représentation AoS globale des chemins.
 - Conserver des fonctions courtes, privées au `.cu`, et un seul launcher public.
 - Mettre à jour ce document si le contrat commun évolue.
+
+### Qualification des moments et de leur finalisation
+
+`reductions::MomentSums` conserve la formation, l'accumulation et la
+finalisation des deux moments en FP64. Ce choix couvre les trois consommateurs
+du même contrat : Monte Carlo markovien, Volterra FFT et Longstaff--Schwartz.
+Il ne constitue pas un réglage propre au SM89 : le test
+`monte_carlo_statistics_precision_cuda` compare sur le GPU cible le produit
+FP64 direct, la FMA FP64, le carré FP32 promu, le carré FP32 mis à l'échelle et
+la somme FP32 compensée, puis les finalisations FP64, mixte, FP32 et host.
+
+La référence indépendante accumule les payoffs FP32 en `long double` sur des
+distributions non négatives core, dispersée/stress et à faible variance aux
+échelles 100 et 2 048. Le test impose au chemin FP64 une erreur relative de
+prix inférieure à `1e-11` et une erreur relative d'erreur standard inférieure
+à `2e-4`; il exige aussi que le cas de cancellation rende visible l'échec de
+la finalisation FP32. Les timings restent informatifs, car leur ordre dépend de
+l'architecture. Ils doivent être relus, avec les registres, spills, shared et
+local memory, avant toute spécialisation de précision sur un autre GPU.
+
+Le carré FP64 d'une valeur FP32 est exact avant addition. Descendre ce produit
+en FP32 n'est donc permis que pour une famille bornée qui démontre son propre
+budget de prix et d'erreur standard sur tout son domaine. La finalisation FP64
+n'est exécutée qu'une fois par prix; une accélération isolée de sa racine ne
+justifie pas de modifier l'arrondi publié sans gain end-to-end mesurable.
+
+### Résolvante fractionnaire Rough Stein--Stein
+
+`FractionalResolventHybridKernelPolicy` évalue le noyau, les poids de cellules
+lointaines et les intégrales de puissance en FP32 compensé. La série de
+Mittag--Leffler est utilisée pour `x <= 2`; au-delà, la représentation par
+densité de Laplace positive évite la cancellation FP32. Les séries,
+quadratures et poids de Simpson accumulent avec `CompensatedFloatSum`. Ne pas
+relever ce seuil ni réintroduire du FP64 device sans requalifier ensemble
+noyau, intégrales, poids, sorties de trajectoires et coût du kernel complet.
+
+`fractional_resolvent_precision_cuda` balaie
+`H in {0.01, 0.03, 0.10, 0.25, 0.45}`, mean reversion dans
+`{0, 0.2, 1, 4, 8}`, temps de `1/504` à 7 ans et lags de 2 à 1 008. Une
+quadrature `long double` plus fine sert de référence. L'erreur relative
+maximale admise est `5e-4` séparément pour le noyau, les deux intégrales et les
+poids; la mesure de qualification reste sous `8.3e-5`. Les timings et
+ressources du test sont informatifs et doivent être rejoués sur chaque
+architecture cible.
+
+La policy Rough Stein--Stein courante déclare
+`kUsesVolterraVariance = false`. `prepare` calcule donc exactement deux
+intégrales pour les loadings singuliers; `volterra_variance` n'est pas appelée
+à chaque pas par les kernels de pricing ou de sampling actuels. Toute nouvelle
+path policy qui active cette variance transforme l'intégrale en charge par pas
+et exige une nouvelle qualification end-to-end.
+
+### Moyennes de chemin Asian
+
+Les produits Asian arithmétiques et géométriques utilisent
+`CompensatedFloatSum` dans leur `PathProductPolicy` unique. Une observation ajoute
+un spot FP32 ou un log-spot FP32 avec compensation de Kahan; la division et,
+pour la moyenne géométrique, `expf`, restent en FP32. Ne pas réintroduire une
+somme FP64 générique ou une somme FP32 simple sans refaire la qualification.
+
+`asian_mean_precision_cuda` balaie 17, 253, 1 765 et 4 097 observations,
+faible variance, forte dispersion, grande échelle et cancellation, contre une
+référence `long double`. Il compare FP64, FP32 simple, FP32 compensé et chunks
+FP32 et borne séparément la coordonnée moyenne et sa valeur publiée. Le payoff
+vanille est 1-Lipschitz en cette moyenne : la borne absolue se propage à chaque
+payoff puis au prix Monte Carlo, multipliée seulement par le facteur de
+discount borné du domaine modèle.
+
+Les mesures de débit et ressources de ce test sont propres au GPU courant et
+informatives. Toute nouvelle architecture doit rejouer le test et inspecter
+les kernels complets Markov, N-factor et Volterra : registres, spills,
+stack/local, shared et occupation priment sur le seul débit du microkernel.
+
+Le closed form Black--Scholes du range accrual applique la même somme
+compensée FP32 aux probabilités d'intervalle. Son domaine publié est borné à
+1 764 observations et à des probabilités dans `[0,1]`.
+`range_accrual_sum_precision_cuda` balaie bornes étroites/larges,
+volatilités/taux core et stress, fréquences 1/5/21 jours et maturités jusqu'à
+1 764 jours. Il compare FP64, FP32 simple, FP32 compensé, chunks FP32 et une
+référence analytique host. Étendre le calendrier ou les bornes exige de
+rejouer ce budget et de contrôler le prix final, pas seulement la somme.

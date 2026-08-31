@@ -1,4 +1,4 @@
-// Compile-time contracts for Gaussian-Volterra hybrid path simulation.
+// Compile-time_years contracts for Gaussian-Volterra hybrid path simulation.
 #pragma once
 
 #include "common/simulation/concepts.cuh"
@@ -16,7 +16,7 @@ concept HybridKernelPolicy =
         const typename Kernel::Parameters& parameters,
         const typename Kernel::PreparedKernel& kernel,
         float time_step,
-        float time,
+        float time_years,
         float far_convolution,
         float rough_normal,
         float singular_independent_normal,
@@ -26,7 +26,7 @@ concept HybridKernelPolicy =
             Kernel::prepare(parameters, time_step)
         } -> std::same_as<typename Kernel::PreparedKernel>;
         { Kernel::far_cell_weight(kernel, lag) } -> std::same_as<float>;
-        { Kernel::volterra_variance(kernel, time) } -> std::same_as<float>;
+        { Kernel::volterra_variance(kernel, time_years) } -> std::same_as<float>;
         {
             Kernel::reconstruct_volterra_value(
                 kernel,

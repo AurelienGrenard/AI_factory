@@ -1,4 +1,4 @@
-// Closed-form Hull-White/Nelson-Siegel European swaptions.
+// Generated Closed-form Hull-White/Nelson-Siegel European swaptions.
 #include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
 
 #include "product/european_swaption/pricing_policy.cuh"

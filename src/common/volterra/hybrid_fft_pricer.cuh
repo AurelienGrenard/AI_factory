@@ -126,12 +126,12 @@ __global__ void prepare_direct_row_kernel(
     for (std::uint32_t step = threadIdx.x;
          step < step_count;
          step += blockDim.x) {
-        const float time = static_cast<float>(step + 1U)
+        const float time_years = static_cast<float>(step + 1U)
             * schedule.time_step;
         if constexpr (ModelPathPolicy::kUsesVolterraVariance) {
             volterra_variances[step] = KernelPolicy::volterra_variance(
                 kernel,
-                time
+                time_years
             );
         } else {
             volterra_variances[step] = 0.0f;
@@ -234,11 +234,11 @@ __global__ void prepare_row_kernel(
             }
             reinterpret_cast<float2*>(thread_data)[item] = {weight, 0.0f};
             if (index < step_count) {
-                const float time =
+                const float time_years =
                     static_cast<float>(index + 1U) * schedule.time_step;
                 if constexpr (ModelPathPolicy::kUsesVolterraVariance) {
                     volterra_variances[index] =
-                        KernelPolicy::volterra_variance(kernel, time);
+                        KernelPolicy::volterra_variance(kernel, time_years);
                 } else {
                     volterra_variances[index] = 0.0f;
                 }
@@ -658,7 +658,14 @@ void validate_launch(
             "multiple of 256 not exceeding the path count."
         );
     }
-    validate_grid_x_size((path_chunk_size + 1U) / 2U);
+    validate_hybrid_fft_grid_x_size(
+        hybrid_fft_partial_moment_count(path_count),
+        "Volterra hybrid FFT partial-moment grid exceeds unsigned int."
+    );
+    validate_hybrid_fft_grid_x_size(
+        hybrid_fft_ceiling_division(path_chunk_size, 2U),
+        "Volterra hybrid FFT convolution grid exceeds unsigned int."
+    );
     if (workspace_bytes < required_hybrid_fft_workspace_bytes(
             step_count,
             path_count,
@@ -814,17 +821,15 @@ void launch_fft_length(
 
     constexpr std::size_t path_shared_bytes =
         2U * (kPathThreads / 32U) * sizeof(double);
-    for (std::size_t path_offset = 0U;
-         path_offset < path_count;
-         path_offset += path_chunk_size) {
+    for (std::size_t path_offset = 0U; path_offset < path_count;) {
         const std::size_t chunk_path_count = std::min(
             path_chunk_size,
             path_count - path_offset
         );
         const std::size_t chunk_pair_count =
-            (chunk_path_count + 1U) / 2U;
+            hybrid_fft_ceiling_division(chunk_path_count, 2U);
         const std::size_t convolution_block_count =
-            (chunk_pair_count + FftsPerBlock - 1U) / FftsPerBlock;
+            hybrid_fft_ceiling_division(chunk_pair_count, FftsPerBlock);
         report_cuda_kernel_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
@@ -863,7 +868,7 @@ void launch_fft_length(
         check_cuda(cudaGetLastError(), "Volterra hybrid FFT convolution");
 
         const std::size_t path_block_count =
-            (chunk_path_count + kPathThreads - 1U) / kPathThreads;
+            hybrid_fft_partial_moment_count(chunk_path_count);
         evaluate_paths_kernel<
             KernelPolicy,
             ModelPathPolicy,
@@ -882,6 +887,7 @@ void launch_fft_length(
             partial_moments
         );
         check_cuda(cudaGetLastError(), "Volterra hybrid FFT path evaluation");
+        path_offset += chunk_path_count;
     }
 
     constexpr std::size_t finalization_shared_bytes =
@@ -892,7 +898,7 @@ void launch_fft_length(
         finalization_shared_bytes
     >>>(
         partial_moments,
-        (path_count + kPathThreads - 1U) / kPathThreads,
+        hybrid_fft_partial_moment_count(path_count),
         path_count,
         result_index,
         device_prices,
@@ -949,15 +955,13 @@ void launch_direct(
 
     constexpr std::size_t path_shared_bytes =
         2U * (kPathThreads / 32U) * sizeof(double);
-    for (std::size_t path_offset = 0U;
-         path_offset < path_count;
-         path_offset += path_chunk_size) {
+    for (std::size_t path_offset = 0U; path_offset < path_count;) {
         const std::size_t chunk_path_count = std::min(
             path_chunk_size,
             path_count - path_offset
         );
         const std::size_t path_block_count =
-            (chunk_path_count + kPathThreads - 1U) / kPathThreads;
+            hybrid_fft_partial_moment_count(chunk_path_count);
         report_cuda_kernel_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
@@ -988,6 +992,7 @@ void launch_direct(
             partial_moments
         );
         check_cuda(cudaGetLastError(), "Volterra direct path evaluation");
+        path_offset += chunk_path_count;
     }
 
     constexpr std::size_t finalization_shared_bytes =
@@ -998,7 +1003,7 @@ void launch_direct(
         finalization_shared_bytes
     >>>(
         partial_moments,
-        (path_count + kPathThreads - 1U) / kPathThreads,
+        hybrid_fft_partial_moment_count(path_count),
         path_count,
         result_index,
         device_prices,

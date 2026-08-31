@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::kou {
 void launch_kou_phoenix_memory_autocall_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::PhoenixMemoryAutocallParameters* host_products,
     const product::PhoenixMemoryAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

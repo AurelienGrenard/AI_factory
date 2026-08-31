@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_cev_asset_or_nothing_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::AssetOrNothingOptionParameters* host_products,
     const product::AssetOrNothingOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

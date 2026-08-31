@@ -45,10 +45,10 @@ __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
 __device__ __forceinline__ BondOptionContext prepare_bond_option_context(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float option_expiry
+    float valuation_time_years,
+    float option_expiry_years
 ) {
-    const float time_to_expiry = option_expiry - valuation_time;
+    const float time_to_expiry = option_expiry_years - valuation_time_years;
     const IntegralMoments expiry_moments = integral_moments(
         parameters.process, time_to_expiry
     );
@@ -75,17 +75,17 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const ModelParameters& parameters,
     float state,
     float option_sign,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     const float underlying_log_bond = log_zero_coupon_bond(
-        parameters, state, valuation_time, bond_maturity
+        parameters, state, valuation_time_years, bond_maturity_years
     );
     const float bond_loading = integral_state_loading(
         parameters.process.mean_reversion,
-        bond_maturity - option_expiry
+        bond_maturity_years - option_expiry_years
     );
     return ::ai_factory::workbench::fixed_income::discounted_lognormal_bond_option_price(
         context.discount,
@@ -101,21 +101,21 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const ModelParameters& parameters,
     float state,
     float option_sign,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         ),
         parameters,
         state,
         option_sign,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -125,22 +125,22 @@ struct AnalyticsProvider {
     __device__ __forceinline__ AffineBondCoefficients
     affine_bond_coefficients(
         const ModelParameters& parameters,
-        float valuation_time,
-        float maturity
+        float valuation_time_years,
+        float maturity_years
     ) const {
         return ornstein_uhlenbeck::affine_bond_coefficients(
-            parameters.process, maturity - valuation_time
+            parameters.process, maturity_years - valuation_time_years
         );
     }
 
     __device__ __forceinline__ float zero_coupon_bond(
         const ModelParameters& parameters,
         float state,
-        float valuation_time,
-        float maturity
+        float valuation_time_years,
+        float maturity_years
     ) const {
         return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
-            *this, parameters, state, valuation_time, maturity
+            *this, parameters, state, valuation_time_years, maturity_years
         );
     }
 
@@ -148,11 +148,11 @@ struct AnalyticsProvider {
     prepare_bond_option_context(
         const ModelParameters& parameters,
         float state,
-        float valuation_time,
-        float option_expiry
+        float valuation_time_years,
+        float option_expiry_years
     ) const {
         return ornstein_uhlenbeck::prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         );
     }
 
@@ -161,9 +161,9 @@ struct AnalyticsProvider {
         const ModelParameters& parameters,
         float state,
         float option_sign,
-        float valuation_time,
-        float option_expiry,
-        float bond_maturity,
+        float valuation_time_years,
+        float option_expiry_years,
+        float bond_maturity_years,
         float strike
     ) const {
         return ornstein_uhlenbeck::zero_coupon_bond_option_price(
@@ -171,9 +171,9 @@ struct AnalyticsProvider {
             parameters,
             state,
             option_sign,
-            valuation_time,
-            option_expiry,
-            bond_maturity,
+            valuation_time_years,
+            option_expiry_years,
+            bond_maturity_years,
             strike
         );
     }
@@ -193,10 +193,10 @@ static_assert(
 __device__ __forceinline__ float short_rate(
     const ModelParameters& parameters,
     float state,
-    float time
+    float time_years
 ) {
     static_cast<void>(parameters);
-    static_cast<void>(time);
+    static_cast<void>(time_years);
     return state;
 }
 
@@ -205,31 +205,31 @@ __device__ __forceinline__ float short_rate(
 // Return the logarithm of the multiplicative affine prefactor.
 __device__ __forceinline__ float log_A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return affine_bond_coefficients(
-        parameters.process, maturity - valuation_time
+        parameters.process, maturity_years - valuation_time_years
     ).log_A;
 }
 
 // Exponentiate the affine prefactor only for callers requesting A itself.
 __device__ __forceinline__ float A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
-    return expf(log_A(parameters, valuation_time, maturity));
+    return expf(log_A(parameters, valuation_time_years, maturity_years));
 }
 
 // Return the current-state loading in the affine bond expression.
 __device__ __forceinline__ float B(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return integral_state_loading(
-        parameters.process.mean_reversion, maturity - valuation_time
+        parameters.process.mean_reversion, maturity_years - valuation_time_years
     );
 }
 
@@ -237,11 +237,11 @@ __device__ __forceinline__ float B(
 __device__ __forceinline__ float log_zero_coupon_bond(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return ::ai_factory::workbench::fixed_income::log_zero_coupon_bond(
-        AnalyticsProvider{}, parameters, state, valuation_time, maturity
+        AnalyticsProvider{}, parameters, state, valuation_time_years, maturity_years
     );
 }
 
@@ -249,10 +249,10 @@ __device__ __forceinline__ float log_zero_coupon_bond(
 __device__ __forceinline__ float log_discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
     static_cast<void>(parameters);
-    static_cast<void>(time);
+    static_cast<void>(time_years);
     return -state_integral;
 }
 
@@ -260,20 +260,20 @@ __device__ __forceinline__ float log_discount_factor(
 __device__ __forceinline__ float discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
-    return expf(log_discount_factor(parameters, state_integral, time));
+    return expf(log_discount_factor(parameters, state_integral, time_years));
 }
 
 // Price one zero-coupon from the conditional Gaussian rate integral.
 __device__ __forceinline__ float zero_coupon_bond(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
-        AnalyticsProvider{}, parameters, state, valuation_time, maturity
+        AnalyticsProvider{}, parameters, state, valuation_time_years, maturity_years
     );
 }
 
@@ -281,18 +281,18 @@ __device__ __forceinline__ float zero_coupon_bond(
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -301,18 +301,18 @@ __device__ __forceinline__ float zero_coupon_bond_call_price(
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         -1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -321,18 +321,18 @@ __device__ __forceinline__ float zero_coupon_bond_put_price(
 __device__ __forceinline__ float forward_rate(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float start_time,
-    float end_time,
+    float valuation_time_years,
+    float start_time_years,
+    float end_time_years,
     float accrual_fraction
 ) {
     return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
-        end_time,
+        valuation_time_years,
+        start_time_years,
+        end_time_years,
         accrual_fraction
     );
 }
@@ -342,16 +342,16 @@ template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     const ScheduleView& schedule
 ) {
     return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         schedule
     );
 }
@@ -361,8 +361,8 @@ template<typename ScheduleView>
 __device__ __forceinline__ float payer_swap_value(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     float fixed_rate,
     const ScheduleView& schedule
 ) {
@@ -370,8 +370,8 @@ __device__ __forceinline__ float payer_swap_value(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         fixed_rate,
         schedule
     );
@@ -438,7 +438,7 @@ template<SwaptionSide Side, typename ScheduleView>
 __device__ __forceinline__ float european_swaption_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -447,7 +447,7 @@ __device__ __forceinline__ float european_swaption_price(
         AnalyticsProvider{},
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -459,7 +459,7 @@ template<typename ScheduleView>
 __device__ __forceinline__ float european_payer_swaption_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -467,7 +467,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     return european_swaption_price<SwaptionSide::payer>(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -477,7 +477,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
 __device__ __forceinline__ float european_payer_swaption_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const std::uint32_t* __restrict__ payment_times_days,
@@ -488,7 +488,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     return european_payer_swaption_price(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         ::ai_factory::workbench::fixed_income::BusinessDayFixedLegScheduleView{
@@ -504,7 +504,7 @@ template<typename ScheduleView>
 __device__ __forceinline__ float european_receiver_swaption_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -512,7 +512,7 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     return european_swaption_price<SwaptionSide::receiver>(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -522,7 +522,7 @@ __device__ __forceinline__ float european_receiver_swaption_price(
 __device__ __forceinline__ float european_receiver_swaption_price(
     const ModelParameters& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const std::uint32_t* __restrict__ payment_times_days,
@@ -533,7 +533,7 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     return european_receiver_swaption_price(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         ::ai_factory::workbench::fixed_income::BusinessDayFixedLegScheduleView{

@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::sabr {
 void launch_sabr_athena_autocall_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::AthenaAutocallParameters* host_products,
     const product::AthenaAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

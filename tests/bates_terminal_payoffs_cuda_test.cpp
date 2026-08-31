@@ -77,7 +77,7 @@ void price_one(
     );
 
     launch(
-        device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+        device_model, 1U, &product, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device_price, device_standard_error
     );

@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_heston_3_2_forward_start_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::ForwardStartOptionParameters* host_products,
     const product::ForwardStartOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

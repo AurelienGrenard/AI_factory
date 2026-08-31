@@ -1,6 +1,7 @@
 // Reusable path-local accumulators evaluated at contractual observations.
 #pragma once
 
+#include "common/compensated_sum.cuh"
 #include "common/equity/concepts.cuh"
 
 #include <cmath>
@@ -11,7 +12,7 @@ namespace ai_factory::workbench::equity {
 
 template<SpotStatePolicy Dynamics>
 struct ArithmeticMeanObservationHandler {
-    double spot_sum = 0.0;
+    CompensatedFloatSum spot_sum;
 
     __device__ __forceinline__ bool on_initial_state(
         const typename Dynamics::State& state
@@ -23,7 +24,7 @@ struct ArithmeticMeanObservationHandler {
         std::uint32_t,
         const typename Dynamics::State& state
     ) {
-        spot_sum += static_cast<double>(Dynamics::spot(state));
+        spot_sum.add(Dynamics::spot(state));
         return true;
     }
 
@@ -32,9 +33,7 @@ struct ArithmeticMeanObservationHandler {
     ) const {
         return observation_count == 0U
             ? 0.0f
-            : static_cast<float>(
-                spot_sum / static_cast<double>(observation_count)
-            );
+            : spot_sum.value() / static_cast<float>(observation_count);
     }
 };
 
@@ -43,12 +42,12 @@ struct GeometricMeanObservationHandlerImplementation;
 
 template<LogSpotStatePolicy Dynamics>
 struct GeometricMeanObservationHandlerImplementation<Dynamics, true> {
-    double log_spot_sum = 0.0;
+    CompensatedFloatSum log_spot_sum;
 
     __device__ __forceinline__ bool on_initial_state(
         const typename Dynamics::State& state
     ) {
-        log_spot_sum = static_cast<double>(Dynamics::log_spot(state));
+        log_spot_sum.add(Dynamics::log_spot(state));
         return true;
     }
 
@@ -56,7 +55,7 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, true> {
         std::uint32_t,
         const typename Dynamics::State& state
     ) {
-        log_spot_sum += static_cast<double>(Dynamics::log_spot(state));
+        log_spot_sum.add(Dynamics::log_spot(state));
         return true;
     }
 
@@ -64,21 +63,21 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, true> {
         std::uint32_t observation_count
     ) const {
         if (observation_count == 0U) return 0.0f;
-        return expf(static_cast<float>(
-            log_spot_sum / static_cast<double>(observation_count)
-        ));
+        return expf(
+            log_spot_sum.value() / static_cast<float>(observation_count)
+        );
     }
 };
 
 template<LogSpotStatePolicy Dynamics>
 struct GeometricMeanObservationHandlerImplementation<Dynamics, false> {
-    double log_spot_sum = 0.0;
+    CompensatedFloatSum log_spot_sum;
     bool hit_non_positive_spot = false;
 
     __device__ __forceinline__ bool on_initial_state(
         const typename Dynamics::State& state
     ) {
-        log_spot_sum = static_cast<double>(Dynamics::log_spot(state));
+        log_spot_sum.add(Dynamics::log_spot(state));
         return true;
     }
 
@@ -90,7 +89,7 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, false> {
         hit_non_positive_spot =
             hit_non_positive_spot || !(spot > 0.0f);
         if (!hit_non_positive_spot) {
-            log_spot_sum += static_cast<double>(Dynamics::log_spot(state));
+            log_spot_sum.add(Dynamics::log_spot(state));
         }
         return true;
     }
@@ -99,9 +98,9 @@ struct GeometricMeanObservationHandlerImplementation<Dynamics, false> {
         std::uint32_t observation_count
     ) const {
         if (observation_count == 0U || hit_non_positive_spot) return 0.0f;
-        return expf(static_cast<float>(
-            log_spot_sum / static_cast<double>(observation_count)
-        ));
+        return expf(
+            log_spot_sum.value() / static_cast<float>(observation_count)
+        );
     }
 };
 

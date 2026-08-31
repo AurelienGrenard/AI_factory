@@ -2,7 +2,8 @@
 
 This document fixes the common contract for a generative-training dataset once
 its capability is published under
-`catalog/model/<asset_class>/<model>/samples/`. Availability is not inferred
+`catalog/model/<asset_class>/[<family>/]<model>/samples/`. The equity family
+component is `markovian` or `rough`; availability is not inferred
 from the existence of a dynamics or parameter loader. The canonical matrix is
 `tools/codegen/pricing_bindings/capability_manifest.py`.
 
@@ -119,6 +120,18 @@ The host preparation uses `dt = 1/504` and an approximation horizon covering
 the maximum generated maturity. Factor counts 2, 3 and 7 match the European
 pricing interface; no kernel fit or matrix exponential runs on the device.
 
+Quadratic rough Heston has a production-specific preparation contract for its
+three-million-row unconditional layout. Fitting one nonlinear L2 rule for
+every independently sampled `H` is forbidden: it would make host preparation
+scale in millions of fits. The generated sample helper instead constructs 257
+exact positive seven-factor fits on `H in [0.01, 0.20]` and linearly
+interpolates corresponding positive nodes and weights. The catalogue records
+the bounds, interpolation rule and grid size. Scalar preparation and pricing
+continue to fit the requested `H` directly. The permanent qualification checks
+all 256 cell midpoints against the analytical fractional kernel, requires less
+than 0.11% relative L2 error, and bounds the interpolation penalty against
+off-grid exact fits by `5e-6`.
+
 Rough Bergomi and rough SABR compose the corresponding engine as follows:
 
 ```cpp
@@ -165,6 +178,14 @@ writes exactly 1,000 rows below
 JSON again and verifies the flat-row schema, maturity bounds, identity
 `T = maturity_days / 252`, dimensions, and finite outputs. The YAML still
 documents the production 3M recipe.
+
+Every generator also accepts `--preflight`. This mode uses the complete
+production row count without publishing JSON/YAML, launches the full workload,
+then replays it with a second threads-per-block geometry. Maturities and all
+observables must be bitwise identical, finite and inside their contractual
+bounds. The command prints one machine-readable `MODEL_SAMPLE_PREFLIGHT` line
+with the row count, both geometries and wall/kernel times. A preflight is a
+qualification run, never a replacement for the versioned published artifact.
 
 ## Performance qualification
 

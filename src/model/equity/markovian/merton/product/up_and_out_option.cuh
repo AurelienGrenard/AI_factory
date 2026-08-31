@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_merton_up_and_out_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::UpAndOutOptionParameters* host_products,
     const product::UpAndOutOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

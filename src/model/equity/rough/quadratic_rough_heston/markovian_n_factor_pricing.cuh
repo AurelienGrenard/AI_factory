@@ -20,6 +20,7 @@ void launch_quadratic_rough_heston_markovian_cuda(
     std::size_t model_count,
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const typename ProductPathPolicy::ProductParameters* host_products,
     const typename ProductPathPolicy::ProductParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -46,7 +47,7 @@ void launch_quadratic_rough_heston_markovian_cuda(
         SchedulePolicy
     >(
         device_models, model_count, device_prepared_dynamics,
-        prepared_dynamics_count, device_products, product_count,
+        prepared_dynamics_count, host_products, device_products, product_count,
         construction, result_count, result_offset, launch_result_count,
         monte_carlo_paths_per_price, dt, simulation_steps_per_day,
         threads_per_block, block_count, base_seed, device_prices,

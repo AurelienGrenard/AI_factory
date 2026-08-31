@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_heston_3_2_down_and_in_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::DownAndInOptionParameters* host_products,
     const product::DownAndInOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 void launch_normal_inverse_gaussian_cliquet_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::CliquetParameters* host_products,
     const product::CliquetParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

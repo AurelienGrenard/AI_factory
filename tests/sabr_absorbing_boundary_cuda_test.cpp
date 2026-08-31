@@ -122,6 +122,7 @@ int main() {
             sabr::launch_sabr_european_option_cuda<OptionSide::call>(
                 device_models,
                 models.size(),
+                products.data(),
                 device_products,
                 products.size(),
                 PriceConstruction::Aligned,

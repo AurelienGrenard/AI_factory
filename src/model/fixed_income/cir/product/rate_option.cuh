@@ -1,4 +1,4 @@
-// Public launcher for CIR rate_option analytics.
+// Generated Public launcher for CIR rate_option analytics.
 #pragma once
 
 #include "common/price_construction.cuh"

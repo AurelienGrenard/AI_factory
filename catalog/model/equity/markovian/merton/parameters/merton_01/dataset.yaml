@@ -1,0 +1,71 @@
+title: "Merton jump diffusion parameter dataset merton_01"
+database_id: "merton_01"
+model_family: "Merton jump diffusion"
+catalog: "catalog/model/equity/markovian/merton/parameters/merton_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/parameters/merton_01.json"
+row_count: 1000
+parameters:
+  spot: "Initial spot."
+  risk_free_rate: "Continuously compounded risk-free rate."
+  dividend_yield: "Continuously compounded dividend yield."
+  volatility: "Diffusion volatility."
+  jump_intensity: "Poisson jump intensity."
+  jump_log_mean: "Mean log jump size."
+  jump_log_volatility: "Log jump-size volatility."
+dynamics:
+  log_spot: "Brownian diffusion plus compound-Poisson normal jumps."
+  martingale_correction: "lambda * (exp(mu_J + delta_J^2/2) - 1)."
+  simulation: "Exact independent increments; normal jumps aggregated conditionally on their Poisson count."
+construction:
+  method: "ordered 90/10 core-stress construction"
+  row_order:
+    core: "rows 1-900"
+    stress: "rows 901-1000"
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - 0.001
+          - 0.08
+        dividend_yield:
+          - 0.0
+          - 0.06
+        volatility:
+          - 0.08
+          - 0.45
+        jump_intensity:
+          - 0.02
+          - 1.0
+        jump_log_mean:
+          - -0.2
+          - 0.08
+        jump_log_volatility:
+          - 0.03
+          - 0.3
+  stress:
+    row_count: 100
+    generation:
+      method: "independent uniform sample"
+      bounds:
+        risk_free_rate:
+          - -0.03
+          - 0.12
+        dividend_yield:
+          - 0.0
+          - 0.1
+        volatility:
+          - 0.03
+          - 0.8
+        jump_intensity:
+          - 0.001
+          - 3.0
+        jump_log_mean:
+          - -0.55
+          - 0.3
+        jump_log_volatility:
+          - 0.005
+          - 0.7

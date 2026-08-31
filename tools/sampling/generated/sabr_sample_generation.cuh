@@ -63,9 +63,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "SABR",
-        "datasets/model/equity/sabr/samples/" + id + ".json",
-        "catalog/model/equity/sabr/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/sabr/samples/" + id + ".json",
+        "datasets/model/equity/markovian/sabr/samples/" + id + ".json",
+        "catalog/model/equity/markovian/sabr/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -84,7 +84,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"rho", {-0.9f, 0.2f}},
                 {"beta", {0.3f, 1.0f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},

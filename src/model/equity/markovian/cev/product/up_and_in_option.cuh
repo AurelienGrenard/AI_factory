@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_cev_up_and_in_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::UpAndInOptionParameters* host_products,
     const product::UpAndInOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

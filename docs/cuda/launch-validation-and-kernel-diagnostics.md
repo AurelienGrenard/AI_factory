@@ -33,6 +33,13 @@ Paramètres : deux dimensions `size_t` et un message. Multiplie les dimensions
 d'une allocation seulement si le produit tient dans `size_t`; sinon lève
 `std::overflow_error`.
 
+Les planners de workspace appliquent la meme regle aux sommes d'offsets et
+aux divisions plafond. Une division plafond s'ecrit `value / divisor` plus le
+reste non nul; elle ne forme jamais `value + divisor - 1`. Chaque nombre de
+blocs derive d'une cardinalite est controle avant conversion vers le type de
+`dim3`, puis contre la limite `gridDim.x` du device. Un rejet de cardinalite
+doit donc preceder allocation, arithmetique de pointeur et lancement.
+
 ### `bounded_block_count`
 
 Paramètres : nombre de résultats et nombre de blocs configuré. Exige deux
@@ -73,6 +80,31 @@ numérique.
 Exige au moins deux chemins par résultat et un `dt` de transition strictement
 positif et fini. Elle appelle d'abord `validate_monte_carlo_path_count`, puis
 ajoute la validation propre aux simulations discrétisées.
+
+### Calendriers et nombres de transitions
+
+Un calendrier utilisé par un schedule discret doit être validé sur l'hôte
+avec sa `FixedStepTimeConfiguration` avant toute inspection CUDA. La fonction
+`checked_fixed_step_transition_count` forme
+`simulation_steps_per_day * day_count` en `uint64_t`, refuse un résultat qui
+ne tient pas dans le `uint32_t` stocké par le schedule et vérifie que la
+fraction d'année FP32 correspondante reste finie. Les surcharges
+`validate_calendar(calendar, time_configuration)` appliquent ce contrôle à
+chaque intervalle des calendriers terminal, régulier, régulier avec stub et
+statique ; elles contrôlent aussi la maturité totale. Les calendriers
+d'exercice appliquent le même contrat à leur stub initial et à leur intervalle.
+
+Les launchers Monte Carlo reçoivent donc, en plus des tableaux device, un
+miroir hôte des produits. Les policies construisent leurs calendriers avec la
+même fonction `calendar(...)` côté hôte et côté device. Les sources de
+calendriers du sampler valident de même la constante ou la borne maximale ;
+une source de calendriers déjà matérialisés sur device doit fournir son miroir
+hôte. Il est interdit de remplacer ce contrat par une copie device-vers-hôte
+dans le launcher ou par une multiplication non vérifiée dans le kernel.
+
+Les transitions exactes ne multiplient pas un nombre de pas, mais leur
+calendrier est tout de même validé avec sa configuration afin de refuser une
+fraction d'année non finie.
 
 ### `validate_cuda_block_size`
 

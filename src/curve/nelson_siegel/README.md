@@ -14,14 +14,6 @@ This directory implements the analytical continuously compounded
 Nelson–Siegel zero curve. See
 [Nelson and Siegel (1987)](https://doi.org/10.1086/296409).
 
-## Files
-
-- [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load compact FP32 curve rows.
-- [`term_structure.cuh`](term_structure.cuh) / [`term_structure_impl.cuh`](term_structure_impl.cuh) expose the analytical device functions.
-
-There is no curve kernel here: pricing kernels include these device functions
-and evaluate the curve directly for their own result row.
-
 ## Dataset row
 
 `NelsonSiegelParameters` rows are trivially copyable and transferred as one
@@ -56,23 +48,11 @@ derived analytically rather than numerically differentiated.
 | `discount_factor` | Evaluate $P(0,T)$ |
 | `instantaneous_forward` | Evaluate $f(0,T)$ analytically |
 | `forward_derivative` | Differentiate $f(0,T)$ with respect to maturity |
-| `forward_rate` | Derive the continuous forward over `[start,end]` |
+| `forward_rate` | Derive the continuous forward over `[start_years,end_years]` |
 
-<details>
-<summary>Exact term-structure signatures</summary>
-
-The declarations below omit CUDA attributes for readability.
-
-```cpp
-float zero_rate(const NelsonSiegelParameters&, float maturity);
-float log_discount_factor(const NelsonSiegelParameters&, float maturity);
-float discount_factor(const NelsonSiegelParameters&, float maturity);
-float instantaneous_forward(const NelsonSiegelParameters&, float maturity);
-float forward_derivative(const NelsonSiegelParameters&, float maturity);
-float forward_rate(const NelsonSiegelParameters&, float start, float end);
-```
-
-</details>
+The exact device declarations are owned by
+[`term_structure.cuh`](term_structure.cuh); their included definitions are in
+[`term_structure_impl.cuh`](term_structure_impl.cuh).
 
 ## Consumers
 

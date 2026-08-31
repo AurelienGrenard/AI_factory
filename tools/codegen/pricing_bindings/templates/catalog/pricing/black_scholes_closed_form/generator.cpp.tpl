@@ -42,6 +42,7 @@ int main() {{
                     model_binding::launch_black_scholes_{product}_cuda{side_template}(
                         device_models,
                         model_count,
+{analytical_host_product_argument}
                         device_products,
                         product_count,
                         context.construction,

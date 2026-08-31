@@ -16,6 +16,7 @@ template<OptionSide Side>
 void launch_bates_geometric_asian_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::GeometricAsianOptionParameters* host_products,
     const product::GeometricAsianOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

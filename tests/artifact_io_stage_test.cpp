@@ -1,3 +1,4 @@
+// Verify JSON and YAML artifact serialization used by offline dataset stages.
 #include "tools/datasets/artifact_io.hpp"
 
 #include <filesystem>

@@ -1,4 +1,4 @@
-// Public launcher for CIR European swaptions.
+// Generated Public launcher for CIR European swaptions.
 #pragma once
 
 #include "common/price_construction.cuh"

@@ -43,16 +43,16 @@ compose_fitted_model(
 template<typename CurveProvider>
 __device__ __forceinline__ float short_rate_shift(
     const FittedParameters<CurveProvider>& parameters,
-    float time
+    float time_years
 ) {
     const float mean_reversion = parameters.process.mean_reversion;
-    const float one_minus_decay = -expm1f(-mean_reversion * time);
+    const float one_minus_decay = -expm1f(-mean_reversion * time_years);
     const float correction =
         parameters.process.volatility * parameters.process.volatility
         * one_minus_decay * one_minus_decay
         / (2.0f * mean_reversion * mean_reversion);
     return CurveProvider::instantaneous_forward(
-        parameters.initial_curve, time
+        parameters.initial_curve, time_years
     ) + correction;
 }
 
@@ -60,19 +60,19 @@ template<typename CurveProvider>
 __device__ __forceinline__ float short_rate(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float time
+    float time_years
 ) {
-    return state + short_rate_shift(parameters, time);
+    return state + short_rate_shift(parameters, time_years);
 }
 
 template<typename CurveProvider>
 __device__ __forceinline__ float shift_integral(
     const FittedParameters<CurveProvider>& parameters,
-    float start_time,
-    float end_time
+    float start_time_years,
+    float end_time_years
 ) {
     const float mean_reversion = parameters.process.mean_reversion;
-    const float time_interval = end_time - start_time;
+    const float time_interval = end_time_years - start_time_years;
     const float one_minus_decay = -expm1f(
         -mean_reversion * time_interval
     );
@@ -81,16 +81,16 @@ __device__ __forceinline__ float shift_integral(
     );
     const float forward_integral =
         CurveProvider::log_discount_factor(
-            parameters.initial_curve, start_time
+            parameters.initial_curve, start_time_years
         )
         - CurveProvider::log_discount_factor(
-            parameters.initial_curve, end_time
+            parameters.initial_curve, end_time_years
         );
-    if (start_time == 0.0f) {
+    if (start_time_years == 0.0f) {
         return forward_integral
             + 0.5f
                 * model::fixed_income::ornstein_uhlenbeck::integral_variance(
-                    parameters.process, end_time
+                    parameters.process, end_time_years
                 );
     }
     const float convexity_integral =
@@ -98,9 +98,9 @@ __device__ __forceinline__ float shift_integral(
         / (2.0f * mean_reversion * mean_reversion)
         * (
             time_interval
-            - 2.0f * expf(-mean_reversion * start_time)
+            - 2.0f * expf(-mean_reversion * start_time_years)
                 * one_minus_decay / mean_reversion
-            + expf(-2.0f * mean_reversion * start_time)
+            + expf(-2.0f * mean_reversion * start_time_years)
                 * one_minus_decay_squared / (2.0f * mean_reversion)
         );
     return forward_integral + convexity_integral;
@@ -111,23 +111,23 @@ __device__ __forceinline__
 ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients
 affine_bond_coefficients(
     const FittedParameters<CurveProvider>& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     const auto moments =
         model::fixed_income::ornstein_uhlenbeck::integral_moments(
-            parameters.process, maturity - valuation_time
+            parameters.process, maturity_years - valuation_time_years
         );
-    if (valuation_time == 0.0f) {
+    if (valuation_time_years == 0.0f) {
         return {
             CurveProvider::log_discount_factor(
-                parameters.initial_curve, maturity
+                parameters.initial_curve, maturity_years
             ),
             moments.state_loading,
         };
     }
     return {
-        -shift_integral(parameters, valuation_time, maturity)
+        -shift_integral(parameters, valuation_time_years, maturity_years)
             + 0.5f * moments.variance,
         moments.state_loading,
     };
@@ -138,17 +138,17 @@ __device__ __forceinline__ BondOptionContext<CurveProvider>
 prepare_bond_option_context(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float option_expiry
+    float valuation_time_years,
+    float option_expiry_years
 ) {
     const auto coefficients = affine_bond_coefficients(
-        parameters, valuation_time, option_expiry
+        parameters, valuation_time_years, option_expiry_years
     );
     const float expiry_log_bond = fmaf(
         -coefficients.B, state, coefficients.log_A
     );
     const float mean_reversion = parameters.process.mean_reversion;
-    const float time_to_expiry = option_expiry - valuation_time;
+    const float time_to_expiry = option_expiry_years - valuation_time_years;
     const float state_variance =
         parameters.process.volatility * parameters.process.volatility
         * (-expm1f(-2.0f * mean_reversion * time_to_expiry))
@@ -167,22 +167,22 @@ struct AnalyticsProvider {
     ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients
     affine_bond_coefficients(
         const Parameters& parameters,
-        float valuation_time,
-        float maturity
+        float valuation_time_years,
+        float maturity_years
     ) const {
         return fitted::affine_bond_coefficients(
-            parameters, valuation_time, maturity
+            parameters, valuation_time_years, maturity_years
         );
     }
 
     __device__ __forceinline__ float zero_coupon_bond(
         const Parameters& parameters,
         float state,
-        float valuation_time,
-        float maturity
+        float valuation_time_years,
+        float maturity_years
     ) const {
         return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
-            *this, parameters, state, valuation_time, maturity
+            *this, parameters, state, valuation_time_years, maturity_years
         );
     }
 
@@ -190,11 +190,11 @@ struct AnalyticsProvider {
     prepare_bond_option_context(
         const Parameters& parameters,
         float state,
-        float valuation_time,
-        float option_expiry
+        float valuation_time_years,
+        float option_expiry_years
     ) const {
         return fitted::prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         );
     }
 
@@ -203,13 +203,13 @@ struct AnalyticsProvider {
         const Parameters& parameters,
         float state,
         float option_sign,
-        float valuation_time,
-        float option_expiry,
-        float bond_maturity,
+        float valuation_time_years,
+        float option_expiry_years,
+        float bond_maturity_years,
         float strike
     ) const {
         const auto coefficients = affine_bond_coefficients(
-            parameters, valuation_time, bond_maturity
+            parameters, valuation_time_years, bond_maturity_years
         );
         const float underlying_log_bond = fmaf(
             -coefficients.B, state, coefficients.log_A
@@ -217,7 +217,7 @@ struct AnalyticsProvider {
         const float bond_loading =
             model::fixed_income::ornstein_uhlenbeck::integral_state_loading(
                 parameters.process.mean_reversion,
-                bond_maturity - option_expiry
+                bond_maturity_years - option_expiry_years
             );
         return ::ai_factory::workbench::fixed_income::
             discounted_lognormal_bond_option_price(
@@ -233,31 +233,31 @@ struct AnalyticsProvider {
 template<typename CurveProvider>
 __device__ __forceinline__ float log_A(
     const FittedParameters<CurveProvider>& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return affine_bond_coefficients(
-        parameters, valuation_time, maturity
+        parameters, valuation_time_years, maturity_years
     ).log_A;
 }
 
 template<typename CurveProvider>
 __device__ __forceinline__ float A(
     const FittedParameters<CurveProvider>& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
-    return expf(log_A(parameters, valuation_time, maturity));
+    return expf(log_A(parameters, valuation_time_years, maturity_years));
 }
 
 template<typename CurveProvider>
 __device__ __forceinline__ float B(
     const FittedParameters<CurveProvider>& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return affine_bond_coefficients(
-        parameters, valuation_time, maturity
+        parameters, valuation_time_years, maturity_years
     ).B;
 }
 
@@ -265,15 +265,15 @@ template<typename CurveProvider>
 __device__ __forceinline__ float log_zero_coupon_bond(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return ::ai_factory::workbench::fixed_income::log_zero_coupon_bond(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
-        maturity
+        valuation_time_years,
+        maturity_years
     );
 }
 
@@ -281,33 +281,33 @@ template<typename CurveProvider>
 __device__ __forceinline__ float log_discount_factor(
     const FittedParameters<CurveProvider>& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
-    return -state_integral - shift_integral(parameters, 0.0f, time);
+    return -state_integral - shift_integral(parameters, 0.0f, time_years);
 }
 
 template<typename CurveProvider>
 __device__ __forceinline__ float discount_factor(
     const FittedParameters<CurveProvider>& parameters,
     float state_integral,
-    float time
+    float time_years
 ) {
-    return expf(log_discount_factor(parameters, state_integral, time));
+    return expf(log_discount_factor(parameters, state_integral, time_years));
 }
 
 template<typename CurveProvider>
 __device__ __forceinline__ float zero_coupon_bond(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 ) {
     return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
-        maturity
+        valuation_time_years,
+        maturity_years
     );
 }
 
@@ -316,22 +316,22 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
     float option_sign,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     const AnalyticsProvider<CurveProvider> provider{};
     return provider.bond_option_price(
         provider.prepare_bond_option_context(
-            parameters, state, valuation_time, option_expiry
+            parameters, state, valuation_time_years, option_expiry_years
         ),
         parameters,
         state,
         option_sign,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -340,18 +340,18 @@ template<typename CurveProvider>
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -360,18 +360,18 @@ template<typename CurveProvider>
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 ) {
     return zero_coupon_bond_option_price(
         parameters,
         state,
         -1.0f,
-        valuation_time,
-        option_expiry,
-        bond_maturity,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
         strike
     );
 }
@@ -380,18 +380,18 @@ template<typename CurveProvider>
 __device__ __forceinline__ float forward_rate(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float start_time,
-    float end_time,
+    float valuation_time_years,
+    float start_time_years,
+    float end_time_years,
     float accrual_fraction
 ) {
     return ::ai_factory::workbench::fixed_income::forward_rate(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
-        start_time,
-        end_time,
+        valuation_time_years,
+        start_time_years,
+        end_time_years,
         accrual_fraction
     );
 }
@@ -400,16 +400,16 @@ template<typename CurveProvider, typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     const ScheduleView& schedule
 ) {
     return ::ai_factory::workbench::fixed_income::swap_rate(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         schedule
     );
 }
@@ -418,8 +418,8 @@ template<typename CurveProvider, typename ScheduleView>
 __device__ __forceinline__ float payer_swap_value(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     float fixed_rate,
     const ScheduleView& schedule
 ) {
@@ -427,8 +427,8 @@ __device__ __forceinline__ float payer_swap_value(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
-        start_time,
+        valuation_time_years,
+        start_time_years,
         fixed_rate,
         schedule
     );
@@ -493,7 +493,7 @@ template<SwaptionSide Side, typename CurveProvider, typename ScheduleView>
 __device__ __forceinline__ float european_swaption_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -502,7 +502,7 @@ __device__ __forceinline__ float european_swaption_price(
         AnalyticsProvider<CurveProvider>{},
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -513,7 +513,7 @@ template<typename CurveProvider, typename ScheduleView>
 __device__ __forceinline__ float european_payer_swaption_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -521,7 +521,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     return european_swaption_price<SwaptionSide::payer>(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -532,7 +532,7 @@ template<typename CurveProvider>
 __device__ __forceinline__ float european_payer_swaption_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const std::uint32_t* __restrict__ payment_times_days,
@@ -543,7 +543,7 @@ __device__ __forceinline__ float european_payer_swaption_price(
     return european_payer_swaption_price(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         ::ai_factory::workbench::fixed_income::BusinessDayFixedLegScheduleView{
@@ -559,7 +559,7 @@ template<typename CurveProvider, typename ScheduleView>
 __device__ __forceinline__ float european_receiver_swaption_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule
@@ -567,7 +567,7 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     return european_swaption_price<SwaptionSide::receiver>(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         schedule
@@ -578,7 +578,7 @@ template<typename CurveProvider>
 __device__ __forceinline__ float european_receiver_swaption_price(
     const FittedParameters<CurveProvider>& parameters,
     float state,
-    float valuation_time,
+    float valuation_time_years,
     float exercise_time,
     float fixed_rate,
     const std::uint32_t* __restrict__ payment_times_days,
@@ -589,7 +589,7 @@ __device__ __forceinline__ float european_receiver_swaption_price(
     return european_receiver_swaption_price(
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         exercise_time,
         fixed_rate,
         ::ai_factory::workbench::fixed_income::BusinessDayFixedLegScheduleView{
@@ -650,25 +650,25 @@ struct BermudanSwaptionAnalyticsPolicy {
     __device__ __forceinline__ static float log_discount_factor(
         const PreparedModel& model,
         float state_integral,
-        float time
+        float time_years
     ) {
-        return fitted::log_discount_factor(model, state_integral, time);
+        return fitted::log_discount_factor(model, state_integral, time_years);
     }
 
     template<typename ScheduleView>
     __device__ __forceinline__ static float payer_swap_value(
         const PreparedModel& model,
         float state,
-        float valuation_time,
-        float start_time,
+        float valuation_time_years,
+        float start_time_years,
         float fixed_rate,
         const ScheduleView& schedule
     ) {
         return fitted::payer_swap_value(
             model,
             state,
-            valuation_time,
-            start_time,
+            valuation_time_years,
+            start_time_years,
             fixed_rate,
             schedule
         );

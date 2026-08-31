@@ -1,4 +1,4 @@
-// Closed-form zero-coupon-bond-option composition under G2.
+// Generated Closed-form zero-coupon-bond-option composition under G2.
 #include "model/fixed_income/g2/product/zero_coupon_bond_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"

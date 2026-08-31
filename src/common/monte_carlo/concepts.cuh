@@ -25,6 +25,7 @@ concept ScalarMonteCarloPricingPolicy =
     && std::is_trivially_copyable_v<typename PricingPolicy::PreparedRow>
     && requires(
         const typename PricingPolicy::DeviceInputs& inputs,
+        const typename PricingPolicy::HostInputs& host_inputs,
         const typename PricingPolicy::Schedule::TimeConfiguration&
             time_configuration,
         const typename PricingPolicy::PreparedRow& row,
@@ -32,6 +33,9 @@ concept ScalarMonteCarloPricingPolicy =
         std::size_t path
     ) {
         { inputs.validate(0U) } -> std::same_as<void>;
+        {
+            host_inputs.validate(0U, time_configuration)
+        } -> std::same_as<void>;
         {
             inputs.template prepare_row<PricingPolicy>(
                 0U,

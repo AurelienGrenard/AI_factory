@@ -265,18 +265,18 @@ int main() {
     }
     ai_factory::workbench::check_cuda(
         availability,
-        "New equity dynamics test cudaGetDeviceCount"
+        "Merton/Kou/CEV/Schobel-Zhu dynamics contract cudaGetDeviceCount"
     );
 
     EquityDynamicsResults* device_results = nullptr;
     ai_factory::workbench::check_cuda(
         cudaMalloc(&device_results, sizeof(EquityDynamicsResults)),
-        "New equity dynamics test cudaMalloc"
+        "Merton/Kou/CEV/Schobel-Zhu dynamics contract cudaMalloc"
     );
     exercise_equity_dynamics_kernel<<<1, 1>>>(device_results);
     ai_factory::workbench::check_cuda(
         cudaGetLastError(),
-        "New equity dynamics test kernel launch"
+        "Merton/Kou/CEV/Schobel-Zhu dynamics contract kernel launch"
     );
     EquityDynamicsResults results{};
     ai_factory::workbench::check_cuda(
@@ -286,11 +286,11 @@ int main() {
             sizeof(results),
             cudaMemcpyDeviceToHost
         ),
-        "New equity dynamics test cudaMemcpy"
+        "Merton/Kou/CEV/Schobel-Zhu dynamics contract cudaMemcpy"
     );
     ai_factory::workbench::check_cuda(
         cudaFree(device_results),
-        "New equity dynamics test cudaFree"
+        "Merton/Kou/CEV/Schobel-Zhu dynamics contract cudaFree"
     );
 
     constexpr float maturity = 0.75f;

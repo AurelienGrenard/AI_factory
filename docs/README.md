@@ -1,8 +1,16 @@
 # Documentation index
 
-All maintained project documentation lives in this tree. Most contracts remain
-directly under `docs`; the main audit and the deliberately separate validation
-audit use the symmetric `audit/` and `validation/` folders documented below.
+All maintained project documentation is indexed from this tree. Normative
+contracts live under `docs`; mathematical model and curve references that are
+kept beside their source are listed explicitly below. The main audit and the
+deliberately separate validation audit use the symmetric `audit/` and
+`validation/` folders documented below.
+
+## Model and curve references
+
+- [`model-and-curve-reference-index.md`](model-and-curve-reference-index.md):
+  exhaustive index of the local mathematical references kept under `src`, with
+  the boundary between descriptive equations and canonical capability data.
 
 ## Extension workflows
 
@@ -43,7 +51,7 @@ audit use the symmetric `audit/` and `validation/` folders documented below.
 - [`cuda/launch-validation-and-kernel-diagnostics.md`](cuda/launch-validation-and-kernel-diagnostics.md):
   common launch validation, CUDA error handling, resource inspection,
   theoretical occupancy, and diagnostics output.
-- [`../validation/performance/README.md`](../validation/performance/README.md):
+- [`performance-regression-protocol.md`](performance-regression-protocol.md):
   versioned CUDA performance protocol, baselines, decision thresholds and
   reproduction commands.
 

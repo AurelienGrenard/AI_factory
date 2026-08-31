@@ -61,9 +61,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Normal-Inverse-Gaussian",
-        "datasets/model/equity/normal_inverse_gaussian/samples/" + id + ".json",
-        "catalog/model/equity/normal_inverse_gaussian/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/normal_inverse_gaussian/samples/" + id + ".json",
+        "datasets/model/equity/markovian/normal_inverse_gaussian/samples/" + id + ".json",
+        "catalog/model/equity/markovian/normal_inverse_gaussian/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -80,7 +80,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"skew_ratio", {-0.75f, 0.05f}},
                 {"target_volatility", {0.1f, 0.55f}}
             }},
-            {"acceptance", "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f"},
+            {"acceptance", "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

@@ -19,6 +19,7 @@ static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<{static_pricing_policy_
 {template_declaration}void launch_{model}_{product}_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::{product_type}Parameters* host_products,
     const product::{product_type}Parameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -40,6 +41,7 @@ static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<{static_pricing_policy_
             product_count,
             construction
         ),
+        {{host_products, product_count, construction}},
         result_count,
         result_offset,
         launch_result_count,

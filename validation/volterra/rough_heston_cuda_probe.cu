@@ -34,6 +34,7 @@ template<OptionSide Side>
 Estimate launch(
     const ModelParameters* device_model,
     const PreparedDynamics<factor_count>* device_prepared,
+    const EuropeanOptionParameters* host_product,
     const EuropeanOptionParameters* device_product,
     std::size_t path_count,
     std::uint64_t seed,
@@ -54,6 +55,7 @@ Estimate launch(
         1U,
         device_prepared,
         1U,
+        host_product,
         device_product,
         1U,
         false,
@@ -196,6 +198,7 @@ int main(int argument_count, char** arguments) {
     const Estimate call = launch<OptionSide::call>(
         device_model,
         device_prepared,
+        &product,
         device_product,
         path_count,
         seed,
@@ -207,6 +210,7 @@ int main(int argument_count, char** arguments) {
     const Estimate put = launch<OptionSide::put>(
         device_model,
         device_prepared,
+        &product,
         device_product,
         path_count,
         seed,

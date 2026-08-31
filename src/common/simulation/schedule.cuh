@@ -6,9 +6,12 @@
 #include "common/simulation/path_simulation.cuh"
 #include "common/time_configuration.cuh"
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
+#include <type_traits>
 
 namespace ai_factory::workbench::simulation {
 
@@ -135,6 +138,117 @@ inline void validate_calendar(const Calendar& calendar) {
             );
         }
     }
+}
+
+// Validate every integer-to-transition conversion on the host before a CUDA
+// launch. Fixed-step schedules store each interval count in uint32_t, so the
+// checked arithmetic must use a wider type and must preserve a finite FP32
+// year fraction before the device prepares the same value.
+inline std::uint32_t checked_fixed_step_transition_count(
+    std::uint32_t day_count,
+    const FixedStepTimeConfiguration& time_configuration
+) {
+    ::ai_factory::workbench::simulation::validate_time_configuration(
+        time_configuration
+    );
+    if (day_count == 0U) {
+        throw std::invalid_argument(
+            "A fixed-step interval must contain at least one day."
+        );
+    }
+    const std::uint64_t transition_count =
+        static_cast<std::uint64_t>(
+            time_configuration.simulation_steps_per_day
+        ) * day_count;
+    if (transition_count
+        > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::overflow_error(
+            "simulation_steps_per_day * day_count exceeds uint32_t."
+        );
+    }
+    const float year_fraction = static_cast<float>(transition_count)
+        * time_configuration.dt;
+    if (!std::isfinite(year_fraction)) {
+        throw std::overflow_error(
+            "The fixed-step interval has a non-finite year fraction."
+        );
+    }
+    return static_cast<std::uint32_t>(transition_count);
+}
+
+template<typename Calendar, typename TimeConfiguration>
+inline void validate_calendar_maturity_year_fraction(
+    const Calendar& calendar,
+    const TimeConfiguration& time_configuration
+) {
+    float day_fraction = 0.0f;
+    if constexpr (std::same_as<
+            TimeConfiguration,
+            FixedStepTimeConfiguration
+        >) {
+        day_fraction = static_cast<float>(
+            time_configuration.simulation_steps_per_day
+        ) * time_configuration.dt;
+    } else {
+        day_fraction = time_configuration.day_fraction;
+    }
+    const float maturity_years =
+        static_cast<float>(calendar_maturity_days(calendar)) * day_fraction;
+    if (!std::isfinite(day_fraction) || !std::isfinite(maturity_years)) {
+        throw std::overflow_error(
+            "The simulation calendar has a non-finite year fraction."
+        );
+    }
+}
+
+template<typename Calendar>
+inline void validate_calendar(
+    const Calendar& calendar,
+    const FixedStepTimeConfiguration& time_configuration
+) {
+    validate_calendar(calendar);
+    if constexpr (std::same_as<Calendar, MaturityCalendar>) {
+        checked_fixed_step_transition_count(
+            calendar.maturity_days,
+            time_configuration
+        );
+    } else if constexpr (std::same_as<Calendar, RegularCalendar>) {
+        checked_fixed_step_transition_count(
+            calendar.observation_interval_days,
+            time_configuration
+        );
+    } else if constexpr (std::same_as<Calendar, StubbedRegularCalendar>) {
+        checked_fixed_step_transition_count(
+            calendar.first_observation_day,
+            time_configuration
+        );
+        checked_fixed_step_transition_count(
+            calendar.observation_interval_days,
+            time_configuration
+        );
+    } else {
+        for (std::size_t observation = 0U;
+             observation < Calendar::kObservationCount;
+             ++observation) {
+            checked_fixed_step_transition_count(
+                calendar.interval_days[observation],
+                time_configuration
+            );
+        }
+    }
+    validate_calendar_maturity_year_fraction(calendar, time_configuration);
+}
+
+template<typename Calendar>
+inline void validate_calendar(
+    const Calendar& calendar,
+    const ExactTransitionTimeConfiguration& time_configuration
+) {
+    ::ai_factory::workbench::simulation::validate_time_configuration(
+        time_configuration
+    );
+    validate_calendar(calendar);
+    validate_calendar_maturity_year_fraction(calendar, time_configuration);
 }
 
 // Convert a contractual day count while preserving the arithmetic used by

@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <type_traits>
 
 namespace ai_factory::workbench::equity {
@@ -30,6 +31,42 @@ struct PathProductMonteCarloPricingPolicy {
     using ProductParameters = typename ProductPathPolicy::ProductParameters;
     using DeviceInputs = DeviceInputsPolicy;
     using TimeConfiguration = typename Schedule::TimeConfiguration;
+
+    struct HostInputs {
+        const ProductParameters* products;
+        std::size_t product_count;
+        PriceConstruction construction;
+
+        void validate(
+            std::size_t result_count,
+            const TimeConfiguration& time_configuration
+        ) const {
+            if (products == nullptr) {
+                throw std::invalid_argument(
+                    "Path-product host products are null."
+                );
+            }
+            if (product_count == 0U || result_count == 0U) {
+                throw std::invalid_argument(
+                    "Path-product host inputs contain an empty dimension."
+                );
+            }
+            if (construction == PriceConstruction::Aligned
+                && product_count != result_count) {
+                throw std::invalid_argument(
+                    "Aligned path-product host products must match results."
+                );
+            }
+            for (std::size_t product_index = 0U;
+                 product_index < product_count;
+                 ++product_index) {
+                simulation::validate_calendar(
+                    ProductPathPolicy::calendar(products[product_index]),
+                    time_configuration
+                );
+            }
+        }
+    };
 
     struct PreparedRow {
         typename Schedule::PreparedSchedule schedule;
@@ -103,11 +140,17 @@ struct PathProductMonteCarloPricingPolicy {
         philox::PhiloxKey key,
         std::size_t path
     ) {
-        auto handler = ProductPathPolicy::make_handler(row.product);
-        typename Dynamics::State terminal{};
         if constexpr (simulation::TerminalSchedulePolicy<Schedule>) {
-            terminal = Schedule::simulate_terminal(row.schedule, key, path);
+            const typename Dynamics::State terminal =
+                Schedule::simulate_terminal(row.schedule, key, path);
+            const auto handler = ProductPathPolicy::make_handler(row.product);
+            return ProductPathPolicy::template finalize<Dynamics>(
+                row.product,
+                terminal,
+                handler
+            );
         } else {
+            auto handler = ProductPathPolicy::make_handler(row.product);
             PathProductObservationAdapter<
                 Dynamics,
                 typename ProductPathPolicy::Handler,
@@ -117,13 +160,18 @@ struct PathProductMonteCarloPricingPolicy {
                 decltype(adapter),
                 Dynamics
             >);
-            terminal = Schedule::simulate(row.schedule, key, path, adapter);
+            const typename Dynamics::State terminal = Schedule::simulate(
+                row.schedule,
+                key,
+                path,
+                adapter
+            );
+            return ProductPathPolicy::template finalize<Dynamics>(
+                row.product,
+                terminal,
+                handler
+            );
         }
-        return ProductPathPolicy::template finalize<Dynamics>(
-            row.product,
-            terminal,
-            handler
-        );
     }
 };
 

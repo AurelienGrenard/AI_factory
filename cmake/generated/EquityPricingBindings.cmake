@@ -3,6 +3,7 @@
 
 set(AI_FACTORY_GENERATED_EQUITY_MODELS
     bates
+    black_scholes
     cev
     heston
     heston_3_2
@@ -13,7 +14,6 @@ set(AI_FACTORY_GENERATED_EQUITY_MODELS
     schobel_zhu
     stein_stein
     variance_gamma
-    black_scholes
     rough_bergomi
     rough_sabr
     log_modulated_rough_bergomi
@@ -41,10 +41,7 @@ set(AI_FACTORY_GENERATED_ROUGH_MODELS
 )
 
 set(AI_FACTORY_GENERATED_VOLTERRA_MODELS
-    rough_bergomi
-    rough_sabr
-    log_modulated_rough_bergomi
-    rough_stein_stein
+
 )
 
 set(AI_FACTORY_GENERATED_EQUITY_PRODUCTS
@@ -93,6 +90,27 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     bates/product/up_and_out_option
     bates/product/up_no_touch
     bates/product/up_one_touch
+    black_scholes/product/asian_option
+    black_scholes/product/asset_or_nothing_option
+    black_scholes/product/athena_autocall
+    black_scholes/product/cliquet
+    black_scholes/product/digital_option
+    black_scholes/product/double_knock_out_option
+    black_scholes/product/down_and_in_option
+    black_scholes/product/down_and_out_option
+    black_scholes/product/european_option
+    black_scholes/product/forward_start_option
+    black_scholes/product/gap_option
+    black_scholes/product/geometric_asian_option
+    black_scholes/product/lookback_option
+    black_scholes/product/phoenix_autocall
+    black_scholes/product/phoenix_memory_autocall
+    black_scholes/product/range_accrual
+    black_scholes/product/straddle
+    black_scholes/product/up_and_in_option
+    black_scholes/product/up_and_out_option
+    black_scholes/product/up_no_touch
+    black_scholes/product/up_one_touch
     cev/product/asian_option
     cev/product/asset_or_nothing_option
     cev/product/athena_autocall
@@ -219,6 +237,48 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     normal_inverse_gaussian/product/up_and_out_option
     normal_inverse_gaussian/product/up_no_touch
     normal_inverse_gaussian/product/up_one_touch
+    quadratic_rough_heston/product/asian_option
+    quadratic_rough_heston/product/asset_or_nothing_option
+    quadratic_rough_heston/product/athena_autocall
+    quadratic_rough_heston/product/cliquet
+    quadratic_rough_heston/product/digital_option
+    quadratic_rough_heston/product/double_knock_out_option
+    quadratic_rough_heston/product/down_and_in_option
+    quadratic_rough_heston/product/down_and_out_option
+    quadratic_rough_heston/product/european_option
+    quadratic_rough_heston/product/forward_start_option
+    quadratic_rough_heston/product/gap_option
+    quadratic_rough_heston/product/geometric_asian_option
+    quadratic_rough_heston/product/lookback_option
+    quadratic_rough_heston/product/phoenix_autocall
+    quadratic_rough_heston/product/phoenix_memory_autocall
+    quadratic_rough_heston/product/range_accrual
+    quadratic_rough_heston/product/straddle
+    quadratic_rough_heston/product/up_and_in_option
+    quadratic_rough_heston/product/up_and_out_option
+    quadratic_rough_heston/product/up_no_touch
+    quadratic_rough_heston/product/up_one_touch
+    rough_heston/product/asian_option
+    rough_heston/product/asset_or_nothing_option
+    rough_heston/product/athena_autocall
+    rough_heston/product/cliquet
+    rough_heston/product/digital_option
+    rough_heston/product/double_knock_out_option
+    rough_heston/product/down_and_in_option
+    rough_heston/product/down_and_out_option
+    rough_heston/product/european_option
+    rough_heston/product/forward_start_option
+    rough_heston/product/gap_option
+    rough_heston/product/geometric_asian_option
+    rough_heston/product/lookback_option
+    rough_heston/product/phoenix_autocall
+    rough_heston/product/phoenix_memory_autocall
+    rough_heston/product/range_accrual
+    rough_heston/product/straddle
+    rough_heston/product/up_and_in_option
+    rough_heston/product/up_and_out_option
+    rough_heston/product/up_no_touch
+    rough_heston/product/up_one_touch
     sabr/product/asian_option
     sabr/product/asset_or_nothing_option
     sabr/product/athena_autocall
@@ -303,72 +363,30 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     variance_gamma/product/up_and_out_option
     variance_gamma/product/up_no_touch
     variance_gamma/product/up_one_touch
-    black_scholes/product/asian_option
-    black_scholes/product/asset_or_nothing_option
-    black_scholes/product/athena_autocall
-    black_scholes/product/cliquet
-    black_scholes/product/digital_option
-    black_scholes/product/double_knock_out_option
-    black_scholes/product/down_and_in_option
-    black_scholes/product/down_and_out_option
-    black_scholes/product/european_option
-    black_scholes/product/forward_start_option
-    black_scholes/product/gap_option
-    black_scholes/product/geometric_asian_option
-    black_scholes/product/lookback_option
-    black_scholes/product/phoenix_autocall
-    black_scholes/product/phoenix_memory_autocall
-    black_scholes/product/range_accrual
-    black_scholes/product/straddle
-    black_scholes/product/up_and_in_option
-    black_scholes/product/up_and_out_option
-    black_scholes/product/up_no_touch
-    black_scholes/product/up_one_touch
-    rough_heston/product/asian_option
-    rough_heston/product/asset_or_nothing_option
-    rough_heston/product/athena_autocall
-    rough_heston/product/cliquet
-    rough_heston/product/digital_option
-    rough_heston/product/double_knock_out_option
-    rough_heston/product/down_and_in_option
-    rough_heston/product/down_and_out_option
-    rough_heston/product/european_option
-    rough_heston/product/forward_start_option
-    rough_heston/product/gap_option
-    rough_heston/product/geometric_asian_option
-    rough_heston/product/lookback_option
-    rough_heston/product/phoenix_autocall
-    rough_heston/product/phoenix_memory_autocall
-    rough_heston/product/range_accrual
-    rough_heston/product/straddle
-    rough_heston/product/up_and_in_option
-    rough_heston/product/up_and_out_option
-    rough_heston/product/up_no_touch
-    rough_heston/product/up_one_touch
-    quadratic_rough_heston/product/asian_option
-    quadratic_rough_heston/product/asset_or_nothing_option
-    quadratic_rough_heston/product/athena_autocall
-    quadratic_rough_heston/product/cliquet
-    quadratic_rough_heston/product/digital_option
-    quadratic_rough_heston/product/double_knock_out_option
-    quadratic_rough_heston/product/down_and_in_option
-    quadratic_rough_heston/product/down_and_out_option
-    quadratic_rough_heston/product/european_option
-    quadratic_rough_heston/product/forward_start_option
-    quadratic_rough_heston/product/gap_option
-    quadratic_rough_heston/product/geometric_asian_option
-    quadratic_rough_heston/product/lookback_option
-    quadratic_rough_heston/product/phoenix_autocall
-    quadratic_rough_heston/product/phoenix_memory_autocall
-    quadratic_rough_heston/product/range_accrual
-    quadratic_rough_heston/product/straddle
-    quadratic_rough_heston/product/up_and_in_option
-    quadratic_rough_heston/product/up_and_out_option
-    quadratic_rough_heston/product/up_no_touch
-    quadratic_rough_heston/product/up_one_touch
 )
 
 set(AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS
+    log_modulated_rough_bergomi/product/asian_option
+    log_modulated_rough_bergomi/product/asset_or_nothing_option
+    log_modulated_rough_bergomi/product/athena_autocall
+    log_modulated_rough_bergomi/product/cliquet
+    log_modulated_rough_bergomi/product/digital_option
+    log_modulated_rough_bergomi/product/double_knock_out_option
+    log_modulated_rough_bergomi/product/down_and_in_option
+    log_modulated_rough_bergomi/product/down_and_out_option
+    log_modulated_rough_bergomi/product/european_option
+    log_modulated_rough_bergomi/product/forward_start_option
+    log_modulated_rough_bergomi/product/gap_option
+    log_modulated_rough_bergomi/product/geometric_asian_option
+    log_modulated_rough_bergomi/product/lookback_option
+    log_modulated_rough_bergomi/product/phoenix_autocall
+    log_modulated_rough_bergomi/product/phoenix_memory_autocall
+    log_modulated_rough_bergomi/product/range_accrual
+    log_modulated_rough_bergomi/product/straddle
+    log_modulated_rough_bergomi/product/up_and_in_option
+    log_modulated_rough_bergomi/product/up_and_out_option
+    log_modulated_rough_bergomi/product/up_no_touch
+    log_modulated_rough_bergomi/product/up_one_touch
     rough_bergomi/product/asian_option
     rough_bergomi/product/asset_or_nothing_option
     rough_bergomi/product/athena_autocall
@@ -411,27 +429,6 @@ set(AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS
     rough_sabr/product/up_and_out_option
     rough_sabr/product/up_no_touch
     rough_sabr/product/up_one_touch
-    log_modulated_rough_bergomi/product/asian_option
-    log_modulated_rough_bergomi/product/asset_or_nothing_option
-    log_modulated_rough_bergomi/product/athena_autocall
-    log_modulated_rough_bergomi/product/cliquet
-    log_modulated_rough_bergomi/product/digital_option
-    log_modulated_rough_bergomi/product/double_knock_out_option
-    log_modulated_rough_bergomi/product/down_and_in_option
-    log_modulated_rough_bergomi/product/down_and_out_option
-    log_modulated_rough_bergomi/product/european_option
-    log_modulated_rough_bergomi/product/forward_start_option
-    log_modulated_rough_bergomi/product/gap_option
-    log_modulated_rough_bergomi/product/geometric_asian_option
-    log_modulated_rough_bergomi/product/lookback_option
-    log_modulated_rough_bergomi/product/phoenix_autocall
-    log_modulated_rough_bergomi/product/phoenix_memory_autocall
-    log_modulated_rough_bergomi/product/range_accrual
-    log_modulated_rough_bergomi/product/straddle
-    log_modulated_rough_bergomi/product/up_and_in_option
-    log_modulated_rough_bergomi/product/up_and_out_option
-    log_modulated_rough_bergomi/product/up_no_touch
-    log_modulated_rough_bergomi/product/up_one_touch
     rough_stein_stein/product/asian_option
     rough_stein_stein/product/asset_or_nothing_option
     rough_stein_stein/product/athena_autocall
@@ -457,8 +454,12 @@ set(AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS
 
 set(AI_FACTORY_GENERATED_EQUITY_EARLY_EXERCISE_UNITS
     bates/product/american_option
+    cev/product/american_option
     heston/product/american_option
+    kou/product/american_option
+    merton/product/american_option
     normal_inverse_gaussian/product/american_option
+    schobel_zhu/product/american_option
     variance_gamma/product/american_option
 )
 

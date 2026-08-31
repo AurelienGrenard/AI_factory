@@ -73,16 +73,16 @@ __device__ __forceinline__ float forward_rate(
     const BondProvider& bonds,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
-    float end_time,
+    float valuation_time_years,
+    float start_time_years,
+    float end_time_years,
     float accrual_fraction
 ) {
     const float start_bond = bonds.zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+        parameters, state, valuation_time_years, start_time_years
     );
     const float end_bond = bonds.zero_coupon_bond(
-        parameters, state, valuation_time, end_time
+        parameters, state, valuation_time_years, end_time_years
     );
     return (start_bond / end_bond - 1.0f) / accrual_fraction;
 }
@@ -98,7 +98,7 @@ __device__ __forceinline__ void fixed_leg_terms(
     const BondProvider& bonds,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
+    float valuation_time_years,
     const ScheduleView& schedule,
     float& annuity,
     float& final_bond
@@ -112,7 +112,7 @@ __device__ __forceinline__ void fixed_leg_terms(
         const float current_bond = bonds.zero_coupon_bond(
             parameters,
             state,
-            valuation_time,
+            valuation_time_years,
             schedule.payment_time(payment)
         );
         annuity = fmaf(
@@ -133,8 +133,8 @@ __device__ __forceinline__ float swap_rate(
     const BondProvider& bonds,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     const ScheduleView& schedule
 ) {
     float annuity = 0.0f;
@@ -143,13 +143,13 @@ __device__ __forceinline__ float swap_rate(
         bonds,
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         schedule,
         annuity,
         final_bond
     );
     const float start_bond = bonds.zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+        parameters, state, valuation_time_years, start_time_years
     );
     return (start_bond - final_bond) / annuity;
 }
@@ -165,8 +165,8 @@ __device__ __forceinline__ float payer_swap_value(
     const BondProvider& bonds,
     const Parameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     float fixed_rate,
     const ScheduleView& schedule
 ) {
@@ -176,13 +176,13 @@ __device__ __forceinline__ float payer_swap_value(
         bonds,
         parameters,
         state,
-        valuation_time,
+        valuation_time_years,
         schedule,
         annuity,
         final_bond
     );
     const float start_bond = bonds.zero_coupon_bond(
-        parameters, state, valuation_time, start_time
+        parameters, state, valuation_time_years, start_time_years
     );
     return start_bond - final_bond - fixed_rate * annuity;
 }

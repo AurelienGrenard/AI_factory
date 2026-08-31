@@ -1,3 +1,4 @@
+// Verify model-sample dataset assembly and observable metadata serialization.
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/sample_dataset.hpp"
 

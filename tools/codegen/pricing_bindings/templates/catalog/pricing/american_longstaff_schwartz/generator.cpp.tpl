@@ -13,13 +13,13 @@ int main() {{
 
 {time_constants}
     const pricing::EquityPriceRecipe recipe{{
-        "datasets/model/equity/{model}/parameters/{model}_01.json",
-        "datasets/product/equity/american_options/american_options_01.json",
-        "datasets/model/equity/{model}/prices/american_{side}s/"
+        "datasets/model/equity/markovian/{model}/parameters/{model}_01.json",
+        "datasets/product/american_option/american_options_01.json",
+        "datasets/model/equity/markovian/{model}/prices/american_{side}s/"
         "{database_id}.json",
-        "catalog/model/equity/{model}/prices/american_{side}s/"
+        "catalog/model/equity/markovian/{model}/prices/american_{side}s/"
         "{database_id}/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/{model}/prices/"
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/{model}/prices/"
         "american_{side}s/{database_id}.json",
         "{numerical_method} + Longstaff-Schwartz",
         PriceConstruction::Aligned,
@@ -28,7 +28,7 @@ int main() {{
         1U << 20U,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseThreadsPerBlock,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseBlocksPerPrice,
-        900000001ULL,
+        {seed}ULL,
         "{delta_t_description}",
         "{diagnostic_label}",
         "{regression_basis}",

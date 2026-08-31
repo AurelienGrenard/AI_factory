@@ -34,7 +34,7 @@ int main() {
     nlohmann::json document = {
         {"database_id", "rough_sabr_test_01"},
         {"model_family", "Rough SABR"},
-        {"catalog", "catalog/model/equity/rough_sabr/test"},
+        {"catalog", "catalog/model/equity/rough/rough_sabr/test"},
         {"url", "https://datasets.ai-factory.example/rough_sabr_test.json"},
         {"row_count", 1U},
         {"models", {{

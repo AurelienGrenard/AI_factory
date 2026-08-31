@@ -59,9 +59,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "CEV",
-        "datasets/model/equity/cev/samples/" + id + ".json",
-        "catalog/model/equity/cev/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/cev/samples/" + id + ".json",
+        "datasets/model/equity/markovian/cev/samples/" + id + ".json",
+        "catalog/model/equity/markovian/cev/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -78,7 +78,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"sigma", {0.08f, 0.45f}},
                 {"beta", {0.55f, 0.95f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

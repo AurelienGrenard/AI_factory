@@ -1,4 +1,4 @@
-// Public launcher for Vasicek European swaptions.
+// Generated Public launcher for Vasicek European swaptions.
 #pragma once
 
 #include "common/price_construction.cuh"

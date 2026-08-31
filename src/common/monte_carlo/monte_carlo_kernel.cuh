@@ -84,6 +84,7 @@ __global__ void monte_carlo_price_kernel(
 template<ScalarMonteCarloPricingPolicy PricingPolicy>
 inline void validate_monte_carlo_launch(
     const typename PricingPolicy::DeviceInputs& inputs,
+    const typename PricingPolicy::HostInputs& host_inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -104,6 +105,7 @@ inline void validate_monte_carlo_launch(
         "complete runtime calendar."
     );
     inputs.validate(result_count);
+    host_inputs.validate(result_count, time_configuration);
     validate_device_pointer(device_prices, "device_prices");
     validate_device_pointer(
         device_standard_errors,
@@ -129,6 +131,7 @@ inline void validate_monte_carlo_launch(
 template<ScalarMonteCarloPricingPolicy PricingPolicy>
 inline void launch_monte_carlo_cuda(
     const typename PricingPolicy::DeviceInputs& inputs,
+    const typename PricingPolicy::HostInputs& host_inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -146,6 +149,7 @@ inline void launch_monte_carlo_cuda(
 ) {
     validate_monte_carlo_launch<PricingPolicy>(
         inputs,
+        host_inputs,
         result_count,
         result_offset,
         launch_result_count,

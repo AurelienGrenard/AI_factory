@@ -46,6 +46,7 @@ int main() {{
                 construction,
                 execution_profile,
                 [&](const auto* device_models, std::size_t model_count,
+                    const auto* host_products,
                     const auto* device_products, std::size_t product_count,
                     const pricing::BatchedLaunchContext& context,
                     float* device_prices,
@@ -53,6 +54,7 @@ int main() {{
                     model_binding::launch_{model}_{product}_cuda{side_template}(
                         device_models,
                         model_count,
+                        host_products,
                         device_products,
                         product_count,
                         context.construction,

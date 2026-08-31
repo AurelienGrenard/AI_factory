@@ -17,6 +17,7 @@ void launch_rough_heston_range_accrual_cuda(
     std::size_t model_count,
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const product::RangeAccrualParameters* host_products,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

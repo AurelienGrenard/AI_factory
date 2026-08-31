@@ -1,10 +1,11 @@
-// Prove that a dense barrier product plugs into the shared rough FFT engine.
+// Prove that dense path products plug into the shared rough FFT engine.
 #include "common/check_cuda.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_bergomi/product/european_option.cuh"
 #include "model/equity/rough/rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/asian_option/pricing_policy.cuh"
 #include "product/forward_start_option/pricing_policy.cuh"
+#include "product/geometric_asian_option/pricing_policy.cuh"
 #include "product/up_and_out_option/pricing_policy.cuh"
 
 #include <cuda_runtime.h>
@@ -43,6 +44,9 @@ int main() {
     const product::EuropeanOptionParameters european = {1.0f, 252U};
     product::UpAndOutOptionParameters barrier = {1.0f, 100.0f, 252U};
     const product::AsianOptionParameters asian = {1.0f, 252U};
+    const product::GeometricAsianOptionParameters geometric_asian = {
+        1.0f, 252U,
+    };
     const product::ForwardStartOptionParameters forward_start = {
         1.0f, 126U, 252U,
     };
@@ -64,6 +68,7 @@ int main() {
     product::EuropeanOptionParameters* device_european = nullptr;
     product::UpAndOutOptionParameters* device_barrier = nullptr;
     product::AsianOptionParameters* device_asian = nullptr;
+    product::GeometricAsianOptionParameters* device_geometric_asian = nullptr;
     product::ForwardStartOptionParameters* device_forward_start = nullptr;
     void* device_workspace = nullptr;
     float* device_price = nullptr;
@@ -79,6 +84,10 @@ int main() {
             "barrier product malloc"
         );
         check_cuda(cudaMalloc(&device_asian, sizeof(asian)), "Asian malloc");
+        check_cuda(
+            cudaMalloc(&device_geometric_asian, sizeof(geometric_asian)),
+            "geometric Asian malloc"
+        );
         check_cuda(
             cudaMalloc(&device_forward_start, sizeof(forward_start)),
             "forward-start malloc"
@@ -115,6 +124,15 @@ int main() {
                 cudaMemcpyHostToDevice
             ),
             "Asian product copy"
+        );
+        check_cuda(
+            cudaMemcpy(
+                device_geometric_asian,
+                &geometric_asian,
+                sizeof(geometric_asian),
+                cudaMemcpyHostToDevice
+            ),
+            "geometric Asian product copy"
         );
         check_cuda(
             cudaMemcpy(
@@ -225,6 +243,25 @@ int main() {
         );
 
         bergomi::launch_rough_bergomi_hybrid_fft_cuda<
+            product::GeometricAsianOptionPathPolicy<OptionSide::call>,
+            volterra::DenseHybridSchedule
+        >(
+            device_model, 1U, device_geometric_asian, 1U,
+            ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U,
+            path_count, time_configuration, step_count, path_chunk_size,
+            device_workspace, workspace.workspace_bytes, seed,
+            device_price, device_error,
+            "rough_bergomi.geometric_asian_option", "call"
+        );
+        check_cuda(cudaDeviceSynchronize(), "geometric Asian synchronize");
+        const auto geometric_asian_result = read();
+        require(
+            std::isfinite(geometric_asian_result.first)
+                && std::isfinite(geometric_asian_result.second),
+            "the dense geometric Asian product produced invalid statistics"
+        );
+
+        bergomi::launch_rough_bergomi_hybrid_fft_cuda<
             product::ForwardStartOptionPathPolicy<OptionSide::call>,
             volterra::CalendarHybridSchedule<2U>
         >(
@@ -246,6 +283,7 @@ int main() {
         if (device_european != nullptr) cudaFree(device_european);
         if (device_barrier != nullptr) cudaFree(device_barrier);
         if (device_asian != nullptr) cudaFree(device_asian);
+        if (device_geometric_asian != nullptr) cudaFree(device_geometric_asian);
         if (device_forward_start != nullptr) cudaFree(device_forward_start);
         if (device_workspace != nullptr) cudaFree(device_workspace);
         if (device_price != nullptr) cudaFree(device_price);
@@ -256,6 +294,10 @@ int main() {
     check_cuda(cudaFree(device_european), "free European product");
     check_cuda(cudaFree(device_barrier), "free barrier product");
     check_cuda(cudaFree(device_asian), "free Asian product");
+    check_cuda(
+        cudaFree(device_geometric_asian),
+        "free geometric Asian product"
+    );
     check_cuda(cudaFree(device_forward_start), "free forward-start product");
     check_cuda(cudaFree(device_workspace), "free workspace");
     check_cuda(cudaFree(device_price), "free price");

@@ -10,6 +10,8 @@ locally or published to external storage.
 ```text
 AI_factory/
 |-- src/          C++/CUDA simulation and pricing code
+|-- cmake/        target registration split by runtime, catalog, tests,
+|                 performance, and validation ownership
 |-- tools/        parameter generation and dataset-writing utilities
 |-- catalog/      one reproducible folder per published dataset
 |-- datasets/     complete JSON datasets, ignored by Git
@@ -18,6 +20,12 @@ AI_factory/
 |-- validation/   unified model/product validation and backend adapters
 `-- CMakeLists.txt
 ```
+
+The root `CMakeLists.txt` owns only project-wide configuration, options, and
+module orchestration. Domain targets live in `cmake/AIFactoryRuntime.cmake`,
+`AIFactoryCatalog.cmake`, `AIFactoryPerformance.cmake`,
+`AIFactoryTests.cmake`, and `AIFactoryValidation.cmake`; reusable target
+helpers remain in `AIFactoryTargets.cmake`.
 
 All implementation contracts, workflows, derivations, and work-tracking notes
 live in [`docs/`](docs/README.md). The main CUDA contracts are:
@@ -113,7 +121,11 @@ catalog/
 |-- curve/<curve>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-|-- model/<asset_class>/<model>/
+|-- model/equity/<markovian|rough>/<model>/
+|   |-- parameters/<dataset_id>/
+|   |-- samples/<dataset_id>/
+|   `-- prices/<product>/<dataset_id>/
+|-- model/fixed_income/<model>/
 |   |-- parameters/<dataset_id>/
 |   |   |-- dataset.yaml
 |   |   `-- generator.cpp
@@ -123,8 +135,7 @@ catalog/
 |   `-- prices/[<curve>/]<product>/<dataset_id>/
 |       |-- dataset.yaml
 |       `-- generator.cpp
-|-- product/equity/<product>/<dataset_id>/
-|-- product/fixed_income/<product>/<dataset_id>/
+|-- product/<product>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
 ```
@@ -152,9 +163,9 @@ must be replaced with the final data server URLs.
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- curve/svensson/svensson_01.json
-|-- model/equity/heston/parameters/heston_01.json
-|-- model/equity/heston/samples/<sample_dataset_id>.json
-|-- model/equity/heston/prices/<product>/<price_dataset_id>.json
+|-- model/equity/markovian/heston/parameters/heston_01.json
+|-- model/equity/markovian/heston/samples/<sample_dataset_id>.json
+|-- model/equity/markovian/heston/prices/<product>/<price_dataset_id>.json
 |-- model/fixed_income/g2/parameters/g2_01.json
 |-- model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
 |-- model/fixed_income/hull_white/parameters/hull_white_01.json
@@ -164,10 +175,10 @@ datasets/
 |-- model/fixed_income/g2/prices/<product>/<price_dataset_id>.json
 |-- model/fixed_income/g2_plus_plus/prices/<curve>/<product>/<price_dataset_id>.json
 |-- model/fixed_income/hull_white/prices/<curve>/<product>/<price_dataset_id>.json
-|-- product/equity/european_options/european_options_01.json
-|-- product/equity/american_options/american_options_01.json
-|-- product/fixed_income/rate_options/rate_options_01.json
-`-- product/fixed_income/european_swaptions/european_swaptions_01.json
+|-- product/european_option/european_options_01.json
+|-- product/american_option/american_options_01.json
+|-- product/rate_option/rate_options_01.json
+`-- product/european_swaption/european_swaptions_01.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
@@ -324,8 +335,8 @@ The `heston_01` catalog entry begins as follows:
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-catalog: "catalog/model/equity/heston/parameters/heston_01"
-url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
+catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
 row_count: 1000
 ```
 
@@ -360,7 +371,7 @@ maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
 then applies `K = exp(x)`.
 
 ```yaml
-catalog: "catalog/product/equity/european_options/european_options_01"
+catalog: "catalog/product/european_option/european_options_01"
 url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 row_count: 1000
 construction:
@@ -390,16 +401,16 @@ input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
-catalog: "catalog/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01"
+catalog: "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01"
 url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
 row_count: 1000
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/equity/heston/parameters/heston_01"
-  url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
+  catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
 product_dataset:
   id: "european_options_01"
-  catalog: "catalog/product/equity/european_options/european_options_01"
+  catalog: "catalog/product/european_option/european_options_01"
   url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 price_construction:
   method: "Aligned"
@@ -478,7 +489,7 @@ profile in generated execution metadata. A deployment can override the
 `AI_FACTORY_CUDA_TUNING_PROFILE_ID` without editing generated recipes. Before
 publishing such a profile, run the numerical tests, kernel diagnostics and the
 complete performance manifest described in
-[`validation/performance/README.md`](validation/performance/README.md).
+[`docs/performance-regression-protocol.md`](docs/performance-regression-protocol.md).
 
 The development build uses Ninja and deliberately excludes CUDA pricers,
 tests, and generators from the default target. Build the narrowest target for

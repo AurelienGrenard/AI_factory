@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::kou {
 void launch_kou_range_accrual_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::RangeAccrualParameters* host_products,
     const product::RangeAccrualParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

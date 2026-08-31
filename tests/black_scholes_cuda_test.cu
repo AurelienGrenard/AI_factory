@@ -273,12 +273,12 @@ float geometric_price_one(
     check_cuda(cudaMemcpy(device_product, &contract, sizeof(contract), cudaMemcpyHostToDevice), "BS geometric product copy");
     if (side == OptionSide::call) {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::call>(
-            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+            device_model, 1U, &contract, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     } else {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::put>(
-            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+            device_model, 1U, &contract, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     }

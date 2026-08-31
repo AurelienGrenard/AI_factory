@@ -17,6 +17,7 @@ void launch_quadratic_rough_heston_up_and_in_option_cuda(
     std::size_t model_count,
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const product::UpAndInOptionParameters* host_products,
     const product::UpAndInOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

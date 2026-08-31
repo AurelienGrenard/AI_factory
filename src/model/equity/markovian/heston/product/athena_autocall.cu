@@ -19,6 +19,7 @@ static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy>);
 void launch_heston_athena_autocall_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::AthenaAutocallParameters* host_products,
     const product::AthenaAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -46,6 +47,7 @@ void launch_heston_athena_autocall_cuda(
             product_count,
             construction
         ),
+        {host_products, product_count, construction},
         result_count,
         result_offset,
         launch_result_count,

@@ -1,4 +1,4 @@
-// Closed-form G2++ rate-option composition fitted to a parametric curve.
+// Generated Closed-form G2++ rate-option composition fitted to a parametric curve.
 #include "model/fixed_income/g2_plus_plus/product/nelson_siegel/rate_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"

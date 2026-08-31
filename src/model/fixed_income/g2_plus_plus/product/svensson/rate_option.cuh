@@ -1,4 +1,4 @@
-// Public launcher for G2++ Svensson rate_option analytics.
+// Generated Public launcher for G2++ Svensson rate_option analytics.
 #pragma once
 
 #include "common/price_construction.cuh"

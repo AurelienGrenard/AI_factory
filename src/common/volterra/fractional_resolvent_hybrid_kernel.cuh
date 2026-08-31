@@ -1,6 +1,7 @@
 // Hybrid discretization of a mean-reverting fractional Gaussian resolvent.
 #pragma once
 
+#include "common/compensated_sum.cuh"
 #include "common/volterra/concepts.cuh"
 
 #include <cuda_runtime.h>
@@ -29,72 +30,71 @@ struct FractionalResolventHybridKernelPolicy {
         float singular_independent_loading;
     };
 
-    __host__ __device__ __noinline__ static double
+    __host__ __device__ __noinline__ static float
     mittag_leffler_alpha_alpha(
-        double alpha,
-        double argument
+        float alpha,
+        float argument
     ) {
         // The power series is accurate near the origin but suffers severe
-        // cancellation on the negative real axis.  Beyond the crossover use
-        // the positive Laplace-density representation of E_a(-x), together
-        // with E_(a,a)(-x)=-a d E_a(-x)/dx.  Scaling r by x^(1/a) keeps the
-        // quadrature concentrated around order-one values even in the tail.
-        const double x = -argument;
-        const double crossover = 3.5 + 12.0 * (alpha - 0.5);
+        // cancellation on the negative real axis in FP32.  From x=2 onward,
+        // use the positive Laplace-density representation of E_a(-x),
+        // together with E_(a,a)(-x)=-a d E_a(-x)/dx.  The crossover and the
+        // compensated sums are qualified over the published H/kappa/time
+        // domain by fractional_resolvent_precision_cuda_test.cu.
+        const float x = -argument;
+        constexpr float crossover = 2.0f;
         if (x > crossover) {
             constexpr int quadrature_points = 96;
-            constexpr double pi = 3.141592653589793238462643383279502884;
-            const double transformed_time = pow(x, 1.0 / alpha);
-            const double prefactor = pow(x, 1.0 / alpha - 1.0)
+            constexpr float pi = 3.14159265358979323846f;
+            const float transformed_time = powf(x, 1.0f / alpha);
+            const float prefactor = powf(x, 1.0f / alpha - 1.0f)
                 / (transformed_time * transformed_time);
-            const double sine_scale = sin(pi * alpha) / pi;
-            const double cosine = cos(pi * alpha);
-            double sum = 0.0;
+            const float sine_scale = sinf(pi * alpha) / pi;
+            const float cosine = cosf(pi * alpha);
+            CompensatedFloatSum sum;
             #pragma unroll 1
             for (int point = 0; point < quadrature_points; ++point) {
-                const double u = (static_cast<double>(point) + 0.5)
-                    / static_cast<double>(quadrature_points);
-                const double one_minus_u = 1.0 - u;
-                const double y = u / one_minus_u;
-                const double r = y / transformed_time;
-                const double r_to_alpha = pow(r, alpha);
-                const double density = sine_scale * pow(r, alpha - 1.0)
+                const float u = (static_cast<float>(point) + 0.5f)
+                    / static_cast<float>(quadrature_points);
+                const float one_minus_u = 1.0f - u;
+                const float y = u / one_minus_u;
+                const float r = y / transformed_time;
+                const float r_to_alpha = powf(r, alpha);
+                const float density = sine_scale * powf(r, alpha - 1.0f)
                     / (r_to_alpha * r_to_alpha
-                       + 2.0 * r_to_alpha * cosine + 1.0);
-                sum += y * exp(-y) * density
-                    / (one_minus_u * one_minus_u);
+                       + 2.0f * r_to_alpha * cosine + 1.0f);
+                sum.add(
+                    y * expf(-y) * density
+                    / (one_minus_u * one_minus_u)
+                );
             }
-            return prefactor * sum
-                / static_cast<double>(quadrature_points);
+            return prefactor * sum.value()
+                / static_cast<float>(quadrature_points);
         }
-        double sum = 0.0;
-        double power = 1.0;
+        CompensatedFloatSum sum;
+        float power = 1.0f;
         #pragma unroll 1
         for (int order = 0; order < 96; ++order) {
-            const double term = power / tgamma(alpha * order + alpha);
-            sum += term;
-            if (order > 8 && fabs(term) < 2.0e-14 * fmax(fabs(sum), 1.0)) {
+            const float term = power / tgammaf(alpha * order + alpha);
+            sum.add(term);
+            if (order > 8
+                && fabsf(term) < 2.0e-6f * fmaxf(fabsf(sum.value()), 1.0f)) {
                 break;
             }
             power *= argument;
         }
-        return sum;
+        return sum.value();
     }
 
     __host__ __device__ __noinline__ static float kernel(
         const PreparedKernel& kernel,
-        float time
+        float time_years
     ) {
-        const double alpha = kernel.alpha;
-        const double t = time;
-        const double argument = -static_cast<double>(
-            kernel.parameters.mean_reversion * kernel.laplace_scale
-        ) * pow(t, alpha);
-        return static_cast<float>(
-            static_cast<double>(kernel.laplace_scale)
-            * pow(t, alpha - 1.0)
-            * mittag_leffler_alpha_alpha(alpha, argument)
-        );
+        const float argument = -kernel.parameters.mean_reversion
+            * kernel.laplace_scale * powf(time_years, kernel.alpha);
+        return kernel.laplace_scale
+            * powf(time_years, kernel.alpha - 1.0f)
+            * mittag_leffler_alpha_alpha(kernel.alpha, argument);
     }
 
     __host__ __device__ __noinline__ static float power_integral(
@@ -109,34 +109,33 @@ struct FractionalResolventHybridKernelPolicy {
             : kernel.alpha;
         constexpr int quadrature_points = 96;
         const float scale = 1.0f / fmaxf(rate, 0.02f);
-        double sum = 0.0;
+        CompensatedFloatSum sum;
         #pragma unroll 1
         for (int point = 0; point < quadrature_points; ++point) {
             const float u = (static_cast<float>(point) + 0.5f)
                 / static_cast<float>(quadrature_points);
             const float one_minus_u = 1.0f - u;
             const float x = lower_x + scale * u / one_minus_u;
-            double integrand = 0.0;
+            float integrand = 0.0f;
             if (x > 70.0f) {
-                const double leading = sqrt(
-                    2.0 * kernel.parameters.hurst_exponent
+                const float leading = sqrtf(
+                    2.0f * kernel.parameters.hurst_exponent
                 );
                 integrand = (power == 2 ? leading * leading : leading)
-                    * exp(-static_cast<double>(rate) * x);
+                    * expf(-rate * x);
             } else {
-                const float time = expf(-x);
-                const double value =
+                const float time_years = expf(-x);
+                const float value =
                     FractionalResolventHybridKernelPolicy::kernel(
                         kernel,
-                        time
+                        time_years
                     );
-                const double powered = power == 2 ? value * value : value;
-                integrand = powered * static_cast<double>(time);
+                const float powered = power == 2 ? value * value : value;
+                integrand = powered * time_years;
             }
-            sum += integrand * scale
-                / static_cast<double>(one_minus_u * one_minus_u);
+            sum.add(integrand * scale / (one_minus_u * one_minus_u));
         }
-        return static_cast<float>(sum / quadrature_points);
+        return sum.value() / static_cast<float>(quadrature_points);
     }
 
     __host__ __device__ __noinline__ static PreparedKernel prepare(
@@ -173,23 +172,24 @@ struct FractionalResolventHybridKernelPolicy {
         const float upper = static_cast<float>(lag) * kernel.time_step;
         constexpr int intervals = 8;
         const float h = (upper - lower) / static_cast<float>(intervals);
-        float sum = FractionalResolventHybridKernelPolicy::kernel(kernel, lower)
-            + FractionalResolventHybridKernelPolicy::kernel(kernel, upper);
+        CompensatedFloatSum sum;
+        sum.add(FractionalResolventHybridKernelPolicy::kernel(kernel, lower));
+        sum.add(FractionalResolventHybridKernelPolicy::kernel(kernel, upper));
         for (int index = 1; index < intervals; ++index) {
-            sum += (index & 1 ? 4.0f : 2.0f)
+            sum.add((index & 1 ? 4.0f : 2.0f)
                 * FractionalResolventHybridKernelPolicy::kernel(
                     kernel,
                     fmaf(static_cast<float>(index), h, lower)
-                );
+                ));
         }
-        return sum * h / (3.0f * kernel.time_step);
+        return sum.value() * h / (3.0f * kernel.time_step);
     }
 
     __host__ __device__ __noinline__ static float volterra_variance(
         const PreparedKernel& kernel,
-        float time
+        float time_years
     ) {
-        return power_integral(kernel, time, 2);
+        return power_integral(kernel, time_years, 2);
     }
 
     __host__ __device__ static float reconstruct_volterra_value(

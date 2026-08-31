@@ -128,7 +128,8 @@ concept EarlyExercisePricingPolicy =
             PricingPolicy::plan_row(
                 host_inputs,
                 result_index,
-                paths_per_price
+                paths_per_price,
+                time_configuration
             )
         } -> std::same_as<EarlyExerciseRowPlan>;
         {

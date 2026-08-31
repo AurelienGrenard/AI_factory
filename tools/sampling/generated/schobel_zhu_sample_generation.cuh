@@ -65,9 +65,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Schobel-Zhu",
-        "datasets/model/equity/schobel_zhu/samples/" + id + ".json",
-        "catalog/model/equity/schobel_zhu/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/schobel_zhu/samples/" + id + ".json",
+        "datasets/model/equity/markovian/schobel_zhu/samples/" + id + ".json",
+        "catalog/model/equity/markovian/schobel_zhu/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -87,7 +87,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"volatility_of_volatility", {0.03f, 0.6f}},
                 {"correlation", {-0.9f, 0.3f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},

@@ -1,4 +1,4 @@
-// Public launcher for Ornstein-Uhlenbeck European swaptions.
+// Generated Public launcher for Ornstein-Uhlenbeck European swaptions.
 #pragma once
 
 #include "common/price_construction.cuh"

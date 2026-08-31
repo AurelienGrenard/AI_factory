@@ -1,17 +1,13 @@
 // Asset-or-nothing payoff composed with a terminal equity schedule.
 #pragma once
 
-#include "common/device_inputs.cuh"
-
 #include "common/equity/concepts.cuh"
-#include "common/equity/discount.cuh"
-#include "common/simulation/schedule.cuh"
-#include "common/equity/handlers.cuh"
+#include "common/equity/path_product_monte_carlo_policy.cuh"
 #include "common/equity/path_product_policy.cuh"
 #include "common/option_side.cuh"
+#include "common/simulation/schedule.cuh"
 #include "product/asset_or_nothing_option/parameters.hpp"
 
-#include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::product {
@@ -78,57 +74,10 @@ template<
     OptionSide Side
 >
 requires equity::SpotDynamicsPolicy<typename SchedulePolicy::Dynamics>
-struct AssetOrNothingOptionPricingPolicy {
-    using Schedule = SchedulePolicy;
-    using Dynamics = typename Schedule::Dynamics;
-    using ModelParameters = typename Dynamics::Parameters;
-    using ProductParameters = AssetOrNothingOptionParameters;
-    using DeviceInputs =
-        ModelProductDeviceInputs<ModelParameters, ProductParameters>;
-    using TimeConfiguration = typename Schedule::TimeConfiguration;
-
-    struct PreparedRow {
-        typename Schedule::PreparedSchedule schedule;
-        float strike;
-        float discount;
-    };
-
-    __device__ __forceinline__ static PreparedRow prepare_row(
-        const ModelParameters& model,
-        const ProductParameters& product,
-        const TimeConfiguration& time_configuration
-    ) {
-        const typename Schedule::Calendar calendar{product.maturity_days};
-        return {
-            Schedule::prepare(model, calendar, time_configuration),
-            product.strike,
-            equity::constant_rate_discount_factor(
-                model,
-                simulation::day_count_year_fraction(
-                    product.maturity_days,
-                    time_configuration
-                )
-            ),
-        };
-    }
-
-    __device__ __forceinline__ static float evaluate_path(
-        const PreparedRow& row,
-        philox::PhiloxKey key,
-        std::size_t path
-    ) {
-        const typename Dynamics::State terminal = Schedule::simulate_terminal(
-            row.schedule,
-            key,
-            path
-        );
-        const float terminal_spot = Dynamics::spot(terminal);
-        const bool pays = Side == OptionSide::call
-            ? terminal_spot > row.strike
-            : terminal_spot < row.strike;
-        return pays ? row.discount * terminal_spot : 0.0f;
-    }
-
-};
+using AssetOrNothingOptionPricingPolicy =
+    equity::PathProductMonteCarloPricingPolicy<
+        SchedulePolicy,
+        AssetOrNothingOptionPathPolicy<Side>
+    >;
 
 }  // namespace ai_factory::workbench::product

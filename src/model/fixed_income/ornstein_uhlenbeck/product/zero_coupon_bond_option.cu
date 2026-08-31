@@ -1,4 +1,4 @@
-// Closed-form zero-coupon-bond-option composition under OU.
+// Generated Closed-form zero-coupon-bond-option composition under Ornstein-Uhlenbeck.
 #include "model/fixed_income/ornstein_uhlenbeck/product/zero_coupon_bond_option.cuh"
 
 #include "common/closed_form/closed_form_kernels.cuh"
@@ -57,21 +57,17 @@ void launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda(
         device_prices,
         "ornstein_uhlenbeck.zero_coupon_bond_option",
         option_side_name(Side),
-        "OU zero-coupon bond option kernel"
+        "Ornstein-Uhlenbeck zero-coupon bond option kernel"
     );
 }
 
-template void launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<
-    OptionSide::call
->(
+template void launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<OptionSide::call>(
     const ModelParameters*, std::size_t,
     const product::ZeroCouponBondOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
-template void launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<
-    OptionSide::put
->(
+template void launch_ornstein_uhlenbeck_zero_coupon_bond_option_cuda<OptionSide::put>(
     const ModelParameters*, std::size_t,
     const product::ZeroCouponBondOptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,

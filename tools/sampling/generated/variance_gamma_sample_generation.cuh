@@ -62,9 +62,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Variance-Gamma",
-        "datasets/model/equity/variance_gamma/samples/" + id + ".json",
-        "catalog/model/equity/variance_gamma/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/variance_gamma/samples/" + id + ".json",
+        "datasets/model/equity/markovian/variance_gamma/samples/" + id + ".json",
+        "catalog/model/equity/markovian/variance_gamma/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -82,7 +82,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"nu", {0.03f, 0.5f}},
                 {"theta", {-0.35f, 0.15f}}
             }},
-            {"acceptance", "first_moment > 0.05f && second_moment > 0.05f"},
+            {"acceptance", "first_moment > 0.05f && second_moment > 0.05f"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

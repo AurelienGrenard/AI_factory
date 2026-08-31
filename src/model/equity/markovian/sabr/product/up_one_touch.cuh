@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::sabr {
 void launch_sabr_up_one_touch_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::UpOneTouchParameters* host_products,
     const product::UpOneTouchParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

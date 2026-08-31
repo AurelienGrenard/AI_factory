@@ -17,9 +17,9 @@ concept ConstantRateParameters =
 template<ConstantRateParameters Parameters>
 __device__ __forceinline__ float constant_rate_discount_factor(
     const Parameters& parameters,
-    float time
+    float time_years
 ) {
-    return expf(-static_cast<float>(parameters.risk_free_rate) * time);
+    return expf(-static_cast<float>(parameters.risk_free_rate) * time_years);
 }
 
 }  // namespace ai_factory::workbench::equity

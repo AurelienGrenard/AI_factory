@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 
 
@@ -11,38 +12,32 @@ ROOT = Path(__file__).resolve().parents[2]
 CODEGEN = ROOT / "tools" / "codegen" / "pricing_bindings"
 sys.path.insert(0, str(CODEGEN))
 
-from manifest import (  # noqa: E402
-    AMERICAN_RECIPE_SPECS,
-    MODEL_RECIPE_SPECS,
-    PRICE_VARIANTS,
-)
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
     DEFERRED_DATASET_SPECS,
     ENGINE_SPECS,
     MODEL_SPECS,
     PRODUCT_SPECS,
+    RNG_DOMAIN_SPECS,
+    resolve_rng_domain,
     resolve_price_capability,
+    validate_rng_domain_specs,
 )
 RAW_CUDA = (
     "cudaMalloc", "cudaFree", "cudaMemcpy", "cudaEventCreate",
     "cudaEventDestroy",
 )
 
-GENERATED_AMERICAN_RECIPES = {
-    f"catalog/model/equity/{model}/prices/american_{side}s/"
-    f"{model}_01__american_{side}s_01__01/generator.cpp"
-    for model in (spec.model for spec in AMERICAN_RECIPE_SPECS)
-    for side in ("call", "put")
+GENERATED_RECIPES = {
+    dataset.recipe_path
+    for dataset in AVAILABLE_DATASET_SPECS
+    if dataset.owner == "generated"
 }
-
-GENERATED_EQUITY_RECIPES = {
-    "catalog/model/equity/"
-    f"{model.name}/prices/{variant.name}/"
-    f"{model.name}_01__{variant.name}_01__01/generator.cpp"
-    for model in MODEL_RECIPE_SPECS
-    for variant in PRICE_VARIANTS
-} | GENERATED_AMERICAN_RECIPES
+GENERATED_AMERICAN_RECIPES = {
+    dataset.recipe_path
+    for dataset in AVAILABLE_DATASET_SPECS
+    if dataset.engine in {"equity_lsm_fixed", "equity_lsm_exact"}
+}
 
 
 def relative(path: Path) -> str:
@@ -51,6 +46,10 @@ def relative(path: Path) -> str:
 
 def main() -> int:
     failures: list[str] = []
+    try:
+        validate_rng_domain_specs(RNG_DOMAIN_SPECS)
+    except ValueError as error:
+        failures.append(str(error))
     generators = sorted((ROOT / "catalog").rglob("generator.cpp"))
     generator_paths = {relative(path) for path in generators}
     expected_recipe_paths = {
@@ -102,26 +101,124 @@ def main() -> int:
                 f"{dataset.recipe_path}"
             )
 
-    missing_generated = GENERATED_EQUITY_RECIPES - generator_paths
+    missing_generated = GENERATED_RECIPES - generator_paths
     failures.extend(
-        f"missing generated equity recipe: {path}"
+        f"missing generated recipe: {path}"
         for path in sorted(missing_generated)
     )
-    for path_text in sorted(GENERATED_EQUITY_RECIPES & generator_paths):
+    for path_text in sorted(GENERATED_RECIPES & generator_paths):
         source = (ROOT / path_text).read_text()
         if not source.startswith("// Generated "):
             failures.append(
-                f"equity recipe is not codegen-owned: {path_text}"
+                f"generated recipe is not codegen-owned: {path_text}"
             )
-        expected_helper = (
-            '"tools/pricing/american_option_price_generation.cuh"'
+        if "/prices/" not in path_text:
+            continue
+        expected_helpers = (
+            ('"tools/pricing/american_option_price_generation.cuh"',)
             if path_text in GENERATED_AMERICAN_RECIPES
-            else '"tools/pricing/equity_price_generation.cuh"'
-        )
-        if expected_helper not in source:
-            failures.append(
-                f"generated equity recipe bypasses its orchestrator: {path_text}"
+            else ('"tools/pricing/equity_price_generation.cuh"',)
+            if "/model/equity/" in path_text
+            else (
+                '"tools/cuda/pricing_runner.cuh"',
+                '"tools/pricing/european_swaption_price_generation.cuh"',
             )
+        )
+        if not any(helper in source for helper in expected_helpers):
+            failures.append(
+                f"generated recipe bypasses its orchestrator: {path_text}"
+            )
+
+    for dataset in AVAILABLE_DATASET_SPECS:
+        path = ROOT / dataset.recipe_path
+        if not path.is_file():
+            continue
+        source = path.read_text()
+        try:
+            rng_domain = resolve_rng_domain(dataset)
+        except KeyError:
+            rng_domain = None
+        if rng_domain is not None:
+            for stream in rng_domain.streams:
+                seed_literal = f'{rng_domain.seed(stream)}ULL'
+                if source.count(seed_literal) != 1:
+                    failures.append(
+                        f"recipe does not use exactly one declared {stream} "
+                        f"RNG seed {seed_literal}: {dataset.recipe_path}"
+                    )
+        literals = "".join(re.findall(
+            r'"([^"\\]*(?:\\.[^"\\]*)*)"', source
+        ))
+        if dataset.dataset_kind == "samples":
+            helper = (
+                ROOT / "tools" / "sampling" / "generated"
+                / f"{dataset.model}_sample_generation.cuh"
+            )
+            helper_literals = "".join(re.findall(
+                r'"([^"\\]*(?:\\.[^"\\]*)*)"', helper.read_text()
+            ))
+            prefix = f"{dataset.source_prefix}/samples/"
+            for label, value in (
+                ("dataset", f"datasets/{prefix}"),
+                ("catalog", f"catalog/{prefix}"),
+                (
+                    "URL",
+                    "https://datasets.ai-factory.example/v1/" + prefix,
+                ),
+            ):
+                if value not in helper_literals:
+                    failures.append(
+                        f"sample helper has a noncanonical {label} prefix: "
+                        f"{relative(helper)}"
+                    )
+        elif dataset.dataset_kind == "prices" and dataset.owner == "generated":
+            for label, value in (
+                ("dataset", dataset.dataset_path),
+                ("catalog", dataset.catalog_yaml_path),
+                ("URL", dataset.url),
+            ):
+                if value not in literals:
+                    failures.append(
+                        f"generated recipe has the wrong {label} mapping: "
+                        f"{dataset.recipe_path}"
+                    )
+        elif dataset.dataset_kind == "prices":
+            if (
+                dataset.engine == "fixed_income_lsm"
+                and '"product/bermudan_swaption/dataset.hpp"' not in source
+            ):
+                failures.append(
+                    "handwritten Bermudan recipe does not directly declare "
+                    f"its product loader: {dataset.recipe_path}"
+                )
+            if f'"{dataset.model}"' not in source:
+                failures.append(
+                    f"handwritten price recipe has the wrong model mapping: "
+                    f"{dataset.recipe_path}"
+                )
+            if dataset.curve is not None and f'"{dataset.curve}"' not in source:
+                failures.append(
+                    f"handwritten price recipe has the wrong curve mapping: "
+                    f"{dataset.recipe_path}"
+                )
+            side = (
+                "payer" if "payer" in (dataset.variant or "") else "receiver"
+            )
+            if f'"{side}"' not in source:
+                failures.append(
+                    f"handwritten price recipe has the wrong side mapping: "
+                    f"{dataset.recipe_path}"
+                )
+        else:
+            for label, value in (
+                ("dataset", dataset.dataset_path),
+                ("catalog", dataset.catalog_yaml_path),
+            ):
+                if value not in literals:
+                    failures.append(
+                        f"parameter recipe has the wrong {label} mapping: "
+                        f"{dataset.recipe_path}"
+                    )
     raw = {
         relative(path)
         for path in generators
@@ -218,7 +315,7 @@ def main() -> int:
         return 1
     print(
         f"{len(generators)} catalog recipes checked; "
-        f"{len(GENERATED_EQUITY_RECIPES)} generated equity recipes; "
+        f"{len(GENERATED_RECIPES)} generated recipes; "
         f"{len(DEFERRED_DATASET_SPECS)} explicit deferred sample recipes; "
         "no raw-CUDA recipe escape hatch"
     )

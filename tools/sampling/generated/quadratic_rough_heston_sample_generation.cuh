@@ -70,9 +70,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Quadratic rough-Heston",
-        "datasets/model/equity/quadratic_rough_heston/samples/" + id + ".json",
-        "catalog/model/equity/quadratic_rough_heston/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/quadratic_rough_heston/samples/" + id + ".json",
+        "datasets/model/equity/rough/quadratic_rough_heston/samples/" + id + ".json",
+        "catalog/model/equity/rough/quadratic_rough_heston/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -95,6 +95,12 @@ inline datasets::ModelSampleRecipe recipe(
                 {"hurst_exponent", {0.01f, 0.2f}}
             }},
             {"acceptance", "true"},
+            {"kernel_preparation", {
+                {"method", "linear interpolation of positive L2 fits"},
+                {"hurst_minimum", 0.01f},
+                {"hurst_maximum", 0.20f},
+                {"grid_point_count", 257U}
+            }}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -117,10 +123,14 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         generate_core_parameters,
         [](const std::vector<ModelParameters>& parameters,
            std::uint32_t maximum_maturity_days) {
-            return model_binding::prepare_dynamics<factor_count>(
+            return model_binding::prepare_dynamics_on_hurst_grid<
+                factor_count, 257U
+            >(
                 parameters,
                 static_cast<float>(maximum_maturity_days) / 252.0f,
-                1.0f / 504.0f
+                1.0f / 504.0f,
+                0.01f,
+                0.20f
             );
         },
         parameter_json,

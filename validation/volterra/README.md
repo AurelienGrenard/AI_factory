@@ -231,8 +231,8 @@ Validate selected rows directly from the three aligned AI_factory datasets:
 ```bash
 python -m validation.volterra rough-bergomi-dataset \
   --price-json "$ROUGH_BERGOMI_CALL_PRICES" \
-  --model-json datasets/model/equity/rough_bergomi/parameters/rough_bergomi_01.json \
-  --product-json datasets/product/equity/european_options/european_options_01.json \
+  --model-json datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json \
+  --product-json datasets/product/european_option/european_options_01.json \
   --side call \
   --row-offset 0 \
   --limit 4 \

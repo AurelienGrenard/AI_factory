@@ -15,6 +15,7 @@ namespace ai_factory::workbench::model::equity::normal_inverse_gaussian {
 void launch_normal_inverse_gaussian_lookback_option_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
+    const product::LookbackOptionParameters* host_products,
     const product::LookbackOptionParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,

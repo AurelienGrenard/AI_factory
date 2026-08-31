@@ -1,4 +1,4 @@
-// Build one G2 zero-coupon bond put price dataset.
+// Generated Build one G2 zero-coupon bond put price dataset.
 #include "model/fixed_income/g2/dataset.hpp"
 #include "model/fixed_income/g2/product/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
@@ -17,7 +17,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/fixed_income/g2/parameters/g2_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/zero_coupon_bond_options/"
+    "datasets/product/zero_coupon_bond_option/"
     "zero_coupon_bond_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;

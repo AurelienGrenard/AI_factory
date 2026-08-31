@@ -19,6 +19,7 @@ void launch_quadratic_rough_heston_phoenix_memory_autocall_cuda(
     std::size_t model_count,
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const product::PhoenixMemoryAutocallParameters* host_products,
     const product::PhoenixMemoryAutocallParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -44,6 +45,7 @@ void launch_quadratic_rough_heston_phoenix_memory_autocall_cuda(
         model_count,
         device_prepared_dynamics,
         prepared_dynamics_count,
+        host_products,
         device_products,
         product_count,
         construction,
@@ -69,6 +71,7 @@ template void launch_quadratic_rough_heston_phoenix_memory_autocall_cuda<
 >(
     const ModelParameters*, std::size_t,
     const PreparedDynamics<2U>*, std::size_t,
+    const product::PhoenixMemoryAutocallParameters*,
     const product::PhoenixMemoryAutocallParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, std::uint64_t,
@@ -80,6 +83,7 @@ template void launch_quadratic_rough_heston_phoenix_memory_autocall_cuda<
 >(
     const ModelParameters*, std::size_t,
     const PreparedDynamics<3U>*, std::size_t,
+    const product::PhoenixMemoryAutocallParameters*,
     const product::PhoenixMemoryAutocallParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, std::uint64_t,
@@ -91,6 +95,7 @@ template void launch_quadratic_rough_heston_phoenix_memory_autocall_cuda<
 >(
     const ModelParameters*, std::size_t,
     const PreparedDynamics<7U>*, std::size_t,
+    const product::PhoenixMemoryAutocallParameters*,
     const product::PhoenixMemoryAutocallParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, std::size_t,
     float, std::uint32_t, unsigned int, std::size_t, std::uint64_t,
