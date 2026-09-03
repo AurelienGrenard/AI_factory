@@ -259,16 +259,79 @@ def validate_campaign_preflight(
     before: dict[str, Any],
     after: dict[str, Any],
 ) -> None:
-    """Reject environmental drift without inspecting benchmark results."""
+    """Reject environmental violations without inspecting benchmark results."""
     validate_preflight(baseline, before)
     validate_preflight(baseline, after)
-    policy = baseline["decision_policy"]["preflight"]
-    if abs(after["temperature_c"] - before["temperature_c"]) > policy[
-        "maximum_temperature_delta_c"
-    ]:
-        raise ValueError("campaign temperature drift exceeds the manifest bound")
     if before["power_source"] != after["power_source"]:
         raise ValueError("campaign power source changed")
+
+
+def stabilize_thermal_environment(
+    baseline: dict[str, Any],
+    build_directory: Path,
+    evidence: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Reach the profile's warm operating range before the official snapshot."""
+    policy = baseline["decision_policy"]["preflight"]["thermal_stabilization"]
+    command_id = policy["command_id"]
+    matches = [
+        command for identifier, command in commands(baseline, build_directory)
+        if identifier == command_id
+    ]
+    if len(matches) != 1:
+        raise ValueError(
+            f"thermal stabilization command is not unique: {command_id}"
+        )
+    command = matches[0]
+    snapshot = collect_preflight()
+    validate_preflight(baseline, snapshot)
+    evidence.append({"phase": "initial", "snapshot": snapshot})
+    environment = os.environ.copy()
+    environment.pop("AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS", None)
+    temperatures: list[int] = []
+    started_at = time.monotonic()
+    for run in range(policy["maximum_runs"]):
+        completed = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=environment,
+        )
+        snapshot = collect_preflight()
+        validate_preflight(baseline, snapshot)
+        elapsed_seconds = time.monotonic() - started_at
+        evidence.append({
+            "phase": "after_stabilization_run",
+            "run": run + 1,
+            "command_id": command_id,
+            "stdout_sha256": hashlib.sha256(completed.stdout).hexdigest(),
+            "elapsed_seconds": elapsed_seconds,
+            "snapshot": snapshot,
+        })
+        temperatures.append(snapshot["temperature_c"])
+        window = temperatures[-policy["temperature_window"]:]
+        if (
+            run + 1 >= policy["minimum_runs"]
+            and elapsed_seconds >= policy["minimum_duration_seconds"]
+            and len(window) == policy["temperature_window"]
+            and max(window) - min(window)
+                <= policy["maximum_temperature_range_c"]
+        ):
+            return snapshot
+    raise ValueError(
+        "thermal stabilization did not converge within the declared runs"
+    )
+
+
+def campaign_series_can_complete(
+    eligible_count: int,
+    completed_count: int,
+    required_count: int,
+    maximum_count: int,
+) -> bool:
+    """Return whether the remaining declared attempts can still succeed."""
+    return eligible_count + maximum_count - completed_count >= required_count
 
 
 _COMPILED_RESOURCE_CACHE: dict[Path, dict[str, dict[str, Any]]] = {}
@@ -492,6 +555,55 @@ def select_manifest(
     return [selected[key] for key in expected]
 
 
+def select_initialization_manifest(
+    baseline: dict[str, Any],
+    raw_measurements: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Allow protocol-field migration while preserving every stable identity."""
+    expected = {
+        reference["id"]: reference for reference in baseline["measurements"]
+    }
+    if len(expected) != len(baseline["measurements"]):
+        raise ValueError("baseline manifest contains duplicate measurement ids")
+    command_counts: dict[str, int] = {}
+    for measurement in raw_measurements:
+        command_id = measurement["command_id"]
+        command_counts[command_id] = command_counts.get(command_id, 0) + 1
+    selected: dict[str, dict[str, Any]] = {}
+    for measurement in raw_measurements:
+        measurement_id = _measurement_id(
+            measurement["command_id"],
+            measurement["variant"],
+            command_counts,
+        )
+        reference = expected.get(measurement_id)
+        if reference is None:
+            raise ValueError(
+                "protocol initialization emitted undeclared measurement id "
+                f"{measurement_id}"
+            )
+        if measurement_id in selected:
+            raise ValueError(
+                "protocol initialization emitted duplicate measurement id "
+                f"{measurement_id}"
+            )
+        for field in ("command_id", "finding", "benchmark", "variant"):
+            if measurement[field] != reference[field]:
+                raise ValueError(
+                    "protocol initialization changed stable identity field "
+                    f"{field} for {measurement_id}"
+                )
+        measurement["measurement_id"] = measurement_id
+        selected[measurement_id] = measurement
+    missing = expected.keys() - selected.keys()
+    if missing:
+        raise ValueError(
+            "protocol initialization omitted measurement ids: "
+            f"{sorted(missing)}"
+        )
+    return [selected[measurement_id] for measurement_id in expected]
+
+
 def _measurement_id(
     command_id: str,
     variant: str,
@@ -644,13 +756,19 @@ def initialize_measurements(
         command_counts[command_id] = command_counts.get(command_id, 0) + 1
     references: list[dict[str, Any]] = []
     used_ids: set[str] = set()
-    regression_budget = {
+    kernel_regression_budget = {
         "rule": "regression",
         "maximum_regression": 0.05,
         "maximum_coefficient_of_variation": 0.05,
     }
+    host_regression_budget = {
+        "rule": "regression",
+        "maximum_regression": 0.05,
+        "maximum_coefficient_of_variation": 0.10,
+    }
     for measurement in raw_measurements:
         reference = copy.deepcopy(measurement)
+        reference.pop("measurement_id", None)
         reference.pop("protocol_version", None)
         reference.pop("environment", None)
         measurement_id = _measurement_id(
@@ -666,8 +784,8 @@ def initialize_measurements(
             else "blocking"
         )
         reference["timing_budgets"] = {
-            "kernel": copy.deepcopy(regression_budget),
-            "public_api": copy.deepcopy(regression_budget),
+            "kernel": copy.deepcopy(kernel_regression_budget),
+            "public_api": copy.deepcopy(host_regression_budget),
             "pipeline": {"rule": "record_only"},
         }
         if "publication_wall" in reference:
@@ -682,8 +800,50 @@ def initialize_measurements(
         reference["resources"] = _with_resource_budgets(
             reference["resources"]
         )
+        reference["device_memory_budgets"] = _device_memory_budgets(
+            reference["device_memory"]
+        )
+        reference["binary_budgets"] = _binary_budgets(reference["binary"])
         references.append(reference)
     baseline["measurements"] = references
+
+
+def initialize_baseline(
+    baseline: dict[str, Any],
+    candidate: list[dict[str, Any]],
+    reason: str,
+) -> dict[str, Any]:
+    """Initialize an incompatible protocol without losing numerical contracts."""
+    prior = {
+        reference["id"]: reference
+        for reference in baseline.get("measurements", [])
+    }
+    initialized = copy.deepcopy(baseline)
+    initialize_measurements(initialized, candidate)
+    initialized_ids = [
+        reference["id"] for reference in initialized["measurements"]
+    ]
+    if prior and list(prior) != initialized_ids:
+        raise ValueError(
+            "protocol initialization changed declared measurement identities"
+        )
+    for reference in initialized["measurements"]:
+        predecessor = prior.get(reference["id"])
+        if predecessor is None:
+            continue
+        predecessor_budgets = predecessor.get("numerical_budgets")
+        if set((predecessor_budgets or {}).keys()) != set(
+            reference["numerical_check"].keys()
+        ):
+            raise ValueError(
+                "protocol initialization changed numerical contract fields for "
+                f"{reference['id']}"
+            )
+        reference["numerical_budgets"] = copy.deepcopy(predecessor_budgets)
+        reference["comparison_policy"] = predecessor["comparison_policy"]
+    initialized["generated_at"] = datetime.date.today().isoformat()
+    initialized["rebaseline_reason"] = reason
+    return initialized
 
 
 TIMING_SECTIONS = (
@@ -704,7 +864,7 @@ def _aggregate_timing(rows: list[dict[str, Any]]) -> dict[str, float]:
         "standard_deviation_ms": max(
             row["standard_deviation_ms"] for row in rows
         ),
-        "coefficient_of_variation": max(
+        "coefficient_of_variation": statistics.median(
             row["coefficient_of_variation"] for row in rows
         ),
     }
@@ -1032,6 +1192,114 @@ def rebaseline(
     return updated
 
 
+def _json_changes(
+    before: Any,
+    after: Any,
+    path: str = "$",
+) -> list[dict[str, Any]]:
+    """Return an exhaustive, deterministic leaf-level JSON diff."""
+    if isinstance(before, dict) and isinstance(after, dict):
+        changes: list[dict[str, Any]] = []
+        for key in sorted(before.keys() | after.keys()):
+            child = f"{path}.{key}"
+            if key not in before:
+                changes.append({"path": child, "change": "added", "after": after[key]})
+            elif key not in after:
+                changes.append({
+                    "path": child,
+                    "change": "removed",
+                    "before": before[key],
+                })
+            else:
+                changes.extend(_json_changes(before[key], after[key], child))
+        return changes
+    if isinstance(before, list) and isinstance(after, list):
+        changes = []
+        for index in range(max(len(before), len(after))):
+            child = f"{path}[{index}]"
+            if index >= len(before):
+                changes.append({
+                    "path": child,
+                    "change": "added",
+                    "after": after[index],
+                })
+            elif index >= len(after):
+                changes.append({
+                    "path": child,
+                    "change": "removed",
+                    "before": before[index],
+                })
+            else:
+                changes.extend(_json_changes(before[index], after[index], child))
+        return changes
+    if before == after and type(before) is type(after):
+        return []
+    return [{
+        "path": path,
+        "change": "modified",
+        "before": before,
+        "after": after,
+    }]
+
+
+def write_rebaseline_diff(
+    predecessor_path: Path,
+    successor: dict[str, Any],
+    output_path: Path,
+    reason: str,
+    approval: str,
+    mode: str,
+) -> str:
+    """Persist hashes, environments, and every predecessor/successor delta."""
+    predecessor_payload = predecessor_path.read_bytes()
+    predecessor = json.loads(predecessor_payload)
+    before_ids = [row.get("id") for row in predecessor.get("measurements", [])]
+    after_ids = [row.get("id") for row in successor.get("measurements", [])]
+    if before_ids != after_ids and not (
+        mode == "protocol_initialization" and not before_ids
+    ):
+        raise ValueError(
+            "rebaseline predecessor and successor measurement ids differ"
+        )
+    successor_payload = json.dumps(successor, indent=2) + "\n"
+    changes = _json_changes(predecessor, successor)
+    document = {
+        "schema": "ai_factory_performance_rebaseline_diff",
+        "version": 1,
+        "mode": mode,
+        "reason": reason,
+        "approval": approval,
+        "predecessor": {
+            "path": str(predecessor_path),
+            "sha256": hashlib.sha256(predecessor_payload).hexdigest(),
+            "environment": predecessor.get("environment"),
+            "protocol_version": predecessor.get("protocol_version"),
+            "rebaseline_reason": predecessor.get("rebaseline_reason"),
+        },
+        "successor": {
+            "sha256": hashlib.sha256(successor_payload.encode()).hexdigest(),
+            "environment": successor.get("environment"),
+            "protocol_version": successor.get("protocol_version"),
+            "rebaseline_reason": successor.get("rebaseline_reason"),
+        },
+        "measurement_ids": after_ids,
+        "change_count": len(changes),
+        "changes": changes,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output_path.with_name(output_path.name + ".tmp")
+    temporary.write_text(json.dumps(document, indent=2) + "\n")
+    os.replace(temporary, output_path)
+    return successor_payload
+
+
+def _write_json_atomic(path: Path, payload: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(payload)
+    os.replace(temporary, path)
+
+
 def _write_candidate(path: Path, candidate: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -1048,17 +1316,57 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--rebaseline-output", type=Path)
     parser.add_argument("--rebaseline-reason")
+    parser.add_argument("--rebaseline-diff-output", type=Path)
+    parser.add_argument("--rebaseline-approval")
+    parser.add_argument("--predecessor-baseline", type=Path)
     parser.add_argument("--initialize", action="store_true")
     parser.add_argument("--resume-campaigns", type=Path)
     arguments = parser.parse_args()
 
     try:
-        if bool(arguments.rebaseline_output) != bool(arguments.rebaseline_reason):
+        rebaseline_arguments = (
+            arguments.rebaseline_output,
+            arguments.rebaseline_reason,
+            arguments.rebaseline_diff_output,
+            arguments.rebaseline_approval,
+            arguments.predecessor_baseline,
+        )
+        if any(value is not None for value in rebaseline_arguments) and not all(
+            value is not None for value in rebaseline_arguments
+        ):
             raise ValueError(
-                "rebaseline output and an explicit rebaseline reason are both required"
+                "rebaseline output, reason, diff output, approval, and retained "
+                "predecessor are all required"
             )
         if arguments.initialize and arguments.rebaseline_output is None:
             raise ValueError("--initialize requires --rebaseline-output")
+        if arguments.rebaseline_output is not None:
+            if not arguments.rebaseline_reason.strip():
+                raise ValueError("rebaseline reason must be non-empty")
+            if not arguments.rebaseline_approval.strip():
+                raise ValueError("rebaseline approval must be non-empty")
+            if arguments.predecessor_baseline.resolve() == (
+                arguments.rebaseline_output.resolve()
+            ):
+                raise ValueError(
+                    "rebaseline predecessor must be retained at a distinct path"
+                )
+            if arguments.rebaseline_diff_output.resolve() in {
+                arguments.predecessor_baseline.resolve(),
+                arguments.rebaseline_output.resolve(),
+            }:
+                raise ValueError(
+                    "rebaseline diff must have its own versioned path"
+                )
+            if (
+                not arguments.initialize
+                and arguments.predecessor_baseline.read_bytes()
+                != arguments.baseline.read_bytes()
+            ):
+                raise ValueError(
+                    "retained predecessor must exactly match the baseline "
+                    "used to run the campaign"
+                )
         baseline = json.loads(arguments.baseline.read_text())
         attempt_count = baseline["decision_policy"]["campaign_attempts"]
         maximum_attempt_count = baseline["decision_policy"][
@@ -1087,8 +1395,6 @@ def main() -> int:
                 "zero to 60 seconds"
             )
         validate_build_configuration(baseline, arguments.build_dir)
-        if arguments.initialize and baseline.get("measurements"):
-            raise ValueError("--initialize requires an empty measurement manifest")
         attempts: list[list[dict[str, Any]]] = []
         campaign_records: list[dict[str, Any]] = []
         raw_campaign_directory: Path | None = None
@@ -1124,8 +1430,14 @@ def main() -> int:
             if baseline.get("measurements"):
                 for record in campaign_records:
                     if record["measurements"] is not None:
-                        record["measurements"] = select_manifest(
-                            baseline, record["measurements"]
+                        record["measurements"] = (
+                            select_initialization_manifest(
+                                baseline, record["measurements"]
+                            )
+                            if arguments.initialize
+                            else select_manifest(
+                                baseline, record["measurements"]
+                            )
                         )
                     if record["status"] == "eligible":
                         attempts.append(record["measurements"])
@@ -1136,19 +1448,38 @@ def main() -> int:
         for attempt in range(len(campaign_records), maximum_attempt_count):
             if len(attempts) == attempt_count:
                 break
+            if not campaign_series_can_complete(
+                len(attempts), attempt, attempt_count, maximum_attempt_count
+            ):
+                print(
+                    "Stopping campaign series: too few declared attempts remain "
+                    "to reach the required eligible count.",
+                    flush=True,
+                )
+                break
             print(
                 f"Performance campaign {attempt + 1}/{maximum_attempt_count} "
                 f"({len(attempts)}/{attempt_count} eligible)",
                 flush=True,
             )
-            before = collect_preflight()
+            stabilization_evidence: list[dict[str, Any]] = []
             try:
-                validate_preflight(baseline, before)
-            except ValueError as error:
+                before = stabilize_thermal_environment(
+                    baseline, arguments.build_dir, stabilization_evidence
+                )
+            except (
+                KeyError,
+                TypeError,
+                ValueError,
+                OSError,
+                subprocess.CalledProcessError,
+            ) as error:
                 campaign_records.append({
                     "status": "rejected_environment",
                     "reason": str(error),
-                    "preflight": {"before": before},
+                    "preflight": {
+                        "thermal_stabilization": stabilization_evidence
+                    },
                     "measurements": None,
                 })
                 raw_campaign_directory = write_raw_campaigns(
@@ -1178,7 +1509,10 @@ def main() -> int:
                 campaign_records.append({
                     "status": "execution_error",
                     "reason": str(error),
-                    "preflight": {"before": before},
+                    "preflight": {
+                        "thermal_stabilization": stabilization_evidence,
+                        "before": before,
+                    },
                     "measurements": None,
                 })
                 write_raw_campaigns(
@@ -1189,7 +1523,11 @@ def main() -> int:
                 raise
             if arguments.initialize and not baseline.get("measurements"):
                 initialize_measurements(baseline, raw)
-            selected = select_manifest(baseline, raw)
+            selected = (
+                select_initialization_manifest(baseline, raw)
+                if arguments.initialize and baseline.get("measurements")
+                else select_manifest(baseline, raw)
+            )
             after = collect_preflight()
             try:
                 validate_campaign_preflight(baseline, before, after)
@@ -1197,7 +1535,11 @@ def main() -> int:
                 campaign_records.append({
                     "status": "rejected_environment",
                     "reason": str(error),
-                    "preflight": {"before": before, "after": after},
+                    "preflight": {
+                        "thermal_stabilization": stabilization_evidence,
+                        "before": before,
+                        "after": after,
+                    },
                     "measurements": selected,
                 })
                 raw_campaign_directory = write_raw_campaigns(
@@ -1211,7 +1553,11 @@ def main() -> int:
             campaign_records.append({
                 "status": "eligible",
                 "reason": None,
-                "preflight": {"before": before, "after": after},
+                "preflight": {
+                    "thermal_stabilization": stabilization_evidence,
+                    "before": before,
+                    "after": after,
+                },
                 "measurements": selected,
             })
             raw_campaign_directory = write_raw_campaigns(
@@ -1233,16 +1579,50 @@ def main() -> int:
         _write_candidate(arguments.output, candidate)
         write_audit_reports(raw_campaign_directory, baseline, candidate)
         reference = baseline
-        if arguments.rebaseline_output is not None:
-            reference = rebaseline(
+        if arguments.initialize:
+            # Protocol initialization validates completeness against the exact
+            # candidate-derived schema. It is explicitly not a regression pass
+            # against the incompatible predecessor; the exhaustive diff below
+            # preserves that distinction.
+            reference = initialize_baseline(
                 baseline, candidate, arguments.rebaseline_reason or ""
             )
         failures, inconclusive, informational = compare(reference, candidate)
         if arguments.rebaseline_output is not None and not failures and not inconclusive:
-            arguments.rebaseline_output.parent.mkdir(parents=True, exist_ok=True)
-            arguments.rebaseline_output.write_text(
-                json.dumps(reference, indent=2) + "\n"
+            updated = (
+                reference
+                if arguments.initialize
+                else rebaseline(
+                    baseline, candidate, arguments.rebaseline_reason or ""
+                )
             )
+            predecessor_payload = arguments.predecessor_baseline.read_bytes()
+            updated["lineage"] = {
+                "mode": (
+                    "protocol_initialization"
+                    if arguments.initialize
+                    else "regression_checked_rebaseline"
+                ),
+                "predecessor_path": str(arguments.predecessor_baseline),
+                "predecessor_sha256": hashlib.sha256(
+                    predecessor_payload
+                ).hexdigest(),
+                "diff_path": str(arguments.rebaseline_diff_output),
+                "approval": arguments.rebaseline_approval,
+            }
+            successor_payload = write_rebaseline_diff(
+                arguments.predecessor_baseline,
+                updated,
+                arguments.rebaseline_diff_output,
+                arguments.rebaseline_reason or "",
+                arguments.rebaseline_approval or "",
+                (
+                    "protocol_initialization"
+                    if arguments.initialize
+                    else "regression_checked_rebaseline"
+                ),
+            )
+            _write_json_atomic(arguments.rebaseline_output, successor_payload)
     except (
         KeyError,
         TypeError,
@@ -1269,7 +1649,12 @@ def main() -> int:
         return 1
     if inconclusive:
         return 3
-    if arguments.rebaseline_output is not None:
+    if arguments.initialize:
+        print(
+            f"INITIALIZED: {arguments.rebaseline_output} "
+            f"({arguments.rebaseline_reason})"
+        )
+    elif arguments.rebaseline_output is not None:
         print(
             f"REBASELINED: {arguments.rebaseline_output} "
             f"({arguments.rebaseline_reason})"

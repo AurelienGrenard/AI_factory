@@ -35,7 +35,9 @@ using ai_factory::workbench::performance::measure_cuda;
 constexpr unsigned int kThreads = 256U;
 constexpr int kWarmups = 5;
 constexpr int kRepetitions = 21;
+constexpr std::size_t kIndexOperationsPerSample = 64U;
 constexpr std::size_t kShortKernelOperationsPerSample = 16U;
+constexpr std::size_t kScheduleOperationsPerSample = 64U;
 constexpr std::size_t kRichPolicyOperationsPerSample = 8U;
 
 template<PriceConstruction Construction>
@@ -142,7 +144,7 @@ void benchmark_indexing() {
         runtime_launch,
         kWarmups,
         kRepetitions,
-        kShortKernelOperationsPerSample
+        kIndexOperationsPerSample
     );
     const std::vector<std::uint64_t> reference =
         copy_from_device<std::uint64_t>(output, result_count);
@@ -178,7 +180,7 @@ void benchmark_indexing() {
         specialized_launch,
         kWarmups,
         kRepetitions,
-        kShortKernelOperationsPerSample
+        kIndexOperationsPerSample
     );
     const std::vector<std::uint64_t> specialized_values =
         copy_from_device<std::uint64_t>(output, result_count);
@@ -214,7 +216,7 @@ void benchmark_indexing() {
         index_32_launch,
         kWarmups,
         kRepetitions,
-        kShortKernelOperationsPerSample
+        kIndexOperationsPerSample
     );
     const std::vector<std::uint64_t> index_32_values =
         copy_from_device<std::uint64_t>(output, result_count);
@@ -708,7 +710,7 @@ void benchmark_ragged_schedules(ScheduleVariant variant) {
             },
             kWarmups,
             kRepetitions,
-            kShortKernelOperationsPerSample
+            kScheduleOperationsPerSample
         );
         prices = copy_from_device<float>(device_prices, result_count);
         variant_name = "regular_20_payments";
@@ -785,7 +787,7 @@ void benchmark_ragged_schedules(ScheduleVariant variant) {
             },
             kWarmups,
             kRepetitions,
-            kShortKernelOperationsPerSample
+            kScheduleOperationsPerSample
         );
         prices = copy_from_device<float>(device_prices, result_count);
         variant_name = variant == ScheduleVariant::ExplicitHomogeneous

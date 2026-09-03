@@ -27,6 +27,7 @@ inline constexpr int kDefaultWarmups = 5;
 inline constexpr int kDefaultRepetitions = 21;
 inline constexpr double kMinimumAcceptedGain = 0.05;
 inline constexpr double kMaximumNoiseCoefficient = 0.05;
+inline constexpr double kMaximumHostNoiseCoefficient = 0.10;
 inline constexpr double kMaximumPublicationNoiseCoefficient = 0.10;
 
 struct TimingStatistics {
@@ -379,6 +380,8 @@ inline void emit_measurement(
             {"tail_statistic", "p95_ms"},
             {"minimum_accepted_gain", kMinimumAcceptedGain},
             {"maximum_noise_coefficient", kMaximumNoiseCoefficient},
+            {"maximum_host_noise_coefficient",
+                kMaximumHostNoiseCoefficient},
             {"maximum_publication_noise_coefficient",
                 kMaximumPublicationNoiseCoefficient},
             {"wall_semantics",

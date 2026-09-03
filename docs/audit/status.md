@@ -457,3 +457,67 @@ env CCACHE_DISABLE=1 /usr/bin/time cmake --build build-dev --target \
   predecesseur avec un diff exhaustif, enregistrer les profils Nsight
   representatifs, rejouer le checker puis seulement deplacer `STRUCT-019` vers
   `closed.md`. Le constat reste donc explicitement ouvert dans cette PR.
+
+## Remediation partielle du 2026-09-03 — `STRUCT-019`
+
+- **Revision de depart :** `03a70a4585967da9a51208c22f5c80a03a46a43c`,
+  branche `refactor/model-layout-codegen-volterra`; worktree sale avec les
+  changements `STRUCT-019` non encore commites. Aucun fichier sous
+  `docs/validation` n'entre dans ce passage.
+- **Protocole mesure :** les trois campagnes sont toutes agregees par la
+  mediane predeclaree de leurs medianes et de leurs coefficients de variation;
+  le p95 reste le maximum conservateur. Deux campagnes sur trois doivent donc
+  respecter 5 % de CV kernel et 10 % de CV pour l'enveloppe host, sans
+  best-of-N ni recomposition par cle. La regression mediane/p95 reste bornee a
+  5 %. Les fenetres sont normalisees par operation et les 27 tests fail-closed
+  du protocole passent.
+- **Campagne qualifiante SM89 :** trois campagnes sur trois sont eligibles sous
+  `build-dev/performance_candidate_sm89_v3.ndjson.campaigns/20260903T184737.789921Z`.
+  Les 41 mesures passent avec zero inconclusive bloquant; les deux messages
+  restants appartiennent a l'unique microbenchmark closed-form informatif.
+  Le candidat porte le SHA-256
+  `0ca4c5f3ccfa68ad1415c08ded3afb14e6570c08326ed0805c11e3ec19d9a754`.
+- **Rapports :** les partitions `generic_cuda`, `model_sampling`,
+  `early_exercise` et `rough` contiennent respectivement 18, 8, 4 et 11
+  mesures. Le checker rejoue la baseline contre le candidat avec `PASS: 41
+  measurement(s), 0 blocking inconclusive, 2 informational`.
+- **Rebaseline :** le predecesseur conserve a le SHA-256
+  `26c4af09f90ffeb812d7ea906619981476d94f2c4e6b18dd07e5470c54381604`;
+  la nouvelle baseline a le SHA-256
+  `94b7370a2bf1ebed350a04a1037c42115d7a6946127399d7c4358f329786429f`.
+  Le diff exhaustif d'initialisation, raison et approbation incluses, a le
+  SHA-256
+  `205cee367c9b0b152b37a02b1477252949fa9cf9753de41d429524cbd2323717`.
+- **Blocage restant :** Nsight Compute 2026.2.1 refuse le premier profil avec
+  `ERR_NVGPUCTRPERM`; le pilote interdit a l'utilisateur courant l'acces aux
+  compteurs GPU et `sudo -n` exige un mot de passe. Aucun profil partiel n'a
+  ete publie. `STRUCT-019` reste ouvert tant que les quatre profils
+  representatifs ne sont pas captures apres activation de cette permission.
+- **Suite obligatoire :** autoriser les compteurs de performance NVIDIA,
+  capturer CIR, sample rough N-factor, LSM Heston et rough SABR FFT, verifier
+  leurs hashes et scopes, rejouer les tests/checker finaux, puis deplacer le
+  constat vers `closed.md`.
+
+## Clôture du 2026-09-03 — `STRUCT-019`
+
+- **Périmètre final :** passage principal Performance uniquement; aucune
+  modification de `docs/validation` ni prétention sur l'audit de validation
+  séparé. La révision de départ reste
+  `03a70a4585967da9a51208c22f5c80a03a46a43c`; les changements de clôture sont
+  présents dans le worktree avant commit.
+- **Profils :** les quatre captures Nsight Compute 2026.2.1 sont présentes sous
+  `tests/performance/profiles/sm89`, avec un CSV brut et un document de
+  provenance chacun. Leurs scopes sont respectivement `generic_cuda`,
+  `model_sampling`, `early_exercise` et `rough`; leurs hashes internes, ceux de
+  la baseline et du candidat, les symboles compilés et les exécutables mesurés
+  concordent. Une première capture refusée par `ERR_NVGPUCTRPERM` et une
+  tentative rough SABR refusée par `software_thermal_slowdown` n'ont produit
+  aucun artefact partiel; la capture finale a été faite après permission et
+  refroidissement.
+- **Vérifications finales :** 27/27 tests unitaires du protocole, checker
+  `PASS: 41 measurement(s), 0 blocking inconclusive, 2 informational`, CTest
+  `performance_baseline_checker`, build `performance_benchmarks` sans travail,
+  validation des huit hashes de profils et `git diff --check` passent.
+- **Décision :** tous les critères de clôture sont satisfaits. `STRUCT-019` est
+  retiré de `docs/audit/response.md` et enregistré avec signature, preuve et
+  condition de réouverture dans `docs/audit/closed.md`.

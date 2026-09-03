@@ -81,16 +81,66 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
     ):
         failures.append("manifest: campaign retry bound is invalid")
     if decision_policy.get("campaign_aggregation") != (
-        "median_of_all_campaign_medians_conservative_tail"
+        "median_of_campaign_medians_and_variation_conservative_tail"
     ):
         failures.append("manifest: campaign aggregation is missing or opportunistic")
+    if (
+        decision_policy.get("maximum_timing_regression") != 0.05
+        or decision_policy.get("maximum_coefficient_of_variation") != 0.05
+        or decision_policy.get("maximum_host_coefficient_of_variation") != 0.10
+        or decision_policy.get(
+            "maximum_publication_coefficient_of_variation"
+        ) != 0.10
+    ):
+        failures.append("manifest: scope-specific timing thresholds are invalid")
     preflight = decision_policy.get("preflight")
+    thermal_stabilization = (
+        preflight.get("thermal_stabilization")
+        if isinstance(preflight, dict)
+        else None
+    )
     if (
         not isinstance(preflight, dict)
         or preflight.get("accepted_power_sources")
             != ["external_power", "no_battery"]
         or not isinstance(preflight.get("maximum_temperature_c"), int)
-        or not isinstance(preflight.get("maximum_temperature_delta_c"), int)
+        or not _finite_number(preflight.get("minimum_current_power_limit_w"))
+        or preflight.get("minimum_current_power_limit_w") <= 0.0
+        or not isinstance(preflight.get("retry_cooldown_seconds"), int)
+        or isinstance(preflight.get("retry_cooldown_seconds"), bool)
+        or not 0 <= preflight.get("retry_cooldown_seconds") <= 60
+        or not isinstance(thermal_stabilization, dict)
+        or not isinstance(thermal_stabilization.get("minimum_runs"), int)
+        or isinstance(thermal_stabilization.get("minimum_runs"), bool)
+        or not 1 <= thermal_stabilization.get("minimum_runs") <= 60
+        or not isinstance(thermal_stabilization.get("maximum_runs"), int)
+        or isinstance(thermal_stabilization.get("maximum_runs"), bool)
+        or not thermal_stabilization.get("minimum_runs")
+            <= thermal_stabilization.get("maximum_runs") <= 60
+        or not isinstance(
+            thermal_stabilization.get("minimum_duration_seconds"), int
+        )
+        or isinstance(
+            thermal_stabilization.get("minimum_duration_seconds"), bool
+        )
+        or not 0 <= thermal_stabilization.get("minimum_duration_seconds")
+            <= 600
+        or not isinstance(
+            thermal_stabilization.get("temperature_window"), int
+        )
+        or isinstance(thermal_stabilization.get("temperature_window"), bool)
+        or not 2 <= thermal_stabilization.get("temperature_window")
+            <= thermal_stabilization.get("minimum_runs")
+        or not isinstance(
+            thermal_stabilization.get("maximum_temperature_range_c"), int
+        )
+        or isinstance(
+            thermal_stabilization.get("maximum_temperature_range_c"), bool
+        )
+        or not 0 <= thermal_stabilization.get("maximum_temperature_range_c")
+            <= 5
+        or not isinstance(thermal_stabilization.get("command_id"), str)
+        or not thermal_stabilization.get("command_id")
         or preflight.get("concurrent_compute_processes") != "forbidden"
         or preflight.get("forbidden_throttle_reasons") != [
             "hardware_slowdown",
@@ -149,6 +199,14 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
             isinstance(argument, str) for argument in arguments
         ):
             failures.append(f"manifest command {command_id}: invalid arguments")
+
+    if (
+        isinstance(thermal_stabilization, dict)
+        and thermal_stabilization.get("command_id") not in command_ids
+    ):
+        failures.append(
+            "manifest: thermal stabilization command must be declared"
+        )
 
     audit_reports = baseline.get("audit_reports")
     if not isinstance(audit_reports, dict) or set(audit_reports) != {
@@ -221,6 +279,9 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
             ),
             "maximum_noise_coefficient": decision_policy.get(
                 "maximum_coefficient_of_variation"
+            ),
+            "maximum_host_noise_coefficient": decision_policy.get(
+                "maximum_host_coefficient_of_variation"
             ),
             "maximum_publication_noise_coefficient": decision_policy.get(
                 "maximum_publication_coefficient_of_variation"

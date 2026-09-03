@@ -38,6 +38,9 @@ constexpr unsigned int kThreadsPerBlock = 128U;
 constexpr std::size_t kBlocksPerPrice = 32U;
 constexpr int kWarmups = 5;
 constexpr int kRepetitions = 21;
+constexpr std::size_t kDefaultOperationsPerTimingSample = 64U;
+constexpr std::size_t kBlackScholesOperationsPerTimingSample = 128U;
+constexpr std::size_t kOrnsteinUhlenbeckOperationsPerTimingSample = 256U;
 constexpr float kDayFraction = 1.0f / 252.0f;
 constexpr std::uint64_t kSeed = 2'170'000'001ULL;
 
@@ -47,6 +50,7 @@ void benchmark_variant(
     const std::vector<ModelParameters>& models,
     const std::vector<ProductParameters>& products,
     nlohmann::ordered_json configuration,
+    std::size_t operations_per_timing_sample,
     Launch&& launch
 ) {
     DeviceBuffer device_models(
@@ -78,7 +82,7 @@ void benchmark_variant(
         return latest.kernel_seconds * 1'000.0;
     };
     const Measurement measurement = measure_synchronous_cuda_pipeline(
-        timed_launch, kWarmups, kRepetitions, 16U
+        timed_launch, kWarmups, kRepetitions, operations_per_timing_sample
     );
     ai_factory::workbench::longstaff_schwartz::
         validate_regression_diagnostics(latest, variant.c_str());
@@ -141,6 +145,7 @@ void benchmark_equity_one_factor() {
         models,
         products,
         {{"exercise_dates", 12U}, {"transition", "exact"}},
+        kBlackScholesOperationsPerTimingSample,
         [](const model::ModelParameters* device_models,
            const product::AmericanOptionParameters* host_products,
            const product::AmericanOptionParameters* device_products,
@@ -174,6 +179,7 @@ void benchmark_equity_multi_state() {
         models,
         products,
         {{"exercise_dates", 12U}, {"transition", "fixed_step_qem"}},
+        kDefaultOperationsPerTimingSample,
         [](const model::ModelParameters* device_models,
            const product::AmericanOptionParameters* host_products,
            const product::AmericanOptionParameters* device_products,
@@ -206,6 +212,7 @@ void benchmark_fixed_income_one_factor() {
         models,
         products,
         {{"exercise_dates", 8U}, {"rate_factors", 1U}},
+        kOrnsteinUhlenbeckOperationsPerTimingSample,
         [](const model::ModelParameters* device_models,
            const product::BermudanSwaptionParameters* host_products,
            const product::BermudanSwaptionParameters* device_products,
@@ -239,6 +246,7 @@ void benchmark_fixed_income_two_factor() {
         models,
         products,
         {{"exercise_dates", 8U}, {"rate_factors", 2U}},
+        kDefaultOperationsPerTimingSample,
         [](const model::ModelParameters* device_models,
            const product::BermudanSwaptionParameters* host_products,
            const product::BermudanSwaptionParameters* device_products,

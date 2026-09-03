@@ -1354,3 +1354,47 @@ historique de cloture.
   une configuration avec/sans mathDx diverge, si l'inventaire public change
   sans décision explicite, ou si une mutation réelle ne propage plus vers ses
   consommateurs attendus.
+
+### STRUCT-019 — Donner au gate Performance un propriétaire dans le périmètre principal
+
+- **Nature :** corrigé, qualifié et vérifié le 2026-09-03; sévérité originale
+  moyenne, priorité haute, confiance prouvée.
+- **Signature originale :** benchmarks, fixtures, manifeste, baseline, runners
+  et checker de décision vivaient exclusivement sous `validation/**`; aucun
+  propriétaire principal n'existait sous `tests/performance` et
+  `tools/performance`, et le protocole complémentaire ne satisfaisait pas les
+  quatre sous-audits Performance version 7.
+- **Clôture :** `tests/performance` possède les benchmarks, fixtures, baseline
+  et preuves par architecture; `tools/performance` possède exécution, checker,
+  rebaseline et profilage; `docs/performance-regression-protocol.md` porte le
+  contrat durable et `cmake/AIFactoryPerformance.cmake` le graphe de targets.
+  Le protocole couvre 41 mesures, quatre frontières de temps et quatre rapports,
+  interdit best-of-N et recomposition par clé, conserve chaque campagne brute,
+  applique les budgets numériques, ressources compilées, VRAM et binaires, et
+  distingue 5 % de bruit kernel de 10 % pour l'enveloppe host sans relâcher le
+  seuil de régression médiane/p95 à 5 %.
+- **Preuve :** trois campagnes SM89 sur trois sont admissibles sous
+  `build-dev/performance_candidate_sm89_v3.ndjson.campaigns/20260903T184737.789921Z`;
+  le checker passe 41 mesures avec zéro inconclusive bloquant et deux messages
+  attachés à l'unique timing informatif. La baseline qualifiée porte le SHA-256
+  `94b7370a2bf1ebed350a04a1037c42115d7a6946127399d7c4358f329786429f`;
+  son prédécesseur conservé porte
+  `26c4af09f90ffeb812d7ea906619981476d94f2c4e6b18dd07e5470c54381604`
+  et le diff exhaustif d'initialisation
+  `205cee367c9b0b152b37a02b1477252949fa9cf9753de41d429524cbd2323717`.
+  Les quatre rapports contiennent 18/8/4/11 mesures. Les huit artefacts Nsight
+  Compute 2026.2.1 sous `tests/performance/profiles/sm89` lient le symbole,
+  l'exécutable, le candidat, la baseline, l'environnement et le CSV brut pour
+  CIR, sample rough N-factor, LSM Heston et rough SABR FFT. Les 27 tests
+  fail-closed, le CTest `performance_baseline_checker`, le build performance
+  sans travail et `git diff --check` passent.
+- **Portabilité :** cette baseline et ces profils qualifient uniquement le
+  profil RTX 4090 Laptop SM89 et son toolchain déclarés. Chaque autre GPU ou
+  toolchain doit publier son propre manifeste natif et ses propres profils;
+  aucune géométrie SM89 n'est une valeur universelle.
+- **Réouvrir seulement si :** un composant décisionnel principal retourne sous
+  `validation/**`, une clé ou ressource peut échapper au manifeste, une
+  campagne est sélectionnée ou recomposée opportunément, une rebaseline peut
+  s'auto-valider sans prédécesseur/diff/raison/approbation, un scope de temps
+  cesse de bloquer selon son budget, un profil ne correspond plus au binaire
+  mesuré, ou une architecture réutilise les seuils observés d'un autre GPU.

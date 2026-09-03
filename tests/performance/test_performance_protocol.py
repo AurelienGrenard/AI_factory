@@ -3,19 +3,28 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from tools.performance.check_baseline import compare
+from tools.performance.profile_kernel import ncu_command, select_profile_target
 from tools.performance.run_baseline import (
     aggregate_campaigns,
+    campaign_series_can_complete,
+    initialize_baseline,
     load_raw_campaigns,
     parse_nvidia_power_limits,
+    select_initialization_manifest,
+    stabilize_thermal_environment,
     validate_campaign_preflight,
     validate_preflight,
     write_audit_reports,
+    write_rebaseline_diff,
     write_raw_campaigns,
 )
 
@@ -90,14 +99,19 @@ def diagnostic(variant: str) -> dict[str, object]:
 
 
 def timing_budgets() -> dict[str, dict[str, object]]:
-    regression = {
+    kernel_regression = {
         "rule": "regression",
         "maximum_regression": 0.05,
         "maximum_coefficient_of_variation": 0.05,
     }
+    host_regression = {
+        "rule": "regression",
+        "maximum_regression": 0.05,
+        "maximum_coefficient_of_variation": 0.10,
+    }
     return {
-        "kernel": copy.deepcopy(regression),
-        "public_api": copy.deepcopy(regression),
+        "kernel": copy.deepcopy(kernel_regression),
+        "public_api": copy.deepcopy(host_regression),
         "pipeline": {"rule": "record_only"},
     }
 
@@ -118,6 +132,7 @@ def measurement(variant: str) -> dict[str, object]:
             "tail_statistic": "p95_ms",
             "minimum_accepted_gain": 0.05,
             "maximum_noise_coefficient": 0.05,
+            "maximum_host_noise_coefficient": 0.10,
             "maximum_publication_noise_coefficient": 0.10,
             "wall_semantics": "wall",
         },
@@ -139,7 +154,9 @@ def measurement(variant: str) -> dict[str, object]:
         },
         "resources": [diagnostic(variant)],
         "campaign_aggregation": {
-            "method": "median_of_all_campaign_medians_conservative_tail",
+            "method": (
+                "median_of_campaign_medians_and_variation_conservative_tail"
+            ),
             "attempt_count": 3,
         },
     }
@@ -207,19 +224,27 @@ def baseline() -> dict[str, object]:
             "tail_statistic": "p95_ms",
             "maximum_timing_regression": 0.05,
             "maximum_coefficient_of_variation": 0.05,
+            "maximum_host_coefficient_of_variation": 0.10,
             "maximum_publication_coefficient_of_variation": 0.10,
             "wall_semantics": "wall",
             "campaign_attempts": 3,
             "maximum_campaign_attempts": 5,
             "campaign_aggregation": (
-                "median_of_all_campaign_medians_conservative_tail"
+                "median_of_campaign_medians_and_variation_conservative_tail"
             ),
             "preflight": {
                 "accepted_power_sources": ["external_power", "no_battery"],
                 "maximum_temperature_c": 85,
-                "maximum_temperature_delta_c": 5,
                 "minimum_current_power_limit_w": 140.0,
                 "retry_cooldown_seconds": 0,
+                "thermal_stabilization": {
+                    "command_id": "test_command",
+                    "minimum_runs": 3,
+                    "maximum_runs": 3,
+                    "minimum_duration_seconds": 0,
+                    "temperature_window": 2,
+                    "maximum_temperature_range_c": 2,
+                },
                 "concurrent_compute_processes": "forbidden",
                 "forbidden_throttle_reasons": [
                     "hardware_slowdown",
@@ -310,6 +335,20 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         self.assertEqual(len(inconclusive), 1)
         self.assertEqual(informational, [])
 
+    def test_applies_the_distinct_host_noise_budget(self) -> None:
+        candidates = self.candidates()
+        candidates[0]["public_api"]["coefficient_of_variation"] = 0.08
+        failures, inconclusive, informational = compare(baseline(), candidates)
+        self.assertEqual(failures, [])
+        self.assertEqual(inconclusive, [])
+        self.assertEqual(informational, [])
+
+        candidates[0]["public_api"]["coefficient_of_variation"] = 0.11
+        failures, inconclusive, informational = compare(baseline(), candidates)
+        self.assertEqual(failures, [])
+        self.assertEqual(len(inconclusive), 1)
+        self.assertEqual(informational, [])
+
     def test_reports_informational_noise_without_blocking(self) -> None:
         reference = baseline()
         reference["measurements"][0]["comparison_policy"] = "informational"
@@ -375,6 +414,60 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         reference["decisions"] = reference["decisions"][:3]
         self.assert_rejected(reference, self.candidates(), "four explicit decisions")
 
+    def test_rejects_incomplete_power_preflight_policy(self) -> None:
+        for field in (
+            "minimum_current_power_limit_w",
+            "retry_cooldown_seconds",
+        ):
+            reference = baseline()
+            reference["decision_policy"]["preflight"].pop(field)
+            self.assert_rejected(
+                reference,
+                self.candidates(),
+                "fail-closed power and stability preflight required",
+            )
+
+    def test_stops_when_campaign_series_can_no_longer_succeed(self) -> None:
+        self.assertTrue(campaign_series_can_complete(0, 2, 3, 5))
+        self.assertFalse(campaign_series_can_complete(0, 3, 3, 5))
+        self.assertTrue(campaign_series_can_complete(2, 4, 3, 5))
+
+    def test_protocol_initialization_preserves_numerical_contracts(self) -> None:
+        predecessor = baseline()
+        for reference in predecessor["measurements"]:
+            reference["id"] = "test_command__" + reference["id"]
+        initialized = initialize_baseline(
+            predecessor, self.candidates(), "protocol migration"
+        )
+        self.assertEqual(
+            [row["id"] for row in initialized["measurements"]],
+            [row["id"] for row in predecessor["measurements"]],
+        )
+        self.assertEqual(
+            initialized["measurements"][0]["numerical_budgets"],
+            predecessor["measurements"][0]["numerical_budgets"],
+        )
+        self.assertIn(
+            "device_memory_budgets", initialized["measurements"][0]
+        )
+
+    def test_protocol_initialization_allows_only_protocol_field_migration(
+        self,
+    ) -> None:
+        predecessor = baseline()
+        for reference in predecessor["measurements"]:
+            reference["id"] = "test_command__" + reference["id"]
+        candidates = self.candidates()
+        candidates[0]["configuration"]["new_protocol_field"] = 4
+        selected = select_initialization_manifest(predecessor, candidates)
+        self.assertEqual(
+            [row["measurement_id"] for row in selected],
+            ["test_command__one", "test_command__two"],
+        )
+        candidates[0]["benchmark"] = "different"
+        with self.assertRaisesRegex(ValueError, "stable identity field"):
+            select_initialization_manifest(predecessor, candidates)
+
     def test_aggregates_every_campaign_without_best_of_n(self) -> None:
         reference = baseline()
         first = self.candidates()
@@ -382,6 +475,8 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         third = self.candidates()
         first[0]["kernel"]["median_ms"] = 9.0
         first[0]["kernel"]["coefficient_of_variation"] = 0.08
+        second[0]["kernel"]["coefficient_of_variation"] = 0.02
+        third[0]["kernel"]["coefficient_of_variation"] = 0.03
         second[0]["kernel"]["median_ms"] = 11.0
         third[0]["kernel"]["median_ms"] = 10.0
         first[1]["kernel"]["median_ms"] = 12.0
@@ -408,6 +503,25 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
             aggregated[0]["kernel"]["p95_ms"],
             max(row[0]["kernel"]["p95_ms"] for row in (first, second, third)),
         )
+        self.assertEqual(
+            aggregated[0]["kernel"]["coefficient_of_variation"], 0.03
+        )
+
+    def test_campaign_noise_requires_two_stable_campaigns(self) -> None:
+        reference = baseline()
+        first = self.candidates()
+        second = self.candidates()
+        third = self.candidates()
+        first[0]["kernel"]["coefficient_of_variation"] = 0.08
+        second[0]["kernel"]["coefficient_of_variation"] = 0.07
+        third[0]["kernel"]["coefficient_of_variation"] = 0.01
+        aggregated = aggregate_campaigns(
+            [first, second, third], reference
+        )
+        failures, inconclusive, informational = compare(reference, aggregated)
+        self.assertEqual(failures, [])
+        self.assertEqual(len(inconclusive), 1)
+        self.assertEqual(informational, [])
 
     def test_retains_every_raw_campaign_with_hashes(self) -> None:
         attempts = [
@@ -500,7 +614,7 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
                 len(candidates),
             )
 
-    def test_preflight_rejects_battery_thermal_throttle_and_drift(self) -> None:
+    def test_preflight_rejects_battery_temperature_and_throttle(self) -> None:
         reference = baseline()
         snapshot = {
             "gpu": "test GPU",
@@ -526,9 +640,45 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         low_power["power_limits_w"]["current"] = 55.0
         with self.assertRaisesRegex(ValueError, "power limit"):
             validate_preflight(reference, low_power)
-        hot = {**snapshot, "temperature_c": 80}
-        with self.assertRaisesRegex(ValueError, "temperature drift"):
+        warm = {**snapshot, "temperature_c": 80}
+        validate_campaign_preflight(reference, snapshot, warm)
+        hot = {**snapshot, "temperature_c": 86}
+        with self.assertRaisesRegex(ValueError, "temperature"):
             validate_campaign_preflight(reference, snapshot, hot)
+
+    def test_stabilizes_before_the_official_preflight(self) -> None:
+        reference = baseline()
+        cold = {
+            "gpu": "test GPU",
+            "power_source": "external_power",
+            "temperature_c": 55,
+            "power_limits_w": {"current": 150.0},
+            "concurrent_compute_processes": [],
+            "throttle": {
+                "hardware_slowdown": "Not Active",
+                "hardware_thermal_slowdown": "Not Active",
+                "software_thermal_slowdown": "Not Active",
+            },
+        }
+        warming = {**cold, "temperature_c": 64}
+        warm = {**cold, "temperature_c": 65}
+        evidence: list[dict[str, object]] = []
+        with (
+            patch(
+                "tools.performance.run_baseline.collect_preflight",
+                side_effect=[cold, cold, warming, warm],
+            ),
+            patch(
+                "tools.performance.run_baseline.subprocess.run",
+                return_value=SimpleNamespace(stdout=b"warmup"),
+            ) as run,
+        ):
+            snapshot = stabilize_thermal_environment(
+                reference, Path("build"), evidence
+            )
+        self.assertEqual(snapshot["temperature_c"], 65)
+        self.assertEqual(len(evidence), 4)
+        self.assertEqual(run.call_count, 3)
 
     def test_extracts_nvidia_xml_power_limits(self) -> None:
         xml = """<nvidia_smi_log><gpu><gpu_power_readings>
@@ -545,6 +695,85 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         })
         with self.assertRaisesRegex(ValueError, "one GPU"):
             parse_nvidia_power_limits("<nvidia_smi_log/>")
+
+    def test_writes_exhaustive_hashed_rebaseline_diff(self) -> None:
+        predecessor = baseline()
+        successor = copy.deepcopy(predecessor)
+        successor["measurements"][0]["kernel"]["median_ms"] = 9.5
+        successor["rebaseline_reason"] = "protocol initialization"
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            predecessor_path = root / "predecessor.json"
+            diff_path = root / "diff.json"
+            predecessor_path.write_text(json.dumps(predecessor, indent=2) + "\n")
+            payload = write_rebaseline_diff(
+                predecessor_path,
+                successor,
+                diff_path,
+                "protocol initialization",
+                "approved for test",
+                "protocol_initialization",
+            )
+            report = json.loads(diff_path.read_text())
+            self.assertEqual(json.loads(payload), successor)
+            self.assertEqual(report["change_count"], 2)
+            self.assertEqual(report["approval"], "approved for test")
+            self.assertEqual(
+                report["changes"][0]["path"],
+                "$.measurements[0].kernel.median_ms",
+            )
+            self.assertEqual(
+                report["successor"]["sha256"],
+                hashlib.sha256(payload.encode()).hexdigest(),
+            )
+
+    def test_allows_ids_only_for_first_protocol_initialization(self) -> None:
+        predecessor = baseline()
+        predecessor["measurements"] = []
+        successor = baseline()
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            predecessor_path = root / "predecessor.json"
+            predecessor_path.write_text(json.dumps(predecessor) + "\n")
+            write_rebaseline_diff(
+                predecessor_path,
+                successor,
+                root / "initialization.json",
+                "first protocol initialization",
+                "approved for test",
+                "protocol_initialization",
+            )
+            with self.assertRaisesRegex(ValueError, "measurement ids differ"):
+                write_rebaseline_diff(
+                    predecessor_path,
+                    successor,
+                    root / "ordinary.json",
+                    "ordinary rebaseline",
+                    "approved for test",
+                    "regression_checked_rebaseline",
+                )
+
+    def test_resolves_profile_target_from_manifest_and_candidate(self) -> None:
+        manifest = baseline()
+        candidate = measurement("one")
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            executable = root / "test_benchmark"
+            executable.write_bytes(b"profile executable")
+            candidate["binary"]["executable_sha256"] = hashlib.sha256(
+                executable.read_bytes()
+            ).hexdigest()
+            target = select_profile_target(
+                manifest, [candidate], root, "one", 0
+            )
+            self.assertEqual(target["scope"], "generic_cuda")
+            self.assertEqual(target["compiled_symbol"], "_Z_test_kernel_one")
+            command = ncu_command(
+                "/usr/bin/ncu", target, root / "report", "detailed"
+            )
+            self.assertEqual(command[-1], str(executable))
+            self.assertIn("_Z_test_kernel_one", command)
+            self.assertEqual(command[command.index("--kill") + 1], "1")
 
 
 if __name__ == "__main__":
