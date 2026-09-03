@@ -1,6 +1,6 @@
 // Compare the G2++ caplet CUDA launcher with one FP64 CPU formula.
 #include "common/check_cuda.cuh"
-#include "model/fixed_income/g2_plus_plus/nelson_siegel/rate_option.cuh"
+#include "model/fixed_income/g2_plus_plus/product/nelson_siegel/rate_option.cuh"
 
 #include <cuda_runtime.h>
 

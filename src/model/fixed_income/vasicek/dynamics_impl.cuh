@@ -1,4 +1,4 @@
-// Exact Vasicek state and optional state-integral simulation.
+// Included device definitions for exact Vasicek state and state-integral simulation.
 #pragma once
 
 #include "model/fixed_income/vasicek/dynamics.cuh"

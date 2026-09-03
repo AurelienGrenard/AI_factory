@@ -1,7 +1,7 @@
 // Exercise the unique fused-FFT pricing path for rough Bergomi and rough SABR.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough/rough_bergomi/european_option.cuh"
-#include "model/equity/rough/rough_sabr/european_option.cuh"
+#include "model/equity/rough/rough_bergomi/product/european_option.cuh"
+#include "model/equity/rough/rough_sabr/product/european_option.cuh"
 
 #include <cuda_runtime.h>
 

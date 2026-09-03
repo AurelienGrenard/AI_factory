@@ -1,4 +1,4 @@
-// Hull-White analytics fitted to a Nelson-Siegel curve.
+// Included device definitions of Hull-White analytics fitted to a Nelson-Siegel curve.
 #pragma once
 
 #include "curve/nelson_siegel/term_structure_impl.cuh"

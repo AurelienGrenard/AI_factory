@@ -1,3 +1,4 @@
+// Compact host/device parameter row for the quadratic rough Heston model.
 #pragma once
 
 #include <type_traits>

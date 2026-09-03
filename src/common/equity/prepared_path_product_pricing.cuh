@@ -24,6 +24,7 @@ void launch_prepared_path_product_cuda(
     std::size_t model_count,
     const PreparedDynamics* device_prepared_dynamics,
     std::size_t prepared_dynamics_count,
+    const typename ProductPathPolicy::ProductParameters* host_products,
     const typename ProductPathPolicy::ProductParameters* device_products,
     std::size_t product_count,
     PriceConstruction construction,
@@ -68,6 +69,7 @@ void launch_prepared_path_product_cuda(
             device_prepared_dynamics,
             prepared_dynamics_count
         ),
+        {host_products, product_count, construction},
         result_count,
         result_offset,
         launch_result_count,

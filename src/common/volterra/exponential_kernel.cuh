@@ -23,11 +23,11 @@ struct ExponentialKernel {
         return result;
     }
 
-    __host__ __device__ float value(float time) const {
+    __host__ __device__ float value(float time_years) const {
         float result = 0.0f;
         #pragma unroll
         for (std::size_t factor = 0U; factor < FactorCount; ++factor)
-            result += weights[factor] * expf(-nodes[factor] * time);
+            result += weights[factor] * expf(-nodes[factor] * time_years);
         return result;
     }
 };

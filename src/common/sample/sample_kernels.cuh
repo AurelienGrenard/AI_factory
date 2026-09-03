@@ -307,7 +307,7 @@ inline void validate_sample_launch_common(
     }
 
     input_source.validate(range.parameter_count);
-    calendar_source.validate(total_samples);
+    calendar_source.validate(total_samples, time_configuration);
     Policy::Observation::validate(output);
     simulation::validate_time_configuration(time_configuration);
     validate_cuda_block_size(launch_configuration.threads_per_block);

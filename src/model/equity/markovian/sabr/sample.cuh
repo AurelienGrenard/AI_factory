@@ -1,4 +1,4 @@
-// Generated model-only SABR sample launchers.
+// Public generated SABR launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/sabr/parameters.hpp"

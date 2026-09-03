@@ -76,7 +76,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"stationary_volatility", {0.0025f, 0.025f}},
                 {"initial_state", {0.001f, 0.08f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"state", {{"description", "Terminal state."}, {"layout", "sample-major"}}}

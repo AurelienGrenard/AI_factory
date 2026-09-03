@@ -71,9 +71,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Bates",
-        "datasets/model/equity/bates/samples/" + id + ".json",
-        "catalog/model/equity/bates/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/bates/samples/" + id + ".json",
+        "datasets/model/equity/markovian/bates/samples/" + id + ".json",
+        "catalog/model/equity/markovian/bates/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -95,7 +95,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"jump_log_mean", {-0.25f, 0.05f}},
                 {"jump_log_volatility", {0.05f, 0.35f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},

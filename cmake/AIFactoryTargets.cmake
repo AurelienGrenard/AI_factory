@@ -119,7 +119,10 @@ endforeach()
 # the loaders that its generators need; changing another model or product does
 # not enter its dependency graph.
 function(ai_factory_add_cuda_unit domain unit_path)
-    string(REPLACE "/" "_" unit_id "${unit_path}")
+    # `product/` is a physical ownership boundary, not part of the stable
+    # target identifier exposed to existing build consumers.
+    string(REPLACE "/product/" "/" logical_unit_path "${unit_path}")
+    string(REPLACE "/" "_" unit_id "${logical_unit_path}")
     set(target ai_factory_${domain}_${unit_id})
     string(REGEX REPLACE "^([^/]+).*$" "\\1" model "${unit_path}")
     if(domain STREQUAL "equity")
@@ -136,23 +139,16 @@ function(ai_factory_add_cuda_unit domain unit_path)
     ai_factory_configure_cuda_library(${target})
 
     get_filename_component(product "${unit_path}" NAME)
-    set(dependencies
-        ai_factory_runtime
-        ai_factory_${domain}_${model}_dataset
-    )
-    if(TARGET ai_factory_product_${product}_dataset)
-        list(APPEND dependencies ai_factory_product_${product}_dataset)
-    endif()
-    if(unit_path MATCHES "^[^/]+/(nelson_siegel|svensson)/")
-        list(APPEND dependencies
-            ai_factory_curve_${CMAKE_MATCH_1}_dataset
-        )
-    endif()
+    set(dependencies ai_factory_runtime)
     if(product STREQUAL "american_option"
         OR product STREQUAL "bermudan_swaption")
         list(APPEND dependencies ai_factory_longstaff_schwartz)
     endif()
-    target_link_libraries(${target} PUBLIC ${dependencies})
+    # A launcher consumes parameter-row declarations only. Dataset loaders are
+    # implementation dependencies of generators/tests that include their
+    # dataset headers and are resolved there by
+    # ai_factory_collect_source_dependencies().
+    target_link_libraries(${target} PRIVATE ${dependencies})
 
     set_target_properties(${target} PROPERTIES
         AI_FACTORY_DOMAIN "${domain}"
@@ -182,7 +178,7 @@ endforeach()
 # Black--Scholes American pricing is the exact-transition one-factor control
 # used by tests and performance baselines. It has no catalogue recipe, so it
 # is deliberately registered outside the generated recipe capability matrix.
-ai_factory_add_cuda_unit(equity black_scholes/american_option)
+ai_factory_add_cuda_unit(equity black_scholes/product/american_option)
 
 if(AI_FACTORY_MATHDX_ROOT)
     if(NOT EXISTS "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx.hpp")
@@ -259,7 +255,8 @@ if(AI_FACTORY_MATHDX_ROOT)
     set(_ai_factory_rough_fft_targets)
     foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS)
         ai_factory_add_cuda_unit(equity ${unit_path})
-        string(REPLACE "/" "_" unit_id "${unit_path}")
+        string(REPLACE "/product/" "/" logical_unit_path "${unit_path}")
+        string(REPLACE "/" "_" unit_id "${logical_unit_path}")
         list(APPEND _ai_factory_rough_fft_targets
             ai_factory_equity_${unit_id}
         )
@@ -273,7 +270,7 @@ if(AI_FACTORY_MATHDX_ROOT)
         )
     endforeach()
     foreach(target IN LISTS _ai_factory_rough_fft_targets)
-        target_link_libraries(${target} PUBLIC ai_factory_cufftdx)
+        target_link_libraries(${target} PRIVATE ai_factory_cufftdx)
     endforeach()
 endif()
 
@@ -313,6 +310,20 @@ get_property(
     _ai_factory_cuda_unit_targets
     GLOBAL PROPERTY AI_FACTORY_CUDA_UNIT_TARGETS
 )
+foreach(target IN LISTS _ai_factory_cuda_unit_targets)
+    get_target_property(interface_links ${target} INTERFACE_LINK_LIBRARIES)
+    if(interface_links)
+        foreach(link IN LISTS interface_links)
+            if(link MATCHES "ai_factory_(equity|fixed_income|curve|product)_.*_dataset")
+                message(FATAL_ERROR
+                    "CUDA launcher ${target} publicly exports dataset loader "
+                    "${link}; link the loader at the executable that includes "
+                    "its dataset header"
+                )
+            endif()
+        endforeach()
+    endif()
+endforeach()
 add_library(cuda_workbench INTERFACE)
 target_link_libraries(cuda_workbench INTERFACE
     ${_ai_factory_cuda_unit_targets}
@@ -343,6 +354,7 @@ function(ai_factory_collect_source_dependencies output source)
             header_path
             "${header_path}"
         )
+        string(REPLACE "/product/" "/" header_path "${header_path}")
         string(REGEX REPLACE "^model/" "" target_path "${header_path}")
         string(REPLACE "/" "_" target_id "${target_path}")
         set(candidate ai_factory_${target_id})

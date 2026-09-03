@@ -23,6 +23,11 @@ struct RegularExerciseCalendar {
     std::uint32_t exercise_count;
 };
 
+__host__ __device__ constexpr std::uint32_t
+maturity_aligned_first_exercise_days(
+    const MaturityAlignedExerciseCalendar& calendar
+) noexcept;
+
 inline void validate_exercise_calendar(
     const RegularExerciseCalendar& calendar
 ) {
@@ -57,6 +62,51 @@ inline void validate_exercise_calendar(
             "Early-exercise interval must be positive and below maturity."
         );
     }
+}
+
+inline void validate_exercise_calendar(
+    const RegularExerciseCalendar& calendar,
+    const FixedStepTimeConfiguration& time_configuration
+) {
+    validate_exercise_calendar(calendar);
+    checked_fixed_step_transition_count(
+        calendar.first_exercise_days,
+        time_configuration
+    );
+    checked_fixed_step_transition_count(
+        calendar.exercise_interval_days,
+        time_configuration
+    );
+}
+
+inline void validate_exercise_calendar(
+    const MaturityAlignedExerciseCalendar& calendar,
+    const FixedStepTimeConfiguration& time_configuration
+) {
+    validate_exercise_calendar(calendar);
+    checked_fixed_step_transition_count(
+        maturity_aligned_first_exercise_days(calendar),
+        time_configuration
+    );
+    checked_fixed_step_transition_count(
+        calendar.exercise_interval_days,
+        time_configuration
+    );
+    validate_calendar(
+        MaturityCalendar{calendar.maturity_days},
+        time_configuration
+    );
+}
+
+template<typename Calendar>
+inline void validate_exercise_calendar(
+    const Calendar& calendar,
+    const ExactTransitionTimeConfiguration& time_configuration
+) {
+    ::ai_factory::workbench::simulation::validate_time_configuration(
+        time_configuration
+    );
+    validate_exercise_calendar(calendar);
 }
 
 __host__ __device__ constexpr std::uint32_t maturity_aligned_exercise_count(

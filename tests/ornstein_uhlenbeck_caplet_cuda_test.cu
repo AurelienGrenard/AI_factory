@@ -1,6 +1,6 @@
 // Compare the Ornstein-Uhlenbeck caplet CUDA launcher with an FP64 formula.
 #include "common/check_cuda.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/rate_option.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/rate_option.cuh"
 
 #include <cuda_runtime.h>
 

@@ -1,4 +1,4 @@
-// Generated model-only Normal-Inverse-Gaussian sample launchers.
+// Public generated Normal-Inverse-Gaussian launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/normal_inverse_gaussian/parameters.hpp"

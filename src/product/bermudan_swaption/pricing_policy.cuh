@@ -107,7 +107,8 @@ struct BermudanSwaptionPricingPolicyCore {
     static longstaff_schwartz::EarlyExerciseRowPlan plan_row(
         const HostInputs& inputs,
         std::size_t result_index,
-        std::size_t paths_per_price
+        std::size_t paths_per_price,
+        const TimeConfiguration& time_configuration
     ) {
         const ProductParameters& product = inputs.product(result_index);
         const simulation::RegularExerciseCalendar calendar{
@@ -115,7 +116,7 @@ struct BermudanSwaptionPricingPolicyCore {
             product.payment_interval_days,
             product.exercise_count,
         };
-        simulation::validate_exercise_calendar(calendar);
+        simulation::validate_exercise_calendar(calendar, time_configuration);
         if (product.payment_count < product.exercise_count) {
             throw std::invalid_argument(
                 "Bermudan payment_count must cover every exercise date."
@@ -159,7 +160,7 @@ struct BermudanSwaptionPricingPolicyCore {
         const FactorState& state,
         std::uint32_t exercise
     ) {
-        const float time = exercise_time(row, exercise);
+        const float time_years = exercise_time(row, exercise);
         const BermudanSwaptionScheduleView schedule =
             make_bermudan_swaption_schedule_view(
                 row.product, exercise, row.time_day_fraction
@@ -167,8 +168,8 @@ struct BermudanSwaptionPricingPolicyCore {
         const float payer_value = Analytics::payer_swap_value(
             row.analytics,
             state,
-            time,
-            time,
+            time_years,
+            time_years,
             row.product.strike,
             schedule
         );

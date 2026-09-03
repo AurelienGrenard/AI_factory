@@ -20,8 +20,13 @@ class SampleModelSpec:
     constructor: str
     derived: str = ""
     acceptance: str = "true"
-    driver: str | None = None
+    kernel: str | None = None
     extra_dynamics_include: str = ""
+    pricing_numerical_method: str = ""
+    legacy_url_name: str | None = None
+    threads_per_block: int = 512
+    supported_architectures: tuple[str, ...] = ("sm75", "sm86", "sm89")
+    analytics_contract: str = "none"
 
     @property
     def source_folder(self) -> str:
@@ -60,6 +65,10 @@ SAMPLE_MODELS = (
         "theta, gamma, rho, jump_intensity, jump_log_mean, "
         "jump_log_volatility}",
         "const float gamma = uniform({std::max(std::sqrt(kappa * theta / 5.0f), 0.1f), std::min(std::sqrt(12.0f * kappa * theta), 0.8f)}, uniforms);",
+        pricing_numerical_method=(
+            "Andersen QE-M with compound-Poisson lognormal jumps"
+        ),
+        legacy_url_name="Bates",
     ),
     SampleModelSpec(
         "black_scholes", "Black-Scholes", "equity", "markovian",
@@ -68,6 +77,9 @@ SAMPLE_MODELS = (
          ("dividend_yield", "dividend_yield"), ("volatility", "volatility")),
         EQUITY_COMMON + (u("volatility", .08, .45),),
         "{spot, risk_free_rate, dividend_yield, volatility}",
+        pricing_numerical_method="Exact Gaussian log-price transitions",
+        legacy_url_name="BlackScholes",
+        analytics_contract="Black-Scholes analytical provider",
     ),
     SampleModelSpec(
         "cev", "CEV", "equity", "markovian", "markovian", "fixed",
@@ -77,6 +89,8 @@ SAMPLE_MODELS = (
          ("beta", "beta")),
         EQUITY_COMMON + (u("sigma", .08, .45), u("beta", .55, .95)),
         "{spot, risk_free_rate, dividend_yield, sigma, beta}",
+        pricing_numerical_method="absorbed Milstein",
+        legacy_url_name="CEV",
     ),
     SampleModelSpec(
         "heston", "Heston", "equity", "markovian", "markovian", "fixed",
@@ -89,6 +103,8 @@ SAMPLE_MODELS = (
         u("theta", .01, .15), u("rho", -.95, -.25)),
         "{spot, risk_free_rate, dividend_yield, initial_variance, kappa, theta, gamma, rho}",
         "const float gamma = uniform({std::max(std::sqrt(kappa * theta / 5.0f), 0.08f), std::min(std::sqrt(12.0f * kappa * theta), 0.8f)}, uniforms);",
+        pricing_numerical_method="Andersen QE-M",
+        legacy_url_name="Heston",
     ),
     SampleModelSpec(
         "heston_3_2", "Heston 3/2", "equity", "markovian", "markovian",
@@ -106,6 +122,7 @@ SAMPLE_MODELS = (
         u("volatility_of_variance", 1., 8.), u("rho", -.95, -.10)),
         "{spot, risk_free_rate, dividend_yield, initial_variance, "
         "mean_reversion, long_run_variance, volatility_of_variance, rho}",
+        pricing_numerical_method="full-truncation Euler 3/2 variance",
     ),
     SampleModelSpec(
         "kou", "Kou", "equity", "markovian", "markovian", "exact",
@@ -121,6 +138,8 @@ SAMPLE_MODELS = (
         u("negative_jump_rate", 2., 20.)),
         "{spot, risk_free_rate, dividend_yield, volatility, jump_intensity, "
         "up_probability, positive_jump_rate, negative_jump_rate}",
+        pricing_numerical_method="Exact Kou increments",
+        legacy_url_name="Kou",
     ),
     SampleModelSpec(
         "merton", "Merton", "equity", "markovian", "markovian", "exact",
@@ -134,6 +153,8 @@ SAMPLE_MODELS = (
         u("jump_log_mean", -.2, .08), u("jump_log_volatility", .03, .30)),
         "{spot, risk_free_rate, dividend_yield, volatility, jump_intensity, "
         "jump_log_mean, jump_log_volatility}",
+        pricing_numerical_method="Exact Merton increments",
+        legacy_url_name="Merton",
     ),
     SampleModelSpec(
         "normal_inverse_gaussian", "Normal-Inverse-Gaussian", "equity",
@@ -147,6 +168,8 @@ SAMPLE_MODELS = (
         "{1.0f, risk_free_rate, dividend_yield, alpha, beta, delta}",
         "const float beta = skew_ratio * alpha; const float gamma = std::sqrt(alpha * alpha - beta * beta); const float delta = target_volatility * target_volatility * gamma * gamma * gamma / (alpha * alpha);",
         "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f",
+        pricing_numerical_method="Exact inverse-Gaussian subordination",
+        legacy_url_name="NormalInverseGaussian",
     ),
     SampleModelSpec(
         "sabr", "SABR", "equity", "markovian", "markovian", "fixed",
@@ -162,6 +185,7 @@ SAMPLE_MODELS = (
          u("beta", .30, 1.)),
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "volatility_of_volatility, rho, beta}",
+        pricing_numerical_method="Lamperti SABR Euler",
     ),
     SampleModelSpec(
         "schobel_zhu", "Schobel-Zhu", "equity", "markovian", "markovian",
@@ -178,6 +202,8 @@ SAMPLE_MODELS = (
         u("volatility_of_volatility", .03, .60), u("correlation", -.90, .30)),
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "mean_reversion, long_run_volatility, volatility_of_volatility, correlation}",
+        pricing_numerical_method="exact OU factor with log-spot Euler",
+        legacy_url_name="SchobelZhu",
     ),
     SampleModelSpec(
         "stein_stein", "Stein-Stein", "equity", "markovian", "markovian",
@@ -192,6 +218,7 @@ SAMPLE_MODELS = (
         u("mean_reversion", .5, 8.), u("volatility_of_volatility", .05, .50)),
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "mean_reversion, volatility_of_volatility, 0.0f}",
+        pricing_numerical_method="exact OU volatility with log-spot Euler",
     ),
     SampleModelSpec(
         "variance_gamma", "Variance-Gamma", "equity", "markovian",
@@ -204,6 +231,8 @@ SAMPLE_MODELS = (
         "{spot, risk_free_rate, dividend_yield, sigma, nu, theta}",
         "const float first_moment = 1.0f - theta * nu - 0.5f * sigma * sigma * nu; const float second_moment = 1.0f - 2.0f * theta * nu - 2.0f * sigma * sigma * nu;",
         "first_moment > 0.05f && second_moment > 0.05f",
+        pricing_numerical_method="Exact Gamma subordination",
+        legacy_url_name="VarianceGamma",
     ),
     SampleModelSpec(
         "rough_bergomi", "Rough-Bergomi", "equity", "rough", "volterra",
@@ -216,7 +245,10 @@ SAMPLE_MODELS = (
          u("dividend_yield", 0., .06), u("xi_0", .04, .04),
          u("eta", .5, 3.), u("hurst_exponent", .03, .25), u("rho", -.95, -.30)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho}",
-        driver="volterra::FractionalHybridDriverPolicy",
+        kernel="volterra::FractionalHybridKernelPolicy",
+        pricing_numerical_method=(
+            "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)"
+        ),
     ),
     SampleModelSpec(
         "rough_sabr", "Rough-SABR", "equity", "rough", "volterra", "fixed",
@@ -230,7 +262,10 @@ SAMPLE_MODELS = (
          u("eta", .5, 3.), u("hurst_exponent", .03, .25),
          u("rho", -.95, -.30), u("beta", .70, 1.)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho, beta}",
-        driver="volterra::FractionalHybridDriverPolicy",
+        kernel="volterra::FractionalHybridKernelPolicy",
+        pricing_numerical_method=(
+            "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot"
+        ),
     ),
     SampleModelSpec(
         "log_modulated_rough_bergomi", "Log-modulated rough-Bergomi", "equity",
@@ -245,7 +280,8 @@ SAMPLE_MODELS = (
         u("log_modulation_scale", .03, .30), u("log_modulation_power", 1.20, 4.)),
         "{spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho, "
         "log_modulation_scale, log_modulation_power}",
-        driver="volterra::LogModulatedHybridDriverPolicy",
+        kernel="volterra::LogModulatedHybridKernelPolicy",
+        pricing_numerical_method="log-modulated hybrid FFT (kappa=1)",
     ),
     SampleModelSpec(
         "rough_stein_stein", "Rough Stein-Stein", "equity", "rough",
@@ -261,7 +297,8 @@ SAMPLE_MODELS = (
         u("hurst_exponent", .03, .25), u("rho", -.90, .10)),
         "{spot, risk_free_rate, dividend_yield, volatility_level, mean_reversion, "
         "volatility_of_volatility, hurst_exponent, rho}",
-        driver="volterra::FractionalResolventHybridDriverPolicy",
+        kernel="volterra::FractionalResolventHybridKernelPolicy",
+        pricing_numerical_method="fractional-resolvent hybrid FFT",
     ),
     SampleModelSpec(
         "rough_heston", "Rough-Heston", "equity", "rough", "n_factor",
@@ -279,6 +316,8 @@ SAMPLE_MODELS = (
         "{spot, risk_free_rate, dividend_yield, initial_variance, mean_reversion, "
         "variance_drift, volatility_of_variance, hurst_exponent, rho}",
         "const float variance_drift = mean_reversion * long_run_variance; const float volatility_of_variance = uniform({std::max(std::sqrt(variance_drift / 5.0f), 0.08f), std::min(std::sqrt(12.0f * variance_drift), 0.8f)}, uniforms);",
+        pricing_numerical_method="7-factor Markovian lift",
+        threads_per_block=256,
     ),
     SampleModelSpec(
         "quadratic_rough_heston", "Quadratic rough-Heston", "equity", "rough",
@@ -299,6 +338,8 @@ SAMPLE_MODELS = (
         "{spot, risk_free_rate, dividend_yield, initial_feedback, quadratic_scale, "
         "quadratic_shift, variance_floor, feedback_rate, feedback_volatility, "
         "hurst_exponent}",
+        pricing_numerical_method="7-factor Markovian lift",
+        threads_per_block=256,
     ),
     SampleModelSpec(
         "cir", "CIR", "fixed_income", "", "markovian", "exact", "state",
@@ -310,6 +351,8 @@ SAMPLE_MODELS = (
          u("initial_state", .001, .08)),
         "{{mean_reversion, long_term_mean, volatility}, initial_state}",
         "const float volatility = uniform({std::max(std::sqrt(mean_reversion * long_term_mean / 5.0f), 0.005f), std::min(std::sqrt(12.0f * mean_reversion * long_term_mean), 0.30f)}, uniforms);",
+        pricing_numerical_method="exact noncentral-chi-square transition",
+        analytics_contract="standalone CIR affine provider",
     ),
     SampleModelSpec(
         "g2", "G2", "fixed_income", "", "markovian", "exact",
@@ -327,6 +370,8 @@ SAMPLE_MODELS = (
          u("initial_state_y", .001, .03)),
         "{{mean_reversion_x, volatility_x, mean_reversion_y, volatility_y, "
         "correlation}, {initial_state_x, initial_state_y}}",
+        pricing_numerical_method="exact correlated Gaussian transition",
+        analytics_contract="standalone two-factor affine provider",
     ),
     SampleModelSpec(
         "g2_plus_plus", "G2++", "fixed_income", "", "markovian", "exact",
@@ -341,6 +386,8 @@ SAMPLE_MODELS = (
          u("correlation", -.75, .25)),
         "{{mean_reversion_x, volatility_x, mean_reversion_y, volatility_y, correlation}}",
         extra_dynamics_include="#include \"model/fixed_income/g2/dynamics_impl.cuh\"\n",
+        pricing_numerical_method="exact correlated Gaussian transition",
+        analytics_contract="curve-fitted two-factor affine provider",
     ),
     SampleModelSpec(
         "hull_white", "Hull-White", "fixed_income", "", "markovian", "exact",
@@ -350,6 +397,8 @@ SAMPLE_MODELS = (
         "{mean_reversion, volatility}",
         "const float volatility = stationary_volatility * std::sqrt(2.0f * mean_reversion);",
         extra_dynamics_include="#include \"model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh\"\n",
+        pricing_numerical_method="exact OU transition",
+        analytics_contract="curve-fitted one-factor affine provider",
     ),
     SampleModelSpec(
         "ornstein_uhlenbeck", "Ornstein-Uhlenbeck", "fixed_income", "",
@@ -360,6 +409,8 @@ SAMPLE_MODELS = (
          u("initial_state", .001, .08)),
         "{{mean_reversion, volatility}, initial_state}",
         "const float volatility = stationary_volatility * std::sqrt(2.0f * mean_reversion);",
+        pricing_numerical_method="exact OU transition",
+        analytics_contract="standalone one-factor affine provider",
     ),
     SampleModelSpec(
         "vasicek", "Vasicek", "fixed_income", "", "markovian", "exact",
@@ -371,9 +422,36 @@ SAMPLE_MODELS = (
          u("stationary_volatility", .0025, .025), u("initial_state", .001, .08)),
         "{{mean_reversion, long_term_mean, volatility}, initial_state}",
         "const float volatility = stationary_volatility * std::sqrt(2.0f * mean_reversion);",
+        pricing_numerical_method="exact Gaussian mean-reverting transition",
+        analytics_contract="standalone one-factor affine provider",
     ),
 )
 
 SAMPLE_MODEL_BY_NAME = {model.name: model for model in SAMPLE_MODELS}
 
+
+def validate_model_contracts(models) -> None:
+    names = [model.name for model in models]
+    if len(names) != len(set(names)):
+        raise ValueError("duplicate canonical model contract")
+    for model in models:
+        if not model.pricing_numerical_method:
+            raise ValueError(
+                f"model lacks a numerical method: {model.name}"
+            )
+        if not model.observation or not model.outputs:
+            raise ValueError(
+                f"model lacks state/observable contracts: {model.name}"
+            )
+        if (
+            not model.supported_architectures
+            or len(model.supported_architectures)
+                != len(set(model.supported_architectures))
+        ):
+            raise ValueError(
+                f"model lacks unique architecture contracts: {model.name}"
+            )
+
+
+validate_model_contracts(SAMPLE_MODELS)
 assert len(SAMPLE_MODELS) == 24

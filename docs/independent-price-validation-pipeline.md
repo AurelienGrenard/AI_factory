@@ -73,7 +73,7 @@ The top-level identity mirrors the source dataset:
 ```json
 {
   "database_id": "...",
-  "catalog": "catalog/model/<asset_class>/<model>/prices/...",
+  "catalog": "catalog/model/<asset_class>/[<family>/]<model>/prices/...",
   "url": "https://datasets.ai-factory.example/v1/validation/price/...json",
   "row_count": 1000,
   "model_dataset": {"id": "...", "catalog": "...", "url": "..."},
@@ -277,7 +277,7 @@ Routine validation is cache-only. For example:
 
 ```bash
 python -m validation.model.equity.black_scholes.european_call \
-  datasets/model/equity/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01.json \
+  datasets/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01.json \
   validation/datasets/price/equity/black_scholes/european_calls/black_scholes_01__european_calls_01__01.json \
   --require-verified
 ```

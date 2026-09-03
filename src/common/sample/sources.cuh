@@ -93,6 +93,15 @@ struct ConstantCalendarSource {
         simulation::validate_calendar(calendar);
     }
 
+    template<typename TimeConfiguration>
+    void validate(
+        std::size_t total_sample_count,
+        const TimeConfiguration& time_configuration
+    ) const {
+        validate(total_sample_count);
+        simulation::validate_calendar(calendar, time_configuration);
+    }
+
     __device__ __forceinline__ Calendar load(
         std::size_t,
         std::uint64_t
@@ -103,6 +112,7 @@ struct ConstantCalendarSource {
 
 template<typename Calendar>
 struct DeviceCalendarSource {
+    const Calendar* host_calendars;
     const Calendar* calendars;
 
     void validate(std::size_t total_sample_count) const {
@@ -111,7 +121,28 @@ struct DeviceCalendarSource {
                 "A calendar source requires at least one sample."
             );
         }
+        if (host_calendars == nullptr) {
+            throw std::invalid_argument(
+                "Device sample calendars require a host validation mirror."
+            );
+        }
         validate_device_pointer(calendars, "device sample calendars");
+    }
+
+    template<typename TimeConfiguration>
+    void validate(
+        std::size_t total_sample_count,
+        const TimeConfiguration& time_configuration
+    ) const {
+        validate(total_sample_count);
+        for (std::size_t sample_index = 0U;
+             sample_index < total_sample_count;
+             ++sample_index) {
+            simulation::validate_calendar(
+                host_calendars[sample_index],
+                time_configuration
+            );
+        }
     }
 
     __device__ __forceinline__ Calendar load(
@@ -151,6 +182,18 @@ struct UniformMaturityCalendarSource {
                 "device generated maturity days"
             );
         }
+    }
+
+    template<typename TimeConfiguration>
+    void validate(
+        std::size_t total_sample_count,
+        const TimeConfiguration& time_configuration
+    ) const {
+        validate(total_sample_count);
+        simulation::validate_calendar(
+            simulation::MaturityCalendar{bounds.maximum},
+            time_configuration
+        );
     }
 
     std::uint32_t maximum_maturity_days() const noexcept {
@@ -222,6 +265,20 @@ struct RandomIncreasingCalendarSource {
                 );
             }
         }
+    }
+
+    template<typename TimeConfiguration>
+    void validate(
+        std::size_t total_sample_count,
+        const TimeConfiguration& time_configuration
+    ) const {
+        validate(total_sample_count);
+        simulation::validate_calendar(
+            simulation::MaturityCalendar{
+                rules.maximum_observation_day
+            },
+            time_configuration
+        );
     }
 
     std::uint32_t maximum_maturity_days() const noexcept {

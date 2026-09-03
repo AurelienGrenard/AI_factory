@@ -1,6 +1,6 @@
-// Build one Vasicek floorlet price dataset.
+// Generated Build one Vasicek floorlet price dataset.
+#include "model/fixed_income/vasicek/product/rate_option.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
-#include "model/fixed_income/vasicek/rate_option.cuh"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
@@ -17,7 +17,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/rate_options/rate_options_01.json";
+    "datasets/product/rate_option/rate_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;
 
@@ -110,7 +110,7 @@ int main() {
         }
     );
 
-    // 4. Write and structurally validate the analytical price dataset.
+    // 4. Write the complete analytical price dataset and catalog YAML.
     datasets::write_analytical_price_dataset(
         model_dataset_path,
         product_dataset_path,

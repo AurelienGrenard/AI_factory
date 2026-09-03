@@ -1,6 +1,6 @@
 // Fukasawa--Gatheral Figure 6.4 probe using the production CUDA launcher.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough/rough_sabr/european_option.cuh"
+#include "model/equity/rough/rough_sabr/product/european_option.cuh"
 
 #include <cuda_runtime.h>
 

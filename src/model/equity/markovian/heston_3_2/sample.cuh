@@ -1,4 +1,4 @@
-// Generated model-only Heston 3/2 sample launchers.
+// Public generated Heston 3/2 launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/heston_3_2/parameters.hpp"

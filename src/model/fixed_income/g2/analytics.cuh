@@ -1,4 +1,4 @@
-// Closed-form fixed-income analytics for the standalone G2 model.
+// Public closed-form analytics declarations used by standalone G2 pricing bindings.
 #pragma once
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"
@@ -18,7 +18,7 @@ __device__ __forceinline__ float stochastic_short_rate(const State& state);
 __device__ __forceinline__ float short_rate(
     const ModelParameters& parameters,
     const State& state,
-    float time
+    float time_years
 );
 
 // ===================== Common fixed-income analytics ======================
@@ -58,91 +58,91 @@ __device__ __forceinline__ float bond_option_total_volatility(
 // Return the logarithm of the affine bond prefactor A(t,T).
 __device__ __forceinline__ float log_A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 );
 
 // Return the affine bond prefactor A(t,T).
 __device__ __forceinline__ float A(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 );
 
 // Return both affine state loadings B(t,T).
 __device__ __forceinline__ TwoFactorAffineBondLoadings B(
     const ModelParameters& parameters,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 );
 
 // Return log P = log A - B_x*x - B_y*y.
 __device__ __forceinline__ float log_zero_coupon_bond(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 );
 
-// Return minus the accumulated short-rate integral from time zero.
+// Return minus the accumulated short-rate integral from time_years zero.
 __device__ __forceinline__ float log_discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 );
 
-// Return the accumulated path discount factor from time zero.
+// Return the accumulated path discount factor from time_years zero.
 __device__ __forceinline__ float discount_factor(
     const ModelParameters& parameters,
     float state_integral,
-    float time
+    float time_years
 );
 
-// Return the model zero-coupon bond P(valuation_time, maturity).
+// Return the model zero-coupon bond P(valuation_time_years, maturity_years).
 __device__ __forceinline__ float zero_coupon_bond(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float maturity
+    float valuation_time_years,
+    float maturity_years
 );
 
-// Return a call on P(option_expiry,bond_maturity), valued at valuation_time.
+// Return a call on P(option_expiry_years,bond_maturity_years), valued at valuation_time_years.
 __device__ __forceinline__ float zero_coupon_bond_call_price(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 );
 
-// Return a put on P(option_expiry,bond_maturity), valued at valuation_time.
+// Return a put on P(option_expiry_years,bond_maturity_years), valued at valuation_time_years.
 __device__ __forceinline__ float zero_coupon_bond_put_price(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float option_expiry,
-    float bond_maturity,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
     float strike
 );
 
-// Return the simple forward rate over [start_time,end_time].
+// Return the simple forward rate over [start_time_years,end_time_years].
 __device__ __forceinline__ float forward_rate(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
-    float end_time,
+    float valuation_time_years,
+    float start_time_years,
+    float end_time_years,
     float accrual_fraction
 );
 
-// Return the par swap rate observed at valuation_time.
+// Return the par swap rate observed at valuation_time_years.
 template<typename ScheduleView>
 __device__ __forceinline__ float swap_rate(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     const ScheduleView& schedule
 );
 
@@ -151,8 +151,8 @@ template<typename ScheduleView>
 __device__ __forceinline__ float payer_swap_value(
     const ModelParameters& parameters,
     const State& state,
-    float valuation_time,
-    float start_time,
+    float valuation_time_years,
+    float start_time_years,
     float fixed_rate,
     const ScheduleView& schedule
 );
@@ -214,25 +214,25 @@ struct BermudanSwaptionAnalyticsPolicy {
     __device__ __forceinline__ static float log_discount_factor(
         const PreparedModel& model,
         float state_integral,
-        float time
+        float time_years
     ) {
-        return g2::log_discount_factor(model, state_integral, time);
+        return g2::log_discount_factor(model, state_integral, time_years);
     }
 
     template<typename ScheduleView>
     __device__ __forceinline__ static float payer_swap_value(
         const PreparedModel& model,
         const State& state,
-        float valuation_time,
-        float start_time,
+        float valuation_time_years,
+        float start_time_years,
         float fixed_rate,
         const ScheduleView& schedule
     ) {
         return g2::payer_swap_value(
             model,
             state,
-            valuation_time,
-            start_time,
+            valuation_time_years,
+            start_time_years,
             fixed_rate,
             schedule
         );

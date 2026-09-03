@@ -1,3 +1,4 @@
+// Loader declarations for rough Stein--Stein parameter datasets.
 #pragma once
 
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"

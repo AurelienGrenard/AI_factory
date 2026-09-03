@@ -1,0 +1,564 @@
+{
+  "schema": "ai_factory_nsight_compute_profile",
+  "version": 1,
+  "generated_at": "2026-09-03T19:19:02.347583+00:00",
+  "section_set": "detailed",
+  "ncu_version": "NVIDIA (R) Nsight Compute Command Line Profiler\nCopyright (c) 2018-2026 NVIDIA Corporation\nVersion 2026.2.1.0 (build 38283040) (public-release)",
+  "baseline": {
+    "path": "tests/performance/baseline_sm89_v3.json",
+    "sha256": "94b7370a2bf1ebed350a04a1037c42115d7a6946127399d7c4358f329786429f"
+  },
+  "candidate": {
+    "path": "build-dev/performance_candidate_sm89_v3.ndjson",
+    "sha256": "0ca4c5f3ccfa68ad1415c08ded3afb14e6570c08326ed0805c11e3ec19d9a754"
+  },
+  "target": {
+    "measurement_id": "model_samples__rough_n_factor_7_12000_x_250",
+    "scope": "model_sampling",
+    "command_id": "model_samples",
+    "command": [
+      "build-dev/ai_factory_model_sample_benchmark"
+    ],
+    "executable_sha256": "267ce501dd32116a08910a19eb8aef99dc9ac44915f75996019d103d44532d48",
+    "resource_index": 0,
+    "kernel": "rough_heston.samples",
+    "variant": "terminal.prepared_parameter_block",
+    "compiled_symbol": "_ZN10ai_factory9workbench6sample29parameter_block_sample_kernelINS1_19ModelSamplingPolicyINS0_10simulation25FixedStepTerminalScheduleINS0_5model6equity12rough_heston14DynamicsPolicyILm7EEEEENS1_23ScalarSampleObservationISA_NS1_17SpotValueAccessorISA_EEEEEENS1_21DeviceParameterSourceINS8_16PreparedDynamicsILm7EEEEENS1_22ConstantCalendarSourceINS4_16MaturityCalendarEEEEEvT0_T1_NS1_11SampleRangeEmNT_8Schedule17TimeConfigurationENS1_13SamplingSeedsENSR_6OutputE",
+    "launch": {
+      "grid_block_count": 4096,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "threads_per_block": 256,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "dynamic_shared_bytes_per_block": 0
+    },
+    "compiled_resources": {
+      "compiled_symbol": "_ZN10ai_factory9workbench6sample29parameter_block_sample_kernelINS1_19ModelSamplingPolicyINS0_10simulation25FixedStepTerminalScheduleINS0_5model6equity12rough_heston14DynamicsPolicyILm7EEEEENS1_23ScalarSampleObservationISA_NS1_17SpotValueAccessorISA_EEEEEENS1_21DeviceParameterSourceINS8_16PreparedDynamicsILm7EEEEENS1_22ConstantCalendarSourceINS4_16MaturityCalendarEEEEEvT0_T1_NS1_11SampleRangeEmNT_8Schedule17TimeConfigurationENS1_13SamplingSeedsENSR_6OutputE",
+      "registers_per_thread": 151,
+      "stack_frame_bytes": 32,
+      "static_shared_bytes_per_block": 348,
+      "local_bytes_per_thread": 0,
+      "sass_code_bytes": 20224,
+      "sass_instruction_count": 1264,
+      "sass_local_load_instructions": 3,
+      "sass_local_store_instructions": 2
+    }
+  },
+  "preflight": {
+    "thermal_stabilization": [
+      {
+        "phase": "initial",
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "46.80",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "2040",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 70,
+          "throttle_reasons": "0x0000000000000001",
+          "throttle": {
+            "gpu_idle": "Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 175.0,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 1,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "de7ff9c9f5c176dd68d04107d2c9aa69f05f2671713825206af94e2b447f1e97",
+        "elapsed_seconds": 8.11416206099966,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "107.61",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1845",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 79,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 168.11,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 2,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "915b6911231dae323f4875489fc0852dd24a4a19699c93b1a5712f48033c3f5a",
+        "elapsed_seconds": 17.151803419998032,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "89.34",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1695",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 79,
+          "throttle_reasons": "0x0000000000000001",
+          "throttle": {
+            "gpu_idle": "Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 171.59,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 3,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "f59a969d80792487084665c42b79079800df1216efee31cf3960617230584fe1",
+        "elapsed_seconds": 26.577521149003587,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "89.30",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1620",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 79,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 168.94,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 4,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "df48f9a3fa5fec79264b8182466c7f157f5b6dd49ceffc6a3c26b081dba8ce47",
+        "elapsed_seconds": 36.43446707200201,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "68.95",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 79,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 170.96,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 5,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "b57838725cd4914e016888c4cbf22d1e8978f124b68d1bfd24942af958241829",
+        "elapsed_seconds": 46.09782382100093,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "60.68",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 79,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 174.43,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 6,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "e70e3dd08e483dc5a11c639811ea841298e32bcc331fa0d054099b956c933b5e",
+        "elapsed_seconds": 56.01146392300143,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "59.05",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "2310",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 76,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 173.77,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 7,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "39e1ff2eabb8359929f29d44a3415d246c5c58795463f191e514c7821e1cc95e",
+        "elapsed_seconds": 65.56490083799872,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "81.60",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 80,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 171.86,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 8,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "e93aed6a75c5002aaa52521cb18e2c9c3e28b5117dcafe75b3132e3b1a7d2062",
+        "elapsed_seconds": 75.04263637099939,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "86.99",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 80,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 172.3,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 9,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "e815adbc39f813d4d9239c460919ce14cc7bcf5dfcbd03c9f0d66cbdf05eb520",
+        "elapsed_seconds": 85.14263372500136,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "56.15",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "2310",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 77,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 174.77,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 10,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "6d631438e30a95eb7e63b2423152f30c3881a950cb929a3c92da86d08955452f",
+        "elapsed_seconds": 94.90235572899837,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "87.41",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 81,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 170.97,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 11,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "d6534ba71c4c713fe297efca7752e2af43ae014c48d5a923fb31519dbf4aa808",
+        "elapsed_seconds": 104.84578322400193,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "56.50",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 81,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 171.71,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      },
+      {
+        "phase": "after_stabilization_run",
+        "run": 12,
+        "command_id": "volterra_hybrid_8",
+        "stdout_sha256": "123d810a95c14d4b2949687e94f1dd20b29f7d8e21712f5e8a6d691d6bba7a64",
+        "elapsed_seconds": 114.53823159199965,
+        "snapshot": {
+          "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "pci_bus_id": "00000000:01:00.0",
+          "performance_state": "P0",
+          "power_draw_w": "49.96",
+          "power_limit_w": "[N/A]",
+          "graphics_clock_mhz": "1590",
+          "memory_clock_mhz": "9001",
+          "temperature_c": 81,
+          "throttle_reasons": "0x0000000000000000",
+          "throttle": {
+            "gpu_idle": "Not Active",
+            "software_power_cap": "Not Active",
+            "hardware_slowdown": "Not Active",
+            "hardware_thermal_slowdown": "Not Active",
+            "software_thermal_slowdown": "Not Active"
+          },
+          "power_limits_w": {
+            "current": 171.8,
+            "default": 150.0,
+            "minimum": 5.0,
+            "maximum": 175.0
+          },
+          "power_source": "external_power",
+          "concurrent_compute_processes": []
+        }
+      }
+    ],
+    "before": {
+      "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+      "pci_bus_id": "00000000:01:00.0",
+      "performance_state": "P0",
+      "power_draw_w": "49.96",
+      "power_limit_w": "[N/A]",
+      "graphics_clock_mhz": "1590",
+      "memory_clock_mhz": "9001",
+      "temperature_c": 81,
+      "throttle_reasons": "0x0000000000000000",
+      "throttle": {
+        "gpu_idle": "Not Active",
+        "software_power_cap": "Not Active",
+        "hardware_slowdown": "Not Active",
+        "hardware_thermal_slowdown": "Not Active",
+        "software_thermal_slowdown": "Not Active"
+      },
+      "power_limits_w": {
+        "current": 171.8,
+        "default": 150.0,
+        "minimum": 5.0,
+        "maximum": 175.0
+      },
+      "power_source": "external_power",
+      "concurrent_compute_processes": []
+    },
+    "after": {
+      "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+      "pci_bus_id": "00000000:01:00.0",
+      "performance_state": "P0",
+      "power_draw_w": "46.43",
+      "power_limit_w": "[N/A]",
+      "graphics_clock_mhz": "2040",
+      "memory_clock_mhz": "9001",
+      "temperature_c": 73,
+      "throttle_reasons": "0x0000000000000001",
+      "throttle": {
+        "gpu_idle": "Active",
+        "software_power_cap": "Not Active",
+        "hardware_slowdown": "Not Active",
+        "hardware_thermal_slowdown": "Not Active",
+        "software_thermal_slowdown": "Not Active"
+      },
+      "power_limits_w": {
+        "current": 175.0,
+        "default": 150.0,
+        "minimum": 5.0,
+        "maximum": 175.0
+      },
+      "power_source": "external_power",
+      "concurrent_compute_processes": []
+    }
+  },
+  "invocation": [
+    "/usr/local/cuda/bin/ncu",
+    "--target-processes",
+    "application-only",
+    "--kernel-name-base",
+    "mangled",
+    "--kernel-name",
+    "_ZN10ai_factory9workbench6sample29parameter_block_sample_kernelINS1_19ModelSamplingPolicyINS0_10simulation25FixedStepTerminalScheduleINS0_5model6equity12rough_heston14DynamicsPolicyILm7EEEEENS1_23ScalarSampleObservationISA_NS1_17SpotValueAccessorISA_EEEEEENS1_21DeviceParameterSourceINS8_16PreparedDynamicsILm7EEEEENS1_22ConstantCalendarSourceINS4_16MaturityCalendarEEEEEvT0_T1_NS1_11SampleRangeEmNT_8Schedule17TimeConfigurationENS1_13SamplingSeedsENSR_6OutputE",
+    "--launch-count",
+    "1",
+    "--kill",
+    "1",
+    "--set",
+    "detailed",
+    "--apply-rules",
+    "on",
+    "--export",
+    "/tmp/ai_factory_ncu_70aobpv9/profile",
+    "--force-overwrite",
+    "build-dev/ai_factory_model_sample_benchmark"
+  ],
+  "profiler_stdout": "==PROF== Connected to process 441450 (/home/aurelieng/projects/quant_research/AI_factory/build-dev/ai_factory_model_sample_benchmark)\n{\"schema\":\"ai_factory_cuda_performance_baseline\",\"protocol_version\":3,\"finding\":\"PERF-010\",\"benchmark\":\"model_sample_pipeline\",\"variant\":\"exact_markovian_3m_x_1\",\"environment\":{\"gpu\":\"NVIDIA GeForce RTX 4090 Laptop GPU\",\"compute_capability\":\"8.9\",\"sm_count\":76,\"memory_bytes\":17170956288,\"pci_bus_id\":1,\"driver_version\":13020,\"runtime_version\":13030,\"cuda_compiler_version\":\"13.3.73\"},\"protocol\":{\"warmups\":5,\"repetitions\":21,\"primary_statistic\":\"median_ms\",\"tail_statistic\":\"p95_ms\",\"minimum_accepted_gain\":0.05,\"maximum_noise_coefficient\":0.05,\"maximum_host_noise_coefficient\":0.1,\"maximum_publication_noise_coefficient\":0.1,\"wall_semantics\":\"max(raw_host_clock, enclosing_cuda_event_interval)\"},\"configuration\":{\"engine\":\"exact_markovian\",\"layout\":\"3m_x_1\",\"production_parameter_count\":3000000,\"production_paths_per_parameter\":1,\"benchmark_parameter_count\":3000000,\"benchmark_paths_per_parameter\":1,\"benchmark_sample_count\":3000000,\"maturity_days\":504,\"threads_per_block\":256,\"block_count\":4096,\"launches_per_measurement\":2048,\"publication_row_count\":262144,\"publication_batch_size\":16,\"tuning_profile\":\"sm89_reference_v1\",\"reduction_rationale\":\"full production layout\",\"operations_per_timing_sample\":1},\"kernel\":{\"minimum_ms\":144.31027221679688,\"median_ms\":155.42579650878906,\"p95_ms\":168.7437744140625,\"mean_ms\":156.63592819940476,\"standard_deviation_ms\":7.196327142206946,\"coefficient_of_variation\":0.045943017192362726},\"public_api\":{\"minimum_ms\":151.836388,\"median_ms\":163.60104,\"p95_ms\":177.536666,\"mean_ms\":164.88629304761903,\"standard_deviation_ms\":7.568727127055012,\"coefficient_of_variation\":0.045902706569242654},\"pipeline\":{\"minimum_ms\":151.836388,\"median_ms\":163.60104,\"p95_ms\":177.536666,\"mean_ms\":164.88629304761903,\"standard_deviation_ms\":7.568727127055012,\"coefficient_of_variation\":0.045902706569242654},\"device_memory\":{\"persistent_input_bytes\":48000000,\"caller_workspace_bytes\":0,\"transient_call_peak_bytes\":0,\"output_bytes\":12000000,\"tracked_peak_bytes\":60000000,\"observed_resident_bytes\":1519910912,\"driver_context_and_pool_bytes\":1459910912,\"free_margin_bytes\":15651045376,\"total_bytes\":17170956288},\"numerical_check\":{\"finite\":true,\"samples_per_second\":39530117509.49957,\"philox_mapping\":\"parameter row key and path counter unchanged\"},\"publication_wall\":{\"minimum_ms\":85.59192175,\"median_ms\":89.85673075,\"p95_ms\":94.2431185625,\"mean_ms\":90.36007705059524,\"standard_deviation_ms\":2.897782901481597,\"coefficient_of_variation\":0.03206928320633286}}\n{\"schema\":\"ai_factory_cuda_performance_baseline\",\"protocol_version\":3,\"finding\":\"PERF-010\",\"benchmark\":\"model_sample_pipeline\",\"variant\":\"exact_markovian_12000_x_250\",\"environment\":{\"gpu\":\"NVIDIA GeForce RTX 4090 Laptop GPU\",\"compute_capability\":\"8.9\",\"sm_count\":76,\"memory_bytes\":17170956288,\"pci_bus_id\":1,\"driver_version\":13020,\"runtime_version\":13030,\"cuda_compiler_version\":\"13.3.73\"},\"protocol\":{\"warmups\":5,\"repetitions\":21,\"primary_statistic\":\"median_ms\",\"tail_statistic\":\"p95_ms\",\"minimum_accepted_gain\":0.05,\"maximum_noise_coefficient\":0.05,\"maximum_host_noise_coefficient\":0.1,\"maximum_publication_noise_coefficient\":0.1,\"wall_semantics\":\"max(raw_host_clock, enclosing_cuda_event_interval)\"},\"configuration\":{\"engine\":\"exact_markovian\",\"layout\":\"12000_x_250\",\"production_parameter_count\":12000,\"production_paths_per_parameter\":250,\"benchmark_parameter_count\":12000,\"benchmark_paths_per_parameter\":250,\"benchmark_sample_count\":3000000,\"maturity_days\":504,\"threads_per_block\":256,\"block_count\":4096,\"launches_per_measurement\":2048,\"publication_row_count\":262144,\"publication_batch_size\":16,\"tuning_profile\":\"sm89_reference_v1\",\"reduction_rationale\":\"full production layout\",\"operations_per_timing_sample\":1},\"kernel\":{\"minimum_ms\":125.27616119384766,\"median_ms\":134.60479736328125,\"p95_ms\":148.05197143554688,\"mean_ms\":135.9305187406994,\"standard_deviation_ms\":7.305226815642897,\"coefficient_of_variation\":0.05374235957694183},\"public_api\":{\"minimum_ms\":132.031365,\"median_ms\":141.853539,\"p95_ms\":156.013502,\"mean_ms\":143.25074666666666,\"standard_deviation_ms\":7.694630535888606,\"coefficient_of_variation\":0.0537144183533885},\"pipeline\":{\"minimum_ms\":132.031365,\"median_ms\":141.853539,\"p95_ms\":156.013502,\"mean_ms\":143.25074666666666,\"standard_deviation_ms\":7.694630535888606,\"coefficient_of_variation\":0.0537144183533885},\"device_memory\":{\"persistent_input_bytes\":192000,\"caller_workspace_bytes\":0,\"transient_call_peak_bytes\":0,\"output_bytes\":12000000,\"tracked_peak_bytes\":12192000,\"observed_resident_bytes\":1473773568,\"driver_context_and_pool_bytes\":1461581568,\"free_margin_bytes\":15697182720,\"total_bytes\":17170956288},\"numerical_check\":{\"finite\":true,\"samples_per_second\":45644732731.31658,\"philox_mapping\":\"parameter row key and path counter unchanged\"},\"publication_wall\":{\"minimum_ms\":87.0466675625,\"median_ms\":89.7000239375,\"p95_ms\":92.6678429375,\"mean_ms\":90.01602730357142,\"standard_deviation_ms\":1.7894437839490813,\"coefficient_of_variation\":0.019879168605323294}}\n{\"schema\":\"ai_factory_cuda_performance_baseline\",\"protocol_version\":3,\"finding\":\"PERF-010\",\"benchmark\":\"model_sample_pipeline\",\"variant\":\"fixed_step_markovian_3m_x_1\",\"environment\":{\"gpu\":\"NVIDIA GeForce RTX 4090 Laptop GPU\",\"compute_capability\":\"8.9\",\"sm_count\":76,\"memory_bytes\":17170956288,\"pci_bus_id\":1,\"driver_version\":13020,\"runtime_version\":13030,\"cuda_compiler_version\":\"13.3.73\"},\"protocol\":{\"warmups\":5,\"repetitions\":21,\"primary_statistic\":\"median_ms\",\"tail_statistic\":\"p95_ms\",\"minimum_accepted_gain\":0.05,\"maximum_noise_coefficient\":0.05,\"maximum_host_noise_coefficient\":0.1,\"maximum_publication_noise_coefficient\":0.1,\"wall_semantics\":\"max(raw_host_clock, enclosing_cuda_event_interval)\"},\"configuration\":{\"engine\":\"fixed_step_markovian\",\"layout\":\"3m_x_1\",\"production_parameter_count\":3000000,\"production_paths_per_parameter\":1,\"benchmark_parameter_count\":3000000,\"benchmark_paths_per_parameter\":1,\"benchmark_sample_count\":3000000,\"maturity_days\":504,\"threads_per_block\":256,\"block_count\":4096,\"launches_per_measurement\":1,\"publication_row_count\":262144,\"publication_batch_size\":16,\"tuning_profile\":\"sm89_reference_v1\",\"reduction_rationale\":\"full production layout\",\"operations_per_timing_sample\":2},\"kernel\":{\"minimum_ms\":65.9450912475586,\"median_ms\":67.04742431640625,\"p95_ms\":67.40633392333984,\"mean_ms\":66.74676767985027,\"standard_deviation_ms\":0.5674097492192737,\"coefficient_of_variation\":0.008500932239008859},\"public_api\":{\"minimum_ms\":69.47307,\"median_ms\":70.6601835,\"p95_ms\":71.043102,\"mean_ms\":70.31671030952381,\"standard_deviation_ms\":0.6048831979104666,\"coefficient_of_variation\":0.008602268155718034},\"pipeline\":{\"minimum_ms\":69.47307,\"median_ms\":70.6601835,\"p95_ms\":71.043102,\"mean_ms\":70.31671030952381,\"standard_deviation_ms\":0.6048831979104666,\"coefficient_of_variation\":0.008602268155718034},\"device_memory\":{\"persistent_input_bytes\":96000000,\"caller_workspace_bytes\":0,\"transient_call_peak_bytes\":0,\"output_bytes\":24000000,\"tracked_peak_bytes\":120000000,\"observed_resident_bytes\":1580728320,\"driver_context_and_pool_bytes\":1460728320,\"free_margin_bytes\":15590227968,\"total_bytes\":17170956288},\"numerical_check\":{\"finite\":true,\"samples_per_second\":44744448.13633074,\"philox_mapping\":\"parameter row key and path counter unchanged\"},\"publication_wall\":{\"minimum_ms\":85.59192175,\"median_ms\":89.85673075,\"p95_ms\":94.2431185625,\"mean_ms\":90.36007705059524,\"standard_deviation_ms\":2.897782901481597,\"coefficient_of_variation\":0.03206928320633286}}\n{\"schema\":\"ai_factory_cuda_performance_baseline\",\"protocol_version\":3,\"finding\":\"PERF-010\",\"benchmark\":\"model_sample_pipeline\",\"variant\":\"fixed_step_markovian_12000_x_250\",\"environment\":{\"gpu\":\"NVIDIA GeForce RTX 4090 Laptop GPU\",\"compute_capability\":\"8.9\",\"sm_count\":76,\"memory_bytes\":17170956288,\"pci_bus_id\":1,\"driver_version\":13020,\"runtime_version\":13030,\"cuda_compiler_version\":\"13.3.73\"},\"protocol\":{\"warmups\":5,\"repetitions\":21,\"primary_statistic\":\"median_ms\",\"tail_statistic\":\"p95_ms\",\"minimum_accepted_gain\":0.05,\"maximum_noise_coefficient\":0.05,\"maximum_host_noise_coefficient\":0.1,\"maximum_publication_noise_coefficient\":0.1,\"wall_semantics\":\"max(raw_host_clock, enclosing_cuda_event_interval)\"},\"configuration\":{\"engine\":\"fixed_step_markovian\",\"layout\":\"12000_x_250\",\"production_parameter_count\":12000,\"production_paths_per_parameter\":250,\"benchmark_parameter_count\":12000,\"benchmark_paths_per_parameter\":250,\"benchmark_sample_count\":3000000,\"maturity_days\":504,\"threads_per_block\":256,\"block_count\":4096,\"launches_per_measurement\":1,\"publication_row_count\":262144,\"publication_batch_size\":16,\"tuning_profile\":\"sm89_reference_v1\",\"reduction_rationale\":\"full production layout\",\"operations_per_timing_sample\":2},\"kernel\":{\"minimum_ms\":69.11692810058594,\"median_ms\":69.3724136352539,\"p95_ms\":71.6994400024414,\"mean_ms\":69.91861143566314,\"standard_deviation_ms\":0.9787509887095729,\"coefficient_of_variation\":0.013998432872343126},\"public_api\":{\"minimum_ms\":72.8347615,\"median_ms\":73.0764795,\"p95_ms\":75.5356465,\"mean_ms\":73.65131873809524,\"standard_deviation_ms\":1.0295593197097517,\"coefficient_of_variation\":0.013978830757543853},\"pipeline\":{\"minimum_ms\":72.8347615,\"median_ms\":73.0764795,\"p95_ms\":75.5356465,\"mean_ms\":73.65131873809524,\"standard_deviation_ms\":1.0295593197097517,\"coefficient_of_variation\":0.013978830757543853},\"device_memory\":{\"persistent_input_bytes\":384000,\"caller_workspace_bytes\":0,\"transient_call_peak_bytes\":0,\"output_bytes\":24000000,\"tracked_peak_bytes\":24384000,\"observed_resident_bytes\":1486356480,\"driver_context_and_pool_bytes\":1461972480,\"free_margin_bytes\":15684599808,\"total_bytes\":17170956288},\"numerical_check\":{\"finite\":true,\"samples_per_second\":43244855.451813914,\"philox_mapping\":\"parameter row key and path counter unchanged\"},\"publication_wall\":{\"minimum_ms\":87.0466675625,\"median_ms\":89.7000239375,\"p95_ms\":92.6678429375,\"mean_ms\":90.01602730357142,\"standard_deviation_ms\":1.7894437839490813,\"coefficient_of_variation\":0.019879168605323294}}\n{\"schema\":\"ai_factory_cuda_performance_baseline\",\"protocol_version\":3,\"finding\":\"PERF-010\",\"benchmark\":\"model_sample_pipeline\",\"variant\":\"rough_n_factor_7_3m_x_1\",\"environment\":{\"gpu\":\"NVIDIA GeForce RTX 4090 Laptop GPU\",\"compute_capability\":\"8.9\",\"sm_count\":76,\"memory_bytes\":17170956288,\"pci_bus_id\":1,\"driver_version\":13020,\"runtime_version\":13030,\"cuda_compiler_version\":\"13.3.73\"},\"protocol\":{\"warmups\":5,\"repetitions\":21,\"primary_statistic\":\"median_ms\",\"tail_statistic\":\"p95_ms\",\"minimum_accepted_gain\":0.05,\"maximum_noise_coefficient\":0.05,\"maximum_host_noise_coefficient\":0.1,\"maximum_publication_noise_coefficient\":0.1,\"wall_semantics\":\"max(raw_host_clock, enclosing_cuda_event_interval)\"},\"configuration\":{\"engine\":\"rough_n_factor_7\",\"layout\":\"3m_x_1\",\"production_parameter_count\":3000000,\"production_paths_per_parameter\":1,\"benchmark_parameter_count\":3000000,\"benchmark_paths_per_parameter\":1,\"benchmark_sample_count\":3000000,\"maturity_days\":504,\"threads_per_block\":256,\"block_count\":4096,\"launches_per_measurement\":1,\"publication_row_count\":262144,\"publication_batch_size\":16,\"tuning_profile\":\"sm89_reference_v1\",\"reduction_rationale\":\"full production layout\",\"operations_per_timing_sample\":2},\"kernel\":{\"minimum_ms\":136.65370178222656,\"median_ms\":137.4714813232422,\"p95_ms\":142.28480529785156,\"mean_ms\":139.32447233654204,\"standard_deviation_ms\":2.2329801697485623,\"coefficient_of_variation\":0.016027192727166684},\"public_api\":{\"minimum_ms\":143.872655,\"median_ms\":144.717201,\"p95_ms\":149.741636,\"mean_ms\":146.65735090476193,\"standard_deviation_ms\":2.3459884629934464,\"coefficient_of_variation\":0.01599639191980845},\"pipeline\":{\"minimum_ms\":143.872655,\"median_ms\":144.717201,\"p95_ms\":149.741636,\"mean_ms\":146.65735090476193,\"standard_deviation_ms\":2.3459884629934464,\"coefficient_of_variation\":0.01599639191980845},\"device_memory\":{\"persistent_input_bytes\":1044000000,\"caller_workspace_bytes\":0,\"transient_call_peak_bytes\":0,\"output_bytes\":12000000,\"tracked_peak_bytes\":1056000000,\"observed_resident_bytes\":2516058112,\"driver_context_and_pool_bytes\":1460058112,\"free_margin_bytes\":14654898176,\"total_bytes\":17170956288},\"numerical_check\":{\"finite\":true,\"samples_per_second\":21822708.034592137,\"philox_mapping\":\"parameter row key and path counter unchanged\"},\"publication_wall\":{\"minimum_ms\":85.59192175,\"median_ms\":89.85673075,\"p95_ms\":94.2431185625,\"mean_ms\":90.36007705059524,\"standard_deviation_ms\":2.897782901481597,\"coefficient_of_variation\":0.03206928320633286}}\n==PROF== Profiling \"_ZN10ai_factory9workbench6sample29parameter_block_sample_kernelINS1_19ModelSamplingPolicyINS0_10simulation25FixedStepTerminalScheduleINS0_5model6equity12rough_heston14DynamicsPolicyILm7EEEEENS1_23ScalarSampleObservationISA_NS1_17SpotValueAccessorISA_EEEEEENS1_21DeviceParameterSourceINS8_16PreparedDynamicsILm7EEEEENS1_22ConstantCalendarSourceINS4_16MaturityCalendarEEEEEvT0_T1_NS1_11SampleRangeEmNT_8Schedule17TimeConfigurationENS1_13SamplingSeedsENSR_6OutputE\": 0%.\n==WARNING== Launching the workload is taking more time than expected. If this continues to hang, terminate the profile and re-try by profiling the range of all related launches using '--replay-mode range'. See https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#replay for more details.\n...50%....100% - 19 passes\n==PROF== Trying to shutdown target application\n==PROF== Report: /tmp/ai_factory_ncu_70aobpv9/profile.ncu-rep\n",
+  "profiler_stderr": "",
+  "transient_ncu_report_sha256": "491959c8463f997fad71c3c529fa26db20b48f3d4ed450d911c574c8d790ff60",
+  "profile": {
+    "path": "model_samples__rough_n_factor_7_12000_x_250.ncu.csv",
+    "sha256": "09766739c04d4af1337119999839484101234b4a01893fa3a571e7d968dcb0b2",
+    "bytes": 67209
+  }
+}

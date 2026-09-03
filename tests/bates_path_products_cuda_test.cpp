@@ -1,8 +1,8 @@
 // Compare the three uniform one-block Bates product launchers on CUDA.
 #include "common/check_cuda.cuh"
-#include "model/equity/markovian/bates/asian_option.cuh"
-#include "model/equity/markovian/bates/european_option.cuh"
-#include "model/equity/markovian/bates/lookback_option.cuh"
+#include "model/equity/markovian/bates/product/asian_option.cuh"
+#include "model/equity/markovian/bates/product/european_option.cuh"
+#include "model/equity/markovian/bates/product/lookback_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -139,7 +139,7 @@ int main() {
     float european_price = 0.0f;
     float european_error = 0.0f;
     ai_factory::workbench::model::equity::bates::launch_bates_european_option_cuda<OptionSide::call>(
-        device.model, 1U, device.european, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+        device.model, 1U, &european, device.european, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
@@ -148,7 +148,7 @@ int main() {
     float asian_price = 0.0f;
     float asian_error = 0.0f;
     ai_factory::workbench::model::equity::bates::launch_bates_asian_option_cuda<OptionSide::call>(
-        device.model, 1U, device.asian, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+        device.model, 1U, &asian, device.asian, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
@@ -157,7 +157,7 @@ int main() {
     float lookback_price = 0.0f;
     float lookback_error = 0.0f;
     ai_factory::workbench::model::equity::bates::launch_bates_lookback_option_cuda(
-        device.model, 1U, device.lookback, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+        device.model, 1U, &lookback, device.lookback, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );

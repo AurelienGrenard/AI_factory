@@ -25,15 +25,15 @@
 - Follow `docs/catalog-extension-and-validation-workflow.md` for every model,
   curve, product, price, validation, or website extension.
 - For CUDA pricing work, read
-  `docs/cuda-closed-form-and-monte-carlo-pricing-contract.md`; for early
+  `docs/cuda/closed-form-and-monte-carlo-pricing-contract.md`; for early
   exercise work, also read
-  `docs/cuda-american-and-bermudan-pricing-contract.md`; for launcher guards or
+  `docs/cuda/american-and-bermudan-pricing-contract.md`; for launcher guards or
   resource inspection, read
-  `docs/cuda-launch-validation-and-kernel-diagnostics.md`.
-- For model simulation work, read `docs/cuda-model-dynamics-contract.md` before
+  `docs/cuda/launch-validation-and-kernel-diagnostics.md`.
+- For model simulation work, read `docs/cuda/model-dynamics-contract.md` before
   changing a `dynamics.cuh`/`dynamics_impl.cuh` interface or its Philox
   consumption.
-- For model analytics work, read `docs/cuda-model-analytics-contract.md` before
+- For model analytics work, read `docs/cuda/model-analytics-contract.md` before
   changing an `analytics.cuh`/`analytics_impl.cuh` interface, provider, or
   shared primitive.
 - For model-parameter or product generation work, read
@@ -57,7 +57,9 @@
 
 - `src/common`: reusable CUDA/runtime, reduction, random-number, and numerical
   primitives.
-- `src/model/<asset_class>/<model>`: model dynamics, analytics, datasets, and pricing kernels (`asset_class` is `equity` or `fixed_income`).
+- `src/model/<asset_class>/<model>`: model dynamics, analytics, datasets and
+  sampling infrastructure; model-product launch units live only below its
+  `product/` subfolder (`asset_class` is `equity` or `fixed_income`).
 - `src/curve/<curve>`: curve datasets and term-structure analytics.
 - `src/product/<product>`: product parameter rows and JSON loaders.
 - `src/generative`: method-neutral generative-model source code.

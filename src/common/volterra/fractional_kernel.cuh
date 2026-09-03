@@ -41,8 +41,8 @@ struct FractionalPowerKernel {
             / exponent_plus_one;
     }
 
-    __host__ __device__ float normalized_variance(float time) const {
-        return powf(time, two_h);
+    __host__ __device__ float normalized_variance(float time_years) const {
+        return powf(time_years, two_h);
     }
 };
 

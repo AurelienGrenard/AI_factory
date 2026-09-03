@@ -1,14 +1,14 @@
 {
-  "schema_version": 1,
-  "source_sha256": "7e56dd7c3d842f0ac207d2ae14d2680fd7d3c6b2aa9c8b39f92e828d624b14f9",
+  "schema_version": 2,
+  "source_sha256": "4c13c406b3eef54f8ab63b3b531297ab76ec3eb7564eb5a06b0c6536efe055bc",
   "counts": {
     "engines": 12,
     "models": 24,
     "products": 26,
-    "available_datasets": 689,
+    "available_datasets": 697,
     "deferred_datasets": 0,
-    "bounded_exceptions": 2,
-    "generated_outputs": 1407
+    "bounded_exceptions": 1,
+    "generated_outputs": 1499
   },
-  "outputs_sha256": "55f7e23b785f9d04cdcada0b9fb4c49360fcce6a1db092a87161792843551c8d"
+  "outputs_sha256": "e513c3fb9c0ed33a3f1f8a55cb4787fe26b7fe5ff6c6104db75658c14bdb2ac1"
 }

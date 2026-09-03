@@ -22,9 +22,9 @@ __device__ __forceinline__ float level_loading(float x) {
 // Evaluate the standard continuously compounded zero curve.
 __device__ __forceinline__ float zero_rate(
     const NelsonSiegelParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    const float x = maturity / parameters.tau;
+    const float x = maturity_years / parameters.tau;
     const float decay = expf(-x);
     const float loading = level_loading(x);
     return parameters.beta0
@@ -35,25 +35,25 @@ __device__ __forceinline__ float zero_rate(
 // Evaluate log P(0,T) directly for stable discount-ratio calculations.
 __device__ __forceinline__ float log_discount_factor(
     const NelsonSiegelParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    return -maturity * zero_rate(parameters, maturity);
+    return -maturity_years * zero_rate(parameters, maturity_years);
 }
 
 // Convert the zero rate into its continuously compounded discount factor.
 __device__ __forceinline__ float discount_factor(
     const NelsonSiegelParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    return expf(log_discount_factor(parameters, maturity));
+    return expf(log_discount_factor(parameters, maturity_years));
 }
 
 // Evaluate the analytical instantaneous forward implied by Nelson-Siegel.
 __device__ __forceinline__ float instantaneous_forward(
     const NelsonSiegelParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    const float x = maturity / parameters.tau;
+    const float x = maturity_years / parameters.tau;
     return instantaneous_forward_formula(
         parameters.beta0,
         parameters.beta1,
@@ -62,12 +62,12 @@ __device__ __forceinline__ float instantaneous_forward(
     );
 }
 
-// Differentiate the analytical instantaneous forward with respect to time.
+// Differentiate the analytical instantaneous forward with respect to time_years.
 __device__ __forceinline__ float forward_derivative(
     const NelsonSiegelParameters& parameters,
-    float maturity
+    float maturity_years
 ) {
-    const float x = maturity / parameters.tau;
+    const float x = maturity_years / parameters.tau;
     return expf(-x)
         * (-parameters.beta1 + parameters.beta2 * (1.0f - x))
         / parameters.tau;
@@ -76,13 +76,13 @@ __device__ __forceinline__ float forward_derivative(
 // Derive one finite-period forward directly from two log-discount factors.
 __device__ __forceinline__ float forward_rate(
     const NelsonSiegelParameters& parameters,
-    float start,
-    float end
+    float start_years,
+    float end_years
 ) {
     return (
-        log_discount_factor(parameters, start)
-        - log_discount_factor(parameters, end)
-    ) / (end - start);
+        log_discount_factor(parameters, start_years)
+        - log_discount_factor(parameters, end_years)
+    ) / (end_years - start_years);
 }
 
 }  // namespace ai_factory::workbench::curve::nelson_siegel

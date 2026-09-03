@@ -1,9 +1,10 @@
 # Markovian equity models
 
 This folder groups equity model families whose defining state is Markovian.
-The folder is an organizational boundary only: public C++ namespaces, CMake
-target names, catalog identifiers and dataset paths do not include
-`markovian`.
+The family name is part of the canonical physical taxonomy under
+`src/model/equity/markovian`, `catalog/model/equity/markovian` and the matching
+dataset paths. Public C++ namespaces and model identifiers remain concise and
+do not mirror this organizational directory.
 
 Numerical lifts are not classified here merely because their simulator is
 Markovian. In particular, the fixed-factor lift of rough Heston remains under

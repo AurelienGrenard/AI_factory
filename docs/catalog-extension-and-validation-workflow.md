@@ -58,13 +58,15 @@ Avant de creer un dossier, separer les couches reellement nouvelles:
 - une famille de parametres produit appartient a `src/product/` et a
   `catalog/product/`;
 - une dynamique ou des analytiques appartiennent a
-  `src/model/<asset_class>/<model>/`; ses recettes appartiennent a
-  `catalog/model/<asset_class>/<model>/parameters/` ou `samples/`;
+  `src/model/<asset_class>/[<family>/]<model>/`; la famille `markovian` ou
+  `rough` est obligatoire pour l'equity. Ses recettes reprennent exactement
+  ce prefixe sous `catalog/model/` et `datasets/model/`;
 - une courbe appartient a `src/curve/` et a `catalog/curve/`;
 - le pricing d'un couple modele-produit appartient au modele, dans
-  `src/model/<asset_class>/<model>/[<curve>/]`;
+  `src/model/<asset_class>/[<family>/]<model>/product/[<curve>/]`; aucun launcher produit
+  ne reste au milieu de `dynamics`, `analytics`, `dataset` ou `sample` ;
 - une base de prix conserve son propre generateur et YAML sous
-  `catalog/model/<asset_class>/<model>/prices/`; un dataset migre ne stocke ni
+  `catalog/model/<asset_class>/[<family>/]<model>/prices/`; un dataset migre ne stocke ni
   rapport ni notebook dans ce dossier, ses references vivent sous
   `validation/datasets/price/`;
 - l'orchestration de validation appartient a `validation/model/`, tandis que
@@ -121,9 +123,9 @@ qu'un nouveau payoff l'utilise.
 
 - [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
 - [ ] Creer
-      `catalog/model/<asset_class>/<model>/parameters/<dataset_id>/generator.cpp`.
+      `catalog/model/<asset_class>/[<family>/]<model>/parameters/<dataset_id>/generator.cpp`.
 - [ ] Creer
-      `catalog/model/<asset_class>/<model>/parameters/<dataset_id>/dataset.yaml`
+      `catalog/model/<asset_class>/[<family>/]<model>/parameters/<dataset_id>/dataset.yaml`
       par le generateur.
 - [ ] Utiliser des plages financieres raisonnables.
 - [ ] Placer les cas extremes en queue de distribution, pas au centre.
@@ -139,7 +141,7 @@ qu'un nouveau payoff l'utilise.
       l'observation et le backend au manifeste, puis regenerer bindings et
       recettes; ne pas introduire une recette ad hoc.
 - [ ] Creer
-      `catalog/model/<asset_class>/<model>/samples/<dataset_id>/generator.cpp`.
+      `catalog/model/<asset_class>/[<family>/]<model>/samples/<dataset_id>/generator.cpp`.
 - [ ] Generer le JSON complet sous
       `datasets/model/<asset_class>/<model>/samples/<dataset_id>.json`.
 - [ ] Produire le YAML adjacent exclusivement depuis le generateur.
@@ -208,8 +210,9 @@ qu'un nouveau payoff l'utilise.
 - [ ] Verifier au minimum les valeurs finies, positivites, maturites croissantes,
       calendriers et conventions propres au produit.
 - [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
-- [ ] Creer `catalog/product/<asset_class>/<product>/<dataset_id>/generator.cpp`
-      et `dataset.yaml`.
+- [ ] Creer `catalog/product/<product>/<dataset_id>/generator.cpp`; le produit
+      conserve le meme prefixe sous `src/product/` et `datasets/product/`, et
+      ajouter le `dataset.yaml` adjacent.
 - [ ] Generer des strikes, maturites et tenors plausibles pour le produit.
 - [ ] Recharger et valider le JSON genere.
 
@@ -225,7 +228,7 @@ Lorsque call et put different uniquement par l'orientation du payoff:
 - [ ] Instancier explicitement les deux versions dans le `.cu`, afin que les
       generateurs C++ puissent les lier sans inclure l'implementation CUDA.
 - [ ] Conserver deux dossiers sous
-      `catalog/model/<asset_class>/<model>/prices/`: les prix call et put sont
+      `catalog/model/<asset_class>/[<family>/]<model>/prices/`: les prix call et put sont
       deux datasets publics distincts, meme s'ils partagent les parametres.
 - [ ] Ne creer des bases de parametres propres au call ou au put que si leur
       construction differe reellement; les ranger alors dans la meme famille
@@ -255,14 +258,14 @@ changement de signe.
 
 Pour les signatures, l'ordre des fonctions et la strategie de kernel, suivre
 le contrat
-[`cuda-closed-form-and-monte-carlo-pricing-contract.md`](cuda-closed-form-and-monte-carlo-pricing-contract.md)
+[`cuda/closed-form-and-monte-carlo-pricing-contract.md`](cuda/closed-form-and-monte-carlo-pricing-contract.md)
 ou, pour l'exercice anticipe,
-[`cuda-american-and-bermudan-pricing-contract.md`](cuda-american-and-bermudan-pricing-contract.md).
+[`cuda/american-and-bermudan-pricing-contract.md`](cuda/american-and-bermudan-pricing-contract.md).
 
 ## Ajouter une base de prix
 
 - [ ] Creer
-      `catalog/model/<asset_class>/<model>/prices/[<curve>/]<product>/<dataset_id>/`.
+      `catalog/model/<asset_class>/[<family>/]<model>/prices/[<curve>/]<product>/<dataset_id>/`.
 - [ ] Ajouter `generator.cpp` et `dataset.yaml` dans ce meme dossier.
 - [ ] Charger les datasets modele, courbe si necessaire, et produit.
 - [ ] Verifier la construction `Aligned` ou `CartesianProduct` et le nombre de

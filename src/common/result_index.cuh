@@ -1,3 +1,4 @@
+// Decode aligned and Cartesian result rows into their model, curve and product indices.
 #pragma once
 
 #include "common/price_construction.cuh"

@@ -1,3 +1,4 @@
+// Loader declarations for log-modulated rough Bergomi parameter datasets.
 #pragma once
 
 #include "model/equity/rough/log_modulated_rough_bergomi/parameters.hpp"

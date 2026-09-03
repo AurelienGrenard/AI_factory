@@ -1,6 +1,6 @@
-// Generate Hull-White/Nelson-Siegel European payer-swaption prices.
+// Generated Generate Hull-White/Nelson-Siegel European payer-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/hull_white/nelson_siegel/european_swaption.cuh"
+#include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
@@ -19,7 +19,7 @@ int main() {
     const std::filesystem::path curve_path =
         "datasets/curve/nelson_siegel/nelson_siegel_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/fixed_income/european_swaptions/"
+        "datasets/product/european_swaption/"
         "european_swaptions_01.json";
     datasets::generate_regular_european_swaption_prices(
         model_path,

@@ -108,14 +108,15 @@ struct AmericanOptionPricingPolicy {
     static longstaff_schwartz::EarlyExerciseRowPlan plan_row(
         const HostInputs& inputs,
         std::size_t result_index,
-        std::size_t paths_per_price
+        std::size_t paths_per_price,
+        const TimeConfiguration& time_configuration
     ) {
         const ProductParameters& product = inputs.product(result_index);
         const simulation::MaturityAlignedExerciseCalendar calendar{
             product.maturity_days,
             product.exercise_interval_days,
         };
-        simulation::validate_exercise_calendar(calendar);
+        simulation::validate_exercise_calendar(calendar, time_configuration);
         const std::uint32_t exercise_count =
             simulation::maturity_aligned_exercise_count(calendar);
         const std::uint32_t regression_count = exercise_count - 1U;

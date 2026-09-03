@@ -1,4 +1,4 @@
-// Generated model-only Vasicek sample launchers.
+// Public generated Vasicek launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/fixed_income/vasicek/parameters.hpp"

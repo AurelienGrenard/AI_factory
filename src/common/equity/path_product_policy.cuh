@@ -21,11 +21,35 @@ struct ProductPreparationContext {
     float maturity_years;
 };
 
+template<typename StatePolicy, ObservationCoordinate Coordinate>
+concept StatePolicyForObservationCoordinate =
+    (Coordinate == ObservationCoordinate::spot
+        && SpotStatePolicy<StatePolicy>)
+    || (Coordinate == ObservationCoordinate::log_spot
+        && LogSpotStatePolicy<StatePolicy>);
+
+template<typename ProductHandler>
+concept PathProductObservationHandler =
+    std::is_trivially_copyable_v<ProductHandler>
+    && requires(
+        ProductHandler& handler,
+        std::uint32_t observation,
+        float value
+    ) {
+        {
+            handler.on_initial_value(value)
+        } -> std::same_as<bool>;
+        {
+            handler.on_observation(observation, value)
+        } -> std::same_as<bool>;
+    };
+
 template<
-    LogSpotStatePolicy StatePolicy,
-    typename ProductHandler,
+    typename StatePolicy,
+    PathProductObservationHandler ProductHandler,
     ObservationCoordinate Coordinate
 >
+requires StatePolicyForObservationCoordinate<StatePolicy, Coordinate>
 struct PathProductObservationAdapter {
     ProductHandler& handler;
 
@@ -54,12 +78,29 @@ struct PathProductObservationAdapter {
 };
 
 template<typename ProductPolicy, typename StatePolicy>
-concept EquityPathProductPolicy =
-    LogSpotStatePolicy<StatePolicy>
+concept EquityPathProductPolicyShape =
+    requires {
+        typename ProductPolicy::ProductParameters;
+        typename ProductPolicy::Calendar;
+        typename ProductPolicy::PreparedProduct;
+        typename ProductPolicy::Handler;
+        requires std::same_as<
+            std::remove_cv_t<decltype(ProductPolicy::kObservationCoordinate)>,
+            ObservationCoordinate
+        >;
+    }
     && std::is_trivially_copyable_v<typename ProductPolicy::ProductParameters>
     && std::is_trivially_copyable_v<typename ProductPolicy::Calendar>
     && std::is_trivially_copyable_v<typename ProductPolicy::PreparedProduct>
-    && std::is_trivially_copyable_v<typename ProductPolicy::Handler>
+    && PathProductObservationHandler<typename ProductPolicy::Handler>;
+
+template<typename ProductPolicy, typename StatePolicy>
+concept EquityPathProductPolicy =
+    EquityPathProductPolicyShape<ProductPolicy, StatePolicy>
+    && StatePolicyForObservationCoordinate<
+        StatePolicy,
+        ProductPolicy::kObservationCoordinate
+    >
     && requires(
         const typename StatePolicy::Parameters& model,
         const typename ProductPolicy::ProductParameters& parameters,
@@ -68,9 +109,6 @@ concept EquityPathProductPolicy =
         const typename ProductPolicy::Handler& const_handler,
         ProductPreparationContext context
     ) {
-        {
-            ProductPolicy::kObservationCoordinate
-        } -> std::convertible_to<ObservationCoordinate>;
         {
             ProductPolicy::calendar(parameters)
         } -> std::same_as<typename ProductPolicy::Calendar>;

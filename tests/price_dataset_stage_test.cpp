@@ -1,3 +1,4 @@
+// Verify price-dataset row assembly, references and publication metadata.
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/price_dataset.hpp"
 

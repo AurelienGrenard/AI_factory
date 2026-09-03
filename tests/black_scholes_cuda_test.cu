@@ -2,16 +2,16 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/markovian/black_scholes/asset_or_nothing_option.cuh"
+#include "model/equity/markovian/black_scholes/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
-#include "model/equity/markovian/black_scholes/digital_option.cuh"
+#include "model/equity/markovian/black_scholes/product/digital_option.cuh"
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
-#include "model/equity/markovian/black_scholes/european_option.cuh"
-#include "model/equity/markovian/black_scholes/forward_start_option.cuh"
-#include "model/equity/markovian/black_scholes/gap_option.cuh"
-#include "model/equity/markovian/black_scholes/geometric_asian_option.cuh"
-#include "model/equity/markovian/black_scholes/range_accrual.cuh"
-#include "model/equity/markovian/black_scholes/straddle.cuh"
+#include "model/equity/markovian/black_scholes/product/european_option.cuh"
+#include "model/equity/markovian/black_scholes/product/forward_start_option.cuh"
+#include "model/equity/markovian/black_scholes/product/gap_option.cuh"
+#include "model/equity/markovian/black_scholes/product/geometric_asian_option.cuh"
+#include "model/equity/markovian/black_scholes/product/range_accrual.cuh"
+#include "model/equity/markovian/black_scholes/product/straddle.cuh"
 
 #include <cuda_runtime.h>
 
@@ -273,12 +273,12 @@ float geometric_price_one(
     check_cuda(cudaMemcpy(device_product, &contract, sizeof(contract), cudaMemcpyHostToDevice), "BS geometric product copy");
     if (side == OptionSide::call) {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::call>(
-            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+            device_model, 1U, &contract, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     } else {
         ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_geometric_asian_option_cuda<OptionSide::put>(
-            device_model, 1U, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
+            device_model, 1U, &contract, device_product, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
             1.0f / 504.0f, 2U, 32U, 1U, device_price
         );
     }

@@ -70,7 +70,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"mean_reversion", {0.03f, 1.0f}},
                 {"stationary_volatility", {0.0025f, 0.025f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"state", {{"description", "Terminal state."}, {"layout", "sample-major"}}}

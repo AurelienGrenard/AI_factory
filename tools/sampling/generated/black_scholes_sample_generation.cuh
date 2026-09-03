@@ -57,9 +57,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Black-Scholes",
-        "datasets/model/equity/black_scholes/samples/" + id + ".json",
-        "catalog/model/equity/black_scholes/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/black_scholes/samples/" + id + ".json",
+        "datasets/model/equity/markovian/black_scholes/samples/" + id + ".json",
+        "catalog/model/equity/markovian/black_scholes/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -75,7 +75,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"dividend_yield", {0.0f, 0.06f}},
                 {"volatility", {0.08f, 0.45f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

@@ -392,4 +392,89 @@ double fractional_kernel_relative_l2_error(
     );
 }
 
+template<std::size_t FactorCount, std::size_t GridPointCount>
+struct PositiveFractionalKernelHurstGrid {
+    static_assert(GridPointCount >= 2U);
+
+    float minimum_hurst_exponent = 0.0f;
+    float maximum_hurst_exponent = 0.0f;
+    std::array<ExponentialKernel<FactorCount>, GridPointCount> kernels{};
+
+    ExponentialKernel<FactorCount> interpolate(float hurst_exponent) const {
+        if (!std::isfinite(hurst_exponent)
+            || hurst_exponent < minimum_hurst_exponent
+            || hurst_exponent > maximum_hurst_exponent) {
+            throw std::invalid_argument(
+                "Fractional-kernel H lies outside the interpolation grid."
+            );
+        }
+        const double position = std::clamp(
+            static_cast<double>(hurst_exponent - minimum_hurst_exponent)
+                / static_cast<double>(
+                    maximum_hurst_exponent - minimum_hurst_exponent
+                )
+                * static_cast<double>(GridPointCount - 1U),
+            0.0,
+            static_cast<double>(GridPointCount - 1U)
+        );
+        const std::size_t lower = static_cast<std::size_t>(position);
+        const std::size_t upper = std::min(
+            lower + 1U,
+            GridPointCount - 1U
+        );
+        const float fraction = static_cast<float>(
+            position - static_cast<double>(lower)
+        );
+        ExponentialKernel<FactorCount> result{};
+        for (std::size_t factor = 0U; factor < FactorCount; ++factor) {
+            result.nodes[factor] = std::lerp(
+                kernels[lower].nodes[factor],
+                kernels[upper].nodes[factor],
+                fraction
+            );
+            result.weights[factor] = std::lerp(
+                kernels[lower].weights[factor],
+                kernels[upper].weights[factor],
+                fraction
+            );
+        }
+        return result;
+    }
+};
+
+template<std::size_t FactorCount, std::size_t GridPointCount>
+PositiveFractionalKernelHurstGrid<FactorCount, GridPointCount>
+fit_positive_fractional_kernel_l2_hurst_grid(
+    float minimum_hurst_exponent,
+    float maximum_hurst_exponent,
+    float horizon,
+    float smallest_time_scale
+) {
+    if (!std::isfinite(minimum_hurst_exponent)
+        || !std::isfinite(maximum_hurst_exponent)
+        || !(minimum_hurst_exponent > 0.0f)
+        || !(minimum_hurst_exponent < maximum_hurst_exponent)
+        || !(maximum_hurst_exponent < 0.5f)) {
+        throw std::invalid_argument(
+            "Fractional-kernel H grid must lie strictly inside (0, 0.5)."
+        );
+    }
+    PositiveFractionalKernelHurstGrid<FactorCount, GridPointCount> result{};
+    result.minimum_hurst_exponent = minimum_hurst_exponent;
+    result.maximum_hurst_exponent = maximum_hurst_exponent;
+    for (std::size_t index = 0U; index < GridPointCount; ++index) {
+        const float fraction = static_cast<float>(index)
+            / static_cast<float>(GridPointCount - 1U);
+        const float hurst_exponent = std::lerp(
+            minimum_hurst_exponent,
+            maximum_hurst_exponent,
+            fraction
+        );
+        result.kernels[index] = fit_positive_fractional_kernel_l2<
+            FactorCount
+        >(hurst_exponent, horizon, smallest_time_scale);
+    }
+    return result;
+}
+
 }  // namespace ai_factory::workbench::volterra

@@ -1,3 +1,4 @@
+// Public state and fixed-step dynamics-policy declarations for Stein--Stein.
 #pragma once
 
 #include "common/equity/concepts.cuh"

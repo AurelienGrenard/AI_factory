@@ -1,0 +1,89 @@
+title: "Range Accruals parameter dataset range_accruals_01"
+database_id: "range_accruals_01"
+product_family: "Range Accruals"
+catalog: "catalog/product/range_accrual/range_accruals_01"
+url: "https://datasets.ai-factory.example/v1/product/range_accruals/range_accruals_01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+parameters:
+  maturity: "Time from issuance to final payment in business days."
+  observation_interval: "Business days between consecutive spot observations."
+  lower_barrier: "Lower normalized spot observation bound."
+  upper_barrier: "Upper normalized spot observation bound."
+  coupon_rate: "Annualized coupon rate accrued in range."
+payoff:
+  in_range_count: "Sum of 1{lower_barrier <= S(t_i) / S(0) <= upper_barrier}."
+  accrued_coupon: "coupon_rate * observation_interval * in_range_count"
+  maturity_payment: "Normalized nominal 1 plus the accrued coupon."
+  intermediate_payments: "None."
+construction:
+  method: "ordered 90/10 constrained core-stress sample"
+  row_order:
+    core: "rows 1-900"
+    stress: "remaining rows"
+  core_share: 0.9
+  stress_share: 0.1
+  valuation_time: "issuance"
+  reference_spot: 1.0
+  nominal: 1.0
+  sampling:
+    regime_counts: "900 core rows and 100 stress rows"
+    observation_interval: "uniform categorical draw within the selected regime"
+    observation_count: "uniform integer draw compatible with maturity bounds"
+    continuous_parameters: "uniform draws within each regime"
+  calendar_rules:
+    - "maturity is an integer multiple of observation_interval"
+    - "observation dates are i * observation_interval from issuance"
+    - "the issuance spot is normalized to one and is not observed"
+    - "maturity is included as the final observation date"
+    - "core rows precede stress rows"
+  regimes:
+    core:
+      row_count: 900
+      maturity:
+        - 252
+        - 1260
+      observation_interval:
+        - 1
+        - 5
+        - 21
+      lower_barrier:
+        - 0.7
+        - 0.95
+      upper_barrier:
+        - 1.05
+        - 1.4
+      coupon_rate:
+        - 0.02
+        - 0.12
+    stress:
+      row_count: 100
+      maturity:
+        - 126
+        - 1764
+      observation_interval:
+        - 1
+        - 5
+        - 21
+        - 63
+      range_shape: "50 narrow rows and 50 wide rows"
+      narrow_lower_barrier:
+        - 0.94
+        - 0.995
+      narrow_upper_barrier:
+        - 1.005
+        - 1.06
+      wide_lower_barrier:
+        - 0.25
+        - 0.7
+      wide_upper_barrier:
+        - 1.4
+        - 2.5
+      coupon_rate:
+        - 0.005
+        - 0.25
+  constraints:
+    - "0 < lower_barrier < 1 < upper_barrier"
+    - "coupon_rate is positive"

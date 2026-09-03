@@ -84,7 +84,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"initial_state_x", {0.001f, 0.05f}},
                 {"initial_state_y", {0.001f, 0.03f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"state_x", {{"description", "Terminal state_x."}, {"layout", "sample-major"}}},

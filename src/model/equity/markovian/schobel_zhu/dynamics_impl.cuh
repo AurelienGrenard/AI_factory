@@ -1,3 +1,4 @@
+// Device transition definitions for the Schobel--Zhu stochastic-volatility dynamics.
 #pragma once
 
 #include "model/equity/markovian/schobel_zhu/dynamics.cuh"

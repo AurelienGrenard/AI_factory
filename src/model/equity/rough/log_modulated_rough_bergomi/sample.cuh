@@ -1,4 +1,4 @@
-// Generated model-only Log-modulated rough-Bergomi sample launchers.
+// Public generated Log-modulated rough-Bergomi Volterra FFT launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/log_modulated_rough_bergomi/parameters.hpp"

@@ -1,7 +1,7 @@
 // Exercise one- and two-factor Bermudan swaptions through the shared LSM engine.
 #include "common/check_cuda.cuh"
-#include "model/fixed_income/g2/bermudan_swaption.cuh"
-#include "model/fixed_income/ornstein_uhlenbeck/bermudan_swaption.cuh"
+#include "model/fixed_income/g2/product/bermudan_swaption.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/bermudan_swaption.cuh"
 
 #include <cuda_runtime.h>
 

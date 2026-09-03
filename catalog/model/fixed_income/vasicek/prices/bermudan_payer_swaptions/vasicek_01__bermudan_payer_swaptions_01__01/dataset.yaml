@@ -37,7 +37,7 @@ model_dataset:
   url: "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/parameters/vasicek_01.json"
 product_dataset:
   id: "bermudan_swaptions_01"
-  catalog: "catalog/product/fixed_income/bermudan_swaptions/bermudan_swaptions_01"
+  catalog: "catalog/product/bermudan_swaption/bermudan_swaptions_01"
   url: "https://datasets.ai-factory.example/v1/product/bermudan_swaptions/bermudan_swaptions_01.json"
 price_construction:
   method: "Aligned"

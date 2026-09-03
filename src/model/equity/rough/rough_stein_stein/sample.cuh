@@ -1,4 +1,4 @@
-// Generated model-only Rough Stein-Stein sample launchers.
+// Public generated Rough Stein-Stein Volterra FFT launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"

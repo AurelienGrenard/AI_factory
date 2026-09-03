@@ -1,4 +1,4 @@
-// Rough-Bergomi state mapping for the normalized fractional driver.
+// Included device definitions mapping the normalized Volterra process to rough-Bergomi state.
 #pragma once
 
 #include "model/equity/rough/rough_bergomi/dynamics.cuh"
@@ -36,8 +36,8 @@ __device__ __forceinline__ State initial_state(
 
 __device__ __forceinline__ void advance(
     const PreparedModel& prepared_model,
-    float driver_value,
-    float driver_variance,
+    float volterra_value,
+    float volterra_variance,
     float rough_normal,
     float independent_spot_normal,
     State& state
@@ -55,12 +55,12 @@ __device__ __forceinline__ void advance(
     );
     state.variance = expf(
         prepared_model.log_initial_variance
-        + prepared_model.eta * driver_value
-        - prepared_model.half_eta_squared * driver_variance
+        + prepared_model.eta * volterra_value
+        - prepared_model.half_eta_squared * volterra_variance
     );
 }
 
-__device__ __forceinline__ float PathPolicy::driver_parameters(
+__device__ __forceinline__ float PathPolicy::kernel_parameters(
     const Parameters& parameters
 ) {
     return parameters.hurst_exponent;
@@ -82,16 +82,16 @@ __device__ __forceinline__ PathPolicy::State PathPolicy::initial_state(
 
 __device__ __forceinline__ void PathPolicy::advance(
     const PreparedModel& prepared_model,
-    float driver_value,
-    float driver_variance,
+    float volterra_value,
+    float volterra_variance,
     float rough_normal,
     float independent_spot_normal,
     State& state
 ) {
     rough_bergomi::advance(
         prepared_model,
-        driver_value,
-        driver_variance,
+        volterra_value,
+        volterra_variance,
         rough_normal,
         independent_spot_normal,
         state

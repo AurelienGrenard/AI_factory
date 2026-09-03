@@ -20,6 +20,8 @@ ExecutionPlan make_execution_plan(
     std::size_t paths_per_price,
     std::size_t blocks_per_price,
     std::size_t workspace_budget,
+    const typename PricingPolicy::Schedule::TimeConfiguration&
+        time_configuration,
     const char* product_name
 ) {
     inputs.validate(result_count);
@@ -40,7 +42,8 @@ ExecutionPlan make_execution_plan(
         rows.push_back(PricingPolicy::plan_row(
             inputs,
             result_index,
-            paths_per_price
+            paths_per_price,
+            time_configuration
         ));
     }
 

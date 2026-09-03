@@ -1,4 +1,4 @@
-// Weak second-order splitting for a fixed-factor rough-Heston lift.
+// Included device definitions of the weak second-order rough-Heston N-factor transition.
 #pragma once
 
 #include "model/equity/rough/rough_heston/dynamics.cuh"

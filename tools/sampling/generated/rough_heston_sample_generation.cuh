@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/equity/rough/rough_heston/sample.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "tools/sampling/host_philox.hpp"
 #include "tools/sampling/model_sample_generation.cuh"
 
@@ -68,9 +68,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Rough-Heston",
-        "datasets/model/equity/rough_heston/samples/" + id + ".json",
-        "catalog/model/equity/rough_heston/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough_heston/samples/" + id + ".json",
+        "datasets/model/equity/rough/rough_heston/samples/" + id + ".json",
+        "catalog/model/equity/rough/rough_heston/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -90,7 +90,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"hurst_exponent", {0.03f, 0.25f}},
                 {"rho", {-0.95f, -0.25f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}

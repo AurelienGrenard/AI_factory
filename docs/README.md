@@ -1,8 +1,16 @@
 # Documentation index
 
-All maintained project documentation lives in this tree. Most contracts remain
-directly under `docs`; the main audit and the deliberately separate validation
-audit use the symmetric `audit/` and `validation/` folders documented below.
+All maintained project documentation is indexed from this tree. Normative
+contracts live under `docs`; mathematical model and curve references that are
+kept beside their source are listed explicitly below. The main audit and the
+deliberately separate validation audit use the symmetric `audit/` and
+`validation/` folders documented below.
+
+## Model and curve references
+
+- [`model-and-curve-reference-index.md`](model-and-curve-reference-index.md):
+  exhaustive index of the local mathematical references kept under `src`, with
+  the boundary between descriptive equations and canonical capability data.
 
 ## Extension workflows
 
@@ -20,24 +28,30 @@ audit use the symmetric `audit/` and `validation/` folders documented below.
   fallback, failure classification, persistent reference datasets,
   continuous/discrete bias handling, and cache-only publication checks.
 
-## CUDA implementation contracts
+## CUDA architecture and implementation contracts
 
-- [`cuda-model-dynamics-contract.md`](cuda-model-dynamics-contract.md): model
+- [`cuda/README.md`](cuda/README.md): local index for all CUDA-specific
+  architecture guides, implementation contracts, hardware notes, and links to
+  the performance protocol.
+- [`cuda/pricing-policy-composition.md`](cuda/pricing-policy-composition.md):
+  guide visuel des relations entre dynamique, calendrier, schedule, produit,
+  handler, pricing policy et kernel pour chaque famille de pricing CUDA.
+- [`cuda/model-dynamics-contract.md`](cuda/model-dynamics-contract.md): model
   dynamics layers, common device interface, state layout, Philox consumption,
   exact and discretized transitions, and naming conventions.
-- [`cuda-model-analytics-contract.md`](cuda-model-analytics-contract.md):
+- [`cuda/model-analytics-contract.md`](cuda/model-analytics-contract.md):
   canonical analytics APIs, capability providers, fitted-model composition,
   shared lognormal primitives, and symmetric numerical tests.
-- [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](cuda-closed-form-and-monte-carlo-pricing-contract.md):
+- [`cuda/closed-form-and-monte-carlo-pricing-contract.md`](cuda/closed-form-and-monte-carlo-pricing-contract.md):
   required types, functions, kernels, launchers, and invariants for closed-form
   and standard Monte Carlo pricing.
-- [`cuda-american-and-bermudan-pricing-contract.md`](cuda-american-and-bermudan-pricing-contract.md):
+- [`cuda/american-and-bermudan-pricing-contract.md`](cuda/american-and-bermudan-pricing-contract.md):
   early-exercise kernels, Longstaff-Schwartz responsibilities, workspace
   planning, launch interface, and memory layout.
-- [`cuda-launch-validation-and-kernel-diagnostics.md`](cuda-launch-validation-and-kernel-diagnostics.md):
+- [`cuda/launch-validation-and-kernel-diagnostics.md`](cuda/launch-validation-and-kernel-diagnostics.md):
   common launch validation, CUDA error handling, resource inspection,
   theoretical occupancy, and diagnostics output.
-- [`../validation/performance/README.md`](../validation/performance/README.md):
+- [`performance-regression-protocol.md`](performance-regression-protocol.md):
   versioned CUDA performance protocol, baselines, decision thresholds and
   reproduction commands.
 

@@ -1,6 +1,7 @@
 // Build OU Bermudan-receiver-swaption prices with Longstaff-Schwartz.
-#include "model/fixed_income/ornstein_uhlenbeck/bermudan_swaption.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/product/bermudan_swaption.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 
 int main() {
@@ -10,12 +11,12 @@ int main() {
         "datasets/model/fixed_income/ornstein_uhlenbeck/parameters/"
         "ornstein_uhlenbeck_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/fixed_income/bermudan_swaptions/"
+        "datasets/product/bermudan_swaption/"
         "bermudan_swaptions_01.json";
     const auto models = ou::load_models(model_path);
     const auto products = product::load_bermudan_swaptions(product_path);
     constexpr std::size_t paths = 1U << 20U;
-    constexpr std::uint64_t seed = 2'110'100'001ULL;
+    constexpr std::uint64_t seed = 11668829129892954112ULL;
     datasets::generate_exact_bermudan_swaption_prices(
         model_path, product_path, models, products,
         &ou::launch_ornstein_uhlenbeck_bermudan_swaption_cuda<

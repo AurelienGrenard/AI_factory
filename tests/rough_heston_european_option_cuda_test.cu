@@ -1,8 +1,8 @@
 // Validate fixed-factor preparation and rough-Heston European pricing.
 #include "common/check_cuda.cuh"
 #include "common/volterra/fractional_kernel_approximation.hpp"
-#include "model/equity/rough/rough_heston/european_option.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/product/european_option.cuh"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 
 #include <cuda_runtime.h>
 
@@ -144,7 +144,7 @@ void exercise_gpu(
         check_cuda(cudaEventCreate(&stop), "rough-Heston create stop event");
         check_cuda(cudaEventRecord(start), "rough-Heston record start event");
         launch_rough_heston_european_option_cuda<side, FactorCount>(
-            device_model, 1U, device_prepared, 1U, device_product, 1U,
+            device_model, 1U, device_prepared, 1U, &product, device_product, 1U,
             ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U, path_count, dt,
             steps_per_day, threads, 1U,
             seed, device_price, device_error

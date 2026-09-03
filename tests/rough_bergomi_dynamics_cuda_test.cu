@@ -1,6 +1,6 @@
-// Check the shared fractional driver and the two Gaussian-Volterra path maps.
+// Check the shared fractional kernel and the two Gaussian-Volterra path maps.
 #include "common/check_cuda.cuh"
-#include "common/volterra/fractional_hybrid_driver.cuh"
+#include "common/volterra/fractional_hybrid_kernel.cuh"
 #include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
@@ -20,7 +20,7 @@ namespace rough_sabr = ai_factory::workbench::model::equity::rough_sabr;
 
 struct Results {
     float first_weight;
-    float terminal_driver_variance;
+    float terminal_volterra_variance;
     float bergomi_log_spot;
     float bergomi_volatility;
     float sabr_log_spot;
@@ -33,11 +33,11 @@ struct Results {
 };
 
 __global__ void evaluate_dynamics(Results* output) {
-    using Driver =
-        ai_factory::workbench::volterra::FractionalHybridDriverPolicy;
+    using Kernel =
+        ai_factory::workbench::volterra::FractionalHybridKernelPolicy;
     if (threadIdx.x != 0U || blockIdx.x != 0U) return;
     constexpr float dt = 1.0f / 360.0f;
-    const Driver::PreparedDriver driver = Driver::prepare(0.10f, dt);
+    const Kernel::PreparedKernel kernel = Kernel::prepare(0.10f, dt);
     const bergomi::ModelParameters bergomi_parameters = {
         1.0f, 0.03f, 0.01f, 0.04f, 1.2f, 0.10f, -0.70f,
     };
@@ -62,23 +62,23 @@ __global__ void evaluate_dynamics(Results* output) {
         const float rough_normal = 0.07f * static_cast<float>(step) - 0.4f;
         const float singular_normal = 0.3f - 0.02f * step;
         const float spot_normal = -0.2f + 0.04f * step;
-        increments[step] = driver.sqrt_time_step * rough_normal;
+        increments[step] = sqrtf(dt) * rough_normal;
         float far = 0.0f;
         for (unsigned int previous = 0U; previous < step; ++previous) {
             far = fmaf(
-                Driver::far_cell_weight(driver, step + 1U - previous),
+                Kernel::far_cell_weight(kernel, step + 1U - previous),
                 increments[previous],
                 far
             );
         }
-        const float value = Driver::value(
-            driver,
+        const float value = Kernel::reconstruct_volterra_value(
+            kernel,
             far,
             rough_normal,
             singular_normal
         );
-        const float variance = Driver::variance(
-            driver,
+        const float variance = Kernel::volterra_variance(
+            kernel,
             static_cast<float>(step + 1U) * dt
         );
         bergomi::advance(
@@ -158,8 +158,8 @@ __global__ void evaluate_dynamics(Results* output) {
     );
 
     *output = {
-        Driver::far_cell_weight(driver, 2U),
-        Driver::variance(driver, 16.0f * dt),
+        Kernel::far_cell_weight(kernel, 2U),
+        Kernel::volterra_variance(kernel, 16.0f * dt),
         bergomi_state.log_spot,
         sqrtf(bergomi_state.variance),
         sabr_state.log_spot,
@@ -207,9 +207,9 @@ int main() {
 
     require(results.first_weight > 0.0f, "hybrid far weight is invalid");
     require(
-        std::fabs(results.terminal_driver_variance
+        std::fabs(results.terminal_volterra_variance
                   - std::pow(16.0f / 360.0f, 0.2f)) < 2.0e-6f,
-        "fractional driver variance has the wrong normalization"
+        "fractional kernel variance has the wrong normalization"
     );
     require(
         std::fabs(results.bergomi_log_spot - results.sabr_log_spot) < 2.0e-6f

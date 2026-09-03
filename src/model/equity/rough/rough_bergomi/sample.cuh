@@ -1,4 +1,4 @@
-// Generated model-only Rough-Bergomi sample launchers.
+// Public generated Rough-Bergomi Volterra FFT launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/rough_bergomi/parameters.hpp"

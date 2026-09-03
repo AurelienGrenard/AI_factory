@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <iostream>
 #include <limits>
 #include <span>
 #include <stdexcept>
@@ -39,32 +40,41 @@ struct ModelSampleShape {
     std::size_t parameter_count = 0U;
     std::size_t paths_per_parameter = 0U;
     bool smoke_test = false;
+    bool preflight = false;
 };
 
-inline bool model_sample_smoke_test(int argc, char** argv) {
-    if (argc == 1) return false;
-    if (argc == 2 && std::string(argv[1]) == "--smoke-test") return true;
+enum class ModelSampleRunMode { production, smoke_test, preflight };
+
+inline ModelSampleRunMode model_sample_run_mode(int argc, char** argv) {
+    if (argc == 1) return ModelSampleRunMode::production;
+    if (argc == 2 && std::string(argv[1]) == "--smoke-test") {
+        return ModelSampleRunMode::smoke_test;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--preflight") {
+        return ModelSampleRunMode::preflight;
+    }
     throw std::invalid_argument(
-        "A model-sample generator accepts only --smoke-test."
+        "A model-sample generator accepts only --smoke-test or --preflight."
     );
 }
 
 inline ModelSampleShape resolve_model_sample_shape(
     const datasets::ModelSampleRecipe& recipe,
-    bool smoke_test
+    ModelSampleRunMode run_mode
 ) {
-    if (!smoke_test) {
+    if (run_mode != ModelSampleRunMode::smoke_test) {
         return {
             recipe.production_parameter_count,
             recipe.production_paths_per_parameter,
             false,
+            run_mode == ModelSampleRunMode::preflight,
         };
     }
     if (recipe.production_paths_per_parameter == 250U) {
-        return {4U, 250U, true};
+        return {4U, 250U, true, false};
     }
     if (recipe.production_paths_per_parameter == 1U) {
-        return {1'000U, 1U, true};
+        return {1'000U, 1U, true, false};
     }
     throw std::invalid_argument(
         "Smoke tests support the canonical 250-path and one-path layouts."
@@ -163,11 +173,11 @@ int generate_model_sample_dataset_impl(
     ParameterJson&& parameter_json,
     Launcher&& launcher
 ) {
-    const bool smoke_test = model_sample_smoke_test(argc, argv);
+    const ModelSampleRunMode run_mode = model_sample_run_mode(argc, argv);
     const ModelSampleShape shape = resolve_model_sample_shape(
-        recipe, smoke_test
+        recipe, run_mode
     );
-    if (smoke_test) recipe = smoke_sample_recipe(std::move(recipe));
+    if (shape.smoke_test) recipe = smoke_sample_recipe(std::move(recipe));
     const std::size_t sample_count = sample::sample_count(
         shape.parameter_count,
         shape.paths_per_parameter
@@ -178,6 +188,7 @@ int generate_model_sample_dataset_impl(
         );
     }
 
+    const auto wall_start = std::chrono::steady_clock::now();
     std::vector<Parameters> parameters = std::invoke(
         std::forward<ParameterFactory>(parameter_factory),
         shape.parameter_count,
@@ -219,7 +230,6 @@ int generate_model_sample_dataset_impl(
         input_bytes + maturity_bytes + observable_bytes
     );
 
-    const auto wall_start = std::chrono::steady_clock::now();
     cuda::DeviceBuffer<DeviceInput> device_parameters(device_inputs.size());
     cuda::DeviceBuffer<std::uint32_t> device_maturity_days(sample_count);
     device_parameters.copy_from(device_inputs.data());
@@ -234,11 +244,14 @@ int generate_model_sample_dataset_impl(
         output_pointers.push_back(output.data());
     }
 
-    const auto invoke_launch = [&](std::size_t launch_count) {
+    const auto invoke_launch = [&](
+        std::size_t launch_count,
+        unsigned int threads_per_block
+    ) {
         const std::size_t block_count = model_sample_block_count(
             launch_count,
             shape.paths_per_parameter,
-            profile.threads_per_block,
+            threads_per_block,
             profile.block_count_limit
         );
         std::invoke(
@@ -250,7 +263,7 @@ int generate_model_sample_dataset_impl(
             recipe.maximum_maturity_days,
             0U,
             launch_count,
-            profile.threads_per_block,
+            threads_per_block,
             block_count,
             recipe.seeds.schedule,
             recipe.seeds.dynamics,
@@ -265,13 +278,13 @@ int generate_model_sample_dataset_impl(
             ? 1'000U
             : 4U * shape.paths_per_parameter
     );
-    invoke_launch(warmup_count);
+    invoke_launch(warmup_count, profile.threads_per_block);
     check_cuda(cudaDeviceSynchronize(), "model-sample CUDA warmup");
 
     cuda::Event start;
     cuda::Event stop;
     check_cuda(cudaEventRecord(start.get()), "model-sample timer start");
-    invoke_launch(sample_count);
+    invoke_launch(sample_count, profile.threads_per_block);
     check_cuda(cudaEventRecord(stop.get()), "model-sample timer stop");
     check_cuda(cudaEventSynchronize(stop.get()), "model-sample timer wait");
     float kernel_milliseconds = 0.0f;
@@ -290,6 +303,57 @@ int generate_model_sample_dataset_impl(
     );
     for (std::size_t index = 0U; index < device_outputs.size(); ++index) {
         device_outputs[index].copy_to(output_values[index].data());
+    }
+    if (shape.preflight) {
+        const auto expected_maturity_days = maturity_days;
+        const auto expected_output_values = output_values;
+        const unsigned int replay_threads_per_block =
+            profile.threads_per_block == 128U ? 256U : 128U;
+        invoke_launch(sample_count, replay_threads_per_block);
+        check_cuda(
+            cudaDeviceSynchronize(),
+            "model-sample preflight replay"
+        );
+        device_maturity_days.copy_to(maturity_days.data());
+        for (std::size_t index = 0U; index < device_outputs.size(); ++index) {
+            device_outputs[index].copy_to(output_values[index].data());
+        }
+        if (maturity_days != expected_maturity_days
+            || output_values != expected_output_values) {
+            throw std::runtime_error(
+                "Model-sample preflight changed with launch geometry."
+            );
+        }
+        for (const std::uint32_t maturity : maturity_days) {
+            if (maturity < recipe.minimum_maturity_days
+                || maturity > recipe.maximum_maturity_days) {
+                throw std::runtime_error(
+                    "Model-sample preflight maturity lies outside bounds."
+                );
+            }
+        }
+        for (const auto& output : output_values) {
+            for (const float value : output) {
+                if (!std::isfinite(value)) {
+                    throw std::runtime_error(
+                        "Model-sample preflight produced a non-finite value."
+                    );
+                }
+            }
+        }
+        const double preflight_wall_seconds =
+            std::chrono::duration<double>(
+                std::chrono::steady_clock::now() - wall_start
+            ).count();
+        std::cout
+            << "MODEL_SAMPLE_PREFLIGHT rows=" << sample_count
+            << " finite=true deterministic_replay=true"
+            << " primary_threads_per_block=" << profile.threads_per_block
+            << " replay_threads_per_block=" << replay_threads_per_block
+            << " kernel_seconds="
+            << static_cast<double>(kernel_milliseconds) * 1.0e-3
+            << " wall_seconds=" << preflight_wall_seconds << '\n';
+        return 0;
     }
     const double wall_seconds = std::chrono::duration<double>(
         std::chrono::steady_clock::now() - wall_start
@@ -343,7 +407,7 @@ int generate_model_sample_dataset_impl(
         maturity_days,
         named_outputs
     );
-    if (smoke_test) {
+    if (shape.smoke_test) {
         datasets::validate_model_sample_dataset_file(
             recipe.dataset_path,
             sample_count,

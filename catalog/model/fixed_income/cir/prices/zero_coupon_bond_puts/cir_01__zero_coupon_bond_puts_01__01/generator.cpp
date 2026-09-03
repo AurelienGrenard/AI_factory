@@ -1,6 +1,6 @@
-// Build one CIR zero-coupon bond put price dataset.
+// Generated Build one CIR zero-coupon bond put price dataset.
 #include "model/fixed_income/cir/dataset.hpp"
-#include "model/fixed_income/cir/zero_coupon_bond_option.cuh"
+#include "model/fixed_income/cir/product/zero_coupon_bond_option.cuh"
 #include "product/zero_coupon_bond_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
@@ -17,7 +17,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/fixed_income/cir/parameters/cir_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/zero_coupon_bond_options/"
+    "datasets/product/zero_coupon_bond_option/"
     "zero_coupon_bond_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;

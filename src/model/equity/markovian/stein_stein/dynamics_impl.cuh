@@ -1,3 +1,4 @@
+// Device transition definitions for the Stein--Stein dynamics policy.
 #pragma once
 
 #include "model/equity/markovian/stein_stein/dynamics.cuh"

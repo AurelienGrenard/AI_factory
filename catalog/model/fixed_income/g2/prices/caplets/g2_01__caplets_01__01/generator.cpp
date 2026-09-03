@@ -1,5 +1,5 @@
-// Build one G2 caplet price dataset.
-#include "model/fixed_income/g2/rate_option.cuh"
+// Generated Build one G2 caplet price dataset.
+#include "model/fixed_income/g2/product/rate_option.cuh"
 #include "model/fixed_income/g2/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
@@ -17,7 +17,7 @@ namespace {
 const std::filesystem::path model_dataset_path =
     "datasets/model/fixed_income/g2/parameters/g2_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/rate_options/rate_options_01.json";
+    "datasets/product/rate_option/rate_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;
 

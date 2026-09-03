@@ -48,7 +48,7 @@ class BlackScholesReferencePipelineTest(unittest.TestCase):
         stem = f"black_scholes_01__{folder}_01__01"
         source = (
             ROOT
-            / "datasets/model/equity/black_scholes/prices"
+            / "datasets/model/equity/markovian/black_scholes/prices"
             / folder
             / f"{stem}.json"
         )
@@ -60,7 +60,7 @@ class BlackScholesReferencePipelineTest(unittest.TestCase):
         )
         catalog = (
             ROOT
-            / "catalog/model/equity/black_scholes/prices"
+            / "catalog/model/equity/markovian/black_scholes/prices"
             / folder
             / stem
         )

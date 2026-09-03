@@ -1,4 +1,4 @@
-// Generated model-only Stein-Stein sample launchers.
+// Public generated Stein-Stein launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/stein_stein/parameters.hpp"

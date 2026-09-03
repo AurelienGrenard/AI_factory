@@ -1,4 +1,4 @@
-// Exact G2 state and optional state-integral simulation.
+// Included device definitions for exact G2 state and optional state-integral simulation.
 #pragma once
 
 #include "model/fixed_income/g2/dynamics.cuh"

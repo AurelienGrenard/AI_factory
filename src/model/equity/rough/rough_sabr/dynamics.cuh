@@ -1,4 +1,4 @@
-// Rough-SABR state mapping for a block-level Gaussian Volterra driver.
+// Public rough-SABR state-mapping contract used by the Gaussian Volterra kernel.
 #pragma once
 
 #include "common/equity/concepts.cuh"
@@ -43,8 +43,8 @@ __device__ __forceinline__ State initial_state(
 // with the log-spot limit used at beta=1.
 __device__ __forceinline__ void advance(
     const PreparedModel& prepared_model,
-    float driver_value,
-    float driver_variance,
+    float volterra_value,
+    float volterra_variance,
     float rough_normal,
     float independent_spot_normal,
     State& state
@@ -56,9 +56,9 @@ struct PathPolicy {
     using State = rough_sabr::State;
 
     static constexpr bool kNativeLogSpot = true;
-    static constexpr bool kUsesDriverVariance = true;
+    static constexpr bool kUsesVolterraVariance = true;
 
-    __device__ __forceinline__ static float driver_parameters(
+    __device__ __forceinline__ static float kernel_parameters(
         const Parameters& parameters
     );
     __device__ __forceinline__ static PreparedModel prepare_model(
@@ -70,8 +70,8 @@ struct PathPolicy {
     );
     __device__ __forceinline__ static void advance(
         const PreparedModel& prepared_model,
-        float driver_value,
-        float driver_variance,
+        float volterra_value,
+        float volterra_variance,
         float rough_normal,
         float independent_spot_normal,
         State& state

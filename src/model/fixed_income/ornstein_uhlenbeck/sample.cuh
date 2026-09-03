@@ -1,4 +1,4 @@
-// Generated model-only Ornstein-Uhlenbeck sample launchers.
+// Public generated Ornstein-Uhlenbeck launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/fixed_income/ornstein_uhlenbeck/parameters.hpp"

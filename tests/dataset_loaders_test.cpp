@@ -1004,7 +1004,7 @@ int main() {
     // Price datasets may omit the curve or require it consistently per row.
     nlohmann::json price_document = {
         {"database_id", "test_price_01"},
-        {"catalog", "catalog/model/equity/test_model/prices/test_price_01"},
+        {"catalog", "catalog/model/equity/markovian/test_model/prices/test_price_01"},
         {"url", "https://datasets.ai-factory.example/test_price_01.json"},
         {"row_count", 1U},
         {"time_convention", {

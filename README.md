@@ -10,6 +10,8 @@ locally or published to external storage.
 ```text
 AI_factory/
 |-- src/          C++/CUDA simulation and pricing code
+|-- cmake/        target registration split by runtime, catalog, tests,
+|                 performance, and validation ownership
 |-- tools/        parameter generation and dataset-writing utilities
 |-- catalog/      one reproducible folder per published dataset
 |-- datasets/     complete JSON datasets, ignored by Git
@@ -19,16 +21,22 @@ AI_factory/
 `-- CMakeLists.txt
 ```
 
+The root `CMakeLists.txt` owns only project-wide configuration, options, and
+module orchestration. Domain targets live in `cmake/AIFactoryRuntime.cmake`,
+`AIFactoryCatalog.cmake`, `AIFactoryPerformance.cmake`,
+`AIFactoryTests.cmake`, and `AIFactoryValidation.cmake`; reusable target
+helpers remain in `AIFactoryTargets.cmake`.
+
 All implementation contracts, workflows, derivations, and work-tracking notes
 live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
-- [`cuda-closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda-closed-form-and-monte-carlo-pricing-contract.md)
+- [`closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
   for closed-form and Monte Carlo pricers;
-- [`cuda-american-and-bermudan-pricing-contract.md`](docs/cuda-american-and-bermudan-pricing-contract.md)
+- [`american-and-bermudan-pricing-contract.md`](docs/cuda/american-and-bermudan-pricing-contract.md)
   for American and Bermudan pricers;
-- [`cuda-model-dynamics-contract.md`](docs/cuda-model-dynamics-contract.md) for
+- [`model-dynamics-contract.md`](docs/cuda/model-dynamics-contract.md) for
   reusable model-state simulation interfaces;
-- [`cuda-launch-validation-and-kernel-diagnostics.md`](docs/cuda-launch-validation-and-kernel-diagnostics.md)
+- [`launch-validation-and-kernel-diagnostics.md`](docs/cuda/launch-validation-and-kernel-diagnostics.md)
   for launch guards, kernel resource diagnostics, and their test coverage.
 
 ### `src`
@@ -38,9 +46,11 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
 - `src/model/equity/<markovian|rough>/<model>`: equity dynamics, analytics,
-  loaders and pricing kernels, classified by mathematical family rather than
-  by simulation algorithm;
-- `src/model/fixed_income/<model>`: fixed-income model implementations;
+  loaders and model-only sampling, classified by mathematical family rather
+  than by simulation algorithm; model-product launch units are isolated under
+  its `product/` subfolder;
+- `src/model/fixed_income/<model>`: fixed-income model infrastructure, with
+  standalone and curve-qualified launch units under `product/`;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 - `src/generative`: reserved for method-neutral generative-model tooling.
 
@@ -53,6 +63,13 @@ and implementations retain descriptive names: public interfaces use
 units are registered in CMake. Curve-specific dataset construction helpers
 live under `tools/datasets`; catalog generators contain only their recipe
 constants and `main`.
+
+Within one model, `product/<product>.cuh/.cu` owns only the thin composition
+between that model and one product. Fitted fixed-income compositions use
+`product/<curve>/<product>.cuh/.cu`. Everything outside `product/` is
+model-owned infrastructure and starts with a one-line summary of its role.
+Method-specific helpers spell out their engine, such as
+`volterra_fft_pricing.cuh` or `markovian_n_factor_preparation.hpp`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
@@ -104,7 +121,11 @@ catalog/
 |-- curve/<curve>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
-|-- model/<asset_class>/<model>/
+|-- model/equity/<markovian|rough>/<model>/
+|   |-- parameters/<dataset_id>/
+|   |-- samples/<dataset_id>/
+|   `-- prices/<product>/<dataset_id>/
+|-- model/fixed_income/<model>/
 |   |-- parameters/<dataset_id>/
 |   |   |-- dataset.yaml
 |   |   `-- generator.cpp
@@ -114,8 +135,7 @@ catalog/
 |   `-- prices/[<curve>/]<product>/<dataset_id>/
 |       |-- dataset.yaml
 |       `-- generator.cpp
-|-- product/equity/<product>/<dataset_id>/
-|-- product/fixed_income/<product>/<dataset_id>/
+|-- product/<product>/<dataset_id>/
 |   |-- dataset.yaml
 |   `-- generator.cpp
 ```
@@ -143,9 +163,9 @@ must be replaced with the final data server URLs.
 datasets/
 |-- curve/nelson_siegel/nelson_siegel_01.json
 |-- curve/svensson/svensson_01.json
-|-- model/equity/heston/parameters/heston_01.json
-|-- model/equity/heston/samples/<sample_dataset_id>.json
-|-- model/equity/heston/prices/<product>/<price_dataset_id>.json
+|-- model/equity/markovian/heston/parameters/heston_01.json
+|-- model/equity/markovian/heston/samples/<sample_dataset_id>.json
+|-- model/equity/markovian/heston/prices/<product>/<price_dataset_id>.json
 |-- model/fixed_income/g2/parameters/g2_01.json
 |-- model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
 |-- model/fixed_income/hull_white/parameters/hull_white_01.json
@@ -155,10 +175,10 @@ datasets/
 |-- model/fixed_income/g2/prices/<product>/<price_dataset_id>.json
 |-- model/fixed_income/g2_plus_plus/prices/<curve>/<product>/<price_dataset_id>.json
 |-- model/fixed_income/hull_white/prices/<curve>/<product>/<price_dataset_id>.json
-|-- product/equity/european_options/european_options_01.json
-|-- product/equity/american_options/american_options_01.json
-|-- product/fixed_income/rate_options/rate_options_01.json
-`-- product/fixed_income/european_swaptions/european_swaptions_01.json
+|-- product/european_option/european_options_01.json
+|-- product/american_option/american_options_01.json
+|-- product/rate_option/rate_options_01.json
+`-- product/european_swaption/european_swaptions_01.json
 ```
 
 This directory is ignored by Git. Its files can be generated locally or
@@ -315,8 +335,8 @@ The `heston_01` catalog entry begins as follows:
 title: "Heston parameter dataset heston_01"
 database_id: "heston_01"
 model_family: "Heston"
-catalog: "catalog/model/equity/heston/parameters/heston_01"
-url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
+catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
 row_count: 1000
 ```
 
@@ -351,7 +371,7 @@ maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
 then applies `K = exp(x)`.
 
 ```yaml
-catalog: "catalog/product/equity/european_options/european_options_01"
+catalog: "catalog/product/european_option/european_options_01"
 url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 row_count: 1000
 construction:
@@ -381,16 +401,16 @@ input datasets:
 
 ```yaml
 database_id: "heston_01__european_calls_01__01"
-catalog: "catalog/model/equity/heston/prices/european_calls/heston_01__european_calls_01__01"
+catalog: "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01"
 url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
 row_count: 1000
 model_dataset:
   id: "heston_01"
-  catalog: "catalog/model/equity/heston/parameters/heston_01"
-  url: "https://datasets.ai-factory.example/v1/model/equity/heston/parameters/heston_01.json"
+  catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
 product_dataset:
   id: "european_options_01"
-  catalog: "catalog/product/equity/european_options/european_options_01"
+  catalog: "catalog/product/european_option/european_options_01"
   url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
 price_construction:
   method: "Aligned"
@@ -469,7 +489,7 @@ profile in generated execution metadata. A deployment can override the
 `AI_FACTORY_CUDA_TUNING_PROFILE_ID` without editing generated recipes. Before
 publishing such a profile, run the numerical tests, kernel diagnostics and the
 complete performance manifest described in
-[`validation/performance/README.md`](validation/performance/README.md).
+[`docs/performance-regression-protocol.md`](docs/performance-regression-protocol.md).
 
 The development build uses Ninja and deliberately excludes CUDA pricers,
 tests, and generators from the default target. Build the narrowest target for

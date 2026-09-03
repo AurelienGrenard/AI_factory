@@ -1,6 +1,6 @@
-// Generate CIR European receiver-swaption prices.
+// Generated Generate CIR European receiver-swaption prices.
 #include "common/fixed_income/swaption_side.cuh"
-#include "model/fixed_income/cir/european_swaption.cuh"
+#include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/cir/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
 #include "tools/pricing/european_swaption_price_generation.cuh"
@@ -14,7 +14,7 @@ int main() {
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/cir/parameters/cir_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/fixed_income/european_swaptions/"
+        "datasets/product/european_swaption/"
         "european_swaptions_01.json";
     const auto product_dataset =
         product::load_european_swaptions(product_path);

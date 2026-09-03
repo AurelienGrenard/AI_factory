@@ -1,5 +1,5 @@
-// Build one G2++ Svensson floorlet price dataset.
-#include "model/fixed_income/g2_plus_plus/svensson/rate_option.cuh"
+// Generated Build one G2++ Svensson floorlet price dataset.
+#include "model/fixed_income/g2_plus_plus/product/svensson/rate_option.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
@@ -20,7 +20,7 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path curve_dataset_path =
     "datasets/curve/svensson/svensson_01.json";
 const std::filesystem::path product_dataset_path =
-    "datasets/product/fixed_income/rate_options/rate_options_01.json";
+    "datasets/product/rate_option/rate_options_01.json";
 
 constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;

@@ -65,9 +65,9 @@ inline datasets::ModelSampleRecipe recipe(
     return {
         id,
         "Heston 3/2",
-        "datasets/model/equity/heston_3_2/samples/" + id + ".json",
-        "catalog/model/equity/heston_3_2/samples/" + id + "/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/heston_3_2/samples/" + id + ".json",
+        "datasets/model/equity/markovian/heston_3_2/samples/" + id + ".json",
+        "catalog/model/equity/markovian/heston_3_2/samples/" + id + "/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -87,7 +87,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"volatility_of_variance", {1.0f, 8.0f}},
                 {"rho", {-0.95f, -0.1f}}
             }},
-            {"acceptance", "true"},
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},

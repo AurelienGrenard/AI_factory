@@ -1,0 +1,18 @@
+// Generated Kou conditional model-sample recipe.
+#include "model/equity/markovian/kou/sample.cuh"
+#include "tools/sampling/generated/kou_sample_generation.cuh"
+
+int main(int argc, char** argv) {
+    using namespace ai_factory::workbench;
+    namespace sampling = offline::sampling::kou;
+    return sampling::generate(
+        argc,
+        argv,
+        sampling::recipe(
+            "samples_01",
+            12'000U,
+            250U,
+            {11668827399021133824ULL, 11668827400094875648ULL, 11668827401168617472ULL}
+        )
+    );
+}

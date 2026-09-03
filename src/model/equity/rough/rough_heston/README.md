@@ -38,7 +38,7 @@ contract.
 ## Factorization
 
 The implementation separates raw [parameters](parameters.hpp), host-side
-[numerical preparation](numerics.hpp), the fixed-factor
+[numerical preparation](markovian_n_factor_preparation.hpp), the fixed-factor
 [dynamics](dynamics.cuh), and the public sampling and pricing compositions.
 Dataset loading remains host-only; product policies remain shared with the
 other equity models.

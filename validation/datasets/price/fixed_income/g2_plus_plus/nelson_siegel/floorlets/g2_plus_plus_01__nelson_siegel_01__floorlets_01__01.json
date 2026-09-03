@@ -10,7 +10,7 @@
   },
   "product_dataset": {
     "id": "rate_options_01",
-    "catalog": "catalog/product/fixed_income/rate_options/rate_options_01",
+    "catalog": "catalog/product/rate_option/rate_options_01",
     "url": "https://datasets.ai-factory.example/v1/product/rate_options/rate_options_01.json"
   },
   "curve_dataset": {

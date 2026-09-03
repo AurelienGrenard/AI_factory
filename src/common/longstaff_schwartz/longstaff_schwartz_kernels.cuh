@@ -478,6 +478,7 @@ LaunchResult launch_longstaff_schwartz_cuda(
             paths_per_price,
             launched_blocks_per_price,
             budget.available_bytes,
+            time_configuration,
             product_name
         );
 

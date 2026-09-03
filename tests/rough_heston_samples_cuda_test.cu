@@ -1,6 +1,6 @@
 // CUDA sampling checks for the prepared rough-Heston Markovian lift.
 #include "common/check_cuda.cuh"
-#include "model/equity/rough/rough_heston/numerics.hpp"
+#include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/rough_heston/sample.cuh"
 
 #include <cuda_runtime.h>

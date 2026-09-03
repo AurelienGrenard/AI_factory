@@ -1,4 +1,4 @@
-// Generated model-only Rough-Heston N-factor sample launchers.
+// Public generated Rough-Heston Markovian N-factor launch declarations for model-sample datasets.
 #pragma once
 
 #include "model/equity/rough/rough_heston/dynamics.cuh"

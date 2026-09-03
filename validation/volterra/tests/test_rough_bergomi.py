@@ -18,13 +18,13 @@ class RoughBergomiReferenceTest(unittest.TestCase):
     def test_joint_gaussian_covariance_is_reconstructed(self) -> None:
         grid = gaussian_grid(0.1, 1.0, 12)
         reconstructed = grid.cholesky @ grid.cholesky.T
-        expected_driver_variances = (
+        expected_volterra_variances = (
             np.arange(1, 13, dtype=np.float64) / 12.0
         ) ** 0.2
         np.testing.assert_allclose(reconstructed, grid.covariance, atol=2.0e-13)
         np.testing.assert_allclose(
             np.diag(grid.covariance)[12:],
-            expected_driver_variances,
+            expected_volterra_variances,
             rtol=2.0e-13,
         )
         terminal_driver_brownian_covariance = np.sum(

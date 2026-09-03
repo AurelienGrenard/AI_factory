@@ -25,7 +25,7 @@ from validation.reporting import (
 
 def _write_price_fixture(root: Path) -> tuple[Path, Path]:
     (root / "CMakeLists.txt").write_text("# fixture\n", encoding="utf-8")
-    catalog = root / "catalog/model/equity/sample/prices/sample_01"
+    catalog = root / "catalog/model/equity/markovian/sample/prices/sample_01"
     catalog.mkdir(parents=True)
     yaml_path = catalog / "dataset.yaml"
     yaml_path.write_text(
@@ -47,7 +47,7 @@ def _write_price_fixture(root: Path) -> tuple[Path, Path]:
         json.dumps(
             {
                 "database_id": "sample",
-                "catalog": "catalog/model/equity/sample/prices/sample_01",
+                "catalog": "catalog/model/equity/markovian/sample/prices/sample_01",
                 "row_count": 1,
                 "model_dataset": {"id": "model_01"},
                 "product_dataset": {"id": "product_01"},
@@ -227,7 +227,7 @@ class ValidationReportingTest(unittest.TestCase):
 
             self.assertIn('reference: "Premia (specialized pricer)"', yaml_text)
             self.assertIn(
-                'notebook: "catalog/model/equity/sample/prices/'
+                'notebook: "catalog/model/equity/markovian/sample/prices/'
                 'sample_01/validation.ipynb"',
                 yaml_text,
             )

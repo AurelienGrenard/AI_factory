@@ -35,15 +35,15 @@ inline std::uint32_t rounded_step_count(
     validate_time_configuration(time_configuration);
     if (maturity_days == 0U) {
         throw std::invalid_argument(
-            "A Volterra hybrid schedule requires a positive maturity."
+            "A Volterra hybrid schedule requires a positive maturity_years."
         );
     }
-    const double maturity = static_cast<double>(maturity_days)
+    const double maturity_years = static_cast<double>(maturity_days)
         * static_cast<double>(time_configuration.day_fraction);
     const double rounded = std::max(
         1.0,
         std::floor(
-            maturity / static_cast<double>(time_configuration.target_dt)
+            maturity_years / static_cast<double>(time_configuration.target_dt)
             + 0.5
         )
     );
@@ -94,11 +94,11 @@ struct TerminalHybridSchedule {
         const HybridTimeConfiguration& time_configuration,
         std::uint32_t step_count
     ) {
-        const float maturity = static_cast<float>(calendar.maturity_days)
+        const float maturity_years = static_cast<float>(calendar.maturity_days)
             * time_configuration.day_fraction;
         return {
-            maturity,
-            maturity / static_cast<float>(step_count),
+            maturity_years,
+            maturity_years / static_cast<float>(step_count),
             step_count,
         };
     }
@@ -217,7 +217,7 @@ struct RegularHybridSchedule {
             * calendar.observation_count;
         if (days > std::numeric_limits<std::uint32_t>::max()) {
             throw std::overflow_error(
-                "The regular Volterra schedule maturity exceeds uint32_t."
+                "The regular Volterra schedule maturity_years exceeds uint32_t."
             );
         }
         return rounded_step_count(
@@ -234,11 +234,11 @@ struct RegularHybridSchedule {
         const std::uint64_t maturity_days =
             static_cast<std::uint64_t>(calendar.observation_interval_days)
             * calendar.observation_count;
-        const float maturity = static_cast<float>(maturity_days)
+        const float maturity_years = static_cast<float>(maturity_days)
             * time_configuration.day_fraction;
         return {
-            maturity,
-            maturity / static_cast<float>(step_count),
+            maturity_years,
+            maturity_years / static_cast<float>(step_count),
             step_count,
             calendar.observation_count,
         };
@@ -312,7 +312,7 @@ struct StubbedRegularHybridSchedule {
                 * calendar.observation_interval_days;
         if (maturity_days > std::numeric_limits<std::uint32_t>::max()) {
             throw std::overflow_error(
-                "The stubbed Volterra schedule maturity exceeds uint32_t."
+                "The stubbed Volterra schedule maturity_years exceeds uint32_t."
             );
         }
         return rounded_step_count(
@@ -329,11 +329,11 @@ struct StubbedRegularHybridSchedule {
         const std::uint64_t maturity_days = calendar.first_observation_day
             + static_cast<std::uint64_t>(calendar.observation_count - 1U)
                 * calendar.observation_interval_days;
-        const float maturity = static_cast<float>(maturity_days)
+        const float maturity_years = static_cast<float>(maturity_days)
             * time_configuration.day_fraction;
         return {
-            maturity,
-            maturity / static_cast<float>(step_count),
+            maturity_years,
+            maturity_years / static_cast<float>(step_count),
             step_count,
             rounded_observation_step(
                 calendar.first_observation_day,
@@ -423,7 +423,7 @@ struct CalendarHybridSchedule {
         }
         if (maturity_days > std::numeric_limits<std::uint32_t>::max()) {
             throw std::overflow_error(
-                "The Volterra calendar maturity exceeds uint32_t."
+                "The Volterra calendar maturity_years exceeds uint32_t."
             );
         }
         return rounded_step_count(

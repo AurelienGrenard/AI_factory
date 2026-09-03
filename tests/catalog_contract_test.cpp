@@ -14,135 +14,135 @@
 namespace {
 
 const std::filesystem::path price_catalog_path =
-    "catalog/model/equity/heston/prices/american_puts/"
+    "catalog/model/equity/markovian/heston/prices/american_puts/"
     "heston_01__american_puts_01__01/dataset.yaml";
 const std::filesystem::path cir_catalog_path =
     "catalog/model/fixed_income/cir/parameters/cir_01/dataset.yaml";
 const std::vector<std::filesystem::path> catalog_paths = {
     "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml",
     "catalog/curve/svensson/svensson_01/dataset.yaml",
-    "catalog/model/equity/heston/parameters/heston_01/dataset.yaml",
-    "catalog/model/equity/bates/parameters/bates_01/dataset.yaml",
-    "catalog/model/equity/variance_gamma/parameters/variance_gamma_01/dataset.yaml",
-    "catalog/model/equity/normal_inverse_gaussian/"
+    "catalog/model/equity/markovian/heston/parameters/heston_01/dataset.yaml",
+    "catalog/model/equity/markovian/bates/parameters/bates_01/dataset.yaml",
+    "catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/dataset.yaml",
+    "catalog/model/equity/markovian/normal_inverse_gaussian/"
     "parameters/normal_inverse_gaussian_01/dataset.yaml",
-    "catalog/model/equity/rough_bergomi/parameters/rough_bergomi_01/dataset.yaml",
-    "catalog/model/equity/rough_heston/parameters/rough_heston_01/dataset.yaml",
-    "catalog/model/equity/rough_sabr/parameters/rough_sabr_01/dataset.yaml",
+    "catalog/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01/dataset.yaml",
+    "catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/dataset.yaml",
+    "catalog/model/equity/rough/rough_sabr/parameters/rough_sabr_01/dataset.yaml",
     "catalog/model/fixed_income/g2/parameters/g2_01/dataset.yaml",
     "catalog/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01/dataset.yaml",
     "catalog/model/fixed_income/hull_white/parameters/hull_white_01/dataset.yaml",
     "catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/dataset.yaml",
     "catalog/model/fixed_income/vasicek/parameters/vasicek_01/dataset.yaml",
     cir_catalog_path,
-    "catalog/product/equity/european_options/"
+    "catalog/product/european_option/"
     "european_options_01/dataset.yaml",
-    "catalog/product/equity/asian_options/asian_options_01/dataset.yaml",
-    "catalog/product/equity/digital_options/digital_options_01/dataset.yaml",
-    "catalog/product/equity/asset_or_nothing_options/"
+    "catalog/product/asian_option/asian_options_01/dataset.yaml",
+    "catalog/product/digital_option/digital_options_01/dataset.yaml",
+    "catalog/product/asset_or_nothing_option/"
     "asset_or_nothing_options_01/dataset.yaml",
-    "catalog/product/equity/gap_options/gap_call_options_01/dataset.yaml",
-    "catalog/product/equity/gap_options/gap_put_options_01/dataset.yaml",
-    "catalog/product/equity/straddles/straddles_01/dataset.yaml",
-    "catalog/product/equity/lookback_options/lookback_options_01/dataset.yaml",
-    "catalog/product/equity/american_options/american_options_01/dataset.yaml",
-    "catalog/product/equity/phoenix_autocalls/"
+    "catalog/product/gap_option/gap_call_options_01/dataset.yaml",
+    "catalog/product/gap_option/gap_put_options_01/dataset.yaml",
+    "catalog/product/straddle/straddles_01/dataset.yaml",
+    "catalog/product/lookback_option/lookback_options_01/dataset.yaml",
+    "catalog/product/american_option/american_options_01/dataset.yaml",
+    "catalog/product/phoenix_autocall/"
     "phoenix_autocalls_01/dataset.yaml",
-    "catalog/product/equity/phoenix_memory_autocalls/"
+    "catalog/product/phoenix_memory_autocall/"
     "phoenix_memory_autocalls_01/dataset.yaml",
-    "catalog/product/equity/athena_autocalls/"
+    "catalog/product/athena_autocall/"
     "athena_autocalls_01/dataset.yaml",
-    "catalog/product/equity/cliquets/cliquets_01/dataset.yaml",
-    "catalog/product/equity/range_accruals/"
+    "catalog/product/cliquet/cliquets_01/dataset.yaml",
+    "catalog/product/range_accrual/"
     "range_accruals_01/dataset.yaml",
-    "catalog/product/equity/geometric_asian_options/"
+    "catalog/product/geometric_asian_option/"
     "geometric_asian_options_01/dataset.yaml",
-    "catalog/product/equity/forward_start_options/"
+    "catalog/product/forward_start_option/"
     "forward_start_options_01/dataset.yaml",
-    "catalog/product/equity/up_and_out_options/"
+    "catalog/product/up_and_out_option/"
     "up_and_out_options_01/dataset.yaml",
-    "catalog/product/equity/down_and_out_options/"
+    "catalog/product/down_and_out_option/"
     "down_and_out_options_01/dataset.yaml",
-    "catalog/product/equity/up_and_in_options/"
+    "catalog/product/up_and_in_option/"
     "up_and_in_options_01/dataset.yaml",
-    "catalog/product/equity/down_and_in_options/"
+    "catalog/product/down_and_in_option/"
     "down_and_in_options_01/dataset.yaml",
-    "catalog/product/equity/up_one_touches/"
+    "catalog/product/up_one_touch/"
     "up_one_touches_01/dataset.yaml",
-    "catalog/product/equity/up_no_touches/"
+    "catalog/product/up_no_touch/"
     "up_no_touches_01/dataset.yaml",
-    "catalog/product/equity/double_knock_out_options/"
+    "catalog/product/double_knock_out_option/"
     "double_knock_out_options_01/dataset.yaml",
-    "catalog/product/fixed_income/rate_options/rate_options_01/dataset.yaml",
-    "catalog/product/fixed_income/zero_coupon_bond_options/"
+    "catalog/product/rate_option/rate_options_01/dataset.yaml",
+    "catalog/product/zero_coupon_bond_option/"
     "zero_coupon_bond_options_01/dataset.yaml",
-    "catalog/product/fixed_income/european_swaptions/"
+    "catalog/product/european_swaption/"
     "european_swaptions_01/dataset.yaml",
-    "catalog/product/fixed_income/bermudan_swaptions/"
+    "catalog/product/bermudan_swaption/"
     "bermudan_swaptions_01/dataset.yaml",
-    "catalog/model/equity/heston/prices/european_calls/"
+    "catalog/model/equity/markovian/heston/prices/european_calls/"
     "heston_01__european_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/european_puts/"
+    "catalog/model/equity/markovian/heston/prices/european_puts/"
     "heston_01__european_puts_01__01/dataset.yaml",
-    "catalog/model/equity/rough_bergomi/prices/european_calls/"
+    "catalog/model/equity/rough/rough_bergomi/prices/european_calls/"
     "rough_bergomi_01__european_calls_01__01/dataset.yaml",
-    "catalog/model/equity/rough_bergomi/prices/european_puts/"
+    "catalog/model/equity/rough/rough_bergomi/prices/european_puts/"
     "rough_bergomi_01__european_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/asian_calls/"
+    "catalog/model/equity/markovian/heston/prices/asian_calls/"
     "heston_01__asian_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/athena_autocalls/"
+    "catalog/model/equity/markovian/heston/prices/athena_autocalls/"
     "heston_01__athena_autocalls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/phoenix_autocalls/"
+    "catalog/model/equity/markovian/heston/prices/phoenix_autocalls/"
     "heston_01__phoenix_autocalls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/phoenix_memory_autocalls/"
+    "catalog/model/equity/markovian/heston/prices/phoenix_memory_autocalls/"
     "heston_01__phoenix_memory_autocalls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/cliquets/"
+    "catalog/model/equity/markovian/heston/prices/cliquets/"
     "heston_01__cliquets_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/range_accruals/"
+    "catalog/model/equity/markovian/heston/prices/range_accruals/"
     "heston_01__range_accruals_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/asian_puts/"
+    "catalog/model/equity/markovian/heston/prices/asian_puts/"
     "heston_01__asian_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/digital_calls/"
+    "catalog/model/equity/markovian/heston/prices/digital_calls/"
     "heston_01__digital_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/digital_puts/"
+    "catalog/model/equity/markovian/heston/prices/digital_puts/"
     "heston_01__digital_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/asset_or_nothing_calls/"
+    "catalog/model/equity/markovian/heston/prices/asset_or_nothing_calls/"
     "heston_01__asset_or_nothing_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/asset_or_nothing_puts/"
+    "catalog/model/equity/markovian/heston/prices/asset_or_nothing_puts/"
     "heston_01__asset_or_nothing_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/gap_calls/"
+    "catalog/model/equity/markovian/heston/prices/gap_calls/"
     "heston_01__gap_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/gap_puts/"
+    "catalog/model/equity/markovian/heston/prices/gap_puts/"
     "heston_01__gap_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/straddles/"
+    "catalog/model/equity/markovian/heston/prices/straddles/"
     "heston_01__straddles_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/lookback_options/"
+    "catalog/model/equity/markovian/heston/prices/lookback_options/"
     "heston_01__lookback_options_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/geometric_asian_calls/"
+    "catalog/model/equity/markovian/heston/prices/geometric_asian_calls/"
     "heston_01__geometric_asian_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/geometric_asian_puts/"
+    "catalog/model/equity/markovian/heston/prices/geometric_asian_puts/"
     "heston_01__geometric_asian_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/forward_start_calls/"
+    "catalog/model/equity/markovian/heston/prices/forward_start_calls/"
     "heston_01__forward_start_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/forward_start_puts/"
+    "catalog/model/equity/markovian/heston/prices/forward_start_puts/"
     "heston_01__forward_start_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/up_and_out_calls/"
+    "catalog/model/equity/markovian/heston/prices/up_and_out_calls/"
     "heston_01__up_and_out_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/down_and_out_puts/"
+    "catalog/model/equity/markovian/heston/prices/down_and_out_puts/"
     "heston_01__down_and_out_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/up_and_in_calls/"
+    "catalog/model/equity/markovian/heston/prices/up_and_in_calls/"
     "heston_01__up_and_in_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/down_and_in_puts/"
+    "catalog/model/equity/markovian/heston/prices/down_and_in_puts/"
     "heston_01__down_and_in_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/up_one_touches/"
+    "catalog/model/equity/markovian/heston/prices/up_one_touches/"
     "heston_01__up_one_touches_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/up_no_touches/"
+    "catalog/model/equity/markovian/heston/prices/up_no_touches/"
     "heston_01__up_no_touches_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/double_knock_out_calls/"
+    "catalog/model/equity/markovian/heston/prices/double_knock_out_calls/"
     "heston_01__double_knock_out_calls_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/double_knock_out_puts/"
+    "catalog/model/equity/markovian/heston/prices/double_knock_out_puts/"
     "heston_01__double_knock_out_puts_01__01/dataset.yaml",
-    "catalog/model/equity/heston/prices/american_calls/"
+    "catalog/model/equity/markovian/heston/prices/american_calls/"
     "heston_01__american_calls_01__01/dataset.yaml",
     "catalog/model/fixed_income/g2/prices/caplets/"
     "g2_01__caplets_01__01/dataset.yaml",

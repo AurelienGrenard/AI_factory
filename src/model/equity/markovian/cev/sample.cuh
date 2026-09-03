@@ -1,4 +1,4 @@
-// Generated model-only CEV sample launchers.
+// Public generated CEV launch declarations for model-sample dataset generation.
 #pragma once
 
 #include "model/equity/markovian/cev/parameters.hpp"

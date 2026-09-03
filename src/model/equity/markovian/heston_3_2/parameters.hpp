@@ -1,3 +1,4 @@
+// Compact host/device parameter row for the Heston 3/2 model.
 #pragma once
 
 #include <type_traits>
