@@ -2,8 +2,8 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/normal_inverse_gaussian/dynamics.cu"
-#include "model/equity/variance_gamma/dynamics.cu"
+#include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
+#include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -15,19 +15,19 @@
 namespace {
 
 struct LevyDynamicsResults {
-    ai_factory::workbench::variance_gamma::PreparedModel vg;
-    ai_factory::workbench::variance_gamma::PreparedTransition
+    ai_factory::workbench::model::equity::variance_gamma::PreparedModel vg;
+    ai_factory::workbench::model::equity::variance_gamma::PreparedTransition
         vg_transition_coefficients;
-    ai_factory::workbench::variance_gamma::PreparedTransition
+    ai_factory::workbench::model::equity::variance_gamma::PreparedTransition
         vg_exact;
-    ai_factory::workbench::normal_inverse_gaussian::
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::
         PreparedModel nig;
-    ai_factory::workbench::normal_inverse_gaussian::
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::
         PreparedTransition nig_transition_coefficients;
-    ai_factory::workbench::normal_inverse_gaussian::
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::
         PreparedTransition nig_exact;
-    ai_factory::workbench::variance_gamma::State vg_transition;
-    ai_factory::workbench::normal_inverse_gaussian::
+    ai_factory::workbench::model::equity::variance_gamma::State vg_transition;
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::
         State nig_transition;
     float gamma_small_shape_first;
     float gamma_small_shape_replay;
@@ -50,30 +50,30 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     constexpr float maturity = 0.5f;
     constexpr std::size_t step_count = 10U;
     constexpr float delta_t = maturity / static_cast<float>(step_count);
-    const variance_gamma::ModelParameters vg_parameters = {
+    const ai_factory::workbench::model::equity::variance_gamma::ModelParameters vg_parameters = {
         100.0f, 0.03f, 0.01f, 0.2f, 0.25f, -0.1f,
     };
-    const normal_inverse_gaussian::ModelParameters
+    const ai_factory::workbench::model::equity::normal_inverse_gaussian::ModelParameters
         nig_parameters = {
             100.0f, 0.03f, 0.01f, 8.0f, -2.0f, 0.4f,
         };
-    const auto vg = variance_gamma::prepare_model(vg_parameters);
+    const auto vg = ai_factory::workbench::model::equity::variance_gamma::prepare_model(vg_parameters);
     const auto vg_transition_coefficients =
-        variance_gamma::prepare_transition(vg, delta_t);
+        ai_factory::workbench::model::equity::variance_gamma::prepare_transition(vg, delta_t);
     const auto vg_exact =
-        variance_gamma::prepare_transition(vg, maturity);
-    const auto nig = normal_inverse_gaussian::prepare_model(nig_parameters);
+        ai_factory::workbench::model::equity::variance_gamma::prepare_transition(vg, maturity);
+    const auto nig = ai_factory::workbench::model::equity::normal_inverse_gaussian::prepare_model(nig_parameters);
     const auto nig_transition_coefficients =
-        normal_inverse_gaussian::prepare_transition(nig, delta_t);
+        ai_factory::workbench::model::equity::normal_inverse_gaussian::prepare_transition(nig, delta_t);
     const auto nig_exact =
-        normal_inverse_gaussian::prepare_transition(nig, maturity);
+        ai_factory::workbench::model::equity::normal_inverse_gaussian::prepare_transition(nig, maturity);
 
-    auto vg_transition = variance_gamma::initial_state(vg);
-    variance_gamma::one_step_transition(
+    auto vg_transition = ai_factory::workbench::model::equity::variance_gamma::initial_state(vg);
+    ai_factory::workbench::model::equity::variance_gamma::one_step_transition(
         vg, vg_transition_coefficients, 0.08f, -0.4f, vg_transition
     );
-    auto nig_transition = normal_inverse_gaussian::initial_state(nig);
-    normal_inverse_gaussian::one_step_transition(
+    auto nig_transition = ai_factory::workbench::model::equity::normal_inverse_gaussian::initial_state(nig);
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::one_step_transition(
         nig, nig_transition_coefficients, 0.03f, 0.5f, nig_transition
     );
 
@@ -106,14 +106,14 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
 
     const float vg_terminal_first =
         simulation::simulate_exact_transition_terminal<
-            variance_gamma::DynamicsPolicy
+            ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy
         >(vg, vg_exact, key, 23U).log_spot;
     const float vg_terminal_replay =
         simulation::simulate_exact_transition_terminal<
-            variance_gamma::DynamicsPolicy
+            ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy
         >(vg, vg_exact, key, 23U).log_spot;
 
-    auto vg_terminal_manual = variance_gamma::initial_state(vg);
+    auto vg_terminal_manual = ai_factory::workbench::model::equity::variance_gamma::initial_state(vg);
     philox::UniformSequence vg_uniforms(key, 23ULL);
     philox::NormalPairCache vg_cache;
     const float vg_gamma = philox::marsaglia_tsang_gamma(
@@ -123,7 +123,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         vg.nu
     );
     const float vg_normal = philox::next_normal(vg_uniforms, vg_cache);
-    variance_gamma::one_step_transition(
+    ai_factory::workbench::model::equity::variance_gamma::one_step_transition(
         vg,
         vg_exact,
         vg_gamma,
@@ -133,18 +133,18 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
 
     const float nig_terminal_first =
         simulation::simulate_exact_transition_terminal<
-            normal_inverse_gaussian::DynamicsPolicy
+            ai_factory::workbench::model::equity::normal_inverse_gaussian::DynamicsPolicy
         >(
             nig, nig_exact, key, 29U
         ).log_spot;
     const float nig_terminal_replay =
         simulation::simulate_exact_transition_terminal<
-            normal_inverse_gaussian::DynamicsPolicy
+            ai_factory::workbench::model::equity::normal_inverse_gaussian::DynamicsPolicy
         >(
             nig, nig_exact, key, 29U
         ).log_spot;
 
-    auto nig_terminal_manual = normal_inverse_gaussian::initial_state(
+    auto nig_terminal_manual = ai_factory::workbench::model::equity::normal_inverse_gaussian::initial_state(
         nig
     );
     philox::UniformSequence nig_uniforms(key, 29ULL);
@@ -157,7 +157,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
             nig_exact.inverse_gaussian_shape
         );
     const float nig_normal = philox::next_normal(nig_uniforms, nig_cache);
-    normal_inverse_gaussian::one_step_transition(
+    ai_factory::workbench::model::equity::normal_inverse_gaussian::one_step_transition(
         nig,
         nig_exact,
         nig_clock,
@@ -166,23 +166,23 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
     );
 
     const auto vg_initial_transition =
-        variance_gamma::prepare_transition(vg, 0.1f);
+        ai_factory::workbench::model::equity::variance_gamma::prepare_transition(vg, 0.1f);
     const auto vg_regular_transition =
-        variance_gamma::prepare_transition(vg, 0.2f);
-    const variance_gamma::PreparedTransition vg_calendar[3] = {
+        ai_factory::workbench::model::equity::variance_gamma::prepare_transition(vg, 0.2f);
+    const ai_factory::workbench::model::equity::variance_gamma::PreparedTransition vg_calendar[3] = {
         vg_initial_transition,
         vg_regular_transition,
         vg_regular_transition,
     };
     float vg_regular_spots[3];
     float vg_calendar_spots[3];
-    equity::SpotObservationWriter<variance_gamma::DynamicsPolicy>
+    equity::SpotObservationWriter<ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy>
         regular_writer{vg_regular_spots, 1U, 3U};
-    equity::SpotObservationWriter<variance_gamma::DynamicsPolicy>
+    equity::SpotObservationWriter<ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy>
         calendar_writer{vg_calendar_spots, 1U, 3U};
     const auto vg_regular_state =
         simulation::simulate_exact_transition_stubbed_regular_schedule<
-            variance_gamma::DynamicsPolicy
+            ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy
         >(
             vg,
             vg_initial_transition,
@@ -194,7 +194,7 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         );
     const auto vg_calendar_state =
         simulation::simulate_exact_transition_calendar<
-            variance_gamma::DynamicsPolicy
+            ai_factory::workbench::model::equity::variance_gamma::DynamicsPolicy
         >(vg, vg_calendar, 3U, key, 31U, calendar_writer);
     const std::uint32_t exact_regular_matches_calendar =
         static_cast<std::uint32_t>(

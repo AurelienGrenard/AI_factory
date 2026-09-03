@@ -1,13 +1,15 @@
 // Public launcher for CIR zero-coupon bond options.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include "common/option_side.cuh"
-#include "model/fixed_income/cir/dataset.hpp"
+#include "model/fixed_income/cir/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::cir {
+namespace ai_factory::workbench::model::fixed_income::cir {
 
 // Launch closed-form zero-coupon bond-option prices across the CUDA grid.
 template<OptionSide Side>
@@ -16,7 +18,7 @@ void launch_cir_zero_coupon_bond_option_cuda(
     std::size_t model_count,
     const product::ZeroCouponBondOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -26,4 +28,4 @@ void launch_cir_zero_coupon_bond_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::cir
+}  // namespace ai_factory::workbench::model::fixed_income::cir

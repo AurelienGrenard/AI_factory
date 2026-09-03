@@ -12,6 +12,13 @@ ni les trajectoires, ni les réductions des kernels.
 Toutes ces fonctions sont `inline`, exécutées sur l'hôte et lèvent une exception
 C++ descriptive en cas d'échec.
 
+Les cibles hôte qui incluent `cuda_runtime.h` doivent recevoir les include
+directories du même CUDA Toolkit que celui utilisé par NVCC. Mélanger par
+exemple un header système CUDA 11 avec le runtime CUDA 13 change la taille de
+`cudaDeviceProp`; un simple `cudaGetDeviceProperties` peut alors écraser la
+pile avant même le lancement. `ai_factory_configure_host_library` propage donc
+`CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES` en `SYSTEM PUBLIC`.
+
 ### `check_cuda`
 
 Paramètres : un `cudaError_t` et le nom de l'opération. Transforme toute erreur
@@ -183,12 +190,20 @@ doit être exactement celle utilisée par l'expression `<<<...>>>` suivante.
 5. lancer le même kernel avec la même géométrie ;
 6. appeler `check_cuda(cudaGetLastError(), ...)`.
 
-Le launcher analytique commun applique cet ordre à deux spécialisations du
-même template. Il inspecte et lance `closed_form_price_kernel<Pricing, false>`
+Le launcher analytique scalaire commun applique cet ordre à deux spécialisations
+du même template. Il inspecte et lance
+`closed_form_price_kernel<PricingPolicy, false>`
 si la grille couvre tout le batch ; sinon il inspecte et lance
-`closed_form_price_kernel<Pricing, true>`, dont la boucle est grid-stride. Le
-pointeur transmis au diagnostic reste donc toujours celui de la spécialisation
-effectivement exécutée.
+`closed_form_price_kernel<PricingPolicy, true>`, dont la boucle est grid-stride.
+Le pointeur transmis au diagnostic reste donc toujours celui de la
+spécialisation effectivement exécutée.
+
+Le launcher analytique coopératif suit le même ordre avec un bloc par prix et
+une boucle block-stride. Il calcule la mémoire partagée dynamique à partir de la
+capacité hôte, vérifie `maxDynamicSharedSizeBytes` puis exige au moins un bloc
+résident avec `cudaOccupancyMaxActiveBlocksPerMultiprocessor`. Si l'une de ces
+deux contraintes matérielles échoue, il ne lance rien et rend la main au
+launcher produit, qui sélectionne explicitement son chemin scalaire de repli.
 
 Les entrées modèle-produit et modèle-courbe-produit sont validées par leur
 `DeviceInputs::validate(result_count)`. Un contexte supplémentaire, comme un
@@ -198,6 +213,15 @@ toute inspection ou exécution du kernel.
 Le diagnostic n'ajoute ni synchronisation du kernel ni mesure de durée. Le
 chronométrage reste la responsabilité des événements CUDA du générateur ou de
 `longstaff_schwartz::LaunchResources`.
+
+Le moteur Longstaff–Schwartz possède en parallèle un diagnostic numérique de
+régression, distinct des ressources CUDA. Les statuts device sont agrégés dans
+`LaunchResult::regression_diagnostics`, puis copiés une seule fois par batch
+après la synchronisation de chronométrage. Les générateurs appellent
+`validate_regression_diagnostics` avant d'écrire un dataset. L'absence ou
+l'insuffisance de candidats reste observable mais non fatale ; statistiques
+non finies, échec de Cholesky et coefficients non finis interdisent la
+publication.
 
 ## Test `cuda_kernel_diagnostics`
 

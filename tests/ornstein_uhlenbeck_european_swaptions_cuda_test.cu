@@ -13,22 +13,22 @@
 
 namespace {
 
-using Model = ai_factory::workbench::model::ornstein_uhlenbeck::
+using Model = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck::
     ModelParameters;
 using Product = ai_factory::workbench::product::
     RegularEuropeanSwaptionParameters;
 using ExplicitProduct = ai_factory::workbench::product::
     ExplicitEuropeanSwaptionParameters;
 using RegularLauncher = void (*)(
-    const Model*, std::size_t, const Product*, std::size_t, bool,
+    const Model*, std::size_t, const Product*, std::size_t, ai_factory::workbench::PriceConstruction,
     std::size_t, std::size_t, std::size_t, float, unsigned int,
     std::size_t, float*
 );
 using ExplicitLauncher = void (*)(
     const Model*, std::size_t, const ExplicitProduct*,
-    const std::uint32_t*, const float*, std::size_t, std::size_t, bool,
+    const std::uint32_t*, const float*, std::size_t, std::size_t, ai_factory::workbench::PriceConstruction,
     std::size_t, std::size_t, std::size_t, float, unsigned int,
-    std::size_t, float*
+    std::size_t, float*, std::uint32_t
 );
 constexpr double kDayFraction = 1.0 / 252.0;
 
@@ -124,13 +124,13 @@ double jamshidian_boundary(
             const double coefficient =
                 product.strike * product.accrual_fraction
                 + (payment + 1U == product.payment_count ? 1.0 : 0.0);
-            const std::uint32_t payment_time = product.exercise_time
-                + (payment + 1U) * product.payment_interval;
+            const std::uint32_t payment_time_days = product.exercise_time_days
+                + (payment + 1U) * product.payment_interval_days;
             value += coefficient * zero_coupon(
                 model,
                 state,
-                product.exercise_time * kDayFraction,
-                payment_time * kDayFraction
+                product.exercise_time_days * kDayFraction,
+                payment_time_days * kDayFraction
             );
         }
         return value;
@@ -181,19 +181,19 @@ double swaption_price(
             product.strike * product.accrual_fraction
             + (payment + 1U == product.payment_count ? 1.0 : 0.0);
         if (coefficient == 0.0) continue;
-        const std::uint32_t payment_time = product.exercise_time
-            + (payment + 1U) * product.payment_interval;
+        const std::uint32_t payment_time_days = product.exercise_time_days
+            + (payment + 1U) * product.payment_interval_days;
         const double bond_strike = zero_coupon(
             model,
             boundary,
-            product.exercise_time * kDayFraction,
-            payment_time * kDayFraction
+            product.exercise_time_days * kDayFraction,
+            payment_time_days * kDayFraction
         );
         price += coefficient * bond_option_price(
             model,
             payer ? -1.0 : 1.0,
-            product.exercise_time * kDayFraction,
-            payment_time * kDayFraction,
+            product.exercise_time_days * kDayFraction,
+            payment_time_days * kDayFraction,
             bond_strike
         );
     }
@@ -205,13 +205,13 @@ void append_product(
     ProductFixtures& fixtures,
     float notional,
     float strike,
-    std::uint32_t exercise_time,
-    std::uint32_t payment_interval,
+    std::uint32_t exercise_time_days,
+    std::uint32_t payment_interval_days,
     std::uint32_t payment_count,
     float accrual_fraction
 ) {
     require(
-        payment_interval > 0U
+        payment_interval_days > 0U
             && payment_count > 0U
             && accrual_fraction > 0.0f,
         "Invalid European swaption fixture schedule"
@@ -220,8 +220,8 @@ void append_product(
     product.notional = notional;
     product.strike = strike;
     product.accrual_fraction = accrual_fraction;
-    product.exercise_time = exercise_time;
-    product.payment_interval = payment_interval;
+    product.exercise_time_days = exercise_time_days;
+    product.payment_interval_days = payment_interval_days;
     product.payment_count = payment_count;
     fixtures.products.push_back(product);
 }
@@ -277,7 +277,7 @@ void check_launcher(
             row_count,
             device_products,
             row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             row_count,
             0U,
             row_count,
@@ -315,7 +315,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -329,7 +329,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,
@@ -391,27 +391,27 @@ void check_explicit_launcher(
 ) {
     const std::size_t schedule_size =
         static_cast<std::size_t>(regular_product.payment_count) + 1U;
-    std::vector<std::uint32_t> payment_times(schedule_size, 1U);
+    std::vector<std::uint32_t> payment_times_days(schedule_size, 1U);
     std::vector<float> accrual_fractions(schedule_size, 1.0f);
     for (std::uint32_t payment = 0U;
          payment < regular_product.payment_count;
          ++payment) {
-        payment_times[payment + 1U] = regular_product.exercise_time
-            + (payment + 1U) * regular_product.payment_interval;
+        payment_times_days[payment + 1U] = regular_product.exercise_time_days
+            + (payment + 1U) * regular_product.payment_interval_days;
         accrual_fractions[payment + 1U] =
             regular_product.accrual_fraction;
     }
     const ExplicitProduct explicit_product = {
         regular_product.notional,
         regular_product.strike,
-        regular_product.exercise_time,
+        regular_product.exercise_time_days,
         regular_product.payment_count,
         1U,
     };
 
     Model* device_model = nullptr;
     ExplicitProduct* device_product = nullptr;
-    std::uint32_t* device_payment_times = nullptr;
+    std::uint32_t* device_payment_times_days = nullptr;
     float* device_accrual_fractions = nullptr;
     float* device_price = nullptr;
     try {
@@ -425,7 +425,7 @@ void check_explicit_launcher(
         );
         ai_factory::workbench::check_cuda(
             cudaMalloc(
-                &device_payment_times,
+                &device_payment_times_days,
                 schedule_size * sizeof(std::uint32_t)
             ),
             "Explicit OU swaption test cudaMalloc payment times"
@@ -458,8 +458,8 @@ void check_explicit_launcher(
         );
         ai_factory::workbench::check_cuda(
             cudaMemcpy(
-                device_payment_times,
-                payment_times.data(),
+                device_payment_times_days,
+                payment_times_days.data(),
                 schedule_size * sizeof(std::uint32_t),
                 cudaMemcpyHostToDevice
             ),
@@ -478,18 +478,19 @@ void check_explicit_launcher(
             device_model,
             1U,
             device_product,
-            device_payment_times,
+            device_payment_times_days,
             device_accrual_fractions,
             schedule_size,
             1U,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             1U,
             0U,
             1U,
             static_cast<float>(kDayFraction),
             32U,
             1U,
-            device_price
+            device_price,
+            regular_product.payment_count
         );
         float price = 0.0f;
         ai_factory::workbench::check_cuda(
@@ -512,7 +513,9 @@ void check_explicit_launcher(
     } catch (...) {
         if (device_model != nullptr) cudaFree(device_model);
         if (device_product != nullptr) cudaFree(device_product);
-        if (device_payment_times != nullptr) cudaFree(device_payment_times);
+        if (device_payment_times_days != nullptr) {
+            cudaFree(device_payment_times_days);
+        }
         if (device_accrual_fractions != nullptr)
             cudaFree(device_accrual_fractions);
         if (device_price != nullptr) cudaFree(device_price);
@@ -525,7 +528,7 @@ void check_explicit_launcher(
         cudaFree(device_product), "Explicit OU swaption test cudaFree product"
     );
     ai_factory::workbench::check_cuda(
-        cudaFree(device_payment_times),
+        cudaFree(device_payment_times_days),
         "Explicit OU swaption test cudaFree payment times"
     );
     ai_factory::workbench::check_cuda(
@@ -547,8 +550,8 @@ void check_long_regular_schedule(
     product.notional = 1.0f;
     product.strike = 0.35f;
     product.accrual_fraction = 1.0f / 12.0f;
-    product.exercise_time = 1260U;
-    product.payment_interval = 21U;
+    product.exercise_time_days = 1260U;
+    product.payment_interval_days = 21U;
     product.payment_count = 600U;
 
     Model* device_model = nullptr;
@@ -589,7 +592,7 @@ void check_long_regular_schedule(
                 1U,
                 device_product,
                 1U,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 1U,
                 0U,
                 1U,
@@ -633,22 +636,22 @@ void check_long_regular_schedule(
         );
 
         const double exercise_time =
-            product.exercise_time * kDayFraction;
+            product.exercise_time_days * kDayFraction;
         double annuity = 0.0;
         for (std::uint32_t payment = 0U;
              payment < product.payment_count;
              ++payment) {
             const double payment_time = (
-                product.exercise_time
-                + (payment + 1U) * product.payment_interval
+                product.exercise_time_days
+                + (payment + 1U) * product.payment_interval_days
             ) * kDayFraction;
             annuity += product.accrual_fraction * zero_coupon(
                 model, model.initial_state, 0.0, payment_time
             );
         }
         const double final_time = (
-            product.exercise_time
-            + product.payment_count * product.payment_interval
+            product.exercise_time_days
+            + product.payment_count * product.payment_interval_days
         ) * kDayFraction;
         const double payer_swap_value = zero_coupon(
             model, model.initial_state, 0.0, exercise_time
@@ -684,7 +687,7 @@ void check_long_regular_schedule(
 // Validate payer and receiver Jamshidian prices in both construction modes.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);

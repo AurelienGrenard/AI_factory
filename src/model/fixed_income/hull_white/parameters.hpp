@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace ai_factory::workbench::model::hull_white {
+namespace ai_factory::workbench::model::fixed_income::hull_white {
 
 // Model parameters independent of the initial discount curve.
 struct ModelParameters {
@@ -13,4 +13,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::model::hull_white
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white

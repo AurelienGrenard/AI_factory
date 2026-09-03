@@ -1,6 +1,6 @@
 // Generate 20 maturity-dependent exponential strikes at each of 50 maturities.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <filesystem>
 #include <string>
@@ -27,10 +27,10 @@ int main() {
         log_moneyness_slope
     );
     for (auto& row : rows.rows) {
-        const std::uint32_t maturity =
+        const std::uint32_t maturity_days =
             row.at("maturity").get<std::uint32_t>();
         row["moneyness"] = row.at("strike");
-        row["reset_time"] = maturity / 2U;
+        row["reset_time"] = maturity_days / 2U;
         row.erase("strike");
     }
     // Preserve the exact lower maturity bound in human-readable metadata.

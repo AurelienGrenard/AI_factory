@@ -6,6 +6,14 @@
 
 namespace ai_factory::workbench::product {
 
+template<OptionSide Side>
+using UpAndInOptionPathPolicy = equity::SingleBarrierOptionPathPolicy<
+    UpAndInOptionParameters,
+    Side,
+    payoff::BarrierDirection::up,
+    true
+>;
+
 template<simulation::DenseSchedulePolicy Schedule, OptionSide Side>
 using UpAndInOptionPricingPolicy = equity::SingleBarrierOptionPricingPolicy<
     Schedule, UpAndInOptionParameters, Side,

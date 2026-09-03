@@ -1,11 +1,10 @@
 // Convert forward-rate-option JSON rows into compact CUDA parameters.
 #include "product/rate_option/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
 #include <cmath>
-#include <fstream>
 #include <stdexcept>
 
 namespace ai_factory::workbench::product {
@@ -14,73 +13,52 @@ namespace ai_factory::workbench::product {
 std::vector<RateOptionParameters> load_rate_options(
     const std::filesystem::path& dataset_path
 ) {
-    std::ifstream stream(dataset_path);
-    if (!stream) {
-        throw std::runtime_error(
-            "Could not open rate option JSON: " + dataset_path.string()
-        );
-    }
-
-    nlohmann::json document;
-    try {
-        stream >> document;
-    } catch (const nlohmann::json::exception& error) {
-        throw std::runtime_error(
-            "Invalid rate option JSON '" + dataset_path.string()
-            + "': " + error.what()
-        );
-    }
-
-    datasets::validate_product_dataset(document);
-    const auto& rows = document.at("products");
-    std::vector<RateOptionParameters> products;
-    products.reserve(rows.size());
-    for (const auto& row : rows) {
-        const std::string row_id = row.at("id").get<std::string>();
-        const auto& parameters = row.at("parameters");
-        const RateOptionParameters product = {
-            parameters.at("notional").get<float>(),
-            parameters.at("strike").get<float>(),
-            parameters.at("fixing_time").get<std::uint32_t>(),
-            parameters.at("payment_time").get<std::uint32_t>(),
-            parameters.at("accrual_period").get<std::uint32_t>(),
-        };
-        const std::string prefix = "Rate option row id '" + row_id + "': ";
-        if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
-            throw std::invalid_argument(prefix + "notional must be finite and positive.");
-        // Negative strikes are valid for rate options in negative-rate regimes.
-        if (!std::isfinite(product.strike))
-            throw std::invalid_argument(prefix + "strike must be finite.");
-        if (product.fixing_time == 0U)
-            throw std::invalid_argument(prefix + "fixing_time must be positive.");
-        if (!(product.payment_time > product.fixing_time)) {
-            throw std::invalid_argument(
-                prefix + "payment_time must be above fixing_time."
-            );
-        }
-        if (product.accrual_period == 0U) {
-            throw std::invalid_argument(
-                prefix + "accrual_period must be positive."
-            );
-        }
-        if (product.payment_time - product.fixing_time
-            != product.accrual_period) {
-            throw std::invalid_argument(
-                prefix + "accrual_period must equal payment_time - fixing_time."
-            );
-        }
-        const float accrual_years =
-            static_cast<float>(product.accrual_period) / 252.0f;
-        if (!(std::fma(
-                accrual_years, product.strike, 1.0f
-            ) > 0.0f)) {
-            throw std::invalid_argument(
-                prefix + "1 + accrual_period * strike must be positive."
-            );
-        }
-        products.push_back(product);
-    }
-    return products;
+    return datasets::load_parameter_rows<RateOptionParameters>(
+        dataset_path,
+        datasets::ParameterDatasetFamily::Product,
+        "Rate option",
+        [&](const nlohmann::json& parameters, const std::string& prefix) {
+            const RateOptionParameters product = {
+                parameters.at("notional").get<float>(),
+                parameters.at("strike").get<float>(),
+                parameters.at("fixing_time").get<std::uint32_t>(),
+                parameters.at("payment_time").get<std::uint32_t>(),
+                parameters.at("accrual_period").get<std::uint32_t>(),
+            };
+            if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
+                throw std::invalid_argument(prefix + "notional must be finite and positive.");
+            // Negative strikes are valid for rate options in negative-rate regimes.
+            if (!std::isfinite(product.strike))
+                throw std::invalid_argument(prefix + "strike must be finite.");
+            if (product.fixing_time_days == 0U)
+                throw std::invalid_argument(prefix + "fixing_time must be positive.");
+            if (!(product.payment_time_days > product.fixing_time_days)) {
+                throw std::invalid_argument(
+                    prefix + "payment_time must be above fixing_time."
+                );
+            }
+            if (product.accrual_period_days == 0U) {
+                throw std::invalid_argument(
+                    prefix + "accrual_period must be positive."
+                );
+            }
+            if (product.payment_time_days - product.fixing_time_days
+                != product.accrual_period_days) {
+                throw std::invalid_argument(
+                    prefix + "accrual_period must equal payment_time - fixing_time."
+                );
+            }
+            const float accrual_years =
+                static_cast<float>(product.accrual_period_days) / 252.0f;
+            if (!(std::fma(
+                    accrual_years, product.strike, 1.0f
+                ) > 0.0f)) {
+                throw std::invalid_argument(
+                    prefix + "1 + accrual_period * strike must be positive."
+                );
+            }
+            return product;
+    });
 }
 
 }  // namespace ai_factory::workbench::product

@@ -38,8 +38,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "10.98387949 s"
-  kernel_seconds: "10.288808228 s"
+  wall_seconds: "8.339425336 s"
+  kernel_seconds: "8.268565521 s"
 observation_schedule:
   rule: "exact independent increments on exercise dates"
   initial_stub:

@@ -9,7 +9,7 @@ namespace ai_factory::workbench::product {
 struct GapOptionParameters {
     float trigger_strike;
     float payoff_strike;
-    std::uint32_t maturity;
+    std::uint32_t maturity_days;
 };
 
 static_assert(std::is_trivially_copyable_v<GapOptionParameters>);

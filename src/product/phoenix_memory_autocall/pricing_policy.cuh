@@ -6,6 +6,11 @@
 
 namespace ai_factory::workbench::product {
 
+using PhoenixMemoryAutocallPathPolicy = detail::PhoenixPathPolicy<
+    PhoenixMemoryAutocallParameters,
+    true
+>;
+
 template<simulation::CountedObservedSchedulePolicy Schedule>
 using PhoenixMemoryAutocallPricingPolicy = detail::PhoenixPricingPolicy<
     Schedule, PhoenixMemoryAutocallParameters, true

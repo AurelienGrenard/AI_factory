@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 
 // Include the implementation exactly as product kernels do.
-#include "model/fixed_income/g2/analytics.cu"
+#include "model/fixed_income/g2/analytics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -17,20 +17,20 @@ constexpr std::size_t kOutputCount = 24U;
 // Evaluate transition covariance identities and bond-option parity.
 __global__ void g2_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
-    namespace g2 = ai_factory::workbench::model::g2;
+    namespace g2 = ai_factory::workbench::model::fixed_income::g2;
 
-    const g2::ModelParameters parameters = {
+    const ai_factory::workbench::model::fixed_income::g2::ModelParameters parameters = {
         {0.15f, 0.01f, 0.70f, 0.008f, -0.40f},
         {0.02f, 0.01f},
     };
     constexpr float delta = 0.5f;
-    const g2::PreparedModel prepared_model =
-        g2::prepare_model(parameters.process);
-    const g2::PreparedTransition transition =
-        g2::prepare_transition(prepared_model, delta);
-    const g2::joint::PreparedTransition joint_transition =
-        g2::joint::prepare_transition(prepared_model, delta);
-    const g2::IntegralMoments moments = g2::integral_moments(
+    const ai_factory::workbench::model::fixed_income::g2::PreparedModel prepared_model =
+        ai_factory::workbench::model::fixed_income::g2::prepare_model(parameters.process);
+    const ai_factory::workbench::model::fixed_income::g2::PreparedTransition transition =
+        ai_factory::workbench::model::fixed_income::g2::prepare_transition(prepared_model, delta);
+    const ai_factory::workbench::model::fixed_income::g2::joint::PreparedTransition joint_transition =
+        ai_factory::workbench::model::fixed_income::g2::joint::prepare_transition(prepared_model, delta);
+    const ai_factory::workbench::model::fixed_income::g2::IntegralMoments moments = ai_factory::workbench::model::fixed_income::g2::integral_moments(
         parameters.process, delta
     );
 
@@ -57,60 +57,62 @@ __global__ void g2_test_kernel(float* outputs) {
     outputs[6] = moments.state_x_loading;
     outputs[7] = moments.state_y_loading;
     outputs[8] = moments.variance;
-    outputs[9] = g2::short_rate(parameters.initial_state);
+    outputs[9] = ai_factory::workbench::model::fixed_income::g2::short_rate(
+        parameters, parameters.initial_state, 0.0f
+    );
 
     constexpr float expiry = 1.0f;
     constexpr float maturity = 2.0f;
     constexpr float strike = 0.95f;
-    const float call = g2::zero_coupon_bond_call_price(
+    const float call = ai_factory::workbench::model::fixed_income::g2::zero_coupon_bond_call_price(
         parameters, parameters.initial_state, 0.0f, expiry, maturity, strike
     );
-    const float put = g2::zero_coupon_bond_put_price(
+    const float put = ai_factory::workbench::model::fixed_income::g2::zero_coupon_bond_put_price(
         parameters, parameters.initial_state, 0.0f, expiry, maturity, strike
     );
-    const float expiry_bond = g2::zero_coupon_bond(
+    const float expiry_bond = ai_factory::workbench::model::fixed_income::g2::zero_coupon_bond(
         parameters, parameters.initial_state, 0.0f, expiry
     );
-    const float underlying_bond = g2::zero_coupon_bond(
+    const float underlying_bond = ai_factory::workbench::model::fixed_income::g2::zero_coupon_bond(
         parameters, parameters.initial_state, 0.0f, maturity
     );
     outputs[10] = call;
     outputs[11] = put;
     outputs[12] = call - put - (underlying_bond - strike * expiry_bond);
 
-    const g2::ProcessParameters deterministic = {
+    const ai_factory::workbench::model::fixed_income::g2::ProcessParameters deterministic = {
         0.15f, 0.0f, 0.70f, 0.0f, 0.0f
     };
-    const g2::PreparedModel deterministic_model =
-        g2::prepare_model(deterministic);
-    const g2::PreparedTransition deterministic_transition =
-        g2::prepare_transition(deterministic_model, delta);
+    const ai_factory::workbench::model::fixed_income::g2::PreparedModel deterministic_model =
+        ai_factory::workbench::model::fixed_income::g2::prepare_model(deterministic);
+    const ai_factory::workbench::model::fixed_income::g2::PreparedTransition deterministic_transition =
+        ai_factory::workbench::model::fixed_income::g2::prepare_transition(deterministic_model, delta);
     outputs[13] = deterministic_transition.state_x_standard_deviation;
     outputs[14] = deterministic_transition.state_y_independent_standard_deviation;
-    g2::joint::State terminal{parameters.initial_state, 0.0f};
-    g2::joint::one_step_transition(
+    ai_factory::workbench::model::fixed_income::g2::joint::State terminal{parameters.initial_state, 0.0f};
+    ai_factory::workbench::model::fixed_income::g2::joint::one_step_transition(
         joint_transition, 0.2f, -0.3f, 0.5f, terminal
     );
     outputs[15] = terminal.state_integral;
 
     constexpr float small_delta = 1.0e-4f;
-    const g2::IntegralMoments small_moments = g2::integral_moments(
+    const ai_factory::workbench::model::fixed_income::g2::IntegralMoments small_moments = ai_factory::workbench::model::fixed_income::g2::integral_moments(
         parameters.process, small_delta
     );
     outputs[16] = small_moments.state_x_loading / small_delta;
     outputs[17] = small_moments.state_y_loading / small_delta;
     outputs[18] = small_moments.variance
         / (small_delta * small_delta * small_delta);
-    outputs[19] = g2::A(parameters, 0.0f, maturity);
-    const g2::G2BondLoadings bond_loadings = g2::B(
+    outputs[19] = ai_factory::workbench::model::fixed_income::g2::A(parameters, 0.0f, maturity);
+    const ai_factory::workbench::model::fixed_income::g2::TwoFactorAffineBondLoadings bond_loadings = ai_factory::workbench::model::fixed_income::g2::B(
         parameters, 0.0f, maturity
     );
     outputs[20] = bond_loadings.state_x;
     outputs[21] = bond_loadings.state_y;
-    outputs[22] = g2::log_zero_coupon_bond(
+    outputs[22] = ai_factory::workbench::model::fixed_income::g2::log_zero_coupon_bond(
         parameters, parameters.initial_state, 0.0f, maturity
     );
-    outputs[23] = g2::log_A(parameters, 0.0f, maturity)
+    outputs[23] = ai_factory::workbench::model::fixed_income::g2::log_A(parameters, 0.0f, maturity)
         - bond_loadings.state_x * parameters.initial_state.state_x
         - bond_loadings.state_y * parameters.initial_state.state_y;
 }

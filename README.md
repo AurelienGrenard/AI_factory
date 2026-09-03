@@ -37,17 +37,22 @@ live in [`docs/`](docs/README.md). The main CUDA contracts are:
 
 - `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
 - `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
-- `src/model/<asset_class>/<model>`: standalone model dynamics, analytics, loaders, and pricing kernels, split between `equity` and `fixed_income`;
+- `src/model/equity/<markovian|rough>/<model>`: equity dynamics, analytics,
+  loaders and pricing kernels, classified by mathematical family rather than
+  by simulation algorithm;
+- `src/model/fixed_income/<model>`: fixed-income model implementations;
 - `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
 - `src/generative`: reserved for method-neutral generative-model tooling.
 
 Each model defines its compact mathematical row in `parameters.hpp`; its
 `dataset.hpp/.cpp` pair only exposes and implements the host loader. Curves and
 products keep their compact rows with their dataset loaders. CUDA declarations
-and implementations retain descriptive names such as `dynamics.cuh/.cu` or
-`term_structure.cuh/.cu`. Curve-specific dataset construction helpers live
-under `tools/datasets`; catalog generators contain only their recipe constants
-and `main`.
+and implementations retain descriptive names: public interfaces use
+`dynamics.cuh` or `term_structure.cuh`, included device definitions use
+`dynamics_impl.cuh` or `term_structure_impl.cuh`, and standalone `.cu` launch
+units are registered in CMake. Curve-specific dataset construction helpers
+live under `tools/datasets`; catalog generators contain only their recipe
+constants and `main`.
 
 Pricing functions receive contiguous arrays that have already been loaded.
 They do not know output paths, dataset URLs, or catalog formats.
@@ -158,9 +163,10 @@ datasets/
 
 This directory is ignored by Git. Its files can be generated locally or
 downloaded from the `url` declared in the catalog. Generative-training sample
-datasets will likewise remain outside Git. This change provides their common
-and model-specific CUDA sampling kernels, but deliberately publishes no 3M-row
-sample recipe yet. Product calendar dates are stored as integer business-day
+datasets will likewise remain outside Git. The typed capability manifest and
+Python codegen publish two 3M-row sample recipes for each of the 24 models,
+backed by their common Markov, Volterra FFT or N-factor CUDA sampling engine.
+Product calendar dates are stored as integer business-day
 counts under a 252-day model-time convention. Contractual year fractions are
 stored directly when their day-count convention differs from that model clock.
 Discretized price datasets use two simulation steps per business day, hence
@@ -254,7 +260,8 @@ fallback only when the Premia backend fails technically.
 
 As with Heston, `parameters.hpp` contains the compact model row and
 `dataset.hpp/.cpp` contains only its host JSON loader. Numerical functions used
-by kernels live in `.cuh/.cu` files.
+by kernels live in public `.cuh`, included `*_impl.cuh`, or standalone `.cu`
+files according to their compilation boundary.
 
 Bates composes the Heston QE-M transition with an independent compound-Poisson
 lognormal jump process. Each path owns one scalar uniform sequence and one
@@ -411,6 +418,17 @@ example `launch_heston_european_option_cuda<OptionSide::call>(...)`. Their
 generators can link either specialization without including CUDA
 implementations or keeping a runtime dispatch wrapper.
 
+The public C++ API deliberately uses two complementary naming rules. Product
+types share the flat `ai_factory::workbench::product` namespace and therefore
+carry a descriptive product prefix, such as `EuropeanOptionParameters` and
+`EuropeanOptionPricingPolicy`; product-private helpers remain in
+`product::detail` and carry the same descriptive prefix. Model launchers are
+external link symbols and retain the complete model/curve/operation name even
+inside their model namespace. Method-neutral implementation primitives instead
+use short role names inside their owning namespace, for example
+`closed_form::launch_closed_form_cuda`. These are stable API conventions, not
+an invitation to maintain short aliases in parallel.
+
 ## Build
 
 Requirements:
@@ -433,6 +451,25 @@ cmake --build --preset core
 The architecture list remains configurable, for example:
 `-DCUDA_WORKBENCH_ARCHITECTURES="75;86;89"`. CUDA 13 supports offline
 compilation for Turing (`sm_75`) and newer GPUs.
+
+When `AI_FACTORY_MATHDX_ROOT` enables cuFFTDx 26.06, the project accepts the
+descriptor matrix `75, 80, 86, 87, 89, 90, 100, 103, 110, 120, 121`. A
+mono-architecture build selects its exact descriptor. A fatbin uses the oldest
+requested descriptor as its portable FFT implementation profile while nvcc
+still emits code for every requested architecture. This is a compatibility
+choice, not a claim that one FFT specialization or launch geometry is optimal
+on every GPU. The checked-in runtime measurements cover only the RTX 4090
+Laptop (`sm_89`); every other GPU requires its own runtime qualification.
+
+CUDA launch geometry is exposed as a compile-time CMake tuning profile. The
+default `sm89_reference_v1` centralizes Markovian, N-factor, analytical,
+Longstaff--Schwartz, model-sample and Volterra chunk values and records that
+profile in generated execution metadata. A deployment can override the
+`AI_FACTORY_CUDA_*` cache variables and set a distinct
+`AI_FACTORY_CUDA_TUNING_PROFILE_ID` without editing generated recipes. Before
+publishing such a profile, run the numerical tests, kernel diagnostics and the
+complete performance manifest described in
+[`validation/performance/README.md`](validation/performance/README.md).
 
 The development build uses Ninja and deliberately excludes CUDA pricers,
 tests, and generators from the default target. Build the narrowest target for
@@ -458,8 +495,8 @@ available for broader checks. `cmake --build build-dev --target help` lists
 every granular target.
 Ninja keeps unaffected archives intact: changing one product launcher rebuilds
 that launcher and its consumers; changing a model dataset loader rebuilds only
-that loader and consumers; changing an included `dynamics.cu` or
-`analytics.cu` correctly rebuilds all launchers of the affected model. A clean
+that loader and consumers; changing an included `dynamics_impl.cuh` or
+`analytics_impl.cuh` correctly rebuilds all launchers of the affected model. A clean
 rebuild is therefore not part of the normal development loop.
 
 ## Generate Datasets

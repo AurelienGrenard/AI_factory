@@ -1,11 +1,13 @@
-// Validate fixed-income dynamics policies against their legacy entry points.
+// Validate the market-neutral dynamics contracts on fixed-income models.
 #include "common/check_cuda.cuh"
 #include "tests/common/dynamics_contract.cuh"
 
-#include "model/fixed_income/cir/dynamics.cu"
-#include "model/fixed_income/g2/dynamics.cu"
-#include "model/fixed_income/ornstein_uhlenbeck/dynamics.cu"
-#include "model/fixed_income/vasicek/dynamics.cu"
+#include "model/fixed_income/cir/dynamics_impl.cuh"
+#include "model/fixed_income/g2/dynamics_impl.cuh"
+#include "model/fixed_income/g2_plus_plus/dynamics.cuh"
+#include "model/fixed_income/hull_white/dynamics.cuh"
+#include "model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh"
+#include "model/fixed_income/vasicek/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -17,10 +19,13 @@
 namespace {
 
 namespace workbench = ai_factory::workbench;
-namespace cir = workbench::model::cir;
-namespace g2 = workbench::model::g2;
-namespace ou = workbench::model::ornstein_uhlenbeck;
-namespace vasicek = workbench::model::vasicek;
+namespace cir = workbench::model::fixed_income::cir;
+namespace g2 = workbench::model::fixed_income::g2;
+namespace g2_plus_plus =
+    workbench::model::fixed_income::g2_plus_plus;
+namespace hull_white = workbench::model::fixed_income::hull_white;
+namespace ou = workbench::model::fixed_income::ornstein_uhlenbeck;
+namespace vasicek = workbench::model::fixed_income::vasicek;
 
 struct ScalarInspector {
     __device__ __forceinline__ static bool finite(float state) {
@@ -36,14 +41,14 @@ struct JointScalarInspector {
 };
 
 struct G2Inspector {
-    __device__ __forceinline__ static bool finite(const g2::State& state) {
+    __device__ __forceinline__ static bool finite(const ai_factory::workbench::model::fixed_income::g2::State& state) {
         return isfinite(state.state_x) && isfinite(state.state_y);
     }
 };
 
 struct JointG2Inspector {
     __device__ __forceinline__ static bool finite(
-        const g2::joint::State& state
+        const ai_factory::workbench::model::fixed_income::g2::joint::State& state
     ) {
         return G2Inspector::finite(state.state)
             && isfinite(state.state_integral);
@@ -55,8 +60,7 @@ __device__ __forceinline__ std::uint32_t contract_result(
     const typename Dynamics::Parameters& parameters,
     float delta_t,
     workbench::philox::PhiloxKey key,
-    std::size_t path,
-    bool legacy_parity
+    std::size_t path
 ) {
     const std::uint32_t fixed =
         workbench::test::test_fixed_step_dynamics_contract<
@@ -74,220 +78,21 @@ __device__ __forceinline__ std::uint32_t contract_result(
             Inspector
         >(parameters, delta_t, key, path);
     return fixed
-        | (exact << 4U)
-        | (representation_parity ? (1U << 8U) : 0U)
-        | (legacy_parity ? (1U << 9U) : 0U);
+        | (exact << 6U)
+        | (representation_parity ? (1U << 10U) : 0U);
 }
 
-__device__ __forceinline__ bool ou_legacy_parity(
-    const ou::ModelParameters& parameters,
+template<typename Dynamics, typename Inspector>
+__device__ __forceinline__ std::uint32_t fixed_step_contract_result(
+    const typename Dynamics::Parameters& parameters,
     float delta_t,
     workbench::philox::PhiloxKey key,
     std::size_t path
 ) {
-    const ou::PreparedModel legacy_model = ou::prepare_model(
-        parameters.process
-    );
-    const ou::PreparedTransition legacy_transition = ou::prepare_transition(
-        legacy_model, delta_t
-    );
-    const float legacy = ou::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const ou::PreparedModel model = ou::DynamicsPolicy::prepare_model(
-        parameters
-    );
-    const float current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            ou::DynamicsPolicy
-        >(
-            model,
-            ou::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool ou_joint_legacy_parity(
-    const ou::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const ou::PreparedModel legacy_model = ou::prepare_model(
-        parameters.process
-    );
-    const ou::joint::PreparedTransition legacy_transition =
-        ou::joint::prepare_transition(legacy_model, delta_t);
-    const ou::joint::State legacy = ou::joint::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const ou::PreparedModel model = ou::joint::DynamicsPolicy::prepare_model(
-        parameters
-    );
-    const ou::joint::State current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            ou::joint::DynamicsPolicy
-        >(
-            model,
-            ou::joint::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool vasicek_legacy_parity(
-    const vasicek::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const vasicek::PreparedModel legacy_model = vasicek::prepare_model(
-        parameters.process
-    );
-    const vasicek::PreparedTransition legacy_transition =
-        vasicek::prepare_transition(legacy_model, delta_t);
-    const float legacy = vasicek::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const vasicek::PreparedModel model =
-        vasicek::DynamicsPolicy::prepare_model(parameters);
-    const float current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            vasicek::DynamicsPolicy
-        >(
-            model,
-            vasicek::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool vasicek_joint_legacy_parity(
-    const vasicek::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const vasicek::PreparedModel legacy_model = vasicek::prepare_model(
-        parameters.process
-    );
-    const vasicek::joint::PreparedTransition legacy_transition =
-        vasicek::joint::prepare_transition(legacy_model, delta_t);
-    const vasicek::joint::State legacy =
-        vasicek::joint::simulate_terminal_state(
-            legacy_model,
-            legacy_transition,
-            parameters.initial_state,
-            key,
-            path
-        );
-    const vasicek::PreparedModel model =
-        vasicek::joint::DynamicsPolicy::prepare_model(parameters);
-    const vasicek::joint::State current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            vasicek::joint::DynamicsPolicy
-        >(
-            model,
-            vasicek::joint::DynamicsPolicy::prepare_transition(
-                model, delta_t
-            ),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool cir_legacy_parity(
-    const cir::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const cir::PreparedModel legacy_model = cir::prepare_model(
-        parameters.process
-    );
-    const cir::PreparedTransition legacy_transition = cir::prepare_transition(
-        legacy_model, delta_t
-    );
-    const float legacy = cir::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const cir::PreparedModel model = cir::DynamicsPolicy::prepare_model(
-        parameters
-    );
-    const float current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            cir::DynamicsPolicy
-        >(
-            model,
-            cir::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool g2_legacy_parity(
-    const g2::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const g2::PreparedModel legacy_model = g2::prepare_model(
-        parameters.process
-    );
-    const g2::PreparedTransition legacy_transition = g2::prepare_transition(
-        legacy_model, delta_t
-    );
-    const g2::State legacy = g2::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const g2::PreparedModel model = g2::DynamicsPolicy::prepare_model(
-        parameters
-    );
-    const g2::State current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            g2::DynamicsPolicy
-        >(
-            model,
-            g2::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
-}
-
-__device__ __forceinline__ bool g2_joint_legacy_parity(
-    const g2::ModelParameters& parameters,
-    float delta_t,
-    workbench::philox::PhiloxKey key,
-    std::size_t path
-) {
-    const g2::PreparedModel legacy_model = g2::prepare_model(
-        parameters.process
-    );
-    const g2::joint::PreparedTransition legacy_transition =
-        g2::joint::prepare_transition(legacy_model, delta_t);
-    const g2::joint::State legacy = g2::joint::simulate_terminal_state(
-        legacy_model, legacy_transition, parameters.initial_state, key, path
-    );
-    const g2::PreparedModel model = g2::joint::DynamicsPolicy::prepare_model(
-        parameters
-    );
-    const g2::joint::State current =
-        workbench::simulation::simulate_exact_transition_terminal<
-            g2::joint::DynamicsPolicy
-        >(
-            model,
-            g2::joint::DynamicsPolicy::prepare_transition(model, delta_t),
-            key,
-            path
-        );
-    return workbench::test::bitwise_equal(legacy, current);
+    return workbench::test::test_fixed_step_dynamics_contract<
+        Dynamics,
+        Inspector
+    >(parameters, delta_t, 4U, key, path);
 }
 
 __global__ void fixed_income_dynamics_policy_contract_kernel(
@@ -300,23 +105,28 @@ __global__ void fixed_income_dynamics_policy_contract_kernel(
     const workbench::philox::PhiloxKey key =
         workbench::philox::make_key(0x123456789abcdef0ULL);
     const ou::ModelParameters ou_parameters = {{0.25f, 0.02f}, 0.03f};
-    const vasicek::ModelParameters vasicek_parameters = {
+    const ai_factory::workbench::model::fixed_income::vasicek::ModelParameters vasicek_parameters = {
         {0.25f, 0.04f, 0.02f}, 0.03f,
     };
-    const cir::ModelParameters cir_parameters = {
+    const ai_factory::workbench::model::fixed_income::cir::ModelParameters cir_parameters = {
         {0.70f, 0.04f, 0.16f}, 0.03f,
     };
-    const g2::ModelParameters g2_parameters = {
+    const ai_factory::workbench::model::fixed_income::g2::ModelParameters g2_parameters = {
         {0.10f, 0.01f, 0.30f, 0.015f, -0.40f},
         {0.02f, -0.01f},
+    };
+    const hull_white::ModelParameters hull_white_parameters = {
+        0.25f, 0.02f,
+    };
+    const g2_plus_plus::ModelParameters g2_plus_plus_parameters = {
+        {0.10f, 0.01f, 0.30f, 0.015f, -0.40f},
     };
 
     results[0] = contract_result<ou::DynamicsPolicy, ScalarInspector>(
         ou_parameters,
         delta_t,
         key,
-        path,
-        ou_legacy_parity(ou_parameters, delta_t, key, path)
+        path
     );
     results[1] = contract_result<
         ou::joint::DynamicsPolicy,
@@ -325,51 +135,70 @@ __global__ void fixed_income_dynamics_policy_contract_kernel(
         ou_parameters,
         delta_t,
         key,
-        path,
-        ou_joint_legacy_parity(ou_parameters, delta_t, key, path)
+        path
     );
-    results[2] = contract_result<vasicek::DynamicsPolicy, ScalarInspector>(
+    results[2] = contract_result<ai_factory::workbench::model::fixed_income::vasicek::DynamicsPolicy, ScalarInspector>(
         vasicek_parameters,
         delta_t,
         key,
-        path,
-        vasicek_legacy_parity(vasicek_parameters, delta_t, key, path)
+        path
     );
     results[3] = contract_result<
-        vasicek::joint::DynamicsPolicy,
+        ai_factory::workbench::model::fixed_income::vasicek::joint::DynamicsPolicy,
         JointScalarInspector
     >(
         vasicek_parameters,
         delta_t,
         key,
-        path,
-        vasicek_joint_legacy_parity(
-            vasicek_parameters, delta_t, key, path
-        )
+        path
     );
-    results[4] = contract_result<cir::DynamicsPolicy, ScalarInspector>(
+    results[4] = contract_result<ai_factory::workbench::model::fixed_income::cir::DynamicsPolicy, ScalarInspector>(
         cir_parameters,
         delta_t,
         key,
-        path,
-        cir_legacy_parity(cir_parameters, delta_t, key, path)
+        path
     );
-    results[5] = contract_result<g2::DynamicsPolicy, G2Inspector>(
+    results[5] = fixed_step_contract_result<
+        ai_factory::workbench::model::fixed_income::cir::joint::DynamicsPolicy,
+        JointScalarInspector
+    >(
+        cir_parameters,
+        delta_t,
+        key,
+        path
+    );
+    results[6] = contract_result<ai_factory::workbench::model::fixed_income::g2::DynamicsPolicy, G2Inspector>(
         g2_parameters,
         delta_t,
         key,
-        path,
-        g2_legacy_parity(g2_parameters, delta_t, key, path)
+        path
     );
-    results[6] = contract_result<
-        g2::joint::DynamicsPolicy,
+    results[7] = contract_result<
+        ai_factory::workbench::model::fixed_income::g2::joint::DynamicsPolicy,
         JointG2Inspector
     >(
         g2_parameters,
         delta_t,
         key,
-        path,
-        g2_joint_legacy_parity(g2_parameters, delta_t, key, path)
+        path
+    );
+    results[8] = contract_result<
+        hull_white::joint::DynamicsPolicy,
+        JointScalarInspector
+    >(
+        hull_white_parameters,
+        delta_t,
+        key,
+        path
+    );
+    results[9] = contract_result<
+        g2_plus_plus::joint::DynamicsPolicy,
+        JointG2Inspector
+    >(
+        g2_plus_plus_parameters,
+        delta_t,
+        key,
+        path
     );
 }
 
@@ -388,7 +217,7 @@ int main() {
         "Fixed-income dynamics policy test cudaGetDeviceCount"
     );
 
-    constexpr std::size_t kResultCount = 7U;
+    constexpr std::size_t kResultCount = 10U;
     std::uint32_t* device_results = nullptr;
     workbench::check_cuda(
         cudaMalloc(&device_results, kResultCount * sizeof(std::uint32_t)),
@@ -419,9 +248,10 @@ int main() {
         "Fixed-income dynamics policy test cudaFree"
     );
 
-    constexpr std::uint32_t kExpected = (1U << 10U) - 1U;
+    constexpr std::uint32_t kExpected = (1U << 11U) - 1U;
     for (std::size_t result = 0U; result < kResultCount; ++result) {
-        if (results[result] != kExpected) {
+        const std::uint32_t expected = result == 5U ? 63U : kExpected;
+        if (results[result] != expected) {
             throw std::runtime_error(
                 "A fixed-income dynamics policy contract failed."
             );

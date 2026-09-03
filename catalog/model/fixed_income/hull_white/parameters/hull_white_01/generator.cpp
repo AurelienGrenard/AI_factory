@@ -1,6 +1,6 @@
 // Generate reproducible Hull-White one-factor model parameters.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 #include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
 
 #include <cstdint>

@@ -3,14 +3,14 @@
 ## Objet
 
 Ce document fixe l'interface et les responsabilités des dynamiques placées dans
-`src/model/<asset_class>/<model>/dynamics.cuh/.cu`. Une nouvelle dynamique doit conserver les
-mêmes couches, les mêmes noms et le même ordre de fonctions lorsque sa
-mathématique les rend applicables.
+`src/model/<asset_class>/<model>/dynamics.cuh` et `dynamics_impl.cuh`. Une
+nouvelle dynamique doit conserver les mêmes couches, les mêmes noms et le même
+ordre de fonctions lorsque sa mathématique les rend applicables.
 
-Le fichier `.cuh` déclare les types et fonctions device réutilisables. Le
-fichier `.cu` adjacent contient leurs définitions force-inlinées et est inclus
-par les kernels consommateurs ; il n'est pas compilé comme une unité CMake
-indépendante.
+Le fichier `dynamics.cuh` déclare les types et fonctions device réutilisables.
+`dynamics_impl.cuh` contient leurs définitions force-inlinées et est inclus par
+les kernels consommateurs. Les launchers autonomes restent des unités `.cu`
+enregistrées dans CMake.
 
 ## Attributs et dépendances
 
@@ -31,18 +31,20 @@ Les responsabilités restent séparées entre les couches suivantes :
   modèle, sans dépendance CUDA ni logique de sérialisation ;
 - `src/model/<asset_class>/<model>/dataset.hpp/.cpp` expose et implémente son
   chargement hôte ;
-- `src/model/<asset_class>/<model>/dynamics.cuh/.cu` implémente le processus
-  autonome ;
-- `src/model/<asset_class>/<model>/analytics.cuh/.cu` expose ses formules
-  réutilisables ;
-- `src/curve/<curve>/term_structure.cuh/.cu` expose la courbe derrière les noms
-  communs tels que `discount_factor` et `forward_rate` ;
-- `src/model/<asset_class>/<model>/<curve>/analytics.cuh/.cu` compose, lorsque
-  nécessaire, le processus et la courbe calibrée.
+- `src/model/<asset_class>/<model>/dynamics.cuh` et `dynamics_impl.cuh`
+  déclarent et implémentent le processus autonome ;
+- `src/model/<asset_class>/<model>/analytics.cuh` et `analytics_impl.cuh`
+  exposent ses formules réutilisables ;
+- `src/curve/<curve>/term_structure.cuh` et `term_structure_impl.cuh` exposent
+  la courbe derrière les noms communs tels que `discount_factor` et
+  `forward_rate` ;
+- `src/model/<asset_class>/<model>/<curve>/analytics.cuh` et
+  `analytics_impl.cuh` composent, lorsque nécessaire, le processus et la
+  courbe calibrée.
 
 Les moments numériquement stables d'un facteur gaussien mean-reverting sont
 centralisés dans
-`src/model/fixed_income/common/mean_reverting_gaussian.cuh`. OU et Vasicek les
+`src/common/fixed_income/mean_reverting_gaussian.cuh`. OU et Vasicek les
 exposent derrière leurs interfaces propres ; G2 les applique séparément à ses
 deux facteurs et conserve localement ses covariances croisées. Ce helper ne
 contient aucun état de modèle, aucune logique de courbe et aucune simulation de
@@ -68,18 +70,19 @@ P(t,T) = A(t,T) * exp(-B(t,T)' * X_t).
 
 Son `analytics.cuh` expose `log_A`, `A`, `B`, `log_zero_coupon_bond` et
 `zero_coupon_bond`. Un modèle à un facteur retourne un `float` depuis `B`; G2
-et G2++ retournent le type partagé `G2BondLoadings`. Le `.cu` calcule `log_A`
-et tous les loadings dans un helper privé `affine_bond_coefficients`, afin que
-le chemin chaud d'un ZCB partage les moments et transcendantes. `A` reste un
+et G2++ retournent le type partagé `TwoFactorAffineBondLoadings`. Le calcul de
+`log_A` et des loadings est groupé dans `affine_bond_coefficients`, afin que le
+chemin chaud d'un ZCB partage les moments et transcendantes. `A` reste un
 wrapper de lisibilité; le pricing travaille en espace logarithmique et ne fait
 pas un aller-retour `exp` puis `log`.
 
-`log_discount_factor` et `discount_factor` ne désignent pas ces coefficients :
-ils reçoivent uniquement la valeur scalaire `integral_0^t r_s ds` et retournent
-respectivement son opposé et son exponentielle. Le code appelant extrait donc
-`state_integral` d'un éventuel état joint sans transmettre les autres facteurs
-inutiles. Pour un modèle `++`, les paramètres de courbe et le temps complètent
-cette entrée scalaire afin d'ajouter l'intégrale du shift déterministe.
+`log_discount_factor(parameters, state_integral, time)` et
+`discount_factor(parameters, state_integral, time)` ne désignent pas ces
+coefficients. Le code appelant extrait `state_integral` d'un éventuel état
+joint sans transmettre les autres facteurs stochastiques. Un modèle standalone
+ignore les arguments supplémentaires lorsque son état est directement le short
+rate ; un modèle ajusté les utilise pour ajouter l'intégrale du shift
+déterministe.
 
 ## Types communs
 
@@ -104,8 +107,9 @@ utilisent `unsigned int`.
 Dans un namespace propre au modèle, les types ne répètent pas son nom : la
 ligne brute est `ModelParameters` ou `ProcessParameters`, le modèle préparé est
 `PreparedModel`, la transition exacte préparée est `PreparedTransition` et
-l'état mutable est `State`. Leur qualification (`kou::PreparedTransition`,
-`model::g2::State`) apporte l'information du modèle sans produire des noms tels
+l'état mutable est `State`. Leur qualification
+(`model::equity::kou::PreparedTransition`,
+`model::fixed_income::g2::State`) apporte l'information du modèle sans produire des noms tels
 que `kou::KouPreparedTransition`.
 
 Pour un processus à transition directe, `PreparedModel` contient exactement
@@ -147,14 +151,12 @@ mathématique, comme Bates réutilise l'état log-spot/variance de Heston.
 
 ### Résultats de chemin
 
-Les modèles equity standards ne déclarent aucun résultat de chemin dans leur
-dynamique. La moyenne, le maximum, les barrières et les coupons appartiennent
-aux handlers des produits dans `pricing_policy.cuh`. Un résultat à deux dates
-est le cas particulier d'un calendrier de deux observations.
-
-Black-Scholes conserve encore ses anciens types de résultat uniquement pour
-son générateur de samples historique ; ses pricers Monte Carlo utilisent le
-contrat commun. Rough Bergomi reste hors de ce contrat Markovien.
+Les modèles Markoviens ne déclarent aucun résultat de chemin dans leur
+dynamique. La moyenne, le maximum, les barrières, les coupons et les écritures
+de samples appartiennent aux handlers appelés par les simulateurs communs. Un
+résultat à deux dates est le cas particulier d'un calendrier de deux
+observations. Un exécuteur Volterra peut réutiliser le même contrat de handler
+via `StatePolicy` sans prétendre exposer une transition markovienne `t -> t+dt`.
 
 ### `DynamicsPolicy`
 
@@ -167,6 +169,8 @@ struct DynamicsPolicy {
     using PreparedDynamics = model_namespace::PreparedDynamics;
     using RandomContext = philox::NormalRandomContext;
     using State = model_namespace::State;
+
+    static constexpr bool kPartitionInvariantAdvance = true;
 
     static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -187,6 +191,18 @@ struct DynamicsPolicy {
 };
 ```
 
+`advance(dynamics, n, random, state)` retourne l'état à la fin d'un intervalle
+non observé de `n` pas homogènes. `advance(..., 0, ...)` ne modifie ni l'état ni
+la suite aléatoire. La propriété `kPartitionInvariantAdvance` indique si cet
+appel consomme exactement la même suite et produit les mêmes bits que `n`
+appels successifs avec `step_count == 1`.
+
+Bates fixe cette propriété à `false` : il simule les pas QE-M de Heston, puis
+agrège le processus de sauts indépendant sur l'intervalle non observé. La loi à
+la frontière est correcte, mais le partitionnement des appels change la
+consommation Philox. Un calendrier dense appelle `advance(..., 1, ...)`, donc
+les sauts restent appliqués à chaque date effectivement observée.
+
 Les `using` sont des alias de types et ne stockent rien. Les méthodes statiques
 redirigent vers les primitives propres au modèle et sont toutes
 `__device__ __forceinline__`; il n'existe ni instance de policy, ni vtable, ni
@@ -199,7 +215,13 @@ sont vérifiées par `equity::SpotDynamicsPolicy` et
 propres observables sans faux alias `spot`.
 
 Pour un schéma à pas fixe, `PreparedDynamics` est le modèle déjà préparé pour
-`delta_t`. Pour une simulation exacte, il agrège `PreparedModel` et
+`delta_t`. `PreparedFixedStepDynamicsPolicy` vérifie l'état, le contexte
+aléatoire et `advance` lorsque ces coefficients sont fournis extérieurement ;
+`FixedStepDynamicsPolicy` ajoute la capacité de les construire directement sur
+le device avec `prepare_dynamics(parameters, delta_t)`. Cette séparation permet
+à rough Heston de préparer une approximation de noyau et une exponentielle de
+matrice une seule fois côté hôte sans introduire une fausse préparation device.
+Pour une simulation exacte, il agrège `PreparedModel` et
 `PreparedTransition`; la policy expose aussi ces deux types et les surcharges
 `prepare_model`, `prepare_transition`, `initial_state(model)` et
 `simulate_one_step(model, transition, random, state)`.
@@ -293,36 +315,16 @@ observe réellement le chemin à cette fréquence.
 Black-Scholes, Merton, Kou, Variance-Gamma et NIG suivent ce découpage pour le
 log-spot. OU, Vasicek, CIR et G2 le suivent pour leurs facteurs de taux. Les
 dynamiques jointes OU, Vasicek et G2 réutilisent le `PreparedModel` state-only,
-mais préparent une transition plus riche qui contient aussi les moments de
-l'intégrale.
+mais préparent une transition plus riche qui contient aussi les moments exacts
+de l'intégrale.
 
-Le namespace `cir::joint` réserve seulement les types de l'état joint et le nom
-de sa future policy. Il ne satisfait volontairement aucun concept tant qu'une
-transition exacte justifiée de l'intégrale n'est pas implémentée.
-
-### `prepare_calendar`
-
-Ce helper ne fait pas partie du contrat des modèles equity factorisés. Le
-calendrier prépare directement ses transitions avec
-`DynamicsPolicy::prepare_transition`.
-
-Certaines dynamiques fixed income et Black-Scholes conservent encore la forme
-historique :
-
-```cpp
-void prepare_calendar(
-    const PreparedModel& prepared_model,
-    const std::uint32_t* interval_steps,
-    std::uint32_t interval_count,
-    float delta_t,
-    PreparedTransition* transitions
-);
-```
-
-Elle convertit les écarts entiers entre observations en transitions exactes.
-Chaque entrée vaut
-`prepare_transition(prepared_model, interval_steps[i] * delta_t)`. Le tableau
-de transitions est préparé une fois par ligne, jamais une fois par chemin.
+La dynamique `cir::joint` réutilise également le `PreparedModel` et la
+transition exacte de l'état CIR. Elle ajoute le coefficient du trapèze local
+pour accumuler
+`integral_t^(t + delta_t) r_s ds ~= delta_t (r_t + r_(t + delta_t)) / 2`.
+Sa policy expose uniquement le contrat à pas fixe : elle ne satisfait pas
+`ExactTransitionDynamicsPolicy`, car l'intégrale est approchée même si chaque
+extrémité CIR est tirée exactement.
 
 ### `initial_state`
 
@@ -332,9 +334,9 @@ Attribut : `__device__ __forceinline__`.
 State initial_state(const PreparedModel& prepared_model);
 ```
 
-La fonction construit l'état en temps zéro lorsque celui-ci est porté par les
-paramètres du modèle. Elle est omise lorsque l'état initial est naturellement
-un argument explicite des fonctions de simulation.
+La fonction construit l'état en temps zéro à partir du modèle préparé. L'état
+initial n'est jamais un argument parallèle des simulateurs communs : il est
+porté par `PreparedModel` ou `PreparedDynamics`.
 
 ### `one_step_transition`
 
@@ -409,10 +411,24 @@ La puissance `S^beta` est calculée une fois par pas et réutilisée pour former
 `S^(2 beta - 1)`, afin d'éviter une seconde évaluation coûteuse de `powf` sans
 ajouter de registre persistant.
 
+SABR et rough SABR appliquent la même frontière absorbante pour `beta < 1`.
+Leur schéma évolue le spot dans la coordonnée de Lamperti
+`S^(1-beta)/(1-beta)` : une proposition finie non positive écrit
+`log_spot = -inf`, et les pas suivants ne peuvent pas ressusciter le spot. La
+volatilité continue néanmoins d'évoluer et la dynamique markovienne consomme
+les mêmes normales Philox, afin que l'absorption ne modifie ni la projection
+des autres composantes ni le contrat de reproductibilité. Une erreur `NaN`
+n'est jamais convertie en frontière valide. Le cas lognormal `beta = 1` reste
+strictement positif et conserve sa mise à jour en log-spot.
+
 Schöbel-Zhu tire exactement l'extrémité OU de la volatilité. L'innovation OU est
 couplée au Brownien de volatilité intégré sur le pas, puis au Brownien spot. Le
 log-spot reste discrétisé par Euler: « endpoint OU exact » ne signifie donc pas
-« transition jointe spot-volatilité exacte ».
+« transition jointe spot-volatilité exacte ». Les termes `1-exp(-x)` de la
+variance d'extrémité et de la corrélation utilisent `-expm1f(-x)` afin de rester
+stables lorsque `kappa * delta_t` est petit. Une transition consomme exactement
+trois normales, dans l'ordre innovation OU, résidu de l'incrément de volatilité,
+puis résidu spot ; cette affectation Philox fait partie du contrat.
 
 ### Calendriers réguliers
 
@@ -468,12 +484,37 @@ observations couvre naturellement les produits à deux dates.
 
 ## Limites d'uniformisation
 
-Rough Bergomi n'est pas forcé dans ce contrat Markovien : son historique de
-Volterra, son workspace et sa consommation aléatoire exigent une interface
-spécifique qui sera refondue avec son propre contrat. De même, CIR n'expose pas
-une fausse transition jointe état-intégrale tant qu'une méthode justifiée n'est
-pas implémentée. L'uniformité porte sur les responsabilités réellement
+Rough Bergomi, log-modulated rough Bergomi, rough SABR et rough Stein--Stein ne
+sont pas forcés dans ce contrat Markovien. Ils composent le moteur commun
+`hybrid_fft_pricer` avec quatre politiques : driver Volterra gaussien,
+transformation de chemin propre au modèle, calendrier et produit. Le
+`PathPolicy` reçoit successivement `Y_i`, sa variance déterministe lorsqu'elle
+est requise, et les normales corrélées ; il possède seul les transformations
+du driver vers la variance ou la volatilité, puis l'évolution de `S_i`. Les
+handlers reçoivent des observations spot scalaires et restent donc
+indépendants du layout d'état.
+
+Cette composition s'applique quand l'intégrale de Volterra est une convolution
+linéaire d'un bruit gaussien par un kernel stationnaire. Rough Heston et
+quadratic rough Heston ne rentrent pas dans cette classe car leur intégrande
+dépend de l'état simulé. Après approximation exponentielle, ils satisfont en revanche
+`PreparedFixedStepDynamicsPolicy` et réutilisent les schedules et kernels Monte
+Carlo communs. L'état joint CIR reste
+volontairement limité au contrat à pas fixe afin que son intégration
+trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
+grand intervalle. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
+
+Pour quadratic rough Heston, la récurrence factorielle équilibre la
+contribution de la cellule Volterra complète. Si `F` est la force explicite et
+`c` la somme des poids multipliés par les intégrales de décroissance sur la
+cellule, la force appliquée est `F / hypot(1, c F)`. La contribution immédiate
+reste ainsi bornée sans clamp, seuil arbitraire ni branche dans la boucle
+chaude. La transformation diffère de la cellule explicite seulement à l'ordre
+cubique lorsque `c F` tend vers zéro. Le schéma, sa référence
+dense/exponentielle et tout changement futur doivent conserver le mapping
+Philox, vérifier les lignes core extrêmes et démontrer la convergence par
+raffinement temporel et factoriel.
 
 ## Observations et résumés equity
 
@@ -485,15 +526,19 @@ handler sans coût virtuel.
 
 Les accumulations nécessitant une meilleure stabilité peuvent rester en FP64
 dans le handler, tandis que l'état simulé demeure en FP32. Black-Scholes suit
-ce contrat pour ses pricers Monte Carlo ; Rough Bergomi reste provisoirement
-hors de cette factorisation.
+ce contrat pour ses pricers Monte Carlo. Rough Bergomi expose un `StatePolicy`
+spot/log-spot aux mêmes handlers, mais conserve son exécution FFT spécialisée.
 
 Le test générique `tests/common/dynamics_contract.cuh` vérifie pour chaque
-policy concernée la reproductibilité, l'isolation des chemins,
-`advance(n) == n * advance(1)`, l'accord entre simulation terminale et
-calendrier à une observation, ainsi que la parité entre transition exacte et
-un unique pas préparé. Le test fixed income compare en plus bit à bit les
-policies exactes aux points d'entrée historiques.
+policy concernée la reproductibilité, l'isolation des chemins, la neutralité
+de `advance(0)`, l'accord entre simulation terminale et calendrier à une
+observation, ainsi que la parité entre transition exacte et un unique pas
+préparé. L'égalité bit-à-bit `advance(n) == n * advance(1)` est vérifiée
+uniquement lorsque `kPartitionInvariantAdvance` vaut `true`.
+`equity_dynamics_policy_cuda_test.cu` instancie ce contrat sur tous les modèles
+equity non-rough et inclut toutes leurs implémentations dans une même unité de
+traduction. `fixed_income_dynamics_policy_cuda_test.cu` l'applique aux modèles
+de taux et à leurs variantes jointes état-intégrale.
 
 ## Modèles ajustés à une courbe
 
@@ -616,14 +661,19 @@ validées avant l'entrée dans les kernels.
 
 ## Nommage et structure des boucles
 
-Les namespaces portent les noms du processus, du modèle et de la courbe. Les
-fonctions réutilisables ne les répètent donc pas : `heston::prepare_model`,
-`model::ornstein_uhlenbeck::prepare_model` ou
-`model::hull_white::nelson_siegel::compose_model` sont les formes attendues.
+Les modèles suivent uniformément
+`workbench::model::<asset_class>::<model>`. Les namespaces portent ensuite les
+noms du processus et de la courbe. Les fonctions réutilisables ne les répètent
+donc pas : `model::equity::heston::prepare_model`,
+`model::fixed_income::ornstein_uhlenbeck::prepare_model` ou
+`model::fixed_income::hull_white::nelson_siegel::compose_fitted_model` sont les
+formes attendues.
 
 Employer les mêmes noms de contrôle lorsque leur sens est identique : `path`,
-`step_index`, `observation`, `output_index`, `uniforms`, `normals` et `state`.
-Pour un schéma à pas fixe, employer `prepared_model`, `initial_stub_steps`,
+`step`, `observation`, `output_index`, `uniforms`, `normal_cache` et `state`.
+Employer `prepared_model`, `prepared_transition`, `delta_t` et `step_count`
+pour les primitives et les policies. Pour un schéma à pas fixe, employer
+`prepared_model`, `initial_stub_steps`,
 `steps_per_observation`, `observation_count` et `observation_stride`. Les noms
 spécifiques tels que
 `observed_variances` ou `observed_integrated_states` sont réservés à des données

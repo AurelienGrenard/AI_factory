@@ -12,13 +12,16 @@ namespace ai_factory::workbench::product {
 // Own regular product rows; no separate schedule allocation is required.
 struct RegularEuropeanSwaptionDataset {
     std::vector<RegularEuropeanSwaptionParameters> products;
+    std::uint32_t maximum_payment_count = 0U;
 };
 
-// Own explicit product rows and their two parallel fixed-leg schedule pools.
+// Own explicit rows and payment-major ELLPACK pools. For row r and payment p,
+// each value lives at p * products.size() + r; unused tail cells are padding.
 struct ExplicitEuropeanSwaptionDataset {
     std::vector<ExplicitEuropeanSwaptionParameters> products;
-    std::vector<std::uint32_t> payment_times;
+    std::vector<std::uint32_t> payment_times_days;
     std::vector<float> accrual_fractions;
+    std::uint32_t maximum_payment_count = 0U;
 };
 
 // Load one regular-schedule European-swaption dataset.
@@ -26,7 +29,7 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
     const std::filesystem::path& dataset_path
 );
 
-// Load arbitrary schedules and flatten them into contiguous pools.
+// Load arbitrary schedules into coalesced payment-major pools.
 ExplicitEuropeanSwaptionDataset load_explicit_european_swaptions(
     const std::filesystem::path& dataset_path
 );

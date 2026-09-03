@@ -3,24 +3,24 @@
 
 #include "common/closed_form/closed_form_kernels.cuh"
 #include "common/device_inputs.cuh"
-#include "common/fixed_income/bond_option_pricing_policies.cuh"
+#include "product/rate_option/pricing_policy.cuh"
 #include "common/time_configuration.cuh"
 
 // Keep the model-specific analytical primitives visible for device inlining.
-#include "model/fixed_income/hull_white/svensson/analytics.cu"
+#include "model/fixed_income/hull_white/svensson/analytics_impl.cuh"
 
-namespace ai_factory::workbench::model::hull_white::svensson {
+namespace ai_factory::workbench::model::fixed_income::hull_white::svensson {
 namespace {
 
 template<OptionSide Side>
-using RateOptionPricing =
-    fixed_income::FittedRateOptionClosedFormPricingPolicy<
+using PricingPolicy =
+    ::ai_factory::workbench::fixed_income::FittedRateOptionClosedFormPricingPolicy<
         FittedModelComposition,
         Side
     >;
 
 static_assert(closed_form::ClosedFormPricingPolicy<
-    RateOptionPricing<OptionSide::call>
+    PricingPolicy<OptionSide::call>
 >);
 
 }  // namespace
@@ -33,7 +33,7 @@ void launch_hull_white_svensson_rate_option_cuda(
     std::size_t curve_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -42,8 +42,7 @@ void launch_hull_white_svensson_rate_option_cuda(
     std::size_t block_count,
     float* device_prices
 ) {
-    using Pricing = RateOptionPricing<Side>;
-    closed_form::launch_closed_form_cuda<Pricing>(
+    closed_form::launch_closed_form_cuda<PricingPolicy<Side>>(
         make_model_curve_product_device_inputs(
             device_models,
             model_count,
@@ -51,7 +50,7 @@ void launch_hull_white_svensson_rate_option_cuda(
             curve_count,
             device_products,
             product_count,
-            cartesian_product
+            construction
         ),
         result_count,
         result_offset,
@@ -70,15 +69,15 @@ template void launch_hull_white_svensson_rate_option_cuda<OptionSide::call>(
     const ModelParameters*, std::size_t,
     const FittedModelComposition::CurveParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
+    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
 template void launch_hull_white_svensson_rate_option_cuda<OptionSide::put>(
     const ModelParameters*, std::size_t,
     const FittedModelComposition::CurveParameters*, std::size_t,
     const product::RateOptionParameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, float,
+    PriceConstruction, std::size_t, std::size_t, std::size_t, float,
     unsigned int, std::size_t, float*
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::svensson
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::svensson

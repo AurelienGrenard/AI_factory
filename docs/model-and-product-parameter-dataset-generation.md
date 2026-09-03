@@ -72,6 +72,10 @@ clock, its contractual accrual is stored directly as an FP32 year fraction.
 Regular European swaptions store one `payment_interval`, one `payment_count`,
 and one `accrual_fraction`; explicitly dated schedules store parallel payment
 dates and accrual fractions in contiguous pools. A
+regular co-terminal Bermudan swaption additionally stores
+`first_exercise_time` and `exercise_count`; exercise index `j` occurs at the swap
+start `first_exercise_time + j * payment_interval`, while every exercise keeps the same final
+maturity. A
 numerical grid such as `1 / 504` belongs only to a price dataset whose scheme or
 monitoring genuinely uses two transitions per business day.
 

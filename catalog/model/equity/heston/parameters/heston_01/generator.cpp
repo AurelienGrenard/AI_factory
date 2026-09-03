@@ -1,7 +1,7 @@
 // Generate Heston rows by sampling ordinary parameters first, then gamma from
 // row-dependent bounds that control the range of the Feller ratio.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
 #include <cmath>

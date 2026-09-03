@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 
 // Include the implementation exactly as future product kernels will.
-#include "model/fixed_income/vasicek/analytics.cu"
+#include "model/fixed_income/vasicek/analytics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -13,7 +13,7 @@
 namespace {
 
 namespace vasicek =
-    ai_factory::workbench::model::vasicek;
+    ai_factory::workbench::model::fixed_income::vasicek;
 
 constexpr std::size_t kOutputCount = 25U;
 
@@ -21,7 +21,7 @@ constexpr std::size_t kOutputCount = 25U;
 __global__ void vasicek_test_kernel(float* outputs) {
     if (blockIdx.x != 0U || threadIdx.x != 0U) return;
 
-    const vasicek::ModelParameters model = {
+    const ai_factory::workbench::model::fixed_income::vasicek::ModelParameters model = {
         {0.15f, 0.04f, 0.01f},
         0.03f,
     };
@@ -33,20 +33,20 @@ __global__ void vasicek_test_kernel(float* outputs) {
     constexpr float payment_times[] = {1.0f, 1.5f, 2.0f};
     constexpr float accrual_periods[] = {0.5f, 0.5f, 0.5f};
 
-    outputs[0] = vasicek::zero_coupon_bond(
+    outputs[0] = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, valuation_time
     );
-    outputs[1] = vasicek::forward_rate(
+    outputs[1] = ai_factory::workbench::model::fixed_income::vasicek::forward_rate(
         model, state, valuation_time, 1.0f, 1.5f, 0.5f
     );
-    const float start_bond = vasicek::zero_coupon_bond(
+    const float start_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, 1.0f
     );
-    const float end_bond = vasicek::zero_coupon_bond(
+    const float end_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, 1.5f
     );
     outputs[2] = (start_bond / end_bond - 1.0f) / 0.5f;
-    outputs[3] = vasicek::swap_rate(
+    outputs[3] = ai_factory::workbench::model::fixed_income::vasicek::swap_rate(
         model,
         state,
         valuation_time,
@@ -55,20 +55,20 @@ __global__ void vasicek_test_kernel(float* outputs) {
             payment_times, accrual_periods, 3U,
         }
     );
-    const float swap_start_bond = vasicek::zero_coupon_bond(
+    const float swap_start_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, 0.5f
     );
-    const float swap_end_bond = vasicek::zero_coupon_bond(
+    const float swap_end_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, 2.0f
     );
     const float annuity = 0.5f * (
-        vasicek::zero_coupon_bond(model, state, valuation_time, 1.0f)
-        + vasicek::zero_coupon_bond(model, state, valuation_time, 1.5f)
+        ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(model, state, valuation_time, 1.0f)
+        + ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(model, state, valuation_time, 1.5f)
         + swap_end_bond
     );
     outputs[4] = (swap_start_bond - swap_end_bond) / annuity;
 
-    outputs[5] = vasicek::zero_coupon_bond_call_price(
+    outputs[5] = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond_call_price(
         model,
         state,
         valuation_time,
@@ -76,7 +76,7 @@ __global__ void vasicek_test_kernel(float* outputs) {
         bond_maturity,
         strike
     );
-    outputs[6] = vasicek::zero_coupon_bond_put_price(
+    outputs[6] = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond_put_price(
         model,
         state,
         valuation_time,
@@ -84,68 +84,73 @@ __global__ void vasicek_test_kernel(float* outputs) {
         bond_maturity,
         strike
     );
-    const float expiry_bond = vasicek::zero_coupon_bond(
+    const float expiry_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, option_expiry
     );
-    const float underlying_bond = vasicek::zero_coupon_bond(
+    const float underlying_bond = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         model, state, valuation_time, bond_maturity
     );
     outputs[7] = outputs[5] - outputs[6]
         - (underlying_bond - strike * expiry_bond);
 
-    const vasicek::ModelParameters deterministic = {
+    const ai_factory::workbench::model::fixed_income::vasicek::ModelParameters deterministic = {
         {0.15f, 0.04f, 0.0f},
         0.03f,
     };
-    outputs[8] = vasicek::zero_coupon_bond(
+    outputs[8] = ai_factory::workbench::model::fixed_income::vasicek::zero_coupon_bond(
         deterministic, state, valuation_time, bond_maturity
     );
     const float deterministic_loading =
-        vasicek::integral_state_loading(0.15f, 1.5f);
+        ai_factory::workbench::model::fixed_income::vasicek::integral_state_loading(0.15f, 1.5f);
     outputs[9] = expf(
         -deterministic_loading * state
         - deterministic.process.long_term_mean
             * (1.5f - deterministic_loading)
     );
-    outputs[10] = vasicek::integral_state_loading(1.0e-6f, 1.0e-4f);
+    outputs[10] = ai_factory::workbench::model::fixed_income::vasicek::integral_state_loading(1.0e-6f, 1.0e-4f);
     outputs[11] = 1.0e-4f;
 
-    const vasicek::PreparedModel prepared_model =
-        vasicek::prepare_model(model.process);
-    const vasicek::PreparedTransition exact =
-        vasicek::prepare_transition(prepared_model, 0.25f);
+    const ai_factory::workbench::model::fixed_income::vasicek::PreparedModel prepared_model =
+        ai_factory::workbench::model::fixed_income::vasicek::prepare_model(model.process);
+    const ai_factory::workbench::model::fixed_income::vasicek::PreparedTransition exact =
+        ai_factory::workbench::model::fixed_income::vasicek::prepare_transition(prepared_model, 0.25f);
     float terminal_state = state;
-    vasicek::one_step_transition(exact, 0.75f, terminal_state);
+    ai_factory::workbench::model::fixed_income::vasicek::one_step_transition(exact, 0.75f, terminal_state);
     outputs[12] = terminal_state;
     outputs[13] = fmaf(
-        exact.decay,
+        exact.state_decay,
         state,
-        exact.mean_increment + exact.state_standard_deviation * 0.75f
+        exact.state_mean_increment
+            + exact.state_standard_deviation * 0.75f
     );
-    const vasicek::joint::PreparedTransition joint_exact =
-        vasicek::joint::prepare_transition(prepared_model, 0.25f);
-    vasicek::joint::State joint_terminal = {state, 0.0f};
-    vasicek::joint::one_step_transition(
+    const ai_factory::workbench::model::fixed_income::vasicek::joint::PreparedTransition joint_exact =
+        ai_factory::workbench::model::fixed_income::vasicek::joint::prepare_transition(prepared_model, 0.25f);
+    ai_factory::workbench::model::fixed_income::vasicek::joint::State joint_terminal = {state, 0.0f};
+    ai_factory::workbench::model::fixed_income::vasicek::joint::one_step_transition(
         joint_exact, 0.75f, -0.25f, joint_terminal
     );
     outputs[14] = joint_terminal.state;
     outputs[15] = joint_terminal.state_integral;
-    outputs[16] = vasicek::log_discount_factor(joint_terminal.state_integral);
-    outputs[17] = vasicek::discount_factor(joint_terminal.state_integral);
-    const vasicek::IntegralMoments moments =
-        vasicek::integral_moments(model.process, 0.75f);
+    outputs[16] = ai_factory::workbench::model::fixed_income::vasicek::log_discount_factor(
+        model, joint_terminal.state_integral, 0.25f
+    );
+    outputs[17] = ai_factory::workbench::model::fixed_income::vasicek::discount_factor(
+        model, joint_terminal.state_integral, 0.25f
+    );
+    const ai_factory::workbench::model::fixed_income::vasicek::IntegralMoments moments =
+        ai_factory::workbench::model::fixed_income::vasicek::integral_moments(model.process, 0.75f);
     outputs[18] = moments.state_loading
-        - vasicek::integral_state_loading(model.process.mean_reversion, 0.75f);
+        - ai_factory::workbench::model::fixed_income::vasicek::integral_state_loading(model.process.mean_reversion, 0.75f);
     outputs[19] = moments.variance
-        - vasicek::integral_variance(model.process, 0.75f);
-    outputs[20] = moments.mean_increment
+        - ai_factory::workbench::model::fixed_income::vasicek::integral_variance(model.process, 0.75f);
+    outputs[20] = moments.state_mean_increment
         - model.process.long_term_mean * (0.75f - moments.state_loading);
-    outputs[21] = vasicek::A(model, valuation_time, bond_maturity);
-    outputs[22] = vasicek::B(model, valuation_time, bond_maturity);
-    outputs[23] = vasicek::log_zero_coupon_bond(
+    outputs[21] = ai_factory::workbench::model::fixed_income::vasicek::A(model, valuation_time, bond_maturity);
+    outputs[22] = ai_factory::workbench::model::fixed_income::vasicek::B(model, valuation_time, bond_maturity);
+    outputs[23] = ai_factory::workbench::model::fixed_income::vasicek::log_zero_coupon_bond(
         model, state, valuation_time, bond_maturity
     );
-    outputs[24] = vasicek::log_A(
+    outputs[24] = ai_factory::workbench::model::fixed_income::vasicek::log_A(
         model, valuation_time, bond_maturity
     ) - outputs[22] * state;
 }

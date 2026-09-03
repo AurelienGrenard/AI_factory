@@ -1,14 +1,16 @@
 // Public launcher for G2++ Nelson-Siegel rate_option analytics.
 #pragma once
 
-#include "curve/nelson_siegel/dataset.hpp"
+#include "common/price_construction.cuh"
+
+#include "curve/nelson_siegel/parameters.hpp"
 #include "common/option_side.cuh"
-#include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "model/fixed_income/g2_plus_plus/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel {
+namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel {
 
 // Launch closed-form rate_option prices across the CUDA grid.
 template<OptionSide Side>
@@ -19,7 +21,7 @@ void launch_g2_plus_plus_nelson_siegel_rate_option_cuda(
     std::size_t curve_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -29,4 +31,4 @@ void launch_g2_plus_plus_nelson_siegel_rate_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::g2_plus_plus::nelson_siegel
+}  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel

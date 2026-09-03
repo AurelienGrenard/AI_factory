@@ -1,7 +1,7 @@
 // Reusable host-side construction of constrained Svensson curve datasets.
 #pragma once
 
-#include "tools/datasets/dataset.hpp"
+#include "tools/datasets/sampling.hpp"
 
 #include <cstddef>
 #include <cstdint>

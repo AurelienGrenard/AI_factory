@@ -1,13 +1,15 @@
 // Public launcher for G2 rate_option analytics.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include "common/option_side.cuh"
-#include "model/fixed_income/g2/dataset.hpp"
+#include "model/fixed_income/g2/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // Launch closed-form rate_option prices across the CUDA grid.
 template<OptionSide Side>
@@ -16,7 +18,7 @@ void launch_g2_rate_option_cuda(
     std::size_t model_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -26,4 +28,4 @@ void launch_g2_rate_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::g2
+}  // namespace ai_factory::workbench::model::fixed_income::g2

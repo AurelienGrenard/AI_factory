@@ -1,6 +1,8 @@
 // Host implementation of constrained G2 parameter generation.
 #include "tools/datasets/g2_generation.hpp"
 
+#include "common/fixed_income/mean_reverting_gaussian.cuh"
+
 #include <cmath>
 #include <random>
 #include <stdexcept>
@@ -72,12 +74,18 @@ ParameterRow sample_process_row(
         {"mean_reversion_x", mean_reversion_x},
         {
             "volatility_x",
-            stationary_x * std::sqrt(2.0f * mean_reversion_x)
+            fixed_income::mean_reverting_gaussian::
+                volatility_from_stationary_deviation(
+                    stationary_x, mean_reversion_x
+                )
         },
         {"mean_reversion_y", mean_reversion_y},
         {
             "volatility_y",
-            stationary_y * std::sqrt(2.0f * mean_reversion_y)
+            fixed_income::mean_reverting_gaussian::
+                volatility_from_stationary_deviation(
+                    stationary_y, mean_reversion_y
+                )
         },
         {"correlation", correlation_distribution(generator)},
     };

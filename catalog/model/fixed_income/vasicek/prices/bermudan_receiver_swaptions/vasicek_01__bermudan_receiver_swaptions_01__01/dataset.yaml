@@ -1,0 +1,54 @@
+title: "vasicek_01__bermudan_receiver_swaptions_01__01"
+database_id: "vasicek_01__bermudan_receiver_swaptions_01__01"
+catalog: "catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01"
+url: "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 65536
+  model: "Vasicek short rate"
+  numerical_method: "Exact Gaussian joint transition + Longstaff-Schwartz"
+  payoff: "Bermudan Swaptions"
+  implementation: "CUDA"
+  device: "gpu"
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 1
+  kernel_launch_count: 37
+  workspace_bytes: 3479702560
+  time_day_fraction: "1 / 252"
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  reference: "none"
+  notebook: "catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01/validation.ipynb"
+outputs:
+  price:
+    estimator: "Longstaff-Schwartz discounted policy cashflow mean"
+  standard_error:
+    estimator: "Conditional standard error of discounted policy cashflows"
+model_dataset:
+  id: "vasicek_01"
+  catalog: "catalog/model/fixed_income/vasicek/parameters/vasicek_01"
+  url: "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/parameters/vasicek_01.json"
+product_dataset:
+  id: "bermudan_swaptions_01"
+  catalog: "catalog/product/fixed_income/bermudan_swaptions/bermudan_swaptions_01"
+  url: "https://datasets.ai-factory.example/v1/product/bermudan_swaptions/bermudan_swaptions_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "0.228136203 s"
+  kernel_seconds: "0.134164474 s"
+exercise_policy:
+  method: "Longstaff-Schwartz"
+  exercise_dates: "co-terminal regular Bermudan schedule"
+  regression_basis: "Hermite degree 3"
+  regression_state: "standardized short-rate factor"
+  regression_target: "next policy cashflow discounted pathwise"
+  in_the_money_paths_only: true
+  solver: "FP64 normal equations and Cholesky on GPU"

@@ -19,7 +19,7 @@ inline void validate_time_configuration(
     validate_day_fraction(time_configuration.day_fraction);
 }
 
-__device__ __forceinline__ float year_fraction(
+__host__ __device__ __forceinline__ float year_fraction(
     std::uint32_t day_count,
     const DayFractionTimeConfiguration& time_configuration
 ) {

@@ -1,12 +1,13 @@
 // Exercise both compile-time sides of the shared Bates American-option engine.
 #include "common/check_cuda.cuh"
-#include "model/equity/bates/american_option.cuh"
+#include "model/equity/markovian/bates/american_option.cuh"
 
 #include <cuda_runtime.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
@@ -21,13 +22,14 @@ constexpr std::size_t kBlocksPerPrice = 16U;
 constexpr float kDt = 1.0f / 504.0f;
 constexpr std::uint32_t kSimulationStepsPerDay = 2U;
 constexpr std::uint64_t kSeed = 900000001ULL;
+constexpr std::size_t kExpectedKernelLaunchCount = 154U;
 
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
 }
 
 struct DeviceArrays {
-    ai_factory::workbench::bates::ModelParameters* models = nullptr;
+    ai_factory::workbench::model::equity::bates::ModelParameters* models = nullptr;
     ai_factory::workbench::product::AmericanOptionParameters* products = nullptr;
     float* prices = nullptr;
     float* standard_errors = nullptr;
@@ -52,13 +54,13 @@ ai_factory::workbench::longstaff_schwartz::LaunchResult price_once(
     using namespace ai_factory::workbench;
 
     const longstaff_schwartz::LaunchResult execution =
-        bates::launch_bates_american_option_cuda<Side>(
+        ai_factory::workbench::model::equity::bates::launch_bates_american_option_cuda<Side>(
             device.models,
             kRowCount,
             products.data(),
             device.products,
             kRowCount,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             kRowCount,
             kPathsPerPrice,
             kDt,
@@ -94,7 +96,7 @@ template<OptionSide Side>
 void validate_side(
     const DeviceArrays& device,
     const std::vector<
-        ai_factory::workbench::bates::ModelParameters
+        ai_factory::workbench::model::equity::bates::ModelParameters
     >& models,
     const std::vector<
         ai_factory::workbench::product::AmericanOptionParameters
@@ -112,11 +114,17 @@ void validate_side(
     const longstaff_schwartz::LaunchResult second = price_once<Side>(
         device, products, second_prices, second_errors
     );
+    longstaff_schwartz::validate_regression_diagnostics(
+        first, "Bates American option"
+    );
+    longstaff_schwartz::validate_regression_diagnostics(
+        second, "Bates American option"
+    );
 
     require(first.batch_count >= 1U, "no American-option batch was launched");
     require(
-        first.kernel_launch_count > 0U,
-        "no American-option kernel was launched"
+        first.kernel_launch_count == kExpectedKernelLaunchCount,
+        "the backward induction launched an unexpected kernel count"
     );
     require(
         first.maximum_prices_per_batch >= 1U,
@@ -188,7 +196,7 @@ int main() {
     }
     check_cuda(availability, "test cudaGetDeviceCount");
 
-    const std::vector<bates::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::equity::bates::ModelParameters> models = {
         {1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
          0.20f, -0.10f, 0.15f},
         {1.0f, 0.03f, 0.00f, 0.06f, 2.0f, 0.05f, 0.40f, -0.60f,

@@ -1,30 +1,27 @@
 // {model_display} {product_comment} composition over generic CUDA layers.
-#include "model/equity/{model}/{product}.cuh"
+#include "model/equity/markovian/{model}/{product}.cuh"
 
 #include "common/monte_carlo/monte_carlo_kernel.cuh"
 #include "common/simulation/schedule.cuh"
-#include "model/equity/{model}/dynamics.cu"
+#include "model/equity/markovian/{model}/dynamics_impl.cuh"
 #include "product/{product}/pricing_policy.cuh"
 
-namespace ai_factory::workbench::{model} {{
+namespace ai_factory::workbench::model::equity::{model} {{
 namespace {{
 
-using Schedule = {schedule}<{model}::DynamicsPolicy>;
-template<OptionSide Side>
-using PricingPolicy =
-    product::{pricing_policy}<Schedule, Side>;
+using Schedule = {schedule_expression};
+{pricing_policy_declaration}
 
-static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<PricingPolicy<OptionSide::call>>);
+static_assert(monte_carlo::ScalarMonteCarloPricingPolicy<{static_pricing_policy_use}>);
 
 }}  // namespace
 
-template<OptionSide Side>
-void launch_{model}_{product}_cuda(
+{template_declaration}void launch_{model}_{product}_cuda(
     const ModelParameters* device_models,
     std::size_t model_count,
     const product::{product_type}Parameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -35,13 +32,13 @@ void launch_{model}_{product}_cuda(
     float* device_prices,
     float* device_standard_errors
 ) {{
-{time_configuration}    monte_carlo::launch_monte_carlo_cuda<PricingPolicy<Side>>(
+{time_configuration}    monte_carlo::launch_monte_carlo_cuda<{pricing_policy_use}>(
         make_model_product_device_inputs(
             device_models,
             model_count,
             device_products,
             product_count,
-            cartesian_product
+            construction
         ),
         result_count,
         result_offset,
@@ -54,24 +51,11 @@ void launch_{model}_{product}_cuda(
         device_prices,
         device_standard_errors,
         "{model}.{product}",
-        option_side_name(Side),
+        {diagnostic_variant},
         "{model_display} {operation_product} kernel"
     );
 }}
 
-template void launch_{model}_{product}_cuda<OptionSide::call>(
-    const ModelParameters*, std::size_t,
-    const product::{product_type}Parameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, std::size_t,
-{instantiation_time_signature}
-    float*, float*
-);
-template void launch_{model}_{product}_cuda<OptionSide::put>(
-    const ModelParameters*, std::size_t,
-    const product::{product_type}Parameters*, std::size_t,
-    bool, std::size_t, std::size_t, std::size_t, std::size_t,
-{instantiation_time_signature}
-    float*, float*
-);
+{explicit_instantiations}
 
-}}  // namespace ai_factory::workbench::{model}
+}}  // namespace ai_factory::workbench::model::equity::{model}

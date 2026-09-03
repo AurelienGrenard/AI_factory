@@ -13,15 +13,14 @@ summary:
   payoff: "European Swaptions"
   implementation: "CUDA"
   device: "gpu"
-  block_count: 4
-  threads_per_block: 256
+  block_count: 1000
+  threads_per_block: 128
   kernel_launch_count: 1
-  work_distribution: "one price per thread"
+  work_distribution: "one price per block"
 validation:
-  status: "pending"
-  verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/validation.ipynb"
+  status: "available"
+  verified: true
+  dataset: "validation/datasets/price/fixed_income/cir/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -36,5 +35,5 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.716248084 s"
-  kernel_seconds: "0.072615936 s"
+  wall_seconds: "1.537843563 s"
+  kernel_seconds: "0.0015104 s"

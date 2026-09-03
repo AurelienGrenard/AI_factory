@@ -1,6 +1,6 @@
 // Generate risk-neutral NIG rows from interpretable skew and volatility inputs.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
 #include <cmath>

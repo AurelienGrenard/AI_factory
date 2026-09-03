@@ -10,7 +10,7 @@ struct DoubleKnockOutOptionParameters {
     float strike;
     float lower_barrier;
     float upper_barrier;
-    std::uint32_t maturity;
+    std::uint32_t maturity_days;
 };
 
 static_assert(std::is_trivially_copyable_v<DoubleKnockOutOptionParameters>);

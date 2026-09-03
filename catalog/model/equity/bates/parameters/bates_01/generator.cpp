@@ -1,7 +1,7 @@
 // Generate ordinary Bates rows first and place a smaller stress regime at the
 // end of the dataset so atypical jump and variance combinations stay visible.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <algorithm>
 #include <cmath>

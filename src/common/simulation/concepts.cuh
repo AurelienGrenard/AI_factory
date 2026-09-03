@@ -12,6 +12,13 @@ namespace ai_factory::workbench::simulation {
 
 inline constexpr std::size_t kMaximumObservationHandlerBytes = 128U;
 
+// A path observer only needs to know the state representation. Requiring a
+// complete one-step dynamics policy here would incorrectly exclude schemes
+// whose state is produced by a block-level Volterra executor.
+template<typename StateProvider>
+concept StatePolicy =
+    std::is_trivially_copyable_v<typename StateProvider::State>;
+
 // Every dynamics exposes model parameters, one path-local random context and
 // one mutable state. Market-specific observables are separate capabilities.
 template<typename Dynamics>
@@ -26,28 +33,43 @@ concept DynamicsPolicy =
     >;
 
 // Numerical schemes prepare one homogeneous step and expose interval
-// advancement as their public customization point.
+// advancement as their public customization point. advance(dynamics, n, ...)
+// returns the state at the end of an unobserved interval of n homogeneous
+// steps. It need not consume the same random stream as n calls with n = 1;
+// kPartitionInvariantAdvance advertises that stronger property when it holds.
 template<typename Dynamics>
-concept FixedStepDynamicsPolicy =
+concept PreparedFixedStepDynamicsPolicy =
     DynamicsPolicy<Dynamics>
     && std::is_trivially_copyable_v<typename Dynamics::PreparedDynamics>
+    && requires {
+        {
+            Dynamics::kPartitionInvariantAdvance
+        } -> std::convertible_to<bool>;
+    }
     && requires(
-        const typename Dynamics::Parameters& parameters,
         const typename Dynamics::PreparedDynamics& dynamics,
         typename Dynamics::RandomContext& random,
         typename Dynamics::State& state,
-        std::uint32_t step_count,
-        float delta_t
+        std::uint32_t step_count
     ) {
-        {
-            Dynamics::prepare_dynamics(parameters, delta_t)
-        } -> std::same_as<typename Dynamics::PreparedDynamics>;
         {
             Dynamics::initial_state(dynamics)
         } -> std::same_as<typename Dynamics::State>;
         {
             Dynamics::advance(dynamics, step_count, random, state)
         } -> std::same_as<void>;
+    };
+
+template<typename Dynamics>
+concept FixedStepDynamicsPolicy =
+    PreparedFixedStepDynamicsPolicy<Dynamics>
+    && requires(
+        const typename Dynamics::Parameters& parameters,
+        float delta_t
+    ) {
+        {
+            Dynamics::prepare_dynamics(parameters, delta_t)
+        } -> std::same_as<typename Dynamics::PreparedDynamics>;
     };
 
 // Direct-transition models keep invariant coefficients separate from the
@@ -86,15 +108,15 @@ concept ExactTransitionDynamicsPolicy =
 
 // A handler receives each contractual observation and decides whether the
 // path must continue. It is statically dispatched and remains path-local.
-template<typename Handler, typename Dynamics>
+template<typename Handler, typename StateProvider>
 concept ObservationHandlerFor =
-    DynamicsPolicy<Dynamics>
+    StatePolicy<StateProvider>
     && std::is_trivially_copyable_v<Handler>
     && sizeof(Handler) <= kMaximumObservationHandlerBytes
     && requires(
         Handler& handler,
         std::uint32_t observation,
-        const typename Dynamics::State& state
+        const typename StateProvider::State& state
     ) {
         {
             handler.on_initial_state(state)
@@ -104,17 +126,17 @@ concept ObservationHandlerFor =
         } -> std::same_as<bool>;
     };
 
-template<DynamicsPolicy Dynamics>
+template<StatePolicy StateProvider>
 struct ObservationHandlerProbe {
     __device__ __forceinline__ bool on_initial_state(
-        const typename Dynamics::State&
+        const typename StateProvider::State&
     ) {
         return true;
     }
 
     __device__ __forceinline__ bool on_observation(
         std::uint32_t,
-        const typename Dynamics::State&
+        const typename StateProvider::State&
     ) {
         return true;
     }
@@ -123,14 +145,14 @@ struct ObservationHandlerProbe {
 // A scalar observable interprets a model state at the initial point and at
 // each contractual observation without imposing any market-specific accessor
 // on the dynamics contract.
-template<typename Observable, typename Dynamics>
+template<typename Observable, typename StateProvider>
 concept ScalarObservableFor =
-    DynamicsPolicy<Dynamics>
+    StatePolicy<StateProvider>
     && std::is_trivially_copyable_v<Observable>
     && requires(
         const Observable& observable,
         std::uint32_t observation,
-        const typename Dynamics::State& state
+        const typename StateProvider::State& state
     ) {
         {
             observable.initial_value(state)
@@ -144,27 +166,67 @@ concept ScalarObservableFor =
 // time configuration. Path observation and terminal simulation are narrower
 // capabilities layered below.
 template<typename Schedule>
+concept DevicePreparedSchedulePolicy = requires(
+    const typename Schedule::Dynamics::Parameters& parameters,
+    const typename Schedule::Calendar& calendar,
+    const typename Schedule::TimeConfiguration& time_configuration
+) {
+    {
+        Schedule::prepare(parameters, calendar, time_configuration)
+    } -> std::same_as<typename Schedule::PreparedSchedule>;
+};
+
+template<typename Schedule>
+concept ExternallyPreparedSchedulePolicy = requires(
+    const typename Schedule::Dynamics::PreparedDynamics& dynamics,
+    const typename Schedule::Calendar& calendar,
+    const typename Schedule::TimeConfiguration& time_configuration
+) {
+    {
+        Schedule::prepare_from_dynamics(
+            dynamics, calendar, time_configuration
+        )
+    } -> std::same_as<typename Schedule::PreparedSchedule>;
+};
+
+// Model-only sampling may reuse parameter-dependent coefficients for every
+// path in a parameter block while still preparing the calendar-dependent
+// part per sample.  The neutral PreparedInput name covers both a fixed-step
+// PreparedDynamics and an exact-transition PreparedModel.
+template<typename Schedule>
+concept ReusablePreparedInputSchedulePolicy =
+    std::is_trivially_copyable_v<typename Schedule::PreparedInput>
+    && requires(
+        const typename Schedule::Dynamics::Parameters& parameters,
+        const typename Schedule::PreparedInput& prepared_input,
+        const typename Schedule::Calendar& calendar,
+        const typename Schedule::TimeConfiguration& time_configuration
+    ) {
+        {
+            Schedule::prepare_input(parameters, time_configuration)
+        } -> std::same_as<typename Schedule::PreparedInput>;
+        {
+            Schedule::prepare_from_input(
+                prepared_input, calendar, time_configuration
+            )
+        } -> std::same_as<typename Schedule::PreparedSchedule>;
+    };
+
+template<typename Schedule>
 concept SchedulePolicy =
     DynamicsPolicy<typename Schedule::Dynamics>
     && std::is_trivially_copyable_v<typename Schedule::TimeConfiguration>
     && std::is_trivially_copyable_v<typename Schedule::Calendar>
     && std::is_trivially_copyable_v<typename Schedule::PreparedSchedule>
     && requires(
-        const typename Schedule::Dynamics::Parameters& parameters,
-        const typename Schedule::Calendar& calendar,
         const typename Schedule::TimeConfiguration& time_configuration
     ) {
         {
-            Schedule::prepare(
-                parameters,
-                calendar,
-                time_configuration
-            )
-        } -> std::same_as<typename Schedule::PreparedSchedule>;
-        {
             validate_time_configuration(time_configuration)
         } -> std::same_as<void>;
-    };
+    }
+    && (DevicePreparedSchedulePolicy<Schedule>
+        || ExternallyPreparedSchedulePolicy<Schedule>);
 
 // Path-dependent products receive contractual observations through a handler.
 template<typename Schedule>

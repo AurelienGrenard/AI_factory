@@ -1,6 +1,6 @@
 // Generate ordered 90/10 CEV local-volatility parameter rows.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

@@ -4,13 +4,13 @@
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
-#include "tools/datasets/european_swaption_price_generation.hpp"
+#include "tools/pricing/european_swaption_price_generation.cuh"
 
 #include <filesystem>
 
 int main() {
     using namespace ai_factory::workbench;
-    namespace hw = model::hull_white;
+    namespace hw = model::fixed_income::hull_white;
     namespace fitted = hw::svensson;
     namespace sv = curve::svensson;
 

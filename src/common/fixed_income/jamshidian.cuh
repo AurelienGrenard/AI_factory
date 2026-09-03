@@ -14,8 +14,82 @@ namespace ai_factory::workbench::fixed_income {
 inline constexpr std::uint32_t kMaximumJamshidianNewtonIterations = 48U;
 inline constexpr float kJamshidianResidualTolerance = 2.0e-7f;
 
-// Solve sum_i c_i P(T_e,T_i;x*) = 1 with safeguarded Newton iterations.
+struct JamshidianBoundaryEvaluation {
+    float residual;
+    float derivative;
+};
+
+// Return c_i = K*delta_i plus the final unit redemption.
+__device__ __forceinline__ float jamshidian_cashflow_coefficient(
+    float fixed_rate,
+    float accrual_fraction,
+    std::uint32_t payment,
+    std::uint32_t payment_count
+) {
+    return fmaf(
+        fixed_rate,
+        accrual_fraction,
+        payment + 1U == payment_count ? 1.0f : 0.0f
+    );
+}
+
 template<typename Provider, typename Parameters, typename ScheduleView>
+__device__ __forceinline__ JamshidianBoundaryEvaluation
+evaluate_jamshidian_boundary(
+    const Provider& provider,
+    const Parameters& parameters,
+    float exercise_time,
+    float fixed_rate,
+    const ScheduleView& schedule,
+    float state
+) {
+    float coupon_bond = 0.0f;
+    float derivative = 0.0f;
+    const std::uint32_t payment_count = schedule.payment_count();
+    for (std::uint32_t payment = 0U;
+         payment < payment_count;
+         ++payment) {
+        const float coefficient = jamshidian_cashflow_coefficient(
+            fixed_rate,
+            schedule.accrual_fraction(payment),
+            payment,
+            payment_count
+        );
+        if (coefficient == 0.0f) continue;
+        const OneFactorAffineBondCoefficients bond =
+            provider.affine_bond_coefficients(
+                parameters,
+                exercise_time,
+                schedule.payment_time(payment)
+            );
+        const float term = coefficient * expf(
+            fmaf(-bond.B, state, bond.log_A)
+        );
+        coupon_bond += term;
+        derivative = fmaf(-bond.B, term, derivative);
+    }
+    return {coupon_bond - 1.0f, derivative};
+}
+
+__device__ __forceinline__ float checked_jamshidian_boundary(
+    float candidate,
+    float residual
+) {
+    return isfinite(candidate)
+            && isfinite(residual)
+            && fabsf(residual) <= kJamshidianResidualTolerance
+        ? candidate
+        : nanf("");
+}
+
+// Solve sum_i c_i P(T_e,T_i;x*) = 1 with safeguarded Newton iterations.
+template<
+    typename Provider,
+    typename Parameters,
+    typename ScheduleView,
+    std::uint32_t MaximumIterations =
+        kMaximumJamshidianNewtonIterations
+>
 __device__ __forceinline__ float jamshidian_state_boundary(
     const Provider& provider,
     const Parameters& parameters,
@@ -40,10 +114,11 @@ __device__ __forceinline__ float jamshidian_state_boundary(
          payment < payment_count;
          ++payment) {
         const float accrual_fraction = schedule.accrual_fraction(payment);
-        const float coefficient = fmaf(
+        const float coefficient = jamshidian_cashflow_coefficient(
             fixed_rate,
             accrual_fraction,
-            payment + 1U == payment_count ? 1.0f : 0.0f
+            payment,
+            payment_count
         );
         const float payment_time = schedule.payment_time(payment);
         if (!isfinite(coefficient)
@@ -81,34 +156,20 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     }
 
     float state = 0.5f * (lower_state + upper_state);
-    for (std::uint32_t iteration = 0U;
-         iteration < kMaximumJamshidianNewtonIterations;
-         ++iteration) {
-        float coupon_bond = 0.0f;
-        float derivative = 0.0f;
-        for (std::uint32_t payment = 0U;
-             payment < payment_count;
-             ++payment) {
-            const float coefficient = fmaf(
+    if constexpr (MaximumIterations > 0U) {
+      for (std::uint32_t iteration = 0U;
+           iteration < MaximumIterations;
+           ++iteration) {
+        const JamshidianBoundaryEvaluation evaluation =
+            evaluate_jamshidian_boundary(
+                provider,
+                parameters,
+                exercise_time,
                 fixed_rate,
-                schedule.accrual_fraction(payment),
-                payment + 1U == payment_count ? 1.0f : 0.0f
+                schedule,
+                state
             );
-            if (coefficient == 0.0f) continue;
-            const OneFactorAffineBondCoefficients bond =
-                provider.affine_bond_coefficients(
-                    parameters,
-                    exercise_time,
-                    schedule.payment_time(payment)
-                );
-            const float term = coefficient * expf(
-                fmaf(-bond.B, state, bond.log_A)
-            );
-            coupon_bond += term;
-            derivative = fmaf(-bond.B, term, derivative);
-        }
-
-        const float residual = coupon_bond - 1.0f;
+        const float residual = evaluation.residual;
         if (fabsf(residual) <= kJamshidianResidualTolerance) return state;
         if (residual > 0.0f)
             lower_state = state;
@@ -117,8 +178,10 @@ __device__ __forceinline__ float jamshidian_state_boundary(
 
         const float midpoint = 0.5f * (lower_state + upper_state);
         float next_state = midpoint;
-        if (isfinite(derivative) && derivative < 0.0f) {
-            const float newton_state = state - residual / derivative;
+        if (isfinite(evaluation.derivative)
+            && evaluation.derivative < 0.0f) {
+            const float newton_state =
+                state - residual / evaluation.derivative;
             const float quarter_width =
                 0.25f * (upper_state - lower_state);
             if (isfinite(newton_state)
@@ -129,11 +192,35 @@ __device__ __forceinline__ float jamshidian_state_boundary(
         }
         if (next_state == state || midpoint == lower_state
             || midpoint == upper_state) {
-            return midpoint;
+            const JamshidianBoundaryEvaluation final_evaluation =
+                evaluate_jamshidian_boundary(
+                    provider,
+                    parameters,
+                    exercise_time,
+                    fixed_rate,
+                    schedule,
+                    midpoint
+                );
+            return checked_jamshidian_boundary(
+                midpoint, final_evaluation.residual
+            );
         }
         state = next_state;
+      }
     }
-    return 0.5f * (lower_state + upper_state);
+    const float midpoint = 0.5f * (lower_state + upper_state);
+    const JamshidianBoundaryEvaluation final_evaluation =
+        evaluate_jamshidian_boundary(
+            provider,
+            parameters,
+            exercise_time,
+            fixed_rate,
+            schedule,
+            midpoint
+        );
+    return checked_jamshidian_boundary(
+        midpoint, final_evaluation.residual
+    );
 }
 
 // Evaluate P(T_e,T_i;x*) once the common state boundary is known.
@@ -185,10 +272,11 @@ __device__ __forceinline__ float european_swaption_price(
     for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
-        const float coefficient = fmaf(
+        const float coefficient = jamshidian_cashflow_coefficient(
             fixed_rate,
             schedule.accrual_fraction(payment),
-            payment + 1U == payment_count ? 1.0f : 0.0f
+            payment,
+            payment_count
         );
         if (coefficient == 0.0f) continue;
         const float payment_time = schedule.payment_time(payment);

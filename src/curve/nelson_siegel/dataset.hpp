@@ -1,21 +1,12 @@
-// Nelson-Siegel dataset row and host-side JSON loader.
+// Host-side JSON loader for Nelson-Siegel curve rows.
 #pragma once
 
+#include "curve/nelson_siegel/parameters.hpp"
+
 #include <filesystem>
-#include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::curve::nelson_siegel {
-
-// One compact FP32 Nelson-Siegel curve parameterization.
-struct NelsonSiegelParameters {
-    float beta0;
-    float beta1;
-    float beta2;
-    float tau;
-};
-
-static_assert(std::is_trivially_copyable_v<NelsonSiegelParameters>);
 
 // Load every curve row from JSON into one contiguous FP32 vector.
 std::vector<NelsonSiegelParameters> load_curves(

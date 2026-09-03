@@ -3,13 +3,13 @@
 #include "model/fixed_income/vasicek/european_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"
-#include "tools/datasets/european_swaption_price_generation.hpp"
+#include "tools/pricing/european_swaption_price_generation.cuh"
 
 #include <filesystem>
 
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";

@@ -17,7 +17,7 @@ extension of Nelson–Siegel. See
 ## Files
 
 - [`dataset.hpp`](dataset.hpp) / [`dataset.cpp`](dataset.cpp) define and load compact FP32 curve rows.
-- [`term_structure.cuh`](term_structure.cuh) / [`term_structure.cu`](term_structure.cu) expose the analytical device functions.
+- [`term_structure.cuh`](term_structure.cuh) / [`term_structure_impl.cuh`](term_structure_impl.cuh) expose the analytical device functions.
 
 There is no curve kernel here: pricing kernels include these device functions
 and evaluate the curve directly for their own result row.

@@ -1,38 +1,5 @@
 # Hull–White one-factor
 
-<details>
-<summary>Implementation</summary>
-
-```text
-hull_white/
-├── README.md
-├── parameters.hpp
-├── dataset.hpp
-├── dataset.cpp
-├── nelson_siegel/analytics.cu
-├── nelson_siegel/analytics.cuh
-├── nelson_siegel/european_swaption.cu
-├── nelson_siegel/european_swaption.cuh
-├── nelson_siegel/rate_option.cu
-├── nelson_siegel/rate_option.cuh
-├── nelson_siegel/zero_coupon_bond_option.cu
-├── nelson_siegel/zero_coupon_bond_option.cuh
-├── svensson/analytics.cu
-├── svensson/analytics.cuh
-├── svensson/european_swaption.cu
-├── svensson/european_swaption.cuh
-├── svensson/rate_option.cu
-├── svensson/rate_option.cuh
-├── svensson/zero_coupon_bond_option.cu
-└── svensson/zero_coupon_bond_option.cuh
-
-../ornstein_uhlenbeck/
-├── dynamics.cuh
-└── dynamics.cu
-```
-
-</details>
-
 [Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
 ## Dynamics
@@ -330,3 +297,42 @@ V_{\mathrm{payer\ swaption}}(t)
 =N\sum_{i=1}^{n}
 c_i\,p_B(t;T_0,T_i,K_i^\star).
 ```
+
+### Bermudan swaption
+
+**Pricing method:** Monte Carlo — Longstaff–Schwartz.
+
+Parameters: notional $`N`$, fixed rate $`K`$, first exercise $`E_0`$, regular
+payment interval $`\Delta`$, contractual accrual $`\delta`$, payment count $`n`$,
+exercise count $`m\leq n`$, side, and parametric initial curve. Define
+
+```math
+E_j=E_0+j\Delta,\quad j=0,\ldots,m-1,
+\qquad
+T_i=E_0+i\Delta,\quad i=1,\ldots,n.
+```
+
+```math
+H_j^{\mathrm{payer}}
+=N\left[1-P(E_j,T_n)-K\delta\sum_{i=j+1}^{n}P(E_j,T_i)\right]^+,
+\qquad
+H_j^{\mathrm{receiver}}
+=N\left[P(E_j,T_n)+K\delta\sum_{i=j+1}^{n}P(E_j,T_i)-1\right]^+.
+```
+
+For $`I_t=\int_0^t x_u\,\mathrm du`$, path discounting includes the fitted
+shift:
+
+```math
+D(s,t)=\exp\!\left[-(I_t-I_s)-\int_s^t\phi(u)\,\mathrm du\right].
+```
+
+A degree-three Hermite regression of the standardized factor estimates
+
+```math
+C_j(x)=\mathbb E\!\left[D(E_j,E_{j+1})V_{j+1}\mid x_{E_j}=x\right].
+```
+
+Backward exercise uses $`H_j\geq\widehat C_j`$, and the price is
+$`\mathbb E[D(0,E_0)V_0]`$. The joint factor endpoint and centered-factor
+integral are simulated exactly between exercise dates.

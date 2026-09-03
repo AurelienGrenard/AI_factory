@@ -15,7 +15,7 @@ namespace {
 
 constexpr double kDayFraction = 1.0 / 252.0;
 
-using Model = ai_factory::workbench::model::ornstein_uhlenbeck::
+using Model = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck::
     ModelParameters;
 
 // Stop immediately with a readable invariant name.
@@ -128,7 +128,7 @@ void check_launcher(
             row_count,
             device_products,
             row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             row_count,
             0U,
             row_count,
@@ -164,7 +164,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -178,7 +178,7 @@ void check_launcher(
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,
@@ -234,7 +234,7 @@ void check_launcher(
 // Validate floorlet and direct bond-option pricing against FP64 formulas.
 int main() {
     using namespace ai_factory::workbench;
-    namespace ou = model::ornstein_uhlenbeck;
+    namespace ou = model::fixed_income::ornstein_uhlenbeck;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -272,12 +272,12 @@ int main() {
         ou::launch_ornstein_uhlenbeck_rate_option_cuda<OptionSide::put>,
         [](const Model& model, const product::RateOptionParameters& product) {
             const double strike_factor =
-                1.0 + product.accrual_period * kDayFraction * product.strike;
+                1.0 + product.accrual_period_days * kDayFraction * product.strike;
             return product.notional * strike_factor * bond_option_price(
                 model,
                 1.0,
-                product.fixing_time * kDayFraction,
-                product.payment_time * kDayFraction,
+                product.fixing_time_days * kDayFraction,
+                product.payment_time_days * kDayFraction,
                 1.0 / strike_factor
             );
         },
@@ -294,8 +294,8 @@ int main() {
             return product.notional * bond_option_price(
                 model,
                 1.0,
-                product.option_expiry * kDayFraction,
-                product.bond_maturity * kDayFraction,
+                product.option_expiry_days * kDayFraction,
+                product.bond_maturity_days * kDayFraction,
                 product.strike
             );
         },
@@ -312,8 +312,8 @@ int main() {
             return product.notional * bond_option_price(
                 model,
                 -1.0,
-                product.option_expiry * kDayFraction,
-                product.bond_maturity * kDayFraction,
+                product.option_expiry_days * kDayFraction,
+                product.bond_maturity_days * kDayFraction,
                 product.strike
             );
         },

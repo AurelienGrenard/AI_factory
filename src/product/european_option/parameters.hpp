@@ -8,7 +8,7 @@ namespace ai_factory::workbench::product {
 
 struct EuropeanOptionParameters {
     float strike;
-    std::uint32_t maturity;
+    std::uint32_t maturity_days;
 };
 
 static_assert(std::is_trivially_copyable_v<EuropeanOptionParameters>);

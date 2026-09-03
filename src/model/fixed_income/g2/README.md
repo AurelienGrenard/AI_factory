@@ -1,26 +1,5 @@
 # G2
 
-<details>
-<summary>Implementation</summary>
-
-```text
-g2/
-├── README.md
-├── parameters.hpp
-├── dataset.hpp
-├── dataset.cpp
-├── dynamics.cuh
-├── dynamics.cu
-├── analytics.cuh
-├── analytics.cu
-├── rate_option.cu
-├── rate_option.cuh
-├── zero_coupon_bond_option.cu
-└── zero_coupon_bond_option.cuh
-```
-
-</details>
-
 [Dynamics](#dynamics) · [Core formulas](#core-formulas) · [Products](#products)
 
 ## Dynamics
@@ -360,3 +339,38 @@ V_{\mathrm{payer\ swaption}}(t)
 =NP(t,T_0)
 \int_{-\infty}^{\infty}g(x)f_X(x)\,\mathrm dx.
 ```
+
+### Bermudan swaption
+
+**Pricing method:** Monte Carlo — Longstaff–Schwartz.
+
+Parameters: notional $`N`$, fixed rate $`K`$, first exercise $`E_0`$, regular
+payment interval $`\Delta`$, contractual accrual $`\delta`$, payment count $`n`$,
+exercise count $`m\leq n`$, and side. Define
+
+```math
+E_j=E_0+j\Delta,\quad j=0,\ldots,m-1,
+\qquad
+T_i=E_0+i\Delta,\quad i=1,\ldots,n.
+```
+
+```math
+H_j^{\mathrm{payer}}
+=N\left[1-P(E_j,T_n)-K\delta\sum_{i=j+1}^{n}P(E_j,T_i)\right]^+,
+\qquad
+H_j^{\mathrm{receiver}}
+=N\left[P(E_j,T_n)+K\delta\sum_{i=j+1}^{n}P(E_j,T_i)-1\right]^+.
+```
+
+For $`I_t=\int_0^t(x_u+y_u)\,\mathrm du`$, $`D(s,t)=e^{-(I_t-I_s)}`$. A
+degree-two two-factor Hermite basis estimates
+
+```math
+C_j(x,y)
+=\mathbb E\!\left[D(E_j,E_{j+1})V_{j+1}
+\mid x_{E_j}=x,\ y_{E_j}=y\right].
+```
+
+Backward exercise uses $`H_j\geq\widehat C_j`$, and the price is
+$`\mathbb E[D(0,E_0)V_0]`$. Both factor endpoints and their joint rate integral
+are simulated exactly between exercise dates.

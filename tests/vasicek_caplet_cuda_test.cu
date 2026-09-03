@@ -35,15 +35,15 @@ double integral_variance(double a, double sigma, double delta) {
 
 // Price one Vasicek caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::vasicek::
+    const ai_factory::workbench::model::fixed_income::vasicek::
         ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion;
     const double b = model.process.long_term_mean;
     const double sigma = model.process.volatility;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const auto zero_coupon = [&](double maturity) {
         return std::exp(
             -integral_loading(a, maturity) * model.initial_state
@@ -56,7 +56,7 @@ double caplet_price(
     const double volatility = sigma * integral_loading(a, t2 - t1)
         * std::sqrt(-std::expm1(-2.0 * a * t1) / (2.0 * a));
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     if (volatility <= 1.0e-14) {
         const double put = std::max(bond_strike * p01 - p02, 0.0);
@@ -80,7 +80,7 @@ double caplet_price(
 // Verify aligned Vasicek caplet pricing against an independent CPU expression.
 int main() {
     using namespace ai_factory::workbench;
-    namespace vasicek = model::vasicek;
+    namespace vasicek = model::fixed_income::vasicek;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -91,7 +91,7 @@ int main() {
     }
     check_cuda(availability, "Vasicek caplet test cudaGetDeviceCount");
 
-    const std::vector<vasicek::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::fixed_income::vasicek::ModelParameters> models = {
         {{0.10f, 0.02f, 0.01f}, 0.03f},
         {{0.25f, 0.05f, 0.015f}, 0.04f},
         {{0.50f, 0.01f, 0.0f}, 0.025f},
@@ -104,7 +104,7 @@ int main() {
     constexpr std::size_t row_count = 3U;
     constexpr std::size_t cartesian_count = 6U;
 
-    vasicek::ModelParameters* device_models = nullptr;
+    ai_factory::workbench::model::fixed_income::vasicek::ModelParameters* device_models = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
@@ -139,12 +139,12 @@ int main() {
             "Vasicek caplet test cudaMemcpy products"
         );
 
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
             row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             row_count,
             0U,
             row_count,
@@ -178,12 +178,12 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -192,12 +192,12 @@ int main() {
             1U,
             device_prices
         );
-        vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::vasicek::launch_vasicek_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,

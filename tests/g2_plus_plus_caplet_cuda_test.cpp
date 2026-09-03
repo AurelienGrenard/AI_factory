@@ -32,14 +32,14 @@ double zero_rate(
 
 // Price one caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::g2_plus_plus::ModelParameters& model,
+    const ai_factory::workbench::model::fixed_income::g2_plus_plus::ModelParameters& model,
     const ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters& curve,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion_x;
     const double b = model.process.mean_reversion_y;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const double p01 = std::exp(-t1 * zero_rate(curve, t1));
     const double p02 = std::exp(-t2 * zero_rate(curve, t2));
     const double loading_x = -std::expm1(-a * (t2 - t1)) / a;
@@ -59,7 +59,7 @@ double caplet_price(
         + 2.0 * loading_x * loading_y * covariance
     );
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     const double d1 =
         std::log(p02 / (bond_strike * p01)) / volatility
@@ -89,7 +89,7 @@ int main() {
     }
     check_cuda(availability, "caplet test cudaGetDeviceCount");
 
-    const std::vector<model::g2_plus_plus::ModelParameters> models = {
+    const std::vector<model::fixed_income::g2_plus_plus::ModelParameters> models = {
         {{0.10f, 0.01f, 0.60f, 0.008f, -0.40f}},
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}},
         {{0.50f, 0.02f, 1.10f, 0.012f, -0.10f}},
@@ -106,7 +106,7 @@ int main() {
     };
     constexpr std::size_t row_count = 3U;
 
-    model::g2_plus_plus::ModelParameters* device_models = nullptr;
+    model::fixed_income::g2_plus_plus::ModelParameters* device_models = nullptr;
     curve::nelson_siegel::NelsonSiegelParameters* device_curves = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -155,7 +155,7 @@ int main() {
             "caplet test cudaMemcpy products"
         );
 
-        model::g2_plus_plus::nelson_siegel::
+        model::fixed_income::g2_plus_plus::nelson_siegel::
             launch_g2_plus_plus_nelson_siegel_rate_option_cuda<OptionSide::call>(
                 device_models,
                 row_count,
@@ -163,7 +163,7 @@ int main() {
                 row_count,
                 device_products,
                 row_count,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 row_count,
                 0U,
                 row_count,

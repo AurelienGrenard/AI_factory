@@ -1,9 +1,11 @@
 // G2 parameters shared by host loaders, analytics, and CUDA dynamics.
 #pragma once
 
+#include "model/fixed_income/g2/state.hpp"
+
 #include <type_traits>
 
-namespace ai_factory::workbench::model::g2 {
+namespace ai_factory::workbench::model::fixed_income::g2 {
 
 // Coefficients of two correlated centered Ornstein-Uhlenbeck factors.
 struct ProcessParameters {
@@ -14,12 +16,6 @@ struct ProcessParameters {
     float correlation;
 };
 
-// Two Gaussian factor states whose sum is the short rate.
-struct State {
-    float state_x;
-    float state_y;
-};
-
 // Standalone G2 short-rate model combining the process with both initial states.
 struct ModelParameters {
     ProcessParameters process;
@@ -28,4 +24,4 @@ struct ModelParameters {
 
 static_assert(std::is_trivially_copyable_v<ModelParameters>);
 
-}  // namespace ai_factory::workbench::model::g2
+}  // namespace ai_factory::workbench::model::fixed_income::g2

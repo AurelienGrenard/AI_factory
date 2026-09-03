@@ -2,7 +2,7 @@
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
 #include "common/simulation/path_simulation.cuh"
-#include "model/equity/bates/dynamics.cu"
+#include "model/equity/markovian/bates/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>
 
@@ -13,17 +13,20 @@
 
 namespace {
 
+namespace bates = ai_factory::workbench::model::equity::bates;
+namespace heston = ai_factory::workbench::model::equity::heston;
+
 struct DynamicsResults {
-    ai_factory::workbench::bates::PreparedModel prepared;
-    ai_factory::workbench::bates::State initial;
-    ai_factory::workbench::bates::State no_jump;
-    ai_factory::workbench::heston::State heston_no_jump;
-    ai_factory::workbench::bates::State with_jumps;
-    ai_factory::workbench::heston::State heston_before_jumps;
-    ai_factory::workbench::bates::State terminal_first;
-    ai_factory::workbench::bates::State terminal_second;
-    ai_factory::workbench::bates::State no_jump_terminal;
-    ai_factory::workbench::heston::State heston_terminal;
+    ai_factory::workbench::model::equity::bates::PreparedModel prepared;
+    ai_factory::workbench::model::equity::bates::State initial;
+    ai_factory::workbench::model::equity::bates::State no_jump;
+    ai_factory::workbench::model::equity::heston::State heston_no_jump;
+    ai_factory::workbench::model::equity::bates::State with_jumps;
+    ai_factory::workbench::model::equity::heston::State heston_before_jumps;
+    ai_factory::workbench::model::equity::bates::State terminal_first;
+    ai_factory::workbench::model::equity::bates::State terminal_second;
+    ai_factory::workbench::model::equity::bates::State no_jump_terminal;
+    ai_factory::workbench::model::equity::heston::State heston_terminal;
     std::uint32_t poisson_zero;
     std::uint32_t poisson_one;
     std::uint32_t poisson_two;
@@ -37,25 +40,25 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     constexpr float maturity = 0.5f;
     constexpr std::uint32_t step_count = 10U;
     constexpr float delta_t = maturity / static_cast<float>(step_count);
-    const bates::ModelParameters parameters = {
+    const ai_factory::workbench::model::equity::bates::ModelParameters parameters = {
         1.25f, 0.03f, 0.01f, 0.05f, 1.4f, 0.04f, 0.32f, -0.65f,
         0.8f, -0.12f, 0.24f,
     };
-    const bates::ModelParameters no_jump_parameters = {
+    const ai_factory::workbench::model::equity::bates::ModelParameters no_jump_parameters = {
         1.25f, 0.03f, 0.01f, 0.05f, 1.4f, 0.04f, 0.32f, -0.65f,
         0.0f, -0.12f, 0.24f,
     };
-    const bates::PreparedModel prepared =
-        bates::prepare_model(parameters, delta_t);
-    const bates::PreparedModel no_jump_prepared =
-        bates::prepare_model(no_jump_parameters, delta_t);
+    const ai_factory::workbench::model::equity::bates::PreparedModel prepared =
+        ai_factory::workbench::model::equity::bates::prepare_model(parameters, delta_t);
+    const ai_factory::workbench::model::equity::bates::PreparedModel no_jump_prepared =
+        ai_factory::workbench::model::equity::bates::prepare_model(no_jump_parameters, delta_t);
 
-    bates::State no_jump = bates::initial_state(no_jump_prepared);
-    heston::State heston_no_jump = no_jump;
+    ai_factory::workbench::model::equity::bates::State no_jump = ai_factory::workbench::model::equity::bates::initial_state(no_jump_prepared);
+    ai_factory::workbench::model::equity::heston::State heston_no_jump = no_jump;
     constexpr float variance_normal = -0.35f;
     constexpr float variance_uniform = 0.62f;
     constexpr float stock_normal = 0.41f;
-    bates::one_step_transition(
+    ai_factory::workbench::model::equity::bates::one_step_transition(
         no_jump_prepared,
         variance_normal,
         variance_uniform,
@@ -64,7 +67,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         0.0f,
         no_jump
     );
-    heston::one_step_transition(
+    ai_factory::workbench::model::equity::heston::one_step_transition(
         no_jump_prepared.heston,
         variance_normal,
         variance_uniform,
@@ -72,16 +75,16 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         heston_no_jump
     );
 
-    bates::State with_jumps = bates::initial_state(prepared);
-    heston::State heston_before_jumps = with_jumps;
-    heston::one_step_transition(
+    ai_factory::workbench::model::equity::bates::State with_jumps = ai_factory::workbench::model::equity::bates::initial_state(prepared);
+    ai_factory::workbench::model::equity::heston::State heston_before_jumps = with_jumps;
+    ai_factory::workbench::model::equity::heston::one_step_transition(
         prepared.heston,
         variance_normal,
         variance_uniform,
         stock_normal,
         heston_before_jumps
     );
-    bates::one_step_transition(
+    ai_factory::workbench::model::equity::bates::one_step_transition(
         prepared,
         variance_normal,
         variance_uniform,
@@ -92,30 +95,30 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     );
 
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
-    const bates::State terminal_first =
-        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::bates::State terminal_first =
+        simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             prepared, step_count, key, 17U
         );
-    const bates::State terminal_second =
-        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::bates::State terminal_second =
+        simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             prepared, step_count, key, 17U
         );
-    const bates::State no_jump_terminal =
-        simulation::simulate_fixed_step_terminal<bates::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::bates::State no_jump_terminal =
+        simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             no_jump_prepared, step_count, key, 19U
         );
-    const heston::State heston_terminal =
-        simulation::simulate_fixed_step_terminal<heston::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::heston::State heston_terminal =
+        simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::heston::DynamicsPolicy>(
             no_jump_prepared.heston, step_count, key, 19U
         );
     const std::uint32_t poisson_zero = philox::poisson_from_uniform(
-        0.5f, prepared.poisson_mean, prepared.poisson_zero_probability
+        0.5f, prepared.poisson_mean, prepared.zero_jump_probability
     );
     const std::uint32_t poisson_one = philox::poisson_from_uniform(
-        0.98f, prepared.poisson_mean, prepared.poisson_zero_probability
+        0.98f, prepared.poisson_mean, prepared.zero_jump_probability
     );
     const std::uint32_t poisson_two = philox::poisson_from_uniform(
-        0.9999f, prepared.poisson_mean, prepared.poisson_zero_probability
+        0.9999f, prepared.poisson_mean, prepared.zero_jump_probability
     );
 
     constexpr std::uint32_t steps_between_observations[3] = {2U, 4U, 4U};
@@ -124,8 +127,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     float heston_calendar_spots[2];
     float heston_calendar_variances[2];
     equity::SpotAndStateObservationWriter<
-        heston::DynamicsPolicy,
-        &heston::State::variance
+        ai_factory::workbench::model::equity::heston::DynamicsPolicy,
+        &ai_factory::workbench::model::equity::heston::State::variance
     >
         heston_regular_recorder{
             heston_regular_spots,
@@ -133,8 +136,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             1U,
             2U,
         };
-    const heston::State heston_regular =
-        simulation::simulate_fixed_step_stubbed_regular_schedule<heston::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::heston::State heston_regular =
+        simulation::simulate_fixed_step_stubbed_regular_schedule<ai_factory::workbench::model::equity::heston::DynamicsPolicy>(
             no_jump_prepared.heston,
             2U,
             4U,
@@ -144,16 +147,16 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             heston_regular_recorder
         );
     equity::SpotAndStateObservationWriter<
-        heston::DynamicsPolicy,
-        &heston::State::variance
+        ai_factory::workbench::model::equity::heston::DynamicsPolicy,
+        &ai_factory::workbench::model::equity::heston::State::variance
     > heston_recorder{
         heston_calendar_spots,
         heston_calendar_variances,
         1U,
         2U,
     };
-    const heston::State heston_calendar =
-        simulation::simulate_fixed_step_calendar<heston::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::heston::State heston_calendar =
+        simulation::simulate_fixed_step_calendar<ai_factory::workbench::model::equity::heston::DynamicsPolicy>(
             no_jump_prepared.heston,
             steps_between_observations,
             3U,
@@ -167,8 +170,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
     float bates_calendar_spots[2];
     float bates_calendar_variances[2];
     equity::SpotAndStateObservationWriter<
-        bates::DynamicsPolicy,
-        &bates::State::variance
+        ai_factory::workbench::model::equity::bates::DynamicsPolicy,
+        &ai_factory::workbench::model::equity::bates::State::variance
     >
         bates_regular_recorder{
             bates_regular_spots,
@@ -176,8 +179,8 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             1U,
             2U,
         };
-    const bates::State bates_regular =
-        simulation::simulate_fixed_step_stubbed_regular_schedule<bates::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::bates::State bates_regular =
+        simulation::simulate_fixed_step_stubbed_regular_schedule<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             prepared,
             2U,
             4U,
@@ -187,16 +190,16 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
             bates_regular_recorder
         );
     equity::SpotAndStateObservationWriter<
-        bates::DynamicsPolicy,
-        &bates::State::variance
+        ai_factory::workbench::model::equity::bates::DynamicsPolicy,
+        &ai_factory::workbench::model::equity::bates::State::variance
     > bates_recorder{
         bates_calendar_spots,
         bates_calendar_variances,
         1U,
         2U,
     };
-    const bates::State bates_calendar =
-        simulation::simulate_fixed_step_calendar<bates::DynamicsPolicy>(
+    const ai_factory::workbench::model::equity::bates::State bates_calendar =
+        simulation::simulate_fixed_step_calendar<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             prepared,
             steps_between_observations,
             3U,
@@ -206,7 +209,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         );
     *output = {
         prepared,
-        bates::initial_state(prepared),
+        ai_factory::workbench::model::equity::bates::initial_state(prepared),
         no_jump,
         heston_no_jump,
         with_jumps,
@@ -285,7 +288,7 @@ int main() {
     ) * dt;
     require(close(results.prepared.poisson_mean, expected_jump_mean),
             "Bates Poisson mean is incorrect");
-    require(close(results.prepared.poisson_zero_probability,
+    require(close(results.prepared.zero_jump_probability,
                   std::exp(-expected_jump_mean)),
             "Bates zero-jump probability is incorrect");
     require(close(results.prepared.jump_compensator, expected_compensator),

@@ -1,6 +1,6 @@
 // Generate normalized rate_options with central strikes and sparse tail cases.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <filesystem>
 #include <string>
@@ -32,15 +32,18 @@ int main() {
                            const std::vector<float>& strikes,
                            const std::string& description) {
         GeneratedRows generated;
-        for (const std::uint32_t fixing_time : fixing_times) {
-            for (const std::uint32_t accrual_period : accrual_periods) {
+        for (const std::uint32_t fixing_time_days : fixing_times) {
+            for (const std::uint32_t accrual_period_days : accrual_periods) {
                 for (const float strike : strikes) {
                     generated.rows.push_back({
                     {"notional", 1.0f},
                     {"strike", strike},
-                    {"fixing_time", fixing_time},
-                    {"payment_time", fixing_time + accrual_period},
-                    {"accrual_period", accrual_period},
+                    {"fixing_time", fixing_time_days},
+                    {
+                        "payment_time",
+                        fixing_time_days + accrual_period_days
+                    },
+                    {"accrual_period", accrual_period_days},
                     });
                 }
             }

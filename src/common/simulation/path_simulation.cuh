@@ -9,7 +9,7 @@
 namespace ai_factory::workbench::simulation {
 
 // Terminal state reached through homogeneous fixed-size numerical steps.
-template<FixedStepDynamicsPolicy Dynamics>
+template<PreparedFixedStepDynamicsPolicy Dynamics>
 __device__ __forceinline__ typename Dynamics::State
 simulate_fixed_step_terminal(
     const typename Dynamics::PreparedDynamics& dynamics,
@@ -48,7 +48,7 @@ simulate_exact_transition_terminal(
 // Regular schedule with a potentially shorter first interval. Used by
 // maturity-anchored exercise grids and calendar sampling.
 template<
-    FixedStepDynamicsPolicy Dynamics,
+    PreparedFixedStepDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
 >
 __device__ __forceinline__ typename Dynamics::State
@@ -93,7 +93,7 @@ simulate_fixed_step_stubbed_regular_schedule(
 
 // Homogeneous regular schedule for a numerical scheme.
 template<
-    FixedStepDynamicsPolicy Dynamics,
+    PreparedFixedStepDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
 >
 __device__ __forceinline__ typename Dynamics::State
@@ -120,7 +120,7 @@ simulate_fixed_step_regular_schedule(
 // numerical transition. Keeping this as one loop avoids the stubbed regular
 // schedule's separate first-interval control path.
 template<
-    FixedStepDynamicsPolicy Dynamics,
+    PreparedFixedStepDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
 >
 __device__ __forceinline__ typename Dynamics::State
@@ -234,7 +234,7 @@ simulate_exact_transition_regular_schedule(
 // Irregular calendar for a numerical scheme. Each contractual interval stores
 // only the number of homogeneous numerical transitions to execute.
 template<
-    FixedStepDynamicsPolicy Dynamics,
+    PreparedFixedStepDynamicsPolicy Dynamics,
     ObservationHandlerFor<Dynamics> Handler
 >
 __device__ __forceinline__ typename Dynamics::State

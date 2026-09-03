@@ -106,12 +106,14 @@ qu'un nouveau payoff l'utilise.
 - [ ] Implementer `load_models(...)` en preservant l'ordre des lignes.
 - [ ] Valider la structure JSON avant de lire les lignes.
 - [ ] Valider chaque parametre; toute erreur doit citer l'identifiant de ligne.
-- [ ] Ajouter `dynamics.cuh/.cu` seulement si le modele doit etre simule.
+- [ ] Ajouter `dynamics.cuh` et `dynamics_impl.cuh` seulement si le modele doit
+  etre simule.
 - [ ] Reprendre les primitives propres au modele: `prepare_model`, l'eventuel
       `prepare_transition`, `initial_state` et `one_step_transition`.
 - [ ] Pour un modele equity standard, exposer `DynamicsPolicy` et reutiliser
       les chemins de `common/simulation/path_simulation.cuh`.
-- [ ] Ajouter `analytics.cuh/.cu` pour les quantites analytiques reutilisables.
+- [ ] Ajouter `analytics.cuh` et `analytics_impl.cuh` pour les quantites
+  analytiques reutilisables.
 - [ ] Conserver les noms et l'ordre des fonctions des modeles voisins.
 - [ ] Ajouter les sources et les tests au `CMakeLists.txt`.
 
@@ -132,6 +134,10 @@ qu'un nouveau payoff l'utilise.
 
 ### Dataset de samples du modele
 
+- [ ] Consulter d'abord le `ModelSpec`, le `SampleModelSpec` et les deux
+      `DatasetSpec` de `tools/codegen/pricing_bindings/`. Ajouter la loi core,
+      l'observation et le backend au manifeste, puis regenerer bindings et
+      recettes; ne pas introduire une recette ad hoc.
 - [ ] Creer
       `catalog/model/<asset_class>/<model>/samples/<dataset_id>/generator.cpp`.
 - [ ] Generer le JSON complet sous
@@ -148,12 +154,13 @@ qu'un nouveau payoff l'utilise.
       `src/model/<asset_class>/<model>/`; ne pas reimplementer le modele dans la
       recette.
 - [ ] Produire exactement 3 000 000 de samples d'entrainement.
-- [ ] Fournir les deux recettes par modele: `samples_01` avec
+- [ ] Pour tout modele dont la publication samples est `available`, fournir les
+      deux recettes: `samples_01` avec
       `12 000 * 250 = 3 000 000`, puis `samples_02` avec
       `3 000 000 * 1 = 3 000 000` et des seeds independantes.
 - [ ] Tirer independamment chaque maturite selon la loi uniforme discrete sur
-      `{90/360, ..., 720/360}` et utiliser `target_dt = 1 / 360` pour les
-      schemas discretises.
+      `{63/252, ..., 504/252}` et utiliser exactement deux pas numeriques par
+      jour, soit `dt = 1 / 504`, pour les schemas discretises.
 - [ ] Declarer les parametres, la loi de `T`, les observables, la methode
       numerique et les trois seeds dans le YAML.
 - [ ] Ecrire une liste plate de 3M lignes autonomes contenant chacune les
@@ -166,7 +173,8 @@ qu'un nouveau payoff l'utilise.
 
 - [ ] Creer `src/curve/<curve>/dataset.hpp` et `dataset.cpp`.
 - [ ] Implementer `load_curves(...)` avec validation de structure et de lignes.
-- [ ] Creer `term_structure.cuh/.cu` avec l'interface commune pertinente:
+- [ ] Creer `term_structure.cuh` et `term_structure_impl.cuh` avec l'interface
+  commune pertinente :
       `zero_rate`, `log_discount_factor`, `discount_factor`,
       `instantaneous_forward`, `forward_derivative` et `forward_rate`.
 - [ ] Garder exactement les memes noms entre courbes lorsque les objets

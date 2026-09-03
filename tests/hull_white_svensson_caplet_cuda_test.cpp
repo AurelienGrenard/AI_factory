@@ -35,21 +35,21 @@ double zero_rate(
 
 // Price one caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::hull_white::ModelParameters& model,
+    const ai_factory::workbench::model::fixed_income::hull_white::ModelParameters& model,
     const ai_factory::workbench::curve::svensson::SvenssonParameters& curve,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.mean_reversion;
     const double sigma = model.volatility;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const double p01 = std::exp(-t1 * zero_rate(curve, t1));
     const double p02 = std::exp(-t2 * zero_rate(curve, t2));
     const double loading = -std::expm1(-a * (t2 - t1)) / a;
     const double volatility = sigma * loading
         * std::sqrt(-std::expm1(-2.0 * a * t1) / (2.0 * a));
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     const double d1 =
         std::log(p02 / (bond_strike * p01)) / volatility
@@ -79,7 +79,7 @@ int main() {
     }
     check_cuda(availability, "caplet test cudaGetDeviceCount");
 
-    const std::vector<model::hull_white::ModelParameters> models = {
+    const std::vector<model::fixed_income::hull_white::ModelParameters> models = {
         {0.10f, 0.01f}, {0.25f, 0.015f}, {0.50f, 0.02f},
     };
     const std::vector<curve::svensson::SvenssonParameters> curves = {
@@ -94,7 +94,7 @@ int main() {
     };
     constexpr std::size_t row_count = 3U;
 
-    model::hull_white::ModelParameters* device_models = nullptr;
+    model::fixed_income::hull_white::ModelParameters* device_models = nullptr;
     curve::svensson::SvenssonParameters* device_curves = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
@@ -143,7 +143,7 @@ int main() {
             "caplet test cudaMemcpy products"
         );
 
-        model::hull_white::svensson::
+        model::fixed_income::hull_white::svensson::
             launch_hull_white_svensson_rate_option_cuda<OptionSide::call>(
                 device_models,
                 row_count,
@@ -151,7 +151,7 @@ int main() {
                 row_count,
                 device_products,
                 row_count,
-                false,
+                ai_factory::workbench::PriceConstruction::Aligned,
                 row_count,
                 0U,
                 row_count,

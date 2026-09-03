@@ -35,7 +35,7 @@ double integral_variance(double a, double sigma, double delta) {
 
 // Return the variance of the integrated sum of both correlated factors.
 double g2_integral_variance(
-    const ai_factory::workbench::model::g2::ProcessParameters& process,
+    const ai_factory::workbench::model::fixed_income::g2::ProcessParameters& process,
     double delta
 ) {
     const double a = process.mean_reversion_x;
@@ -55,14 +55,14 @@ double g2_integral_variance(
 
 // Price one G2 caplet through its equivalent zero-coupon put in FP64.
 double caplet_price(
-    const ai_factory::workbench::model::g2::
+    const ai_factory::workbench::model::fixed_income::g2::
         ModelParameters& model,
     const ai_factory::workbench::product::RateOptionParameters& product
 ) {
     const double a = model.process.mean_reversion_x;
     const double b = model.process.mean_reversion_y;
-    const double t1 = product.fixing_time * kDayFraction;
-    const double t2 = product.payment_time * kDayFraction;
+    const double t1 = product.fixing_time_days * kDayFraction;
+    const double t2 = product.payment_time_days * kDayFraction;
     const auto zero_coupon = [&](double maturity) {
         return std::exp(
             -integral_loading(a, maturity) * model.initial_state.state_x
@@ -89,7 +89,7 @@ double caplet_price(
         + 2.0 * loading_x * loading_y * covariance
     );
     const double strike_factor =
-        1.0 + product.accrual_period * kDayFraction * product.strike;
+        1.0 + product.accrual_period_days * kDayFraction * product.strike;
     const double bond_strike = 1.0 / strike_factor;
     if (volatility <= 1.0e-14) {
         const double put = std::max(bond_strike * p01 - p02, 0.0);
@@ -113,7 +113,7 @@ double caplet_price(
 // Verify aligned G2 caplet pricing against an independent CPU expression.
 int main() {
     using namespace ai_factory::workbench;
-    namespace g2 = model::g2;
+    namespace g2 = model::fixed_income::g2;
 
     int device_count = 0;
     const cudaError_t availability = cudaGetDeviceCount(&device_count);
@@ -124,7 +124,7 @@ int main() {
     }
     check_cuda(availability, "G2 caplet test cudaGetDeviceCount");
 
-    const std::vector<g2::ModelParameters> models = {
+    const std::vector<ai_factory::workbench::model::fixed_income::g2::ModelParameters> models = {
         {{0.10f, 0.01f, 0.60f, 0.008f, -0.40f}, {0.02f, 0.01f}},
         {{0.25f, 0.015f, 0.90f, 0.010f, 0.20f}, {0.03f, 0.01f}},
         {{0.50f, 0.0f, 1.10f, 0.0f, 0.00f}, {0.02f, 0.005f}},
@@ -137,7 +137,7 @@ int main() {
     constexpr std::size_t row_count = 3U;
     constexpr std::size_t cartesian_count = 6U;
 
-    g2::ModelParameters* device_models = nullptr;
+    ai_factory::workbench::model::fixed_income::g2::ModelParameters* device_models = nullptr;
     product::RateOptionParameters* device_products = nullptr;
     float* device_prices = nullptr;
     try {
@@ -172,12 +172,12 @@ int main() {
             "G2 caplet test cudaMemcpy products"
         );
 
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             row_count,
             device_products,
             row_count,
-            false,
+            ai_factory::workbench::PriceConstruction::Aligned,
             row_count,
             0U,
             row_count,
@@ -211,12 +211,12 @@ int main() {
         }
 
         // Exercise model-major Cartesian indexing across two launch batches.
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             0U,
             2U,
@@ -225,12 +225,12 @@ int main() {
             1U,
             device_prices
         );
-        g2::launch_g2_rate_option_cuda<OptionSide::call>(
+        ai_factory::workbench::model::fixed_income::g2::launch_g2_rate_option_cuda<OptionSide::call>(
             device_models,
             2U,
             device_products,
             products.size(),
-            true,
+            ai_factory::workbench::PriceConstruction::CartesianProduct,
             cartesian_count,
             2U,
             cartesian_count - 2U,

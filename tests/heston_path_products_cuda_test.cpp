@@ -1,8 +1,8 @@
 // Compare the three uniform one-block Heston product launchers on CUDA.
 #include "common/check_cuda.cuh"
-#include "model/equity/heston/asian_option.cuh"
-#include "model/equity/heston/european_option.cuh"
-#include "model/equity/heston/lookback_option.cuh"
+#include "model/equity/markovian/heston/asian_option.cuh"
+#include "model/equity/markovian/heston/european_option.cuh"
+#include "model/equity/markovian/heston/lookback_option.cuh"
 
 #include <cuda_runtime.h>
 
@@ -26,7 +26,7 @@ void require(bool condition, const char* message) {
 
 // Own every device allocation shared by the three launcher checks.
 struct DeviceArrays {
-    ai_factory::workbench::heston::ModelParameters* model = nullptr;
+    ai_factory::workbench::model::equity::heston::ModelParameters* model = nullptr;
     ai_factory::workbench::product::EuropeanOptionParameters* european = nullptr;
     ai_factory::workbench::product::AsianOptionParameters* asian = nullptr;
     ai_factory::workbench::product::LookbackOptionParameters* lookback = nullptr;
@@ -82,7 +82,7 @@ int main() {
     }
     check_cuda(availability, "path-product test cudaGetDeviceCount");
 
-    const heston::ModelParameters model = {
+    const ai_factory::workbench::model::equity::heston::ModelParameters model = {
         1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.70f,
     };
     const product::EuropeanOptionParameters european = {1.0f, 252U};
@@ -137,8 +137,8 @@ int main() {
 
     float european_price = 0.0f;
     float european_error = 0.0f;
-    heston::launch_heston_european_option_cuda<OptionSide::call>(
-        device.model, 1U, device.european, 1U, false, 1U, 0U, 1U,
+    ai_factory::workbench::model::equity::heston::launch_heston_european_option_cuda<OptionSide::call>(
+        device.model, 1U, device.european, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
@@ -146,8 +146,8 @@ int main() {
 
     float asian_price = 0.0f;
     float asian_error = 0.0f;
-    heston::launch_heston_asian_option_cuda<OptionSide::call>(
-        device.model, 1U, device.asian, 1U, false, 1U, 0U, 1U,
+    ai_factory::workbench::model::equity::heston::launch_heston_asian_option_cuda<OptionSide::call>(
+        device.model, 1U, device.asian, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );
@@ -155,8 +155,8 @@ int main() {
 
     float lookback_price = 0.0f;
     float lookback_error = 0.0f;
-    heston::launch_heston_lookback_option_cuda(
-        device.model, 1U, device.lookback, 1U, false, 1U, 0U, 1U,
+    ai_factory::workbench::model::equity::heston::launch_heston_lookback_option_cuda(
+        device.model, 1U, device.lookback, 1U, ai_factory::workbench::PriceConstruction::Aligned, 1U, 0U, 1U,
         kPathsPerPrice, kDt, kSimulationStepsPerDay, kThreadsPerBlock, 1U, kSeed,
         device.price, device.standard_error
     );

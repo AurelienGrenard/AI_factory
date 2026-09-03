@@ -14,7 +14,7 @@
     "url": "https://datasets.ai-factory.example/v1/product/european_swaptions/european_swaptions_01.json"
   },
   "source_fingerprints": {
-    "price_results": "sha256:796fb8f9a8011f90bab20bb7256c2b2457c9ba6ed04cd29a67fbbc090ee53e4b",
+    "price_results": "sha256:e0180a43e2195dc1a59e4a4c7cc9f44661aecce51aa12e2a9ba8585a5bb5b82b",
     "model_parameters": "sha256:72c750adf17ef38c85a02aba891a68b1811bea17b4a1ec52d819424d37ba79df",
     "product_parameters": "sha256:58f144de68539828cf4dd263d4a78f0f318eaff12a753c6105584c16d990734b"
   },
@@ -71,9 +71,9 @@
       "row_count": 900,
       "passed_row_count": 900,
       "failed_row_count": 0,
-      "maximum_absolute_error": 3.954976664452027e-07,
-      "maximum_absolute_error_row_id": "000287",
-      "mean_signed_error": 7.769044519779504e-10,
+      "maximum_absolute_error": 5.21353040151655e-07,
+      "maximum_absolute_error_row_id": "000097",
+      "mean_signed_error": -3.6032945536840297e-10,
       "systematic_bias": false
     },
     "stress": {
@@ -83,12 +83,12 @@
       "failed_row_count": 0,
       "maximum_absolute_error": 1.310119212116767e-06,
       "maximum_absolute_error_row_id": "000953",
-      "mean_signed_error": -4.023095973065541e-08,
+      "mean_signed_error": -4.152455781286296e-08,
       "systematic_bias": false
     }
   },
   "timing": {
-    "wall_seconds": 6.033849619001558
+    "wall_seconds": 1.9157346520005376
   },
   "results": [
     {

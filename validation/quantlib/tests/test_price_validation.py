@@ -44,6 +44,22 @@ class PriceValidationTest(unittest.TestCase):
         self.assertEqual(report.failed_row_count, len(comparisons))
         self.assertTrue(report.systematic_bias)
 
+    def test_positive_bermudan_premium_passes_a_lower_bound(self) -> None:
+        comparisons = tuple(
+            PriceComparison(
+                f"{index:06d}",
+                1.1,
+                1.0,
+                comparison_relation="generated_at_least_reference",
+            )
+            for index in range(1, 101)
+        )
+
+        report = summarize_price_comparisons("lower-bound", comparisons)
+
+        self.assertTrue(report.passed)
+        self.assertFalse(report.systematic_bias)
+
     def test_independent_monte_carlo_errors_are_combined(self) -> None:
         comparisons = (
             PriceComparison(
@@ -103,6 +119,7 @@ class PriceValidationTest(unittest.TestCase):
                     "id": "000001",
                     "parameters": {
                         "maturity": 126,
+                        "first_exercise_time": 63,
                         "observation_interval": 21,
                         "payment_times": [63, 126],
                         "strike": 1.0,
@@ -116,6 +133,7 @@ class PriceValidationTest(unittest.TestCase):
             parameters = load_parameter_rows(path, "products")["000001"]
 
         self.assertEqual(parameters["maturity"], 0.5)
+        self.assertEqual(parameters["first_exercise_time"], 0.25)
         self.assertEqual(parameters["observation_interval"], 1.0 / 12.0)
         self.assertEqual(parameters["payment_times"], [0.25, 0.5])
         self.assertEqual(parameters["strike"], 1.0)

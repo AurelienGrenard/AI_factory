@@ -1,14 +1,16 @@
 // Public launcher for Hull-White Svensson rate_option analytics.
 #pragma once
 
-#include "curve/svensson/dataset.hpp"
+#include "common/price_construction.cuh"
+
+#include "curve/svensson/parameters.hpp"
 #include "common/option_side.cuh"
-#include "model/fixed_income/hull_white/dataset.hpp"
+#include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 
 #include <cstddef>
 
-namespace ai_factory::workbench::model::hull_white::svensson {
+namespace ai_factory::workbench::model::fixed_income::hull_white::svensson {
 
 // Launch closed-form rate_option prices across the CUDA grid.
 template<OptionSide Side>
@@ -19,7 +21,7 @@ void launch_hull_white_svensson_rate_option_cuda(
     std::size_t curve_count,
     const product::RateOptionParameters* device_products,
     std::size_t product_count,
-    bool cartesian_product,
+    PriceConstruction construction,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
@@ -29,4 +31,4 @@ void launch_hull_white_svensson_rate_option_cuda(
     float* device_prices
 );
 
-}  // namespace ai_factory::workbench::model::hull_white::svensson
+}  // namespace ai_factory::workbench::model::fixed_income::hull_white::svensson

@@ -7,8 +7,8 @@
 namespace ai_factory::workbench::product {
 
 struct CliquetParameters {
-    std::uint32_t maturity;
-    std::uint32_t observation_interval;
+    std::uint32_t maturity_days;
+    std::uint32_t observation_interval_days;
     float participation_rate;
     float local_floor;
     float local_cap;

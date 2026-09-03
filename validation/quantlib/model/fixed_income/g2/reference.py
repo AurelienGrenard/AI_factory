@@ -5,6 +5,11 @@ from typing import Any, Mapping
 
 import QuantLib as ql
 
+from validation.quantlib.bermudan_swaption import (
+    PreparedBermudanModel,
+    bermudan_swaption_times,
+    short_exercise_engine,
+)
 from validation.quantlib.parameters import finite_number, positive_number
 from validation.quantlib.rate_option import bond_option_times
 from validation.quantlib.term_structure import discount_curve
@@ -76,7 +81,27 @@ def quantlib_model(
     rho = finite_number(model, "correlation", context)
     if not -1.0 <= rho <= 1.0:
         raise ValueError("G2 model: correlation must lie in [-1, 1].")
+    times = (
+        bermudan_swaption_times(product)
+        if "first_exercise_time" in product
+        else bond_option_times(product)
+    )
     term_structure = discount_curve(
-        lambda maturity: _discount(model, maturity), bond_option_times(product)
+        lambda maturity: _discount(model, maturity), times
     )
     return ql.G2(term_structure, a, sigma, b, eta, rho)
+
+
+def quantlib_bermudan_model(
+    model: Mapping[str, Any],
+    curve: Mapping[str, Any] | None,
+    product: Mapping[str, Any],
+) -> PreparedBermudanModel:
+    """Build the PDE-ready standalone G2 Bermudan reference."""
+
+    reference = quantlib_model(model, curve, product)
+    return PreparedBermudanModel(
+        reference,
+        reference.termStructure(),
+        short_exercise_engine(product, "fd_g2"),
+    )

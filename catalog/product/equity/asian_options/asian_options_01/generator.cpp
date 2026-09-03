@@ -1,6 +1,6 @@
 // Generate 20 maturity-dependent exponential strikes at each of 50 maturities.
-#include "tools/datasets/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "tools/datasets/parameter_dataset.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <filesystem>
 #include <string>

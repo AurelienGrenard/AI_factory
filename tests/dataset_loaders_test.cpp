@@ -4,15 +4,21 @@
 #include "model/fixed_income/cir/dataset.hpp"
 #include "model/fixed_income/g2/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
-#include "model/equity/bates/dataset.hpp"
-#include "model/equity/black_scholes/dataset.hpp"
-#include "model/equity/cev/dataset.hpp"
-#include "model/equity/heston/dataset.hpp"
-#include "model/equity/kou/dataset.hpp"
-#include "model/equity/merton/dataset.hpp"
-#include "model/equity/normal_inverse_gaussian/dataset.hpp"
-#include "model/equity/schobel_zhu/dataset.hpp"
-#include "model/equity/variance_gamma/dataset.hpp"
+#include "model/equity/markovian/bates/dataset.hpp"
+#include "model/equity/markovian/black_scholes/dataset.hpp"
+#include "model/equity/markovian/cev/dataset.hpp"
+#include "model/equity/markovian/heston/dataset.hpp"
+#include "model/equity/markovian/heston_3_2/dataset.hpp"
+#include "model/equity/markovian/kou/dataset.hpp"
+#include "model/equity/markovian/merton/dataset.hpp"
+#include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
+#include "model/equity/markovian/sabr/dataset.hpp"
+#include "model/equity/markovian/schobel_zhu/dataset.hpp"
+#include "model/equity/markovian/stein_stein/dataset.hpp"
+#include "model/equity/markovian/variance_gamma/dataset.hpp"
+#include "model/equity/rough/log_modulated_rough_bergomi/dataset.hpp"
+#include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
+#include "model/equity/rough/rough_stein_stein/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "model/fixed_income/vasicek/dataset.hpp"
@@ -20,6 +26,7 @@
 #include "product/asian_option/dataset.hpp"
 #include "product/athena_autocall/dataset.hpp"
 #include "product/asset_or_nothing_option/dataset.hpp"
+#include "product/bermudan_swaption/dataset.hpp"
 #include "product/rate_option/dataset.hpp"
 #include "product/cliquet/dataset.hpp"
 #include "product/range_accrual/dataset.hpp"
@@ -41,7 +48,7 @@
 #include "product/up_one_touch/dataset.hpp"
 #include "product/up_and_out_option/dataset.hpp"
 #include "product/zero_coupon_bond_option/dataset.hpp"
-#include "tools/datasets/dataset_validation.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -68,6 +75,63 @@ void write_document(const nlohmann::json& document) {
     std::ofstream output(test_path);
     if (!output) throw std::runtime_error("cannot write loader test dataset");
     output << document;
+}
+
+// Write deliberately malformed input for the common parser diagnostic.
+void write_text(const std::string& text) {
+    std::ofstream output(test_path);
+    if (!output) throw std::runtime_error("cannot write loader test dataset");
+    output << text;
+}
+
+nlohmann::json one_row(
+    const std::string& collection,
+    const nlohmann::json& parameters
+);
+
+// Exercise diagnostics owned by the common loader rather than a row schema.
+void check_common_loader_diagnostics() {
+    namespace datasets = ai_factory::workbench::datasets;
+    write_text("{ invalid JSON");
+    bool rejected_malformed = false;
+    try {
+        static_cast<void>(datasets::read_parameter_dataset(
+            test_path,
+            datasets::ParameterDatasetFamily::Model,
+            "Diagnostic model"
+        ));
+    } catch (const std::runtime_error& error) {
+        const std::string message = error.what();
+        require(
+            message.find(test_path.string()) != std::string::npos
+                && message.find("Invalid Diagnostic model JSON")
+                    != std::string::npos,
+            "common parser diagnostic omits its dataset path or family"
+        );
+        rejected_malformed = true;
+    }
+    require(rejected_malformed, "common parser accepted malformed JSON");
+
+    write_document(one_row("models", {{"present", 1U}}));
+    try {
+        static_cast<void>(datasets::load_parameter_rows<int>(
+            test_path,
+            datasets::ParameterDatasetFamily::Model,
+            "Diagnostic model",
+            [](const nlohmann::json& parameters, const std::string&) {
+                return parameters.at("missing").get<int>();
+            }
+        ));
+    } catch (const std::invalid_argument& error) {
+        const std::string message = error.what();
+        require(
+            message.find("invalid_001") != std::string::npos
+                && message.find("missing") != std::string::npos,
+            "common row diagnostic omits its row ID or missing field"
+        );
+        return;
+    }
+    throw std::runtime_error("common loader accepted a missing row field");
 }
 
 // Check one accepted row and one rejected value with a useful row message.
@@ -164,24 +228,32 @@ nlohmann::json one_row(
 int main() {
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
     namespace svensson = ai_factory::workbench::curve::svensson;
-    namespace g2 = ai_factory::workbench::model::g2;
-    namespace g2_plus_plus = ai_factory::workbench::model::g2_plus_plus;
-    namespace bates = ai_factory::workbench::bates;
-    namespace black_scholes = ai_factory::workbench::black_scholes;
-    namespace cev = ai_factory::workbench::cev;
-    namespace heston = ai_factory::workbench::heston;
-    namespace kou = ai_factory::workbench::kou;
-    namespace merton = ai_factory::workbench::merton;
-    namespace nig = ai_factory::workbench::normal_inverse_gaussian;
-    namespace schobel_zhu = ai_factory::workbench::schobel_zhu;
-    namespace vg = ai_factory::workbench::variance_gamma;
-    namespace hull_white = ai_factory::workbench::model::hull_white;
-    namespace cir = ai_factory::workbench::model::cir;
-    namespace ou = ai_factory::workbench::model::ornstein_uhlenbeck;
-    namespace vasicek = ai_factory::workbench::model::vasicek;
+    namespace g2 = ai_factory::workbench::model::fixed_income::g2;
+    namespace g2_plus_plus = ai_factory::workbench::model::fixed_income::g2_plus_plus;
+    namespace bates = ai_factory::workbench::model::equity::bates;
+    namespace black_scholes = ai_factory::workbench::model::equity::black_scholes;
+    namespace cev = ai_factory::workbench::model::equity::cev;
+    namespace heston = ai_factory::workbench::model::equity::heston;
+    namespace heston_3_2 = ai_factory::workbench::model::equity::heston_3_2;
+    namespace kou = ai_factory::workbench::model::equity::kou;
+    namespace merton = ai_factory::workbench::model::equity::merton;
+    namespace nig = ai_factory::workbench::model::equity::normal_inverse_gaussian;
+    namespace sabr = ai_factory::workbench::model::equity::sabr;
+    namespace schobel_zhu = ai_factory::workbench::model::equity::schobel_zhu;
+    namespace stein_stein = ai_factory::workbench::model::equity::stein_stein;
+    namespace log_modulated = ai_factory::workbench::model::equity::log_modulated_rough_bergomi;
+    namespace quadratic_rough_heston = ai_factory::workbench::model::equity::quadratic_rough_heston;
+    namespace rough_stein_stein = ai_factory::workbench::model::equity::rough_stein_stein;
+    namespace vg = ai_factory::workbench::model::equity::variance_gamma;
+    namespace hull_white = ai_factory::workbench::model::fixed_income::hull_white;
+    namespace cir = ai_factory::workbench::model::fixed_income::cir;
+    namespace ou = ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck;
+    namespace vasicek = ai_factory::workbench::model::fixed_income::vasicek;
     namespace product = ai_factory::workbench::product;
     namespace datasets = ai_factory::workbench::datasets;
     using ai_factory::workbench::OptionSide;
+
+    check_common_loader_diagnostics();
 
     check_missing_field(
         "Model", "model_family",
@@ -223,7 +295,7 @@ int main() {
             {"initial_state_x", 0.02f},
             {"initial_state_y", 0.01f},
         }),
-        g2::load_models
+        ai_factory::workbench::model::fixed_income::g2::load_models
     );
     check_loader(
         "G2++", "models", "mean_reversion_x", 0.0f, "mean reversions",
@@ -234,7 +306,7 @@ int main() {
             {"volatility_y", 0.008f},
             {"correlation", -0.40f},
         }),
-        g2_plus_plus::load_models
+        ai_factory::workbench::model::fixed_income::g2_plus_plus::load_models
     );
     check_loader(
         "Black-Scholes", "models", "volatility", 0.0f, "volatility",
@@ -244,7 +316,7 @@ int main() {
             {"dividend_yield", 0.01f},
             {"volatility", 0.2f},
         }),
-        black_scholes::load_models
+        ai_factory::workbench::model::equity::black_scholes::load_models
     );
     check_loader(
         "Heston", "models", "spot", 0.0f, "spot",
@@ -258,7 +330,7 @@ int main() {
             {"gamma", 0.3f},
             {"rho", -0.5f},
         }),
-        heston::load_models
+        ai_factory::workbench::model::equity::heston::load_models
     );
     check_loader(
         "Bates", "models", "jump_intensity", -0.1f, "jump_intensity",
@@ -275,7 +347,94 @@ int main() {
             {"jump_log_mean", -0.1f},
             {"jump_log_volatility", 0.2f},
         }),
-        bates::load_models
+        ai_factory::workbench::model::equity::bates::load_models
+    );
+    check_loader(
+        "Heston 3/2", "models", "initial_variance", 0.0f, "invalid",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_variance", 0.04f},
+            {"mean_reversion", 12.0f},
+            {"long_run_variance", 0.04f},
+            {"volatility_of_variance", 3.0f},
+            {"rho", -0.7f},
+        }),
+        heston_3_2::load_models
+    );
+    check_loader(
+        "SABR", "models", "spot", 0.0f, "invalid",
+        one_row("models", {
+            {"spot", 1.7f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_volatility", 0.22f},
+            {"volatility_of_volatility", 0.8f},
+            {"rho", -0.5f},
+            {"beta", 0.65f},
+        }),
+        sabr::load_models
+    );
+    check_loader(
+        "Stein-Stein", "models", "mean_reversion", 0.0f, "invalid",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_volatility", 0.2f},
+            {"mean_reversion", 2.0f},
+            {"volatility_of_volatility", 0.3f},
+            {"rho", 0.0f},
+        }),
+        stein_stein::load_models
+    );
+    check_loader(
+        "Log-modulated rough Bergomi", "models", "log_modulation_power",
+        1.0f, "invalid",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"xi_0", 0.04f},
+            {"eta", 1.5f},
+            {"hurst_exponent", 0.1f},
+            {"rho", -0.7f},
+            {"log_modulation_scale", 0.1f},
+            {"log_modulation_power", 2.0f},
+        }),
+        log_modulated::load_models
+    );
+    check_loader(
+        "Rough Stein-Stein", "models", "hurst_exponent", 0.5f, "invalid",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"volatility_level", 0.2f},
+            {"mean_reversion", 1.0f},
+            {"volatility_of_volatility", 0.3f},
+            {"hurst_exponent", 0.1f},
+            {"rho", -0.7f},
+        }),
+        rough_stein_stein::load_models
+    );
+    check_loader(
+        "Quadratic rough Heston", "models", "quadratic_scale", 0.0f,
+        "invalid",
+        one_row("models", {
+            {"spot", 1.0f},
+            {"risk_free_rate", 0.03f},
+            {"dividend_yield", 0.01f},
+            {"initial_feedback", 0.1f},
+            {"quadratic_scale", 0.4f},
+            {"quadratic_shift", 0.08f},
+            {"variance_floor", 0.02f},
+            {"feedback_rate", 1.0f},
+            {"feedback_volatility", 0.8f},
+            {"hurst_exponent", 0.1f},
+        }),
+        quadratic_rough_heston::load_models
     );
     check_loader(
         "Merton", "models", "jump_intensity", -0.1f,
@@ -289,7 +448,7 @@ int main() {
             {"jump_log_mean", -0.1f},
             {"jump_log_volatility", 0.2f},
         }),
-        merton::load_models
+        ai_factory::workbench::model::equity::merton::load_models
     );
     check_loader(
         "Kou", "models", "positive_jump_rate", 2.0f,
@@ -304,7 +463,7 @@ int main() {
             {"positive_jump_rate", 8.0f},
             {"negative_jump_rate", 10.0f},
         }),
-        kou::load_models
+        ai_factory::workbench::model::equity::kou::load_models
     );
     check_loader(
         "CEV", "models", "beta", 1.0f, "beta",
@@ -315,7 +474,7 @@ int main() {
             {"sigma", 0.2f},
             {"beta", 0.75f},
         }),
-        cev::load_models
+        ai_factory::workbench::model::equity::cev::load_models
     );
     check_loader(
         "Schobel-Zhu", "models", "correlation", 1.0f,
@@ -330,7 +489,7 @@ int main() {
             {"volatility_of_volatility", 0.3f},
             {"correlation", -0.5f},
         }),
-        schobel_zhu::load_models
+        ai_factory::workbench::model::equity::schobel_zhu::load_models
     );
     check_loader(
         "Variance-Gamma", "models", "nu", 0.0f, "nu",
@@ -375,7 +534,7 @@ int main() {
             {"volatility", 0.01f},
             {"initial_state", 0.03f},
         }),
-        vasicek::load_models
+        ai_factory::workbench::model::fixed_income::vasicek::load_models
     );
     check_loader(
         "CIR", "models", "long_term_mean", 0.0f, "long_term_mean",
@@ -385,7 +544,7 @@ int main() {
             {"volatility", 0.15f},
             {"initial_state", 0.03f},
         }),
-        cir::load_models
+        ai_factory::workbench::model::fixed_income::cir::load_models
     );
     check_loader(
         "Hull-White", "models", "volatility", -0.01f, "volatility",
@@ -393,7 +552,7 @@ int main() {
             {"mean_reversion", 0.2f},
             {"volatility", 0.01f},
         }),
-        hull_white::load_models
+        ai_factory::workbench::model::fixed_income::hull_white::load_models
     );
     check_loader(
         "Nelson-Siegel", "curves", "tau", 0.0f, "tau",
@@ -724,8 +883,9 @@ int main() {
     require(
         swaption_dataset.products.size() == 2U
             && swaption_dataset.products[0].payment_count == 65U
-            && swaption_dataset.products[0].payment_interval == 21U
-            && swaption_dataset.products[1].accrual_fraction == 0.5f,
+            && swaption_dataset.products[0].payment_interval_days == 21U
+            && swaption_dataset.products[1].accrual_fraction == 0.5f
+            && swaption_dataset.maximum_payment_count == 65U,
         "European swaption loader did not retain the regular schedule"
     );
     swaption_document["products"][1]["parameters"]
@@ -745,6 +905,43 @@ int main() {
         "European swaption loader accepted an invalid accrual fraction"
     );
 
+    nlohmann::json bermudan_swaption_document = one_row("products", {
+        {"notional", 1.0f},
+        {"strike", 0.03f},
+        {"accrual_fraction", 0.5f},
+        {"first_exercise_time", 252U},
+        {"payment_interval", 126U},
+        {"payment_count", 20U},
+        {"exercise_count", 8U},
+    });
+    write_document(bermudan_swaption_document);
+    const auto bermudan_swaptions = product::load_bermudan_swaptions(
+        test_path
+    );
+    require(
+        bermudan_swaptions.size() == 1U
+            && bermudan_swaptions[0].first_exercise_time_days == 252U
+            && bermudan_swaptions[0].payment_count == 20U
+            && bermudan_swaptions[0].exercise_count == 8U,
+        "Bermudan swaption loader did not retain the regular schedule"
+    );
+    bermudan_swaption_document["products"][0]["parameters"]
+        ["exercise_count"] = 21U;
+    write_document(bermudan_swaption_document);
+    bool rejected_excess_exercise_count = false;
+    try {
+        static_cast<void>(product::load_bermudan_swaptions(test_path));
+    } catch (const std::invalid_argument& error) {
+        const std::string message = error.what();
+        rejected_excess_exercise_count =
+            message.find("invalid_001") != std::string::npos
+            && message.find("payment_count") != std::string::npos;
+    }
+    require(
+        rejected_excess_exercise_count,
+        "Bermudan swaption loader accepted excess exercise dates"
+    );
+
     // The explicit representation remains available for real dated schedules.
     nlohmann::json explicit_swaption_document = one_row("products", {
         {"notional", 1.0f},
@@ -753,16 +950,34 @@ int main() {
         {"payment_times", {31U, 53U, 76U}},
         {"accrual_fractions", {0.08f, 0.09f, 0.08f}},
     });
+    explicit_swaption_document["row_count"] = 2U;
+    explicit_swaption_document["products"].push_back({
+        {"id", "000002"},
+        {"parameters", {
+            {"notional", 2.0f},
+            {"strike", 0.04f},
+            {"exercise_time", 20U},
+            {"payment_times", {40U, 80U, 120U, 160U}},
+            {"accrual_fractions", {0.1f, 0.2f, 0.3f, 0.4f}},
+        }},
+    });
     write_document(explicit_swaption_document);
     const product::ExplicitEuropeanSwaptionDataset explicit_dataset =
         product::load_explicit_european_swaptions(test_path);
     require(
-        explicit_dataset.products.size() == 1U
+        explicit_dataset.products.size() == 2U
             && explicit_dataset.products[0].payment_count == 3U
             && explicit_dataset.products[0].schedule_offset == 0U
-            && explicit_dataset.payment_times[2] == 76U
-            && explicit_dataset.accrual_fractions[1] == 0.09f,
-        "Explicit European swaption loader did not flatten the schedule"
+            && explicit_dataset.products[1].schedule_offset == 1U
+            && explicit_dataset.payment_times_days[0] == 31U
+            && explicit_dataset.payment_times_days[1] == 40U
+            && explicit_dataset.payment_times_days[4] == 76U
+            && explicit_dataset.payment_times_days[5] == 120U
+            && explicit_dataset.payment_times_days[7] == 160U
+            && explicit_dataset.accrual_fractions[2] == 0.09f
+            && explicit_dataset.accrual_fractions[7] == 0.4f
+            && explicit_dataset.maximum_payment_count == 4U,
+        "Explicit European swaption loader did not transpose schedules"
     );
 
     check_loader(

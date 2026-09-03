@@ -1,6 +1,8 @@
 // Host implementation of constrained Ornstein-Uhlenbeck generation.
 #include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
 
+#include "common/fixed_income/mean_reverting_gaussian.cuh"
+
 #include <cmath>
 #include <random>
 #include <stdexcept>
@@ -79,8 +81,10 @@ GeneratedRows generate_dynamics_rows(
             {"mean_reversion", mean_reversion},
             {
                 "volatility",
-                stationary_standard_deviation
-                    * std::sqrt(2.0f * mean_reversion)
+                fixed_income::mean_reverting_gaussian::
+                    volatility_from_stationary_deviation(
+                        stationary_standard_deviation, mean_reversion
+                    )
             },
         });
     }
@@ -145,8 +149,10 @@ GeneratedRows generate_rows(
         const float initial_state = initial_state_distribution(generator);
         const float stationary_standard_deviation =
             stationary_deviation_distribution(generator);
-        const float volatility = stationary_standard_deviation
-            * std::sqrt(2.0f * mean_reversion);
+        const float volatility = fixed_income::mean_reverting_gaussian::
+            volatility_from_stationary_deviation(
+                stationary_standard_deviation, mean_reversion
+            );
         rows.push_back({
             {"mean_reversion", mean_reversion},
             {"volatility", volatility},

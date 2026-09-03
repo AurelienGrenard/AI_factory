@@ -9,7 +9,7 @@ namespace ai_factory::workbench::product {
 struct UpOneTouchParameters {
     float barrier;
     float cash_payoff;
-    std::uint32_t maturity;
+    std::uint32_t maturity_days;
 };
 
 static_assert(std::is_trivially_copyable_v<UpOneTouchParameters>);

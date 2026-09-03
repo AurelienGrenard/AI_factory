@@ -16,25 +16,25 @@
 
 namespace ai_factory::workbench::monte_carlo {
 
-template<ScalarMonteCarloPricingPolicy Pricing>
+template<ScalarMonteCarloPricingPolicy PricingPolicy>
 __global__ void monte_carlo_price_kernel(
-    typename Pricing::DeviceInputs inputs,
+    typename PricingPolicy::DeviceInputs inputs,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    typename Pricing::Schedule::TimeConfiguration time_configuration,
+    typename PricingPolicy::Schedule::TimeConfiguration time_configuration,
     std::uint64_t base_seed,
     float* __restrict__ prices,
     float* __restrict__ standard_errors
 ) {
     static_assert(
-        sizeof(typename Pricing::PreparedRow)
+        sizeof(typename PricingPolicy::PreparedRow)
             <= kMaximumSharedPreparedRowBytes,
         "Monte Carlo PreparedRow exceeds the 2048-byte shared-memory "
         "budget; store a compact ScheduleView instead of embedding the "
         "complete runtime calendar."
     );
-    __shared__ typename Pricing::PreparedRow prepared;
+    __shared__ typename PricingPolicy::PreparedRow prepared;
     __shared__ philox::PhiloxKey key;
 
     for (std::size_t launch_index = blockIdx.x;
@@ -42,7 +42,7 @@ __global__ void monte_carlo_price_kernel(
          launch_index += gridDim.x) {
         const std::size_t result_index = result_offset + launch_index;
         if (threadIdx.x == 0U) {
-            prepared = inputs.template prepare_row<Pricing>(
+            prepared = inputs.template prepare_row<PricingPolicy>(
                 result_index,
                 time_configuration
             );
@@ -56,7 +56,7 @@ __global__ void monte_carlo_price_kernel(
              path < monte_carlo_paths_per_price;
             path += blockDim.x) {
             const double value = static_cast<double>(
-                Pricing::evaluate_path(prepared, key, path)
+                PricingPolicy::evaluate_path(prepared, key, path)
             );
             sum += value;
             sumsq += value * value;
@@ -81,14 +81,15 @@ __global__ void monte_carlo_price_kernel(
     }
 }
 
-template<ScalarMonteCarloPricingPolicy Pricing>
+template<ScalarMonteCarloPricingPolicy PricingPolicy>
 inline void validate_monte_carlo_launch(
-    const typename Pricing::DeviceInputs& inputs,
+    const typename PricingPolicy::DeviceInputs& inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    const typename Pricing::Schedule::TimeConfiguration& time_configuration,
+    const typename PricingPolicy::Schedule::TimeConfiguration&
+        time_configuration,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -96,7 +97,7 @@ inline void validate_monte_carlo_launch(
     const float* device_standard_errors
 ) {
     static_assert(
-        sizeof(typename Pricing::PreparedRow)
+        sizeof(typename PricingPolicy::PreparedRow)
             <= kMaximumSharedPreparedRowBytes,
         "Monte Carlo PreparedRow exceeds the 2048-byte shared-memory "
         "budget; store a compact ScheduleView instead of embedding the "
@@ -125,14 +126,15 @@ inline void validate_monte_carlo_launch(
     validate_row_seed_range(result_count, base_seed);
 }
 
-template<ScalarMonteCarloPricingPolicy Pricing>
+template<ScalarMonteCarloPricingPolicy PricingPolicy>
 inline void launch_monte_carlo_cuda(
-    const typename Pricing::DeviceInputs& inputs,
+    const typename PricingPolicy::DeviceInputs& inputs,
     std::size_t result_count,
     std::size_t result_offset,
     std::size_t launch_result_count,
     std::size_t monte_carlo_paths_per_price,
-    const typename Pricing::Schedule::TimeConfiguration& time_configuration,
+    const typename PricingPolicy::Schedule::TimeConfiguration&
+        time_configuration,
     unsigned int threads_per_block,
     std::size_t block_count,
     std::uint64_t base_seed,
@@ -142,7 +144,7 @@ inline void launch_monte_carlo_cuda(
     const char* diagnostic_variant,
     const char* operation_name
 ) {
-    validate_monte_carlo_launch<Pricing>(
+    validate_monte_carlo_launch<PricingPolicy>(
         inputs,
         result_count,
         result_offset,
@@ -162,7 +164,7 @@ inline void launch_monte_carlo_cuda(
     check_cuda(
         cudaOccupancyMaxActiveBlocksPerMultiprocessor(
             &active_blocks_per_multiprocessor,
-            monte_carlo_price_kernel<Pricing>,
+            monte_carlo_price_kernel<PricingPolicy>,
             static_cast<int>(threads_per_block),
             shared_bytes
         ),
@@ -177,12 +179,12 @@ inline void launch_monte_carlo_cuda(
     report_cuda_kernel_launch_if_enabled(
         diagnostic_name,
         diagnostic_variant,
-        monte_carlo_price_kernel<Pricing>,
+        monte_carlo_price_kernel<PricingPolicy>,
         dim3(static_cast<unsigned int>(block_count)),
         dim3(threads_per_block),
         shared_bytes
     );
-    monte_carlo_price_kernel<Pricing><<<
+    monte_carlo_price_kernel<PricingPolicy><<<
         static_cast<unsigned int>(block_count),
         threads_per_block,
         shared_bytes

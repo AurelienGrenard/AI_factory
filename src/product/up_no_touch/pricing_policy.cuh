@@ -6,6 +6,11 @@
 
 namespace ai_factory::workbench::product {
 
+using UpNoTouchPathPolicy = equity::UpTouchPathPolicy<
+    UpNoTouchParameters,
+    false
+>;
+
 template<simulation::DenseSchedulePolicy Schedule>
 using UpNoTouchPricingPolicy = equity::UpTouchPricingPolicy<
     Schedule, UpNoTouchParameters, false
