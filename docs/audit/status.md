@@ -2,6 +2,12 @@
 
 ## Consolidation Git et prochaine étape rough — 2026-09-11
 
+- **Trace GitHub :** le [commit de consolidation `4a8c140`](https://github.com/AurelienGrenard/AI_factory/commit/4a8c140c74d39a78920ecd8e9209b1eee6082410)
+  a été poussé directement sur `main` avant la demande de PR. Le
+  [diff complet depuis le 3 septembre](https://github.com/AurelienGrenard/AI_factory/compare/872a986b1f0947a1a832af0615ffc6d80dbedb81...4a8c140c74d39a78920ecd8e9209b1eee6082410)
+  conserve les changements logiciels. Une PR documentaire de suivi porte la
+  trace de revue rétrospective; le code est déjà intégré, l'historique n'est
+  pas réécrit et les qualifications ouvertes ci-dessous restent inchangées.
 - **Mandat :** commit et push demandés du chantier logiciel accumulé depuis
   `872a986b1f0947a1a832af0615ffc6d80dbedb81` (2026-09-03), avec mention explicite
   de la suite rough. Cette consolidation ne constitue pas un nouvel audit
