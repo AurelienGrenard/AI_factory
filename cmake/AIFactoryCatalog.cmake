@@ -77,10 +77,10 @@ endfunction()
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
     if(source MATCHES
-        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/")
-        # Host preparation includes the CUDA dynamics contract that defines
-        # PreparedDynamics<N>; compile these generated recipes with nvcc even
-        # though their entry-point extension remains generator.cpp.
+        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/"
+        OR source MATCHES "catalog/model/equity/rough/[^/]+/price_delta/")
+        # Rough preparation and schedule policies include device definitions.
+        # Their generated entry points keep .cpp names but need nvcc.
         set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
     endif()
     add_executable(${target} EXCLUDE_FROM_ALL ${source})

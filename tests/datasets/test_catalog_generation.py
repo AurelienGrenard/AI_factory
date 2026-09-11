@@ -1,5 +1,6 @@
 """Check catalogue staging and resume without CUDA or independent references."""
 import json
+import copy
 from pathlib import Path
 import tempfile
 import unittest
@@ -104,6 +105,30 @@ class GenerationTests(unittest.TestCase):
         self.document["sensitivity"]["relative_full_width"] = .02
         self.generator(None, work, None)
         with self.assertRaisesRegex(ValueError, "sensitivity"):
+            campaign.check_outputs(work, self.job)
+
+    def test_price_delta_preparation_and_fft_geometry_are_checked(self):
+        self.job.update(kind="price_delta", sensitivity={}, time_grid=None,
+                        preparation={"method": "hybrid_fft", "shared_convolution": True})
+        self.job["launch_plan"]["path_chunk_size"] = 65536
+        self.catalog["validation"] = {"status": "pending", "verified": False}
+        self.catalog["summary"].update(seed=123, path_chunk_size=65536,
+                                       preparation=self.job["preparation"].copy())
+        self.document["summary"] = copy.deepcopy(self.catalog["summary"])
+        for row in self.document["results"]:
+            row["outputs"].update(delta=.5, delta_standard_error=.02)
+            row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
+        work = self.root / "rough-paired"
+        self.generator(None, work, None)
+        campaign.check_outputs(work, self.job)
+        self.document["summary"]["preparation"]["shared_convolution"] = False
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "preparation"):
+            campaign.check_outputs(work, self.job)
+        self.document["summary"]["preparation"]["shared_convolution"] = True
+        self.document["summary"]["path_chunk_size"] = 8192
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "geometry"):
             campaign.check_outputs(work, self.job)
 
     def test_certification_and_path_count_guards(self):

@@ -1,5 +1,114 @@
 # État de l'audit indépendant
 
+## Prix-delta rough — implémentation et contrôles bornés — 2026-09-11
+
+- **Mandat :** réaliser le chantier rough après lecture du travail markovien.
+  Privilégier la lisibilité, la factorisation et les ressources CUDA. Ce bloc
+  décrit une remédiation et ses autocontrôles, pas un nouvel audit indépendant.
+- **Révision :** base `91506cc0eaf4978842fdb54cda0c9f2782c447dc`, branche
+  `feat/rough-price-delta`, worktree modifié pendant les contrôles. Référentiel
+  v9.1. `Articles/` reste local et ignoré; aucun dataset existant remplacé.
+- **Surface :** 126 bindings et 174 recettes rough ajoutés. Le total equity
+  passe à 387 bindings prix-delta et 538 recettes. Les six modèles sont rough
+  Heston, quadratic rough Heston, rough Bergomi, log-modulated rough Bergomi,
+  rough Stein–Stein et rough SABR. L'exercice anticipé rough reste absent.
+- **Factorisation :** préparations et transitions N-facteurs d'origine.
+  Une convolution FFT commune aux scénarios. Rough SABR conserve trois états
+  préparés aux spots perturbés, avec `xi_0` fixe. Les équations de modèle et
+  de payoff ne sont pas recopiées. Les observateurs partagés figent chaque
+  scénario à son propre arrêt. La voie prix seul garde son API et ses profils.
+  Le [contrat](../cuda/equity-price-delta-contract.md) explique ces choix.
+- **Compilation :** les 126 unités rough passent le frontend CUDA. Ce contrôle
+  d'inventaire ne produit pas un code GPU final pour chaque unité. Douze
+  bibliothèques rough prix-delta sont reliées et exercées par les tests publics.
+  Les kernels de quatre familles de payoff par modèle FFT sont aussi compilés
+  et exécutés dans le test des moments. Aucun succès de compilation native
+  exhaustive des 126 bibliothèques n'est revendiqué.
+- **Contrôles structurels :** 62 tests Python réussis. Régénération de 3 406
+  sorties dans `/tmp`, zéro diff. Arborescence et 1 260 recettes catalogue
+  contrôlées. L'inspecteur compilé accepte les 387 identités prix-delta.
+  Il lit désormais l'identité du manifeste, sans imposer un chemin markovien.
+- **Tests :** neuf CTests réussis en 12,50 s, dont sept CUDA. Deux CTests hôte
+  supplémentaires couvrent l'inspection des plans rough. Le lot inclut les
+  régressions MC, formules fermées et LSM markoviennes. Compute Sanitizer
+  memcheck ne trouve aucune erreur dans les tests finaux FFT et N-facteurs.
+- **Parité :** prix et erreurs standards centraux identiques bit à bit sur
+  les cas testés. Les terminaux à sept facteurs et ceux des quatre modèles
+  FFT utilisent 2^20 chemins sur quatre jours. Les autres fixtures couvrent
+  deux bumps, plusieurs tailles de blocs/chunks, les fins impaires de chunks,
+  les indices non nuls, la construction cartésienne et les rejets d'entrée.
+- **Référence de delta :** préparations perturbées indépendantes et transitions
+  d'origine. L'écart maximal observé dans l'oracle N-facteurs est 4,01e-5.
+  L'oracle FFT contrôle moyenne et erreur standard à partir des différences
+  de payoffs appariées, sur terminal, barrière, cliquet et Phoenix mémoire.
+  Il compare aussi la consommation d'une convolution précalculée à la voie
+  directe. Ce sont des contrôles d'implémentation, pas des références externes.
+- **Recettes natives :** quatre recettes européennes, deux lignes temporaires
+  chacune, 2^20 chemins et quatre jours. Elles couvrent Heston, QRH, Bergomi
+  et SABR. La chauffe utilise le préfixe actif du buffer préparé. Les sorties
+  passent les contrôles du contrôleur et reçoivent leur provenance en staging.
+  Leur intégrité est vérifiée; changer la préparation impose une régénération.
+  Le statut reste `pending`, `verified: false`.
+- **Métadonnées :** méthode, sept facteurs, horizon réel et précision des
+  coefficients pour N-facteurs. Pour FFT : huit pas par ligne, chunks de
+  65 536 chemins, convolution partagée et workspace de 2 311 168 octets.
+  Les moments delta ajoutent 65 536 octets au workspace prix seul de ce cas.
+  Aucun historique de spot supplémentaire n'est alloué.
+
+Ressources mesurées sur RTX 4090 Laptop, SM89, CUDA 13.3 et GCC 14.
+Les nombres ci-dessous sont des registres par thread. Les kernels appariés
+utilisent 256 threads; le test N-facteurs vérifie aussi 128 threads.
+
+| Cas | Prix seul | Prix-delta | Mémoire locale par thread |
+| --- | ---: | ---: | ---: |
+| Rough Heston, sept facteurs, européen | 151 | 160 | 0 octet |
+| Rough Heston, sept facteurs, barrière | 152 | 168 | 0 octet |
+| QRH, sept facteurs, européen | 91 | 110 | 0 octet |
+| QRH, sept facteurs, barrière | 88 | 116 | 0 octet |
+| Rough SABR FFT, européen | 64 | 103 | 32 octets dans les deux voies |
+| Rough SABR FFT, Phoenix mémoire | — | 134 | 32 octets |
+
+Les cas FFT appariés inspectés utilisent 64 à 134 registres, 160 à 368 octets
+partagés statiques et 128 octets partagés dynamiques. Les quatre cas N-facteurs
+ci-dessus utilisent 224 à 416 octets partagés statiques. Tous les lancements
+inspectés admettent un bloc résident. La mémoire locale n'est pas assimilée
+à un compteur de spills mesurés; aucune qualification globale des spills ou
+du meilleur réglage de production n'est ajoutée.
+
+Le replay prix seul compare rough SABR européen aux sources d'avant chantier.
+À 2^20 chemins, les bits du prix (`1010856185`) et de son erreur (`930786713`)
+sont inchangés. Le kernel conserve 64 registres, 128 octets partagés statiques
+et 32 octets locaux. Six mesures après une chauffe donnent des médianes de
+0,860 ms avant et 0,621 ms après. Les plages sont respectivement 0,706–1,001 ms
+et 0,590–2,485 ms. Les horloges et la puissance ne sont pas fixées : ces temps
+courts ne démontrent ni un gain stable ni une absence de régression générale.
+Le premier exécutable manuel chargeait un ancien runtime dynamique et plantait
+dans le JIT du pilote. Le replay final utilise CUDA 13.3 statique, comme CMake.
+Les logs d'échec et le diagnostic sont conservés.
+
+**Preuves locales à conserver/exporter :** `build-rough-price-delta/` est ignoré.
+Les contrôles finaux sont dans `final-tests.log`, `inspector-tests.log`,
+`python-final.log`, `codegen-compare.log`, `layout-final.log`, `catalog-final.log`,
+`all-rough-units.log`, `all-rough-frontend.log`, `fft-final-memcheck.log`,
+`n-factor-memcheck.log`, `native-smoke.log`, `smoke-verification-pass.log` et
+`scalar-{before,after}-final.log`. Les configurations et commandes de build,
+les recettes temporaires, leurs sorties et les empreintes sont conservées aussi.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Archive avant | `e5b2800a83c9f4083779a9693a0b3709253245b73f78688553fe4280a520dbfa` |
+| Archive des sources finales | `1015b3fae3d2e0becee1c8c355d3cd3c28f86c576f08a50fad0cdb2da7fc1f37` |
+| Test public FFT | `151d841b6614bd3d7e6f1c7773dc0a443f689de1a90aea65f4ebdf8a0d246d0a` |
+| Test des moments FFT | `ddfb23f57cf5362c68f9b923d4f228ce0de8f88a36db3033dc28f998e22d8f42` |
+| Test N-facteurs | `7569303cc0a6a81e65465edb0bb1d0d45fc7eb04262bd162f6c4b601791b91f6` |
+
+**Limites :** pas de génération exhaustive, de validation indépendante
+Premia/QuantLib du delta, de campagne longue ni de qualification des paramètres
+singuliers. Les biais du bump, de la discrétisation rough, de l'approximation
+N-facteurs et de la policy LSM restent distincts de l'erreur d'échantillonnage.
+Les franchissements rares et les maturités longues restent à étudier.
+`DELTA-001` reste ouvert pour ces qualifications; `PERF-016` reste reporté.
+
 ## Rédaction accessible et bibliothèque locale — 2026-09-11
 
 - **Mandat :** préciser la règle de rédaction et retirer l'ancien dossier

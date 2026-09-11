@@ -7,12 +7,14 @@ not move into generated bindings.
 
 ## Current implementation boundary
 
-The integration covers the 261 existing Markovian equity model/product
-bindings: 244 MC, eight Black-Scholes closed formulas and nine American LSM.
+The integration covers 387 equity model/product bindings. The Markovian
+part has 244 Monte Carlo (MC) bindings, eight Black-Scholes closed formulas
+and nine American least-squares Monte Carlo (LSM) bindings. The rough part
+adds 126 bindings across six models.
 `PRICE_DELTA_BINDING_SPECS` owns the generated launchers;
 `PRICE_DELTA_DATASET_SPECS` derives recipes from the existing price catalogue.
 This is implementation coverage, not catalogue-wide numerical, singularity
-or performance certification. Rough FFT/N-factor remain out of scope.
+or performance certification. Rough early exercise is not implemented.
 No existing dataset or price-only launch profile is changed.
 
 ## Spot perturbation
@@ -56,6 +58,49 @@ The MC kernel only distributes paths and reduces price/delta moments. Its
 specializations select path construction at compile time, with no runtime
 strategy switch or `ComputeDelta` flag in the price-only engine. Closed-form
 bumping likewise calls the same pricing policy at the three spots.
+
+## Rough paths and workspace
+
+A rough model retains information about past volatility shocks. This project
+represents that memory either with a small set of factors or with a convolution.
+A fast Fourier transform (FFT) evaluates the convolution in chunks of paths.
+The delta shares this work when changing S0 leaves volatility unchanged.
+
+| Model | Shared work | Spot scenarios |
+| --- | --- | --- |
+| Rough Heston, quadratic rough Heston | Original host preparation and 2, 3 or 7 factors | Scaled central observations |
+| Rough Bergomi, log-modulated rough Bergomi, rough Stein–Stein | Original Gaussian innovations and FFT convolution | Scaled central observations |
+| Rough SABR | Original Gaussian innovations and FFT convolution | Three original model transitions |
+
+The N-factor launcher takes the existing prepared dynamics buffer. Its factors
+are independent of S0 in both Heston schemes. Preparation is performed once
+per model. Each product still receives its own central and bumped preparation.
+The common MC kernel computes the four moments: price and delta sums and squares.
+
+Rough SABR uses a coupled adapter. Its public `xi_0` fixes relative initial
+variance. The dimensional volatility coefficient depends on S0 and beta.
+`CoupledVolterraSpotPaths` therefore calls the original preparation at both
+bumped spots. It advances three states with the same innovations and Volterra
+value. It does not copy the rough SABR equation or hold that coefficient fixed.
+
+`hybrid_path_simulation.cuh` owns the shared path traversal. It preserves the
+three normals consumed at each step and the original observation schedule.
+`hybrid_fft_pricer.cuh` owns preparation, convolution and chunk submission.
+Its scalar consumer writes price moments. The separate paired consumer in
+`hybrid_fft_price_delta.cuh` writes price and delta moments. Both use the same
+product observers as ordinary MC. Each scenario stops independently.
+
+The paired FFT workspace adds two FP64 partial moments per path block. It keeps
+one kernel spectrum, one variance table and one convolution chunk. It allocates
+no additional path history. Use `plan_hybrid_fft_price_delta_workspace` for its
+size; the price-only workspace is too small. The two moment arrays use the
+original scalar finalization order. A host occupancy check runs once per row,
+before chunk submission. There is no strategy selection inside a path loop.
+
+FFT launchers accept one result index at a time. Host mirrors validate the bump
+and calendar for that row. The supplied step count must match the schedule.
+The launch planner preserves the compiled FFT geometry and path chunk size.
+These settings are inherited candidates, not tuned delta profiles.
 
 ## Numerical and launch contract
 
@@ -103,7 +148,7 @@ unit-test counts do not change that requirement.
 
 ## Recipes, artifacts and reuse
 
-`catalog/model/equity/markovian/<model>/price_delta/<variant>/<id>/`
+`catalog/model/equity/{markovian,rough}/<model>/price_delta/<variant>/<id>/`
 contains generated `generator.cpp` and `recipe.yaml`. The latter describes
 planned inputs, method, full bump, CRN seed, fixed time grid when applicable
 and 2^20 paths (zero for closed form). It is not a claim that data were generated.
@@ -112,10 +157,16 @@ adjacent `dataset.yaml` describing the actual outputs and geometry.
 
 Run these through `tools/datasets/generate_catalog.py --kind price_delta`.
 The controller freezes both recipe files and inputs, checks paired outputs
-against the declared sensitivity/grid/seed, and attaches the existing generation
+against the declared sensitivity, grid, seed, preparation and geometry. It attaches the existing generation
 provenance before optional publication. Validation stays `pending`, `verified:
 false`; no fictitious validator or certificate is added. Changing the bump or
 method changes the semantic specification used by the compatibility checker.
+Rough preparation settings also participate in that specification. N-factor
+recipes declare seven factors and a horizon equal to the maximum product
+maturity. Execution records the actual horizon and coefficient precision. FFT
+execution records every row's step count and the allocated workspace size.
+The 174 rough recipes are planned recipes; their presence does not mean that
+174 datasets have been generated.
 
 CRN aliases explicitly reuse the source price recipe's dynamics seed and row
 reservation. Existing reservations are not rekeyed. No independent stream is
@@ -220,3 +271,22 @@ handlers and the nine American bindings. BS/Heston/CEV American fixtures use
 2^20 paths, two rows, 128 threads and 128 blocks per price on a short exercise
 calendar. Other stochastic fixtures use 4,096 paths for bounded structural
 coverage only; none chooses or certifies production tuning.
+
+`price_delta_rough_n_factor_cuda` checks both Heston lifts with 2, 3 and 7
+factors. It compares central price/error bits, batches, two block sizes and
+independently prepared bumps. Selected seven-factor terminal cases use 2^20
+paths. The remaining fixtures use short calendars and smaller path counts.
+
+`price_delta_rough_fft_cuda` checks public European and barrier launchers for
+all four FFT models. It covers 2^20-path terminal cases and an odd path count
+across chunk boundaries. Cartesian indexing and invalid launch inputs are
+checked on the barrier fixtures. `price_delta_rough_fft_path_oracle_cuda`
+compares paired moments with three independently prepared scalar paths.
+It covers terminal, barrier, cliquet and Phoenix memory payoffs. It also
+compares the direct and precomputed-convolution path consumers.
+
+These checks establish bounded implementation consistency. They do not bound
+rough time-discretization error, factor-approximation error or bump bias.
+Long maturities, singular parameters and rare threshold crossings still need
+separate qualification. Measured resources and before/after evidence are in
+[the audit status](../audit/status.md).

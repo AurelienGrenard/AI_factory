@@ -55,9 +55,13 @@ int main(int argc, char** argv) {
         const auto paths = analytical ? 0U : argc > 3 ? positive_count(argv[3]) : tuning::kProductionPathsPerPrice;
         tuning::PricingLaunchLimits limits;
         if (argc > 4) limits.maximum_resident_prices = positive_count(argv[4]);
-        if (price_delta && !inventory.at("price_delta_bindings").contains(
-                "src/model/equity/markovian/" + model + "/product/" + product + "_price_delta"))
-            throw std::invalid_argument("No generated price-delta binding for " + key);
+        if (price_delta) {
+            bool available = false;
+            for (const auto& binding : inventory.at("price_delta_bindings"))
+                available = available || binding.at("identity").get<std::string>() == key;
+            if (!available)
+                throw std::invalid_argument("No generated price-delta binding for " + key);
+        }
         const auto plan = price_delta
             ? tuning::make_equity_price_delta_launch_plan(identity, positive_count(argv[2]), paths, limits)
             : tuning::make_pricing_launch_plan(identity, positive_count(argv[2]), paths, limits);

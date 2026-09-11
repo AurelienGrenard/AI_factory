@@ -420,47 +420,89 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     normal_inverse_gaussian/product/up_one_touch
     normal_inverse_gaussian/product/up_one_touch_price_delta
     quadratic_rough_heston/product/asian_option
+    quadratic_rough_heston/product/asian_option_price_delta
     quadratic_rough_heston/product/asset_or_nothing_option
+    quadratic_rough_heston/product/asset_or_nothing_option_price_delta
     quadratic_rough_heston/product/athena_autocall
+    quadratic_rough_heston/product/athena_autocall_price_delta
     quadratic_rough_heston/product/cliquet
+    quadratic_rough_heston/product/cliquet_price_delta
     quadratic_rough_heston/product/digital_option
+    quadratic_rough_heston/product/digital_option_price_delta
     quadratic_rough_heston/product/double_knock_out_option
+    quadratic_rough_heston/product/double_knock_out_option_price_delta
     quadratic_rough_heston/product/down_and_in_option
+    quadratic_rough_heston/product/down_and_in_option_price_delta
     quadratic_rough_heston/product/down_and_out_option
+    quadratic_rough_heston/product/down_and_out_option_price_delta
     quadratic_rough_heston/product/european_option
+    quadratic_rough_heston/product/european_option_price_delta
     quadratic_rough_heston/product/forward_start_option
+    quadratic_rough_heston/product/forward_start_option_price_delta
     quadratic_rough_heston/product/gap_option
+    quadratic_rough_heston/product/gap_option_price_delta
     quadratic_rough_heston/product/geometric_asian_option
+    quadratic_rough_heston/product/geometric_asian_option_price_delta
     quadratic_rough_heston/product/lookback_option
+    quadratic_rough_heston/product/lookback_option_price_delta
     quadratic_rough_heston/product/phoenix_autocall
+    quadratic_rough_heston/product/phoenix_autocall_price_delta
     quadratic_rough_heston/product/phoenix_memory_autocall
+    quadratic_rough_heston/product/phoenix_memory_autocall_price_delta
     quadratic_rough_heston/product/range_accrual
+    quadratic_rough_heston/product/range_accrual_price_delta
     quadratic_rough_heston/product/straddle
+    quadratic_rough_heston/product/straddle_price_delta
     quadratic_rough_heston/product/up_and_in_option
+    quadratic_rough_heston/product/up_and_in_option_price_delta
     quadratic_rough_heston/product/up_and_out_option
+    quadratic_rough_heston/product/up_and_out_option_price_delta
     quadratic_rough_heston/product/up_no_touch
+    quadratic_rough_heston/product/up_no_touch_price_delta
     quadratic_rough_heston/product/up_one_touch
+    quadratic_rough_heston/product/up_one_touch_price_delta
     rough_heston/product/asian_option
+    rough_heston/product/asian_option_price_delta
     rough_heston/product/asset_or_nothing_option
+    rough_heston/product/asset_or_nothing_option_price_delta
     rough_heston/product/athena_autocall
+    rough_heston/product/athena_autocall_price_delta
     rough_heston/product/cliquet
+    rough_heston/product/cliquet_price_delta
     rough_heston/product/digital_option
+    rough_heston/product/digital_option_price_delta
     rough_heston/product/double_knock_out_option
+    rough_heston/product/double_knock_out_option_price_delta
     rough_heston/product/down_and_in_option
+    rough_heston/product/down_and_in_option_price_delta
     rough_heston/product/down_and_out_option
+    rough_heston/product/down_and_out_option_price_delta
     rough_heston/product/european_option
+    rough_heston/product/european_option_price_delta
     rough_heston/product/forward_start_option
+    rough_heston/product/forward_start_option_price_delta
     rough_heston/product/gap_option
+    rough_heston/product/gap_option_price_delta
     rough_heston/product/geometric_asian_option
+    rough_heston/product/geometric_asian_option_price_delta
     rough_heston/product/lookback_option
+    rough_heston/product/lookback_option_price_delta
     rough_heston/product/phoenix_autocall
+    rough_heston/product/phoenix_autocall_price_delta
     rough_heston/product/phoenix_memory_autocall
+    rough_heston/product/phoenix_memory_autocall_price_delta
     rough_heston/product/range_accrual
+    rough_heston/product/range_accrual_price_delta
     rough_heston/product/straddle
+    rough_heston/product/straddle_price_delta
     rough_heston/product/up_and_in_option
+    rough_heston/product/up_and_in_option_price_delta
     rough_heston/product/up_and_out_option
+    rough_heston/product/up_and_out_option_price_delta
     rough_heston/product/up_no_touch
+    rough_heston/product/up_no_touch_price_delta
     rough_heston/product/up_one_touch
+    rough_heston/product/up_one_touch_price_delta
     sabr/product/asian_option
     sabr/product/asian_option_price_delta
     sabr/product/asset_or_nothing_option
@@ -635,89 +677,173 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
 
 set(AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS
     log_modulated_rough_bergomi/product/asian_option
+    log_modulated_rough_bergomi/product/asian_option_price_delta
     log_modulated_rough_bergomi/product/asset_or_nothing_option
+    log_modulated_rough_bergomi/product/asset_or_nothing_option_price_delta
     log_modulated_rough_bergomi/product/athena_autocall
+    log_modulated_rough_bergomi/product/athena_autocall_price_delta
     log_modulated_rough_bergomi/product/cliquet
+    log_modulated_rough_bergomi/product/cliquet_price_delta
     log_modulated_rough_bergomi/product/digital_option
+    log_modulated_rough_bergomi/product/digital_option_price_delta
     log_modulated_rough_bergomi/product/double_knock_out_option
+    log_modulated_rough_bergomi/product/double_knock_out_option_price_delta
     log_modulated_rough_bergomi/product/down_and_in_option
+    log_modulated_rough_bergomi/product/down_and_in_option_price_delta
     log_modulated_rough_bergomi/product/down_and_out_option
+    log_modulated_rough_bergomi/product/down_and_out_option_price_delta
     log_modulated_rough_bergomi/product/european_option
+    log_modulated_rough_bergomi/product/european_option_price_delta
     log_modulated_rough_bergomi/product/forward_start_option
+    log_modulated_rough_bergomi/product/forward_start_option_price_delta
     log_modulated_rough_bergomi/product/gap_option
+    log_modulated_rough_bergomi/product/gap_option_price_delta
     log_modulated_rough_bergomi/product/geometric_asian_option
+    log_modulated_rough_bergomi/product/geometric_asian_option_price_delta
     log_modulated_rough_bergomi/product/lookback_option
+    log_modulated_rough_bergomi/product/lookback_option_price_delta
     log_modulated_rough_bergomi/product/phoenix_autocall
+    log_modulated_rough_bergomi/product/phoenix_autocall_price_delta
     log_modulated_rough_bergomi/product/phoenix_memory_autocall
+    log_modulated_rough_bergomi/product/phoenix_memory_autocall_price_delta
     log_modulated_rough_bergomi/product/range_accrual
+    log_modulated_rough_bergomi/product/range_accrual_price_delta
     log_modulated_rough_bergomi/product/straddle
+    log_modulated_rough_bergomi/product/straddle_price_delta
     log_modulated_rough_bergomi/product/up_and_in_option
+    log_modulated_rough_bergomi/product/up_and_in_option_price_delta
     log_modulated_rough_bergomi/product/up_and_out_option
+    log_modulated_rough_bergomi/product/up_and_out_option_price_delta
     log_modulated_rough_bergomi/product/up_no_touch
+    log_modulated_rough_bergomi/product/up_no_touch_price_delta
     log_modulated_rough_bergomi/product/up_one_touch
+    log_modulated_rough_bergomi/product/up_one_touch_price_delta
     rough_bergomi/product/asian_option
+    rough_bergomi/product/asian_option_price_delta
     rough_bergomi/product/asset_or_nothing_option
+    rough_bergomi/product/asset_or_nothing_option_price_delta
     rough_bergomi/product/athena_autocall
+    rough_bergomi/product/athena_autocall_price_delta
     rough_bergomi/product/cliquet
+    rough_bergomi/product/cliquet_price_delta
     rough_bergomi/product/digital_option
+    rough_bergomi/product/digital_option_price_delta
     rough_bergomi/product/double_knock_out_option
+    rough_bergomi/product/double_knock_out_option_price_delta
     rough_bergomi/product/down_and_in_option
+    rough_bergomi/product/down_and_in_option_price_delta
     rough_bergomi/product/down_and_out_option
+    rough_bergomi/product/down_and_out_option_price_delta
     rough_bergomi/product/european_option
+    rough_bergomi/product/european_option_price_delta
     rough_bergomi/product/forward_start_option
+    rough_bergomi/product/forward_start_option_price_delta
     rough_bergomi/product/gap_option
+    rough_bergomi/product/gap_option_price_delta
     rough_bergomi/product/geometric_asian_option
+    rough_bergomi/product/geometric_asian_option_price_delta
     rough_bergomi/product/lookback_option
+    rough_bergomi/product/lookback_option_price_delta
     rough_bergomi/product/phoenix_autocall
+    rough_bergomi/product/phoenix_autocall_price_delta
     rough_bergomi/product/phoenix_memory_autocall
+    rough_bergomi/product/phoenix_memory_autocall_price_delta
     rough_bergomi/product/range_accrual
+    rough_bergomi/product/range_accrual_price_delta
     rough_bergomi/product/straddle
+    rough_bergomi/product/straddle_price_delta
     rough_bergomi/product/up_and_in_option
+    rough_bergomi/product/up_and_in_option_price_delta
     rough_bergomi/product/up_and_out_option
+    rough_bergomi/product/up_and_out_option_price_delta
     rough_bergomi/product/up_no_touch
+    rough_bergomi/product/up_no_touch_price_delta
     rough_bergomi/product/up_one_touch
+    rough_bergomi/product/up_one_touch_price_delta
     rough_sabr/product/asian_option
+    rough_sabr/product/asian_option_price_delta
     rough_sabr/product/asset_or_nothing_option
+    rough_sabr/product/asset_or_nothing_option_price_delta
     rough_sabr/product/athena_autocall
+    rough_sabr/product/athena_autocall_price_delta
     rough_sabr/product/cliquet
+    rough_sabr/product/cliquet_price_delta
     rough_sabr/product/digital_option
+    rough_sabr/product/digital_option_price_delta
     rough_sabr/product/double_knock_out_option
+    rough_sabr/product/double_knock_out_option_price_delta
     rough_sabr/product/down_and_in_option
+    rough_sabr/product/down_and_in_option_price_delta
     rough_sabr/product/down_and_out_option
+    rough_sabr/product/down_and_out_option_price_delta
     rough_sabr/product/european_option
+    rough_sabr/product/european_option_price_delta
     rough_sabr/product/forward_start_option
+    rough_sabr/product/forward_start_option_price_delta
     rough_sabr/product/gap_option
+    rough_sabr/product/gap_option_price_delta
     rough_sabr/product/geometric_asian_option
+    rough_sabr/product/geometric_asian_option_price_delta
     rough_sabr/product/lookback_option
+    rough_sabr/product/lookback_option_price_delta
     rough_sabr/product/phoenix_autocall
+    rough_sabr/product/phoenix_autocall_price_delta
     rough_sabr/product/phoenix_memory_autocall
+    rough_sabr/product/phoenix_memory_autocall_price_delta
     rough_sabr/product/range_accrual
+    rough_sabr/product/range_accrual_price_delta
     rough_sabr/product/straddle
+    rough_sabr/product/straddle_price_delta
     rough_sabr/product/up_and_in_option
+    rough_sabr/product/up_and_in_option_price_delta
     rough_sabr/product/up_and_out_option
+    rough_sabr/product/up_and_out_option_price_delta
     rough_sabr/product/up_no_touch
+    rough_sabr/product/up_no_touch_price_delta
     rough_sabr/product/up_one_touch
+    rough_sabr/product/up_one_touch_price_delta
     rough_stein_stein/product/asian_option
+    rough_stein_stein/product/asian_option_price_delta
     rough_stein_stein/product/asset_or_nothing_option
+    rough_stein_stein/product/asset_or_nothing_option_price_delta
     rough_stein_stein/product/athena_autocall
+    rough_stein_stein/product/athena_autocall_price_delta
     rough_stein_stein/product/cliquet
+    rough_stein_stein/product/cliquet_price_delta
     rough_stein_stein/product/digital_option
+    rough_stein_stein/product/digital_option_price_delta
     rough_stein_stein/product/double_knock_out_option
+    rough_stein_stein/product/double_knock_out_option_price_delta
     rough_stein_stein/product/down_and_in_option
+    rough_stein_stein/product/down_and_in_option_price_delta
     rough_stein_stein/product/down_and_out_option
+    rough_stein_stein/product/down_and_out_option_price_delta
     rough_stein_stein/product/european_option
+    rough_stein_stein/product/european_option_price_delta
     rough_stein_stein/product/forward_start_option
+    rough_stein_stein/product/forward_start_option_price_delta
     rough_stein_stein/product/gap_option
+    rough_stein_stein/product/gap_option_price_delta
     rough_stein_stein/product/geometric_asian_option
+    rough_stein_stein/product/geometric_asian_option_price_delta
     rough_stein_stein/product/lookback_option
+    rough_stein_stein/product/lookback_option_price_delta
     rough_stein_stein/product/phoenix_autocall
+    rough_stein_stein/product/phoenix_autocall_price_delta
     rough_stein_stein/product/phoenix_memory_autocall
+    rough_stein_stein/product/phoenix_memory_autocall_price_delta
     rough_stein_stein/product/range_accrual
+    rough_stein_stein/product/range_accrual_price_delta
     rough_stein_stein/product/straddle
+    rough_stein_stein/product/straddle_price_delta
     rough_stein_stein/product/up_and_in_option
+    rough_stein_stein/product/up_and_in_option_price_delta
     rough_stein_stein/product/up_and_out_option
+    rough_stein_stein/product/up_and_out_option_price_delta
     rough_stein_stein/product/up_no_touch
+    rough_stein_stein/product/up_no_touch_price_delta
     rough_stein_stein/product/up_one_touch
+    rough_stein_stein/product/up_one_touch_price_delta
 )
 
 set(AI_FACTORY_GENERATED_EQUITY_EARLY_EXERCISE_UNITS
@@ -1591,6 +1717,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/variance_gamma/prices/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asset_or_nothing_puts/log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/athena_autocalls/log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/cliquets/log_modulated_rough_bergomi_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/digital_calls/log_modulated_rough_bergomi_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/digital_puts/log_modulated_rough_bergomi_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/double_knock_out_calls/log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/gap_calls/log_modulated_rough_bergomi_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/geometric_asian_calls/log_modulated_rough_bergomi_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/geometric_asian_puts/log_modulated_rough_bergomi_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/range_accruals/log_modulated_rough_bergomi_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/straddles/log_modulated_rough_bergomi_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1620,6 +1775,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/asian_calls/quadratic_rough_heston_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/asian_puts/quadratic_rough_heston_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/asset_or_nothing_calls/quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/asset_or_nothing_puts/quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/athena_autocalls/quadratic_rough_heston_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/cliquets/quadratic_rough_heston_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/digital_calls/quadratic_rough_heston_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/double_knock_out_calls/quadratic_rough_heston_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/down_and_in_puts/quadratic_rough_heston_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/european_calls/quadratic_rough_heston_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/european_puts/quadratic_rough_heston_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/forward_start_calls/quadratic_rough_heston_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/forward_start_puts/quadratic_rough_heston_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/gap_calls/quadratic_rough_heston_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/gap_puts/quadratic_rough_heston_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/geometric_asian_calls/quadratic_rough_heston_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/geometric_asian_puts/quadratic_rough_heston_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/lookback_options/quadratic_rough_heston_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/phoenix_autocalls/quadratic_rough_heston_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/phoenix_memory_autocalls/quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/range_accruals/quadratic_rough_heston_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/straddles/quadratic_rough_heston_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/up_and_in_calls/quadratic_rough_heston_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/up_no_touches/quadratic_rough_heston_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/price_delta/up_one_touches/quadratic_rough_heston_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/asian_calls/quadratic_rough_heston_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/asian_puts/quadratic_rough_heston_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/asset_or_nothing_calls/quadratic_rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1649,6 +1833,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/quadratic_rough_heston/prices/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/up_no_touches/quadratic_rough_heston_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/up_one_touches/quadratic_rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asian_puts/rough_bergomi_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asset_or_nothing_puts/rough_bergomi_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/athena_autocalls/rough_bergomi_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/cliquets/rough_bergomi_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/digital_calls/rough_bergomi_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/digital_puts/rough_bergomi_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/double_knock_out_calls/rough_bergomi_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/double_knock_out_puts/rough_bergomi_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/down_and_in_puts/rough_bergomi_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/down_and_out_puts/rough_bergomi_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/european_calls/rough_bergomi_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/european_puts/rough_bergomi_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/forward_start_calls/rough_bergomi_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/gap_puts/rough_bergomi_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/lookback_options/rough_bergomi_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/phoenix_autocalls/rough_bergomi_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/phoenix_memory_autocalls/rough_bergomi_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/range_accruals/rough_bergomi_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/straddles/rough_bergomi_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_and_in_calls/rough_bergomi_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_no_touches/rough_bergomi_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1678,6 +1891,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/asian_calls/rough_heston_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/asian_puts/rough_heston_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/athena_autocalls/rough_heston_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/cliquets/rough_heston_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/digital_calls/rough_heston_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/digital_puts/rough_heston_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/european_calls/rough_heston_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/forward_start_calls/rough_heston_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/forward_start_puts/rough_heston_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/gap_calls/rough_heston_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/gap_puts/rough_heston_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/geometric_asian_calls/rough_heston_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/geometric_asian_puts/rough_heston_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/lookback_options/rough_heston_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/range_accruals/rough_heston_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/straddles/rough_heston_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/up_and_in_calls/rough_heston_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_delta/up_one_touches/rough_heston_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_heston/prices/asian_calls/rough_heston_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_heston/prices/asian_puts/rough_heston_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1707,6 +1949,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asian_calls/rough_sabr_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asian_puts/rough_sabr_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/athena_autocalls/rough_sabr_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/cliquets/rough_sabr_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/digital_calls/rough_sabr_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/digital_puts/rough_sabr_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/double_knock_out_calls/rough_sabr_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/double_knock_out_puts/rough_sabr_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/down_and_in_puts/rough_sabr_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/down_and_out_puts/rough_sabr_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/european_calls/rough_sabr_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/european_puts/rough_sabr_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/forward_start_calls/rough_sabr_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/forward_start_puts/rough_sabr_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/gap_calls/rough_sabr_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/gap_puts/rough_sabr_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/geometric_asian_calls/rough_sabr_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/geometric_asian_puts/rough_sabr_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/lookback_options/rough_sabr_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/phoenix_autocalls/rough_sabr_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/range_accruals/rough_sabr_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/straddles/rough_sabr_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_and_in_calls/rough_sabr_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_no_touches/rough_sabr_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_one_touches/rough_sabr_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_calls/rough_sabr_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1736,6 +2007,35 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/up_no_touches/rough_sabr_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/up_one_touches/rough_sabr_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asian_calls/rough_stein_stein_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asian_puts/rough_stein_stein_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asset_or_nothing_puts/rough_stein_stein_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/athena_autocalls/rough_stein_stein_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/cliquets/rough_stein_stein_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/digital_calls/rough_stein_stein_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/digital_puts/rough_stein_stein_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/double_knock_out_calls/rough_stein_stein_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/european_calls/rough_stein_stein_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/european_puts/rough_stein_stein_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/gap_puts/rough_stein_stein_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/geometric_asian_calls/rough_stein_stein_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/lookback_options/rough_stein_stein_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/phoenix_autocalls/rough_stein_stein_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/phoenix_memory_autocalls/rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/range_accruals/rough_stein_stein_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/straddles/rough_stein_stein_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_one_touches/rough_stein_stein_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_calls/rough_stein_stein_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_puts/rough_stein_stein_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1901,6 +2201,35 @@ set(AI_FACTORY_MANIFEST_SAMPLE_GENERATOR_SOURCES
 )
 
 set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/asset_or_nothing_puts/log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/athena_autocalls/log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/cliquets/log_modulated_rough_bergomi_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/digital_calls/log_modulated_rough_bergomi_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/digital_puts/log_modulated_rough_bergomi_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/double_knock_out_calls/log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/gap_calls/log_modulated_rough_bergomi_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/geometric_asian_calls/log_modulated_rough_bergomi_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/geometric_asian_puts/log_modulated_rough_bergomi_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/range_accruals/log_modulated_rough_bergomi_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/straddles/log_modulated_rough_bergomi_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/price_delta/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1932,6 +2261,35 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_02/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asian_puts/rough_bergomi_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/asset_or_nothing_puts/rough_bergomi_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/athena_autocalls/rough_bergomi_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/cliquets/rough_bergomi_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/digital_calls/rough_bergomi_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/digital_puts/rough_bergomi_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/double_knock_out_calls/rough_bergomi_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/double_knock_out_puts/rough_bergomi_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/down_and_in_puts/rough_bergomi_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/down_and_out_puts/rough_bergomi_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/european_calls/rough_bergomi_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/european_puts/rough_bergomi_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/forward_start_calls/rough_bergomi_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/gap_puts/rough_bergomi_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/lookback_options/rough_bergomi_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/phoenix_autocalls/rough_bergomi_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/phoenix_memory_autocalls/rough_bergomi_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/range_accruals/rough_bergomi_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/straddles/rough_bergomi_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_and_in_calls/rough_bergomi_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_no_touches/rough_bergomi_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1963,6 +2321,35 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/samples/samples_02/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asian_calls/rough_sabr_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asian_puts/rough_sabr_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/athena_autocalls/rough_sabr_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/cliquets/rough_sabr_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/digital_calls/rough_sabr_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/digital_puts/rough_sabr_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/double_knock_out_calls/rough_sabr_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/double_knock_out_puts/rough_sabr_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/down_and_in_puts/rough_sabr_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/down_and_out_puts/rough_sabr_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/european_calls/rough_sabr_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/european_puts/rough_sabr_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/forward_start_calls/rough_sabr_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/forward_start_puts/rough_sabr_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/gap_calls/rough_sabr_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/gap_puts/rough_sabr_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/geometric_asian_calls/rough_sabr_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/geometric_asian_puts/rough_sabr_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/lookback_options/rough_sabr_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/phoenix_autocalls/rough_sabr_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/range_accruals/rough_sabr_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/straddles/rough_sabr_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_and_in_calls/rough_sabr_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_no_touches/rough_sabr_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_sabr/price_delta/up_one_touches/rough_sabr_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_calls/rough_sabr_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -1994,6 +2381,35 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_sabr/prices/up_one_touches/rough_sabr_01__up_one_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_sabr/samples/samples_02/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asian_calls/rough_stein_stein_01__asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asian_puts/rough_stein_stein_01__asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/asset_or_nothing_puts/rough_stein_stein_01__asset_or_nothing_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/athena_autocalls/rough_stein_stein_01__athena_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/cliquets/rough_stein_stein_01__cliquets_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/digital_calls/rough_stein_stein_01__digital_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/digital_puts/rough_stein_stein_01__digital_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/double_knock_out_calls/rough_stein_stein_01__double_knock_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/european_calls/rough_stein_stein_01__european_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/european_puts/rough_stein_stein_01__european_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/gap_puts/rough_stein_stein_01__gap_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/geometric_asian_calls/rough_stein_stein_01__geometric_asian_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/lookback_options/rough_stein_stein_01__lookback_options_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/phoenix_autocalls/rough_stein_stein_01__phoenix_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/phoenix_memory_autocalls/rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/range_accruals/rough_stein_stein_01__range_accruals_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/straddles/rough_stein_stein_01__straddles_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/price_delta/up_one_touches/rough_stein_stein_01__up_one_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_calls/rough_stein_stein_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_puts/rough_stein_stein_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp

@@ -113,13 +113,15 @@ inline PricingLaunchPlan make_equity_price_delta_launch_plan(
 ) {
     auto profile = pricing_profile(identity, price_count);
     if (identity.family == PricingFamily::equity_exact_mc
-        || identity.family == PricingFamily::equity_step_mc) {
+        || identity.family == PricingFamily::equity_step_mc
+        || identity.family == PricingFamily::rough_n_factor) {
         // Three live payoff states can exceed 128 registers/thread. At 512
         // threads this exhausts a 64K-register block (observed for Bates).
         // A conservative candidate, not an occupancy/performance optimum.
         profile.threads_per_block = std::min(profile.threads_per_block, 256U);
     } else if (identity.family != PricingFamily::closed_form
-               && identity.family != PricingFamily::equity_lsm) {
+               && identity.family != PricingFamily::equity_lsm
+               && identity.family != PricingFamily::rough_fft) {
         throw std::invalid_argument("Unsupported equity price-delta launch family.");
     }
     profile.qualification = "inherited candidate; MC capped at 256 threads; not delta-tuned";

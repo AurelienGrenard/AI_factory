@@ -17,17 +17,15 @@ struct PriceDeltaLaunchContext {
     equity::price_delta::SpotBumpConfiguration bump;
 };
 
-template<bool Stochastic, bool EarlyExercise, typename ModelLoader, typename ProductLoader,
-         typename Launcher>
-int generate_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe,
+template<bool Stochastic, bool EarlyExercise, typename Models, typename Products, typename Launcher>
+int execute_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe,
     cuda_tuning::PricingIdentity identity, std::uint64_t seed,
-    ModelLoader load_models, ProductLoader load_products, Launcher launch) {
+    const Models& models, const Products& products, Launcher launch,
+    std::chrono::steady_clock::time_point wall_start,
+    nlohmann::ordered_json preparation = nlohmann::ordered_json::object()) {
     try {
-        const auto models = load_models(recipe.model_input);
-        const auto products = load_products(recipe.product_input);
         if (models.empty() || models.size() != products.size())
             throw std::invalid_argument("Price-delta recipes require non-empty aligned inputs.");
-        const auto wall_start = std::chrono::steady_clock::now();
         const auto plan = cuda_tuning::make_equity_price_delta_launch_plan(identity, models.size(),
             Stochastic ? cuda_tuning::kProductionPathsPerPrice : 0U);
         const equity::price_delta::SpotBumpConfiguration bump{static_cast<float>(recipe.relative_bump_width)};
@@ -43,7 +41,7 @@ int generate_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe
         longstaff_schwartz::LaunchResult lsm_result{};
         auto invoke = [&](auto& execution, std::size_t results, std::size_t offset, std::size_t count) {
             const PriceDeltaLaunchContext context{results, offset, count, plan.paths_per_price,
-                plan.blocks_for(count), plan.profile.threads_per_block, seed, bump};
+                plan.profile.distribution == cuda_tuning::PriceWorkDistribution::fft ? 0U : plan.blocks_for(count), plan.profile.threads_per_block, seed, bump};
             float* price_errors = nullptr;
             if constexpr (Stochastic) price_errors = execution.standard_errors();
             if constexpr (EarlyExercise) {
@@ -83,6 +81,7 @@ int generate_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe
         result.execution = cuda_tuning::pricing_launch_metadata(plan);
         result.execution["monte_carlo_paths_per_price"] = plan.paths_per_price;
         result.execution["seed"] = seed;
+        if (!preparation.empty()) result.execution["preparation"] = std::move(preparation);
         if constexpr (EarlyExercise) {
             result.execution["kernel_launch_count"] = lsm_result.kernel_launch_count;
             result.execution["batch_count"] = lsm_result.batch_count;
@@ -91,6 +90,22 @@ int generate_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe
         }
         datasets::write_price_delta_dataset(recipe, result);
         return 0;
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
+}
+
+template<bool Stochastic, bool EarlyExercise, typename ModelLoader, typename ProductLoader,
+         typename Launcher>
+int generate_equity_price_delta_dataset(const datasets::PriceDeltaRecipe& recipe,
+    cuda_tuning::PricingIdentity identity, std::uint64_t seed,
+    ModelLoader load_models, ProductLoader load_products, Launcher launch) {
+    try {
+        const auto models = load_models(recipe.model_input);
+        const auto products = load_products(recipe.product_input);
+        return execute_equity_price_delta_dataset<Stochastic, EarlyExercise>(
+            recipe, identity, seed, models, products, launch, std::chrono::steady_clock::now());
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

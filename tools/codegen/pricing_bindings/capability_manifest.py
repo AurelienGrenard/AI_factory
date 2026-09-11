@@ -1439,7 +1439,7 @@ class PriceDeltaBindingSpec:
         if self.path_strategy not in {"multiplicative", "coupled", "closed_form_bump"}:
             raise ValueError(f"Unknown price-delta strategy: {self.path_strategy}")
         expected_engines = ({"equity_closed_form"} if self.path_strategy == "closed_form_bump"
-                            else {"equity_markovian", "equity_lsm_exact", "equity_lsm_fixed"})
+                            else {"equity_markovian", "equity_lsm_exact", "equity_lsm_fixed", "equity_n_factor", "equity_volterra_fft"})
         if self.pricing.asset_class != "equity" or self.pricing.engine not in expected_engines:
             raise ValueError("Price-delta strategy is incompatible with the pricing engine")
 
@@ -1452,8 +1452,8 @@ class PriceDeltaBindingSpec:
         return (f"{self.unit_path}.cuh", f"{self.unit_path}.cu")
 
 
-# Every existing Markovian equity product has a separate price-delta launcher.
-# Local-state adapters preserve model parameter conventions; rough is separate.
+# Each supported equity pricing contract has a separate price-delta launcher.
+# State adapters preserve the model parameter conventions.
 PRICE_DELTA_PATH_STRATEGIES = {
     "bates": "multiplicative", "black_scholes": "multiplicative",
     "cev": "coupled", "heston": "multiplicative", "heston_3_2": "multiplicative",
@@ -1461,6 +1461,9 @@ PRICE_DELTA_PATH_STRATEGIES = {
     "normal_inverse_gaussian": "multiplicative", "sabr": "coupled",
     "schobel_zhu": "multiplicative", "stein_stein": "multiplicative",
     "variance_gamma": "multiplicative",
+    "rough_heston": "multiplicative", "quadratic_rough_heston": "multiplicative",
+    "rough_bergomi": "multiplicative", "log_modulated_rough_bergomi": "multiplicative",
+    "rough_stein_stein": "multiplicative", "rough_sabr": "coupled",
 }
 PRICE_DELTA_BINDING_SPECS = tuple(
     PriceDeltaBindingSpec(binding,
@@ -1468,7 +1471,7 @@ PRICE_DELTA_BINDING_SPECS = tuple(
         PRICE_DELTA_PATH_STRATEGIES[binding.model])
     for binding in PRODUCT_BINDING_SPECS
     if binding.asset_class == "equity" and binding.engine in {
-        "equity_markovian", "equity_closed_form", "equity_lsm_exact", "equity_lsm_fixed"}
+        "equity_markovian", "equity_closed_form", "equity_lsm_exact", "equity_lsm_fixed", "equity_n_factor", "equity_volterra_fft"}
 )
 GENERATED_CLOSED_FORM_POLICY_PATHS = tuple(
     f"{binding.unit_path}_impl.cuh" for binding in PRODUCT_BINDING_SPECS
@@ -1493,7 +1496,11 @@ PRICE_DELTA_DATASET_SPECS = tuple(
             dataset_id=dataset.dataset_id + "_price_delta",
             recipe_path=dataset.recipe_path.replace("/prices/", "/price_delta/")
                 .replace("/" + dataset.dataset_id + "/", "/" + dataset.dataset_id + "_price_delta/"),
-            template="catalog/pricing/price_delta/generator.cpp.tpl",
+            template=("catalog/pricing/price_delta/prepared_generator.cpp.tpl"
+                      if dataset.engine == "equity_n_factor" else
+                      "catalog/pricing/price_delta/volterra_generator.cpp.tpl"
+                      if dataset.engine == "equity_volterra_fft" else
+                      "catalog/pricing/price_delta/generator.cpp.tpl"),
             layout="aligned_price_delta_rows", numerical_profile="price_delta_production_paths")
     for dataset in PRICE_DELTA_SOURCE_DATASETS.values()
 )

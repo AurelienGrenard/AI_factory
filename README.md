@@ -167,10 +167,11 @@ Numerical and CUDA invariants are normative in the contracts under
 
 ## Current limitations
 
-- Markovian equity price and spot delta are implemented with bounded checks;
-  catalogue-wide delta bias and production performance remain unqualified.
-  The next implementation step is rough-model spot delta: rough Heston and
-  quadratic rough Heston N-factor lifts first, then rough Bergomi FFT.
+- Equity pricing can also compute spot delta, the price sensitivity to the
+  initial asset level. Markovian and six rough models have separate paired
+  launchers and recipes. Tests cover selected cases. Catalogue-wide delta
+  bias and production performance still need qualification. Rough early
+  exercise is not implemented.
   See the [price-delta contract](docs/cuda/equity-price-delta-contract.md) and
   [open audit work](docs/audit/response.md).
 - Catalogue URLs using `datasets.ai-factory.example` are placeholders until a

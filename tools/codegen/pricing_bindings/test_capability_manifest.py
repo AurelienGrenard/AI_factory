@@ -82,9 +82,15 @@ class CapabilityManifestTest(unittest.TestCase):
             _write_generated(path, "// changed\n")
             self.assertEqual(path.read_text(), "// changed\n")
 
-    def test_price_delta_markovian_coverage_is_explicit_and_generated(self):
-        self.assertEqual(len(PRICE_DELTA_BINDING_SPECS), 261)
-        self.assertEqual(len(set(GENERATED_PRICE_DELTA_BINDING_PATHS)), 522)
+    def test_price_delta_equity_coverage_is_explicit_and_generated(self):
+        self.assertEqual(sum(s.pricing.engine not in {"equity_n_factor", "equity_volterra_fft"}
+                             for s in PRICE_DELTA_BINDING_SPECS), 261)
+        rough = [s for s in PRICE_DELTA_BINDING_SPECS
+                 if s.pricing.engine in {"equity_n_factor", "equity_volterra_fft"}]
+        self.assertEqual(len(rough), 126)
+        for spec in rough:
+            self.assertEqual(spec.path_strategy, "coupled" if spec.pricing.model == "rough_sabr" else "multiplicative")
+        self.assertEqual(len(set(GENERATED_PRICE_DELTA_BINDING_PATHS)), 774)
         for spec in PRICE_DELTA_BINDING_SPECS:
             self.assertIn(spec.pricing, PRODUCT_BINDING_SPECS)
             self.assertEqual(spec.unit_path, spec.pricing.unit_path + "_price_delta")

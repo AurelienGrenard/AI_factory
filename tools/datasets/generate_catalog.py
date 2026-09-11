@@ -66,7 +66,8 @@ def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) 
             recipe_metadata = str(Path(spec.recipe_path).with_name("recipe.yaml"))
             metadata = yaml.safe_load(contained_path(root, recipe_metadata).read_text())
             jobs[-1].update(recipe_metadata=recipe_metadata,
-                            sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"])
+                            sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"],
+                            preparation=metadata.get("preparation", {}))
     if not jobs or (targets and targets != {job["target"] for job in jobs}):
         raise ValueError("Empty selection or unknown/excluded generator target")
     return jobs
@@ -146,9 +147,13 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             for artifact in (catalog, document):
                 if artifact.get("summary", {}).get("monte_carlo_paths_per_price") != expected_paths:
                     raise ValueError("Price-delta path count contradicts the frozen plan")
-                for key in ("threads_per_block", "blocks_per_price"):
+                for key in ("threads_per_block", "blocks_per_price", "pricing_path_threads",
+                            "pricing_finalization_threads", "path_chunk_size", "chunks_per_price"):
                     if key in job["launch_plan"] and artifact.get("summary", {}).get(key) != job["launch_plan"][key]:
                         raise ValueError("Price-delta geometry contradicts the frozen plan")
+                for key, value in job.get("preparation", {}).items():
+                    if artifact.get("summary", {}).get("preparation", {}).get(key) != value:
+                        raise ValueError("Price-delta preparation contradicts the frozen recipe")
                 for key, value in job["sensitivity"].items():
                     if artifact.get("sensitivity", {}).get(key) != value:
                         raise ValueError("Price-delta sensitivity contradicts the frozen recipe")

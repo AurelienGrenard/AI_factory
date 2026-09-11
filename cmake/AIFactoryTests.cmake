@@ -25,6 +25,15 @@ if(BUILD_TESTING)
     add_test(NAME pricing_launch_plan COMMAND test_pricing_launch_plan)
     set_tests_properties(pricing_launch_plan PROPERTIES LABELS "workbench;offline;cuda-planning" TIMEOUT 30)
 
+    add_dependencies(ai_factory_host_tests inspect_pricing_launch_plan)
+    foreach(rough_model IN ITEMS rough_heston rough_sabr)
+        add_test(NAME pricing_launch_plan_${rough_model}_delta
+            COMMAND inspect_pricing_launch_plan ${rough_model}/european_option 2 --price-delta)
+        set_tests_properties(pricing_launch_plan_${rough_model}_delta PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;cuda-planning;price_delta" TIMEOUT 30)
+    endforeach()
+
     add_executable(
         test_dataset_catalog
         EXCLUDE_FROM_ALL
@@ -286,6 +295,11 @@ if(BUILD_TESTING)
 
     add_cuda_workbench_test(
         philox_cuda tests/numerical/philox_cuda_test.cu philox 30
+    )
+    add_cuda_workbench_test(
+        price_delta_rough_n_factor_cuda
+        tests/price_delta/monte_carlo/rough_n_factor_cuda_test.cu
+        "price_delta;rough;n_factor" 120
     )
     add_cuda_workbench_test(
         price_delta_catalogue_parity_cuda
@@ -608,6 +622,15 @@ if(BUILD_TESTING)
         30
     )
     if(AI_FACTORY_MATHDX_ROOT)
+        add_cuda_workbench_test(
+            price_delta_rough_fft_path_oracle_cuda tests/price_delta/monte_carlo/rough_fft_path_oracle_cuda_test.cu
+            "price_delta;rough;volterra;paired_moments" 60
+        )
+        target_link_libraries(test_price_delta_rough_fft_path_oracle_cuda PRIVATE ai_factory_cufftdx)
+        add_cuda_workbench_test(
+            price_delta_rough_fft_cuda tests/price_delta/monte_carlo/rough_fft_cuda_test.cpp
+            "price_delta;rough;volterra" 120
+        )
         add_cuda_workbench_test(
             rough_bergomi_european_option_cuda
             tests/model/equity/rough/gaussian_volterra_european_option_cuda_test.cpp

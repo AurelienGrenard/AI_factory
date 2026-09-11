@@ -88,16 +88,18 @@ struct PreparedModelProductDeviceInputs {
         }
     }
 
-    template<typename PricingPolicy, typename TimeConfiguration>
+    template<typename PricingPolicy, typename TimeConfiguration, typename... Context>
     __device__ __forceinline__ typename PricingPolicy::PreparedRow prepare_row(
         std::size_t result_index,
-        const TimeConfiguration& time_configuration
+        const TimeConfiguration& time_configuration,
+        const Context&... context
     ) const {
         const ModelProductIndices row = primary.indices(result_index);
         return PricingPolicy::prepare_row(
             primary.models[row.model_index],
             primary.products[row.product_index],
             prepared_models[row.model_index],
+            context...,
             time_configuration
         );
     }

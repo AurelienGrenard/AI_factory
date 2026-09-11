@@ -1,6 +1,6 @@
 # Constats d'audit non résolus
 
-## État courant — extension prix-delta en cours — 2026-09-10
+## État courant — extension prix-delta en cours — 2026-09-11
 
 **Deux constats ouverts, 106 fermés, 108 identifiants.** Le lot 1 puis
 STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
@@ -19,7 +19,7 @@ dans PERF-016; aucune campagne longue n'est lancée dans ce lot.
 
 ### DELTA-001 — Déployer et qualifier la voie prix-delta sans dupliquer les moteurs métier
 
-- **État :** ouvert le 2026-09-10, extension markovienne et recettes implémentées; chantier d'extension
+- **État :** ouvert le 2026-09-10, extensions markovienne et rough implémentées; chantier d'extension
   demandé, pas défaut attribué aux anciens prix.
 - **Sévérité / priorité / confiance :** moyenne / haute / périmètre manquant prouvé.
 - **Signature :** les launchers prix seuls n'exposent pas encore toute la voie
@@ -55,17 +55,21 @@ dans PERF-016; aucune campagne longue n'est lancée dans ce lot.
   des moments MC : sa borne tient compte de la longueur de sommation, sans
   changer les sommes ni les trajectoires. Reproduction constante avant/après,
   rejet d'incohérences matérielles et preuves consignés dans status.
-- **Reste :** moteurs rough FFT/N-factor et leurs recettes; qualification
-  ciblée des singularités, biais de bump/policy LSM, ressources et temps de
-  production. Les sept recettes exécutées ne constituent pas une génération
-  exhaustive des 364 recettes ni une certification de leurs deltas.
-- **Prochaine étape d'implémentation :** delta S0 rough, en commençant par
-  rough Heston et quadratic rough Heston en approximation markovienne
-  N-facteurs, puis rough Bergomi FFT. Le premier lot proposé couvre européen
-  et barrière, réutilise les préparations et transitions existantes, et vérifie
-  la parité centrale ainsi que les ressources sur quelques cas ciblés.
-  L'inspection des préparations et transitions N-facteurs confirme que leurs
-  facteurs ne dépendent pas du niveau S0; la qualification CUDA reste à faire.
+- **Acquis rough :** 126 bindings et 174 recettes ajoutés pour six modèles.
+  Heston/QRH réutilisent les préparations à 2, 3 et 7 facteurs. Les quatre
+  modèles FFT partagent la convolution. Rough SABR prépare et avance trois
+  états avec les transitions d'origine. Les observateurs de payoff sont
+  communs aux voies MC et FFT; leurs arrêts restent indépendants.
+  Les tests bornés et leur périmètre compilé sont consignés dans status.
+- **Reste :** qualification des paramètres singuliers, des biais de bump et
+  de discrétisation rough, du biais de policy LSM, et des ressources/temps sur
+  des maturités de production. Les recettes ajoutées ne constituent pas une
+  génération exhaustive ni une certification de leurs deltas. L'exercice
+  anticipé rough n'est pas une surface implémentée par ce lot.
+- **Prochaine étape :** qualifier des cas de production ciblés. Varier la
+  largeur du bump et mesurer les franchissements de seuil pour les produits
+  discontinus. Conserver séparément l'erreur d'échantillonnage et les biais
+  d'approximation. Ne pas transformer les tests courts en garantie globale.
 - **Clôture :** surfaces prévues générées et compilées, petits tests de
   parité prix seul/prix-delta et références delta adaptés à chaque moteur;
   dates LSM réellement gelées et comparaison bornée au refit complet;

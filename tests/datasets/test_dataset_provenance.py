@@ -29,6 +29,18 @@ class ProvenanceTests(unittest.TestCase):
             changed["sensitivity"][key] = value
             self.assertNotEqual(original, provenance.fingerprint(provenance.specification(changed)))
 
+    def test_rough_preparation_is_semantic(self):
+        job = {"kind": "price_delta", "identity": "rough_heston/european_option", "dataset": "paired.json",
+               "rows": 2, "sample_shape": None, "rng_stream_seeds": {"dynamics": 719},
+               "launch_plan": {"paths_per_price": 1048576}, "time_grid": {"steps_per_year": 504},
+               "sensitivity": {"relative_full_width": .01},
+               "preparation": {"factor_count": 7, "approximation_horizon_rule": "maximum maturity"}}
+        original = provenance.fingerprint(provenance.specification(job))
+        for key, value in (("factor_count", 3), ("approximation_horizon_rule", "fixed horizon")):
+            changed = copy.deepcopy(job)
+            changed["preparation"][key] = value
+            self.assertNotEqual(original, provenance.fingerprint(provenance.specification(changed)))
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
