@@ -1,4 +1,6 @@
 // CUDA implementation of the analytical Svensson curve.
+#pragma once
+
 #include "curve/svensson/term_structure.cuh"
 
 #include "curve/svensson/instantaneous_forward.cuh"

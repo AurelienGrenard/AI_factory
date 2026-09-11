@@ -12,6 +12,7 @@ from validation.quantlib.bermudan_swaption import (
 )
 from validation.quantlib.parameters import finite_number, positive_number
 from validation.quantlib.rate_option import bond_option_times
+from validation.quantlib.swaption import swaption_times
 from validation.quantlib.term_structure import discount_curve
 
 
@@ -84,6 +85,8 @@ def quantlib_model(
     times = (
         bermudan_swaption_times(product)
         if "first_exercise_time" in product
+        else swaption_times(product)
+        if "exercise_time" in product
         else bond_option_times(product)
     )
     term_structure = discount_curve(

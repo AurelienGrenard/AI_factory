@@ -1,6 +1,112 @@
 # Performance benchmark targets and architecture experiments.
 add_custom_target(performance_benchmarks)
 
+# Opt-in Jamshidian geometry study; no catalogue or production tuning mutation.
+add_executable(ai_factory_jamshidian_strategy_benchmark EXCLUDE_FROM_ALL
+    tests/performance/jamshidian_strategy_benchmark.cu
+)
+ai_factory_configure_cuda_library(ai_factory_jamshidian_strategy_benchmark)
+target_link_libraries(ai_factory_jamshidian_strategy_benchmark PRIVATE
+    ai_factory_runtime
+    ai_factory_fixed_income_cir_dataset
+    ai_factory_fixed_income_cir_plus_plus_dataset
+    ai_factory_fixed_income_ornstein_uhlenbeck_dataset
+    ai_factory_fixed_income_vasicek_dataset
+    ai_factory_fixed_income_hull_white_dataset
+    ai_factory_curve_nelson_siegel_dataset
+    ai_factory_curve_svensson_dataset
+    ai_factory_product_european_swaption_dataset
+)
+
+# Opt-in scaling probes call production bindings; LSM runs as a separate campaign.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    set(_scaling_arguments --output "${CMAKE_BINARY_DIR}/pricing-scaling")
+    if(AI_FACTORY_MATHDX_ROOT)
+        list(APPEND _scaling_arguments --mathdx)
+    endif()
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_SOURCE_DIR}/tools/performance/pricing_scaling_manifest.py"
+            ${_scaling_arguments}
+        RESULT_VARIABLE _scaling_result
+        OUTPUT_VARIABLE _scaling_output
+        ERROR_VARIABLE _scaling_error
+    )
+    if(NOT _scaling_result EQUAL 0)
+        message(FATAL_ERROR "Pricing scaling generation failed: ${_scaling_error}")
+    endif()
+    add_custom_target(pricing_scaling_benchmarks)
+    include("${CMAKE_BINARY_DIR}/pricing-scaling/targets.cmake")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/tools/performance/pricing_scaling_manifest.py"
+        "${CMAKE_SOURCE_DIR}/tests/performance/pricing_scaling/benchmark.cu.tpl"
+        "${CMAKE_SOURCE_DIR}/tests/performance/pricing_scaling/n_factor_inputs.cuh.tpl"
+        "${CMAKE_SOURCE_DIR}/tests/performance/pricing_scaling/volterra_fft_inputs.cuh.tpl"
+        "${CMAKE_SOURCE_DIR}/tests/performance/pricing_scaling/curve_inputs.cuh.tpl"
+    )
+endif()
+
+# Explicit exploratory target, outside the protocol-v3 baseline workloads.
+add_executable(ai_factory_cir_discount_chain_probe EXCLUDE_FROM_ALL
+    tests/performance/cir_forward_measure/discount_chain_probe.cu
+)
+ai_factory_configure_cuda_library(ai_factory_cir_discount_chain_probe)
+target_link_libraries(ai_factory_cir_discount_chain_probe PRIVATE
+    ai_factory_runtime ai_factory_fixed_income_cir_dataset
+)
+
+add_executable(ai_factory_cir_forward_transition_probe EXCLUDE_FROM_ALL
+    tests/performance/cir_forward_measure/transition_probe.cu
+)
+ai_factory_configure_cuda_library(ai_factory_cir_forward_transition_probe)
+target_link_libraries(ai_factory_cir_forward_transition_probe PRIVATE
+    ai_factory_runtime ai_factory_fixed_income_cir_dataset
+)
+
+add_executable(ai_factory_cir_forward_measure_probe EXCLUDE_FROM_ALL
+    tests/performance/cir_forward_measure/benchmark.cu
+)
+ai_factory_configure_cuda_library(ai_factory_cir_forward_measure_probe)
+target_link_libraries(ai_factory_cir_forward_measure_probe PRIVATE
+    ai_factory_fixed_income_cir_bermudan_swaption
+    ai_factory_fixed_income_cir_dataset
+    ai_factory_product_bermudan_swaption_dataset
+)
+
+add_executable(ai_factory_fixed_income_lsm_probe EXCLUDE_FROM_ALL
+    tests/performance/fixed_income_lsm_probe.cu
+)
+ai_factory_configure_cuda_library(ai_factory_fixed_income_lsm_probe)
+target_link_libraries(ai_factory_fixed_income_lsm_probe PRIVATE
+    ai_factory_fixed_income_cir_bermudan_swaption
+    ai_factory_fixed_income_ornstein_uhlenbeck_bermudan_swaption
+    ai_factory_fixed_income_g2_bermudan_swaption
+    ai_factory_fixed_income_cir_dataset
+    ai_factory_fixed_income_ornstein_uhlenbeck_dataset
+    ai_factory_fixed_income_g2_dataset
+    ai_factory_product_bermudan_swaption_dataset
+    ai_factory_fixed_income_vasicek_bermudan_swaption
+    ai_factory_fixed_income_vasicek_dataset
+    ai_factory_fixed_income_hull_white_nelson_siegel_bermudan_swaption
+    ai_factory_fixed_income_hull_white_svensson_bermudan_swaption
+    ai_factory_fixed_income_g2_plus_plus_nelson_siegel_bermudan_swaption
+    ai_factory_fixed_income_g2_plus_plus_svensson_bermudan_swaption
+    ai_factory_equity_black_scholes_american_option
+    ai_factory_equity_heston_american_option
+    ai_factory_equity_bates_american_option
+    ai_factory_equity_variance_gamma_american_option
+    ai_factory_product_american_option_dataset
+    ai_factory_fixed_income_hull_white_dataset
+    ai_factory_fixed_income_g2_plus_plus_dataset
+    ai_factory_curve_nelson_siegel_dataset
+    ai_factory_curve_svensson_dataset
+    ai_factory_equity_black_scholes_dataset
+    ai_factory_equity_heston_dataset
+    ai_factory_equity_bates_dataset
+    ai_factory_equity_variance_gamma_dataset
+)
+
 add_executable(
     ai_factory_generic_kernel_benchmark EXCLUDE_FROM_ALL
     tests/performance/generic_kernel_benchmark.cu

@@ -1,0 +1,154 @@
+{
+  "scope": "Targeted NUM-021 correction, not independent catalogue certification or performance rebaseline",
+  "date": "2026-09-08",
+  "reproduction_archive": {
+    "directory": "build-dev/generation-readiness-snapshot.MeTkTp",
+    "source_archive_sha256": "e3aeb33245b3aa3a6790735cec3b739158da1c828f3a5f80b00024c6e962a28e",
+    "source_diff_sha256": "f5d35618b43a4eeac8b1d3f8f42a8542d0961b23bc1f675b3618ad6e7d45653a",
+    "binaries": ["jamshidian-before", "jamshidian-corrected"],
+    "inputs_sha256": {
+      "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+      "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json": "eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479",
+      "datasets/product/european_swaption/european_swaptions_01.json": "5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf"
+    },
+    "limitation": "Local ignored archive; preserve it when moving the campaign. The tracked fixture independently reproduces the stress tests."
+  },
+  "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+  "worktree": {
+    "initial_tracked_changes": 763,
+    "initial_untracked_groups": 105,
+    "index_empty": true,
+    "before_diff_sha256": "915faddf047a6b815aa28d1211fa0dccb56463e9c846f2ffd6ce3f59a1a0b5de",
+    "before_archive_sha256": "c1884a860889dd0932f6a5328fd99ac134da503005a4e785de249f6d129338c6"
+  },
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 76,
+    "memory_bytes": 17170956288,
+    "pci_bus_id": 1,
+    "driver_version": 13020,
+    "runtime_version": 13030,
+    "cuda_compiler_version": "13.3.73"
+  },
+  "numerical_matrix": [
+    {
+      "model": "cir",
+      "side": "payer",
+      "reference_invalid": [],
+      "scalar_invalid": [],
+      "count": 12,
+      "failed": [],
+      "max_error_ratio": 0.3120881672048767
+    },
+    {
+      "model": "cir",
+      "side": "receiver",
+      "reference_invalid": [],
+      "scalar_invalid": [],
+      "count": 12,
+      "failed": [],
+      "max_error_ratio": 0.3015090649832692
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "reference_invalid": [],
+      "scalar_invalid": [],
+      "count": 12,
+      "failed": [],
+      "max_error_ratio": 0.09601756528011414
+    },
+    {
+      "model": "vasicek",
+      "side": "receiver",
+      "reference_invalid": [],
+      "scalar_invalid": [],
+      "count": 12,
+      "failed": [],
+      "max_error_ratio": 0.07002169863138423
+    }
+  ],
+  "stress_reference": {
+    "fixture": "tests/fixtures/jamshidian_stress_rows.hpp",
+    "cir_rows": 8,
+    "vasicek_rows": 4,
+    "neighbors": "Original volatility and each adjacent FP32 volatility: 36 model/product cases",
+    "reference": "Independent CPU CIR certainly-exercised bond identity; CPU Vasicek Gaussian/Jamshidian formula",
+    "absolute_price_tolerance": 0.000002,
+    "relative_price_tolerance": 0.00002,
+    "modes": [
+      "payer",
+      "receiver"
+    ],
+    "strategies": [
+      "scalar",
+      "cooperative"
+    ],
+    "threads": [
+      128,
+      256,
+      512
+    ],
+    "blocks": [
+      1,
+      4,
+      "full"
+    ],
+    "ctests": [
+      "one_factor_european_swaptions_cuda",
+      "numerical_robustness_cuda"
+    ],
+    "passed": 2
+  },
+  "correction": {
+    "device_arithmetic": "FP32 only; compensated coupon sum and anchor-plus-offset root/strikes",
+    "root_residual_tolerance": 2e-7,
+    "offset_iterations": 48,
+    "widened_tolerance": false,
+    "modified_input_rows": false,
+    "device_fp64_added": false
+  },
+  "resources": {
+    "cir": {
+      "scalar_registers_before_after": [
+        59,
+        60
+      ],
+      "cooperative_registers_before_after": [
+        56,
+        56
+      ],
+      "cooperative_static_shared_before_after": [
+        64,
+        80
+      ]
+    },
+    "vasicek": {
+      "scalar_registers_before_after": [
+        46,
+        44
+      ],
+      "cooperative_registers_before_after": [
+        39,
+        40
+      ]
+    },
+    "local_bytes_per_thread": 0,
+    "sass_scan": "No DADD/DMUL/DFMA/DSETP/DMNMX/D2F/F2D/MUFU.RCP64H/MUFU.RSQ64H/F2F.*F64 or LDL/STL matched in the benchmark"
+  },
+  "timing_status": "diagnostic_only; no before/after speedup claim: the old binary rejected some rows and skipped their pricing work; no formal power admission or other-GPU qualification",
+  "sha256_inventory": [
+    "2c990ceeb3642e6f3177726ae191f36f5b7e88adcd746a325ef4282274e71bca  /tmp/ai-factory-generation-readiness.XyjlLe/cir-before-resources.ndjson",
+    "888a1fb7d3c9e8c49b58c8cb8170eeb26af12a90da064033b78cf0425399e017  /tmp/ai-factory-generation-readiness.XyjlLe/vasicek-before-resources.ndjson",
+    "41aa625fa9b7eef7d66c0b50575f395a47bf26caf603c8aa2a309ba8d3662644  build-dev/ai_factory_jamshidian_strategy_benchmark",
+    "790ecc778d4ada5aad2792336d309d4b40853fcefe239e035d3ea2598d68b532  tests/performance/reports/generation-readiness-sm89-2026-09-08/cir-payer-matrix-resources.ndjson",
+    "7b4197052735cd5e1593e93db3dbbe23b128654846e7cf131d677b49a7aa35de  tests/performance/reports/generation-readiness-sm89-2026-09-08/cir-payer-matrix.ndjson",
+    "b1f71263bf183252c4bba03e758cb4470d9ef3c59b4520296e8dfaec3fca917f  tests/performance/reports/generation-readiness-sm89-2026-09-08/cir-receiver-matrix-resources.ndjson",
+    "902eefb709652f0c9fdc488bb55d91c44e9dd53cd8f4f2064c85e18172421f51  tests/performance/reports/generation-readiness-sm89-2026-09-08/cir-receiver-matrix.ndjson",
+    "b560560f94872ea9d0acc301216c3f34def30b3038bfc35312bc39facfc2b505  tests/performance/reports/generation-readiness-sm89-2026-09-08/vasicek-payer-matrix-resources.ndjson",
+    "cff75a3fbb6875eec177e978ce3f3e274ab03eb6c529afd74625df859188da09  tests/performance/reports/generation-readiness-sm89-2026-09-08/vasicek-payer-matrix.ndjson",
+    "1c578c14ce29d7f6519f42f840d380656d4424cf911372ff90bb810d389541db  tests/performance/reports/generation-readiness-sm89-2026-09-08/vasicek-receiver-matrix-resources.ndjson",
+    "0ab1eeb8011d13580e8930eff21bedb9caac17507d6e3d828483e8eeb388be94  tests/performance/reports/generation-readiness-sm89-2026-09-08/vasicek-receiver-matrix.ndjson"
+  ]
+}

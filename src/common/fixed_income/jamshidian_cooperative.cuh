@@ -41,10 +41,11 @@ evaluate_jamshidian_boundary_from_coefficients(
     float fixed_rate,
     const ScheduleView& schedule,
     const CooperativeJamshidianWorkspace& workspace,
-    float state
+    float state,
+    float state_correction = 0.0f
 ) {
     const std::uint32_t payment_count = schedule.payment_count();
-    float coupon_bond = 0.0f;
+    CompensatedFloatSum coupon_bond;
     float derivative = 0.0f;
     for (std::uint32_t payment = 0U;
          payment < payment_count;
@@ -57,18 +58,18 @@ evaluate_jamshidian_boundary_from_coefficients(
         );
         if (coefficient == 0.0f) continue;
         const float term = coefficient * expf(
-            fmaf(
-                -workspace.B[payment],
-                state,
-                workspace.log_A[payment]
-            )
+            fmaf(-workspace.B[payment], state_correction,
+                fmaf(-workspace.B[payment], state, workspace.log_A[payment]))
         );
-        coupon_bond += term;
+        coupon_bond.add(term);
+        if (!isfinite(coupon_bond.value())) {
+            return {coupon_bond.value(), -INFINITY};
+        }
         derivative = fmaf(
             -workspace.B[payment], term, derivative
         );
     }
-    return {coupon_bond - 1.0f, derivative};
+    return {coupon_bond.value() - 1.0f, derivative};
 }
 
 __device__ __forceinline__ CooperativeJamshidianWorkspace
@@ -93,8 +94,10 @@ __device__ __forceinline__ float
 jamshidian_state_boundary_from_coefficients(
     float fixed_rate,
     const ScheduleView& schedule,
-    const CooperativeJamshidianWorkspace& workspace
+    const CooperativeJamshidianWorkspace& workspace,
+    float* state_correction = nullptr
 ) {
+    if (state_correction != nullptr) *state_correction = 0.0f;
     const std::uint32_t payment_count = schedule.payment_count();
     const float log_payment_count = logf(
         static_cast<float>(payment_count)
@@ -172,9 +175,33 @@ jamshidian_state_boundary_from_coefficients(
                 evaluate_jamshidian_boundary_from_coefficients(
                     fixed_rate, schedule, workspace, midpoint
                 );
-            return checked_jamshidian_boundary(
+            const float midpoint_candidate = checked_jamshidian_boundary(
                 midpoint, final_evaluation.residual
             );
+            if (isfinite(midpoint_candidate)) return midpoint_candidate;
+            // Match the scalar solver at an FP32-collapsed bracket; do not
+            // relax the residual tolerance when choosing its other endpoint.
+            for (unsigned int endpoint = 0U; endpoint < 2U; ++endpoint) {
+                const float candidate = endpoint == 0U ? lower_state : upper_state;
+                const auto candidate_evaluation = evaluate_jamshidian_boundary_from_coefficients(
+                    fixed_rate, schedule, workspace, candidate
+                );
+                const float checked = checked_jamshidian_boundary(
+                    candidate, candidate_evaluation.residual
+                );
+                if (isfinite(checked)) return checked;
+            }
+            if (state_correction != nullptr) {
+                return refine_jamshidian_boundary(
+                    midpoint, lower_state - midpoint, upper_state - midpoint,
+                    [&](float correction) {
+                        return evaluate_jamshidian_boundary_from_coefficients(
+                            fixed_rate, schedule, workspace, midpoint, correction
+                        );
+                    }, state_correction
+                );
+            }
+            return nanf("");
         }
         state = next_state;
       }
@@ -184,9 +211,20 @@ jamshidian_state_boundary_from_coefficients(
         evaluate_jamshidian_boundary_from_coefficients(
             fixed_rate, schedule, workspace, midpoint
         );
-    return checked_jamshidian_boundary(
-        midpoint, final_evaluation.residual
-    );
+    const float checked = checked_jamshidian_boundary(midpoint, final_evaluation.residual);
+    if constexpr (MaximumIterations > 0U) {
+        if (!isfinite(checked) && state_correction != nullptr) {
+            return refine_jamshidian_boundary(
+                midpoint, lower_state - midpoint, upper_state - midpoint,
+                [&](float correction) {
+                    return evaluate_jamshidian_boundary_from_coefficients(
+                        fixed_rate, schedule, workspace, midpoint, correction
+                    );
+                }, state_correction
+            );
+        }
+    }
+    return checked;
 }
 
 template<
@@ -255,14 +293,17 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
     __syncthreads();
 
     __shared__ float state_boundary;
+    __shared__ float state_correction;
     __shared__ BondOptionContext option_context;
     if (threadIdx.x == 0U) {
+        state_correction = 0.0f;
         state_boundary = payment_count == 1U
             ? 0.0f
             : jamshidian_state_boundary_from_coefficients(
                   fixed_rate,
                   schedule,
-                  workspace
+                  workspace,
+                  &state_correction
               );
         if (isfinite(state_boundary)) {
             option_context = provider.prepare_bond_option_context(
@@ -296,11 +337,9 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
         const float payment_time = schedule.payment_time(payment);
         const float bond_strike = payment_count == 1U
             ? 1.0f / coefficient
-            : provider.zero_coupon_bond(
-                  parameters,
-                  state_boundary,
-                  exercise_time,
-                  payment_time
+            : jamshidian_bond_strike(
+                  provider, parameters, exercise_time, payment_time,
+                  state_boundary, state_correction
               );
         workspace.option_values[payment] = provider.bond_option_price(
             option_context,

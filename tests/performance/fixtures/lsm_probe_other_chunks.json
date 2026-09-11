@@ -1,0 +1,386 @@
+[
+  {
+    "id": "vasicek_catalog_chunk16",
+    "options": {
+      "model": "vasicek",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "vasicek_catalog_chunk64",
+    "options": {
+      "model": "vasicek",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 64,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "vasicek_catalog_chunk128",
+    "options": {
+      "model": "vasicek",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 128,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "hull_white_catalog_chunk16",
+    "options": {
+      "model": "hull_white",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "hull_white_catalog_chunk64",
+    "options": {
+      "model": "hull_white",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 64,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "hull_white_catalog_chunk128",
+    "options": {
+      "model": "hull_white",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 128,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_catalog_chunk16",
+    "options": {
+      "model": "g2",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_catalog_chunk64",
+    "options": {
+      "model": "g2",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 64,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_catalog_chunk128",
+    "options": {
+      "model": "g2",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 128,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_plus_plus_catalog_chunk16",
+    "options": {
+      "model": "g2_plus_plus",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_plus_plus_catalog_chunk64",
+    "options": {
+      "model": "g2_plus_plus",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 64,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "g2_plus_plus_catalog_chunk128",
+    "options": {
+      "model": "g2_plus_plus",
+      "source": "catalog",
+      "offset": 400,
+      "rows": 128,
+      "chunk_rows": 128,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "black_scholes_catalog_chunk1",
+    "options": {
+      "model": "black_scholes",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 1,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "black_scholes_catalog_chunk4",
+    "options": {
+      "model": "black_scholes",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 4,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "black_scholes_catalog_chunk16",
+    "options": {
+      "model": "black_scholes",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "heston_catalog_chunk1",
+    "options": {
+      "model": "heston",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 1,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "heston_catalog_chunk4",
+    "options": {
+      "model": "heston",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 4,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "heston_catalog_chunk16",
+    "options": {
+      "model": "heston",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "bates_catalog_chunk1",
+    "options": {
+      "model": "bates",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 1,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "bates_catalog_chunk4",
+    "options": {
+      "model": "bates",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 4,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "bates_catalog_chunk16",
+    "options": {
+      "model": "bates",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "variance_gamma_catalog_chunk1",
+    "options": {
+      "model": "variance_gamma",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 1,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "variance_gamma_catalog_chunk4",
+    "options": {
+      "model": "variance_gamma",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 4,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  },
+  {
+    "id": "variance_gamma_catalog_chunk16",
+    "options": {
+      "model": "variance_gamma",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 16,
+      "chunk_rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 11264
+    }
+  }
+]

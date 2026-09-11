@@ -25,7 +25,8 @@ using PricingPolicy = product::AmericanOptionPricingPolicy<
     ContinuationState
 >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
-    longstaff_schwartz::basis::LaguerrePolynomialTwoFactorBasis
+    longstaff_schwartz::basis::LaguerrePolynomialTwoFactorBasis,
+    longstaff_schwartz::RegressionRefinement::normal_residual
 >;
 
 static_assert(longstaff_schwartz::LongstaffSchwartzPolicy<

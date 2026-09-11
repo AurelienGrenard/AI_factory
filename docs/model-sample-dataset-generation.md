@@ -1,206 +1,156 @@
 # Model-sample dataset generation
 
-This document fixes the common contract for a generative-training dataset once
-its capability is published under
-`catalog/model/<asset_class>/[<family>/]<model>/samples/`. The equity family
-component is `markovian` or `rough`; availability is not inferred
-from the existence of a dynamics or parameter loader. The canonical matrix is
-`tools/codegen/pricing_bindings/capability_manifest.py`.
+This contract defines published model-only datasets used for generative-model
+training. Availability, bindings, recipes, parameter laws, and observables are
+declared by the
+[typed capability manifest](../tools/codegen/pricing_bindings/capability_manifest.py),
+not inferred from the presence of a dynamics file.
 
-The 48 production recipes (two for each of 24 models) and all corresponding
-CUDA bindings are published capabilities. They are generated from
-`tools/codegen/pricing_bindings/sample_manifest.py`; the generated thin
-recipes live under `catalog/model/**/samples/` and the generated model helpers
-under `tools/sampling/generated/`.
+## Published shapes
 
-## Dataset shape
-
-Every model exposes
-exactly 3,000,000 terminal samples per recipe:
+Each available model has two independent recipes with three million terminal
+samples:
 
 ```text
-samples_01:    12,000 model parameter rows * 250 paths = 3,000,000 samples
-samples_02: 3,000,000 model parameter rows *   1 path  = 3,000,000 samples
+samples_01:      12,000 parameter rows x 250 paths
+samples_02:   3,000,000 parameter rows x   1 path
 ```
 
-The two recipes use independent parameter, maturity, and sample seeds. They
-share the same plausible parameter laws so that their difference is purely
-the conditional sampling layout.
+The recipes use independent parameter, maturity, and dynamics seeds. They use
+the same plausible core parameter law; the stress tail reserved for pricing
+datasets is excluded from training samples.
 
-Every row has its own maturity `T = maturity_days / 252`, where
-`maturity_days` is sampled uniformly from all 442 integer business days in
-`[63, 504]`. Thus the support is exactly `{63/252, ..., 504/252}`: one quarter
-to two years under the repository-wide 252-day convention.
+Each row is autonomous and contains:
 
-The final JSON is flat. Every entry in `samples` is an autonomous training row
-containing `parameters`, `maturity_days`, `T`, and scalar terminal `values`.
-`samples_01` intentionally repeats each parameter object 250 times. There is
-no `models` table, `model_id` join, or standalone intermediate parameter JSON.
+- the complete model parameters;
+- `maturity_days`;
+- `T = maturity_days / 252`;
+- the declared terminal observables under `values`.
+
+`maturity_days` is sampled uniformly from the integer business days 63 through
+504. The JSON is flat: it contains no model table, join key, or intermediate
+parameter dataset. `samples_01` intentionally repeats each parameter row for
+its 250 conditional paths.
+
+For fitted short-rate models, observables describe the underlying factors,
+not curve-adjusted rates. In particular, CIR++ `state` is the nonnegative CIR
+factor `y(t)`; `initial_state` is `y0`, and reconstructing `r(t)=y(t)+phi(t)`
+requires an independent curve. The observable description records this distinction.
 
 ## Source of truth
 
-`generator.cpp` is executable source of truth. It performs these operations in
-order:
+Each generated `generator.cpp` performs this sequence:
 
-1. generate plausible parameters directly in one contiguous typed vector;
-2. expose those rows through a `DeviceParameterSource` (or use a model
-   `GeneratedParameterSource` when no host copy is required);
-3. generate one discrete-uniform maturity per flattened sample in the common
-   CUDA sampling engine;
-4. simulate directly into the final output views;
-5. stream the complete JSON without constructing a 3M-row DOM;
-6. write the adjacent YAML describing the recipe that was executed.
+1. generate plausible parameters directly in a contiguous typed vector;
+2. generate one maturity for each flattened sample;
+3. run the declared CUDA sampling engine;
+4. stream the flat JSON without a three-million-row DOM;
+5. write adjacent YAML describing the executed recipe.
 
-The YAML never drives parameter generation. Its parameter bounds are the
-plausible core bounds used for the ordinary 90% of the corresponding pricing
-parameter dataset; the 10% stress tail is intentionally excluded from GAN
-training data.
+The generator is authoritative. YAML records seeds, bounds, shape, numerical
+method, observables, and output location; it never drives generation.
+`parameter_sampling` records the ordered latent proposals, every conditional
+draw and deterministic reconstruction, constants absent from the proposals,
+and intermediate expressions used by acceptance. These are descriptions of
+the existing factory, not a second executable parameter sampler. A rejected
+proposal advances to the next proposal key; it is not clipped or partially redrawn.
 
-Parameter, calendar and dynamics generation use independent Philox-4x32-10
-domains and independent public seeds. Integer calendar draws use rejection
-sampling and therefore have no modulo bias. The dynamics key is derived from
-the parameter row and the path index is its Philox counter, so fixed seeds are
-reproducible independently of launch geometry and batch boundaries.
+Bindings, recipe helpers, and both recipes are generated as described in the
+[code-generation entry point](../tools/codegen/pricing_bindings/README.md).
+A recipe must not reimplement model dynamics or create an ad hoc binding.
 
-## CUDA launch contract
+## Randomness and time
 
-A model with an available ordinary Markov sampling binding provides a thin
-`sample.cuh` / `sample.cu` composition built from the common policies:
+Parameter, maturity, and dynamics generation use independent versioned
+Philox-4x32-10 domains. Integer maturity draws use rejection sampling, avoiding
+modulo bias. Dynamics use the parameter row as key context and the path index
+as counter, so batch and launch geometry do not change logical samples.
 
-```cpp
-using Schedule =
-    simulation::ExactTransitionTerminalSchedule<DynamicsPolicy>;
-using SamplingPolicy = sample::ModelSamplingPolicy<
-    Schedule,
-    sample::SpotSampleObservation<DynamicsPolicy>
->;
-static_assert(sample::SamplingPolicy<SamplingPolicy>);
-```
+Public launchers accept integer business days. Exact-transition models advance
+directly to the requested date. Discretized models derive their fixed `dt`
+from the globally declared `steps_per_year`; the production sample recipes use
+two numerical steps per business day where the model contract requires it.
 
-The public model launchers accept integer business days, never an arbitrary
-floating-point `T` or caller-selected `dt`. Exact Markov and Levy models use
-`day_count / 252` directly. Heston, Bates, CEV and Schobel-Zhu use exactly two
-numerical transitions per business day, hence `dt = 1/504`. Gaussian-Volterra
-models use the same convention and deterministic seed separation through a
-second, block-cooperative cuFFTDx sampling engine.
+## CUDA engine contracts
 
-`launch_samples_cuda<SamplingPolicy>` composes a parameter source, a calendar
-source and an observation policy. Its automatic execution strategy uses a
-persistent grid-stride kernel for one path per parameter and a parameter-block
-kernel for conditional packages. In the latter, one block prepares the
-parameter-dependent model coefficients once in shared memory, then its lanes
-cover all paths, including non-multiples of the block size such as `P = 250`.
-Both strategies preserve the same logical `(parameter_index, path_index)`.
+The generated binding selects one engine from the capability manifest:
 
-Launch geometry is a replaceable build profile rather than part of the sample
-law. Generated helpers consume `kSampleThreadsPerBlock` and
-`kSampleBlockCountLimit` from `tools/cuda/tuning_profile.hpp`; execution
-metadata records the profile identifier and its hardware provenance. The
-checked-in values `{256, 4096}` belong to `sm89_reference_v1`, measured on an
-RTX 4090 Laptop. They are safe starting values, not a portable optimum. A new
-GPU may override the corresponding `AI_FACTORY_CUDA_*` CMake cache variables,
-but must retain the same parameter-row keys, path counters, batch offsets and
-numerical time grid.
+| Engine family | Composition |
+|---|---|
+| Exact or fixed-step Markovian | `ModelSamplingPolicy` with a terminal schedule and observation policy |
+| Rough Markovian N-factor | Host-prepared fixed-factor dynamics with the common Markovian sampler |
+| Gaussian-Volterra FFT | Volterra kernel policy, model path policy, terminal schedule, and observation policy |
 
-Rough Heston uses the same Markov execution strategies after its fixed-factor
-lift has been prepared on the host:
+Markovian engines use grid-stride execution for one path per parameter and a
+parameter-block strategy for conditional path packages. A conditional block
+prepares or loads its parameter-dependent row once, then covers all paths,
+including nonmultiples of the block size.
 
-```cpp
-using SamplingPolicy = sample::ModelSamplingPolicy<
-    simulation::FixedStepTerminalSchedule<DynamicsPolicy<FactorCount>>,
-    sample::SpotSampleObservation<DynamicsPolicy<FactorCount>>
->;
-static_assert(sample::ExternallyPreparedSamplingPolicy<SamplingPolicy>);
-```
+N-factor fitting and matrix preparation run on the host. The GPU receives one
+prepared row per parameter and performs no nonlinear fit or matrix exponential.
+Model-specific approximation rules belong to the corresponding model
+reference, not this common dataset contract.
 
-`launch_prepared_samples_cuda<SamplingPolicy>` loads one
-`PreparedDynamics<FactorCount>` per parameter row. For `P > 1`, the block
-loads that row once into shared memory before simulating its conditional paths.
-The host preparation uses `dt = 1/504` and an approximation horizon covering
-the maximum generated maturity. Factor counts 2, 3 and 7 match the European
-pricing interface; no kernel fit or matrix exponential runs on the device.
+The Volterra FFT engine uses one persistent block per parameter row, prepares
+one kernel spectrum, and reuses it across packed path pairs. Its workspace is
+bounded by the declared maximum calendar and chunk policy; it does not grow
+with the total published sample count.
 
-Quadratic rough Heston has a production-specific preparation contract for its
-three-million-row unconditional layout. Fitting one nonlinear L2 rule for
-every independently sampled `H` is forbidden: it would make host preparation
-scale in millions of fits. The generated sample helper instead constructs 257
-exact positive seven-factor fits on `H in [0.01, 0.20]` and linearly
-interpolates corresponding positive nodes and weights. The catalogue records
-the bounds, interpolation rule and grid size. Scalar preparation and pricing
-continue to fit the requested `H` directly. The permanent qualification checks
-all 256 cell midpoints against the analytical fractional kernel, requires less
-than 0.11% relative L2 error, and bounds the interpolation penalty against
-off-grid exact fits by `5e-6`.
+Output is sample-major. Multi-observation buffers, when present, use explicit
+time-major structure-of-arrays indexing. Kernels do not allocate per-thread
+arrays proportional to the full calendar.
 
-Rough Bergomi and rough SABR compose the corresponding engine as follows:
+## Memory guards
 
-```cpp
-using SamplingPolicy = sample::VolterraFftModelSamplingPolicy<
-    volterra::FractionalHybridKernelPolicy,
-    PathPolicy,
-    volterra::TerminalHybridSchedule,
-    sample::SpotSampleObservation<PathPolicy>
->;
-static_assert(sample::VolterraFftSamplingPolicy<
-    SamplingPolicy,
-    volterra::HybridTimeConfiguration
->);
-```
+Before allocating, a generator estimates model and observable storage. It
+refuses a plan above 70% of currently available host RAM or 85% of available
+device memory. These limits detect an unsuitable run; they do not alter the
+published shape.
+On Linux, available RAM is `MemAvailable` from `/proc/meminfo`, including
+reclaimable page cache; free pages are only a conservative fallback when that
+field is unavailable. The guard runs before parameter/prepared-input allocation.
+Do not flush system caches or remove the guard to admit a sample recipe.
 
-`sample::volterra_fft::launch_samples_cuda<SamplingPolicy>` always uses one
-persistent block per parameter row. The block prepares the fractional Volterra process,
-model coefficients, Volterra variances and one FFT spectrum, then reuses them for
-all packed pairs of conditional paths. Each path still loads its own calendar;
-the maximum calendar horizon selects the FFT length. The canonical support up
-to 504 business days requires at most 1,008 steps and a padded FFT length of
-2,048, so spectra and convolution outputs remain block-local and no workspace
-grows with the parameter count.
+If an implementation batches internally, `sample_offset` and
+`launch_sample_count` preserve the original Philox indices. Repartitioning a
+run must reproduce identical outputs.
+For packed FFT samples, reconstruct both valid paths in each pair even when
+the requested batch contains only one partner. Only publication is masked by
+the batch range; zero-padding a valid neighbour changes floating-point
+rounding. A missing partner beyond `paths_per_parameter` remains zero-padded.
 
-Terminal values are sample-major. Calendar observations are written directly
-as time-major SoA, `values[observation * sample_count + sample]`; generated
-observation days use the same layout. No kernel allocates per-thread parallel
-calendar/time/value arrays.
+## Required verification modes
 
-## Memory and smoke tests
+Every generated sample recipe supports:
 
-The generator estimates contiguous model and observable storage before any
-large allocation. It refuses a plan above 70% of currently available host RAM
-or 85% of available device memory. This guard is diagnostic protection, not a
-batching policy; the intended 3M rows fit in one in-memory execution on the
-target GPU. When batching is needed, `sample_offset` and
-`launch_sample_count` retain the same logical Philox indices, so batch
-boundaries do not change the dataset.
+- `--smoke-test`: write 1,000 rows to
+  `/tmp/ai_factory_sample_smoke/`, reload the JSON, and validate identity,
+  maturity bounds, dimensions, and finite values;
+- `--preflight`: execute the full production shape without publishing, replay
+  with a second admissible geometry, and require identical maturities and
+  observables. Markovian/N-factor engines vary threads per block. FFT keeps
+  its compiled block dimensions and decreases the actual grid block count by
+  one; a single-block case explicitly reports identical geometry instead.
 
-Every published generator must accept `--smoke-test`. That mode preserves the production
-paths-per-model layout (4 * 250 for `samples_01`, 1,000 * 1 for `samples_02`),
-writes exactly 1,000 rows below
-`/tmp/ai_factory_sample_smoke/`, rejects non-finite outputs, then parses the
-JSON again and verifies the flat-row schema, maturity bounds, identity
-`T = maturity_days / 252`, dimensions, and finite outputs. The YAML still
-documents the production 3M recipe.
+The preflight prints `MODEL_SAMPLE_PREFLIGHT ` followed by one JSON object with
+the shape, geometries, and wall/kernel timings. It qualifies a machine run; it
+does not replace the versioned dataset.
+`primary_launch` and `replay_launch` describe actual block dimensions, grid
+counts and the covered row count; `replay_scope` identifies the dimension
+really varied. FFT dimensions are queried from the compiled cuFFTDx type,
+not inferred from the generic sample thread setting. Both FFT layouts use
+the persistent parameter-block strategy. Smoke metadata describes the smoke
+launch, not a hypothetical production grid. Existing published YAML is not
+rewritten by code generation or this metadata correction.
 
-Every generator also accepts `--preflight`. This mode uses the complete
-production row count without publishing JSON/YAML, launches the full workload,
-then replays it with a second threads-per-block geometry. Maturities and all
-observables must be bitwise identical, finite and inside their contractual
-bounds. The command prints one machine-readable `MODEL_SAMPLE_PREFLIGHT` line
-with the row count, both geometries and wall/kernel times. A preflight is a
-qualification run, never a replacement for the versioned published artifact.
+## Performance and portability
 
-## Performance qualification
+Launch geometry comes from a named CMake tuning profile and is recorded in
+execution metadata. The checked-in values and baseline describe the SM89
+reference GPU only.
 
-`ai_factory_model_sample_benchmark` covers exact Markovian, fixed-step
-Markovian, seven-factor rough and Volterra-FFT engines on both contractual
-layouts. Markovian and N-factor rows use the full three million samples; the
-reduced Volterra workloads explicitly preserve the path package and enough
-independent FFT blocks to saturate the reference GPU. The report separates
-kernel timing from streamed JSON/YAML publication wall time and records the
-production shape beside any reduction.
-
-For a new GPU or toolchain, first build a mono-architecture binary, inspect
-registers, spills, local/shared memory and theoretical occupancy with
-`AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1`, then run the complete versioned
-performance manifest. Publish a separate baseline and profile identifier;
-never compare that candidate against the SM89 baseline. A tuning change is
-accepted only after finite outputs, deterministic replay for the same logical
-path, and unchanged Philox addressing have been verified.
+For another GPU or toolchain, build one native architecture, inspect registers,
+spills, local/shared memory and occupancy, then run the complete
+[performance regression protocol](performance-regression-protocol.md). Publish
+a separate tuning profile and baseline while preserving the same parameter
+keys, path counters, time grid, and numerical checks.

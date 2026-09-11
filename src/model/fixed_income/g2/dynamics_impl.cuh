@@ -9,6 +9,8 @@
 #include <cuda_runtime.h>
 
 #include <cstdint>
+#include <cfloat>
+#include <math_constants.h>
 
 namespace ai_factory::workbench::model::fixed_income::g2 {
 
@@ -17,6 +19,41 @@ namespace mean_reverting_gaussian =
 
 // ======================== Model-specific dynamics =========================
 namespace {
+
+// Integral_0^1 u^order exp(-x*u) du. The polynomial avoids subtracting
+// almost equal endpoint terms; recurrence is well-conditioned for x >= 1.
+__device__ __forceinline__ float exponential_moment(unsigned int order, float x) {
+    if (x < 1.0f) {
+        float value = 1.0f / static_cast<float>(order + 11U);
+        #pragma unroll
+        for (int k = 10; k >= 1; --k) {
+            value = fmaf(-x / static_cast<float>(k), value,
+                         1.0f / static_cast<float>(order + k));
+        }
+        return value;
+    }
+    const float decay = expf(-x);
+    float value = -expm1f(-x) / x;
+    for (unsigned int k = 1U; k <= order; ++k) {
+        value = fmaf(static_cast<float>(k), value, -decay) / x;
+    }
+    return value;
+}
+
+// Integral_0^1 u^order (1-exp(-x*u))/x du, including its x -> 0 limit.
+__device__ __forceinline__ float loading_moment(unsigned int order, float x) {
+    if (x < 1.0f) {
+        float value = 1.0f / static_cast<float>(order + 12U);
+        #pragma unroll
+        for (int k = 10; k >= 1; --k) {
+            value = fmaf(-x / static_cast<float>(k + 1), value,
+                         1.0f / static_cast<float>(order + k + 1U));
+        }
+        return value;
+    }
+    return (1.0f / static_cast<float>(order + 1U)
+            - exponential_moment(order, x)) / x;
+}
 
 // Return the exact covariance of the two filtered state innovations.
 __device__ __forceinline__ float state_covariance(
@@ -30,33 +67,49 @@ __device__ __forceinline__ float state_covariance(
         * (-expm1f(-sum * delta)) / sum;
 }
 
-// Return Cov(integral X, integral Y) with a stable small-time series.
-__device__ __forceinline__ float cross_integral_covariance(
-    const ProcessParameters& parameters,
-    float delta
-) {
-    const float a = parameters.mean_reversion_x;
-    const float b = parameters.mean_reversion_y;
+// Keep the cancellation-sensitive branch out of repeated fitted-bond inlining.
+// A direct call bounds register pressure; the well-conditioned path stays inline.
+__device__ __noinline__ float stable_cross_integral_kernel(float a, float b, float delta) {
     const float scale = fmaxf(a, b) * delta;
     float integral = 0.0f;
-    if (fabsf(scale) < 0.02f) {
-        const float delta2 = delta * delta;
-        integral = delta2 * delta * (
-            1.0f / 3.0f
-            - (a + b) * delta / 8.0f
-            + (2.0f * a * a + 3.0f * a * b + 2.0f * b * b)
-                * delta2 / 60.0f
-        );
+    if (fabsf(scale) < 0.125f) {
+        const float sum = (a + b) * delta;
+        const float product = a * b * delta * delta;
+        const float sum2 = sum * sum;
+        const float normalized = 1.0f / 3.0f - sum / 8.0f
+            + (2.0f * sum2 - product) / 60.0f
+            - sum * (sum2 - product) / 144.0f
+            + (6.0f * sum2 * sum2 - 9.0f * sum2 * product
+                + 2.0f * product * product) / 5040.0f;
+        integral = delta * delta * delta * normalized;
     } else {
+        // (a+b) integral B_a B_b = integral B_a + integral B_b - B_a(T)B_b(T).
+        // Divide by a+b, never by the vanishing speed or its product a*b.
         const float loading_a =
             mean_reverting_gaussian::integral_state_loading(a, delta);
         const float loading_b =
             mean_reverting_gaussian::integral_state_loading(b, delta);
-        const float loading_sum =
-            mean_reverting_gaussian::integral_state_loading(a + b, delta);
-        integral = (
-            delta - loading_a - loading_b + loading_sum
-        ) / (a * b);
+        integral = fmaf(-loading_a, loading_b, delta * delta * (
+            loading_moment(0U, a * delta) + loading_moment(0U, b * delta)
+        )) / (a + b);
+    }
+    return integral;
+}
+
+// Cov(integral X, integral Y), selecting arithmetic by dimensionless conditioning.
+__device__ __forceinline__ float cross_integral_covariance(
+    const ProcessParameters& parameters, float delta
+) {
+    const float a = parameters.mean_reversion_x;
+    const float b = parameters.mean_reversion_y;
+    float integral;
+    if (fminf(a, b) * delta >= 0.125f && fmaxf(a, b) * delta >= 0.5f) {
+        const float loading_a = mean_reverting_gaussian::integral_state_loading(a, delta);
+        const float loading_b = mean_reverting_gaussian::integral_state_loading(b, delta);
+        const float loading_sum = mean_reverting_gaussian::integral_state_loading(a + b, delta);
+        integral = (delta - loading_a - loading_b + loading_sum) / (a * b);
+    } else {
+        integral = stable_cross_integral_kernel(a, b, delta);
     }
     return parameters.correlation
         * parameters.volatility_x * parameters.volatility_y * integral;
@@ -77,6 +130,14 @@ __device__ __forceinline__ float state_cross_integral_kernel(
             + (0.5f * a * a + 0.5f * a * b + b * b / 6.0f)
                 * delta2 / 4.0f
         );
+    }
+    if (b * delta < 0.02f) {
+        const float x = a * delta;
+        const float y = b * delta;
+        const float normalized = exponential_moment(1U, x)
+            - 0.5f * y * exponential_moment(2U, x)
+            + y * y / 6.0f * exponential_moment(3U, x);
+        return delta * delta * normalized;
     }
     const float loading_a =
         mean_reverting_gaussian::integral_state_loading(a, delta);
@@ -296,10 +357,13 @@ __device__ __forceinline__ PreparedTransition prepare_transition(
             - l20 * state_transition.state_y_x_normal_loading)
             / state_transition.state_y_independent_standard_deviation
         : 0.0f;
-    const float independent_variance = fmaxf(
-        moments.variance - l20 * l20 - l21 * l21,
-        0.0f
-    );
+    const float explained_variance = l20 * l20 + l21 * l21;
+    const float residual = moments.variance - explained_variance;
+    const float roundoff_budget = 64.0f * FLT_EPSILON
+        * fmaxf(moments.variance, explained_variance);
+    // A materially inconsistent covariance must not silently change the law.
+    const float independent_variance = residual >= -roundoff_budget
+        ? fmaxf(residual, 0.0f) : CUDART_NAN_F;
     return {
         state_transition.state_x_decay,
         state_transition.state_x_standard_deviation,

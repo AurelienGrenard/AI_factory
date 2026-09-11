@@ -10,6 +10,7 @@
 #include "common/volterra/block_fft_convolution.cuh"
 #include "common/volterra/concepts.cuh"
 #include "common/volterra/hybrid_fft.cuh"
+#include "common/volterra/hybrid_fft_tuning.cuh"
 #include "common/volterra/hybrid_fft_workspace.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
 
@@ -25,8 +26,6 @@
 
 namespace ai_factory::workbench::volterra::hybrid_fft {
 
-constexpr unsigned int kFinalizationThreads = 256U;
-constexpr unsigned int kPathThreads = 256U;
 #ifndef AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT
 #define AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT 0
 #endif
@@ -457,7 +456,7 @@ __global__ void evaluate_paths_kernel(
     );
     if (threadIdx.x == 0U) {
         partial_moments[
-            global_path_offset / kPathThreads + blockIdx.x
+            global_path_offset / tuning::kPricingPathThreads + blockIdx.x
         ] = {total.sum, total.sumsq};
     }
 }
@@ -567,7 +566,7 @@ __global__ void evaluate_direct_paths_kernel(
     const reductions::MomentSums total = reductions::reduce_block(sum, sumsq);
     if (threadIdx.x == 0U) {
         partial_moments[
-            global_path_offset / kPathThreads + blockIdx.x
+            global_path_offset / tuning::kPricingPathThreads + blockIdx.x
         ] = {total.sum, total.sumsq};
     }
 }
@@ -652,10 +651,11 @@ void validate_launch(
     }
     if (path_chunk_size == 0U
         || path_chunk_size > path_count
-        || path_chunk_size % kPathThreads != 0U) {
+        || path_chunk_size % tuning::kPricingPathThreads != 0U) {
         throw std::invalid_argument(
             "Volterra hybrid FFT path_chunk_size must be a positive "
-            "multiple of 256 not exceeding the path count."
+            "multiple of the configured path-thread count and not exceed "
+            "the path count."
         );
     }
     validate_hybrid_fft_grid_x_size(
@@ -797,6 +797,22 @@ void launch_fft_length(
         );
     }
 
+    report_cuda_kernel_phase_launch_if_enabled(
+        diagnostic_name,
+        diagnostic_variant,
+        "row_preparation",
+        prepare_row_kernel<
+            KernelPolicy,
+            ModelPathPolicy,
+            ProductPolicy,
+            SchedulePolicy,
+            Length,
+            KernelForward
+        >,
+        dim3(1U),
+        KernelForward::block_dim,
+        preparation_shared_bytes
+    );
     prepare_row_kernel<
         KernelPolicy,
         ModelPathPolicy,
@@ -820,7 +836,7 @@ void launch_fft_length(
     check_cuda(cudaGetLastError(), "Volterra hybrid FFT row preparation");
 
     constexpr std::size_t path_shared_bytes =
-        2U * (kPathThreads / 32U) * sizeof(double);
+        2U * (tuning::kPricingPathThreads / 32U) * sizeof(double);
     for (std::size_t path_offset = 0U; path_offset < path_count;) {
         const std::size_t chunk_path_count = std::min(
             path_chunk_size,
@@ -830,9 +846,10 @@ void launch_fft_length(
             hybrid_fft_ceiling_division(chunk_path_count, 2U);
         const std::size_t convolution_block_count =
             hybrid_fft_ceiling_division(chunk_pair_count, FftsPerBlock);
-        report_cuda_kernel_launch_if_enabled(
+        report_cuda_kernel_phase_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
+            "convolution",
             convolve_paths_kernel<
                 KernelPolicy,
                 ModelPathPolicy,
@@ -869,6 +886,20 @@ void launch_fft_length(
 
         const std::size_t path_block_count =
             hybrid_fft_partial_moment_count(chunk_path_count);
+        report_cuda_kernel_phase_launch_if_enabled(
+            diagnostic_name,
+            diagnostic_variant,
+            "path_evaluation",
+            evaluate_paths_kernel<
+                KernelPolicy,
+                ModelPathPolicy,
+                ProductPolicy,
+                SchedulePolicy
+            >,
+            dim3(static_cast<unsigned int>(path_block_count)),
+            dim3(tuning::kPricingPathThreads),
+            path_shared_bytes
+        );
         evaluate_paths_kernel<
             KernelPolicy,
             ModelPathPolicy,
@@ -876,7 +907,7 @@ void launch_fft_length(
             SchedulePolicy
         ><<<
             static_cast<unsigned int>(path_block_count),
-            kPathThreads,
+            tuning::kPricingPathThreads,
             path_shared_bytes
         >>>(
             path_offset,
@@ -891,10 +922,19 @@ void launch_fft_length(
     }
 
     constexpr std::size_t finalization_shared_bytes =
-        2U * (kFinalizationThreads / 32U) * sizeof(double);
+        2U * (tuning::kPricingFinalizationThreads / 32U) * sizeof(double);
+    report_cuda_kernel_phase_launch_if_enabled(
+        diagnostic_name,
+        diagnostic_variant,
+        "finalization",
+        finalize_price_kernel,
+        dim3(1U),
+        dim3(tuning::kPricingFinalizationThreads),
+        finalization_shared_bytes
+    );
     finalize_price_kernel<<<
         1U,
-        kFinalizationThreads,
+        tuning::kPricingFinalizationThreads,
         finalization_shared_bytes
     >>>(
         partial_moments,
@@ -934,12 +974,26 @@ void launch_direct(
     const char* diagnostic_name,
     const char* diagnostic_variant
 ) {
+    report_cuda_kernel_phase_launch_if_enabled(
+        diagnostic_name,
+        diagnostic_variant,
+        "row_preparation",
+        prepare_direct_row_kernel<
+            KernelPolicy,
+            ModelPathPolicy,
+            ProductPolicy,
+            SchedulePolicy
+        >,
+        dim3(1U),
+        dim3(tuning::kPricingPathThreads),
+        0U
+    );
     prepare_direct_row_kernel<
         KernelPolicy,
         ModelPathPolicy,
         ProductPolicy,
         SchedulePolicy
-    ><<<1U, kPathThreads>>>(
+    ><<<1U, tuning::kPricingPathThreads>>>(
         device_models,
         device_products,
         product_count,
@@ -954,7 +1008,7 @@ void launch_direct(
     check_cuda(cudaGetLastError(), "Volterra direct row preparation");
 
     constexpr std::size_t path_shared_bytes =
-        2U * (kPathThreads / 32U) * sizeof(double);
+        2U * (tuning::kPricingPathThreads / 32U) * sizeof(double);
     for (std::size_t path_offset = 0U; path_offset < path_count;) {
         const std::size_t chunk_path_count = std::min(
             path_chunk_size,
@@ -962,9 +1016,10 @@ void launch_direct(
         );
         const std::size_t path_block_count =
             hybrid_fft_partial_moment_count(chunk_path_count);
-        report_cuda_kernel_launch_if_enabled(
+        report_cuda_kernel_phase_launch_if_enabled(
             diagnostic_name,
             diagnostic_variant,
+            "path_evaluation",
             evaluate_direct_paths_kernel<
                 KernelPolicy,
                 ModelPathPolicy,
@@ -972,7 +1027,7 @@ void launch_direct(
                 SchedulePolicy
             >,
             dim3(static_cast<unsigned int>(path_block_count)),
-            dim3(kPathThreads),
+            dim3(tuning::kPricingPathThreads),
             path_shared_bytes
         );
         evaluate_direct_paths_kernel<
@@ -982,7 +1037,7 @@ void launch_direct(
             SchedulePolicy
         ><<<
             static_cast<unsigned int>(path_block_count),
-            kPathThreads,
+            tuning::kPricingPathThreads,
             path_shared_bytes
         >>>(
             path_offset,
@@ -996,10 +1051,19 @@ void launch_direct(
     }
 
     constexpr std::size_t finalization_shared_bytes =
-        2U * (kFinalizationThreads / 32U) * sizeof(double);
+        2U * (tuning::kPricingFinalizationThreads / 32U) * sizeof(double);
+    report_cuda_kernel_phase_launch_if_enabled(
+        diagnostic_name,
+        diagnostic_variant,
+        "finalization",
+        finalize_price_kernel,
+        dim3(1U),
+        dim3(tuning::kPricingFinalizationThreads),
+        finalization_shared_bytes
+    );
     finalize_price_kernel<<<
         1U,
-        kFinalizationThreads,
+        tuning::kPricingFinalizationThreads,
         finalization_shared_bytes
     >>>(
         partial_moments,
@@ -1111,115 +1175,40 @@ void launch_pricing_cuda(
         );
     } else
 #endif
-    if (step_count <= 8U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            16U, 8U, 16U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 32U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            64U, 8U, 8U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 64U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            128U, 8U, 8U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 128U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            256U, 16U, 8U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 256U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            512U, 8U, 2U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 512U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            1024U, 16U, 1U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 1024U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            2048U, 16U, 1U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else if (step_count <= 2048U) {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            4096U, 16U, 1U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    } else {
-        launch_fft_length<
-            KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy,
-            8192U, 16U, 1U
-        >(
-            device_models, device_products, product_count, construction,
-            result_index, monte_carlo_paths_per_price, device_step_count,
-            time_configuration, path_chunk_size, spectrum,
-            volterra_variances, prepared_row, convolutions, partial_moments, base_seed,
-            device_prices, device_standard_errors, diagnostic_name,
-            diagnostic_variant
-        );
-    }
+    tuning::dispatch_hybrid_fft_specialization<kMaximumHybridFftLength>(
+        device_step_count,
+        [&]<typename Specialization>() {
+            launch_fft_length<
+                KernelPolicy,
+                ModelPathPolicy,
+                ProductPolicy,
+                SchedulePolicy,
+                Specialization::kLength,
+                Specialization::kPricingElementsPerThread,
+                Specialization::kPricingFftsPerBlock
+            >(
+                device_models,
+                device_products,
+                product_count,
+                construction,
+                result_index,
+                monte_carlo_paths_per_price,
+                device_step_count,
+                time_configuration,
+                path_chunk_size,
+                spectrum,
+                volterra_variances,
+                prepared_row,
+                convolutions,
+                partial_moments,
+                base_seed,
+                device_prices,
+                device_standard_errors,
+                diagnostic_name,
+                diagnostic_variant
+            );
+        }
+    );
 }
 
 }  // namespace ai_factory::workbench::volterra::hybrid_fft

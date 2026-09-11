@@ -9,6 +9,7 @@
 #include "common/sample/sources.cuh"
 #include "common/volterra/block_fft_convolution.cuh"
 #include "common/volterra/hybrid_fft.cuh"
+#include "common/volterra/hybrid_fft_tuning.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
 
 #include <cuda_runtime.h>
@@ -26,6 +27,24 @@ struct LaunchConfiguration {
     std::uint32_t maximum_step_count;
     std::size_t block_count;
 };
+
+// Host-only descriptor of the same compiled FFT type used by launch_fft_length.
+inline dim3 random_terminal_block_dimensions(std::uint32_t maximum_maturity_days) {
+    if (maximum_maturity_days == 0U || maximum_maturity_days > 504U) {
+        throw std::invalid_argument("FFT sample maturity must lie in [1, 504] days.");
+    }
+    dim3 dimensions;
+    volterra::tuning::dispatch_hybrid_fft_specialization<2048U>(
+        kSampleSimulationStepsPerDay * maximum_maturity_days,
+        [&]<typename Specialization>() {
+            using Types = volterra::hybrid_fft::FftTypes<
+                Specialization::kLength,
+                Specialization::kSamplingElementsPerThread,
+                Specialization::kSamplingFftsPerBlock>;
+            dimensions = Types::Forward::block_dim;
+        });
+    return dimensions;
+}
 
 template<typename Calendar>
 __device__ __forceinline__ std::uint64_t maturity_days(
@@ -245,7 +264,6 @@ __global__ void parameter_block_sample_kernel(
             struct Loader {
                 const Row& row;
                 SampleRange range;
-                std::size_t parameter_sample_begin;
                 std::size_t first_pair_path;
                 std::uint32_t maximum_step_count;
 
@@ -254,10 +272,10 @@ __global__ void parameter_block_sample_kernel(
                 ) const {
                     float2 increment{0.0f, 0.0f};
                     if (step >= maximum_step_count) return increment;
-                    const std::size_t first_sample =
-                        parameter_sample_begin + first_pair_path;
-                    if (first_pair_path < range.paths_per_parameter
-                        && contains_sample(range, first_sample)) {
+                    // Packing is part of numerical replay: reconstruct both
+                    // valid partners even when only one is published by this
+                    // batch. Zeroing its neighbour changes FFT rounding.
+                    if (first_pair_path < range.paths_per_parameter) {
                         increment.x = row.sqrt_time_step
                             * volterra::hybrid_fft::normal_at(
                                 row.dynamics_key,
@@ -266,8 +284,7 @@ __global__ void parameter_block_sample_kernel(
                             );
                     }
                     const std::size_t second_path = first_pair_path + 1U;
-                    if (second_path < range.paths_per_parameter
-                        && contains_sample(range, first_sample + 1U)) {
+                    if (second_path < range.paths_per_parameter) {
                         increment.y = row.sqrt_time_step
                             * volterra::hybrid_fft::normal_at(
                                 row.dynamics_key,
@@ -301,7 +318,6 @@ __global__ void parameter_block_sample_kernel(
                 Loader{
                     row,
                     range,
-                    parameter_sample_begin,
                     first_pair_path,
                     maximum_step_count,
                 },
@@ -612,43 +628,29 @@ void launch_samples_cuda(
         seeds,
         output
     );
-    const std::uint32_t steps = launch_configuration.maximum_step_count;
-    if (steps <= 8U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 16U, 8U, 16U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else if (steps <= 32U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 64U, 8U, 8U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else if (steps <= 64U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 128U, 8U, 8U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else if (steps <= 128U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 256U, 16U, 8U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else if (steps <= 256U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 512U, 8U, 2U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else if (steps <= 512U) {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 1024U, 16U, 1U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    } else {
-        launch_fft_length<Policy, ParameterSource, CalendarSource, 2048U, 16U, 1U>(
-            parameter_source, calendar_source, range, launch_configuration,
-            seeds, output, diagnostic_name, diagnostic_variant, operation_name
-        );
-    }
+    volterra::tuning::dispatch_hybrid_fft_specialization<2048U>(
+        launch_configuration.maximum_step_count,
+        [&]<typename Specialization>() {
+            launch_fft_length<
+                Policy,
+                ParameterSource,
+                CalendarSource,
+                Specialization::kLength,
+                Specialization::kSamplingElementsPerThread,
+                Specialization::kSamplingFftsPerBlock
+            >(
+                parameter_source,
+                calendar_source,
+                range,
+                launch_configuration,
+                seeds,
+                output,
+                diagnostic_name,
+                diagnostic_variant,
+                operation_name
+            );
+        }
+    );
 }
 
 template<typename Policy>

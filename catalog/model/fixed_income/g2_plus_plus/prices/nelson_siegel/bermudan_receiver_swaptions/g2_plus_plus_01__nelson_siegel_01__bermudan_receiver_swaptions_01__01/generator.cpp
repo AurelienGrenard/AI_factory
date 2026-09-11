@@ -1,7 +1,7 @@
 // Build G2++/NS Bermudan-receiver-swaption prices.
 #include "model/fixed_income/g2_plus_plus/product/nelson_siegel/bermudan_swaption.cuh"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
-#include "product/bermudan_swaption/dataset.hpp"
+#include "curve/nelson_siegel/dataset.hpp"
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/bermudan_swaption_price_generation.cuh"
 
@@ -18,7 +18,7 @@ int main() {
     const auto models = rates::load_models(model_path);
     const auto curves = curve::nelson_siegel::load_curves(curve_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = 1U << 20U;
+    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829078353346560ULL;
     datasets::generate_exact_fitted_bermudan_swaption_prices(
         model_path, curve_path, product_path, models, curves, products,

@@ -116,7 +116,7 @@ struct FittedRateOptionClosedFormPricingPolicy {
         if constexpr (Side == OptionSide::call) {
             return row.bond_option_scale * zero_coupon_bond_put_price(
                 row.model,
-                Composition::initial_state(),
+                Composition::initial_state(row.model),
                 0.0f,
                 row.fixing_time_years,
                 row.payment_time_years,
@@ -125,7 +125,7 @@ struct FittedRateOptionClosedFormPricingPolicy {
         } else {
             return row.bond_option_scale * zero_coupon_bond_call_price(
                 row.model,
-                Composition::initial_state(),
+                Composition::initial_state(row.model),
                 0.0f,
                 row.fixing_time_years,
                 row.payment_time_years,

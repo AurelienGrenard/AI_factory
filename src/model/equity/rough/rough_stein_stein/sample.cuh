@@ -2,11 +2,15 @@
 #pragma once
 
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"
+#include <cuda_runtime.h>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {
+
+// Host-only query; dimensions come from the compiled sampling FFT specialization.
+dim3 rough_stein_stein_sample_block_dimensions(std::uint32_t maximum_maturity_days);
 
 void launch_rough_stein_stein_terminal_samples_cuda(
     const ModelParameters* device_parameters,

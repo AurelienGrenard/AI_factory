@@ -38,27 +38,18 @@ The transformed state is floored before mapping it back to spot. This is an
 explicit numerical convention near zero, not an exact treatment of CEV
 absorption.
 
-## Execution
+## Numerical scheme
 
-Rough SABR does not own an FFT implementation. `volterra_fft_pricing.cuh` composes:
-
-- `FractionalHybridKernelPolicy`, the shared kappa=1 hybrid kernel;
-- `rough_sabr::PathPolicy`, the transformations `Y_i -> alpha_i -> S_i`;
-- a model-independent product policy;
-- a terminal, dense, regular or static-calendar schedule.
-
-The common cuFFTDx engine packs two real paths into each C2C transform. It
-stores only one bounded chunk of inverse convolutions in VRAM, then launches
-256 path/product threads so the sequential spot recursion retains full GPU
-occupancy. The chunk is reused for the next paths and the next price. No
-Brownian path array and no million-path convolution array are retained.
-
-`european_option.cuh/.cu` is the convenient concrete call/put binding.
-`volterra_fft_pricing.cuh` is the generic product/schedule API. Adding another
-Gaussian rough-volatility model requires a parameter type and a `PathPolicy`;
-the FFT, schedules, workspace and reductions stay unchanged.
+The implementation uses the shared kappa=1 hybrid discretization. The singular
+current cell is evaluated directly and the stationary history is convolved by
+FFT. After reconstruction, only the rough-SABR transformation and Lamperti
+step are model-specific. Bounded path chunks keep workspace independent of the
+total Monte Carlo path count.
 
 The model convention follows the rough-SABR formulation of Fukasawa and
 Gatheral. There is no parameter conversion for `eta`: their log-variance
 coefficient becomes `eta/2` in `alpha=sqrt(xi)`, which also preserves the
 exact rough-Bergomi `beta=1` limit.
+
+Related contracts: [rough-family entry point](../README.md) ·
+[pricing composition](../../../../../docs/cuda/pricing-policy-composition.md).

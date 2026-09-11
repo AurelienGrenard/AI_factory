@@ -1,0 +1,162 @@
+[
+  {
+    "id": "vasicek_nelson_siegel_p200_i21",
+    "options": {
+      "model": "vasicek",
+      "curve": "nelson_siegel",
+      "payments": 200,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "hull_white_nelson_siegel_p10_i21",
+    "options": {
+      "model": "hull_white",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "hull_white_svensson_p200_i21",
+    "options": {
+      "model": "hull_white",
+      "curve": "svensson",
+      "payments": 200,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "g2_plus_plus_nelson_siegel_p10_i21",
+    "options": {
+      "model": "g2_plus_plus",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "g2_plus_plus_svensson_p200_i21",
+    "options": {
+      "model": "g2_plus_plus",
+      "curve": "svensson",
+      "payments": 200,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "black_scholes_nelson_siegel_p10_i21",
+    "options": {
+      "model": "black_scholes",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "heston_nelson_siegel_p10_i21",
+    "options": {
+      "model": "heston",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "bates_nelson_siegel_p10_i21",
+    "options": {
+      "model": "bates",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "variance_gamma_nelson_siegel_p10_i21",
+    "options": {
+      "model": "variance_gamma",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 21,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "black_scholes_nelson_siegel_p10_i1",
+    "options": {
+      "model": "black_scholes",
+      "curve": "nelson_siegel",
+      "payments": 10,
+      "interval": 1,
+      "rows": 4,
+      "paths": 1048576,
+      "first": 21,
+      "exercises": 10,
+      "maturity": 252,
+      "blocks": 64,
+      "memory_limit_mib": 8192
+    }
+  }
+]

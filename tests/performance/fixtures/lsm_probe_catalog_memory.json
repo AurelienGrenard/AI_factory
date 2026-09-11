@@ -1,0 +1,163 @@
+[
+  {
+    "id": "catalog_current_2p16",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "rows": 1000,
+      "paths": 65536,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 4096
+    }
+  },
+  {
+    "id": "catalog_2p20_offset0",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "offset": 0,
+      "rows": 4,
+      "paths": 1048576,
+      "blocks": 256,
+      "warmups": 0,
+      "repetitions": 1
+    }
+  },
+  {
+    "id": "catalog_2p20_offset425",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "offset": 425,
+      "rows": 4,
+      "paths": 1048576,
+      "blocks": 256,
+      "warmups": 0,
+      "repetitions": 1
+    }
+  },
+  {
+    "id": "catalog_2p20_offset825",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "offset": 825,
+      "rows": 4,
+      "paths": 1048576,
+      "blocks": 256,
+      "warmups": 0,
+      "repetitions": 1
+    }
+  },
+  {
+    "id": "catalog_2p20_offset975",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "offset": 975,
+      "rows": 4,
+      "paths": 1048576,
+      "blocks": 256,
+      "warmups": 0,
+      "repetitions": 1
+    }
+  },
+  {
+    "id": "ou_memory_rows1",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 1,
+      "paths": 1048576,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "ou_memory_rows16",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 16,
+      "paths": 1048576,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "ou_memory_rows64",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 64,
+      "paths": 1048576,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "ou_memory_rows96",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 96,
+      "paths": 1048576,
+      "blocks": 64,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 8192
+    }
+  },
+  {
+    "id": "cir_200_exercises",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "paths": 1048576,
+      "blocks": 256,
+      "first": 53,
+      "interval": 1,
+      "exercises": 200,
+      "payments": 200,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 4096
+    }
+  },
+  {
+    "id": "ornstein_uhlenbeck_200_exercises",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 1,
+      "paths": 1048576,
+      "blocks": 256,
+      "first": 53,
+      "interval": 1,
+      "exercises": 200,
+      "payments": 200,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 4096
+    }
+  },
+  {
+    "id": "g2_200_exercises",
+    "options": {
+      "model": "g2",
+      "rows": 1,
+      "paths": 1048576,
+      "blocks": 256,
+      "first": 53,
+      "interval": 1,
+      "exercises": 200,
+      "payments": 200,
+      "warmups": 1,
+      "repetitions": 3,
+      "memory_limit_mib": 4096
+    }
+  }
+]

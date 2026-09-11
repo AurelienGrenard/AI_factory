@@ -24,10 +24,13 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
-    float* device_prices
+    float* device_prices,
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution
 ) {
     ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side,
+        FittedAnalyticsProvider,
         FittedModelComposition
     >(
         "hull_white.nelson_siegel.european_swaption",
@@ -45,7 +48,9 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
         time_day_fraction,
         threads_per_block,
         block_count,
-        device_prices
+        device_prices,
+        maximum_payment_count,
+        distribution
     );
 }
 
@@ -68,9 +73,10 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution
 ) {
-    ::ai_factory::workbench::fixed_income::launch_cooperative_fitted_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_fitted_one_factor_european_swaption<
         Side,
         FittedAnalyticsProvider,
         FittedModelComposition
@@ -96,7 +102,8 @@ void launch_hull_white_nelson_siegel_european_swaption_cuda(
         threads_per_block,
         block_count,
         device_prices,
-        maximum_payment_count
+        maximum_payment_count,
+        distribution
     );
 }
 
@@ -116,7 +123,9 @@ template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     float,
     unsigned int,
     std::size_t,
-    float*
+    float*,
+    std::uint32_t,
+    closed_form::WorkDistribution
 );
 template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     SwaptionSide::receiver
@@ -134,7 +143,9 @@ template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     float,
     unsigned int,
     std::size_t,
-    float*
+    float*,
+    std::uint32_t,
+    closed_form::WorkDistribution
 );
 template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     SwaptionSide::payer
@@ -156,7 +167,8 @@ template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     unsigned int,
     std::size_t,
     float*,
-    std::uint32_t
+    std::uint32_t,
+    closed_form::WorkDistribution
 );
 template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     SwaptionSide::receiver
@@ -178,7 +190,8 @@ template void launch_hull_white_nelson_siegel_european_swaption_cuda<
     unsigned int,
     std::size_t,
     float*,
-    std::uint32_t
+    std::uint32_t,
+    closed_form::WorkDistribution
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

@@ -161,12 +161,14 @@ __device__ __forceinline__ void simulate_jump_interval(
         : expf(-poisson_mean);
     const float jump_compensator = prepared_model.jump_compensator * count;
 
-    const float poisson_uniform = uniforms.next();
-    const std::uint32_t jump_count = philox::poisson_from_uniform(
-        poisson_uniform,
-        poisson_mean,
-        zero_jump_probability
-    );
+    // Match Merton/Kou: retain small-mean draws, use PTRS before exp(-mean)
+    // underflows on an aggregated interval. Rejections stay path-local.
+    constexpr float kPoissonInversionThreshold = 10.0f;
+    const std::uint32_t jump_count = poisson_mean < kPoissonInversionThreshold
+        ? philox::poisson_from_uniform(
+            uniforms.next(), poisson_mean, zero_jump_probability
+        )
+        : philox::poisson_from_uniform_sequence(uniforms, poisson_mean);
     float jump_normal = 0.0f;
     if (jump_count != 0U) {
         jump_normal = philox::next_normal(uniforms, normal_cache);

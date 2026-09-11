@@ -72,7 +72,8 @@ inline datasets::ModelSampleRecipe recipe(
         "exact finite-horizon transition",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"risk_free_rate", "dividend_yield", "alpha", "skew_ratio", "target_volatility"}},
             {"latent_uniform_bounds", {
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
@@ -80,7 +81,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"skew_ratio", {-0.75f, 0.05f}},
                 {"target_volatility", {0.1f, 0.55f}}
             }},
-            {"acceptance", "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f"}
+            {"acceptance", "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f"},
+            {"derived_parameters", {{"spot", "Constant 1; no random draw."}, {"beta", "beta = skew_ratio * alpha."}, {"gamma", "gamma = sqrt(alpha * alpha - beta * beta); intermediate, not a published parameter."}, {"delta", "delta = target_volatility^2 * gamma^3 / alpha^2; deterministic reconstruction, before the declared acceptance test."}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -90,6 +92,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_model_sample_dataset<ModelParameters>(
         argc,
         argv,

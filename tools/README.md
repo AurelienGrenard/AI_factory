@@ -1,30 +1,38 @@
-# Offline tooling boundaries
+# Offline tools
 
-The offline dataset pipeline is split by responsibility:
+`tools` owns offline construction, generation, publication, code generation,
+and diagnostics. Runtime code under `src` never depends on this tree.
 
-- `datasets/sampling.*` contains pure row, grid and stress sampling;
-- `datasets/parameter_dataset.*` assembles and publishes parameter datasets;
-- `datasets/price_dataset.*` assembles and publishes price datasets;
-- `datasets/sample_dataset.*` streams model-only sample JSON and adjacent YAML;
-- `datasets/artifact_io.*` owns JSON/YAML serialization and validation metadata;
-- `cuda/pricing_runner.cuh` owns ordinary CUDA allocations, transfers, events,
-  timing and cleanup through RAII;
-- `pricing/` contains reusable, product-specific pricing orchestration.
-- `sampling/` contains Philox parameter generation and common CUDA sample
-  recipe orchestration.
+## Find a tool
 
-Catalog `generator.cpp` files are recipes: they choose inputs, launcher
-arguments and publication metadata, but do not own ordinary CUDA resources.
-All equity recipes, including American/LSM, are generated from the composed
-manifests under `codegen/pricing_bindings/`. Their common orchestration is in
-`pricing/equity_price_generation.cuh` and
-`pricing/american_option_price_generation.cuh`. Recipe execution produces both
-the price JSON and its timed catalog YAML.
+| Task | Owner |
+|---|---|
+| Generate or verify pricing and sampling bindings | [`codegen/pricing_bindings`](codegen/pricing_bindings/README.md) |
+| Build parameter, sample, or price datasets | `datasets/` |
+| Inspect dataset provenance and reuse | [`datasets/check_dataset_compatibility.py`](datasets/check_dataset_compatibility.py), [contract](../docs/dataset-provenance-contract.md) |
+| Run CUDA pricing from an offline recipe | `cuda/pricing_runner.cuh` |
+| Compose product-specific price generation | `pricing/` |
+| Generate model parameters and samples | `sampling/` |
+| Run performance campaigns and profiling | [`performance/`](../docs/performance-regression-protocol.md) |
 
-`cuda/check_catalog_generators.py` enforces this rule without a raw-CUDA recipe
-escape hatch. It also checks every available `DatasetSpec`, the
-typed capability resolver and the exact sample-binding set. Fixed-income and
-parameter recipe bodies remain bounded, declared families; their paths cannot
-be extended outside the manifest.
+## Ownership boundaries
 
-The runtime tree under `src/` never depends on these offline components.
+- `datasets/sampling.*` owns pure row, grid, and stress sampling.
+- `datasets/*_dataset.*` owns dataset assembly and publication by artifact
+  family.
+- `datasets/artifact_io.*` owns JSON/YAML serialization.
+- `cuda/` owns reusable offline CUDA execution and architecture checks.
+- `pricing/` owns product-specific price-generation orchestration.
+- `sampling/` owns Philox parameter generation and model-sample orchestration.
+- `codegen/` owns generated bindings, recipes, manifests, and drift checks.
+- `performance/` owns benchmark execution, comparison, rebaseline, and
+  profiling tools.
+
+Catalogue `generator.cpp` files are thin executable recipes. They select
+inputs, launch arguments, and publication metadata; they do not own generic
+CUDA resources, serialization, or numerical implementations.
+
+The [typed capability manifest](codegen/pricing_bindings/capability_manifest.py)
+is the source of truth for declared recipes and generated compositions.
+`cuda/check_catalog_generators.py` verifies the catalogue against that
+manifest in both directions.

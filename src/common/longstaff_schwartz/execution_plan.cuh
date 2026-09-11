@@ -33,6 +33,15 @@ ExecutionPlan make_execution_plan(
         Regressor::kBasisSize,
         Regressor::kRegressionValueCount,
     };
+    if constexpr (requires { PricingPolicy::observation_field_descriptors(); }) {
+        descriptor.observation_fields = PricingPolicy::observation_field_descriptors();
+    }
+    if constexpr (requires { PricingPolicy::path_field_descriptors(); }) {
+        descriptor.path_fields = PricingPolicy::path_field_descriptors();
+    }
+    if constexpr (requires { PricingPolicy::row_field_descriptors(); }) {
+        descriptor.row_fields = PricingPolicy::row_field_descriptors();
+    }
 
     std::vector<EarlyExerciseRowPlan> rows;
     rows.reserve(result_count);

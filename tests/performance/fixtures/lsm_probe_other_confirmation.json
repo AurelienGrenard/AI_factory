@@ -1,0 +1,206 @@
+[
+  {
+    "id": "r0_g2_plus_plus_t128_b64",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r0_g2_plus_plus_t128_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r0_bates_t128_b64",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r0_bates_t256_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r1_bates_t256_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r1_bates_t128_b64",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r1_g2_plus_plus_t128_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r1_g2_plus_plus_t128_b64",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r2_g2_plus_plus_t128_b64",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r2_g2_plus_plus_t128_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r2_bates_t128_b64",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  },
+  {
+    "id": "r2_bates_t256_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 3,
+      "repetitions": 7
+    }
+  }
+]

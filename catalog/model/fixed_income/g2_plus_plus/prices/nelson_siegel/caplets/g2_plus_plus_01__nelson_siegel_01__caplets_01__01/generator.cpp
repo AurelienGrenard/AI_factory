@@ -5,6 +5,7 @@
 #include "product/rate_option/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/pricing_launch_plan.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <algorithm>
@@ -26,7 +27,8 @@ constexpr ai_factory::workbench::PriceConstruction construction =
     ai_factory::workbench::PriceConstruction::Aligned;
 
 // CUDA configuration for the one-thread-per-price analytical kernel.
-constexpr unsigned int threads_per_block = 256U;
+constexpr unsigned int threads_per_block =
+    ::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock;
 constexpr float day_fraction = 1.0f / 252.0f;
 
 // Artifact locations and descriptive metadata used after pricing.
@@ -63,8 +65,11 @@ int main() {
     const std::size_t result_count = ai_factory::workbench::price_row_count(
         models.size(), curves.size(), products.size(), construction
     );
-    const auto block_count_for = [](std::size_t row_count) {
-        return (row_count - 1U) / threads_per_block + 1U;
+    const auto launch_plan = offline::cuda_tuning::make_pricing_launch_plan(
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::closed_form, "g2_plus_plus", "rate_option", "nelson_siegel"}, result_count, 0U
+    );
+    const auto block_count_for = [&](std::size_t row_count) {
+        return launch_plan.blocks_for(row_count);
     };
     const std::size_t block_count = block_count_for(result_count);
 
@@ -140,6 +145,7 @@ int main() {
         numerical_method,
         nlohmann::ordered_json{
             {"block_count", block_count},
+            {"launch_plan", offline::cuda_tuning::pricing_launch_metadata(launch_plan)},
             {"threads_per_block", threads_per_block},
             {"kernel_launch_count", 1U},
             {"work_distribution", "one price per thread"},

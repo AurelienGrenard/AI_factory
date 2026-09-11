@@ -7,6 +7,10 @@
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_sabr {
+
+dim3 rough_sabr_sample_block_dimensions(std::uint32_t maximum_maturity_days) {
+    return sample::volterra_fft::random_terminal_block_dimensions(maximum_maturity_days);
+}
 namespace {
 using Observation = sample::SpotSampleObservation<PathPolicy>;
 using TerminalPolicy = sample::VolterraFftModelSamplingPolicy<

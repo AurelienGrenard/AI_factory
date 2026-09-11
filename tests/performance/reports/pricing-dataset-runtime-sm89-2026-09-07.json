@@ -1,0 +1,1905 @@
+{
+  "schema": "ai_factory_pricing_dataset_runtime_v1",
+  "exported_utc": "2026-09-07T21:50:05.683305+00:00",
+  "campaign": "build-dev/pricing-dataset-runtime-20260907-01",
+  "started_utc": "2026-09-07T20:35:23.998850+00:00",
+  "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+  "source_diff_sha256": "6fdc8b64fe32f387a08beb5480590b9a909b680dd2d85dd385451033c69ad49b",
+  "source_archive_sha256": "7f6cccbc89eaa29db0e59650bb01217a7d696e22d71586f82b790553e652e0a1",
+  "input_profile": "ordered_catalogue_900_core_100_stress_v1",
+  "price_count": 1000,
+  "mc_paths_per_price": 1048576,
+  "complete": true,
+  "timing_scope": "generation_phase_sum = preparation + median raw host API + median D2H + one native local publication; not a cold-process stopwatch, no upload or independent validation",
+  "cases": [
+    {
+      "case": "rough_heston__mc_terminal",
+      "model": "rough_heston",
+      "product": "european_option",
+      "side": "call",
+      "family": "mc_terminal",
+      "recipe": "catalog/model/equity/rough/rough_heston/prices/european_calls/rough_heston_01__european_calls_01__01/generator.cpp",
+      "engine": "equity_n_factor",
+      "factor_count": 7,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 256,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668828691806289920
+      },
+      "timings": {
+        "preparation_ms": 37201.48336,
+        "raw_host_api_ms": 39997.672306,
+        "output_copy_ms": 0.334282,
+        "local_publication_ms": 17.243774,
+        "generation_phase_sum_ms": 77216.733722,
+        "gpu_median_ms": 41919.55078125,
+        "public_api_envelope_ms": 41919.55078125
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          38721.9140625,
+          41919.55078125,
+          44648.76171875
+        ],
+        "raw_host_samples_ms": [
+          36801.094845,
+          39997.672306,
+          42529.442442
+        ],
+        "api_samples_ms": [
+          38721.9140625,
+          41919.55078125,
+          44648.76171875
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 38721.9140625,
+        "median_ms": 41919.55078125,
+        "p95_ms": 44648.76171875,
+        "mean_ms": 41763.408854166664,
+        "standard_deviation_ms": 2422.143129702014,
+        "coefficient_of_variation": 0.05799677746995887
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 36801.094845,
+        "median_ms": 39997.672306,
+        "p95_ms": 42529.442442,
+        "mean_ms": 39776.06986433334,
+        "standard_deviation_ms": 2343.831945003508,
+        "coefficient_of_variation": 0.05892567951026228
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          45.0,
+          80.0
+        ],
+        "sm_clock_mhz": [
+          210.0,
+          2325.0
+        ],
+        "power_limit_w": [
+          168.85,
+          175.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 392000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 400000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1399973248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "rough_heston.european_option",
+          "variant": "call",
+          "threads": 256,
+          "registers": 151,
+          "local_bytes": 0,
+          "shared_bytes": 496,
+          "theoretical_occupancy": 0.16666666666666666
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "11aaf3d9f8b55a22a029cee8a9a22b5fb42454d193201b4e1ad3cb3b87aeb0d6",
+      "source_inputs_sha256": {
+        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json": "541ab1647b2830e90fbe26cdee4f604afcbb7a1ef4dd541f1e15e90788d8160c",
+        "datasets/product/european_option/european_options_01.json": "e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "eb39461e104ccc209b21b3c3962779b985ff888825a3155e7219cef5f60bebfd",
+        "outcome.json": "e3de417ed2a77e705af60d8d6997f74088818f4cdba0ef55ccd80b1c6932f985",
+        "resources.json": "1d5f10cfbc160151a3164da764bd0d18ee355106e1ef878075f13e5d8b41ccbd",
+        "provenance.json": "bf97e6963e02974228be48b90743ab1cd02fa981d92c4747c2105501003802ee"
+      }
+    },
+    {
+      "case": "rough_heston__mc_barrier",
+      "model": "rough_heston",
+      "product": "down_and_out_option",
+      "side": "put",
+      "family": "mc_barrier",
+      "recipe": "catalog/model/equity/rough/rough_heston/prices/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01/generator.cpp",
+      "engine": "equity_n_factor",
+      "factor_count": 7,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 256,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668828687511322624
+      },
+      "timings": {
+        "preparation_ms": 42307.268678,
+        "raw_host_api_ms": 44672.390348,
+        "output_copy_ms": 0.34146,
+        "local_publication_ms": 12.082095,
+        "generation_phase_sum_ms": 86992.08258100001,
+        "gpu_median_ms": 46930.07421875,
+        "public_api_envelope_ms": 46930.07421875
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          45526.6484375,
+          46930.07421875,
+          51140.40234375
+        ],
+        "raw_host_samples_ms": [
+          43383.523281,
+          44672.390348,
+          48517.957599
+        ],
+        "api_samples_ms": [
+          45526.6484375,
+          46930.07421875,
+          51140.40234375
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 45526.6484375,
+        "median_ms": 46930.07421875,
+        "p95_ms": 51140.40234375,
+        "mean_ms": 47865.708333333336,
+        "standard_deviation_ms": 2385.388385883717,
+        "coefficient_of_variation": 0.04983501694515925
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 43383.523281,
+        "median_ms": 44672.390348,
+        "p95_ms": 48517.957599,
+        "mean_ms": 45524.62374266667,
+        "standard_deviation_ms": 2181.028849068383,
+        "coefficient_of_variation": 0.0479087726544849
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          64.0,
+          82.0
+        ],
+        "sm_clock_mhz": [
+          210.0,
+          2310.0
+        ],
+        "power_limit_w": [
+          163.14,
+          175.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 396000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 404000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1399969248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "rough_heston.down_and_out_option",
+          "variant": "put",
+          "threads": 256,
+          "registers": 152,
+          "local_bytes": 0,
+          "shared_bytes": 512,
+          "theoretical_occupancy": 0.16666666666666666
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "692fee978b7e986fa0c214bc5585ff9f3b8aa9fbf5a3f2479fb3748162b2087c",
+      "source_inputs_sha256": {
+        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json": "541ab1647b2830e90fbe26cdee4f604afcbb7a1ef4dd541f1e15e90788d8160c",
+        "datasets/product/down_and_out_option/down_and_out_options_01.json": "cea7d03969bbc98c471ebcb01e39facae3b62b43e45c423bcbf96533c08dbcc8"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "19d7a3de05bf83fc2554f6b5b955e81bac16b30bedaa64fe1cca96a91d847ea0",
+        "outcome.json": "250531c9313cdfcbbc46d2011f1cbda603e18d1cd6f2a5b1932d973c46726e3c",
+        "resources.json": "8b6a2fedc440836786c4b7403319dfe0b37d62a72f1b54b3312a8944019875f8",
+        "provenance.json": "13a4e04a569019b2910a398d2aa61f56362918a58f1ff50795bdde9e088395c8"
+      }
+    },
+    {
+      "case": "rough_bergomi__mc_terminal",
+      "model": "rough_bergomi",
+      "product": "european_option",
+      "side": "call",
+      "family": "mc_terminal",
+      "recipe": "catalog/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp",
+      "engine": "equity_volterra_fft",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": null,
+        "batch_rows": 1,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 65536,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668828558662303744
+      },
+      "timings": {
+        "preparation_ms": 183.899153,
+        "raw_host_api_ms": 65995.033189,
+        "output_copy_ms": 0.199505,
+        "local_publication_ms": 12.835978,
+        "generation_phase_sum_ms": 66191.967825,
+        "gpu_median_ms": 69281.4140625,
+        "public_api_envelope_ms": 69281.4140625
+      },
+      "environment_eligible_for_tuning": false,
+      "timing_ineligibility_reasons": [
+        "GPU power limit changed by more than 10%"
+      ],
+      "samples": {
+        "gpu_samples_ms": [
+          65615.3828125,
+          69281.4140625,
+          70187.2890625
+        ],
+        "raw_host_samples_ms": [
+          62390.80253,
+          65995.033189,
+          66870.254397
+        ],
+        "api_samples_ms": [
+          65615.3828125,
+          69281.4140625,
+          70187.2890625
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 65615.3828125,
+        "median_ms": 69281.4140625,
+        "p95_ms": 70187.2890625,
+        "mean_ms": 68361.36197916667,
+        "standard_deviation_ms": 1976.6054347005745,
+        "coefficient_of_variation": 0.028914073351887736
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 62390.80253,
+        "median_ms": 65995.033189,
+        "p95_ms": 66870.254397,
+        "mean_ms": 65085.36337199999,
+        "standard_deviation_ms": 1938.5555858530415,
+        "coefficient_of_variation": 0.029784816207802208
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          81.0,
+          88.0
+        ],
+        "sm_clock_mhz": [
+          1260.0,
+          1590.0
+        ],
+        "power_limit_w": [
+          150.0,
+          175.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 36000,
+        "caller_workspace_bytes": 924992512,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 925036512,
+        "observed_resident_bytes": 2329411584,
+        "driver_context_and_pool_bytes": 1404375072,
+        "free_margin_bytes": 14841544704,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 16,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 1072,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 128,
+          "registers": 48,
+          "local_bytes": 0,
+          "shared_bytes": 8192,
+          "theoretical_occupancy": 0.8333333333333334
+        },
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 256,
+          "registers": 69,
+          "local_bytes": 0,
+          "shared_bytes": 240,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 64,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 4144,
+          "theoretical_occupancy": 0.7916666666666666
+        },
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 8,
+          "registers": 39,
+          "local_bytes": 0,
+          "shared_bytes": 560,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.european_option",
+          "variant": "call",
+          "threads": 512,
+          "registers": 50,
+          "local_bytes": 0,
+          "shared_bytes": 65584,
+          "theoretical_occupancy": 0.3333333333333333
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "3468af952dd86c9181672f2ea95a3655b0fac5de2386ec2f73162c5aff7d3bc8",
+      "source_inputs_sha256": {
+        "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json": "3dfb98cb139a70ccc3f0058fa0f762ebb304a10a2d6e6270a671eb18be31df9a",
+        "datasets/product/european_option/european_options_01.json": "e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "f05dda7f43e46340e082f6968358f48e69ef73869b2e965cd057b44600f9ed2e",
+        "outcome.json": "ccced9abe4ac25ba3447fd41087f8f10dfe73a7becc9dc784b307355262503d6",
+        "resources.json": "f2239665f799170c1d0fa8b63d65c88d20dd519fa9e3ff47824bd18cbdd8adad",
+        "provenance.json": "5eca4323234afa82ad40fd747613f4e228fa39a4a3ce85d0175c0e9fc86b5baa"
+      }
+    },
+    {
+      "case": "rough_bergomi__mc_barrier",
+      "model": "rough_bergomi",
+      "product": "down_and_out_option",
+      "side": "put",
+      "family": "mc_barrier",
+      "recipe": "catalog/model/equity/rough/rough_bergomi/prices/down_and_out_puts/rough_bergomi_01__down_and_out_puts_01__01/generator.cpp",
+      "engine": "equity_volterra_fft",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": null,
+        "batch_rows": 1,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 65536,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668828554367336448
+      },
+      "timings": {
+        "preparation_ms": 210.110095,
+        "raw_host_api_ms": 68031.696367,
+        "output_copy_ms": 0.219283,
+        "local_publication_ms": 14.705749,
+        "generation_phase_sum_ms": 68256.73149399999,
+        "gpu_median_ms": 71420.609375,
+        "public_api_envelope_ms": 71420.609375
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          70202.078125,
+          71420.609375,
+          71539.1796875
+        ],
+        "raw_host_samples_ms": [
+          66872.193576,
+          68031.696367,
+          68116.539346
+        ],
+        "api_samples_ms": [
+          70202.078125,
+          71420.609375,
+          71539.1796875
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 70202.078125,
+        "median_ms": 71420.609375,
+        "p95_ms": 71539.1796875,
+        "mean_ms": 71053.95572916667,
+        "standard_deviation_ms": 604.3102509540067,
+        "coefficient_of_variation": 0.008504948735823102
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 66872.193576,
+        "median_ms": 68031.696367,
+        "p95_ms": 68116.539346,
+        "mean_ms": 67673.47642966667,
+        "standard_deviation_ms": 567.6502687726796,
+        "coefficient_of_variation": 0.008388076078264443
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          88.0,
+          88.0
+        ],
+        "sm_clock_mhz": [
+          1245.0,
+          1590.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 40000,
+        "caller_workspace_bytes": 924992512,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 925040512,
+        "observed_resident_bytes": 2329411584,
+        "driver_context_and_pool_bytes": 1404371072,
+        "free_margin_bytes": 14841544704,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 16,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 1072,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 128,
+          "registers": 48,
+          "local_bytes": 0,
+          "shared_bytes": 8192,
+          "theoretical_occupancy": 0.8333333333333334
+        },
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 256,
+          "registers": 69,
+          "local_bytes": 0,
+          "shared_bytes": 208,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 64,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 4144,
+          "theoretical_occupancy": 0.7916666666666666
+        },
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 8,
+          "registers": 39,
+          "local_bytes": 0,
+          "shared_bytes": 560,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "rough_bergomi.down_and_out_option",
+          "variant": "put",
+          "threads": 512,
+          "registers": 50,
+          "local_bytes": 0,
+          "shared_bytes": 65584,
+          "theoretical_occupancy": 0.3333333333333333
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "b8827688c01b1af762769dbff822bb26a67943e4aa3942f2654904af4051d476",
+      "source_inputs_sha256": {
+        "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json": "3dfb98cb139a70ccc3f0058fa0f762ebb304a10a2d6e6270a671eb18be31df9a",
+        "datasets/product/down_and_out_option/down_and_out_options_01.json": "cea7d03969bbc98c471ebcb01e39facae3b62b43e45c423bcbf96533c08dbcc8"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "286493fc70d47cf58d0412d64f4eb2445547bd6ca6ee11636c51e81e5d7d0fea",
+        "outcome.json": "42ce739fd01703090b5a971df067d36b5bcb09e605218286cacde7aa054a5e4f",
+        "resources.json": "4db1c506199c33ae5797cd0bae399609e91f273ace985b56c08cce04cecd78aa",
+        "provenance.json": "bd803f89831487e6a5140ffa2e6d23b8e1f5650237ba137560fbe8fd793cb674"
+      }
+    },
+    {
+      "case": "heston__mc_terminal",
+      "model": "heston",
+      "product": "european_option",
+      "side": "call",
+      "family": "mc_terminal",
+      "recipe": "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp",
+      "engine": "equity_markovian",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 512,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668827051128782848
+      },
+      "timings": {
+        "preparation_ms": 260.463601,
+        "raw_host_api_ms": 31909.006706,
+        "output_copy_ms": 0.213432,
+        "local_publication_ms": 13.10104,
+        "generation_phase_sum_ms": 32182.784779,
+        "gpu_median_ms": 33485.8125,
+        "public_api_envelope_ms": 33485.8125
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          33485.8125,
+          33486.96875,
+          33484.23046875
+        ],
+        "raw_host_samples_ms": [
+          31909.006706,
+          31987.332448,
+          31892.70509
+        ],
+        "api_samples_ms": [
+          33485.8125,
+          33486.96875,
+          33484.23046875
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 33484.23046875,
+        "median_ms": 33485.8125,
+        "p95_ms": 33486.96875,
+        "mean_ms": 33485.670572916664,
+        "standard_deviation_ms": 1.1223943227948072,
+        "coefficient_of_variation": 3.351864554573394e-05
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 31892.70509,
+        "median_ms": 31909.006706,
+        "p95_ms": 31987.332448,
+        "mean_ms": 31929.68141466667,
+        "standard_deviation_ms": 41.30509980098319,
+        "coefficient_of_variation": 0.0012936270570494948
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          81.0,
+          88.0
+        ],
+        "sm_clock_mhz": [
+          1590.0,
+          1590.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 40000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 48000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400325248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "heston.european_option",
+          "variant": "call",
+          "threads": 512,
+          "registers": 68,
+          "local_bytes": 0,
+          "shared_bytes": 336,
+          "theoretical_occupancy": 0.3333333333333333
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "d2c69692ae60906b9a43795f8987592bf342f08cdfd3f8fb7be10002d29a0225",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json": "1fd686c8077f7f93b34381a242ad806c83adfbf82f4eddcb664d4a3db0477b33",
+        "datasets/product/european_option/european_options_01.json": "e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "c08391e567c1f261c9943801d64e22f2ac0b22bc9c490a465132f8d92055e427",
+        "outcome.json": "13eecb570c5a281552cc4dc136490f1c2e9e27fe2af981d4a92e48a24b2f8c3e",
+        "resources.json": "ff768bd793fc3ea083a69d5ba76b8f47bf8976068fd5808dbbcd882823b7c6af",
+        "provenance.json": "4f6a37f078b27b461584eeecfeaf261b6dca66a8a77ff1361968b552b2027623"
+      }
+    },
+    {
+      "case": "heston__mc_barrier",
+      "model": "heston",
+      "product": "down_and_out_option",
+      "side": "put",
+      "family": "mc_barrier",
+      "recipe": "catalog/model/equity/markovian/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp",
+      "engine": "equity_markovian",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 512,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668827046833815552
+      },
+      "timings": {
+        "preparation_ms": 203.081243,
+        "raw_host_api_ms": 32535.781983,
+        "output_copy_ms": 0.296421,
+        "local_publication_ms": 10.550143,
+        "generation_phase_sum_ms": 32749.70979,
+        "gpu_median_ms": 34184.69140625,
+        "public_api_envelope_ms": 34184.69140625
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          34446.44140625,
+          34102.19921875,
+          34184.69140625
+        ],
+        "raw_host_samples_ms": [
+          32791.382617,
+          32473.343334,
+          32535.781983
+        ],
+        "api_samples_ms": [
+          34446.44140625,
+          34102.19921875,
+          34184.69140625
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 34102.19921875,
+        "median_ms": 34184.69140625,
+        "p95_ms": 34446.44140625,
+        "mean_ms": 34244.444010416664,
+        "standard_deviation_ms": 146.75024404799709,
+        "coefficient_of_variation": 0.004285373825995183
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 32473.343334,
+        "median_ms": 32535.781983,
+        "p95_ms": 32791.382617,
+        "mean_ms": 32600.16931133333,
+        "standard_deviation_ms": 137.59007333432464,
+        "coefficient_of_variation": 0.004220532477004405
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          79.0,
+          86.0
+        ],
+        "sm_clock_mhz": [
+          1590.0,
+          2295.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 44000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 52000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400321248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "heston.down_and_out_option",
+          "variant": "put",
+          "threads": 512,
+          "registers": 70,
+          "local_bytes": 0,
+          "shared_bytes": 336,
+          "theoretical_occupancy": 0.3333333333333333
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "ca57935e3672907ab9cd27725aea984c605f9875d0991bb0136cd5995cefb7b3",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json": "1fd686c8077f7f93b34381a242ad806c83adfbf82f4eddcb664d4a3db0477b33",
+        "datasets/product/down_and_out_option/down_and_out_options_01.json": "cea7d03969bbc98c471ebcb01e39facae3b62b43e45c423bcbf96533c08dbcc8"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "fdbf961f95a9e4c7c0e2a1a9e576038d6253688fbb628e73aa8d2a1c2dce73b7",
+        "outcome.json": "95d4aaccbd1d6fd2f8e3ac65416b1bbdc4e9ae7acb1a6552eec506c80d861f31",
+        "resources.json": "455b80ae2833ea56160b34b998964dcda31ff03ad57847af85fe63f90854c4ca",
+        "provenance.json": "6281eb293d252581858459f385075561a538109158201a7a169a67a6c836ee1b"
+      }
+    },
+    {
+      "case": "heston__lsm",
+      "model": "heston",
+      "product": "american_option",
+      "side": "put",
+      "family": "lsm",
+      "recipe": "catalog/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp",
+      "engine": "equity_lsm_fixed",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 128,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 128,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668826995294208000
+      },
+      "timings": {
+        "preparation_ms": 455.743554,
+        "raw_host_api_ms": 34469.206132,
+        "output_copy_ms": 0.139141,
+        "local_publication_ms": 13.648119,
+        "generation_phase_sum_ms": 34938.736946,
+        "gpu_median_ms": 35696.154541015625,
+        "public_api_envelope_ms": 35696.154541015625
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          34732.048522949226,
+          35696.154541015625,
+          35872.54769897462
+        ],
+        "raw_host_samples_ms": [
+          33498.809288,
+          34469.206132,
+          34751.44897
+        ],
+        "api_samples_ms": [
+          34732.048522949226,
+          35696.154541015625,
+          35872.54769897462
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 34732.048522949226,
+        "median_ms": 35696.154541015625,
+        "p95_ms": 35872.54769897462,
+        "mean_ms": 35433.583587646484,
+        "standard_deviation_ms": 501.2598938631412,
+        "coefficient_of_variation": 0.014146463414383517
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 33498.809288,
+        "median_ms": 34469.206132,
+        "p95_ms": 34751.44897,
+        "mean_ms": 34239.821463333334,
+        "standard_deviation_ms": 536.4945093815056,
+        "coefficient_of_variation": 0.015668729755382214
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          79.0,
+          89.0
+        ],
+        "sm_clock_mhz": [
+          1500.0,
+          2265.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 44000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 14194638144,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 14194690144,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400321248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "heston.american_option.prepare_rows",
+          "variant": "common",
+          "threads": 128,
+          "registers": 48,
+          "local_bytes": 0,
+          "shared_bytes": 0,
+          "theoretical_occupancy": 0.8333333333333334
+        },
+        {
+          "kernel": "heston.american_option.simulate_paths",
+          "variant": "put",
+          "threads": 128,
+          "registers": 69,
+          "local_bytes": 0,
+          "shared_bytes": 96,
+          "theoretical_occupancy": 0.5833333333333334
+        },
+        {
+          "kernel": "heston.american_option.regression_partials",
+          "variant": "put",
+          "threads": 128,
+          "registers": 88,
+          "local_bytes": 0,
+          "shared_bytes": 1168,
+          "theoretical_occupancy": 0.4166666666666667
+        },
+        {
+          "kernel": "heston.american_option.solve_regressions",
+          "variant": "common",
+          "threads": 128,
+          "registers": 82,
+          "local_bytes": 0,
+          "shared_bytes": 1120,
+          "theoretical_occupancy": 0.4166666666666667
+        },
+        {
+          "kernel": "heston.american_option.update_cashflows",
+          "variant": "put",
+          "threads": 128,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 96,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "heston.american_option.moment_partials",
+          "variant": "common",
+          "threads": 128,
+          "registers": 23,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "heston.american_option.finalize_prices",
+          "variant": "put",
+          "threads": 128,
+          "registers": 35,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        }
+      ],
+      "lsm_batches": [
+        {
+          "offset": 0,
+          "rows": 1000,
+          "gpu_ms": 35872.54769897462,
+          "native_batch_count": 32,
+          "maximum_prices_per_batch": 170,
+          "kernel_launch_count": 13676,
+          "blocks_per_price": 128,
+          "workspace_bytes": 14157538896,
+          "successful_regressions": 50497,
+          "no_candidates": 316,
+          "insufficient_candidates": 75,
+          "fatal_regressions": 0
+        }
+      ],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "a19666d72537aeb16eed737d8f101aed1d5ff1b8c26e27580fbbc79969cc0d6d",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json": "1fd686c8077f7f93b34381a242ad806c83adfbf82f4eddcb664d4a3db0477b33",
+        "datasets/product/american_option/american_options_01.json": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "1addd93f112af4c313b1d9a3034ccaf49c1342aa9b49b6660bcd064f398c491e",
+        "outcome.json": "806cbb76b1b1e377a39ec8f09a65ab407fcafb21247d7ad2773459c2cc67b6f6",
+        "resources.json": "adf20f091424fb90460c125c98e662c6437e06ae52755787f38ebcfb3c0741e2",
+        "provenance.json": "d9c25007ca4be1379dec57f57ec792a8e05f4687c424b2546ff6ded6eb293a98"
+      }
+    },
+    {
+      "case": "kou__mc_terminal",
+      "model": "kou",
+      "product": "european_option",
+      "side": "call",
+      "family": "mc_terminal",
+      "recipe": "catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01/generator.cpp",
+      "engine": "equity_markovian",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 512,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668827326006689792
+      },
+      "timings": {
+        "preparation_ms": 208.927204,
+        "raw_host_api_ms": 102.457934,
+        "output_copy_ms": 0.192566,
+        "local_publication_ms": 14.12702,
+        "generation_phase_sum_ms": 325.704724,
+        "gpu_median_ms": 106.15705871582031,
+        "public_api_envelope_ms": 106.15705871582031
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          106.15705871582031,
+          100.69881439208984,
+          114.94121551513672
+        ],
+        "raw_host_samples_ms": [
+          102.457934,
+          95.985655,
+          109.524031
+        ],
+        "api_samples_ms": [
+          106.15705871582031,
+          100.69881439208984,
+          114.94121551513672
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 100.69881439208984,
+        "median_ms": 106.15705871582031,
+        "p95_ms": 114.94121551513672,
+        "mean_ms": 107.2656962076823,
+        "standard_deviation_ms": 5.867043846987637,
+        "coefficient_of_variation": 0.05469636663363626
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 95.985655,
+        "median_ms": 102.457934,
+        "p95_ms": 109.524031,
+        "mean_ms": 102.65587333333332,
+        "standard_deviation_ms": 5.528790775814927,
+        "coefficient_of_variation": 0.05385752024009791
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": null,
+        "sm_clock_mhz": null,
+        "power_limit_w": null
+      },
+      "memory": {
+        "persistent_input_bytes": 40000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 48000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400325248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "kou.european_option",
+          "variant": "call",
+          "threads": 512,
+          "registers": 64,
+          "local_bytes": 0,
+          "shared_bytes": 304,
+          "theoretical_occupancy": 0.6666666666666666
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "961148024b3bc75a82aa720716ef5c8eff12a23835f6d51560e4c18770ca5d2b",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/kou/parameters/kou_01.json": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+        "datasets/product/european_option/european_options_01.json": "e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "b16c26e345feb27d90418d5273ef03c952927853de2db8a2be65c93eda980d3d",
+        "outcome.json": "6142a7fb27ebb2f97f847f800f4bc8e7f4001e9c4c9be802a0922540a13887c6",
+        "resources.json": "34fe63f1a1f7ff51cd2f071f53f6e4745dfd578b488648564c892df0ca5f7e4b",
+        "provenance.json": "89f25a8b05ac1c54c26c8a7bee8447421f25fe7a1725672bde5f7c6cddded037"
+      }
+    },
+    {
+      "case": "kou__mc_barrier",
+      "model": "kou",
+      "product": "down_and_out_option",
+      "side": "put",
+      "family": "mc_barrier",
+      "recipe": "catalog/model/equity/markovian/kou/prices/down_and_out_puts/kou_01__down_and_out_puts_01__01/generator.cpp",
+      "engine": "equity_markovian",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 512,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668827321711722496
+      },
+      "timings": {
+        "preparation_ms": 199.22001,
+        "raw_host_api_ms": 18203.993639,
+        "output_copy_ms": 0.280633,
+        "local_publication_ms": 11.340638,
+        "generation_phase_sum_ms": 18414.83492,
+        "gpu_median_ms": 19242.197265625,
+        "public_api_envelope_ms": 19242.197265625
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          19491.400390625,
+          19242.197265625,
+          19004.05859375
+        ],
+        "raw_host_samples_ms": [
+          18685.60956,
+          18203.993639,
+          18155.239261
+        ],
+        "api_samples_ms": [
+          19491.400390625,
+          19242.197265625,
+          19004.05859375
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 19004.05859375,
+        "median_ms": 19242.197265625,
+        "p95_ms": 19491.400390625,
+        "mean_ms": 19245.885416666668,
+        "standard_deviation_ms": 198.97354696695746,
+        "coefficient_of_variation": 0.010338497952120673
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 18155.239261,
+        "median_ms": 18203.993639,
+        "p95_ms": 18685.60956,
+        "mean_ms": 18348.28082,
+        "standard_deviation_ms": 239.35643778826713,
+        "coefficient_of_variation": 0.013045169742952906
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          79.0,
+          84.0
+        ],
+        "sm_clock_mhz": [
+          1590.0,
+          1665.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 44000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 52000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400321248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "kou.down_and_out_option",
+          "variant": "put",
+          "threads": 512,
+          "registers": 72,
+          "local_bytes": 0,
+          "shared_bytes": 320,
+          "theoretical_occupancy": 0.3333333333333333
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "daf2394883d316a75b5902fe24cb4e61e059cea1c750fb0f0499bd1c6cf9aa4b",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/kou/parameters/kou_01.json": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+        "datasets/product/down_and_out_option/down_and_out_options_01.json": "cea7d03969bbc98c471ebcb01e39facae3b62b43e45c423bcbf96533c08dbcc8"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "b2a4266a515fa1f035adc1fd2377378b89dde81f46fb5d301fec7ed60ba693e7",
+        "outcome.json": "1ed9ccc13f3a34d7fafd6eff4d56da5ec3ce0d54937cb2a67ea78e1564c69852",
+        "resources.json": "36609b18a01d8daac112a96787cc9bdda0361c4de3a7fc68849de32196322037",
+        "provenance.json": "a37c8dfc29dc1d73ad0e8d42915656434e31747b5673c0b8b787d9873e8c90a8"
+      }
+    },
+    {
+      "case": "kou__lsm",
+      "model": "kou",
+      "product": "american_option",
+      "side": "put",
+      "family": "lsm",
+      "recipe": "catalog/model/equity/markovian/kou/prices/american_puts/kou_01__american_puts_01__01/generator.cpp",
+      "engine": "equity_lsm_exact",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 128,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 128,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668827270172114944
+      },
+      "timings": {
+        "preparation_ms": 224.254401,
+        "raw_host_api_ms": 12588.898342,
+        "output_copy_ms": 0.127669,
+        "local_publication_ms": 12.09388,
+        "generation_phase_sum_ms": 12825.374292,
+        "gpu_median_ms": 12827.992767333986,
+        "public_api_envelope_ms": 12827.992767333986
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          12827.992767333986,
+          12808.410827636719,
+          12888.503479003906
+        ],
+        "raw_host_samples_ms": [
+          12514.014422,
+          12588.898342,
+          12914.410352
+        ],
+        "api_samples_ms": [
+          12827.992767333986,
+          12808.410827636719,
+          12914.410352
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 12808.410827636719,
+        "median_ms": 12827.992767333986,
+        "p95_ms": 12888.503479003906,
+        "mean_ms": 12841.63569132487,
+        "standard_deviation_ms": 34.09110570243841,
+        "coefficient_of_variation": 0.0026547323504488266
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 12514.014422,
+        "median_ms": 12588.898342,
+        "p95_ms": 12914.410352,
+        "mean_ms": 12672.441038666666,
+        "standard_deviation_ms": 173.80786674734713,
+        "coefficient_of_variation": 0.013715421221295685
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          79.0,
+          80.0
+        ],
+        "sm_clock_mhz": [
+          1590.0,
+          1695.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 44000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 14190752752,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 14190804752,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400321248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "kou.american_option.prepare_rows",
+          "variant": "common",
+          "threads": 128,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 0,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "kou.american_option.simulate_paths",
+          "variant": "put",
+          "threads": 128,
+          "registers": 70,
+          "local_bytes": 0,
+          "shared_bytes": 96,
+          "theoretical_occupancy": 0.5833333333333334
+        },
+        {
+          "kernel": "kou.american_option.regression_partials",
+          "variant": "put",
+          "threads": 128,
+          "registers": 86,
+          "local_bytes": 0,
+          "shared_bytes": 1152,
+          "theoretical_occupancy": 0.4166666666666667
+        },
+        {
+          "kernel": "kou.american_option.solve_regressions",
+          "variant": "common",
+          "threads": 128,
+          "registers": 82,
+          "local_bytes": 0,
+          "shared_bytes": 1120,
+          "theoretical_occupancy": 0.4166666666666667
+        },
+        {
+          "kernel": "kou.american_option.update_cashflows",
+          "variant": "put",
+          "threads": 128,
+          "registers": 39,
+          "local_bytes": 0,
+          "shared_bytes": 96,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "kou.american_option.moment_partials",
+          "variant": "common",
+          "threads": 128,
+          "registers": 23,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "kou.american_option.finalize_prices",
+          "variant": "put",
+          "threads": 128,
+          "registers": 35,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        }
+      ],
+      "lsm_batches": [
+        {
+          "offset": 0,
+          "rows": 1000,
+          "gpu_ms": 12888.503479003906,
+          "native_batch_count": 16,
+          "maximum_prices_per_batch": 239,
+          "kernel_launch_count": 6982,
+          "blocks_per_price": 128,
+          "workspace_bytes": 14190752752,
+          "successful_regressions": 50717,
+          "no_candidates": 127,
+          "insufficient_candidates": 44,
+          "fatal_regressions": 0
+        }
+      ],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "802caf254ec278b9b9d4ae0e893d315b23e6a7ec5a42d974a99491397e4f6c18",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/kou/parameters/kou_01.json": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+        "datasets/product/american_option/american_options_01.json": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "3d111094233dd8a496bbdcc92ffb98323548002fb5250dcd91256bfb781503c2",
+        "outcome.json": "fa21db261d8554cf70ed6e80e38cfb1deee17d3cebd0d9b8ba0dae94811447d3",
+        "resources.json": "10de05dd7a794f1bff7db6350c1230b14b0ffe61ea5bff25f7af4a46a23e104a",
+        "provenance.json": "cf85fa6f509dabda9084aa3439ab594957a1810973cd4d2e64d29cc1da7a2e39"
+      }
+    },
+    {
+      "case": "cir__closed_form",
+      "model": "cir",
+      "product": "rate_option",
+      "side": "call",
+      "family": "closed_form",
+      "recipe": "catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp",
+      "engine": "fixed_income_closed_form",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 0,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 0,
+        "requested_threads": 256,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 0
+      },
+      "timings": {
+        "preparation_ms": 179.913669,
+        "raw_host_api_ms": 0.1890221220703125,
+        "output_copy_ms": 0.151012,
+        "local_publication_ms": 8.39505,
+        "generation_phase_sum_ms": 188.6487531220703,
+        "gpu_median_ms": 0.2017306536436081,
+        "public_api_envelope_ms": 0.2017306536436081
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          0.20264199376106262,
+          0.20167218148708344,
+          0.2017306536436081
+        ],
+        "raw_host_samples_ms": [
+          0.1899932509765625,
+          0.188991068359375,
+          0.1890221220703125
+        ],
+        "api_samples_ms": [
+          0.20264199376106262,
+          0.20167218148708344,
+          0.2017306536436081
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 0.20167218148708344,
+        "median_ms": 0.2017306536436081,
+        "p95_ms": 0.20264199376106262,
+        "mean_ms": 0.20201494296391806,
+        "standard_deviation_ms": 0.0004440339888806512,
+        "coefficient_of_variation": 0.0021980254646804032
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 0.188991068359375,
+        "median_ms": 0.1890221220703125,
+        "p95_ms": 0.1899932509765625,
+        "mean_ms": 0.18933548046875,
+        "standard_deviation_ms": 0.0004652867316337959,
+        "coefficient_of_variation": 0.002457472474159918
+      },
+      "operations_per_sample": 1024,
+      "fixed_time_step": "",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": null,
+        "sm_clock_mhz": null,
+        "power_limit_w": null
+      },
+      "memory": {
+        "persistent_input_bytes": 36000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 44000,
+        "observed_resident_bytes": 1398276096,
+        "driver_context_and_pool_bytes": 1398232096,
+        "free_margin_bytes": 15772680192,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "cir.rate_option",
+          "variant": "call",
+          "threads": 256,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 0,
+          "theoretical_occupancy": 1.0
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "e077ac515aa3c22389650d9df0e4ae953214a856759a1c919c5d922f81e4e70b",
+      "source_inputs_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/rate_option/rate_options_01.json": "62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "b9a93cb6344201a11289564651296bf87585b9c2a007358374f0d299a82c70c6",
+        "outcome.json": "96105f836dcffb6cc28a2981a44fc5898cd3763d2821d1f0244b457989b2c901",
+        "resources.json": "090b87f105458b01ca59466d3683945eb1b784a85dfd570e9cf31219f17466b4",
+        "provenance.json": "bf6c396fa6ed9b172f223e50b04142ea5f1b788da61002d2dfff4078ec9c5088"
+      }
+    },
+    {
+      "case": "cir__lsm",
+      "model": "cir",
+      "product": "bermudan_swaption",
+      "side": "payer",
+      "family": "lsm",
+      "recipe": "catalog/model/fixed_income/cir/prices/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01/generator.cpp",
+      "engine": "fixed_income_lsm",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 128,
+        "batch_rows": 1000,
+        "block_limit": 4096,
+        "blocks_per_price": 64,
+        "path_chunk": 0,
+        "warmups": 1,
+        "repetitions": 3,
+        "seed": 11668829039698640896
+      },
+      "timings": {
+        "preparation_ms": 302.85366,
+        "raw_host_api_ms": 686423.659779,
+        "output_copy_ms": 0.169759,
+        "local_publication_ms": 19.816149,
+        "generation_phase_sum_ms": 686746.4993469999,
+        "gpu_median_ms": 718349.09765625,
+        "public_api_envelope_ms": 718349.09765625
+      },
+      "environment_eligible_for_tuning": true,
+      "timing_ineligibility_reasons": [],
+      "samples": {
+        "gpu_samples_ms": [
+          718257.80859375,
+          718349.09765625,
+          718425.55859375
+        ],
+        "raw_host_samples_ms": [
+          685218.279486,
+          686423.659779,
+          686726.330214
+        ],
+        "api_samples_ms": [
+          718257.80859375,
+          718349.09765625,
+          718425.55859375
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 718257.80859375,
+        "median_ms": 718349.09765625,
+        "p95_ms": 718425.55859375,
+        "mean_ms": 718344.1549479166,
+        "standard_deviation_ms": 68.57277593550423,
+        "coefficient_of_variation": 9.545950289033267e-05
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 685218.279486,
+        "median_ms": 686423.659779,
+        "p95_ms": 686726.330214,
+        "mean_ms": 686122.756493,
+        "standard_deviation_ms": 651.3889468919673,
+        "coefficient_of_variation": 0.0009493766832941548
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "1 / 504",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": [
+          79.0,
+          88.0
+        ],
+        "sm_clock_mhz": [
+          1590.0,
+          1605.0
+        ],
+        "power_limit_w": [
+          150.0,
+          150.0
+        ]
+      },
+      "memory": {
+        "persistent_input_bytes": 44000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 14153916640,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 14153968640,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400321248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "cir.bermudan_swaption.prepare_rows",
+          "variant": "common",
+          "threads": 128,
+          "registers": 38,
+          "local_bytes": 0,
+          "shared_bytes": 0,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "cir.bermudan_swaption.simulate_paths",
+          "variant": "payer",
+          "threads": 128,
+          "registers": 70,
+          "local_bytes": 0,
+          "shared_bytes": 144,
+          "theoretical_occupancy": 0.5833333333333334
+        },
+        {
+          "kernel": "cir.bermudan_swaption.regression_partials",
+          "variant": "payer",
+          "threads": 128,
+          "registers": 76,
+          "local_bytes": 0,
+          "shared_bytes": 744,
+          "theoretical_occupancy": 0.5
+        },
+        {
+          "kernel": "cir.bermudan_swaption.solve_regressions",
+          "variant": "common",
+          "threads": 128,
+          "registers": 62,
+          "local_bytes": 0,
+          "shared_bytes": 600,
+          "theoretical_occupancy": 0.6666666666666666
+        },
+        {
+          "kernel": "cir.bermudan_swaption.update_cashflows",
+          "variant": "payer",
+          "threads": 128,
+          "registers": 52,
+          "local_bytes": 0,
+          "shared_bytes": 176,
+          "theoretical_occupancy": 0.75
+        },
+        {
+          "kernel": "cir.bermudan_swaption.moment_partials",
+          "variant": "common",
+          "threads": 128,
+          "registers": 26,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        },
+        {
+          "kernel": "cir.bermudan_swaption.finalize_prices",
+          "variant": "payer",
+          "threads": 128,
+          "registers": 35,
+          "local_bytes": 0,
+          "shared_bytes": 64,
+          "theoretical_occupancy": 1.0
+        }
+      ],
+      "lsm_batches": [
+        {
+          "offset": 0,
+          "rows": 1000,
+          "gpu_ms": 718425.55859375,
+          "native_batch_count": 4,
+          "maximum_prices_per_batch": 263,
+          "kernel_launch_count": 130,
+          "blocks_per_price": 64,
+          "workspace_bytes": 14153916640,
+          "successful_regressions": 4528,
+          "no_candidates": 538,
+          "insufficient_candidates": 54,
+          "fatal_regressions": 0
+        }
+      ],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "f2346495294641f09de473d8fec6d645ce727807c03f392c68a8f8813d94eebf",
+      "source_inputs_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/bermudan_swaption/bermudan_swaptions_01.json": "4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "b993626c2253f29fd313e0bacb99917775040cfcf187615d74268037ab71847d",
+        "outcome.json": "e1ec6b45e472c50df96018549c2f8c07bfdc8139a91fcd3597de32a8a9d2f5f1",
+        "resources.json": "672108c6d0fd0af73af98aa473ea1c1bd6808f00203731f7627f8c857f940744",
+        "provenance.json": "4b11065ab0de3ee7aab0d078c0b10330bce983ab1e6b6023aa0f0c54fa7f55b8"
+      }
+    }
+  ]
+}

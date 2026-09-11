@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_construction.cuh"
+#include "common/closed_form/concepts.cuh"
 
 #include "common/fixed_income/swaption_side.cuh"
 #include "curve/${curve}/parameters.hpp"
@@ -13,7 +14,7 @@
 
 namespace ai_factory::workbench::model::fixed_income::${model}::${curve} {
 
-// Launch one regular-schedule payer (call) or receiver (put) per thread.
+// Launch a regular-schedule swaption with an explicit host work distribution.
 template<SwaptionSide Side>
 void launch_${model}_${curve}_european_swaption_cuda(
     const ModelParameters* device_models,
@@ -29,7 +30,9 @@ void launch_${model}_${curve}_european_swaption_cuda(
     float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
-    float* device_prices
+    float* device_prices,
+    std::uint32_t maximum_payment_count = 0U,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::scalar
 );
 
 // Launch the same pricer for arbitrary schedules stored in parallel pools.
@@ -52,7 +55,8 @@ void launch_${model}_${curve}_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::cooperative
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::${model}::${curve}

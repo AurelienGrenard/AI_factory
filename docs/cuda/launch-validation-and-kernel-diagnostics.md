@@ -7,6 +7,53 @@ optionnelle de `cuda_kernel_diagnostics.cuh/.cpp` et le test qui garantit son
 fonctionnement. Ces services sont côté hôte : ils ne changent ni les équations,
 ni les trajectoires, ni les réductions des kernels.
 
+## Planifier le pricing du catalogue
+
+`tools/cuda/tuning_profile.hpp` possède les réglages hôte par famille et les
+exceptions modèle/produit. `pricing_launch_plan.hpp` en déduit le découpage des
+prix, les blocs et le dernier batch, sans CUDA, allocation ou autotuning.
+Le manifeste codegen fournit seulement l'identité et la famille du couple :
+aucune seconde table de géométries n'est maintenue dans Python.
+
+Depuis la racine, inspecter le même plan que les recettes :
+
+```bash
+cmake --build build-dev --target inspect_pricing_launch_plan -j1
+build-dev/inspect_pricing_launch_plan heston/european_option 1000
+build-dev/inspect_pricing_launch_plan cir_plus_plus/svensson/european_swaption 1000000
+build-dev/inspect_pricing_launch_plan heston/american_option 1000000
+build-dev/inspect_pricing_launch_plan bates/athena_autocall 1000 --price-delta
+```
+
+Les recettes MC/LSM utilisent `kProductionPathsPerPrice = 2^20 = 1 048 576`.
+La voie prix-delta réutilise le plan commun avec un plafond MC de 256 threads,
+justifié par les trois états de payoff et la pression registre mesurée; ce
+n'est pas un optimum certifié. Le profil prix seul ne change pas. Le suffixe
+`--price-delta` inspecte ce candidat et refuse les couples non implémentés.
+Un cap de blocs ou de prix par lancement ne diminue jamais ce compte. Un bloc
+MC traite un prix à la fois et peut avancer vers les suivants; un thread joue
+ce rôle en formule fermée scalaire. En LSM, les blocs par prix restent distincts
+du nombre de prix simultanés, déterminé par le workspace natif et la VRAM.
+L'inspection hors GPU laisse ce dernier compte à `null`; un argument optionnel
+après le nombre de trajectoires permet de tester une borne résidente explicite.
+Pour FFT, le chunk de 65 536 chemins découpe les `2^20` trajectoires : les
+grilles FFT restent possédées par la spécialisation compilée, pas par ce plan.
+
+Le JSON distingue configuration proposée, qualification et preuve. Le profil
+SM89 n'est ni une détection automatique du GPU ni une garantie d'optimalité.
+Les candidats Jamshidian à 1 000 prix reprennent ce point mesuré; les autres
+tailles héritent d'un candidat grande taille, sans seuil optimal démontré.
+CIR et Vasicek gardent leur géométrie native en attendant la confirmation des
+timings après la correction numérique de `NUM-021`.
+Changer de GPU/profil nécessite des mesures et les gardes natives restent
+obligatoires; l'inspection ne prétend vérifier aucune ressource device.
+
+Les métadonnées des nouvelles générations enregistrent le plan réellement
+demandé. Les anciens JSON/YAML ne sont pas réétiquetés à `2^20` : il faut
+régénérer leurs prix pour changer leur nombre de trajectoires déclaré.
+Tests rapides, warmups, échelles comparatives et tailles de samples conservent
+leurs charges propres; ils ne définissent pas la précision du pricing publié.
+
 ## Contrôles communs de `check_cuda.cuh`
 
 Toutes ces fonctions sont `inline`, exécutées sur l'hôte et lèvent une exception
@@ -187,6 +234,10 @@ Construit une clé avec nom, variante, grille, bloc et mémoire partagée
 dynamique. Elle retourne `true` seulement pour la première occurrence du
 processus. Un mutex protège la déduplication concurrente.
 
+Une pipeline composée utilise la variante
+`reserve_cuda_kernel_phase_launch_diagnostics`. Le nom de phase entre dans la
+clé : deux kernels de même nom et de même géométrie ne se masquent donc pas.
+
 ### `inspect_cuda_kernel_launch`
 
 Template hôte recevant le pointeur vers le kernel exact, sa grille, son bloc et
@@ -212,6 +263,10 @@ inspection et émission.
 
 Le pointeur doit désigner la spécialisation réellement lancée, et la géométrie
 doit être exactement celle utilisée par l'expression `<<<...>>>` suivante.
+
+`report_cuda_kernel_phase_launch_if_enabled` applique le même contrat et ajoute
+le champ JSON `phase`. Il est obligatoire pour chaque lancement d'une pipeline
+multi-kernel dont le manifeste budgète les phases séparément.
 
 ## Ordre obligatoire dans un launcher
 

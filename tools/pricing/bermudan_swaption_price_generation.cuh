@@ -5,7 +5,7 @@
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
-#include "tools/cuda/tuning_profile.hpp"
+#include "tools/cuda/pricing_launch_plan.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <algorithm>
@@ -32,6 +32,9 @@ struct BermudanSwaptionGenerationConfiguration {
     std::filesystem::path catalog_path;
     std::string url;
     std::string cuda_label;
+    offline::cuda_tuning::PricingIdentity identity{offline::cuda_tuning::PricingFamily::gaussian_rate_lsm, {}, "bermudan_swaption", {}};
+    std::string pricing_measure = "risk_neutral";
+    std::string regression_target = "next policy cashflow discounted pathwise";
 };
 
 inline BermudanSwaptionGenerationConfiguration
@@ -66,6 +69,9 @@ make_bermudan_swaption_generation_configuration(
         "catalog/" + relative + "/dataset.yaml",
         "https://datasets.ai-factory.example/v1/" + relative + ".json",
         model + " Bermudan " + side + " swaption",
+        {model == "cir" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm
+                        : offline::cuda_tuning::PricingFamily::gaussian_rate_lsm,
+         model, "bermudan_swaption", {}},
     };
 }
 
@@ -99,6 +105,9 @@ make_fitted_bermudan_swaption_generation_configuration(
         "catalog/" + relative + "/dataset.yaml",
         "https://datasets.ai-factory.example/v1/" + relative + ".json",
         model + " " + curve + " Bermudan " + side + " swaption",
+        {model == "cir_plus_plus" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm
+                                  : offline::cuda_tuning::PricingFamily::gaussian_rate_lsm,
+         model, "bermudan_swaption", curve},
     };
 }
 
@@ -124,16 +133,29 @@ inline nlohmann::ordered_json bermudan_swaption_catalog_sections(
             {"exercise_dates", "co-terminal regular Bermudan schedule"},
             {"regression_basis", configuration.regression_basis},
             {"regression_state", configuration.state_variables},
-            {"regression_target", "next policy cashflow discounted pathwise"},
+            {"pricing_measure", configuration.pricing_measure},
+            {"regression_target", configuration.regression_target},
             {"in_the_money_paths_only", true},
             {"solver", "FP64 normal equations and Cholesky on GPU"},
         }},
     };
 }
 
+inline offline::cuda_tuning::PricingLaunchPlan bermudan_swaption_launch_plan(
+    const BermudanSwaptionGenerationConfiguration& configuration, std::size_t result_count
+) {
+    auto settings = offline::cuda_tuning::pricing_profile(configuration.identity);
+    settings.threads_per_block = configuration.threads_per_block;
+    settings.blocks_per_price = configuration.blocks_per_price;
+    return offline::cuda_tuning::make_pricing_launch_plan(
+        configuration.identity, result_count, configuration.paths_per_price, settings
+    );
+}
+
 inline nlohmann::ordered_json bermudan_swaption_cuda_execution(
     const BermudanSwaptionGenerationConfiguration& configuration,
-    const longstaff_schwartz::LaunchResult& execution
+    const longstaff_schwartz::LaunchResult& execution,
+    const offline::cuda_tuning::PricingLaunchPlan& plan
 ) {
     nlohmann::ordered_json result = {
         {"threads_per_block", configuration.threads_per_block},
@@ -141,11 +163,16 @@ inline nlohmann::ordered_json bermudan_swaption_cuda_execution(
         {"batch_count", execution.batch_count},
         {"kernel_launch_count", execution.kernel_launch_count},
         {"workspace_bytes", execution.workspace_bytes},
+        {"maximum_prices_per_batch", execution.maximum_prices_per_batch},
+        {"launch_plan", offline::cuda_tuning::pricing_launch_metadata(plan)},
         {
             "tuning_profile",
             offline::cuda_tuning::metadata("fixed_income_early_exercise")
         },
     };
+    result["launch_plan"]["memory_batching"] = "resolved by native LSM VRAM planner";
+    result["launch_plan"]["maximum_resident_prices"] = execution.maximum_prices_per_batch;
+    result["launch_plan"]["price_batch_count"] = execution.batch_count;
     for (const auto& [name, value] : configuration.time_discretization.items()) {
         result[name] = value;
     }
@@ -165,12 +192,14 @@ void generate_bermudan_swaption_prices(
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
     );
+    const auto plan = bermudan_swaption_launch_plan(configuration, result_count);
     longstaff_schwartz::LaunchResult execution{};
     const auto run = offline::cuda::run_monte_carlo(
         offline::cuda::inputs(models, products),
         result_count,
         [&](auto& resources) {
             launcher(
+                plan,
                 resources.template input<0U>(),
                 1U,
                 products.data(),
@@ -186,6 +215,7 @@ void generate_bermudan_swaption_prices(
         },
         [&](auto& resources) {
             execution = launcher(
+                plan,
                 resources.template input<0U>(),
                 models.size(),
                 products.data(),
@@ -215,7 +245,7 @@ void generate_bermudan_swaption_prices(
         configuration.numerical_method,
         configuration.paths_per_price,
         configuration.delta_t,
-        bermudan_swaption_cuda_execution(configuration, execution),
+        bermudan_swaption_cuda_execution(configuration, execution, plan),
         bermudan_swaption_catalog_sections(configuration),
         configuration.seed,
         run.wall_seconds,
@@ -239,12 +269,14 @@ void generate_bermudan_swaption_prices(
     const std::size_t result_count = price_row_count(
         models.size(), curves.size(), products.size(), construction
     );
+    const auto plan = bermudan_swaption_launch_plan(configuration, result_count);
     longstaff_schwartz::LaunchResult execution{};
     const auto run = offline::cuda::run_monte_carlo(
         offline::cuda::inputs(models, curves, products),
         result_count,
         [&](auto& resources) {
             launcher(
+                plan,
                 resources.template input<0U>(),
                 1U,
                 resources.template input<1U>(),
@@ -262,6 +294,7 @@ void generate_bermudan_swaption_prices(
         },
         [&](auto& resources) {
             execution = launcher(
+                plan,
                 resources.template input<0U>(),
                 models.size(),
                 resources.template input<1U>(),
@@ -294,7 +327,7 @@ void generate_bermudan_swaption_prices(
         configuration.numerical_method,
         configuration.paths_per_price,
         configuration.delta_t,
-        bermudan_swaption_cuda_execution(configuration, execution),
+        bermudan_swaption_cuda_execution(configuration, execution, plan),
         bermudan_swaption_catalog_sections(configuration),
         configuration.seed,
         run.wall_seconds,
@@ -318,6 +351,7 @@ void generate_exact_bermudan_swaption_prices(
         models,
         products,
         [launcher, &configuration](
+            const offline::cuda_tuning::PricingLaunchPlan& plan,
             const Model* device_models,
             std::size_t model_count,
             const product::BermudanSwaptionParameters* host_products,
@@ -338,8 +372,8 @@ void generate_exact_bermudan_swaption_prices(
                 result_count,
                 paths_per_price,
                 1.0f / 252.0f,
-                configuration.threads_per_block,
-                configuration.blocks_per_price,
+                plan.profile.threads_per_block,
+                plan.profile.blocks_per_price,
                 configuration.seed,
                 device_prices,
                 device_standard_errors
@@ -349,54 +383,6 @@ void generate_exact_bermudan_swaption_prices(
     );
 }
 
-template<typename Model, typename Launcher>
-void generate_fixed_step_bermudan_swaption_prices(
-    const std::filesystem::path& model_dataset_path,
-    const std::filesystem::path& product_dataset_path,
-    const std::vector<Model>& models,
-    const std::vector<product::BermudanSwaptionParameters>& products,
-    Launcher launcher,
-    float dt,
-    std::uint32_t simulation_steps_per_day,
-    const BermudanSwaptionGenerationConfiguration& configuration
-) {
-    generate_bermudan_swaption_prices(
-        model_dataset_path,
-        product_dataset_path,
-        models,
-        products,
-        [launcher, dt, simulation_steps_per_day, &configuration](
-            const Model* device_models,
-            std::size_t model_count,
-            const product::BermudanSwaptionParameters* host_products,
-            const product::BermudanSwaptionParameters* device_products,
-            std::size_t product_count,
-            std::size_t result_count,
-            std::size_t paths_per_price,
-            float* device_prices,
-            float* device_standard_errors
-        ) {
-            return launcher(
-                device_models,
-                model_count,
-                host_products,
-                device_products,
-                product_count,
-                PriceConstruction::Aligned,
-                result_count,
-                paths_per_price,
-                dt,
-                simulation_steps_per_day,
-                configuration.threads_per_block,
-                configuration.blocks_per_price,
-                configuration.seed,
-                device_prices,
-                device_standard_errors
-            );
-        },
-        configuration
-    );
-}
 
 template<typename Model, typename Curve, typename Launcher>
 void generate_exact_fitted_bermudan_swaption_prices(
@@ -417,6 +403,7 @@ void generate_exact_fitted_bermudan_swaption_prices(
         curves,
         products,
         [launcher, &configuration](
+            const offline::cuda_tuning::PricingLaunchPlan& plan,
             const Model* device_models,
             std::size_t model_count,
             const Curve* device_curves,
@@ -441,8 +428,8 @@ void generate_exact_fitted_bermudan_swaption_prices(
                 result_count,
                 paths_per_price,
                 1.0f / 252.0f,
-                configuration.threads_per_block,
-                configuration.blocks_per_price,
+                plan.profile.threads_per_block,
+                plan.profile.blocks_per_price,
                 configuration.seed,
                 device_prices,
                 device_standard_errors

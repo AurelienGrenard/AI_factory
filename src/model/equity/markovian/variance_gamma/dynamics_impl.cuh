@@ -14,11 +14,12 @@ __device__ __forceinline__ PreparedModel prepare_model(
     const ModelParameters& parameters
 ) {
     const float sigma2 = parameters.sigma * parameters.sigma;
-    const float martingale_argument = 1.0f
-        - parameters.theta * parameters.nu
-        - 0.5f * sigma2 * parameters.nu;
+    // Keep the Brownian limit: adding the increment to one loses it for
+    // small nu, before division by nu amplifies the FP32 rounding error.
+    const float martingale_increment =
+        -parameters.nu * (parameters.theta + 0.5f * sigma2);
     const float martingale_correction =
-        logf(martingale_argument) / parameters.nu;
+        log1pf(martingale_increment) / parameters.nu;
     return {
         logf(parameters.spot),
         parameters.risk_free_rate - parameters.dividend_yield

@@ -27,6 +27,8 @@ from manifest import (
 from capability_manifest import (
     AVAILABLE_DATASET_SPECS,
     CAPABILITY_EXCEPTIONS,
+    CURVE_BY_NAME,
+    CURVE_SPECS,
     DEFERRED_DATASET_SPECS,
     DECLARED_PRODUCT_BINDING_PATHS,
     ENGINE_SPECS,
@@ -41,7 +43,15 @@ from capability_manifest import (
     MODEL_BY_NAME,
     MODEL_SPECS,
     PRODUCT_SPECS,
+    PRODUCT_BINDING_SPECS,
+    PRICE_DELTA_BINDING_SPECS,
+    GENERATED_PRICE_DELTA_BINDING_PATHS,
+    GENERATED_CLOSED_FORM_POLICY_PATHS,
+    PriceDeltaBindingSpec,
+    PRICE_DELTA_DATASET_SPECS,
+    PRICE_DELTA_SOURCE_BY_RECIPE,
     SCHEMA_VERSION,
+    pricing_launch_family,
     resolve_rng_domain,
 )
 from sample_manifest import SAMPLE_MODELS, SampleModelSpec
@@ -49,6 +59,12 @@ from sample_manifest import SAMPLE_MODELS, SampleModelSpec
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = SCRIPT_DIR / "templates"
+
+
+def _write_generated(path: Path, contents: str) -> None:
+    """Keep unchanged outputs' timestamps so regeneration does not rebuild CUDA."""
+    if not path.exists() or path.read_text() != contents:
+        path.write_text(contents)
 
 
 def _sample_namespace(model: SampleModelSpec) -> str:
@@ -105,6 +121,18 @@ def _render_dollar_template(relative_path: str, values: dict[str, str]) -> str:
     """Render a named template without making C++ braces special."""
     template = Template((TEMPLATE_DIR / relative_path).read_text())
     return template.substitute(values)
+
+
+def _render_cpp_fragment_template(
+    relative_path: str,
+    values: dict[str, str],
+) -> str:
+    """Render a documented C++ fragment without copying its file summary."""
+    rendered = _render_dollar_template(relative_path, values)
+    summary, separator, fragment = rendered.partition("\n")
+    if not separator or not summary.startswith("// "):
+        raise ValueError(f"C++ fragment template lacks a summary: {relative_path}")
+    return fragment
 
 
 def _sample_binding_template_values(model: SampleModelSpec) -> dict[str, str]:
@@ -185,21 +213,15 @@ def _sample_parameter_factory(model: SampleModelSpec) -> str:
         for name, minimum, maximum in model.uniforms
     )
     derived = f"\n        {model.derived}" if model.derived else ""
-    return f'''inline std::vector<ModelParameters> generate_core_parameters(
-    std::size_t parameter_count,
-    std::uint64_t seed
-) {{
-    std::vector<ModelParameters> parameters;
-    parameters.reserve(parameter_count);
-    std::size_t proposal = 0U;
-    while (parameters.size() < parameter_count) {{
-        HostUniformSequence uniforms(seed, proposal++);
-        {uniforms}{derived}
-        if (!({model.acceptance})) continue;
-        parameters.push_back({model.constructor});
-    }}
-    return parameters;
-}}'''
+    return _render_cpp_fragment_template(
+        "sampling/catalog/model_parameter_factory.cuh.tpl",
+        {
+            "uniforms": uniforms,
+            "derived": derived,
+            "acceptance": model.acceptance,
+            "constructor": model.constructor,
+        },
+    ).rstrip()
 
 
 def _sample_parameter_json(model: SampleModelSpec) -> str:
@@ -207,51 +229,37 @@ def _sample_parameter_json(model: SampleModelSpec) -> str:
         f'{{"{name}", parameters.{accessor}}}'
         for name, accessor in model.parameters
     )
-    return f'''inline nlohmann::ordered_json parameter_json(
-    const ModelParameters& parameters
-) {{
-    return {{
-        {entries}
-    }};
-}}'''
+    return _render_cpp_fragment_template(
+        "sampling/catalog/model_parameter_json.cuh.tpl",
+        {"entries": entries},
+    ).rstrip()
 
 
 def _sample_launch_lambda(model: SampleModelSpec) -> str:
     pointers = ",\n            ".join(
         f"outputs[{index}]" for index in range(len(model.outputs))
     )
-    prefix = f"model_binding::launch_{model.name}_random_terminal_samples_cuda"
+    launcher = f"model_binding::launch_{model.name}_random_terminal_samples_cuda"
     if model.backend == "volterra":
         geometry = "block_count,"
     else:
         geometry = "threads_per_block, block_count,"
     template = "<factor_count>" if model.backend == "n_factor" else ""
-    return f'''[](
-        const auto* device_parameters,
-        std::size_t parameter_count,
-        std::size_t paths_per_parameter,
-        std::uint32_t minimum_maturity_days,
-        std::uint32_t maximum_maturity_days,
-        std::size_t sample_offset,
-        std::size_t launch_sample_count,
-        unsigned int threads_per_block,
-        std::size_t block_count,
-        std::uint64_t schedule_seed,
-        std::uint64_t dynamics_seed,
-        std::uint32_t* device_maturity_days,
-        std::span<float*> outputs
-    ) {{
-        if (outputs.size() != {len(model.outputs)}U) {{
-            throw std::invalid_argument("{model.display} sample output arity mismatch.");
-        }}
-        {prefix}{template}(
-            device_parameters, parameter_count, paths_per_parameter,
-            minimum_maturity_days, maximum_maturity_days, sample_offset,
-            launch_sample_count, {geometry} schedule_seed, dynamics_seed,
-            device_maturity_days,
-            {pointers}
-        );
-    }}'''
+    return _render_cpp_fragment_template(
+        "sampling/catalog/sample_launch_lambda.cuh.tpl",
+        {
+            "output_count": f"{len(model.outputs)}U",
+            "display": model.display,
+            "launcher": launcher,
+            "template_arguments": template,
+            "geometry": geometry,
+            "thread_argument": (
+                "/* cuFFTDx fixes the block dimensions */"
+                if model.backend == "volterra" else "threads_per_block"
+            ),
+            "output_pointers": pointers,
+        },
+    ).rstrip()
 
 
 
@@ -271,36 +279,19 @@ def _render_sample_generation_header(model: SampleModelSpec) -> str:
         generate_call = (
             f"generate_prepared_model_sample_dataset<{type_arguments}>"
         )
-        prepare_argument = '''
-        [](const std::vector<ModelParameters>& parameters,
-           std::uint32_t maximum_maturity_days) {
-            return model_binding::prepare_dynamics<factor_count>(
-                parameters,
-                static_cast<float>(maximum_maturity_days) / 252.0f,
-                1.0f / 504.0f
-            );
-        },'''
+        prepare_argument = "\n        " + _render_cpp_fragment_template(
+            "sampling/catalog/preparation/markovian_n_factor_lambda.cuh.tpl",
+            {},
+        ).rstrip().replace("\n", "\n        ")
     if model.name == "quadratic_rough_heston":
-        prepare_argument = '''
-        [](const std::vector<ModelParameters>& parameters,
-           std::uint32_t maximum_maturity_days) {
-            return model_binding::prepare_dynamics_on_hurst_grid<
-                factor_count, 257U
-            >(
-                parameters,
-                static_cast<float>(maximum_maturity_days) / 252.0f,
-                1.0f / 504.0f,
-                0.01f,
-                0.20f
-            );
-        },'''
-        preparation_metadata = ''',
-            {"kernel_preparation", {
-                {"method", "linear interpolation of positive L2 fits"},
-                {"hurst_minimum", 0.01f},
-                {"hurst_maximum", 0.20f},
-                {"grid_point_count", 257U}
-            }}'''
+        prepare_argument = "\n        " + _render_cpp_fragment_template(
+            "sampling/catalog/preparation/quadratic_rough_heston_lambda.cuh.tpl",
+            {},
+        ).rstrip().replace("\n", "\n        ")
+        preparation_metadata = _render_cpp_fragment_template(
+            "sampling/catalog/preparation/quadratic_rough_heston_metadata.cuh.tpl",
+            {},
+        ).rstrip().replace("\n", "\n            ")
     numerical = {
         ("markovian", "exact"): "exact finite-horizon transition",
         ("markovian", "fixed"): "fixed-step transition at dt=1/504",
@@ -314,8 +305,9 @@ def _render_sample_generation_header(model: SampleModelSpec) -> str:
         '{{"transition", "fixed-step"}, {"delta_t", "1 / 504"}, '
         '{"simulation_steps_per_day", 2}}'
     )
+    descriptions = dict(model.observable_descriptions)
     output_metadata = ",\n            ".join(
-        f'{{"{name}", {{{{"description", "Terminal {name}."}}, '
+        f'{{"{name}", {{{{"description", {json.dumps(descriptions.get(name, f"Terminal {name}."))}}}, '
         f'{{"layout", "sample-major"}}}}}}' for name in model.outputs
     )
     return _render_dollar_template(
@@ -331,11 +323,25 @@ def _render_sample_generation_header(model: SampleModelSpec) -> str:
             "asset_class": model.asset_class,
             "numerical": numerical,
             "sample_bounds": _sample_bounds_json(model),
+            "proposal_draw_order": ", ".join(json.dumps(name) for name, _, _ in model.uniforms),
             "escaped_acceptance": model.acceptance.replace('"', '\\"'),
+            "derived_parameter_metadata": (
+                ',\n            {"derived_parameters", {'
+                + ", ".join(
+                    f'{{{json.dumps(name)}, {json.dumps(law)}}}'
+                    for name, law in model.derived_parameter_laws
+                ) + "}}"
+                if model.derived_parameter_laws else ""
+            ),
             "output_metadata": output_metadata,
             "grid": grid,
             "generate_call": generate_call,
             "backend_samples": f"{model.backend}_samples",
+            "native_block_declaration": (
+                f"    const auto native_block = model_binding::{model.name}_sample_block_dimensions(value.maximum_maturity_days);"
+                if model.backend == "volterra" else ""
+            ),
+            "native_block_argument": ", native_block" if model.backend == "volterra" else "",
             "output_names": ", ".join(
                 f'"{name}"' for name in model.outputs
             ),
@@ -385,8 +391,8 @@ def generate_samples(output_root: Path) -> list[Path]:
         source_directory.mkdir(parents=True, exist_ok=True)
         header = source_directory / "sample.cuh"
         source = source_directory / "sample.cu"
-        header.write_text(_render_sample_binding(model, "cuh"))
-        source.write_text(_render_sample_binding(model, "cu"))
+        _write_generated(header, _render_sample_binding(model, "cuh"))
+        _write_generated(source, _render_sample_binding(model, "cu"))
         generated.extend((header, source))
 
         helper = (
@@ -394,7 +400,7 @@ def generate_samples(output_root: Path) -> list[Path]:
             / f"{model.name}_sample_generation.cuh"
         )
         helper.parent.mkdir(parents=True, exist_ok=True)
-        helper.write_text(_render_sample_generation_header(model))
+        _write_generated(helper, _render_sample_generation_header(model))
         generated.append(helper)
         for recipe_index in (1, 2):
             recipe = (
@@ -403,7 +409,7 @@ def generate_samples(output_root: Path) -> list[Path]:
                 / "generator.cpp"
             )
             recipe.parent.mkdir(parents=True, exist_ok=True)
-            recipe.write_text(_render_sample_recipe_source(model, recipe_index))
+            _write_generated(recipe, _render_sample_recipe_source(model, recipe_index))
             generated.append(recipe)
     return generated
 
@@ -510,8 +516,8 @@ def generate_markovian(output_root: Path) -> list[Path]:
         destination.mkdir(parents=True, exist_ok=True)
         header = destination / f"{binding.product}.cuh"
         source = destination / f"{binding.product}.cu"
-        header.write_text(render(header_template, binding))
-        source.write_text(render(source_template, binding))
+        _write_generated(header, render(header_template, binding))
+        _write_generated(source, render(source_template, binding))
         generated.extend((header, source))
     analytical_template_dir = (
         TEMPLATE_DIR / "pricing" / "closed_form" / "black_scholes"
@@ -526,8 +532,220 @@ def generate_markovian(output_root: Path) -> list[Path]:
             template = (
                 analytical_template_dir / f"{spec.product}.{suffix}.tpl"
             )
-            destination.write_text(template.read_text())
+            _write_generated(destination, template.read_text())
             generated.append(destination)
+        if spec.product != "european_option":
+            destination = analytical_destination / f"{spec.product}_impl.cuh"
+            _write_generated(destination, (analytical_template_dir / f"{spec.product}_impl.cuh.tpl").read_text())
+            generated.append(destination)
+    return generated
+
+
+def closed_form_delta_values(spec: PriceDeltaBindingSpec) -> dict[str, str]:
+    """Reuse the exact price policy, including its contractual calendar guard."""
+    product = next(p for p in ROUGH_PRODUCT_BINDINGS if p.product == spec.pricing.product)
+    european = product.product == "european_option"
+    fixed = product.product == "geometric_asian_option"
+    sided = product.sided
+    time_types = "float, std::uint32_t" if fixed else "float"
+    host_type = f"const product::{product.product_type}Parameters*, " if fixed else ""
+    signature = (
+        "const ModelParameters*, const ModelParameters*, std::size_t, "
+        f"{host_type}const product::{product.product_type}Parameters*, std::size_t, PriceConstruction, "
+        f"std::size_t, std::size_t, std::size_t, {time_types}, unsigned int, std::size_t, "
+        "::ai_factory::workbench::equity::price_delta::SpotBumpConfiguration, float*, float*")
+    policy = ("product::LognormalEuropeanOptionClosedFormPolicy<ModelParameters, Side>" if european
+              else f"{product.product_type}ClosedFormPricingPolicy" + ("<Side>" if sided else ""))
+    guard = ""
+    if fixed:
+        guard = "validate_geometric_asian_calendar(host_products, product_count, construction, result_count, {dt, simulation_steps_per_day});"
+    return {
+        "product": product.product, "product_type": product.product_type,
+        "side_declaration": "template<OptionSide Side>" if sided else "",
+        "host_product_declaration": f"const product::{product.product_type}Parameters* host_products," if fixed else "",
+        "time_declaration": "float dt, std::uint32_t simulation_steps_per_day" if fixed else "float day_fraction",
+        "time_configuration": "{dt, simulation_steps_per_day}" if fixed else "{day_fraction}",
+        "calendar_guard": guard, "price_policy": policy,
+        "policy_include": ('#include "model/equity/markovian/black_scholes/analytics_impl.cuh"\n'
+                           '#include "product/european_option/closed_form_pricing_policy.cuh"' if european else
+                           f'#include "model/equity/markovian/black_scholes/product/{product.product}_impl.cuh"'),
+        "diagnostic_variant": "option_side_name(Side)" if sided else '"default"',
+        "instantiations": "\n".join(
+            f"template void launch_black_scholes_{product.product}_price_delta_cuda<OptionSide::{side}>(\n    {signature});"
+            for side in (("call", "put") if sided else ())),
+    }
+
+
+def generate_price_delta_bindings(output_root: Path) -> list[Path]:
+    """Compose spot-delta strategies without copying any model or payoff body."""
+    generated = []
+    for spec in PRICE_DELTA_BINDING_SPECS:
+        if spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}:
+            model = spec.pricing.model
+            exact = spec.pricing.engine == "equity_lsm_exact"
+            schedule = "ExactTransition" if exact else "FixedStep"
+            continuation = (
+                f"product::SpotAndScaledStateContinuationState<{model}::DynamicsPolicy, "
+                f"&{model}::State::variance, &{model}::ModelParameters::theta>"
+                if model in {"heston", "bates"} else
+                f"product::SpotAndScaledStateContinuationState<{model}::DynamicsPolicy, "
+                f"&{model}::State::volatility, &{model}::ModelParameters::long_run_volatility>"
+                if model == "schobel_zhu" else
+                f"product::SpotLogMoneynessContinuationState<{model}::DynamicsPolicy>"
+            )
+            frozen_path = (
+                "::ai_factory::workbench::equity::price_delta::MultiplicativeFrozenExercise"
+                if spec.path_strategy == "multiplicative" else
+                "::ai_factory::workbench::equity::price_delta::CoupledFrozenExercise<"
+                f"simulation::{schedule}MaturityAlignedExerciseSchedule<{model}::PriceDeltaDynamics>, "
+                f"::ai_factory::workbench::equity::price_delta::CoupledSpotPaths<{model}::PriceDeltaDynamics>>"
+            )
+            values = {
+                "model": model, "schedule": schedule, "continuation": continuation,
+                "regression_refinement": "normal_residual" if model == "kou" else "none",
+                "frozen_path": frozen_path,
+                "dynamics_header": ("price_delta_dynamics_impl.cuh" if spec.path_strategy == "coupled"
+                                    else "dynamics_impl.cuh"),
+                "time_declaration": "float day_fraction" if exact else "float dt, std::uint32_t simulation_steps_per_day",
+                "time_types": "float" if exact else "float, std::uint32_t",
+                "time_configuration": ("simulation::ExactTransitionTimeConfiguration{day_fraction}" if exact
+                                       else "simulation::FixedStepTimeConfiguration{dt, simulation_steps_per_day}"),
+            }
+            for suffix in ("cuh", "cu"):
+                destination = output_root / f"{spec.unit_path}.{suffix}"
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                _write_generated(destination, _render_dollar_template(
+                    f"pricing/longstaff_schwartz/equity/american_option_price_delta.{suffix}.tpl", values
+                ))
+                generated.append(destination)
+            continue
+        if spec.path_strategy == "closed_form_bump":
+            for suffix in ("cuh", "cu"):
+                destination = output_root / f"{spec.unit_path}.{suffix}"
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                _write_generated(destination, _render_dollar_template(
+                    f"pricing/closed_form/black_scholes/product_price_delta.{suffix}.tpl",
+                    closed_form_delta_values(spec)))
+                generated.append(destination)
+            continue
+        binding = spec.pricing.manifest_binding
+        if not isinstance(binding, Binding):
+            raise TypeError(f"missing price-delta Binding: {spec.unit_path}")
+        product = next(p for p in ROUGH_PRODUCT_BINDINGS if p.product == binding.product)
+        path_policy = (
+            f"equity::price_delta::MultiplicativeSpotPath<{binding.model}::DynamicsPolicy>"
+            if spec.path_strategy == "multiplicative"
+            else f"equity::price_delta::CoupledSpotPaths<{binding.model}::PriceDeltaDynamics>"
+        )
+        values = {
+            "model": binding.model,
+            "product": binding.product,
+            "product_type": binding.product_type,
+            "schedule": binding.schedule,
+            "calendar_arguments": ", 2U" if binding.schedule.endswith("CalendarSchedule") else "",
+            "path_policy": path_policy,
+            "product_path_policy": product.path_policy,
+            "side_declaration": "template<OptionSide Side>" if binding.sided else "",
+            "side_argument": "<Side>" if binding.sided else "",
+            "probe_policy": "PricingPolicy<OptionSide::call>" if binding.sided else "PricingPolicy",
+            "diagnostic_variant": "option_side_name(Side)" if binding.sided else '"default"',
+            "time_declaration": "float dt, std::uint32_t simulation_steps_per_day" if binding.time_kind == "fixed" else "float day_fraction",
+            "time_configuration": "{dt, simulation_steps_per_day}" if binding.time_kind == "fixed" else "{day_fraction}",
+            "time_types": "float, std::uint32_t" if binding.time_kind == "fixed" else "float",
+            "dynamics_header": (
+                "price_delta_dynamics_impl.cuh" if spec.path_strategy == "coupled"
+                else "dynamics_impl.cuh"
+            ),
+        }
+        values["instantiations"] = "\n".join(
+            _render_dollar_template("pricing/markovian/product_price_delta_instantiation.cu.tpl",
+                                   {**values, "side": side})
+            for side in (("call", "put") if binding.sided else ())
+        )
+        for suffix in ("cuh", "cu"):
+            destination = output_root / f"{spec.unit_path}.{suffix}"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            _write_generated(destination, _render_dollar_template(
+                f"pricing/markovian/product_price_delta_binding.{suffix}.tpl", values
+            ))
+            generated.append(destination)
+    return generated
+
+
+def generate_price_delta_recipes(output_root: Path) -> list[Path]:
+    generated = []
+    variants = {variant.name: variant for variant in PRICE_VARIANTS}
+    for dataset in PRICE_DELTA_DATASET_SPECS:
+        source = PRICE_DELTA_SOURCE_BY_RECIPE[dataset.recipe_path]
+        spec = next(s for s in PRICE_DELTA_BINDING_SPECS
+                    if (s.pricing.model, s.pricing.product) == (dataset.model, dataset.product))
+        model = MODEL_BY_NAME[dataset.model]
+        lsm = dataset.engine in {"equity_lsm_exact", "equity_lsm_fixed"}
+        stochastic = dataset.engine != "equity_closed_form"
+        variant = variants.get(dataset.variant)
+        side = ("call" if dataset.variant == "american_calls" else "put") if lsm else variant.side
+        product_loader = "product::load_american_options" if lsm else f"product::{variant.product_loader}"
+        if variant and variant.side_aware_loader:
+            product_loader = _render_cpp_fragment_template(
+                "catalog/pricing/side_aware_product_loader_expression.cuh.tpl",
+                {"product_loader": variant.product_loader, "side": side}).rstrip()
+        product_id = ("american_options_01" if lsm else variant.product_dataset_id)
+        fixed = dataset.engine == "equity_lsm_fixed" if lsm else (
+            spec.pricing.manifest_binding.time_kind == "fixed" if stochastic else
+            dataset.product == "geometric_asian_option")
+        time_args = "1.0f / 504.0f, 2U" if fixed else "1.0f / 252.0f"
+        args = ["host_models", "device_models", "model_count"]
+        if stochastic or fixed:
+            args.append("host_products")
+        args += ["device_products", "product_count", "PriceConstruction::Aligned", "context.results"]
+        if not lsm:
+            args += ["context.offset", "context.count"]
+        if stochastic:
+            args += ["context.paths"]
+        args += [time_args, "context.threads", "context.blocks"]
+        if stochastic:
+            args.append("context.seed")
+        args += ["context.bump", "prices"]
+        if stochastic:
+            args.append("price_errors")
+        args.append("deltas")
+        if stochastic:
+            args.append("delta_errors")
+        values = {
+            "model": dataset.model, "product": dataset.product,
+            "model_input": f"datasets/{model.source_prefix}/parameters/{model.parameter_dataset_id}.json",
+            "product_input": f"datasets/product/{dataset.product}/{product_id}.json",
+            "dataset": dataset.dataset_path, "catalog": dataset.catalog_yaml_path,
+            "url": dataset.url, "source_recipe": source.recipe_path,
+            "method": "frozen_central_exercise_dates_crn" if lsm else "centered_crn" if stochastic else "centered_closed_form",
+            "stochastic": str(stochastic).lower(), "lsm": str(lsm).lower(),
+            "steps_per_day": "2U" if fixed else "0U",
+            "family": pricing_launch_family(spec.pricing),
+            "seed": str(resolve_rng_domain(dataset).seed("dynamics")) if stochastic else "0",
+            "product_loader": product_loader,
+            "side": f"<OptionSide::{side}>" if side else "",
+            "arguments": ",\n                    ".join(args),
+        }
+        destination = output_root / dataset.recipe_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        _write_generated(destination, _render_dollar_template("catalog/pricing/price_delta/generator.cpp.tpl", values))
+        generated.append(destination)
+        recipe = {
+            "schema_version": 1, "kind": "price_delta", "database_id": dataset.dataset_id,
+            "generator": "generator.cpp", "model_input": values["model_input"],
+            "product_input": values["product_input"], "dataset": dataset.dataset_path,
+            "catalog_output": dataset.catalog_yaml_path, "construction": "aligned",
+            "paths_per_price": 1048576 if stochastic else 0,
+            "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+            "sensitivity": {"parameter": "spot", "method": values["method"],
+                            "relative_full_width": .01, "source_price_recipe": source.recipe_path},
+            "dynamics_seed": int(values["seed"]),
+            "time_grid": {"steps_per_year": 504, "simulation_steps_per_day": 2, "delta_t": "1 / 504"} if fixed else None,
+            "validation": {"status": "pending", "verified": False},
+        }
+        recipe_path = destination.with_name("recipe.yaml")
+        _write_generated(recipe_path, json.dumps(recipe, indent=2) + "\n")
+        generated.append(recipe_path)
     return generated
 
 
@@ -695,47 +913,39 @@ def generate_rough(output_root: Path) -> list[Path]:
         destination.mkdir(parents=True, exist_ok=True)
         header = destination / f"{binding.product}.cuh"
         source = destination / f"{binding.product}.cu"
-        header.write_text(templates[f"{backend}_header"].format(**values))
-        source.write_text(templates[f"{backend}_source"].format(**values))
+        _write_generated(header, templates[f"{backend}_header"].format(**values))
+        _write_generated(source, templates[f"{backend}_source"].format(**values))
         generated.extend((header, source))
     return generated
 
 
-CURVE_TEMPLATE_VALUES = {
-    "nelson_siegel": ("Nelson-Siegel", "NelsonSiegel"),
-    "svensson": ("Svensson", "Svensson"),
-}
-FIXED_INCOME_MODEL_ALIASES = {
-    "cir": "cir",
-    "g2": "g2",
-    "g2_plus_plus": "g2pp",
-    "hull_white": "hw",
-    "ornstein_uhlenbeck": "ou",
-    "vasicek": "vasicek",
-}
-
-
-def _fixed_income_template_values(capability) -> dict[str, str]:
+def _fixed_income_template_values(
+    capability,
+    model_by_name=MODEL_BY_NAME,
+    curve_by_name=CURVE_BY_NAME,
+) -> dict[str, str]:
+    model = model_by_name[capability.model]
     values = {
         "model": capability.model,
-        "model_display": MODEL_BY_NAME[capability.model].display,
-        "model_alias": FIXED_INCOME_MODEL_ALIASES[capability.model],
+        "model_display": model.display,
+        "model_alias": model.renderer_alias or model.name,
         "curve": capability.curve or "",
         "curve_display": "",
         "curve_type": "",
+        "forward_dynamics": capability.terminal_forward_dynamics or "",
     }
     if capability.curve is not None:
-        values["curve_display"], values["curve_type"] = (
-            CURVE_TEMPLATE_VALUES[capability.curve]
-        )
+        curve = curve_by_name[capability.curve]
+        values["curve_display"] = curve.display
+        values["curve_type"] = curve.cpp_type
     return values
 
 
 def generate_fixed_income_bindings(output_root: Path) -> list[Path]:
-    """Generate every non-early-exercise fixed-income composition unit."""
+    """Generate the fixed-income compositions whose engines have explicit templates."""
     generated: list[Path] = []
     for spec in GENERATED_PRODUCT_BINDING_SPECS:
-        if spec.engine != "fixed_income_closed_form":
+        if spec.engine not in {"fixed_income_closed_form", "fixed_income_monte_carlo", "fixed_income_lsm"}:
             continue
         if spec.template_family is None:
             raise ValueError(
@@ -748,9 +958,19 @@ def generate_fixed_income_bindings(output_root: Path) -> list[Path]:
         for suffix in ("cuh", "cu"):
             template = f"{spec.template_family}/{spec.product}.{suffix}.tpl"
             destination = destination_directory / f"{spec.product}.{suffix}"
-            destination.write_text(_render_dollar_template(template, values))
+            _write_generated(destination, _render_dollar_template(template, values))
             generated.append(destination)
     return generated
+
+
+def pricing_identity_expression(dataset) -> str:
+    binding = next(binding for binding in PRODUCT_BINDING_SPECS
+                   if (binding.model, binding.curve, binding.product)
+                   == (dataset.model, dataset.curve, dataset.product))
+    namespace = "::ai_factory::workbench::offline::cuda_tuning::"
+    fields = ", ".join(json.dumps(value or "") for value in
+                       (dataset.model, dataset.product, dataset.curve))
+    return f"{namespace}PricingIdentity{{{namespace}PricingFamily::{pricing_launch_family(binding)}, {fields}}}"
 
 
 def _fixed_income_recipe_values(dataset) -> dict[str, str]:
@@ -761,6 +981,7 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
     )
     values = _fixed_income_template_values(capability)
     values.update({
+        "launch_identity": pricing_identity_expression(dataset),
         "variant": dataset.variant or "",
         "payoff_name": {
             "caplets": "caplet",
@@ -779,7 +1000,7 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
             "zero_coupon_bond_puts": "put",
         }.get(dataset.variant or "", ""),
         "swaption_side": (
-            "payer" if dataset.variant == "european_payer_swaptions"
+            "payer" if dataset.variant in {"european_payer_swaptions", "bermudan_payer_swaptions"}
             else "receiver"
         ),
         "bond_option_side_plural": (
@@ -787,6 +1008,8 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
             else "calls"
         ),
     })
+    if dataset.engine in {"fixed_income_monte_carlo", "fixed_income_lsm"}:
+        values["dynamics_seed"] = str(resolve_rng_domain(dataset).seed("dynamics"))
     return values
 
 
@@ -794,7 +1017,7 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
     generated: list[Path] = []
     datasets = (
         dataset for dataset in AVAILABLE_DATASET_SPECS
-        if dataset.engine == "fixed_income_closed_form"
+        if dataset.engine in {"fixed_income_closed_form", "fixed_income_monte_carlo", "fixed_income_lsm"}
         and dataset.owner == "generated"
     )
     for dataset in datasets:
@@ -805,7 +1028,7 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
             )
         destination = output_root / dataset.recipe_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(_render_dollar_template(
+        _write_generated(destination, _render_dollar_template(
             dataset.template,
             _fixed_income_recipe_values(dataset),
         ))
@@ -813,7 +1036,7 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
     return generated
 
 
-MONTE_CARLO_PATHS_PER_PRICE = "1'048'576"
+MONTE_CARLO_PATHS_PER_PRICE = "::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice"
 
 
 def price_recipe_url(model, variant, database_id: str) -> str:
@@ -906,11 +1129,13 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
         )
         product_loader_expression = f"product::{variant.product_loader}"
         if variant.side_aware_loader:
-            product_loader_expression = (
-                "[](const auto& path) { return product::"
-                f"{variant.product_loader}(path, OptionSide::{variant.side}); "
-                "}"
-            )
+            product_loader_expression = _render_cpp_fragment_template(
+                "catalog/pricing/side_aware_product_loader_expression.cuh.tpl",
+                {
+                    "product_loader": variant.product_loader,
+                    "side": variant.side or "",
+                },
+            ).rstrip()
         values = {
             "model": model.name,
             "model_display": model.display,
@@ -935,20 +1160,17 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "url": dataset.url,
             "numerical_method": model.numerical_method,
             "monte_carlo_paths": MONTE_CARLO_PATHS_PER_PRICE,
-            "threads_per_block": (
-                "::ai_factory::workbench::offline::cuda_tuning::kMarkovianCompactThreadsPerBlock"
-                if variant.threads_per_block == 256
-                and model.backend == "markovian"
-                else "::ai_factory::workbench::offline::cuda_tuning::kNFactorThreadsPerBlock"
-                if model.backend == "n_factor"
-                else "::ai_factory::workbench::offline::cuda_tuning::kMarkovianThreadsPerBlock"
-            ),
+            "launch_identity": pricing_identity_expression(dataset),
             "seed": (
                 str(resolve_rng_domain(dataset).seed("dynamics"))
                 if dataset.engine != "equity_closed_form" else "0"
             ),
         }
         analytical_steps = variant.analytical_steps_per_day
+        values["threads_per_block"] = (
+            "::ai_factory::workbench::offline::cuda_tuning::pricing_profile("
+            + values["launch_identity"] + ").threads_per_block"
+        )
         values["analytical_profile_values"] = (
             f"1.0f / {252 * analytical_steps}.0f, "
             "::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock, "
@@ -972,7 +1194,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             values.update(markovian_time_values(
                 model.name, variant.product
             ))
-        destination.write_text(templates[backend].format(**values))
+        _write_generated(destination, templates[backend].format(**values))
         generated.append(destination)
     american_models = {model.model: model for model in AMERICAN_RECIPE_SPECS}
     american_datasets = (
@@ -1036,8 +1258,9 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "basis_normalization": quoted(model.basis_normalization),
             "basis_functions": quoted(model.basis_functions),
             "seed": str(resolve_rng_domain(dataset).seed("dynamics")),
+            "launch_identity": pricing_identity_expression(dataset),
         }
-        destination.write_text(templates["american"].format(**values))
+        _write_generated(destination, templates["american"].format(**values))
         generated.append(destination)
     return generated
 
@@ -1047,25 +1270,32 @@ def cmake_list(name: str, values: list[str]) -> str:
     return f"set({name}\n{body}\n)\n"
 
 
-def generate_cmake_manifest(output_root: Path) -> list[Path]:
-    """Emit the exact CMake registration matrix from the binding manifest."""
+def cmake_manifest_text(
+    model_specs=MODEL_SPECS,
+    product_specs=PRODUCT_SPECS,
+    curve_specs=CURVE_SPECS,
+    dataset_specs=AVAILABLE_DATASET_SPECS,
+    binding_specs=GENERATED_PRODUCT_BINDING_SPECS,
+) -> str:
+    """Render every CMake inventory projected from the typed manifest."""
     equity_models = [
-        model.name for model in MODEL_SPECS if model.asset_class == "equity"
+        model.name for model in model_specs if model.asset_class == "equity"
     ]
     rough_models = [
-        model.name for model in MODEL_SPECS
+        model.name for model in model_specs
         if model.asset_class == "equity"
         and model.family.startswith("rough_")
     ]
     fixed_income_models = [
-        model.name for model in MODEL_SPECS
+        model.name for model in model_specs
         if model.asset_class == "fixed_income"
     ]
     equity_binding_specs = [
-        spec for spec in GENERATED_PRODUCT_BINDING_SPECS
+        spec for spec in binding_specs
         if spec.asset_class == "equity"
     ]
-    products = sorted({spec.product for spec in equity_binding_specs})
+    products = sorted({spec.name for spec in product_specs})
+    curves = sorted({spec.name for spec in curve_specs})
     regular_units = sorted({
         f"{spec.model}/product/{spec.product}"
         for spec in equity_binding_specs
@@ -1073,18 +1303,38 @@ def generate_cmake_manifest(output_root: Path) -> list[Path]:
             "equity_closed_form", "equity_markovian", "equity_n_factor",
         }
     })
+    regular_units = sorted(set(regular_units) | {
+        f"{spec.pricing.model}/product/{spec.pricing.product}_price_delta"
+        for spec in PRICE_DELTA_BINDING_SPECS
+        if spec.pricing in equity_binding_specs or (
+            spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}
+            and spec.pricing.model in equity_models
+        )
+    })
     volterra_units = sorted({
         f"{spec.model}/product/{spec.product}"
         for spec in equity_binding_specs
         if spec.engine == "equity_volterra_fft"
     })
-    destination = (
-        output_root / "cmake" / "generated" / "EquityPricingBindings.cmake"
+    parameter_sources = sorted(
+        dataset.recipe_path for dataset in dataset_specs
+        if dataset.dataset_kind.endswith("_parameters")
     )
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
+    price_sources = sorted(
+        dataset.recipe_path for dataset in dataset_specs
+        if dataset.dataset_kind in {"prices", "price_delta"}
+    )
+    sample_sources = sorted(
+        dataset.recipe_path for dataset in dataset_specs
+        if dataset.dataset_kind == "samples"
+    )
+    mathdx_sources = sorted(
+        dataset.recipe_path for dataset in dataset_specs
+        if dataset.condition == "AI_FACTORY_MATHDX_ROOT"
+    )
+    return (
         "# Generated by tools/codegen/pricing_bindings/generate.py.\n"
-        "# Do not edit: change manifest.py and regenerate the repository.\n\n"
+        "# Do not edit: change the typed manifests and regenerate.\n\n"
         + cmake_list(
             "AI_FACTORY_GENERATED_EQUITY_MODELS",
             equity_models,
@@ -1097,15 +1347,9 @@ def generate_cmake_manifest(output_root: Path) -> list[Path]:
         + "\n"
         + cmake_list("AI_FACTORY_GENERATED_ROUGH_MODELS", rough_models)
         + "\n"
-        + cmake_list(
-            "AI_FACTORY_GENERATED_VOLTERRA_MODELS",
-            [
-                model.name for model in MODEL_SPECS
-                if model.sample_engine == "equity_volterra_fft"
-            ],
-        )
+        + cmake_list("AI_FACTORY_GENERATED_CURVES", curves)
         + "\n"
-        + cmake_list("AI_FACTORY_GENERATED_EQUITY_PRODUCTS", products)
+        + cmake_list("AI_FACTORY_GENERATED_PRODUCTS", products)
         + "\n"
         + cmake_list(
             "AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS", regular_units
@@ -1134,7 +1378,33 @@ def generate_cmake_manifest(output_root: Path) -> list[Path]:
             "AI_FACTORY_GENERATED_FIXED_INCOME_UNITS",
             list(FIXED_INCOME_UNITS),
         )
+        + "\n"
+        + cmake_list(
+            "AI_FACTORY_MANIFEST_PARAMETER_GENERATOR_SOURCES",
+            parameter_sources,
+        )
+        + "\n"
+        + cmake_list(
+            "AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES", price_sources
+        )
+        + "\n"
+        + cmake_list(
+            "AI_FACTORY_MANIFEST_SAMPLE_GENERATOR_SOURCES", sample_sources
+        )
+        + "\n"
+        + cmake_list(
+            "AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES", mathdx_sources
+        )
     )
+
+
+def generate_cmake_manifest(output_root: Path) -> list[Path]:
+    """Emit the exact CMake registration matrix from the typed manifest."""
+    destination = (
+        output_root / "cmake" / "generated" / "CapabilityManifest.cmake"
+    )
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    _write_generated(destination, cmake_manifest_text())
     return [destination]
 
 
@@ -1173,7 +1443,7 @@ def generate_provenance_manifest(
         output_digest.update(b"\0")
         output_digest.update(path.read_bytes())
         output_digest.update(b"\0")
-    destination.write_text(json.dumps({
+    _write_generated(destination, json.dumps({
         "schema_version": SCHEMA_VERSION,
         "source_sha256": codegen_source_fingerprint(),
         "counts": {
@@ -1186,6 +1456,17 @@ def generate_provenance_manifest(
             "generated_outputs": len(output_paths),
         },
         "outputs_sha256": output_digest.hexdigest(),
+        "price_delta_bindings": {
+            spec.unit_path: {"pricing": spec.pricing.unit_path,
+                             "path_strategy": spec.path_strategy,
+                             "qualification": "bounded_checks; bias_and_performance_not_certified"}
+            for spec in PRICE_DELTA_BINDING_SPECS
+        },
+        "pricing_launch_families": {
+            "/".join(filter(None, (binding.model, binding.curve, binding.product))):
+                pricing_launch_family(binding)
+            for binding in PRODUCT_BINDING_SPECS
+        },
     }, indent=2) + "\n")
     return [destination]
 
@@ -1203,7 +1484,8 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
     inventory = (
         (
             "product binding",
-            set(DECLARED_PRODUCT_BINDING_PATHS),
+            set(DECLARED_PRODUCT_BINDING_PATHS) | set(GENERATED_PRICE_DELTA_BINDING_PATHS)
+            | set(GENERATED_CLOSED_FORM_POLICY_PATHS),
             _relative_files(reference_root, "src/model/**/product/**/*.cu")
             | _relative_files(reference_root, "src/model/**/product/**/*.cuh"),
         ),
@@ -1250,6 +1532,10 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
 
 def _expected_generated_paths() -> set[str]:
     paths = set(GENERATED_PRODUCT_BINDING_PATHS)
+    paths.update(GENERATED_PRICE_DELTA_BINDING_PATHS)
+    paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
+    paths.update(str(Path(dataset.recipe_path).with_name("recipe.yaml"))
+                 for dataset in PRICE_DELTA_DATASET_SPECS)
     paths.update(
         dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
         if dataset.owner == "generated"
@@ -1263,7 +1549,7 @@ def _expected_generated_paths() -> set[str]:
             f"tools/sampling/generated/{model.name}_sample_generation.cuh",
         })
     paths.update({
-        "cmake/generated/EquityPricingBindings.cmake",
+        "cmake/generated/CapabilityManifest.cmake",
         "cmake/generated/PricingCapabilityManifest.json",
     })
     return paths
@@ -1339,11 +1625,13 @@ def main() -> int:
     generated: list[Path] = []
     if arguments.family in ("markovian", "prototype", "all"):
         generated.extend(generate_markovian(arguments.output))
+        generated.extend(generate_price_delta_bindings(arguments.output))
     if arguments.family in ("rough", "all"):
         generated.extend(generate_rough(arguments.output))
     if arguments.family in ("fixed_income", "all"):
         generated.extend(generate_fixed_income_bindings(arguments.output))
     if arguments.family in ("catalog", "all"):
+        generated.extend(generate_price_delta_recipes(arguments.output))
         generated.extend(generate_catalog_recipes(arguments.output))
         generated.extend(generate_fixed_income_catalog_recipes(
             arguments.output

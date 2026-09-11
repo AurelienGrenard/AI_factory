@@ -70,7 +70,7 @@ struct SingleBarrierOptionPathPolicy {
         return Calendar{product.maturity_days};
     }
 
-    template<typename ModelParameters>
+    template<RiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,
@@ -155,7 +155,7 @@ struct UpTouchPathPolicy {
         return Calendar{product.maturity_days};
     }
 
-    template<typename ModelParameters>
+    template<RiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,

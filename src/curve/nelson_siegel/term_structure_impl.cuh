@@ -1,4 +1,6 @@
 // CUDA implementation of the analytical Nelson-Siegel curve.
+#pragma once
+
 #include "curve/nelson_siegel/term_structure.cuh"
 
 #include "curve/nelson_siegel/instantaneous_forward.cuh"

@@ -1,0 +1,375 @@
+{
+  "scope": "Native staged pilots; not qualified performance or independent financial certification",
+  "completed_current_targets": 7,
+  "published": false,
+  "jobs": [
+    {
+      "target": "generate_kou_american_calls_01",
+      "kind": "prices",
+      "rows": 1000,
+      "attempt": 1,
+      "binary_sha256": "15c1675ea45f3f1e7c0d6f47b57a45fb04ecf36488dc6b22eb9f3906122c270e",
+      "recipe_sha256": "d82f7d7fdb70184c022c182d4db822c422519682b0d388cc72c385aa5909b651",
+      "generation_wall_seconds": 15.201974057003099,
+      "artifact_check_seconds": 0.007865408995712642,
+      "artifacts": [
+        {
+          "path": "datasets/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01.json",
+          "sha256": "5c7c6f334cce9b21fab527930588275ed749feb4cd02bbf3b867080ab4ccc0fd",
+          "previous_sha256": null
+        },
+        {
+          "path": "catalog/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01/dataset.yaml",
+          "sha256": "2990183e64b17eb6d7b8000891243ede1215860b5d1f0b155f62e4c316e14b83",
+          "previous_sha256": null
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_kou_american_calls_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "launch_plan": {
+        "profile_id": "sm89_reference_v1",
+        "family": "equity_lsm",
+        "selection": "host launch plan; no runtime autotuning",
+        "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+        "portability": "safe reference values; benchmark before replacing on another GPU",
+        "model": "kou",
+        "product": "american_option",
+        "curve": "",
+        "qualification": "reference_default_not_pair_qualified",
+        "evidence": "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md",
+        "price_count": 1000,
+        "paths_per_price": 1048576,
+        "threads_per_block": 128,
+        "prices_per_launch": null,
+        "price_launch_count": null,
+        "memory_batching": "native LSM VRAM planner; unresolved offline",
+        "work_distribution": "multiple path blocks per price; native multi-phase LSM",
+        "blocks_per_price": 128,
+        "device_resources_checked": false,
+        "scope": "offline proposed launch; native engine guards and qualification still required"
+      },
+      "validation": {
+        "status": "pending",
+        "verified": false,
+        "dataset": "validation/datasets/price/equity/markovian/kou/american_calls/kou_01__american_calls_01__01.json"
+      }
+    },
+    {
+      "target": "generate_kou_american_puts_01",
+      "kind": "prices",
+      "rows": 1000,
+      "attempt": 1,
+      "binary_sha256": "e32dae5bf729b1eaaff821ac3c043efd024e8dee131867057722943cc6b98a5d",
+      "recipe_sha256": "58bbb303209bffdc842559ecbf139e4ab385b63ea2446065d5cc1d94ddc89a98",
+      "generation_wall_seconds": 15.709573865999118,
+      "artifact_check_seconds": 0.008461522003926802,
+      "artifacts": [
+        {
+          "path": "datasets/model/equity/markovian/kou/prices/american_puts/kou_01__american_puts_01__01.json",
+          "sha256": "feb26ad317205d9c6303032f0003c8811bb54e3d5c309e72bd63edc544cb46cb",
+          "previous_sha256": null
+        },
+        {
+          "path": "catalog/model/equity/markovian/kou/prices/american_puts/kou_01__american_puts_01__01/dataset.yaml",
+          "sha256": "d5088bd11098d6bd6c2d614d9e93d4d703c32491667c515c4646fe1da22af057",
+          "previous_sha256": null
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_kou_american_puts_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "launch_plan": {
+        "profile_id": "sm89_reference_v1",
+        "family": "equity_lsm",
+        "selection": "host launch plan; no runtime autotuning",
+        "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+        "portability": "safe reference values; benchmark before replacing on another GPU",
+        "model": "kou",
+        "product": "american_option",
+        "curve": "",
+        "qualification": "reference_default_not_pair_qualified",
+        "evidence": "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md",
+        "price_count": 1000,
+        "paths_per_price": 1048576,
+        "threads_per_block": 128,
+        "prices_per_launch": null,
+        "price_launch_count": null,
+        "memory_batching": "native LSM VRAM planner; unresolved offline",
+        "work_distribution": "multiple path blocks per price; native multi-phase LSM",
+        "blocks_per_price": 128,
+        "device_resources_checked": false,
+        "scope": "offline proposed launch; native engine guards and qualification still required"
+      },
+      "validation": {
+        "status": "pending",
+        "verified": false,
+        "dataset": "validation/datasets/price/equity/markovian/kou/american_puts/kou_01__american_puts_01__01.json"
+      }
+    },
+    {
+      "target": "generate_cir_european_payer_swaptions_01",
+      "kind": "prices",
+      "rows": 1000,
+      "attempt": 1,
+      "binary_sha256": "a1fc51aa59d653cd431b0a264dc576b749a6150a150fb5732d171b47a2fedd46",
+      "recipe_sha256": "08eb99c94bd054ef527282c30390c422719d81eaaa560104865d9601a329a6dd",
+      "generation_wall_seconds": 0.3108644430030836,
+      "artifact_check_seconds": 0.004327823997300584,
+      "artifacts": [
+        {
+          "path": "datasets/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01.json",
+          "sha256": "fdf6f36806fa77edef547ab3f3739bd3f68a08f79287641b52dfffee7c67955e",
+          "previous_sha256": "1d6f72a1c18dd9524ab568719c94b94418d7d5edc9f2a3587b75d6ae8cfcd330"
+        },
+        {
+          "path": "catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/dataset.yaml",
+          "sha256": "c978cc371786d554435d10aeb5105fa816f293bb15e51810a7692a31787d54cd",
+          "previous_sha256": "be1224364f6ae2647ed596ec95d8dfb1e01cf67855fa45e8e951ac5797ae2452"
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_cir_european_payer_swaptions_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "launch_plan": {
+        "profile_id": "sm89_reference_v1",
+        "family": "jamshidian",
+        "selection": "host launch plan; no runtime autotuning",
+        "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+        "portability": "safe reference values; benchmark before replacing on another GPU",
+        "model": "cir",
+        "product": "european_swaption",
+        "curve": "",
+        "qualification": "native_geometry_pending_confirmation",
+        "evidence": "docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md",
+        "price_count": 1000,
+        "paths_per_price": 0,
+        "threads_per_block": 128,
+        "prices_per_launch": 1000,
+        "price_launch_count": 1,
+        "memory_batching": "price launch bound; engine workspace guards still apply",
+        "work_distribution": "one price per block at a time",
+        "block_count": 1000,
+        "device_resources_checked": false,
+        "scope": "offline proposed launch; native engine guards and qualification still required"
+      },
+      "validation": {
+        "status": "pending",
+        "verified": false,
+        "dataset": "validation/datasets/price/fixed_income/cir/european_payer_swaptions/cir_01__european_payer_swaptions_01__01.json"
+      }
+    },
+    {
+      "target": "generate_cir_plus_plus_svensson_european_payer_swaptions_01",
+      "kind": "prices",
+      "rows": 1000,
+      "attempt": 1,
+      "binary_sha256": "42e3d0784edaf72274d461730e401a9175114152d1ab7f8c0caf421b7913aca6",
+      "recipe_sha256": "0c5e179b43117a78112c7f71d4faae5d3583d3e4673c07251a564627a931e001",
+      "generation_wall_seconds": 0.281389265001053,
+      "artifact_check_seconds": 0.005395514999690931,
+      "artifacts": [
+        {
+          "path": "datasets/model/fixed_income/cir_plus_plus/prices/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01.json",
+          "sha256": "55d2a6913d42125ed9c4c677ab57eddf32b9001b478d42dc7350d2177d21e54f",
+          "previous_sha256": "2ab0eda672073732843a7c25c17a668a32b3044df69d8975f3c91531795ab3d3"
+        },
+        {
+          "path": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01/dataset.yaml",
+          "sha256": "2e92445476f680d737be4b143c50e6dddd35b6f71df070c2fcb2dc5f83e62e92",
+          "previous_sha256": "be5833fd2b29bcb720db05f6efbf85fcadf717d4e39f13d8f6d6de818d253006"
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_cir_plus_plus_svensson_european_payer_swaptions_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "launch_plan": {
+        "profile_id": "sm89_reference_v1",
+        "family": "jamshidian",
+        "selection": "host launch plan; no runtime autotuning",
+        "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+        "portability": "safe reference values; benchmark before replacing on another GPU",
+        "model": "cir_plus_plus",
+        "product": "european_swaption",
+        "curve": "svensson",
+        "qualification": "candidate_pending_native_confirmation",
+        "evidence": "docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md",
+        "price_count": 1000,
+        "paths_per_price": 0,
+        "threads_per_block": 256,
+        "prices_per_launch": 1000,
+        "price_launch_count": 1,
+        "memory_batching": "price launch bound; engine workspace guards still apply",
+        "work_distribution": "one price per block at a time",
+        "block_count": 256,
+        "device_resources_checked": false,
+        "scope": "offline proposed launch; native engine guards and qualification still required"
+      },
+      "validation": {
+        "status": "pending",
+        "verified": false,
+        "dataset": "validation/datasets/price/fixed_income/cir_plus_plus/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01.json"
+      }
+    },
+    {
+      "target": "generate_g2_plus_plus_svensson_european_payer_swaptions_01",
+      "kind": "prices",
+      "rows": 1000,
+      "attempt": 1,
+      "binary_sha256": "795b4f5065b9dfcb2d9b27d58cb20f29fafdb14576233e8239da1ab5f2247d3a",
+      "recipe_sha256": "0026152bffd56372748a548cf0cb3849bab78dcf6f2657fbd4f642b5125d22df",
+      "generation_wall_seconds": 7.975861152001016,
+      "artifact_check_seconds": 0.0075934940032311715,
+      "artifacts": [
+        {
+          "path": "datasets/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01.json",
+          "sha256": "745bdbc43e8794a2516f690f29ffa4a2b6aadf691438aa60cfc4a4954a2a0991",
+          "previous_sha256": "f020d2ab6ba03f7aaaa5c11dbf98386030d4afd88ba518c368f04973eed37360"
+        },
+        {
+          "path": "catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01/dataset.yaml",
+          "sha256": "90557c78d08bfe782a7d294f25e99a5638fdde36e3bfa4dfffac7c99fdf87adb",
+          "previous_sha256": "c7b5a4b6a38cf97569af3a7e616485238a47d1d200ea48e55dad1b8868cddc4d"
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_g2_plus_plus_svensson_european_payer_swaptions_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "launch_plan": {
+        "profile_id": "sm89_reference_v1",
+        "family": "fixed_income_mc",
+        "selection": "host launch plan; no runtime autotuning",
+        "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+        "portability": "safe reference values; benchmark before replacing on another GPU",
+        "model": "g2_plus_plus",
+        "product": "european_swaption",
+        "curve": "svensson",
+        "qualification": "reference_default_not_pair_qualified",
+        "evidence": "docs/performance-reports/g2-european-swaption-monte-carlo-sm89-2026-09-08.md",
+        "price_count": 1000,
+        "paths_per_price": 1048576,
+        "threads_per_block": 256,
+        "prices_per_launch": 256,
+        "price_launch_count": 4,
+        "memory_batching": "price launch bound; engine workspace guards still apply",
+        "work_distribution": "one price per block at a time",
+        "block_count": 256,
+        "device_resources_checked": false,
+        "scope": "offline proposed launch; native engine guards and qualification still required"
+      },
+      "validation": {
+        "status": "pending",
+        "verified": false,
+        "dataset": "validation/datasets/price/fixed_income/g2_plus_plus/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01.json"
+      }
+    },
+    {
+      "target": "generate_kou_samples_01",
+      "kind": "samples",
+      "rows": 3000000,
+      "attempt": 1,
+      "binary_sha256": "b23f6d41c53b52998dec4446a5eb6df8a80c3b485a003ddfa9c9685e0f016c0b",
+      "recipe_sha256": "685f7f35cf07fd44f7c0ea3bcd48114cbf1aa6fcc13552fb875abb18ff0cb997",
+      "generation_wall_seconds": 13.253530358997523,
+      "artifact_check_seconds": 17.628114343999187,
+      "artifacts": [
+        {
+          "path": "datasets/model/equity/markovian/kou/samples/samples_01.json",
+          "sha256": "981a3a61fa45075e6dea631987628dfa48f186a335a45920f0d13ef9bca2a1f3",
+          "previous_sha256": null
+        },
+        {
+          "path": "catalog/model/equity/markovian/kou/samples/samples_01/dataset.yaml",
+          "sha256": "9866ab49f2d12a2e11bd4992c0e6cf1b4d3b65b9b365199342fd9235c8861d03",
+          "previous_sha256": null
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-02/jobs/generate_kou_samples_01/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sample_shape": [
+        12000,
+        250
+      ]
+    },
+    {
+      "target": "generate_kou_samples_02",
+      "kind": "samples",
+      "rows": 3000000,
+      "attempt": 1,
+      "binary_sha256": "aac3dbcc2c244302c71578080facca226d02af5421434344a84942fc880a7db4",
+      "recipe_sha256": "c2c8670a2c2c4613075503b6b96a002320847b0511f2dd6a0772432cd62ed661",
+      "generation_wall_seconds": 13.976924933005648,
+      "artifact_check_seconds": 18.143623178999405,
+      "artifacts": [
+        {
+          "path": "datasets/model/equity/markovian/kou/samples/samples_02.json",
+          "sha256": "c74d5b73449d8435843f47f19c0c380481c7d82e37bcd7ffc84ff8061c7462fa",
+          "previous_sha256": null
+        },
+        {
+          "path": "catalog/model/equity/markovian/kou/samples/samples_02/dataset.yaml",
+          "sha256": "7d5338a7408fd9a74756ec16d46eb14afea5588c1ecea906e0b6c88bc6ab218d",
+          "previous_sha256": null
+        }
+      ],
+      "work": "build-dev/catalog-generation-native-pilot-20260908-02/jobs/generate_kou_samples_02/attempt-001/work",
+      "catalogue_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sample_shape": [
+        3000000,
+        1
+      ]
+    }
+  ],
+  "failed_original_sample": {
+    "target": "generate_kou_samples_02",
+    "error": "Generator exited with code -6; see /home/aurelieng/projects/quant_research/AI_factory/build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_kou_samples_02/attempt-001",
+    "binary_sha256": "afee44e54fac2e43469c67d8cad40acaa828cbdd4ffa8108c8764d6daf5a4058",
+    "work": "/home/aurelieng/projects/quant_research/AI_factory/build-dev/catalog-generation-native-pilot-20260908-01/jobs/generate_kou_samples_02/attempt-001/work"
+  },
+  "sample_01_unchanged_body_sha256": "4f3871af5b487fdd93678c159d70812a4cf1d7d19eabb9337e63c11d1d030ab5",
+  "sample_resume": {
+    "completed_jobs_skipped": 2,
+    "attempts_remain_one": true,
+    "log_sha256": "2f35acfedfa9dfa72085404477d0f696e98bfb3d01974a18bdfab02a8db39b41"
+  },
+  "kou_put": {
+    "rows": 1000,
+    "paths": 1048576,
+    "prices_and_errors_exactly_match_binary128_reference": true,
+    "reference_sha256": "9392b0eecf53b545d2d214dde3f3e6c6fb8d0a3f3b6f6383c709b5cd60380787"
+  },
+  "campaigns": [
+    {
+      "path": "build-dev/catalog-generation-native-pilot-20260908-01",
+      "state_sha256": "e5f7fc392e340f4cf81bef38b10ffa50b318f974554d471a4a9ba4d76dc4629f"
+    },
+    {
+      "path": "build-dev/catalog-generation-native-pilot-20260908-02",
+      "state_sha256": "5ac74abe6171f385f033f088ef48814703fff791ec1e261ee0a4d2447217467c"
+    }
+  ],
+  "memory_diagnostic": {
+    "scope": "Read after the failed process exited, not its allocation-time telemetry",
+    "MemFree_kB": 294728,
+    "MemAvailable_kB": 7549504,
+    "planned_host_bytes": 120000000
+  },
+  "sample_02_full_preflight": {
+    "rows": 3000000,
+    "threads_per_block": [256, 128],
+    "finite": true,
+    "deterministic_replay": true,
+    "timing_qualified": false,
+    "log_sha256": "9eafd153c053e24e694a6b88756b4d9b2ef461f037063b3c69f8277fc48b98d9"
+  },
+  "host_guard_source_archive_sha256": "5742ced6541138cbd417974604063aa83173e93e23a6e2686ac3e06e4341da8d"
+}

@@ -16,7 +16,7 @@ inline constexpr std::size_t kMaximumSharedPreparedRowBytes = 2048U;
 // One pricing policy binds a product to a simulation schedule and exposes the
 // minimal interface consumed by the generic one-block-per-price kernel.
 template<typename PricingPolicy>
-concept ScalarMonteCarloPricingPolicy =
+concept MonteCarloLaunchPolicy =
     simulation::SchedulePolicy<typename PricingPolicy::Schedule>
     && std::is_trivially_copyable_v<typename PricingPolicy::DeviceInputs>
     && std::is_trivially_copyable_v<
@@ -28,11 +28,9 @@ concept ScalarMonteCarloPricingPolicy =
         const typename PricingPolicy::HostInputs& host_inputs,
         const typename PricingPolicy::Schedule::TimeConfiguration&
             time_configuration,
-        const typename PricingPolicy::PreparedRow& row,
-        philox::PhiloxKey key,
-        std::size_t path
+        std::size_t result_count
     ) {
-        { inputs.validate(0U) } -> std::same_as<void>;
+        { inputs.validate(result_count) } -> std::same_as<void>;
         {
             host_inputs.validate(0U, time_configuration)
         } -> std::same_as<void>;
@@ -42,9 +40,13 @@ concept ScalarMonteCarloPricingPolicy =
                 time_configuration
             )
         } -> std::same_as<typename PricingPolicy::PreparedRow>;
-        {
-            PricingPolicy::evaluate_path(row, key, path)
-        } -> std::same_as<float>;
+    };
+
+template<typename PricingPolicy>
+concept ScalarMonteCarloPricingPolicy = MonteCarloLaunchPolicy<PricingPolicy>
+    && requires(const typename PricingPolicy::PreparedRow& row,
+                philox::PhiloxKey key, std::size_t path) {
+        { PricingPolicy::evaluate_path(row, key, path) } -> std::same_as<float>;
     };
 
 }  // namespace ai_factory::workbench::monte_carlo

@@ -18,14 +18,12 @@ from typing import Any
 try:
     from .run_baseline import (
         collect_preflight,
-        stabilize_thermal_environment,
         validate_build_configuration,
         validate_campaign_preflight,
     )
 except ImportError:
     from run_baseline import (
         collect_preflight,
-        stabilize_thermal_environment,
         validate_build_configuration,
         validate_campaign_preflight,
     )
@@ -116,6 +114,7 @@ def select_profile_target(
         "command": [str(executable), *arguments],
         "executable_sha256": executable_hash,
         "resource_index": resource_index,
+        "phase": resource.get("phase"),
         "kernel": resource.get("kernel"),
         "variant": resource.get("variant"),
         "compiled_symbol": symbol,
@@ -162,6 +161,15 @@ def main() -> int:
     parser.add_argument("--resource-index", type=int, default=0)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--set", dest="section_set", default="detailed")
+    parser.add_argument(
+        "--environment-mode",
+        choices=("timing", "resource_only"),
+        default="timing",
+        help=(
+            "use resource_only only for static resources, spills and occupancy; "
+            "timing is the default; temperature is recorded, never an execution veto"
+        ),
+    )
     arguments = parser.parse_args()
 
     try:
@@ -180,10 +188,7 @@ def main() -> int:
             arguments.measurement_id,
             arguments.resource_index,
         )
-        stabilization_evidence: list[dict[str, Any]] = []
-        before = stabilize_thermal_environment(
-            baseline, arguments.build_dir, stabilization_evidence
-        )
+        before = collect_preflight()
         validate_campaign_preflight(baseline, before, before)
         version = subprocess.run(
             [ncu, "--version"],
@@ -234,6 +239,7 @@ def main() -> int:
             "generated_at": datetime.datetime.now(
                 datetime.timezone.utc
             ).isoformat(),
+            "environment_mode": arguments.environment_mode,
             "section_set": arguments.section_set,
             "ncu_version": version,
             "baseline": {
@@ -246,7 +252,6 @@ def main() -> int:
             },
             "target": target,
             "preflight": {
-                "thermal_stabilization": stabilization_evidence,
                 "before": before,
                 "after": after,
             },

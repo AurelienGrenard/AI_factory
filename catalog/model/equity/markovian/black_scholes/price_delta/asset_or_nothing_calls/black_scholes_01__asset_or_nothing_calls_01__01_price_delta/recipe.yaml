@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "black_scholes_01__asset_or_nothing_calls_01__01_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
+  "product_input": "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json",
+  "dataset": "datasets/model/equity/markovian/black_scholes/price_delta/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/black_scholes/price_delta/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01_price_delta/dataset.yaml",
+  "construction": "aligned",
+  "paths_per_price": 0,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_closed_form",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/black_scholes/prices/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01/generator.cpp"
+  },
+  "dynamics_seed": 0,
+  "time_grid": null,
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}

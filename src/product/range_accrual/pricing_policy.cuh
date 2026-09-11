@@ -55,7 +55,7 @@ struct RangeAccrualPathPolicy {
         };
     }
 
-    template<typename ModelParameters>
+    template<equity::SpotAndRiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,

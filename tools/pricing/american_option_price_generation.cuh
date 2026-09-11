@@ -31,6 +31,7 @@ struct AmericanOptionProfile {
         nlohmann::ordered_json::array();
     nlohmann::ordered_json basis_functions = nlohmann::ordered_json::array();
     bool exact_exercise_dates = false;
+    cuda_tuning::PricingIdentity identity{cuda_tuning::PricingFamily::equity_lsm, {}, "american_option", {}};
 };
 
 inline nlohmann::ordered_json american_option_catalog_sections(
@@ -90,7 +91,8 @@ inline nlohmann::ordered_json american_option_catalog_sections(
 
 inline nlohmann::ordered_json american_option_cuda_execution(
     const AmericanOptionProfile& profile,
-    const longstaff_schwartz::LaunchResult& execution
+    const longstaff_schwartz::LaunchResult& execution,
+    const cuda_tuning::PricingLaunchPlan& plan
 ) {
     nlohmann::ordered_json metadata = {
         {"threads_per_block", profile.threads_per_block},
@@ -98,8 +100,13 @@ inline nlohmann::ordered_json american_option_cuda_execution(
         {"batch_count", execution.batch_count},
         {"kernel_launch_count", execution.kernel_launch_count},
         {"workspace_bytes", execution.workspace_bytes},
+        {"maximum_prices_per_batch", execution.maximum_prices_per_batch},
         {"tuning_profile", cuda_tuning::metadata("equity_early_exercise")},
+        {"launch_plan", cuda_tuning::pricing_launch_metadata(plan)},
     };
+    metadata["launch_plan"]["memory_batching"] = "resolved by native LSM VRAM planner";
+    metadata["launch_plan"]["maximum_resident_prices"] = execution.maximum_prices_per_batch;
+    metadata["launch_plan"]["price_batch_count"] = execution.batch_count;
     for (const auto& [name, value] : profile.time_discretization.items()) {
         metadata[name] = value;
     }
@@ -123,12 +130,19 @@ int generate_american_option_equity_price_dataset(
         models.size(), products.size(), recipe.construction
     );
     longstaff_schwartz::LaunchResult execution{};
+    auto settings = cuda_tuning::pricing_profile(profile.identity);
+    settings.threads_per_block = profile.threads_per_block;
+    settings.blocks_per_price = profile.blocks_per_price;
+    const auto plan = cuda_tuning::make_pricing_launch_plan(
+        profile.identity, result_count, profile.paths_per_price, settings
+    );
     const auto run = cuda::run_monte_carlo(
         cuda::inputs(models, products),
         result_count,
         [&](auto& resources) {
             std::invoke(
                 launcher,
+                plan,
                 resources.template input<0U>(),
                 1U,
                 products.data(),
@@ -144,6 +158,7 @@ int generate_american_option_equity_price_dataset(
         [&](auto& resources) {
             execution = std::invoke(
                 launcher,
+                plan,
                 resources.template input<0U>(),
                 models.size(),
                 products.data(),
@@ -174,7 +189,7 @@ int generate_american_option_equity_price_dataset(
         recipe.numerical_method,
         profile.paths_per_price,
         profile.delta_t_description,
-        american_option_cuda_execution(profile, execution),
+        american_option_cuda_execution(profile, execution, plan),
         american_option_catalog_sections(profile),
         profile.seed,
         run.wall_seconds,

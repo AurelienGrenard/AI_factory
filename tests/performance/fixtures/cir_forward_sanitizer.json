@@ -1,0 +1,4 @@
+[
+  {"id":"forward_payer_sanitizer","method":"production","indices":[0,100,362,590,784,899,900,999],"paths":4096,"seed":12668829039698640896},
+  {"id":"forward_receiver_sanitizer","method":"production","side":"receiver","indices":[0,100,362,590,784,899,900,999],"paths":4096,"seed":12668829043993608192}
+]

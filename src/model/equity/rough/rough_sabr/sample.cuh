@@ -2,11 +2,15 @@
 #pragma once
 
 #include "model/equity/rough/rough_sabr/parameters.hpp"
+#include <cuda_runtime.h>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::model::equity::rough_sabr {
+
+// Host-only query; dimensions come from the compiled sampling FFT specialization.
+dim3 rough_sabr_sample_block_dimensions(std::uint32_t maximum_maturity_days);
 
 void launch_rough_sabr_terminal_samples_cuda(
     const ModelParameters* device_parameters,

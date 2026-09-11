@@ -74,7 +74,8 @@ inline datasets::ModelSampleRecipe recipe(
         "block-cooperative hybrid FFT at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "xi_0", "eta", "hurst_exponent", "rho"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
@@ -94,6 +95,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+    const auto native_block = model_binding::rough_bergomi_sample_block_dimensions(value.maximum_maturity_days);
     return generate_model_sample_dataset<ModelParameters>(
         argc,
         argv,
@@ -101,7 +103,7 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         {
             ::ai_factory::workbench::offline::cuda_tuning::kSampleThreadsPerBlock,
             ::ai_factory::workbench::offline::cuda_tuning::kSampleBlockCountLimit,
-            "volterra_samples"
+            "volterra_samples", native_block
         },
         {"spot"},
         generate_core_parameters,
@@ -114,7 +116,7 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         std::uint32_t maximum_maturity_days,
         std::size_t sample_offset,
         std::size_t launch_sample_count,
-        unsigned int threads_per_block,
+        unsigned int /* cuFFTDx fixes the block dimensions */,
         std::size_t block_count,
         std::uint64_t schedule_seed,
         std::uint64_t dynamics_seed,

@@ -78,8 +78,8 @@ def quantlib_model(
     long_term_mean = positive_number(model, "long_term_mean", context)
     volatility = positive_number(model, "volatility", context)
 
-    # QuantLib's constructor enforces Feller, while its analytical bond-option
-    # formula remains valid when the boundary is attainable.  Construct a safe
+    # QuantLib's constructor enforces Feller and strictly positive r0, while its
+    # analytical formula also supports an attainable boundary and r0=0. Construct a safe
     # seed object, then install the requested parameter vector in QuantLib's
     # native [theta, k, sigma, r0] order.
     seed_volatility = min(
@@ -87,7 +87,7 @@ def quantlib_model(
         0.5 * math.sqrt(2.0 * mean_reversion * long_term_mean),
     )
     reference = ql.CoxIngersollRoss(
-        initial_state,
+        max(initial_state, 1.0e-8),
         long_term_mean,
         mean_reversion,
         seed_volatility,

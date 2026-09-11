@@ -20,7 +20,7 @@ int main() {{
         "Black-Scholes closed-form {variant_comment}",
         PriceConstruction::Aligned,
     }};
-    const pricing::AnalyticalProfile profile{{{analytical_profile_values}}};
+    const pricing::AnalyticalProfile profile{{{analytical_profile_values}, {launch_identity}}};
 
     return pricing::generate_analytical_equity_price_dataset(
         recipe,

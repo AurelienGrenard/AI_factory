@@ -1,0 +1,597 @@
+[
+  {
+    "id": "vasicek_r16_t64_b256",
+    "options": {
+      "model": "vasicek",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "bates_r16_t128_b64",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "variance_gamma_r16_t256_b64",
+    "options": {
+      "model": "variance_gamma",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "bates_r16_t64_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "hull_white_r16_t256_b256",
+    "options": {
+      "model": "hull_white",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "heston_r16_t128_b64",
+    "options": {
+      "model": "heston",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "hull_white_r16_t128_b256",
+    "options": {
+      "model": "hull_white",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "heston_r16_t64_b256",
+    "options": {
+      "model": "heston",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "bates_r16_t256_b64",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "black_scholes_r16_t64_b256",
+    "options": {
+      "model": "black_scholes",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "hull_white_r16_t128_b64",
+    "options": {
+      "model": "hull_white",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "variance_gamma_r16_t64_b256",
+    "options": {
+      "model": "variance_gamma",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "vasicek_r16_t256_b256",
+    "options": {
+      "model": "vasicek",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "heston_r16_t128_b256",
+    "options": {
+      "model": "heston",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "black_scholes_r16_t128_b64",
+    "options": {
+      "model": "black_scholes",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "heston_r16_t256_b64",
+    "options": {
+      "model": "heston",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "bates_r16_t256_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "vasicek_r16_t128_b64",
+    "options": {
+      "model": "vasicek",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "black_scholes_r16_t128_b256",
+    "options": {
+      "model": "black_scholes",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "vasicek_r16_t128_b256",
+    "options": {
+      "model": "vasicek",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "g2_plus_plus_r16_t256_b64",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "bates_r16_t128_b256",
+    "options": {
+      "model": "bates",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "hull_white_r16_t256_b64",
+    "options": {
+      "model": "hull_white",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "g2_plus_plus_r16_t256_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "g2_plus_plus_r16_t128_b64",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "g2_plus_plus_r16_t128_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "g2_plus_plus_r16_t64_b256",
+    "options": {
+      "model": "g2_plus_plus",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "variance_gamma_r16_t256_b256",
+    "options": {
+      "model": "variance_gamma",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "black_scholes_r16_t256_b256",
+    "options": {
+      "model": "black_scholes",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "black_scholes_r16_t256_b64",
+    "options": {
+      "model": "black_scholes",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "heston_r16_t256_b256",
+    "options": {
+      "model": "heston",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "variance_gamma_r16_t128_b64",
+    "options": {
+      "model": "variance_gamma",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "vasicek_r16_t256_b64",
+    "options": {
+      "model": "vasicek",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 256,
+      "blocks": 64,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "variance_gamma_r16_t128_b256",
+    "options": {
+      "model": "variance_gamma",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  },
+  {
+    "id": "hull_white_r16_t64_b256",
+    "options": {
+      "model": "hull_white",
+      "rows": 16,
+      "paths": 1048576,
+      "threads": 64,
+      "blocks": 256,
+      "first": 21,
+      "interval": 21,
+      "exercises": 10,
+      "payments": 10,
+      "maturity": 252,
+      "warmups": 1,
+      "repetitions": 5
+    }
+  }
+]

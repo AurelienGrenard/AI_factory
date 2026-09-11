@@ -30,6 +30,11 @@ contrôles de concept, puis les wrappers publics dans le même ordre que le
 header. Les formules qui assemblent un schedule ou un payoff concret restent
 dans le produit propriétaire.
 
+Les définitions incluses de courbes (`term_structure_impl.cuh`) suivent la
+même règle d'inclusion idempotente. Plusieurs compositions modèle/courbe
+doivent pouvoir coexister dans une unité CUDA sans redéfinir leurs primitives;
+la garde appartient au header propriétaire, pas aux consommateurs.
+
 ## Signatures fixed income
 
 Les modèles exposent les capacités mathématiquement applicables avec l'ordre
@@ -92,11 +97,22 @@ Un modèle ajusté expose `compose_fitted_model(model, curve)`. Le type
 `FittedModelComposition` est un adaptateur statique vers cette fonction pour
 les politiques de pricing génériques.
 
+`FittedModelComposition::initial_state(const FittedModel&)` restitue le facteur
+initial, pas le taux ajusté : zéro pour les facteurs centrés Hull–White/G2++,
+mais `factor.initial_state` pour CIR++. Les produits ne doivent jamais
+imposer un état initial nul à tous les modèles fitted.
+
 Hull-White réutilise le processus OU. G2++ réutilise les loadings, covariances
 conditionnelles et volatilités d'options sur bond de G2. Les variantes de
 courbe ne fournissent que `log_discount_factor(curve, time)` et
 `instantaneous_forward(curve, time)` au noyau fitted générique ; elles ne
 recopient aucune formule de modèle.
+
+CIR++ réutilise la dynamique, les coefficients affines et le contexte d'option
+du CIR. Son décalage vérifie `phi = f_market - f_CIR`. Le noyau fitted ne
+modifie que le préfacteur du bond, le strike et l'échelle de son option.
+La courbe et le facteur initial restent des entrées distinctes. Un facteur
+CIR non négatif n'impose pas un taux ajusté non négatif.
 
 Les formules canoniques d'instantaneous forward Nelson--Siegel et Svensson
 exposent deux surcharges distinctes. La surcharge FP32 est `__host__

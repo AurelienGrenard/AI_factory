@@ -71,7 +71,9 @@ __global__ void monte_carlo_price_kernel(
                 total,
                 monte_carlo_paths_per_price,
                 price,
-                standard_error
+                standard_error,
+                monte_carlo_paths_per_price / blockDim.x
+                    + (monte_carlo_paths_per_price % blockDim.x != 0U)
             );
             prices[result_index] = static_cast<float>(price);
             standard_errors[result_index] =
@@ -81,7 +83,7 @@ __global__ void monte_carlo_price_kernel(
     }
 }
 
-template<ScalarMonteCarloPricingPolicy PricingPolicy>
+template<MonteCarloLaunchPolicy PricingPolicy>
 inline void validate_monte_carlo_launch(
     const typename PricingPolicy::DeviceInputs& inputs,
     const typename PricingPolicy::HostInputs& host_inputs,

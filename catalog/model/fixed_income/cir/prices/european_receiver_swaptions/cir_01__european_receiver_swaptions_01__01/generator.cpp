@@ -24,11 +24,13 @@ int main() {
         cir::load_models(model_path),
         product_dataset,
         [maximum_payment_count = product_dataset.maximum_payment_count](
-            auto... arguments
+            const offline::cuda_tuning::PricingLaunchPlan& plan, auto... arguments
         ) {
             cir::launch_cir_european_swaption_cuda<SwaptionSide::receiver>(
                 arguments...,
-                maximum_payment_count
+                maximum_payment_count,
+                plan.profile.distribution == offline::cuda_tuning::PriceWorkDistribution::block
+                    ? closed_form::WorkDistribution::cooperative : closed_form::WorkDistribution::scalar
             );
         },
         "datasets/model/fixed_income/cir/prices/european_receiver_swaptions/"
@@ -40,9 +42,6 @@ int main() {
         "cir_01__european_receiver_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond calls",
         "CIR European receiver swaption",
-        datasets::EuropeanSwaptionGenerationConfiguration{
-            128U,
-            datasets::EuropeanSwaptionWorkDistribution::one_price_per_block,
-        }
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir", "european_swaption", ""}
     );
 }

@@ -50,6 +50,27 @@ deux facteurs et conserve localement ses covariances croisées. Ce helper ne
 contient aucun état de modèle, aucune logique de courbe et aucune simulation de
 chemin.
 
+La variance intégrée gaussienne utilise une série FP32 de degré huit pour
+`|kappa * dt| < 0.5`, afin de ne pas soustraire des termes d'ordre `dt`
+pour obtenir une variance d'ordre `dt³`. G2 traite également les limites
+mixtes : la covariance des intégrales utilise une identité divisant par
+`a+b`, plutôt que par `a*b`, et une série lorsque les deux vitesses sont
+petites. La formule directe reste utilisée dans son domaine bien conditionné
+(`min(a,b)*dt >= 0.125`, `max(a,b)*dt >= 0.5`). Pour les covariances
+état/intégrale, seul le facteur lent est développé avec les moments du rapide.
+Ces calculs FP32 servent à la préparation et aux analytics obligataires,
+y compris celles évaluées dans les payoffs; ils ne changent pas les tirages.
+La branche sensible de covariance reste un appel device direct non inliné :
+l'inlining répété dans G2++ peut rendre 512 threads impossibles par pression
+registre. La branche bien conditionnée reste inline. Requalifier précision,
+registres et temps des deux consommateurs avant de changer cette frontière;
+les mesures SM89 ne constituent pas un optimum portable.
+Un résidu de Cholesky négatif au-delà de 64 epsilon FP32 fois l'échelle de
+variance produit NaN; il ne doit pas être projeté silencieusement à zéro.
+Le test `g2_covariance_cuda` compare les covariances reconstruites et les
+moments obligataires G2/G2++ à une intégration indépendante des noyaux sur
+l'hôte, avec une erreur normalisée maximale admissible de `3e-5`.
+
 Les formules de courbe, payoffs, règles produit et kernels de pricing restent
 dans leurs couches respectives. Une dynamique ne les réimporte pas pour
 faciliter ponctuellement un pricer.
@@ -202,6 +223,9 @@ agrège le processus de sauts indépendant sur l'intervalle non observé. La loi
 la frontière est correcte, mais le partitionnement des appels change la
 consommation Philox. Un calendrier dense appelle `advance(..., 1, ...)`, donc
 les sauts restent appliqués à chaque date effectivement observée.
+Le tirage de Poisson utilise l'inversion pour une moyenne inférieure à 10,
+puis le PTRS commun, comme Merton et Kou. Le seuil porte sur la moyenne de
+l'intervalle agrégé, pas seulement sur celle d'un pas élémentaire.
 
 Les `using` sont des alias de types et ne stockent rien. Les méthodes statiques
 redirigent vers les primitives propres au modèle et sont toutes
@@ -402,6 +426,11 @@ préparée. Merton et Kou consomment ainsi un seul incrément compound-Poisson s
 la durée préparée ; VG et NIG consomment directement leur incrément de Lévy
 terminal.
 
+Le drift martingale Variance-Gamma évalue
+`log1pf(-nu * (theta + sigma² / 2)) / nu` en FP32 : former d'abord
+`1 - nu * (theta + sigma² / 2)` détruit la limite brownienne pour petit `nu`.
+Ce choix ne change ni le sampler Gamma ni la consommation Philox.
+
 CEV ne possède pas ici de transition trajectorielle exacte. Sa loi marginale
 peut se ramener à une loi du chi carré non centrale, mais, sur le domaine
 `beta >= 0.5` retenu par le catalogue, la frontière absorbante atteignable
@@ -412,6 +441,11 @@ La puissance `S^beta` est calculée une fois par pas et réutilisée pour former
 ajouter de registre persistant.
 
 SABR et rough SABR appliquent la même frontière absorbante pour `beta < 1`.
+Le SABR markovien expose aussi une transition déterministe à deux innovations,
+réutilisée par sa simulation ordinaire et son adaptateur prix-delta. Celui-ci
+recalcule l'alpha initial dimensionnel pour chaque spot perturbé, à volatilité
+initiale relative constante, et partage les deux normales sans changer leur
+ordre de consommation Philox. Cette extension ne concerne pas encore rough SABR.
 Leur schéma évolue le spot dans la coordonnée de Lamperti
 `S^(1-beta)/(1-beta)` : une proposition finie non positive écrit
 `log_spot = -inf`, et les pas suivants ne peuvent pas ressusciter le spot. La
@@ -505,6 +539,15 @@ trapézoïdale ne puisse pas être utilisée comme une transition exacte sur un
 grand intervalle. L'uniformité porte sur les responsabilités réellement
 communes, pas sur le nombre de champs, de normales ou de caches.
 
+Le pricer Bermudan CIR ne consomme plus `cir::joint`. Il compose la dynamique
+distincte `cir::terminal_forward`, dans `forward_measure.cuh/_impl.cuh`, avec
+un calendrier d'exercices exact sous le numéraire du dernier exercice. Cette
+transition dépend de la durée et du tenor restant du numéraire ; son concept
+distinct interdit de l'utiliser comme transition homogène sous Q. Le contrat
+[American/Bermudan](american-and-bermudan-pricing-contract.md#numéraire-terminal-pour-cir)
+possède la conversion des cashflows et leur stockage. Aucune formule fermée
+existante ni loi risque-neutre des samples n'est remplacée.
+
 Les preparations hote N-facteurs valident leur surface publique complete,
 meme lorsqu'un loader catalogue applique deja les memes domaines. Parametres
 modele et temporels doivent etre finis, les nodes et weights d'un noyau
@@ -575,6 +618,12 @@ G2++ suit la même règle. Ses analytics réutilisent les moments exacts et l'é
 à deux facteurs de G2, puis ajoutent seulement le décalage déterministe de la
 courbe. Les versions autonomes et ajustées conservent ainsi les mêmes noms de
 formules sans dupliquer leur processus stochastique.
+
+CIR++ réutilise directement la ligne de paramètres, les contrôles de domaine
+et la policy de dynamique CIR. Son état initial n'est pas centré : il reste
+le facteur positif `y0`. Les samples portent sur `y(t)`, sans courbe ; la
+reconstruction du taux ajusté appartient aux analytics. La dynamique
+terminal-forward CIR est également réutilisée pour les Bermudans fitted.
 
 ## Suite aléatoire Philox
 

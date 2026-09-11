@@ -9,6 +9,7 @@
 #include "common/time_configuration.cuh"
 #include "product/european_swaption/parameters.hpp"
 #include "product/european_swaption/schedule.cuh"
+#include "product/european_swaption/pricing_row.cuh"
 
 #include <cuda_runtime.h>
 
@@ -20,65 +21,6 @@
 
 namespace ai_factory::workbench::fixed_income {
 
-template<typename PreparedModel, typename ScheduleView>
-struct PreparedEuropeanSwaptionRow {
-    PreparedModel model;
-    float notional;
-    float strike;
-    float exercise_time_years;
-    ScheduleView schedule;
-};
-
-template<typename Model, typename Product, typename Source>
-__device__ __forceinline__ auto prepare_european_swaption_row(
-    const Model& model,
-    const Product& product,
-    Source source,
-    float time_day_fraction
-) {
-    auto schedule = product::make_european_swaption_schedule_view(
-        product,
-        source,
-        time_day_fraction
-    );
-    return PreparedEuropeanSwaptionRow<
-        Model,
-        decltype(schedule)
-    >{
-        model,
-        product.notional,
-        product.strike,
-        static_cast<float>(product.exercise_time_days) * time_day_fraction,
-        schedule,
-    };
-}
-
-template<typename Composition, typename Model, typename Curve,
-         typename Product, typename Source>
-__device__ __forceinline__ auto prepare_european_swaption_row(
-    const Model& model,
-    const Curve& curve,
-    const Product& product,
-    Source source,
-    float time_day_fraction
-) {
-    auto prepared_model = Composition::compose(model, curve);
-    auto schedule = product::make_european_swaption_schedule_view(
-        product,
-        source,
-        time_day_fraction
-    );
-    return PreparedEuropeanSwaptionRow<
-        decltype(prepared_model),
-        decltype(schedule)
-    >{
-        prepared_model,
-        product.notional,
-        product.strike,
-        static_cast<float>(product.exercise_time_days) * time_day_fraction,
-        schedule,
-    };
-}
 
 template<SwaptionSide Side, typename State, typename Row>
 __device__ __forceinline__ float evaluate_european_swaption_price(
@@ -241,7 +183,7 @@ struct FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy {
     ) {
         return evaluate_european_swaption_price<Side>(
             row,
-            Composition::initial_state()
+            Composition::initial_state(row.model)
         );
     }
 };
@@ -294,7 +236,7 @@ struct CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy
         return row.notional * cooperative_european_swaption_price<Side>(
             Provider{},
             row.model,
-            Composition::initial_state(),
+            Composition::initial_state(row.model),
             0.0f,
             row.exercise_time_years,
             row.strike,
@@ -322,6 +264,7 @@ inline std::size_t scalar_closed_form_block_count(
 
 template<
     SwaptionSide Side,
+    typename Provider,
     typename Model,
     typename Product,
     typename Source
@@ -340,65 +283,15 @@ void launch_one_factor_european_swaption(
     float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
-    float* device_prices
-) {
-    using PricingPolicy =
-        OneFactorEuropeanSwaptionClosedFormPricingPolicy<
-            Side,
-            Model,
-            Product,
-            Source
-        >;
-    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
-    closed_form::launch_closed_form_cuda<PricingPolicy>(
-        with_device_context(
-            make_model_product_device_inputs(
-                device_models,
-                model_count,
-                device_products,
-                product_count,
-                construction
-            ),
-            schedule_source
-        ),
-        result_count,
-        result_offset,
-        launch_result_count,
-        time::DayFractionTimeConfiguration{time_day_fraction},
-        threads_per_block,
-        block_count,
-        device_prices,
-        kernel_name,
-        swaption_side_name(Side),
-        "European swaption kernel"
-    );
-}
-
-template<
-    SwaptionSide Side,
-    typename Provider,
-    typename Model,
-    typename Product,
-    typename Source
->
-void launch_cooperative_one_factor_european_swaption(
-    const char* kernel_name,
-    const Model* device_models,
-    std::size_t model_count,
-    const Product* device_products,
-    Source schedule_source,
-    std::size_t product_count,
-    PriceConstruction construction,
-    std::size_t result_count,
-    std::size_t result_offset,
-    std::size_t launch_result_count,
-    float time_day_fraction,
-    unsigned int threads_per_block,
-    std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::cooperative
 ) {
-    if (maximum_payment_count == 0U) {
+    if (distribution != closed_form::WorkDistribution::scalar
+        && distribution != closed_form::WorkDistribution::cooperative) {
+        throw std::invalid_argument("Unknown European-swaption work distribution.");
+    }
+    if (distribution == closed_form::WorkDistribution::cooperative && maximum_payment_count == 0U) {
         throw std::invalid_argument(
             "maximum_payment_count must be positive."
         );
@@ -428,7 +321,8 @@ void launch_cooperative_one_factor_european_swaption(
     const time::DayFractionTimeConfiguration time_configuration{
         time_day_fraction
     };
-    const bool launched = maximum_payment_count > 1U
+    const bool launched = distribution == closed_form::WorkDistribution::cooperative
+        && maximum_payment_count > 1U
         && closed_form::launch_cooperative_closed_form_cuda<PricingPolicy>(
             inputs,
             result_count,
@@ -466,6 +360,7 @@ void launch_cooperative_one_factor_european_swaption(
 
 template<
     SwaptionSide Side,
+    typename Provider,
     typename Composition,
     typename Model,
     typename Curve,
@@ -488,73 +383,15 @@ void launch_fitted_one_factor_european_swaption(
     float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t block_count,
-    float* device_prices
-) {
-    using PricingPolicy =
-        FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy<
-            Side,
-            Composition,
-            Model,
-            Curve,
-            Product,
-            Source
-        >;
-    static_assert(closed_form::ClosedFormPricingPolicy<PricingPolicy>);
-    closed_form::launch_closed_form_cuda<PricingPolicy>(
-        with_device_context(
-            make_model_curve_product_device_inputs(
-                device_models,
-                model_count,
-                device_curves,
-                curve_count,
-                device_products,
-                product_count,
-                construction
-            ),
-            schedule_source
-        ),
-        result_count,
-        result_offset,
-        launch_result_count,
-        time::DayFractionTimeConfiguration{time_day_fraction},
-        threads_per_block,
-        block_count,
-        device_prices,
-        kernel_name,
-        swaption_side_name(Side),
-        "European swaption kernel"
-    );
-}
-
-template<
-    SwaptionSide Side,
-    typename Provider,
-    typename Composition,
-    typename Model,
-    typename Curve,
-    typename Product,
-    typename Source
->
-void launch_cooperative_fitted_one_factor_european_swaption(
-    const char* kernel_name,
-    const Model* device_models,
-    std::size_t model_count,
-    const Curve* device_curves,
-    std::size_t curve_count,
-    const Product* device_products,
-    Source schedule_source,
-    std::size_t product_count,
-    PriceConstruction construction,
-    std::size_t result_count,
-    std::size_t result_offset,
-    std::size_t launch_result_count,
-    float time_day_fraction,
-    unsigned int threads_per_block,
-    std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::cooperative
 ) {
-    if (maximum_payment_count == 0U) {
+    if (distribution != closed_form::WorkDistribution::scalar
+        && distribution != closed_form::WorkDistribution::cooperative) {
+        throw std::invalid_argument("Unknown European-swaption work distribution.");
+    }
+    if (distribution == closed_form::WorkDistribution::cooperative && maximum_payment_count == 0U) {
         throw std::invalid_argument(
             "maximum_payment_count must be positive."
         );
@@ -588,7 +425,8 @@ void launch_cooperative_fitted_one_factor_european_swaption(
     const time::DayFractionTimeConfiguration time_configuration{
         time_day_fraction
     };
-    const bool launched = maximum_payment_count > 1U
+    const bool launched = distribution == closed_form::WorkDistribution::cooperative
+        && maximum_payment_count > 1U
         && closed_form::launch_cooperative_closed_form_cuda<PricingPolicy>(
             inputs,
             result_count,

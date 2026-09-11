@@ -79,7 +79,8 @@ inline datasets::ModelSampleRecipe recipe(
         "seven-factor Markovian lift at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_variance", "mean_reversion", "long_run_variance", "hurst_exponent", "rho"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
@@ -90,7 +91,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"hurst_exponent", {0.03f, 0.25f}},
                 {"rho", {-0.95f, -0.25f}}
             }},
-            {"acceptance", "true"}
+            {"acceptance", "true"},
+            {"derived_parameters", {{"variance_drift", "variance_drift = mean_reversion * long_run_variance."}, {"volatility_of_variance", "After all latent uniform draws, draw volatility_of_variance uniformly on [max(sqrt(variance_drift / 5), 0.08), min(sqrt(12 * variance_drift), 0.8)] using the next Philox uniform."}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -100,6 +102,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_prepared_model_sample_dataset<ModelParameters, model_binding::PreparedDynamics<factor_count>>(
         argc,
         argv,

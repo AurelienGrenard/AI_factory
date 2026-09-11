@@ -19,8 +19,10 @@ void write_catalog_yaml(
 std::string format_row_id(std::size_t index);
 std::string format_duration(double seconds);
 nlohmann::ordered_json read_json_file(const std::filesystem::path& path);
+// Generation never certifies prices. Canonical model datasets also name their
+// intended independent-reference cache; its existence is not implied.
 nlohmann::ordered_json price_validation_metadata(
-    const std::filesystem::path& catalog_directory
+    const std::filesystem::path& dataset_path
 );
 void write_json_file(
     const std::filesystem::path& path,

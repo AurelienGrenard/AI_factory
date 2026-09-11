@@ -5,42 +5,14 @@
 #include "common/device_inputs.cuh"
 #include "common/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
+#include "product/european_option/closed_form_pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
 
 template<OptionSide Side>
-struct EuropeanOptionClosedFormPricingPolicy {
-    using DeviceInputs = ModelProductDeviceInputs<
-        ModelParameters,
-        product::EuropeanOptionParameters
-    >;
-    using TimeConfiguration = time::DayFractionTimeConfiguration;
-
-    using PreparedRow = DiscountedLognormalOptionValues;
-
-    __device__ __forceinline__ static PreparedRow prepare_row(
-        const ModelParameters& model,
-        const product::EuropeanOptionParameters& product,
-        const TimeConfiguration& time_configuration
-    ) {
-        const float maturity_years = time::year_fraction(
-            product.maturity_days,
-            time_configuration
-        );
-        return prepare_vanilla_option_values(
-            prepare_analytics(model), product.strike, maturity_years
-        );
-    }
-
-    __device__ __forceinline__ static float evaluate_price(
-        const PreparedRow& row
-    ) {
-        constexpr float option_sign =
-            Side == OptionSide::call ? 1.0f : -1.0f;
-        return discounted_lognormal_option_price(row, option_sign);
-    }
-};
+using EuropeanOptionClosedFormPricingPolicy =
+    product::LognormalEuropeanOptionClosedFormPolicy<ModelParameters, Side>;
 
 static_assert(closed_form::ClosedFormPricingPolicy<
     EuropeanOptionClosedFormPricingPolicy<OptionSide::call>

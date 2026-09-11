@@ -6,7 +6,6 @@
 | Compounding | Continuous |
 | Device evaluation | Direct analytical functions |
 | Stored maturity grid | None |
-| Fitted stochastic models | Hull–White and G2++ |
 
 ## Role and reference
 
@@ -39,26 +38,9 @@ z(0,T) = beta0
 The discount factor is `P(0,T) = exp(-T z(0,T))`. The instantaneous forward is
 derived analytically rather than numerically differentiated.
 
-## Device interface
+## Implementation boundary
 
-| Function | Role |
-|---|---|
-| `zero_rate` | Evaluate $z(0,T)$ |
-| `log_discount_factor` | Evaluate $\log P(0,T)$ without exponentiating |
-| `discount_factor` | Evaluate $P(0,T)$ |
-| `instantaneous_forward` | Evaluate $f(0,T)$ analytically |
-| `forward_derivative` | Differentiate $f(0,T)$ with respect to maturity |
-| `forward_rate` | Derive the continuous forward over `[start_years,end_years]` |
-
-The exact device declarations are owned by
-[`term_structure.cuh`](term_structure.cuh); their included definitions are in
-[`term_structure_impl.cuh`](term_structure_impl.cuh).
-
-## Consumers
-
-The curve can be read directly by fixed-income products. Hull–White and G2++
-Nelson–Siegel analytics combine one curve row with one stochastic-model row and
-derive the deterministic short-rate shift needed to fit this initial curve.
+Implementation: [`term_structure.cuh`](term_structure.cuh) · [`term_structure_impl.cuh`](term_structure_impl.cuh) · [family contract](../README.md).
 
 ## Memory and numerical policy
 
@@ -68,6 +50,5 @@ computed before exponentiation so ratios remain stable. All curve values are
 FP32 and fast-math is forbidden.
 
 Related navigation: [curve catalog](../../../catalog/curve/nelson_siegel/),
-[Hull–White consumer](../../model/fixed_income/hull_white/),
-[G2++ consumer](../../model/fixed_income/g2_plus_plus/), and
-[pricing contract](../../../docs/cuda/closed-form-and-monte-carlo-pricing-contract.md).
+[analytics contract](../../../docs/cuda/model-analytics-contract.md), and
+[capability manifest](../../../tools/codegen/pricing_bindings/capability_manifest.py).

@@ -35,13 +35,7 @@ is intentionally named a bounded positive L2 rule, not BL2: replacing it by a
 published BL2 catalogue or optimizer does not change the CUDA dynamics
 contract.
 
-## Factorization
-
-The implementation separates raw [parameters](parameters.hpp), host-side
-[numerical preparation](markovian_n_factor_preparation.hpp), the fixed-factor
-[dynamics](dynamics.cuh), and the public sampling and pricing compositions.
-Dataset loading remains host-only; product policies remain shared with the
-other equity models.
+## N-factor approximation
 
 `prepare_dynamics<N>` runs on the host once per model and `dt`. It stores the
 positive nodes/weights, the lifted initial state, and the matrix exponential
@@ -53,21 +47,11 @@ Bulk preparation caches the fitted kernel by the exact FP32 Hurst exponent;
 models sharing `H`, the approximation horizon and `dt` do not repeat the L2
 fit.
 
-The common fixed-step schedules then add the product maturity or sample
-calendar and time configuration. Product handlers, pricing policies and sample
-observations see the usual spot state; they do not know how many lifted factors
-produced it.
-
-`N` is a compile-time parameter. The public European and sampling launchers are
-instantiated for `N=2`, `N=3`, and `N=7`, with host dispatch selecting the
-desired accuracy. There is no runtime factor loop bound, dynamic allocation,
-virtual call or device-side matrix exponential.
-
-Sampling uses the canonical `dt = 1/504` and two transitions per business day.
-The caller prepares one dynamics row per model with an approximation horizon
-covering every requested maturity, then uploads those rows. The common Markov
-sampler uses grid-stride execution for one path per parameter and shares one
-prepared row per block for conditional packages such as `P = 250`.
+`N` is a compile-time parameter. Supported factor counts and public bindings
+are declared by the
+[capability manifest](../../../../../tools/codegen/pricing_bindings/capability_manifest.py).
+There is no runtime factor loop bound, dynamic allocation, virtual call or
+device-side matrix exponential.
 
 ## Weak step and random stream
 
@@ -82,18 +66,19 @@ One time step applies a Strang splitting:
 
 The path consumes one normal, one uniform, then the cached second Box-Muller
 normal. Repeating a launch with the same row seed and path index is bitwise
-reproducible. FP64 is reserved for the final price moments; states and the hot
-path remain FP32.
+reproducible. State arithmetic remains FP32.
 
 The ODE/SDE/ODE variance split, three-point weak law and correlated-stock
 reconstruction follow the reference implementation published with
 [Bayer and Breneis' Markovian rough-volatility approximations](https://github.com/SimonBreneis/approximations_to_fractional_stochastic_volterra_equations).
 
-## Current validation boundary
+## Verification
 
-The host test checks positivity and ordering of the exponential rule, decreasing
-L2 error from 2 to 3 to 7 factors, exact reconstruction of `V0`, and finite
-matrix-exponential coefficients. The CUDA tests cover call/put finiteness,
-sampling terminal/calendar layouts, conditional path diversity and bitwise
-replay across launch geometries when a GPU is available. Independent
-price/convergence datasets and additional products remain separate work.
+Host and CUDA tests cover the exponential rule, preparation coefficients,
+sampling layouts, finite pricing results, path diversity, and deterministic
+replay. Discover the current test and product inventory from CTest and the
+capability manifest rather than from a copied list in this page.
+
+Shared schedules, product policies and runtime composition are documented by
+the [rough-family entry point](../README.md) and the
+[pricing composition](../../../../../docs/cuda/pricing-policy-composition.md).

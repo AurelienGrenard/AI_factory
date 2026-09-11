@@ -6,6 +6,7 @@
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/tuning_profile.hpp"
 #include "tools/datasets/sample_dataset.hpp"
+#include "tools/sampling/host_memory.hpp"
 
 #include <cuda_runtime.h>
 
@@ -24,16 +25,14 @@
 #include <utility>
 #include <vector>
 
-#if defined(__linux__)
-#include <unistd.h>
-#endif
-
 namespace ai_factory::workbench::offline::sampling {
 
 struct ModelSampleProfile {
     unsigned int threads_per_block = 0U;
     std::size_t block_count_limit = 0U;
     const char* engine_family = "model_sample";
+    // Zero means runtime block width; FFT supplies its compiled dimensions.
+    dim3 native_block{0U, 0U, 0U};
 };
 
 struct ModelSampleShape {
@@ -119,22 +118,14 @@ inline void validate_sample_memory_plan(
             "The model-sample plan exceeds 85% of free device memory."
         );
     }
-#if defined(__linux__)
-    const long pages = ::sysconf(_SC_AVPHYS_PAGES);
-    const long page_size = ::sysconf(_SC_PAGESIZE);
-    if (pages > 0L && page_size > 0L) {
-        const long double available =
-            static_cast<long double>(pages)
-            * static_cast<long double>(page_size);
-        if (static_cast<long double>(host_bytes) > 0.70L * available) {
+    if (const auto available = available_host_memory_bytes()) {
+        if (static_cast<long double>(host_bytes)
+            > 0.70L * static_cast<long double>(*available)) {
             throw std::runtime_error(
                 "The model-sample plan exceeds 70% of available host memory."
             );
         }
     }
-#else
-    (void)host_bytes;
-#endif
 }
 
 inline std::size_t model_sample_block_count(
@@ -158,6 +149,43 @@ inline std::size_t model_sample_block_count(
         1U,
         std::min(work_items, block_count_limit)
     );
+}
+
+struct ModelSampleLaunch {
+    unsigned int requested_threads;
+    std::size_t block_count;
+    dim3 block;
+    std::size_t sample_count;
+};
+
+inline ModelSampleLaunch model_sample_launch(
+    std::size_t count, std::size_t paths, const ModelSampleProfile& profile,
+    bool replay = false
+) {
+    const bool fixed_block = profile.native_block.x != 0U;
+    const unsigned int threads = replay && !fixed_block
+        ? (profile.threads_per_block == 128U ? 256U : 128U)
+        : profile.threads_per_block;
+    auto blocks = model_sample_block_count(count, paths, threads, profile.block_count_limit);
+    if (replay && fixed_block && blocks > 1U) --blocks;
+    return {threads, blocks, fixed_block ? profile.native_block : dim3(threads), count};
+}
+
+inline nlohmann::ordered_json model_sample_launch_metadata(
+    const ModelSampleLaunch& launch, std::size_t paths, const ModelSampleProfile& profile
+) {
+    return {
+        {"launch_sample_count", launch.sample_count},
+        {"threads_per_block", launch.block.x * launch.block.y * launch.block.z},
+        {"block_dimensions", {launch.block.x, launch.block.y, launch.block.z}},
+        {"block_count", launch.block_count},
+        {"kernel_launch_count", 1U},
+        {"execution_strategy", profile.native_block.x != 0U || paths != 1U
+            ? "persistent parameter-block" : "persistent thread grid-stride"},
+        {"block_dimensions_source", profile.native_block.x != 0U
+            ? "compiled cuFFTDx Forward::block_dim" : "runtime launch argument"},
+        {"tuning_profile", cuda_tuning::metadata(profile.engine_family)},
+    };
 }
 
 template<typename Parameters, typename DeviceInput, typename ParameterFactory,
@@ -189,6 +217,26 @@ int generate_model_sample_dataset_impl(
     }
 
     const auto wall_start = std::chrono::steady_clock::now();
+    const std::size_t parameter_bytes = checked_bytes(
+        shape.parameter_count, sizeof(Parameters)
+    );
+    const std::size_t input_bytes = checked_bytes(
+        shape.parameter_count, sizeof(DeviceInput)
+    );
+    const std::size_t maturity_bytes = checked_bytes(
+        sample_count, sizeof(std::uint32_t)
+    );
+    const std::size_t observable_bytes = checked_bytes(
+        checked_bytes(sample_count, output_names.size()),
+        sizeof(float)
+    );
+    validate_sample_memory_plan(
+        parameter_bytes
+            + (std::same_as<Parameters, DeviceInput> ? 0U : input_bytes)
+            + maturity_bytes + observable_bytes,
+        input_bytes + maturity_bytes + observable_bytes
+    );
+
     std::vector<Parameters> parameters = std::invoke(
         std::forward<ParameterFactory>(parameter_factory),
         shape.parameter_count,
@@ -210,26 +258,6 @@ int generate_model_sample_dataset_impl(
         );
     }
 
-    const std::size_t parameter_bytes = checked_bytes(
-        parameters.size(), sizeof(Parameters)
-    );
-    const std::size_t input_bytes = checked_bytes(
-        device_inputs.size(), sizeof(DeviceInput)
-    );
-    const std::size_t maturity_bytes = checked_bytes(
-        sample_count, sizeof(std::uint32_t)
-    );
-    const std::size_t observable_bytes = checked_bytes(
-        checked_bytes(sample_count, output_names.size()),
-        sizeof(float)
-    );
-    validate_sample_memory_plan(
-        parameter_bytes
-            + (std::same_as<Parameters, DeviceInput> ? 0U : input_bytes)
-            + maturity_bytes + observable_bytes,
-        input_bytes + maturity_bytes + observable_bytes
-    );
-
     cuda::DeviceBuffer<DeviceInput> device_parameters(device_inputs.size());
     cuda::DeviceBuffer<std::uint32_t> device_maturity_days(sample_count);
     device_parameters.copy_from(device_inputs.data());
@@ -246,14 +274,8 @@ int generate_model_sample_dataset_impl(
 
     const auto invoke_launch = [&](
         std::size_t launch_count,
-        unsigned int threads_per_block
+        const ModelSampleLaunch& launch
     ) {
-        const std::size_t block_count = model_sample_block_count(
-            launch_count,
-            shape.paths_per_parameter,
-            threads_per_block,
-            profile.block_count_limit
-        );
         std::invoke(
             launcher,
             device_parameters.data(),
@@ -263,8 +285,8 @@ int generate_model_sample_dataset_impl(
             recipe.maximum_maturity_days,
             0U,
             launch_count,
-            threads_per_block,
-            block_count,
+            launch.requested_threads,
+            launch.block_count,
             recipe.seeds.schedule,
             recipe.seeds.dynamics,
             device_maturity_days.data(),
@@ -278,13 +300,14 @@ int generate_model_sample_dataset_impl(
             ? 1'000U
             : 4U * shape.paths_per_parameter
     );
-    invoke_launch(warmup_count, profile.threads_per_block);
+    invoke_launch(warmup_count, model_sample_launch(warmup_count, shape.paths_per_parameter, profile));
     check_cuda(cudaDeviceSynchronize(), "model-sample CUDA warmup");
 
     cuda::Event start;
     cuda::Event stop;
     check_cuda(cudaEventRecord(start.get()), "model-sample timer start");
-    invoke_launch(sample_count, profile.threads_per_block);
+    const auto primary_launch = model_sample_launch(sample_count, shape.paths_per_parameter, profile);
+    invoke_launch(sample_count, primary_launch);
     check_cuda(cudaEventRecord(stop.get()), "model-sample timer stop");
     check_cuda(cudaEventSynchronize(stop.get()), "model-sample timer wait");
     float kernel_milliseconds = 0.0f;
@@ -307,9 +330,8 @@ int generate_model_sample_dataset_impl(
     if (shape.preflight) {
         const auto expected_maturity_days = maturity_days;
         const auto expected_output_values = output_values;
-        const unsigned int replay_threads_per_block =
-            profile.threads_per_block == 128U ? 256U : 128U;
-        invoke_launch(sample_count, replay_threads_per_block);
+        const auto replay_launch = model_sample_launch(sample_count, shape.paths_per_parameter, profile, true);
+        invoke_launch(sample_count, replay_launch);
         check_cuda(
             cudaDeviceSynchronize(),
             "model-sample preflight replay"
@@ -346,13 +368,16 @@ int generate_model_sample_dataset_impl(
                 std::chrono::steady_clock::now() - wall_start
             ).count();
         std::cout
-            << "MODEL_SAMPLE_PREFLIGHT rows=" << sample_count
-            << " finite=true deterministic_replay=true"
-            << " primary_threads_per_block=" << profile.threads_per_block
-            << " replay_threads_per_block=" << replay_threads_per_block
-            << " kernel_seconds="
-            << static_cast<double>(kernel_milliseconds) * 1.0e-3
-            << " wall_seconds=" << preflight_wall_seconds << '\n';
+            << "MODEL_SAMPLE_PREFLIGHT " << nlohmann::ordered_json{
+                {"rows", sample_count}, {"finite", true}, {"deterministic_replay", true},
+                {"primary_launch", model_sample_launch_metadata(primary_launch, shape.paths_per_parameter, profile)},
+                {"replay_launch", model_sample_launch_metadata(replay_launch, shape.paths_per_parameter, profile)},
+                {"replay_scope", (profile.native_block.x == 0U
+                ? "block_dimensions" : primary_launch.block_count != replay_launch.block_count
+                    ? "grid_block_count" : "identical_geometry_single_block")},
+                {"kernel_seconds", static_cast<double>(kernel_milliseconds) * 1.0e-3},
+                {"wall_seconds", preflight_wall_seconds},
+            }.dump() << '\n';
         return 0;
     }
     const double wall_seconds = std::chrono::duration<double>(
@@ -364,16 +389,6 @@ int generate_model_sample_dataset_impl(
     for (std::size_t index = 0U; index < output_names.size(); ++index) {
         named_outputs.push_back({output_names[index], &output_values[index]});
     }
-    const std::size_t production_row_count = sample::sample_count(
-        recipe.production_parameter_count,
-        recipe.production_paths_per_parameter
-    );
-    const std::size_t full_block_count = model_sample_block_count(
-        production_row_count,
-        recipe.production_paths_per_parameter,
-        profile.threads_per_block,
-        profile.block_count_limit
-    );
     datasets::write_model_sample_dataset(
         recipe,
         {
@@ -382,21 +397,7 @@ int generate_model_sample_dataset_impl(
             shape.smoke_test,
             wall_seconds,
             static_cast<double>(kernel_milliseconds) * 1.0e-3,
-            {
-                {"threads_per_block", profile.threads_per_block},
-                {"block_count", full_block_count},
-                {"kernel_launch_count", 1U},
-                {
-                    "execution_strategy",
-                    recipe.production_paths_per_parameter == 1U
-                        ? "persistent thread grid-stride"
-                        : "persistent parameter-block"
-                },
-                {
-                    "tuning_profile",
-                    cuda_tuning::metadata(profile.engine_family)
-                },
-            },
+            model_sample_launch_metadata(primary_launch, shape.paths_per_parameter, profile),
         },
         [&](std::size_t parameter_index) {
             return std::invoke(

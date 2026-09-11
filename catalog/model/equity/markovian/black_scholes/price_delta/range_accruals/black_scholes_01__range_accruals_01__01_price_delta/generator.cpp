@@ -1,0 +1,37 @@
+// Generated aligned black_scholes range_accrual price-delta recipe; production paths/profile stay shared.
+#include "model/equity/markovian/black_scholes/product/range_accrual_price_delta.cuh"
+#include "model/equity/markovian/black_scholes/dataset.hpp"
+#include "product/range_accrual/dataset.hpp"
+#include "tools/pricing/equity_price_delta_generation.cuh"
+
+int main() {
+    using namespace ai_factory::workbench;
+    namespace pricing = offline::pricing;
+    const datasets::PriceDeltaRecipe recipe{
+        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/range_accruals/black_scholes_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/range_accruals/black_scholes_01__range_accruals_01__01_price_delta/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/range_accruals/black_scholes_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01/generator.cpp", "centered_closed_form", .01, 0U};
+    return pricing::generate_equity_price_delta_dataset<false, false>(
+        recipe, {offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "range_accrual", ""},
+        0ULL, model::equity::black_scholes::load_models, product::load_range_accruals,
+        [](const auto* host_models, const auto* device_models, std::size_t model_count,
+           const auto* host_products, const auto* device_products, std::size_t product_count,
+           const pricing::PriceDeltaLaunchContext& context,
+           float* prices, float* price_errors, float* deltas, float* delta_errors) {
+            return model::equity::black_scholes::launch_black_scholes_range_accrual_price_delta_cuda(
+                    host_models,
+                    device_models,
+                    model_count,
+                    device_products,
+                    product_count,
+                    PriceConstruction::Aligned,
+                    context.results,
+                    context.offset,
+                    context.count,
+                    1.0f / 252.0f,
+                    context.threads,
+                    context.blocks,
+                    context.bump,
+                    prices,
+                    deltas);
+        });
+}

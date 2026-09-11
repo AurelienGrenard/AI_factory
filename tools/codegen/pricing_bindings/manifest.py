@@ -38,7 +38,6 @@ class PriceVariant:
     product_loader: str
     side: str | None = None
     legacy_url_name: str | None = None
-    threads_per_block: int | None = None
     side_aware_loader: bool = False
     analytical_steps_per_day: int | None = None
 
@@ -50,7 +49,6 @@ class ModelRecipeSpec:
     backend: str
     numerical_method: str
     legacy_url_name: str | None = None
-    threads_per_block: int = 512
 
 
 @dataclass(frozen=True)
@@ -165,7 +163,6 @@ def derive_model_recipe_specs(models) -> tuple[ModelRecipeSpec, ...]:
             model.backend,
             model.pricing_numerical_method,
             model.legacy_url_name,
-            model.threads_per_block,
         )
         for model in models
         if model.asset_class == "equity"
@@ -319,7 +316,7 @@ PRICE_VARIANTS = (
     ),
     PriceVariant(
         "cliquets", "cliquet", "cliquets", "cliquets_01",
-        "load_cliquets", None, "Cliquet", threads_per_block=256
+        "load_cliquets", None, "Cliquet"
     ),
     PriceVariant(
         "digital_calls", "digital_option", "digital_options",
@@ -496,6 +493,10 @@ AMERICAN_RECIPE_SPECS = (
             "log(spot / strike)",
             "log(spot / strike)^2",
             "L1(spot / strike) * log(spot / strike)",
+        ),
+        regression_precision=(
+            "FP64 normal equations and Cholesky on GPU, "
+            "one normal-residual correction"
         ),
     ),
     AmericanRecipeSpec(

@@ -122,17 +122,20 @@ nlohmann::ordered_json read_json_file(const std::filesystem::path& path) {
 }
 
 nlohmann::ordered_json price_validation_metadata(
-    const std::filesystem::path& catalog_directory
+    const std::filesystem::path& dataset_path
 ) {
-    return {
-        {"status", "pending"},
-        {"verified", false},
-        {"reference", "none"},
-        {
-            "notebook",
-            (catalog_directory / "validation.ipynb").generic_string()
-        },
-    };
+    nlohmann::ordered_json metadata = {{"status", "pending"}, {"verified", false}};
+    const auto relative = dataset_path.lexically_normal().lexically_relative("datasets/model");
+    if (relative.empty() || relative.is_absolute() || *relative.begin() == "..")
+        return metadata;  // Standalone temporary artifacts have no catalogue cache.
+    std::filesystem::path reference = "validation/datasets/price";
+    bool has_prices = false;
+    for (const auto& component : relative) {
+        if (component == "prices") has_prices = true;
+        else reference /= component;
+    }
+    if (has_prices) metadata["dataset"] = reference.generic_string();
+    return metadata;
 }
 
 void write_json_file(

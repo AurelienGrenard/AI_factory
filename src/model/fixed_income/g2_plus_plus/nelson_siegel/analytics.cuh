@@ -52,7 +52,7 @@ struct FittedModelComposition {
     using FittedModel = G2PlusPlusFittedParameters;
 
     __device__ __forceinline__ static model::fixed_income::g2::State
-    initial_state() {
+    initial_state(const FittedModel&) {
         return {0.0f, 0.0f};
     }
 

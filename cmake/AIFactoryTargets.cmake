@@ -7,7 +7,7 @@
 # This checked-in fragment is generated beside every equity pricing binding;
 # CI compares the C++ units and the cross-domain registration matrix to the
 # composed capability manifests.
-include(cmake/generated/EquityPricingBindings.cmake)
+include(cmake/generated/CapabilityManifest.cmake)
 
 function(ai_factory_configure_host_library target)
     target_include_directories(${target} PUBLIC
@@ -62,24 +62,14 @@ function(ai_factory_add_dataset_library target source)
     )
 endfunction()
 
-set(_ai_factory_curves nelson_siegel svensson)
-foreach(curve IN LISTS _ai_factory_curves)
+foreach(curve IN LISTS AI_FACTORY_GENERATED_CURVES)
     ai_factory_add_dataset_library(
         ai_factory_curve_${curve}_dataset
         src/curve/${curve}/dataset.cpp
     )
 endforeach()
 
-set(_ai_factory_products
-    american_option
-    bermudan_swaption
-    european_swaption
-    rate_option
-    zero_coupon_bond_option
-    ${AI_FACTORY_GENERATED_EQUITY_PRODUCTS}
-)
-list(REMOVE_DUPLICATES _ai_factory_products)
-foreach(product IN LISTS _ai_factory_products)
+foreach(product IN LISTS AI_FACTORY_GENERATED_PRODUCTS)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/product/${product}/dataset.cpp")
         ai_factory_add_dataset_library(
             ai_factory_product_${product}_dataset
@@ -141,6 +131,7 @@ function(ai_factory_add_cuda_unit domain unit_path)
     get_filename_component(product "${unit_path}" NAME)
     set(dependencies ai_factory_runtime)
     if(product STREQUAL "american_option"
+        OR product STREQUAL "american_option_price_delta"
         OR product STREQUAL "bermudan_swaption")
         list(APPEND dependencies ai_factory_longstaff_schwartz)
     endif()
@@ -334,6 +325,9 @@ target_link_libraries(cuda_workbench INTERFACE
 # executable. Missing candidates are inline-only headers such as dynamics or
 # analytics and intentionally require no compiled library.
 function(ai_factory_collect_source_dependencies output source)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+    )
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
     string(REGEX MATCHALL
         "#include[ \t]+\"(model|curve|product)/[^\"]+\\.(cuh|hpp)\""

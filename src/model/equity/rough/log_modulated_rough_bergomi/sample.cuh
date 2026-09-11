@@ -2,11 +2,15 @@
 #pragma once
 
 #include "model/equity/rough/log_modulated_rough_bergomi/parameters.hpp"
+#include <cuda_runtime.h>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::model::equity::log_modulated_rough_bergomi {
+
+// Host-only query; dimensions come from the compiled sampling FFT specialization.
+dim3 log_modulated_rough_bergomi_sample_block_dimensions(std::uint32_t maximum_maturity_days);
 
 void launch_log_modulated_rough_bergomi_terminal_samples_cuda(
     const ModelParameters* device_parameters,

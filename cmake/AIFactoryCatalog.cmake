@@ -2,9 +2,13 @@
 # Register one host-only parameter generator with shared build settings.
 add_custom_target(parameter_generators)
 add_custom_target(price_generators)
+add_custom_target(price_delta_generators)
 add_custom_target(sample_generators)
 
 function(ai_factory_collect_generation_dependencies output source)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+    )
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
     string(REGEX MATCHALL
         "tools/datasets/[a-z0-9_]+_generation\\.hpp"
@@ -95,7 +99,11 @@ function(add_price_generator target source)
         CUDA_STANDARD 23
         CUDA_STANDARD_REQUIRED YES
     )
-    add_dependencies(price_generators ${target})
+    if(source MATCHES "/price_delta/")
+        add_dependencies(price_delta_generators ${target})
+    else()
+        add_dependencies(price_generators ${target})
+    endif()
 endfunction()
 
 # Register one model-sample generator against its thin CUDA model binding.
@@ -130,7 +138,7 @@ endfunction()
 function(ai_factory_catalog_generator_target output source)
     get_filename_component(recipe_directory "${source}" DIRECTORY)
     get_filename_component(recipe_id "${recipe_directory}" NAME)
-    if(source MATCHES "/prices/")
+    if(source MATCHES "/(prices|price_delta)/")
         string(REPLACE "__" ";" components "${recipe_id}")
         list(POP_BACK components version)
         set(target generate)
@@ -151,21 +159,13 @@ function(ai_factory_catalog_generator_target output source)
     set(${output} "${target}" PARENT_SCOPE)
 endfunction()
 
-# The generated manifest owns the equity recipes and their implementation
-# matrix. Tree discovery registers fixed-income and parameter recipes while
-# the capability checker verifies their declared matrix.
-file(GLOB_RECURSE _ai_factory_catalog_generators
-    CONFIGURE_DEPENDS
-    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/catalog/*/generator.cpp"
-)
-list(SORT _ai_factory_catalog_generators)
-foreach(source IN LISTS _ai_factory_catalog_generators)
-    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
+# The typed capability manifest owns every recipe, its semantic kind and its
+# optional dependency. CMake consumes that inventory without scanning source
+# text or inferring availability from model names.
+function(ai_factory_register_catalog_generator source kind)
     if(NOT AI_FACTORY_MATHDX_ROOT
-        AND source_text MATCHES
-            "model/equity/rough/(rough_bergomi|rough_sabr|log_modulated_rough_bergomi|rough_stein_stein)/")
-        continue()
+        AND source IN_LIST AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES)
+        return()
     endif()
     ai_factory_catalog_generator_target(target "${source}")
     if(TARGET ${target})
@@ -173,11 +173,23 @@ foreach(source IN LISTS _ai_factory_catalog_generators)
             "Duplicate catalog generator target ${target}: ${source}"
         )
     endif()
-    if(source MATCHES "/prices/")
+    if(kind STREQUAL "price")
         add_price_generator(${target} "${source}")
-    elseif(source MATCHES "/samples/")
+    elseif(kind STREQUAL "sample")
         add_sample_generator(${target} "${source}")
-    else()
+    elseif(kind STREQUAL "parameter")
         add_parameter_generator(${target} "${source}")
+    else()
+        message(FATAL_ERROR "Unknown catalog generator kind: ${kind}")
     endif()
+endfunction()
+
+foreach(source IN LISTS AI_FACTORY_MANIFEST_PARAMETER_GENERATOR_SOURCES)
+    ai_factory_register_catalog_generator("${source}" parameter)
+endforeach()
+foreach(source IN LISTS AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES)
+    ai_factory_register_catalog_generator("${source}" price)
+endforeach()
+foreach(source IN LISTS AI_FACTORY_MANIFEST_SAMPLE_GENERATOR_SOURCES)
+    ai_factory_register_catalog_generator("${source}" sample)
 endforeach()

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cir_native_n65536",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "rows": 1000,
+      "paths": 65536,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "native_batching": 1,
+      "trace_chunks": 1,
+      "memory_limit_mib": 15360
+    }
+  },
+  {
+    "id": "cir_native_n262144",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "rows": 1000,
+      "paths": 262144,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "native_batching": 1,
+      "trace_chunks": 1,
+      "memory_limit_mib": 15360
+    }
+  },
+  {
+    "id": "cir_native_n1048576",
+    "options": {
+      "model": "cir",
+      "source": "catalog",
+      "rows": 1000,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "native_batching": 1,
+      "trace_chunks": 1,
+      "memory_limit_mib": 15360
+    }
+  }
+]

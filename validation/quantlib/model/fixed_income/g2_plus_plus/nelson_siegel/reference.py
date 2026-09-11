@@ -11,12 +11,15 @@ from validation.quantlib.bermudan_swaption import (
 )
 from validation.quantlib.parameters import finite_number, positive_number
 from validation.quantlib.rate_option import bond_option_times
+from validation.quantlib.swaption import swaption_times
 from validation.quantlib.term_structure import discount_curve, nelson_siegel_discount
 
 
 def _required_times(product: Mapping[str, Any]) -> tuple[float, ...]:
     if "first_exercise_time" in product:
         return bermudan_swaption_times(product)
+    if "exercise_time" in product:
+        return swaption_times(product)
     return bond_option_times(product)
 
 

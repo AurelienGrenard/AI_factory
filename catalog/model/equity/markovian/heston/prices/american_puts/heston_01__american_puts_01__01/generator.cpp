@@ -1,6 +1,7 @@
 // Generated Heston American-put price-dataset recipe.
 #include "model/equity/markovian/heston/product/american_option.cuh"
 #include "model/equity/markovian/heston/dataset.hpp"
+#include "product/american_option/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 
 #include <cstddef>
@@ -27,7 +28,7 @@ int main() {
         PriceConstruction::Aligned,
     };
     const pricing::AmericanOptionProfile profile{
-        1U << 20U,
+        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseThreadsPerBlock,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseBlocksPerPrice,
         11668826995294208000ULL,
@@ -40,13 +41,15 @@ int main() {
         nlohmann::ordered_json::array({"spot / strike", "variance / theta"}),
         nlohmann::ordered_json::array({"1", "L1(spot / strike)", "L2(spot / strike)", "variance / theta", "(variance / theta)^2", "L1(spot / strike) * variance / theta"}),
         false,
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::equity_lsm, "heston", "american_option", ""},
     };
 
     return pricing::generate_american_option_equity_price_dataset(
         recipe,
         profile,
         model_binding::load_models,
-        [&](const auto* device_models, std::size_t model_count,
+        [&](const offline::cuda_tuning::PricingLaunchPlan& plan,
+            const auto* device_models, std::size_t model_count,
             const auto* host_products, const auto* device_products,
             std::size_t product_count, PriceConstruction construction,
             std::size_t result_count, std::size_t paths_per_price,
@@ -64,8 +67,8 @@ int main() {
                 paths_per_price,
                 dt,
                 simulation_steps_per_day,
-                profile.threads_per_block,
-                profile.blocks_per_price,
+                plan.profile.threads_per_block,
+                plan.profile.blocks_per_price,
                 profile.seed,
                 device_prices,
                 device_standard_errors

@@ -32,11 +32,35 @@ def measurement_key(measurement: dict[str, Any]) -> tuple[str, str, str, str]:
     )
 
 
-def diagnostic_key(diagnostic: dict[str, Any]) -> tuple[str, str, str]:
+def diagnostic_key(diagnostic: dict[str, Any]) -> tuple[str, str, str, str]:
     return (
         diagnostic["kernel"],
         diagnostic["variant"],
+        diagnostic.get("phase", ""),
         json.dumps(diagnostic["launch"], sort_keys=True),
+    )
+
+
+def resource_phase_contract_key(measurement: dict[str, Any]) -> str:
+    return f"{measurement['benchmark']}::{measurement['variant']}"
+
+
+def expected_resource_phases(
+    baseline: dict[str, Any],
+    measurement: dict[str, Any],
+) -> list[str] | None:
+    return baseline.get("resource_phase_contracts", {}).get(
+        resource_phase_contract_key(measurement)
+    )
+
+
+def resource_phases_match(
+    expected: list[str],
+    resources: list[dict[str, Any]],
+) -> bool:
+    observed = [resource.get("phase") for resource in resources]
+    return len(observed) == len(set(observed)) and sorted(observed) == sorted(
+        expected
     )
 
 
@@ -74,6 +98,15 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
     if baseline.get("protocol_version") != 3:
         failures.append("manifest: protocol_version must be 3")
     decision_policy = baseline.get("decision_policy", {})
+    phase_contracts = baseline.get("resource_phase_contracts", {})
+    if not isinstance(phase_contracts, dict) or any(
+        not isinstance(phases, list)
+        or not phases
+        or len(phases) != len(set(phases))
+        or any(not isinstance(phase, str) or not phase for phase in phases)
+        for phases in phase_contracts.values()
+    ):
+        failures.append("manifest: invalid resource phase contracts")
     if decision_policy.get("campaign_attempts", 0) < 3:
         failures.append("manifest: at least three complete campaigns are required")
     if decision_policy.get("maximum_campaign_attempts", 0) < decision_policy.get(
@@ -94,58 +127,16 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
     ):
         failures.append("manifest: scope-specific timing thresholds are invalid")
     preflight = decision_policy.get("preflight")
-    thermal_stabilization = (
-        preflight.get("thermal_stabilization")
-        if isinstance(preflight, dict)
-        else None
-    )
     if (
         not isinstance(preflight, dict)
         or preflight.get("accepted_power_sources")
             != ["external_power", "no_battery"]
-        or not isinstance(preflight.get("maximum_temperature_c"), int)
+        or preflight.get("thermal_policy") != "telemetry_only"
         or not _finite_number(preflight.get("minimum_current_power_limit_w"))
         or preflight.get("minimum_current_power_limit_w") <= 0.0
-        or not isinstance(preflight.get("retry_cooldown_seconds"), int)
-        or isinstance(preflight.get("retry_cooldown_seconds"), bool)
-        or not 0 <= preflight.get("retry_cooldown_seconds") <= 60
-        or not isinstance(thermal_stabilization, dict)
-        or not isinstance(thermal_stabilization.get("minimum_runs"), int)
-        or isinstance(thermal_stabilization.get("minimum_runs"), bool)
-        or not 1 <= thermal_stabilization.get("minimum_runs") <= 60
-        or not isinstance(thermal_stabilization.get("maximum_runs"), int)
-        or isinstance(thermal_stabilization.get("maximum_runs"), bool)
-        or not thermal_stabilization.get("minimum_runs")
-            <= thermal_stabilization.get("maximum_runs") <= 60
-        or not isinstance(
-            thermal_stabilization.get("minimum_duration_seconds"), int
-        )
-        or isinstance(
-            thermal_stabilization.get("minimum_duration_seconds"), bool
-        )
-        or not 0 <= thermal_stabilization.get("minimum_duration_seconds")
-            <= 600
-        or not isinstance(
-            thermal_stabilization.get("temperature_window"), int
-        )
-        or isinstance(thermal_stabilization.get("temperature_window"), bool)
-        or not 2 <= thermal_stabilization.get("temperature_window")
-            <= thermal_stabilization.get("minimum_runs")
-        or not isinstance(
-            thermal_stabilization.get("maximum_temperature_range_c"), int
-        )
-        or isinstance(
-            thermal_stabilization.get("maximum_temperature_range_c"), bool
-        )
-        or not 0 <= thermal_stabilization.get("maximum_temperature_range_c")
-            <= 5
-        or not isinstance(thermal_stabilization.get("command_id"), str)
-        or not thermal_stabilization.get("command_id")
         or preflight.get("concurrent_compute_processes") != "forbidden"
         or preflight.get("forbidden_throttle_reasons") != [
-            "hardware_slowdown",
-            "hardware_thermal_slowdown",
-            "software_thermal_slowdown",
+            "hardware_power_brake",
         ]
     ):
         failures.append("manifest: fail-closed power and stability preflight required")
@@ -199,14 +190,6 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
             isinstance(argument, str) for argument in arguments
         ):
             failures.append(f"manifest command {command_id}: invalid arguments")
-
-    if (
-        isinstance(thermal_stabilization, dict)
-        and thermal_stabilization.get("command_id") not in command_ids
-    ):
-        failures.append(
-            "manifest: thermal stabilization command must be declared"
-        )
 
     audit_reports = baseline.get("audit_reports")
     if not isinstance(audit_reports, dict) or set(audit_reports) != {
@@ -357,6 +340,15 @@ def _manifest_failures(baseline: dict[str, Any]) -> list[str]:
                         f"manifest measurement {measurement_id}: incomplete "
                         "compiled-resource budgets"
                     )
+            expected_phases = expected_resource_phases(baseline, measurement)
+            if expected_phases is not None and not resource_phases_match(
+                expected_phases,
+                measurement["resources"],
+            ):
+                failures.append(
+                    f"manifest measurement {measurement_id}: resource phases "
+                    "do not match the declared workload contract"
+                )
         for field in (
             "device_memory",
             "device_memory_budgets",
@@ -751,6 +743,12 @@ def compare(
             failures,
             informational,
         )
+        expected_phases = expected_resource_phases(baseline, reference)
+        if expected_phases is not None and not resource_phases_match(
+            expected_phases,
+            candidate.get("resources", []),
+        ):
+            failures.append(f"{key}: missing or duplicate resource phase")
         if (
             candidate["kernel"]["median_ms"]
             > candidate["public_api"]["median_ms"]

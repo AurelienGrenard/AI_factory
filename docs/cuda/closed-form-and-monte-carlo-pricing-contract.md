@@ -27,6 +27,32 @@ fermée utilise `evaluate_price`. Les deux chemins reçoivent cependant le même
 type de vue `DeviceInputs`, qui centralise les tableaux device et le décodage
 aligné ou cartésien.
 
+## Swaptions européennes : formule fermée ou Monte Carlo
+
+Les décompositions Jamshidian existantes restent en formule fermée. G2 et
+G2++ utilisent le Monte Carlo terminal commun, pas une quadrature de pricing :
+une transition gaussienne jointe exacte fournit `(x_T, y_T, I_0T)` sous Q à
+l'exercice. Les ZCB conditionnels évaluent ensuite le swap ; le payoff est
+actualisé par `exp(-I_0T)`, complété par l'intégrale déterministe du shift pour
+G2++. Il n'y a ni `dt` artificiel, ni simulation jusqu'aux paiements du swap.
+
+`product/european_swaption/pricing_row.cuh` possède la préparation du produit
+et de son calendrier, commune aux formules fermées et au MC.
+`monte_carlo_pricing_policy.cuh` compose dynamique jointe, analytics et payoff
+payer/receiver avec `monte_carlo_price_kernel`. Les calendriers réguliers et
+explicites, les constructions alignées et cartésiennes, les batches et les
+erreurs standards conservent les contrats génériques. Le launcher explicite
+reçoit les pools host pour valider dates/accruals avant le lancement.
+
+Les recettes générées utilisent `2^20` trajectoires par prix, des lancements
+bornés et un warmup exclu du timer GPU. Le timer hôte du runner inclut
+initialisation, warmup et copies, mais pas le chargement JSON préalable ni la
+publication ; un chronométrage externe mesure le processus complet.
+Leur géométrie est configurable via le
+profil de tuning, pas une garantie d'optimalité sur une autre architecture.
+Une référence semi-analytique indépendante est autorisée pour contrôler ces
+prix, mais n'entre jamais dans le runtime ou les recettes de production.
+
 ## Conventions de nommage
 
 La frontière publique conserve des noms de launchers descriptifs et stables :
@@ -62,20 +88,23 @@ doubler un launcher public de modèle.
 
 ## Composition Monte Carlo commune
 
+La voie distincte prix + delta de spot réutilise ces couches selon le
+[contrat equity prix-delta](equity-price-delta-contract.md). Le concept
+`MonteCarloLaunchPolicy` porte les entrées/préparations communes;
+`ScalarMonteCarloPricingPolicy` conserve le résultat scalaire du pricing seul.
+Le kernel scalaire et l'ordre de ses réductions restent inchangés.
+
 Les pricers Monte Carlo standards, quel que soit leur marché, utilisent trois
-politiques statiques. Rough Heston et quadratic rough Heston rejoignent cette
-composition après la préparation hôte de leur lift markovien. Les modèles à
-noyau Volterra gaussien linéaire, actuellement rough Bergomi, log-modulated
-rough Bergomi, rough SABR et rough Stein--Stein, utilisent une composition
-parallèle à quatre politiques : `HybridKernelPolicy`, `ModelPathPolicy`,
-`SchedulePolicy` et `ProductPolicy`. La FFT et la réduction sont uniques ; une
-nouvelle dynamique rough n'ajoute que sa transformation de chemin, et un
-nouveau produit européen n'ajoute que calendrier, handler et finalisation.
-L'exercice anticipé suit une voie parallèle composée d'une schedule,
-d'une pricing policy et d'un petit régresseur sur sept kernels
-Longstaff–Schwartz partagés. Aucun héritage, allocation ou appel virtuel
-n'entre dans le kernel : les concepts contrôlent les interfaces, puis le
-compilateur inline la composition complète.
+politiques statiques. Un lift rough markovien rejoint cette composition après
+sa préparation hôte. Un modèle à noyau Volterra gaussien utilise une
+composition parallèle à quatre politiques : `HybridKernelPolicy`,
+`ModelPathPolicy`, `SchedulePolicy` et `ProductPolicy`. La FFT et la réduction
+sont uniques ; une nouvelle dynamique rough n'ajoute que sa transformation de
+chemin, et un nouveau produit compatible n'ajoute que calendrier, handler et
+finalisation. L'exercice anticipé suit le contrat Longstaff--Schwartz dédié.
+Aucune allocation ni aucun polymorphisme dynamique n'entre dans le kernel : les
+concepts contrôlent les interfaces, puis le compilateur inline la composition
+complète. Le manifeste de capacités possède l'inventaire des compositions.
 
 ```text
 DynamicsPolicy<Model>
@@ -374,6 +403,18 @@ $`K_1^\star=1/c_1`$ supprime exactement la recherche de frontière.
 La frontière n'est publiée que si son résidu satisfait la tolérance après le
 dernier candidat. Une stagnation FP32 ou l'épuisement du budget d'itérations
 avec un résidu trop grand retourne `NaN`, qui invalide ensuite la ligne.
+Si le milieu arrondi d'un intervalle FP32 échoue, ses deux bornes sont testées
+avec cette même tolérance ; une borne valide ne doit pas être rejetée au seul
+motif que l'arrondi a choisi sa voisine.
+Le pricing peut représenter une frontière non représentable par un seul float
+avec une ancre et un petit déplacement, tous deux FP32. Le résidu et les
+strikes utilisent la même évaluation affine décalée ; l'encadrement est
+revérifié dans cette arithmétique avant raffinement. La tolérance reste
+`2e-7` et une racine non certifiée reste rejetée. L'API scalaire qui ne reçoit
+pas de déplacement conserve son contrat de certification d'un unique float.
+La somme des coupons est compensée en FP32. Un débordement positif d'un
+coupon-bond d'essai conserve son signe pour la dichotomie, sans propager
+`inf - inf` dans la compensation. Aucun calcul FP64 device n'est ajouté.
 
 La capacité maximale est calculée côté hôte lors du chargement du dataset et
 transmise une seule fois au launcher. Elle n'est ni répétée dans chaque ligne
@@ -428,7 +469,8 @@ workspaces, dimensions globales, offsets, strides et indices mémoire utilisent
 | `simulation_steps_per_day` | nombre de transitions numériques ou de points de monitoring par jour contractuel |
 | `threads_per_block` | nombre de threads CUDA par bloc |
 | `block_count` | nombre de blocs de la grille persistante ou analytique |
-| `maximum_payment_count` | maximum hôte des longueurs de jambes fixes d'un batch coopératif ; absent des lignes produit et des launchers scalaires |
+| `maximum_payment_count` | maximum hôte des longueurs de jambes fixes d'un batch coopératif ; absent des lignes produit, inutilisé en mode scalaire |
+| `WorkDistribution` | choix hôte scalaire/coopératif de Jamshidian ; aucune branche ajoutée dans la boucle device |
 | `base_seed` | origine de la clé déterministe `key = make_key(base_seed + result_index)` |
 | `device_prices` | prix FP32 écrits sur le device |
 | `device_standard_errors` | erreurs standards FP32, uniquement en Monte Carlo |
@@ -441,8 +483,15 @@ transpose les schedules en ELLPACK payment-major : pour la ligne `r`, le
 paiement `p` vit à `p * product_count + r`; les cellules de queue inutilisées
 sont du padding. Le launcher transmet donc `product_count` comme stride et
 `maximum_payment_count` comme capacité coopérative. Tous les modèles à un
-facteur évaluent ce chemin explicite avec Jamshidian coopératif; le fast path
-régulier reste scalaire. Ce layout conserve l'ordre des lignes et résultats,
+facteur proposent les mêmes choix Jamshidian scalaire/coopératif pour les
+calendriers réguliers et explicites. Le choix se fait dans le launcher hôte;
+les deux kernels existants restent distincts. Le mode coopératif exige une
+capacité hôte positive et conserve son repli scalaire si le schedule ou les
+ressources ne permettent pas cette coopération. Les recettes passent le choix
+du [planificateur commun](launch-validation-and-kernel-diagnostics.md#planifier-le-pricing-du-catalogue)
+et la capacité chargée, sans modifier les formules. Les métadonnées nomment
+le mode **demandé** : un repli ne doit pas être présenté comme une exécution
+coopérative mesurée. Ce layout conserve l'ordre des lignes et résultats,
 coalesce les lectures de threads voisins et borne le scratch par la longueur
 maximale réellement chargée.
 
@@ -522,6 +571,15 @@ comme `observation_schedule`, pas comme `time_grid`. La convention de décompte,
 le pas numérique et le calendrier contractuel restent ainsi trois
 responsabilités distinctes.
 
+Les schedules Volterra arrondissent chaque date **cumulée** vers la date de
+grille la plus proche, avec un minimum d'un pas pour une observation positive.
+Ils n'additionnent jamais des intervalles arrondis séparément. Des événements
+projetés sur le même pas sont tous livrés, dans l'ordre contractuel, jusqu'à
+l'éventuel arrêt demandé par le produit. L'échéance reste le dernier pas.
+Sur une grille non alignée, cette projection est une approximation temporelle,
+pas une simulation aux dates exactes : sa précision doit être qualifiée par
+raffinement. La grille catalogue à deux pas par jour est exactement alignée.
+
 ## Invariants d'implémentation
 
 - Conserver l'ordre des lignes, le mapping des seeds et l'ordre des réductions.
@@ -537,6 +595,15 @@ responsabilités distinctes.
   centrée négative n'est ramenée à zéro que dans le budget de cancellation
   FP64 documenté par `reductions::compute_statistics`; sinon prix et erreur
   standard sont tous deux invalidés.
+  Pour le MC markovien prix et prix-delta, ce budget inclut la longueur réelle
+  de sommation par thread : `k = ceil(paths / threads) + 10`,
+  `gamma_k = k*DBL_EPSILON/(1-k*DBL_EPSILON)` et tolérance relative
+  `64*DBL_EPSILON + 4*gamma_k`. Les dix opérations bornent les deux arbres de
+  warp; le facteur quatre couvre les erreurs combinées de Q et N*moyenne².
+  Les autres consommateurs conservent leur budget antérieur. Aucun ordre de
+  sommation ni calcul de payoff ne change; seule une petite variance négative
+  compatible avec cette borne est ramenée à zéro. Une incohérence supérieure
+  ou un budget déraisonnable reste invalidant.
 - Ne pas introduire de dispatch runtime call/put dans le kernel.
 - Ne pas déplacer `PreparedRow` vers une représentation AoS globale des chemins.
 - Conserver des fonctions courtes, privées au `.cu`, et un seul launcher public.
@@ -600,6 +667,11 @@ Les produits Asian arithmétiques et géométriques utilisent
 un spot FP32 ou un log-spot FP32 avec compensation de Kahan; la division et,
 pour la moyenne géométrique, `expf`, restent en FP32. Ne pas réintroduire une
 somme FP64 générique ou une somme FP32 simple sans refaire la qualification.
+
+Pour la moyenne géométrique, une observation nulle (`log_spot = -inf`)
+impose une moyenne nulle, y compris après plusieurs observations absorbées.
+Elle n'entre pas dans la somme compensée. Un NaN ou un infini positif reste
+invalide et ne peut pas être masqué par un payoff nul.
 
 `asian_mean_precision_cuda` balaie 17, 253, 1 765 et 4 097 observations,
 faible variance, forte dispersion, grande échelle et cancellation, contre une

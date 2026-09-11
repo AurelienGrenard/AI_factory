@@ -1,0 +1,132 @@
+{
+  "scope": "row-wise statistical discrepancy screen, NOT independent certification",
+  "old_source": "build-dev/cir-forward-receiver-20260908/002.ndjson",
+  "forward_source": "build-dev/cir-forward-receiver-20260908/003.ndjson",
+  "pde_source": "build-dev/cir-forward-receiver-pde-20260908/rows.ndjson",
+  "paths_per_price": 1048576,
+  "row_count": 1000,
+  "side": "receiver",
+  "provenance": {
+    "old": {
+      "manifest": "build-dev/cir-forward-receiver-20260908/manifest.json",
+      "manifest_sha256": "99ab8c965513abd68aefd8714586e9ce87329475a4175af399c22fa30c59cea8",
+      "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+      "binary_sha256": "30834acb0b777c11b9d02e2199ac603bf1d3a1c79d69e11762f178c0d41e96f3",
+      "input_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/bermudan_swaption/bermudan_swaptions_01.json": "4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c"
+      }
+    },
+    "forward": {
+      "manifest": "build-dev/cir-forward-receiver-20260908/manifest.json",
+      "manifest_sha256": "99ab8c965513abd68aefd8714586e9ce87329475a4175af399c22fa30c59cea8",
+      "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+      "binary_sha256": "30834acb0b777c11b9d02e2199ac603bf1d3a1c79d69e11762f178c0d41e96f3",
+      "input_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/bermudan_swaption/bermudan_swaptions_01.json": "4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c"
+      }
+    },
+    "forward_repeat": {
+      "manifest": "build-dev/cir-forward-receiver-20260908/manifest.json",
+      "manifest_sha256": "99ab8c965513abd68aefd8714586e9ce87329475a4175af399c22fa30c59cea8",
+      "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+      "binary_sha256": "30834acb0b777c11b9d02e2199ac603bf1d3a1c79d69e11762f178c0d41e96f3",
+      "input_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/bermudan_swaption/bermudan_swaptions_01.json": "4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c"
+      }
+    }
+  },
+  "pde_provenance": {
+    "method": "risk-neutral CIR PDE, no forward-measure sampler or LSM",
+    "side": "receiver",
+    "fine_nodes": 768,
+    "fine_steps_per_year": 128,
+    "input_sha256": {
+      "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+      "datasets/product/bermudan_swaption/bermudan_swaptions_01.json": "4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c"
+    },
+    "manifest": "build-dev/cir-forward-receiver-pde-20260908/manifest.json",
+    "manifest_sha256": "0cc9709eec20623eb913ff44821b94a2641dee3021979dcba0b76127428aaffe",
+    "source_sha256": "389cd8ad8233a555921e88ee2d03c71d7f7e3baf5268601c5ffe4d257c130d6a"
+  },
+  "jobs": {
+    "old": {
+      "id": "old_catalogue_receiver",
+      "method": "old",
+      "side": "receiver",
+      "paths": 1048576,
+      "seed": 11668829043993608192,
+      "indices_source": "rows.csv:source_index",
+      "threads": 128,
+      "blocks": 64,
+      "chunk_rows": 32
+    },
+    "forward": {
+      "id": "forward_catalogue_receiver",
+      "method": "forward",
+      "side": "receiver",
+      "paths": 1048576,
+      "seed": 12668829043993608192,
+      "indices_source": "rows.csv:source_index",
+      "threads": 128,
+      "blocks": 64,
+      "chunk_rows": 32
+    },
+    "forward_repeat": {
+      "id": "forward_catalogue_receiver_seed_b",
+      "method": "forward",
+      "side": "receiver",
+      "paths": 1048576,
+      "seed": 12668829053993608192,
+      "indices_source": "rows.csv:source_index",
+      "threads": 128,
+      "blocks": 64,
+      "chunk_rows": 32
+    }
+  },
+  "source_sha256": {
+    "build-dev/cir-forward-receiver-20260908/002.ndjson": "6c8abe319818878cf6d63001b2e6f58698cc5e5e7f5727d765ad3e91ab975080",
+    "build-dev/cir-forward-receiver-20260908/003.ndjson": "8317c36d024c410a89778cd8b9ed4d5243a1189f6f74a9183292be796c9a7167",
+    "build-dev/cir-forward-receiver-pde-20260908/rows.ndjson": "b2b4dc80963c752c4896ead816c3296b86a9b4c2613833b6056eb1826b9d2ae3",
+    "build-dev/cir-forward-receiver-20260908/004.ndjson": "84b32dbc6dd422107fe8dacc3fd3135629de215391379222fa62926c461aa2a6"
+  },
+  "sigma_multiplier": 5,
+  "absolute_rounding_floor": 2e-06,
+  "old_gpu_seconds": 788.9492736816406,
+  "forward_gpu_seconds": 2.9899964046478273,
+  "old_raw_host_seconds": 791.288047897,
+  "forward_raw_host_seconds": 4.526626392,
+  "old_workspace_bytes": 2349095424,
+  "forward_workspace_bytes": 1241815040,
+  "timing_status": "exploratory, not geometry qualification; CPU reference work may overlap",
+  "failed_rows": [
+    "000591"
+  ],
+  "maximum_absolute_difference": 0.0017271041870117188,
+  "regimes": {
+    "core": {
+      "rows": 900,
+      "failed": 1
+    },
+    "stress": {
+      "rows": 100,
+      "failed": 0
+    }
+  },
+  "pde_failed_rows": {
+    "old": [
+      "000396",
+      "000591",
+      "000700",
+      "000785",
+      "000892"
+    ],
+    "forward": [],
+    "forward_repeat": []
+  },
+  "forward_seed_failed_rows": [],
+  "forward_repeat_gpu_seconds": 3.044738636016846,
+  "forward_repeat_raw_host_seconds": 4.668322448
+}

@@ -1,31 +1,32 @@
 // CIR Bermudan swaptions over the common Longstaff-Schwartz engine.
 #include "model/fixed_income/cir/product/bermudan_swaption.cuh"
 
-#include "common/fixed_income/bermudan_swaption_continuation_state.cuh"
+#include "common/fixed_income/scalar_rate_continuation_state.cuh"
 #include "common/longstaff_schwartz/basis/hermite.cuh"
 #include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
 #include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "common/simulation/terminal_forward_exercise_schedule.cuh"
 #include "model/fixed_income/cir/analytics_impl.cuh"
-#include "model/fixed_income/cir/dynamics_impl.cuh"
-#include "product/bermudan_swaption/pricing_policy.cuh"
+#include "model/fixed_income/cir/forward_measure_impl.cuh"
+#include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"
 
 #include <cuda_runtime.h>
 
 namespace ai_factory::workbench::model::fixed_income::cir {
 namespace {
 
-using Dynamics = joint::DynamicsPolicy;
-using Schedule = simulation::FixedStepRegularExerciseSchedule<Dynamics>;
+using Dynamics = terminal_forward::DynamicsPolicy;
+using Schedule = simulation::TerminalForwardRegularExerciseSchedule<Dynamics>;
 using Analytics = BermudanSwaptionAnalyticsPolicy;
 using ContinuationState =
-    ::ai_factory::workbench::fixed_income::OneFactorRateContinuationState<
+    ::ai_factory::workbench::fixed_income::ScalarRateContinuationState<
         Dynamics
     >;
 
 template<SwaptionSide Side>
-using PricingPolicy = product::StandaloneBermudanSwaptionPricingPolicy<
-    Schedule, Analytics, Side, ContinuationState
+using PricingPolicy = product::TerminalForwardBermudanSwaptionPricingPolicy<
+    product::StandaloneBermudanSwaptionPricingPolicy<Schedule, Analytics, Side, ContinuationState>,
+    terminal_forward::BondAnalyticsPolicy
 >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
     longstaff_schwartz::basis::OneFactorHermiteBasis<3U>
@@ -47,8 +48,7 @@ longstaff_schwartz::LaunchResult launch_cir_bermudan_swaption_cuda(
     PriceConstruction construction,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float dt,
-    std::uint32_t simulation_steps_per_day,
+    float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
@@ -65,9 +65,7 @@ longstaff_schwartz::LaunchResult launch_cir_bermudan_swaption_cuda(
         {host_products, product_count, construction},
         result_count,
         monte_carlo_paths_per_price,
-        simulation::FixedStepTimeConfiguration{
-            dt, simulation_steps_per_day
-        },
+        simulation::ExactTransitionTimeConfiguration{time_day_fraction},
         threads_per_block,
         blocks_per_price,
         base_seed,
@@ -84,7 +82,7 @@ launch_cir_bermudan_swaption_cuda<SwaptionSide::payer>(
     const ModelParameters*, std::size_t,
     const product::BermudanSwaptionParameters*,
     const product::BermudanSwaptionParameters*, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, float, std::uint32_t,
+    PriceConstruction, std::size_t, std::size_t, float,
     unsigned int, std::size_t, std::uint64_t, float*, float*
 );
 template longstaff_schwartz::LaunchResult
@@ -92,7 +90,7 @@ launch_cir_bermudan_swaption_cuda<SwaptionSide::receiver>(
     const ModelParameters*, std::size_t,
     const product::BermudanSwaptionParameters*,
     const product::BermudanSwaptionParameters*, std::size_t,
-    PriceConstruction, std::size_t, std::size_t, float, std::uint32_t,
+    PriceConstruction, std::size_t, std::size_t, float,
     unsigned int, std::size_t, std::uint64_t, float*, float*
 );
 

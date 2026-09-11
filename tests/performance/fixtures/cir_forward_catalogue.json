@@ -1,0 +1,6 @@
+[
+  {"id":"warmup_old","method":"old","indices":[0,1,2,3],"paths":65536,"seed":9182026000,"warmup":true},
+  {"id":"warmup_forward","method":"forward","indices":[0,1,2,3],"paths":65536,"seed":9182026000,"warmup":true},
+  {"id":"old_catalogue_payer","method":"old","indices":"all","paths":1048576,"seed":11668829039698640896},
+  {"id":"forward_catalogue_payer","method":"forward","indices":"all","paths":1048576,"seed":12668829039698640896}
+]

@@ -14,17 +14,19 @@ int main() {
         "bermudan_swaptions_01.json";
     const auto models = rates::load_models(model_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = 1U << 20U;
+    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829039698640896ULL;
-    datasets::generate_fixed_step_bermudan_swaption_prices(
+    auto configuration = datasets::make_bermudan_swaption_generation_configuration(
+        "cir", "payer", paths, seed,
+        "Exact CIR terminal-forward transitions + Longstaff-Schwartz",
+        "Hermite degree 3", "standardized short-rate factor", "",
+        {{"time_day_fraction", "1 / 252"}}
+    );
+    configuration.pricing_measure = "last_exercise_bond_forward";
+    configuration.regression_target = "next policy cashflow in P(0,T*) / P(t,T*) units";
+    datasets::generate_exact_bermudan_swaption_prices(
         model_path, product_path, models, products,
         &rates::launch_cir_bermudan_swaption_cuda<SwaptionSide::payer>,
-        1.0f / 504.0f, 2U,
-        datasets::make_bermudan_swaption_generation_configuration(
-            "cir", "payer", paths, seed,
-            "Exact CIR endpoint with trapezoidal short-rate integral + Longstaff-Schwartz",
-            "Hermite degree 3", "standardized short-rate factor", "1 / 504",
-            {{"simulation_steps_per_day", 2U}}
-        )
+        configuration
     );
 }

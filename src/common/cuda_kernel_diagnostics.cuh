@@ -54,10 +54,27 @@ bool reserve_cuda_kernel_launch_diagnostics(
     std::size_t dynamic_shared_bytes
 );
 
+// Reserve one named phase independently from other phases with the same grid.
+bool reserve_cuda_kernel_phase_launch_diagnostics(
+    const char* kernel_name,
+    const char* variant,
+    const char* phase,
+    dim3 grid,
+    dim3 block,
+    std::size_t dynamic_shared_bytes
+);
+
 // Emit one JSON object for a launch reserved by the caller.
 void emit_cuda_kernel_launch_diagnostics(
     const char* kernel_name,
     const char* variant,
+    const CudaKernelLaunchDiagnostics& diagnostics
+);
+
+void emit_cuda_kernel_phase_launch_diagnostics(
+    const char* kernel_name,
+    const char* variant,
+    const char* phase,
     const CudaKernelLaunchDiagnostics& diagnostics
 );
 
@@ -184,6 +201,39 @@ void report_cuda_kernel_launch_if_enabled(
     emit_cuda_kernel_launch_diagnostics(
         kernel_name,
         variant,
+        inspect_cuda_kernel_launch(
+            kernel, grid, block, dynamic_shared_bytes
+        )
+    );
+}
+
+// Phase-aware reporting is used by multi-kernel pipelines whose geometries
+// may otherwise collide in the process-wide diagnostics deduplication key.
+template<typename Kernel>
+void report_cuda_kernel_phase_launch_if_enabled(
+    const char* kernel_name,
+    const char* variant,
+    const char* phase,
+    Kernel kernel,
+    dim3 grid,
+    dim3 block,
+    std::size_t dynamic_shared_bytes = 0U
+) {
+    if (!cuda_kernel_diagnostics_enabled()
+        || !reserve_cuda_kernel_phase_launch_diagnostics(
+            kernel_name,
+            variant,
+            phase,
+            grid,
+            block,
+            dynamic_shared_bytes
+        )) {
+        return;
+    }
+    emit_cuda_kernel_phase_launch_diagnostics(
+        kernel_name,
+        variant,
+        phase,
         inspect_cuda_kernel_launch(
             kernel, grid, block, dynamic_shared_bytes
         )

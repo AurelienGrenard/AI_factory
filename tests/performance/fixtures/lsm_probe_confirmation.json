@@ -1,0 +1,290 @@
+[
+  {
+    "id": "c0_r1_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c0_r1_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c0_r1_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c0_r16_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c0_r16_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c0_r16_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r16_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r16_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r16_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r1_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r1_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c1_r1_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r1_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r1_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r1_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 1,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r16_t128_b64",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 64,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r16_t128_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 128,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  },
+  {
+    "id": "c2_r16_t256_b1024",
+    "options": {
+      "model": "cir",
+      "rows": 16,
+      "threads": 256,
+      "blocks": 1024,
+      "paths": 1048576,
+      "first": 21,
+      "interval": 21,
+      "payments": 10,
+      "exercises": 10,
+      "warmups": 5,
+      "repetitions": 21
+    }
+  }
+]

@@ -1,0 +1,236 @@
+{
+  "schema": "ai_factory_pricing_dataset_runtime_v1",
+  "exported_utc": "2026-09-08T15:32:57.765158+00:00",
+  "campaign": "build-dev/pricing-launch-plan-production-check-01",
+  "started_utc": "2026-09-08T15:29:36.965111+00:00",
+  "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+  "source_diff_sha256": "36072b9e911b1c5c5d021ed58c5dca8557c1144cc1a5c54dcd5bc598682f501f",
+  "source_archive_sha256": "b74ec1d02a95e820af4e4e02fb48fb1c8d49e049ff2dba9ec6cee2fb93c176c9",
+  "input_profile": "ordered_catalogue_900_core_100_stress_v1",
+  "price_count": 1000,
+  "mc_paths_per_price": 1048576,
+  "production_launch_plans": {
+    "kou__mc_terminal": [
+      {
+        "pair": "kou/european_option",
+        "plan": {
+          "profile_id": "sm89_reference_v1",
+          "family": "equity_exact_mc",
+          "selection": "host launch plan; no runtime autotuning",
+          "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+          "portability": "safe reference values; benchmark before replacing on another GPU",
+          "model": "kou",
+          "product": "european_option",
+          "curve": "",
+          "qualification": "reference_default_not_pair_qualified",
+          "evidence": "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md",
+          "price_count": 1000,
+          "paths_per_price": 1048576,
+          "threads_per_block": 512,
+          "prices_per_launch": 1000,
+          "price_launch_count": 1,
+          "memory_batching": "price launch bound; engine workspace guards still apply",
+          "work_distribution": "one price per block at a time",
+          "block_count": 1000,
+          "device_resources_checked": false,
+          "scope": "offline proposed launch; native engine guards and qualification still required"
+        },
+        "inspector_sha256": "d7200665209edafbbd51cbf59ded83a3c309c407b4a10de10c080d5b6a9fc877"
+      }
+    ],
+    "cir__closed_form": [
+      {
+        "pair": "cir/rate_option",
+        "plan": {
+          "profile_id": "sm89_reference_v1",
+          "family": "closed_form",
+          "selection": "host launch plan; no runtime autotuning",
+          "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+          "portability": "safe reference values; benchmark before replacing on another GPU",
+          "model": "cir",
+          "product": "rate_option",
+          "curve": "",
+          "qualification": "reference_default_not_pair_qualified",
+          "evidence": "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md",
+          "price_count": 1000,
+          "paths_per_price": 0,
+          "threads_per_block": 256,
+          "prices_per_launch": 1000,
+          "price_launch_count": 1,
+          "memory_batching": "price launch bound; engine workspace guards still apply",
+          "work_distribution": "one price per thread at a time",
+          "block_count": 4,
+          "device_resources_checked": false,
+          "scope": "offline proposed launch; native engine guards and qualification still required"
+        },
+        "inspector_sha256": "d7200665209edafbbd51cbf59ded83a3c309c407b4a10de10c080d5b6a9fc877"
+      }
+    ]
+  },
+  "complete": false,
+  "timing_scope": "generation_phase_sum = preparation + median raw host API + median D2H + one native local publication; not a cold-process stopwatch, no upload or independent validation",
+  "cases": [
+    {
+      "case": "kou__mc_terminal",
+      "model": "kou",
+      "product": "european_option",
+      "side": "call",
+      "family": "mc_terminal",
+      "recipe": "catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01/generator.cpp",
+      "engine": "equity_markovian",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 1048576,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 1048576,
+        "requested_threads": 512,
+        "batch_rows": 1000,
+        "block_limit": 1000,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 2,
+        "repetitions": 3,
+        "seed": 11668827326006689792
+      },
+      "timings": {
+        "preparation_ms": 203.055304,
+        "raw_host_api_ms": 81.837079,
+        "output_copy_ms": 0.191729,
+        "local_publication_ms": 10.5064,
+        "generation_phase_sum_ms": 295.590512,
+        "gpu_median_ms": 79.69100952148438,
+        "public_api_envelope_ms": 81.837079
+      },
+      "environment_eligible_for_tuning": false,
+      "timing_ineligibility_reasons": [
+        "Observation-only campaign"
+      ],
+      "samples": {
+        "gpu_samples_ms": [
+          81.8186264038086,
+          73.11641693115234,
+          79.69100952148438
+        ],
+        "raw_host_samples_ms": [
+          84.117791,
+          75.120556,
+          81.837079
+        ],
+        "api_samples_ms": [
+          84.117791,
+          75.120556,
+          81.837079
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 73.11641693115234,
+        "median_ms": 79.69100952148438,
+        "p95_ms": 81.8186264038086,
+        "mean_ms": 78.20868428548177,
+        "standard_deviation_ms": 3.7040589003114475,
+        "coefficient_of_variation": 0.04736122253112816
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 75.120556,
+        "median_ms": 81.837079,
+        "p95_ms": 84.117791,
+        "mean_ms": 80.35847533333333,
+        "standard_deviation_ms": 3.8190104314788456,
+        "coefficient_of_variation": 0.0475246750966502
+      },
+      "operations_per_sample": 1,
+      "fixed_time_step": "",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": null,
+        "sm_clock_mhz": null,
+        "power_limit_w": null
+      },
+      "memory": {
+        "persistent_input_bytes": 40000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 48000,
+        "observed_resident_bytes": 1400373248,
+        "driver_context_and_pool_bytes": 1400325248,
+        "free_margin_bytes": 15770583040,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "kou.european_option",
+          "variant": "call",
+          "threads": 512,
+          "registers": 64,
+          "local_bytes": 0,
+          "shared_bytes": 304,
+          "theoretical_occupancy": 0.6666666666666666
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "25a30be65bc2778b11bcd134af4dba091cd537b1de8473da0db43b89235e5e27",
+      "source_inputs_sha256": {
+        "datasets/model/equity/markovian/kou/parameters/kou_01.json": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+        "datasets/product/european_option/european_options_01.json": "e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "5883c50d5b4e1c5c3dc019149a79731449877a6460007ae814eba1b0b04d954f",
+        "outcome.json": "a3747df44a9a80c0f405d254bfde51ad448b75619cea36f713f935175456e8b2",
+        "resources.json": "34fe63f1a1f7ff51cd2f071f53f6e4745dfd578b488648564c892df0ca5f7e4b",
+        "provenance.json": "a9995d539cfabcb0279a17d510b68b571b85cab6cfa488af067ff3fd9e023118"
+      }
+    },
+    {
+      "case": "cir__closed_form",
+      "model": "cir",
+      "product": "rate_option",
+      "side": "call",
+      "family": "closed_form",
+      "recipe": "catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp",
+      "engine": "fixed_income_closed_form",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 0,
+      "status": "failed",
+      "reason": null,
+      "configuration": {
+        "id": "r1000_n0_production_plan",
+        "rows": 1000,
+        "offset": 0,
+        "paths": 0,
+        "threads": 256,
+        "batch_rows": 1000,
+        "block_limit": 4,
+        "blocks_per_price": 1,
+        "path_chunk": 1,
+        "warmups": 2,
+        "repetitions": 3,
+        "operations_per_sample": 1024
+      },
+      "timings": null,
+      "environment_eligible_for_tuning": false,
+      "timing_ineligibility_reasons": [
+        "Observation-only campaign",
+        "Probe process failed"
+      ]
+    }
+  ]
+}

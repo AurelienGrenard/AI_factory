@@ -73,7 +73,8 @@ inline datasets::ModelSampleRecipe recipe(
         "fixed-step transition at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_volatility", "mean_reversion", "volatility_of_volatility"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
@@ -82,7 +83,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"mean_reversion", {0.5f, 8.0f}},
                 {"volatility_of_volatility", {0.05f, 0.5f}}
             }},
-            {"acceptance", "true"}
+            {"acceptance", "true"},
+            {"derived_parameters", {{"rho", "Constant 0; independent spot and volatility innovations; no parameter draw."}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},
@@ -93,6 +95,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_model_sample_dataset<ModelParameters>(
         argc,
         argv,

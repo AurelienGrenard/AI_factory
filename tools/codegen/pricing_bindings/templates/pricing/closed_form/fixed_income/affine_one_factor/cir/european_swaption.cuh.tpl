@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_construction.cuh"
+#include "common/closed_form/concepts.cuh"
 
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/${model}/parameters.hpp"
@@ -27,7 +28,8 @@ void launch_${model}_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::cooperative
 );
 
 // Launch the same pricer for arbitrary schedules stored in parallel pools.
@@ -48,7 +50,8 @@ void launch_${model}_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution = closed_form::WorkDistribution::cooperative
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::${model}

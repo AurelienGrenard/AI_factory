@@ -7,7 +7,8 @@ including explicitly deferred capabilities.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from enum import Enum
 from pathlib import PurePosixPath
 
 from manifest import (
@@ -27,11 +28,17 @@ from sample_manifest import SAMPLE_MODELS
 
 SCHEMA_VERSION = 2
 
-RNG_DOMAIN_VERSION = 1
+RNG_DOMAIN_VERSION = 3
 RNG_NAMESPACE_BASE = 0xA1F0_0000_0000_0000
 RNG_DOMAIN_STRIDE = 1 << 32
 RNG_STREAM_CAPACITY = 1 << 30
 RNG_COMMON_RANDOM_NUMBER_ALLOWLIST: frozenset[tuple[str, str]] = frozenset()
+
+
+@dataclass(frozen=True)
+class SourceSymbol:
+    path: str
+    name: str
 
 
 @dataclass(frozen=True)
@@ -45,9 +52,9 @@ class EngineSpec:
     transition_contract: str
     analytics_contract: str
     optional_dependency: str | None = None
-    concepts: tuple[str, ...] = ()
-    launchers: tuple[str, ...] = ()
-    runners: tuple[str, ...] = ()
+    concepts: tuple[SourceSymbol, ...] = ()
+    launchers: tuple[SourceSymbol, ...] = ()
+    runners: tuple[SourceSymbol, ...] = ()
     instantiation_strategy: str = ""
 
 
@@ -68,6 +75,8 @@ class ModelSpec:
     observables: tuple[str, ...]
     supported_architectures: tuple[str, ...]
     sample_requirement: str | None = None
+    renderer_alias: str | None = None
+    rng_domain_epoch: int = 0
 
     @property
     def source_prefix(self) -> str:
@@ -97,6 +106,8 @@ class ProductSpec:
 @dataclass(frozen=True)
 class CurveSpec:
     name: str
+    display: str
+    cpp_type: str
     parameter_dataset_id: str
 
     @property
@@ -145,7 +156,7 @@ class DatasetSpec:
 
     @property
     def cmake_target(self) -> str:
-        if self.dataset_kind == "prices":
+        if self.dataset_kind in {"prices", "price_delta"}:
             components = self.dataset_id.split("__")[:-1]
             names = [component.rsplit("_", 1)[0] for component in components]
             version = self.dataset_id.split("__")[-1]
@@ -191,6 +202,7 @@ class FixedIncomeCapabilitySpec:
     factorization: str
     implementation: str | None
     variants: tuple[str, ...]
+    terminal_forward_dynamics: str | None = None
 
     @property
     def source_prefix(self) -> str:
@@ -208,6 +220,34 @@ class FixedIncomeCapabilitySpec:
         suffix = f"/{self.implementation}" if self.implementation else ""
         return f"catalog/pricing/fixed_income/{self.factorization}{suffix}"
 
+    def engine_for(self, product: str) -> str:
+        if product == "bermudan_swaption":
+            return "fixed_income_lsm"
+        if product == "european_swaption" and self.factorization in {
+            "affine_two_factor", "curve_fitted_two_factor"
+        }:
+            return "fixed_income_monte_carlo"
+        return "fixed_income_closed_form"
+
+    def binding_template_for(self, product: str) -> str:
+        if product == "bermudan_swaption" and self.curve and self.terminal_forward_dynamics:
+            return "pricing/longstaff_schwartz/fixed_income/terminal_forward/curve_fitted"
+        if self.engine_for(product) == "fixed_income_monte_carlo":
+            family = "curve_fitted" if self.curve else "standalone"
+            return f"pricing/markovian/fixed_income/{family}"
+        return self.binding_template_family
+
+    def recipe_template_for(self, product: str) -> str:
+        if product == "bermudan_swaption" and self.curve and self.terminal_forward_dynamics:
+            return "catalog/pricing/fixed_income/longstaff_schwartz/terminal_forward/curve_fitted/bermudan_swaption.generator.cpp.tpl"
+        if self.engine_for(product) == "fixed_income_monte_carlo":
+            family = "curve_fitted" if self.curve else "standalone"
+            return f"catalog/pricing/fixed_income/monte_carlo/{family}/{product}.generator.cpp.tpl"
+        return f"{self.recipe_template_family}/{product}.generator.cpp.tpl"
+
+    def is_generated(self, product: str) -> bool:
+        return product != "bermudan_swaption" or bool(self.curve and self.terminal_forward_dynamics)
+
 
 @dataclass(frozen=True)
 class ProductBindingSpec:
@@ -223,6 +263,8 @@ class ProductBindingSpec:
     manifest_binding: Binding | RoughProductBinding | None = None
     factorization: str | None = None
     implementation: str | None = None
+    required_capabilities: tuple[str, ...] = ()
+    terminal_forward_dynamics: str | None = None
 
     @property
     def unit_path(self) -> str:
@@ -262,6 +304,27 @@ class ResolvedPriceCapability:
         return self.dataset.recipe_path
 
 
+class PriceCapabilityState(Enum):
+    AVAILABLE = "available"
+    DEFERRED = "deferred"
+    UNSUPPORTED = "unsupported"
+    AMBIGUOUS = "ambiguous"
+    UNCLASSIFIED = "unclassified"
+
+
+@dataclass(frozen=True)
+class PriceCapabilityResolution:
+    state: PriceCapabilityState
+    matches: tuple[DatasetSpec, ...] = ()
+
+
+def source_symbol(path: str, name: str) -> SourceSymbol:
+    return SourceSymbol(path, name)
+
+
+S = source_symbol
+
+
 ENGINE_SPECS = (
     EngineSpec(
         "equity_closed_form", "equity", "closed-form CUDA",
@@ -269,9 +332,9 @@ ENGINE_SPECS = (
         "catalog/pricing/black_scholes_closed_form",
         "analytical product contract", "no stochastic transition",
         "model analytical pricing policy",
-        concepts=("closed_form::ClosedFormPricingPolicy",),
-        launchers=("closed_form::launch_closed_form_cuda",),
-        runners=("tools/pricing closed-form batch runner",),
+        concepts=(S("src/common/closed_form/concepts.cuh", "closed_form::ClosedFormPricingPolicy"),),
+        launchers=(S("src/common/closed_form/closed_form_kernels.cuh", "closed_form::launch_closed_form_cuda"),),
+        runners=(S("tools/pricing/equity_price_generation.cuh", "offline::pricing::generate_analytical_equity_price_dataset"),),
         instantiation_strategy="product/side compile-time specialization",
     ),
     EngineSpec(
@@ -279,9 +342,9 @@ ENGINE_SPECS = (
         "pricing/markovian", "catalog/pricing/markovian",
         "terminal, dense, regular or two-date calendar",
         "exact or fixed-step model transition", "none",
-        concepts=("monte_carlo::ScalarMonteCarloPricingPolicy",),
-        launchers=("monte_carlo::launch_monte_carlo_cuda",),
-        runners=("tools/pricing::generate_equity_prices",),
+        concepts=(S("src/common/monte_carlo/concepts.cuh", "monte_carlo::ScalarMonteCarloPricingPolicy"),),
+        launchers=(S("src/common/monte_carlo/monte_carlo_kernel.cuh", "monte_carlo::launch_monte_carlo_cuda"),),
+        runners=(S("tools/pricing/equity_price_generation.cuh", "offline::pricing::generate_monte_carlo_equity_price_dataset"),),
         instantiation_strategy="model/product/schedule/side specialization",
     ),
     EngineSpec(
@@ -294,9 +357,12 @@ ENGINE_SPECS = (
         "Gaussian-Volterra hybrid FFT",
         "none",
         "mathDx/cuFFTDx",
-        concepts=("volterra::HybridKernelPolicy", "volterra::HybridPathPolicyFor"),
-        launchers=("volterra::hybrid_fft::launch_pricing_cuda",),
-        runners=("tools/pricing::generate_equity_prices",),
+        concepts=(
+            S("src/common/volterra/concepts.cuh", "volterra::HybridKernelPolicy"),
+            S("src/common/volterra/concepts.cuh", "volterra::HybridPathPolicyFor"),
+        ),
+        launchers=(S("src/common/volterra/hybrid_fft_pricer.cuh", "volterra::hybrid_fft::launch_pricing_cuda"),),
+        runners=(S("tools/pricing/equity_price_generation.cuh", "offline::pricing::generate_volterra_equity_price_dataset"),),
         instantiation_strategy="kernel/model/product/schedule specialization",
     ),
     EngineSpec(
@@ -308,9 +374,9 @@ ENGINE_SPECS = (
         "fixed-step terminal, dense, regular or two-date calendar",
         "prepared 2/3/7-factor Markovian lift",
         "none",
-        concepts=("monte_carlo::ScalarMonteCarloPricingPolicy",),
-        launchers=("equity::launch_prepared_path_product_cuda",),
-        runners=("tools/pricing::generate_equity_prices",),
+        concepts=(S("src/common/monte_carlo/concepts.cuh", "monte_carlo::ScalarMonteCarloPricingPolicy"),),
+        launchers=(S("src/common/equity/prepared_path_product_pricing.cuh", "equity::launch_prepared_path_product_cuda"),),
+        runners=(S("tools/pricing/equity_price_generation.cuh", "offline::pricing::generate_monte_carlo_equity_price_dataset"),),
         instantiation_strategy="factor-count/product/schedule specialization",
     ),
     EngineSpec(
@@ -322,9 +388,9 @@ ENGINE_SPECS = (
         "explicit American exercise calendar",
         "fixed-step model transition",
         "Longstaff-Schwartz regression",
-        concepts=("longstaff_schwartz::PricingPolicy",),
-        launchers=("longstaff_schwartz::launch_cuda",),
-        runners=("tools/pricing::generate_american_option_prices",),
+        concepts=(S("src/common/longstaff_schwartz/concepts.cuh", "longstaff_schwartz::LongstaffSchwartzPolicy"),),
+        launchers=(S("src/common/longstaff_schwartz/longstaff_schwartz_kernels.cuh", "longstaff_schwartz::launch_longstaff_schwartz_cuda"),),
+        runners=(S("tools/pricing/american_option_price_generation.cuh", "offline::pricing::generate_american_option_equity_price_dataset"),),
         instantiation_strategy="model/side fixed-step specialization",
     ),
     EngineSpec(
@@ -336,9 +402,9 @@ ENGINE_SPECS = (
         "explicit American exercise calendar",
         "exact model transition",
         "Longstaff-Schwartz regression",
-        concepts=("longstaff_schwartz::PricingPolicy",),
-        launchers=("longstaff_schwartz::launch_cuda",),
-        runners=("tools/pricing::generate_american_option_prices",),
+        concepts=(S("src/common/longstaff_schwartz/concepts.cuh", "longstaff_schwartz::LongstaffSchwartzPolicy"),),
+        launchers=(S("src/common/longstaff_schwartz/longstaff_schwartz_kernels.cuh", "longstaff_schwartz::launch_longstaff_schwartz_cuda"),),
+        runners=(S("tools/pricing/american_option_price_generation.cuh", "offline::pricing::generate_american_option_equity_price_dataset"),),
         instantiation_strategy="model/side exact-transition specialization",
     ),
     EngineSpec(
@@ -350,33 +416,43 @@ ENGINE_SPECS = (
         "contractual rate-option, bond-option or swaption schedule",
         "no stochastic transition",
         "standalone or curve-fitted affine provider",
-        concepts=("closed_form::ClosedFormPricingPolicy",),
-        launchers=("closed_form::launch_closed_form_cuda",),
-        runners=("tools/pricing fixed-income batch runner",),
+        concepts=(S("src/common/closed_form/concepts.cuh", "closed_form::ClosedFormPricingPolicy"),),
+        launchers=(S("src/common/closed_form/closed_form_kernels.cuh", "closed_form::launch_closed_form_cuda"),),
+        runners=(S("tools/pricing/european_swaption_price_generation.cuh", "datasets::generate_regular_european_swaption_prices"),),
         instantiation_strategy="provider/product/side specialization",
     ),
     EngineSpec(
         "fixed_income_lsm",
         "fixed_income",
         "fixed-income Longstaff-Schwartz CUDA",
-        "hand_written/fixed_income/bermudan_swaption",
-        "hand_written/fixed_income/bermudan_swaption",
+        "pricing/longstaff_schwartz/fixed_income",
+        "catalog/pricing/fixed_income/longstaff_schwartz",
         "regular co-terminal Bermudan schedule",
-        "binding-specific joint state/integral transition",
+        "exact joint state/integral or terminal-forward state transition",
         "Longstaff-Schwartz regression",
-        concepts=("longstaff_schwartz::PricingPolicy",),
-        launchers=("longstaff_schwartz::launch_cuda",),
-        runners=("tools/pricing Bermudan swaption runner",),
+        concepts=(S("src/common/longstaff_schwartz/concepts.cuh", "longstaff_schwartz::LongstaffSchwartzPolicy"),),
+        launchers=(S("src/common/longstaff_schwartz/longstaff_schwartz_kernels.cuh", "longstaff_schwartz::launch_longstaff_schwartz_cuda"),),
+        runners=(S("tools/pricing/bermudan_swaption_price_generation.cuh", "datasets::generate_bermudan_swaption_prices"),),
         instantiation_strategy="model/curve/side transition specialization",
+    ),
+    EngineSpec(
+        "fixed_income_monte_carlo", "fixed_income", "terminal exact-transition Monte Carlo CUDA",
+        "pricing/markovian/fixed_income", "catalog/pricing/fixed_income/monte_carlo",
+        "single contractual exercise date", "exact joint factor/integral transition under Q",
+        "conditional zero-coupon bonds and path discount factor",
+        concepts=(S("src/common/monte_carlo/concepts.cuh", "monte_carlo::ScalarMonteCarloPricingPolicy"),),
+        launchers=(S("src/common/monte_carlo/monte_carlo_kernel.cuh", "monte_carlo::launch_monte_carlo_cuda"),),
+        runners=(S("tools/pricing/european_swaption_monte_carlo_generation.cuh", "datasets::generate_european_swaption_monte_carlo_prices"),),
+        instantiation_strategy="joint dynamics/schedule/model composition/product/side specialization",
     ),
     EngineSpec(
         "sample_markovian", "equity", "Markovian CUDA sampling",
         "sampling/markovian", "sampling/catalog",
         "random terminal maturity", "exact or fixed-step model transition",
         "model-only observation",
-        concepts=("sample::SamplingPolicy",),
-        launchers=("sample::launch_samples_cuda",),
-        runners=("tools/sampling::generate_model_samples",),
+        concepts=(S("src/common/sample/concepts.cuh", "sample::SamplingPolicy"),),
+        launchers=(S("src/common/sample/sample_kernels.cuh", "sample::launch_samples_cuda"),),
+        runners=(S("tools/sampling/model_sample_generation.cuh", "offline::sampling::generate_model_sample_dataset"),),
         instantiation_strategy="model/schedule/observation specialization",
     ),
     EngineSpec(
@@ -384,9 +460,9 @@ ENGINE_SPECS = (
         "sampling/rough/markovian_n_factor", "sampling/catalog",
         "random terminal maturity", "prepared seven-factor lift",
         "model-only observation",
-        concepts=("sample::SamplingPolicy",),
-        launchers=("sample::launch_samples_cuda",),
-        runners=("tools/sampling::generate_model_samples",),
+        concepts=(S("src/common/sample/concepts.cuh", "sample::SamplingPolicy"),),
+        launchers=(S("src/common/sample/sample_kernels.cuh", "sample::launch_samples_cuda"),),
+        runners=(S("tools/sampling/model_sample_generation.cuh", "offline::sampling::generate_prepared_model_sample_dataset"),),
         instantiation_strategy="model/factor-count specialization",
     ),
     EngineSpec(
@@ -399,9 +475,12 @@ ENGINE_SPECS = (
         "Gaussian-Volterra hybrid FFT",
         "model-only observation",
         "mathDx/cuFFTDx",
-        concepts=("volterra::HybridKernelPolicy", "sample::SamplingPolicy"),
-        launchers=("volterra::hybrid_fft::launch_samples_cuda",),
-        runners=("tools/sampling::generate_model_samples",),
+        concepts=(
+            S("src/common/volterra/concepts.cuh", "volterra::HybridKernelPolicy"),
+            S("src/common/sample/concepts.cuh", "sample::VolterraFftSamplingPolicy"),
+        ),
+        launchers=(S("src/common/sample/volterra_fft_sample_kernels.cuh", "sample::volterra_fft::launch_samples_cuda"),),
+        runners=(S("tools/sampling/model_sample_generation.cuh", "offline::sampling::generate_model_sample_dataset"),),
         instantiation_strategy="kernel/model/observation specialization",
     ),
     EngineSpec(
@@ -411,9 +490,9 @@ ENGINE_SPECS = (
         "sampling/markovian", "sampling/catalog",
         "random terminal maturity", "exact model transition",
         "model-only observation",
-        concepts=("sample::SamplingPolicy",),
-        launchers=("sample::launch_samples_cuda",),
-        runners=("tools/sampling::generate_model_samples",),
+        concepts=(S("src/common/sample/concepts.cuh", "sample::SamplingPolicy"),),
+        launchers=(S("src/common/sample/sample_kernels.cuh", "sample::launch_samples_cuda"),),
+        runners=(S("tools/sampling/model_sample_generation.cuh", "offline::sampling::generate_model_sample_dataset"),),
         instantiation_strategy="model/observation specialization",
     ),
 )
@@ -493,6 +572,8 @@ MODEL_SPECS = tuple(
             "AI_FACTORY_MATHDX_ROOT"
             if model.name in ROUGH_VOLTERRA_NAMES else None
         ),
+        renderer_alias=model.template_alias,
+        rng_domain_epoch=model.rng_domain_epoch,
     )
     for model in SAMPLE_MODELS
 )
@@ -556,21 +637,21 @@ PRODUCT_SPECS = derive_equity_product_specs() + (
         ("bermudan_swaptions_01",),
         "BermudanSwaptionPricingPolicy",
         "regular co-terminal exercise schedule",
-        "short-rate state and accumulated integral",
+        "continuation state under the binding-specific pricing measure",
         "bermudan",
         True,
-        ("joint_state_integral", "discount_factor", "zero_coupon_bond"),
+        ("continuation_state", "zero_coupon_bond"),
     ),
     ProductSpec(
         "european_swaption",
         "fixed_income",
         ("european_swaptions_01",),
-        "EuropeanSwaptionClosedFormPricingPolicy",
+        "EuropeanSwaptionClosedFormPricingPolicy or EuropeanSwaptionMonteCarloPricingPolicyCore",
         "contractual fixed-leg schedule",
-        "analytical provider",
+        "analytical provider or exact joint state/integral terminal Monte Carlo",
         "none",
         True,
-        ("zero_coupon_bond", "bond_option", "jamshidian"),
+        ("zero_coupon_bond",),
     ),
     ProductSpec(
         "rate_option",
@@ -602,8 +683,10 @@ PRODUCT_BY_NAME = {
 
 
 CURVE_SPECS = (
-    CurveSpec("nelson_siegel", "nelson_siegel_01"),
-    CurveSpec("svensson", "svensson_01"),
+    CurveSpec(
+        "nelson_siegel", "Nelson-Siegel", "NelsonSiegel", "nelson_siegel_01"
+    ),
+    CurveSpec("svensson", "Svensson", "Svensson", "svensson_01"),
 )
 CURVE_BY_NAME = {curve.name: curve for curve in CURVE_SPECS}
 
@@ -619,26 +702,33 @@ FIXED_INCOME_VARIANTS = {
     "bermudan_receiver_swaptions": "bermudan_swaption",
 }
 FIXED_INCOME_ALL_VARIANTS = tuple(FIXED_INCOME_VARIANTS)
-FIXED_INCOME_NO_EUROPEAN_VARIANTS = tuple(
-    variant for variant in FIXED_INCOME_ALL_VARIANTS
-    if not variant.startswith("european_")
-)
 FIXED_INCOME_CAPABILITIES = (
     FixedIncomeCapabilitySpec(
         "cir", None, "affine_one_factor", "cir",
         FIXED_INCOME_ALL_VARIANTS,
+        terminal_forward_dynamics="cir",
+    ),
+    FixedIncomeCapabilitySpec(
+        "cir_plus_plus", "nelson_siegel", "curve_fitted_one_factor", None,
+        FIXED_INCOME_ALL_VARIANTS,
+        terminal_forward_dynamics="cir",
+    ),
+    FixedIncomeCapabilitySpec(
+        "cir_plus_plus", "svensson", "curve_fitted_one_factor", None,
+        FIXED_INCOME_ALL_VARIANTS,
+        terminal_forward_dynamics="cir",
     ),
     FixedIncomeCapabilitySpec(
         "g2", None, "affine_two_factor", None,
-        FIXED_INCOME_NO_EUROPEAN_VARIANTS,
+        FIXED_INCOME_ALL_VARIANTS,
     ),
     FixedIncomeCapabilitySpec(
         "g2_plus_plus", "nelson_siegel", "curve_fitted_two_factor", None,
-        FIXED_INCOME_NO_EUROPEAN_VARIANTS,
+        FIXED_INCOME_ALL_VARIANTS,
     ),
     FixedIncomeCapabilitySpec(
         "g2_plus_plus", "svensson", "curve_fitted_two_factor", None,
-        FIXED_INCOME_NO_EUROPEAN_VARIANTS,
+        FIXED_INCOME_ALL_VARIANTS,
     ),
     FixedIncomeCapabilitySpec(
         "hull_white", "nelson_siegel", "curve_fitted_one_factor", None,
@@ -811,11 +901,7 @@ def _fixed_income_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                 f"{capability.curve}/"
                 if capability.curve is not None else ""
             )
-            engine = (
-                "fixed_income_lsm"
-                if variant.startswith("bermudan_")
-                else "fixed_income_closed_form"
-            )
+            engine = capability.engine_for(FIXED_INCOME_VARIANTS[variant])
             result.append(DatasetSpec(
                 dataset_id=dataset_id,
                 dataset_kind="prices",
@@ -825,16 +911,15 @@ def _fixed_income_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                     f"{variant}/{dataset_id}/generator.cpp"
                 ),
                 owner=(
-                    "hand_written"
-                    if engine == "fixed_income_lsm" else "generated"
+                    "generated" if capability.is_generated(FIXED_INCOME_VARIANTS[variant])
+                    else "hand_written"
                 ),
                 status="available",
                 source_prefix=capability.source_prefix,
                 template=(
                     None
-                    if engine == "fixed_income_lsm"
-                    else capability.recipe_template_family + "/"
-                    + FIXED_INCOME_VARIANTS[variant] + ".generator.cpp.tpl"
+                    if not capability.is_generated(FIXED_INCOME_VARIANTS[variant])
+                    else capability.recipe_template_for(FIXED_INCOME_VARIANTS[variant])
                 ),
                 engine=engine,
                 model=capability.model,
@@ -845,6 +930,8 @@ def _fixed_income_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                 numerical_profile=(
                     "longstaff_schwartz_price_profile"
                     if engine == "fixed_income_lsm"
+                    else "exact_joint_monte_carlo_price_profile"
+                    if engine == "fixed_income_monte_carlo"
                     else "closed_form_price_profile"
                 ),
                 layout="one_price_per_aligned_input_row",
@@ -902,6 +989,7 @@ _STOCHASTIC_PRICING_ENGINES = frozenset({
     "equity_lsm_fixed",
     "equity_lsm_exact",
     "fixed_income_lsm",
+    "fixed_income_monte_carlo",
 })
 
 
@@ -931,7 +1019,12 @@ RNG_DOMAIN_SPECS = tuple(
                 dataset for dataset in AVAILABLE_DATASET_SPECS
                 if _uses_philox(dataset)
             ),
-            key=lambda dataset: dataset.recipe_path,
+            # Append extension epochs; preserve the frozen V1 and V2 prefixes.
+            key=lambda dataset: (
+                max(MODEL_BY_NAME[dataset.model].rng_domain_epoch,
+                    int(dataset.engine == "fixed_income_monte_carlo")),
+                dataset.recipe_path,
+            ),
         )
     )
 )
@@ -942,11 +1035,11 @@ RNG_DOMAIN_BY_RECIPE = {
 
 def validate_rng_domain_specs(
     domains: tuple[RngDomainSpec, ...],
-    common_random_number_allowlist: frozenset[tuple[str, str]] = (
-        RNG_COMMON_RANDOM_NUMBER_ALLOWLIST
-    ),
+    common_random_number_allowlist: frozenset[tuple[str, str]] | None = None,
 ) -> None:
     """Reject ambiguous, overlapping or out-of-range Philox reservations."""
+    if common_random_number_allowlist is None:
+        common_random_number_allowlist = RNG_COMMON_RANDOM_NUMBER_ALLOWLIST
     recipe_paths = [domain.recipe_path for domain in domains]
     if len(recipe_paths) != len(set(recipe_paths)):
         raise ValueError("duplicate RNG-domain recipe path")
@@ -1046,26 +1139,59 @@ for _dataset in DATASET_SPECS:
     validate_dataset_spec(_dataset)
 
 
-def resolve_price_capability(
+def classify_price_capability(
     model: str,
     product: str,
     variant: str,
     curve: str | None = None,
-) -> DatasetSpec:
+    datasets: tuple[DatasetSpec, ...] = DATASET_SPECS,
+) -> PriceCapabilityResolution:
     matches = [
-        dataset for dataset in AVAILABLE_DATASET_SPECS
+        dataset for dataset in datasets
         if dataset.dataset_kind == "prices"
         and dataset.model == model
         and dataset.product == product
         and dataset.variant == variant
         and dataset.curve == curve
     ]
-    if len(matches) != 1:
-        raise KeyError(
-            "unsupported or ambiguous pricing capability: "
-            f"{model}/{curve or '-'}/{product}/{variant}"
+    if len(matches) > 1:
+        return PriceCapabilityResolution(
+            PriceCapabilityState.AMBIGUOUS,
+            tuple(matches),
         )
-    return matches[0]
+    if matches:
+        state = {
+            "available": PriceCapabilityState.AVAILABLE,
+            "deferred": PriceCapabilityState.DEFERRED,
+            "unsupported": PriceCapabilityState.UNSUPPORTED,
+        }.get(matches[0].status, PriceCapabilityState.UNCLASSIFIED)
+        return PriceCapabilityResolution(state, tuple(matches))
+
+    model_spec = MODEL_BY_NAME.get(model)
+    known_variants = {candidate.name for candidate in PRICE_VARIANTS} | set(
+        FIXED_INCOME_VARIANTS
+    )
+    if (
+        model_spec is None
+        or (model_spec.asset_class, product) not in PRODUCT_BY_NAME
+        or variant not in known_variants
+        or curve not in {None, *CURVE_BY_NAME}
+    ):
+        return PriceCapabilityResolution(PriceCapabilityState.UNCLASSIFIED)
+    return PriceCapabilityResolution(PriceCapabilityState.UNSUPPORTED)
+
+
+def resolve_price_capability(
+    model: str,
+    product: str,
+    variant: str,
+    curve: str | None = None,
+) -> DatasetSpec:
+    resolution = classify_price_capability(model, product, variant, curve)
+    if resolution.state is PriceCapabilityState.AVAILABLE:
+        return resolution.matches[0]
+    identity = f"{model}/{curve or '-'}/{product}/{variant}"
+    raise KeyError(f"{resolution.state.value} pricing capability: {identity}")
 
 
 def resolve_complete_price_capability(
@@ -1262,26 +1388,33 @@ def _product_binding_specs() -> tuple[ProductBindingSpec, ...]:
                 "fixed_income",
                 product,
                 capability.curve,
-                (
-                    "fixed_income_lsm"
-                    if early_exercise else "fixed_income_closed_form"
-                ),
-                "hand_written" if early_exercise else "generated",
+                capability.engine_for(product),
+                "generated" if capability.is_generated(product) else "hand_written",
                 capability.source_prefix,
                 (
                     None
-                    if early_exercise
-                    else capability.binding_template_family
+                    if not capability.is_generated(product)
+                    else capability.binding_template_for(product)
                 ),
                 (
-                    "fixed-step joint state/integral transition"
-                    if early_exercise and capability.model == "cir"
+                    "exact terminal-forward state transition (last exercise bond numeraire)"
+                    if early_exercise and capability.terminal_forward_dynamics
                     else "exact joint state/integral transition"
-                    if early_exercise
+                    if early_exercise or capability.engine_for(product) == "fixed_income_monte_carlo"
                     else "no stochastic transition"
                 ),
                 factorization=capability.factorization,
                 implementation=capability.implementation,
+                required_capabilities=(
+                    ("terminal_forward_state", "bond_numeraire", "zero_coupon_bond")
+                    if early_exercise and capability.terminal_forward_dynamics
+                    else ("joint_state_integral", "discount_factor", "zero_coupon_bond")
+                    if early_exercise or capability.engine_for(product) == "fixed_income_monte_carlo"
+                    else ("zero_coupon_bond", "bond_option", "jamshidian")
+                    if product == "european_swaption"
+                    else ("zero_coupon_bond", "bond_option")
+                ),
+                terminal_forward_dynamics=capability.terminal_forward_dynamics,
             ))
     keys = [spec.unit_path for spec in result]
     if len(keys) != len(set(keys)):
@@ -1293,6 +1426,120 @@ def _product_binding_specs() -> tuple[ProductBindingSpec, ...]:
 
 
 PRODUCT_BINDING_SPECS = _product_binding_specs()
+
+
+@dataclass(frozen=True)
+class PriceDeltaBindingSpec:
+    """A spot sensitivity of an existing pricing contract, not a new product."""
+
+    pricing: ProductBindingSpec
+    path_strategy: str
+
+    def __post_init__(self) -> None:
+        if self.path_strategy not in {"multiplicative", "coupled", "closed_form_bump"}:
+            raise ValueError(f"Unknown price-delta strategy: {self.path_strategy}")
+        expected_engines = ({"equity_closed_form"} if self.path_strategy == "closed_form_bump"
+                            else {"equity_markovian", "equity_lsm_exact", "equity_lsm_fixed"})
+        if self.pricing.asset_class != "equity" or self.pricing.engine not in expected_engines:
+            raise ValueError("Price-delta strategy is incompatible with the pricing engine")
+
+    @property
+    def unit_path(self) -> str:
+        return f"{self.pricing.unit_path}_price_delta"
+
+    @property
+    def paths(self) -> tuple[str, str]:
+        return (f"{self.unit_path}.cuh", f"{self.unit_path}.cu")
+
+
+# Every existing Markovian equity product has a separate price-delta launcher.
+# Local-state adapters preserve model parameter conventions; rough is separate.
+PRICE_DELTA_PATH_STRATEGIES = {
+    "bates": "multiplicative", "black_scholes": "multiplicative",
+    "cev": "coupled", "heston": "multiplicative", "heston_3_2": "multiplicative",
+    "kou": "multiplicative", "merton": "multiplicative",
+    "normal_inverse_gaussian": "multiplicative", "sabr": "coupled",
+    "schobel_zhu": "multiplicative", "stein_stein": "multiplicative",
+    "variance_gamma": "multiplicative",
+}
+PRICE_DELTA_BINDING_SPECS = tuple(
+    PriceDeltaBindingSpec(binding,
+        "closed_form_bump" if binding.engine == "equity_closed_form" else
+        PRICE_DELTA_PATH_STRATEGIES[binding.model])
+    for binding in PRODUCT_BINDING_SPECS
+    if binding.asset_class == "equity" and binding.engine in {
+        "equity_markovian", "equity_closed_form", "equity_lsm_exact", "equity_lsm_fixed"}
+)
+GENERATED_CLOSED_FORM_POLICY_PATHS = tuple(
+    f"{binding.unit_path}_impl.cuh" for binding in PRODUCT_BINDING_SPECS
+    if binding.engine == "equity_closed_form" and binding.product != "european_option"
+)
+GENERATED_PRICE_DELTA_BINDING_PATHS = tuple(
+    path for binding in PRICE_DELTA_BINDING_SPECS for path in binding.paths
+)
+
+# Sensitivities inherit the exact input/variant contract of an existing price
+# recipe. They do not reserve new random streams: CRN aliases are explicit.
+PRICE_DELTA_SOURCE_DATASETS = {
+    dataset.recipe_path: dataset for dataset in AVAILABLE_DATASET_SPECS
+    if dataset.dataset_kind == "prices" and any(
+        (spec.pricing.model, spec.pricing.product, spec.pricing.engine)
+        == (dataset.model, dataset.product, dataset.engine)
+        for spec in PRICE_DELTA_BINDING_SPECS
+    )
+}
+PRICE_DELTA_DATASET_SPECS = tuple(
+    replace(dataset, dataset_kind="price_delta", owner="generated",
+            dataset_id=dataset.dataset_id + "_price_delta",
+            recipe_path=dataset.recipe_path.replace("/prices/", "/price_delta/")
+                .replace("/" + dataset.dataset_id + "/", "/" + dataset.dataset_id + "_price_delta/"),
+            template="catalog/pricing/price_delta/generator.cpp.tpl",
+            layout="aligned_price_delta_rows", numerical_profile="price_delta_production_paths")
+    for dataset in PRICE_DELTA_SOURCE_DATASETS.values()
+)
+PRICE_DELTA_SOURCE_BY_RECIPE = {
+    delta.recipe_path: source for delta, source in zip(
+        PRICE_DELTA_DATASET_SPECS, PRICE_DELTA_SOURCE_DATASETS.values(), strict=True)
+}
+DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
+AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
+RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
+    tuple(sorted((delta.recipe_path, source.recipe_path)))
+    for delta in PRICE_DELTA_DATASET_SPECS
+    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+)
+RNG_DOMAIN_SPECS += tuple(
+    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=delta.recipe_path)
+    for delta in PRICE_DELTA_DATASET_SPECS
+    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+)
+RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
+validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
+for _dataset in PRICE_DELTA_DATASET_SPECS:
+    validate_dataset_spec(_dataset)
+
+
+def pricing_launch_family(binding: ProductBindingSpec) -> str:
+    """Classify execution, without duplicating any measured launch numbers."""
+    if binding.engine == "fixed_income_closed_form":
+        return "jamshidian" if binding.product == "european_swaption" else "closed_form"
+    if binding.engine == "fixed_income_lsm":
+        return "terminal_forward_lsm" if binding.terminal_forward_dynamics else "gaussian_rate_lsm"
+    families = {
+        "equity_closed_form": "closed_form",
+        "fixed_income_monte_carlo": "fixed_income_mc",
+        "equity_lsm_fixed": "equity_lsm",
+        "equity_lsm_exact": "equity_lsm",
+        "equity_n_factor": "rough_n_factor",
+        "equity_volterra_fft": "rough_fft",
+    }
+    if binding.engine in families:
+        return families[binding.engine]
+    if isinstance(binding.manifest_binding, Binding):
+        return "equity_exact_mc" if binding.manifest_binding.time_kind == "exact" else "equity_step_mc"
+    raise ValueError(f"Unclassified pricing launch family: {binding.unit_path}")
+
+
 validate_price_capability_graph(DATASET_SPECS, PRODUCT_BINDING_SPECS)
 GENERATED_PRODUCT_BINDING_SPECS = tuple(
     spec for spec in PRODUCT_BINDING_SPECS if spec.owner == "generated"

@@ -73,7 +73,8 @@ inline datasets::ModelSampleRecipe recipe(
         "exact finite-horizon transition",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "sigma", "nu", "theta"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
@@ -82,7 +83,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"nu", {0.03f, 0.5f}},
                 {"theta", {-0.35f, 0.15f}}
             }},
-            {"acceptance", "first_moment > 0.05f && second_moment > 0.05f"}
+            {"acceptance", "first_moment > 0.05f && second_moment > 0.05f"},
+            {"derived_parameters", {{"first_moment", "first_moment = 1 - theta * nu - 0.5 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter."}, {"second_moment", "second_moment = 1 - 2 * theta * nu - 2 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter."}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -92,6 +94,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_model_sample_dataset<ModelParameters>(
         argc,
         argv,

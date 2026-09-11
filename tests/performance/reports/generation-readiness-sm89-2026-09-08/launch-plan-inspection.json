@@ -1,0 +1,13 @@
+{
+  "identities": 426,
+  "plans": 852,
+  "price_counts": [
+    1000,
+    1000000
+  ],
+  "mc_paths_per_price": 1048576,
+  "closed_form_paths": 0,
+  "thread_counts": "powers of two",
+  "inspector_sha256": "d08c649bc5bd3f6666adf2405c4dd1a1076c1179ca96055e8101888bd4bbd407",
+  "scope": "CPU only: not GPU resource, memory or timing qualification"
+}

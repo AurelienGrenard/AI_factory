@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/fixed_income/cashflows.cuh"
+#include "common/fixed_income/one_factor_affine.cuh"
 #include "common/fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 
@@ -10,6 +11,49 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::model::fixed_income::cir {
+
+// Reusable CIR option context/provider; fitted models retain the same CDF kernel.
+struct BondOptionContext {
+    float expiry_bond;
+    float noncentrality_numerator;
+    float base_rate;
+    float degrees_of_freedom;
+};
+
+struct AnalyticsProvider {
+    __device__ __forceinline__ ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients
+    affine_bond_coefficients(
+        const ModelParameters& parameters,
+        float valuation_time_years,
+        float maturity_years
+    ) const;
+
+    __device__ __forceinline__ float zero_coupon_bond(
+        const ModelParameters& parameters,
+        float state,
+        float valuation_time_years,
+        float maturity_years
+    ) const;
+
+    __device__ __forceinline__ BondOptionContext
+    prepare_bond_option_context(
+        const ModelParameters& parameters,
+        float state,
+        float valuation_time_years,
+        float option_expiry_years
+    ) const;
+
+    __device__ __forceinline__ float bond_option_price(
+        const BondOptionContext& context,
+        const ModelParameters& parameters,
+        float state,
+        float option_sign,
+        float valuation_time_years,
+        float option_expiry_years,
+        float bond_maturity_years,
+        float strike
+    ) const;
+};
 
 // Return the standalone short rate represented by the CIR state.
 __device__ __forceinline__ float short_rate(

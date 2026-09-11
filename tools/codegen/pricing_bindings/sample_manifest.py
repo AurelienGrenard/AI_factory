@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import re
 
 
 @dataclass(frozen=True)
@@ -24,15 +25,22 @@ class SampleModelSpec:
     extra_dynamics_include: str = ""
     pricing_numerical_method: str = ""
     legacy_url_name: str | None = None
-    threads_per_block: int = 512
     supported_architectures: tuple[str, ...] = ("sm75", "sm86", "sm89")
     analytics_contract: str = "none"
+    renderer_alias: str | None = None
+    rng_domain_epoch: int = 0
+    observable_descriptions: tuple[tuple[str, str], ...] = ()
+    derived_parameter_laws: tuple[tuple[str, str], ...] = ()
 
     @property
     def source_folder(self) -> str:
         if self.asset_class == "fixed_income":
             return f"fixed_income/{self.name}"
         return f"equity/{self.family}/{self.name}"
+
+    @property
+    def template_alias(self) -> str:
+        return self.renderer_alias or self.name
 
 
 def u(name: str, minimum: float, maximum: float) -> tuple[str, float, float]:
@@ -69,6 +77,7 @@ SAMPLE_MODELS = (
             "Andersen QE-M with compound-Poisson lognormal jumps"
         ),
         legacy_url_name="Bates",
+        derived_parameter_laws=(("gamma", "After all latent uniform draws, draw gamma uniformly on [max(sqrt(kappa * theta / 5), 0.1), min(sqrt(12 * kappa * theta), 0.8)] using the next Philox uniform."),),
     ),
     SampleModelSpec(
         "black_scholes", "Black-Scholes", "equity", "markovian",
@@ -105,6 +114,7 @@ SAMPLE_MODELS = (
         "const float gamma = uniform({std::max(std::sqrt(kappa * theta / 5.0f), 0.08f), std::min(std::sqrt(12.0f * kappa * theta), 0.8f)}, uniforms);",
         pricing_numerical_method="Andersen QE-M",
         legacy_url_name="Heston",
+        derived_parameter_laws=(("gamma", "After all latent uniform draws, draw gamma uniformly on [max(sqrt(kappa * theta / 5), 0.08), min(sqrt(12 * kappa * theta), 0.8)] using the next Philox uniform."),),
     ),
     SampleModelSpec(
         "heston_3_2", "Heston 3/2", "equity", "markovian", "markovian",
@@ -170,6 +180,12 @@ SAMPLE_MODELS = (
         "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f",
         pricing_numerical_method="Exact inverse-Gaussian subordination",
         legacy_url_name="NormalInverseGaussian",
+        derived_parameter_laws=(
+            ("spot", "Constant 1; no random draw."),
+            ("beta", "beta = skew_ratio * alpha."),
+            ("gamma", "gamma = sqrt(alpha * alpha - beta * beta); intermediate, not a published parameter."),
+            ("delta", "delta = target_volatility^2 * gamma^3 / alpha^2; deterministic reconstruction, before the declared acceptance test."),
+        ),
     ),
     SampleModelSpec(
         "sabr", "SABR", "equity", "markovian", "markovian", "fixed",
@@ -219,6 +235,7 @@ SAMPLE_MODELS = (
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "mean_reversion, volatility_of_volatility, 0.0f}",
         pricing_numerical_method="exact OU volatility with log-spot Euler",
+        derived_parameter_laws=(("rho", "Constant 0; independent spot and volatility innovations; no parameter draw."),),
     ),
     SampleModelSpec(
         "variance_gamma", "Variance-Gamma", "equity", "markovian",
@@ -233,6 +250,10 @@ SAMPLE_MODELS = (
         "first_moment > 0.05f && second_moment > 0.05f",
         pricing_numerical_method="Exact Gamma subordination",
         legacy_url_name="VarianceGamma",
+        derived_parameter_laws=(
+            ("first_moment", "first_moment = 1 - theta * nu - 0.5 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter."),
+            ("second_moment", "second_moment = 1 - 2 * theta * nu - 2 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter."),
+        ),
     ),
     SampleModelSpec(
         "rough_bergomi", "Rough-Bergomi", "equity", "rough", "volterra",
@@ -317,7 +338,10 @@ SAMPLE_MODELS = (
         "variance_drift, volatility_of_variance, hurst_exponent, rho}",
         "const float variance_drift = mean_reversion * long_run_variance; const float volatility_of_variance = uniform({std::max(std::sqrt(variance_drift / 5.0f), 0.08f), std::min(std::sqrt(12.0f * variance_drift), 0.8f)}, uniforms);",
         pricing_numerical_method="7-factor Markovian lift",
-        threads_per_block=256,
+        derived_parameter_laws=(
+            ("variance_drift", "variance_drift = mean_reversion * long_run_variance."),
+            ("volatility_of_variance", "After all latent uniform draws, draw volatility_of_variance uniformly on [max(sqrt(variance_drift / 5), 0.08), min(sqrt(12 * variance_drift), 0.8)] using the next Philox uniform."),
+        ),
     ),
     SampleModelSpec(
         "quadratic_rough_heston", "Quadratic rough-Heston", "equity", "rough",
@@ -339,7 +363,6 @@ SAMPLE_MODELS = (
         "quadratic_shift, variance_floor, feedback_rate, feedback_volatility, "
         "hurst_exponent}",
         pricing_numerical_method="7-factor Markovian lift",
-        threads_per_block=256,
     ),
     SampleModelSpec(
         "cir", "CIR", "fixed_income", "", "markovian", "exact", "state",
@@ -353,6 +376,11 @@ SAMPLE_MODELS = (
         "const float volatility = uniform({std::max(std::sqrt(mean_reversion * long_term_mean / 5.0f), 0.005f), std::min(std::sqrt(12.0f * mean_reversion * long_term_mean), 0.30f)}, uniforms);",
         pricing_numerical_method="exact noncentral-chi-square transition",
         analytics_contract="standalone CIR affine provider",
+        derived_parameter_laws=(("volatility",
+            "After mean_reversion, long_term_mean and initial_state, draw the next Philox uniform: "
+            "sigma ~ uniform(max(sqrt(mean_reversion * long_term_mean / 5), 0.005), "
+            "min(sqrt(12 * mean_reversion * long_term_mean), 0.30)). "
+            "Feller ratio 2 * mean_reversion * long_term_mean / sigma^2 lies in [1/6, 10]."),),
     ),
     SampleModelSpec(
         "g2", "G2", "fixed_income", "", "markovian", "exact",
@@ -388,6 +416,7 @@ SAMPLE_MODELS = (
         extra_dynamics_include="#include \"model/fixed_income/g2/dynamics_impl.cuh\"\n",
         pricing_numerical_method="exact correlated Gaussian transition",
         analytics_contract="curve-fitted two-factor affine provider",
+        renderer_alias="g2pp",
     ),
     SampleModelSpec(
         "hull_white", "Hull-White", "fixed_income", "", "markovian", "exact",
@@ -399,6 +428,8 @@ SAMPLE_MODELS = (
         extra_dynamics_include="#include \"model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh\"\n",
         pricing_numerical_method="exact OU transition",
         analytics_contract="curve-fitted one-factor affine provider",
+        renderer_alias="hw",
+        derived_parameter_laws=(("volatility", "volatility = stationary_volatility * sqrt(2 * mean_reversion); deterministic instantaneous diffusion scale."),),
     ),
     SampleModelSpec(
         "ornstein_uhlenbeck", "Ornstein-Uhlenbeck", "fixed_income", "",
@@ -411,6 +442,8 @@ SAMPLE_MODELS = (
         "const float volatility = stationary_volatility * std::sqrt(2.0f * mean_reversion);",
         pricing_numerical_method="exact OU transition",
         analytics_contract="standalone one-factor affine provider",
+        renderer_alias="ou",
+        derived_parameter_laws=(("volatility", "volatility = stationary_volatility * sqrt(2 * mean_reversion); deterministic instantaneous diffusion scale."),),
     ),
     SampleModelSpec(
         "vasicek", "Vasicek", "fixed_income", "", "markovian", "exact",
@@ -424,8 +457,20 @@ SAMPLE_MODELS = (
         "const float volatility = stationary_volatility * std::sqrt(2.0f * mean_reversion);",
         pricing_numerical_method="exact Gaussian mean-reverting transition",
         analytics_contract="standalone one-factor affine provider",
+        derived_parameter_laws=(("volatility", "volatility = stationary_volatility * sqrt(2 * mean_reversion); deterministic instantaneous diffusion scale."),),
     ),
 )
+
+# CIR++ retains the CIR factor parameter law and exact transition; only its
+# curve-fitted analytics differ. Keep one owner for the parameter construction.
+SAMPLE_MODELS += (replace(
+    next(model for model in SAMPLE_MODELS if model.name == "cir"),
+    name="cir_plus_plus", display="CIR++",
+    extra_dynamics_include='#include "model/fixed_income/cir/dynamics_impl.cuh"\n',
+    analytics_contract="curve-fitted CIR affine provider; state is the unshifted factor",
+    rng_domain_epoch=2,
+    observable_descriptions=(("state", "Terminal nonnegative CIR factor y; not the curve-shifted short rate."),),
+),)
 
 SAMPLE_MODEL_BY_NAME = {model.name: model for model in SAMPLE_MODELS}
 
@@ -435,6 +480,16 @@ def validate_model_contracts(models) -> None:
     if len(names) != len(set(names)):
         raise ValueError("duplicate canonical model contract")
     for model in models:
+        laws = dict(model.derived_parameter_laws)
+        if len(laws) != len(model.derived_parameter_laws) or any(not law.strip() for law in laws.values()):
+            raise ValueError(f"duplicate or empty derived parameter law: {model.name}")
+        # The bounded factory fragment declares scalar intermediates explicitly.
+        # Cover these as well as public parameters absent from latent proposals.
+        derived_names = set(re.findall(r"const float (\w+)\s*=", model.derived))
+        latent_names = {name for name, _, _ in model.uniforms}
+        required = derived_names | ({name for name, _ in model.parameters} - latent_names)
+        if missing := required - laws.keys():
+            raise ValueError(f"undocumented sample parameter laws: {model.name}: {sorted(missing)}")
         if not model.pricing_numerical_method:
             raise ValueError(
                 f"model lacks a numerical method: {model.name}"
@@ -454,4 +509,4 @@ def validate_model_contracts(models) -> None:
 
 
 validate_model_contracts(SAMPLE_MODELS)
-assert len(SAMPLE_MODELS) == 24
+assert len(SAMPLE_MODELS) == 25

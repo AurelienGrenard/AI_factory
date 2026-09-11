@@ -174,7 +174,7 @@ void write_analytical_price_dataset_impl(
         {"row_count", row_count},
         {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
-        {"validation", price_validation_metadata(catalog_path.parent_path())},
+        {"validation", price_validation_metadata(dataset_path)},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
         {"model_dataset", dataset_reference(model_document)},
         {"curve_dataset", dataset_reference(curve_document)},
@@ -307,7 +307,7 @@ void write_analytical_price_dataset_impl(
         {"row_count", row_count},
         {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
-        {"validation", price_validation_metadata(catalog_path.parent_path())},
+        {"validation", price_validation_metadata(dataset_path)},
         {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
         {"model_dataset", dataset_reference(model_document)},
         {"product_dataset", dataset_reference(product_document)},
@@ -342,6 +342,11 @@ void write_monte_carlo_price_dataset_impl(
     double kernel_seconds
 ) {
     validate_dataset_url(url);
+    if (!catalog_sections.is_object() || catalog_sections.contains("validation")) {
+        throw std::invalid_argument(
+            "Additional catalog sections must form an object without validation metadata."
+        );
+    }
     const nlohmann::ordered_json model_document =
         read_json_file(model_dataset_path);
     const nlohmann::ordered_json curve_document = curve_dataset_path == nullptr
@@ -500,7 +505,7 @@ void write_monte_carlo_price_dataset_impl(
         {"row_count", row_count},
         {"time_convention", product_document.at("time_convention")},
         {"summary", summary},
-        {"validation", price_validation_metadata(catalog_path.parent_path())},
+        {"validation", price_validation_metadata(dataset_path)},
         {"outputs", {
             {"price", {{"estimator", "Monte Carlo discounted payoff mean"}}},
             {
@@ -517,11 +522,6 @@ void write_monte_carlo_price_dataset_impl(
         catalog["curve_dataset"] = dataset_reference(curve_document);
     }
     if (!delta_t.empty()) catalog["time_grid"] = time_grid;
-    if (!catalog_sections.is_object()) {
-        throw std::invalid_argument(
-            "Additional catalog sections must form an object."
-        );
-    }
     for (const auto& [name, value] : catalog_sections.items()) {
         catalog[name] = value;
     }

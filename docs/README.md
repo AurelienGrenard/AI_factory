@@ -1,83 +1,138 @@
-# Documentation index
+# AI Factory documentation
 
-All maintained project documentation is indexed from this tree. Normative
-contracts live under `docs`; mathematical model and curve references that are
-kept beside their source are listed explicitly below. The main audit and the
-deliberately separate validation audit use the symmetric `audit/` and
-`validation/` folders documented below.
+Use this page to reach the authoritative document for a task. The
+[repository README](../README.md) provides the shortest build-and-test path;
+this index covers architecture, extension, datasets, validation, performance,
+and project records.
 
-## Model and curve references
+## Choose a task
 
-- [`model-and-curve-reference-index.md`](model-and-curve-reference-index.md):
-  exhaustive index of the local mathematical references kept under `src`, with
-  the boundary between descriptive equations and canonical capability data.
+| Task | Start here | Continue with |
+|---|---|---|
+| Explore runtime ownership | [Source reference index](model-and-curve-reference-index.md) | [Shared primitives](../src/common/README.md) |
+| Understand the CUDA architecture | [CUDA documentation](cuda/README.md) | [Pricing-policy composition](cuda/pricing-policy-composition.md) |
+| Understand the build graph | [CMake ownership](../cmake/README.md) | Discover configured targets from CMake and CTest |
+| Add a model, curve, product, or price | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) | Relevant [CUDA contract](cuda/README.md) |
+| Generate model or product parameters | [Parameter-dataset contract](model-and-product-parameter-dataset-generation.md) | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) |
+| Generate model-only training samples | [Model-sample contract](model-sample-dataset-generation.md) | [Code generation](../tools/codegen/pricing_bindings/README.md) |
+| Run or resume a price/sample campaign | [Dataset-generation workflow](dataset-generation-workflow.md) | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) |
+| Keep a dataset after a refactor | [Provenance and reuse](dataset-provenance-contract.md) | Read-only compatibility checker and legacy-data rules |
+| Explore recipes and tests | [Catalogue guide](../catalog/README.md) | [Test-suite guide](../tests/README.md) |
+| Find an offline utility | [Tools directory guide](../tools/README.md) | Tool-specific README when present |
+| Validate a generated price | [Independent price-validation pipeline](independent-price-validation-pipeline.md) | Separate [validation audit](validation/query.md) |
+| Diagnose a CUDA launch | [Launch validation and kernel diagnostics](cuda/launch-validation-and-kernel-diagnostics.md) | [Performance protocol](performance-regression-protocol.md) |
+| Qualify another GPU | [Performance protocol](performance-regression-protocol.md) | [SM89 hardware notebook](cuda/rtx4090-laptop-memory-map.ipynb) as a scoped example |
+| Find model equations | [Model and curve reference index](model-and-curve-reference-index.md) | Source-local model or curve reference |
+| Understand the protected-download boundary | [Protected-download proposal](proposed-protected-dataset-download-design.md) | The static website is maintained outside this repository |
+| Audit the repository | [Main audit query](audit/query.md) | [Status](audit/status.md), [open findings](audit/response.md), and [closed findings](audit/closed.md) |
 
-## Extension workflows
+## Architecture contracts
 
-- [`catalog-extension-and-validation-workflow.md`](catalog-extension-and-validation-workflow.md):
-  complete checklist for adding a model, curve, product, price dataset,
-  independent validation, and website entry.
-- [`model-and-product-parameter-dataset-generation.md`](model-and-product-parameter-dataset-generation.md):
-  construction of ordered core and stress parameter rows and their YAML recipe.
-- [`model-sample-dataset-generation.md`](model-sample-dataset-generation.md):
-  availability matrix and contract for 3M-row generative-training datasets,
-  in-memory Philox parameter generation, persistent CUDA sampling, streaming
-  JSON, and smoke tests.
-- [`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md):
-  mandatory model-product-aware Premia-to-QuantLib hierarchy, row-level
-  fallback, failure classification, persistent reference datasets,
-  continuous/discrete bias handling, and cache-only publication checks.
+- [Equity price and spot delta](cuda/equity-price-delta-contract.md) — separate
+  launchers, shared/coupled paths, bumping and bounded frozen-date LSM pilots.
 
-## CUDA architecture and implementation contracts
+- [CUDA documentation](cuda/README.md) — local map for CUDA composition,
+  execution, model contracts, and performance.
+- [Pricing-policy composition](cuda/pricing-policy-composition.md) — how model,
+  schedule, product, pricing, sampling, and kernel policies compose.
+- [Model dynamics contract](cuda/model-dynamics-contract.md) — state,
+  transition, Philox, time-grid, and simulation interfaces.
+- [Model analytics contract](cuda/model-analytics-contract.md) — canonical
+  analytical APIs and providers.
+- [Closed-form and Monte Carlo pricing contract](cuda/closed-form-and-monte-carlo-pricing-contract.md)
+  — ordinary pricing policies, kernels, launchers, and numerical invariants.
+- [American and Bermudan pricing contract](cuda/american-and-bermudan-pricing-contract.md)
+  — Longstaff--Schwartz policies, regression, workspaces, and launch flow.
+- [Launch validation and kernel diagnostics](cuda/launch-validation-and-kernel-diagnostics.md)
+  — inspect catalogue launch plans, native guards, resources, and occupancy.
 
-- [`cuda/README.md`](cuda/README.md): local index for all CUDA-specific
-  architecture guides, implementation contracts, hardware notes, and links to
-  the performance protocol.
-- [`cuda/pricing-policy-composition.md`](cuda/pricing-policy-composition.md):
-  guide visuel des relations entre dynamique, calendrier, schedule, produit,
-  handler, pricing policy et kernel pour chaque famille de pricing CUDA.
-- [`cuda/model-dynamics-contract.md`](cuda/model-dynamics-contract.md): model
-  dynamics layers, common device interface, state layout, Philox consumption,
-  exact and discretized transitions, and naming conventions.
-- [`cuda/model-analytics-contract.md`](cuda/model-analytics-contract.md):
-  canonical analytics APIs, capability providers, fitted-model composition,
-  shared lognormal primitives, and symmetric numerical tests.
-- [`cuda/closed-form-and-monte-carlo-pricing-contract.md`](cuda/closed-form-and-monte-carlo-pricing-contract.md):
-  required types, functions, kernels, launchers, and invariants for closed-form
-  and standard Monte Carlo pricing.
-- [`cuda/american-and-bermudan-pricing-contract.md`](cuda/american-and-bermudan-pricing-contract.md):
-  early-exercise kernels, Longstaff-Schwartz responsibilities, workspace
-  planning, launch interface, and memory layout.
-- [`cuda/launch-validation-and-kernel-diagnostics.md`](cuda/launch-validation-and-kernel-diagnostics.md):
-  common launch validation, CUDA error handling, resource inspection,
-  theoretical occupancy, and diagnostics output.
-- [`performance-regression-protocol.md`](performance-regression-protocol.md):
-  versioned CUDA performance protocol, baselines, decision thresholds and
-  reproduction commands.
+## Dataset and extension contracts
 
-## Operations
+- [Catalogue extension workflow](catalog-extension-and-validation-workflow.md)
+  — end-to-end checklist for code, recipe, test, validation, and publication.
+- [Model and product parameter datasets](model-and-product-parameter-dataset-generation.md)
+  — ordered core/stress rows and versioned Philox domains.
+- [Model-sample datasets](model-sample-dataset-generation.md) — sample shapes,
+  generated bindings, CUDA execution, memory guards, and smoke tests.
+- [Independent price-validation pipeline](independent-price-validation-pipeline.md)
+  — Premia/QuantLib hierarchy, cached references, fingerprints, and
+  fail-closed publication.
 
-- [`website-protected-dataset-download-workflow.md`](website-protected-dataset-download-workflow.md):
-  protected website download flow, Turnstile validation, temporary URLs, and
-  server-side checks.
+## Performance and operations
 
-## Work tracking
+- [CUDA performance regression protocol](performance-regression-protocol.md)
+  — campaign preflight, timing scopes, resource budgets, rebaseline rules, and
+  per-architecture evidence.
+- [RTX 4090 Laptop memory notebook](cuda/rtx4090-laptop-memory-map.ipynb) —
+  hardware-specific SM89 observations, never portable defaults.
+- [Closed-form price-count scaling report](performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md)
+  — 1/16/1,000-price geometry, resources and end-to-end SM89 evidence.
+- [Jamshidian scalar/cooperative strategy](performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md)
+  — all one-factor rates models, 100 to 2²⁰ prices, launch geometry and
+  calendar sensitivity; numerical and timing qualification limits.
+- [Pricing workload scaling — ongoing](performance-reports/pricing-workload-scaling-sm89-2026-09-07.md)
+  — 100/1,000/10,000 prices, per-price path counts and workload-specific geometry.
+- [Dataset pricing runtime notebook](performance-reports/pricing-dataset-runtime-sm89.ipynb)
+  — 1,000 actual catalogue prices per representative pair, 2²⁰ paths per
+  Monte Carlo price; GPU time, generation phases and an editable campaign budget.
+- [Catalogue generation readiness](performance-reports/catalogue-generation-readiness-sm89-2026-09-08.md)
+  — bounded Kou regression correction, compiled resources and staged native pilots.
+- [CIR forward-measure comparison](performance-reports/cir-forward-measure-comparison-sm89-2026-09-08.md)
+  — integrated Bermudan method, row-wise comparison to the previous method,
+  numerical evidence and remaining publication-certification limits.
+- [G2/G2++ European-swaption Monte Carlo](performance-reports/g2-european-swaption-monte-carlo-sm89-2026-09-08.md)
+  — shared-kernel integration, independent price diagnostics and real-generator timings.
+- [Proposed protected-download design](proposed-protected-dataset-download-design.md)
+  — Turnstile and signed-URL trust boundaries; it is not an implemented feature.
 
-- [`audit/query.md`](audit/query.md): stable audit protocol and checklists for
-  numerical code, architecture, build, ownership, and CUDA performance.
-- [`audit/status.md`](audit/status.md): revision, scope, exclusions, and
-  evidence for the latest execution of the main audits.
-- [`audit/response.md`](audit/response.md): actionable audit findings that
-  remain unresolved, including findings explicitly postponed within the audit.
-- [`audit/closed.md`](audit/closed.md): compact registry of corrected,
-  disproved, merged, or inapplicable findings, with evidence and reopening
-  conditions.
-- [`validation/query.md`](validation/query.md): separate, explicitly
-  triggered audit protocol for independent references, caches, provenance, and
-  reproducibility of published datasets.
-- [`validation/status.md`](validation/status.md): revision, scope,
-  exclusions, and evidence for the latest validation audit only.
-- [`validation/response.md`](validation/response.md): unresolved findings
-  owned by the separate validation audit.
-- [`validation/closed.md`](validation/closed.md): closed findings of the
-  validation audit, kept separate from the main audit registry.
+## Mathematical references
+
+[Model and curve reference index](model-and-curve-reference-index.md) is the
+complete list of mathematical notes kept beside source code. Those pages own
+model equations, parameter meaning, and numerical schemes. They do not own
+the model/product capability matrix, generated target lists, or file-tree
+inventories.
+
+The authoritative capability inventory is
+[`tools/codegen/pricing_bindings/capability_manifest.py`](../tools/codegen/pricing_bindings/capability_manifest.py).
+
+Source ownership is introduced by the
+[Markovian equity](../src/model/equity/markovian/README.md),
+[rough equity](../src/model/equity/rough/README.md),
+[fixed-income](../src/model/fixed_income/README.md), and
+[financial-product](../src/product/README.md) entry points.
+
+## Project records
+
+The main repository audit and the independent validation audit are separate:
+
+- [Main audit query](audit/query.md), [status](audit/status.md),
+  [open findings](audit/response.md), [closed findings](audit/closed.md).
+- [Validation query](validation/query.md), [status](validation/status.md),
+  [open findings](validation/response.md),
+  [closed findings](validation/closed.md).
+
+Audit and validation records preserve evidence. Ordinary documentation work
+must not rewrite them to hide a contradiction or invalidate historical
+provenance.
+
+## Documentation conventions
+
+- `README.md` is a directory entry point, not a hidden contract or copied
+  inventory.
+- `*-contract.md` defines normative interfaces and invariants.
+- `*-workflow.md` gives an ordered operational procedure.
+- `*-protocol.md` defines a reproducible qualification or measurement.
+- `*-reference.md` and `*-index.md` provide stable reference material.
+- File names and code identifiers use English. A page may use English or
+  French, but it remains in one language and preserves canonical code terms.
+- One document owns each rule. Other pages summarize only enough context to
+  link to that source.
+- Lists derived from CMake or a typed manifest are discovered or generated,
+  not copied into documentation.
+- Hardware measurements always name their GPU, architecture, toolchain, and
+  scope.
+
+When documentation and implementation disagree, treat the implementation and
+its tested manifest as evidence, then correct the owning document. Do not add
+a second explanation beside the stale one.

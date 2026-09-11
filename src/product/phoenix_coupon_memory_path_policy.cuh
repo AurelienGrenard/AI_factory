@@ -83,7 +83,7 @@ struct PhoenixCouponMemoryPathPolicy {
         };
     }
 
-    template<typename ModelParameters>
+    template<equity::RiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,

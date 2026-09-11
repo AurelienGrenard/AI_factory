@@ -12,7 +12,17 @@ target_compile_definitions(ai_factory_cuda_tuning INTERFACE
     AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK=${AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK}
     AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT=${AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT}
     AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE=${AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE}
+    AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS=${AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS}
+    AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS=${AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS}
 )
+
+# Inspect recipe launch plans without running CUDA or generating a dataset.
+add_executable(inspect_pricing_launch_plan EXCLUDE_FROM_ALL
+    tools/cuda/inspect_pricing_launch_plan.cpp
+)
+target_include_directories(inspect_pricing_launch_plan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(inspect_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
+target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_23)
 
 # Host-only JSON validation shared by runtime loaders and offline tools.
 add_library(ai_factory_dataset_validation STATIC
@@ -56,6 +66,7 @@ target_link_libraries(
 ai_factory_add_offline_library(
     ai_factory_price_dataset tools/datasets/price_dataset.cpp
 )
+target_sources(ai_factory_price_dataset PRIVATE tools/datasets/price_delta_dataset.cpp)
 target_link_libraries(
     ai_factory_price_dataset PUBLIC
     ai_factory_artifact_io
@@ -80,6 +91,7 @@ target_link_libraries(ai_factory_dataset_core INTERFACE
 # Parameter-only construction helpers stay outside price-generator builds.
 set(_ai_factory_generation_helpers
     autocall_generation
+    cir_generation
     cliquet_generation
     g2_generation
     nelson_siegel_generation

@@ -106,7 +106,7 @@ struct FittedZeroCouponBondOptionClosedFormPricingPolicy {
         if constexpr (Side == OptionSide::call) {
             return row.notional * zero_coupon_bond_call_price(
                 row.model,
-                Composition::initial_state(),
+                Composition::initial_state(row.model),
                 0.0f,
                 row.option_expiry_years,
                 row.bond_maturity_years,
@@ -115,7 +115,7 @@ struct FittedZeroCouponBondOptionClosedFormPricingPolicy {
         } else {
             return row.notional * zero_coupon_bond_put_price(
                 row.model,
-                Composition::initial_state(),
+                Composition::initial_state(row.model),
                 0.0f,
                 row.option_expiry_years,
                 row.bond_maturity_years,

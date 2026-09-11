@@ -1,14 +1,1750 @@
 {
   "schema_version": 2,
-  "source_sha256": "4c13c406b3eef54f8ab63b3b531297ab76ec3eb7564eb5a06b0c6536efe055bc",
+  "source_sha256": "c0683d08ac27aeaf0070dd1f377038877d72c2466567ed7d122a0ed5b8eb704d",
   "counts": {
-    "engines": 12,
-    "models": 24,
+    "engines": 13,
+    "models": 25,
     "products": 26,
-    "available_datasets": 697,
+    "available_datasets": 1086,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 1499
+    "generated_outputs": 2805
   },
-  "outputs_sha256": "e513c3fb9c0ed33a3f1f8a55cb4787fe26b7fe5ff6c6104db75658c14bdb2ac1"
+  "outputs_sha256": "2e6229ab0fe2ec41abe22d513d4bcf095d672920f0265b4f079acc68066c9685",
+  "price_delta_bindings": {
+    "src/model/equity/markovian/bates/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/asian_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/asset_or_nothing_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/athena_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/cliquet",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/digital_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/double_knock_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/down_and_in_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/down_and_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/european_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/forward_start_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/gap_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/geometric_asian_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/lookback_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/phoenix_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/phoenix_memory_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/range_accrual",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/straddle",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/up_and_in_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/up_and_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/up_no_touch",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/up_one_touch",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/heston_3_2/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/asian_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/asset_or_nothing_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/athena_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/cliquet",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/digital_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/double_knock_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/down_and_in_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/down_and_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/european_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/forward_start_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/gap_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/geometric_asian_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/lookback_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/phoenix_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/phoenix_memory_autocall",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/range_accrual",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/straddle",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/up_and_in_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/up_and_out_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/up_no_touch",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/sabr/product/up_one_touch",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/stein_stein/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/asset_or_nothing_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/digital_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/european_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/forward_start_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/gap_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/geometric_asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/range_accrual",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/straddle",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/asian_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/athena_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/athena_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/cliquet_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/cliquet",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/double_knock_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/double_knock_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/down_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/down_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/down_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/down_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/lookback_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/lookback_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/phoenix_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/phoenix_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/phoenix_memory_autocall_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/phoenix_memory_autocall",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/up_and_in_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/up_and_in_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/up_and_out_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/up_and_out_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/up_no_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/up_no_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/up_one_touch_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/up_one_touch",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/asset_or_nothing_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/asset_or_nothing_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/digital_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/digital_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/european_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/european_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/forward_start_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/forward_start_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/gap_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/gap_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/geometric_asian_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/geometric_asian_option",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/range_accrual_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/range_accrual",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/straddle_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/straddle",
+      "path_strategy": "closed_form_bump",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/bates/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/black_scholes/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/cev/product/american_option",
+      "path_strategy": "coupled",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/heston/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/kou/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/merton/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/normal_inverse_gaussian/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/schobel_zhu/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/american_option_price_delta": {
+      "pricing": "src/model/equity/markovian/variance_gamma/product/american_option",
+      "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    }
+  },
+  "pricing_launch_families": {
+    "bates/asian_option": "equity_step_mc",
+    "bates/asset_or_nothing_option": "equity_step_mc",
+    "bates/athena_autocall": "equity_step_mc",
+    "bates/cliquet": "equity_step_mc",
+    "bates/digital_option": "equity_step_mc",
+    "bates/double_knock_out_option": "equity_step_mc",
+    "bates/down_and_in_option": "equity_step_mc",
+    "bates/down_and_out_option": "equity_step_mc",
+    "bates/european_option": "equity_step_mc",
+    "bates/forward_start_option": "equity_step_mc",
+    "bates/gap_option": "equity_step_mc",
+    "bates/geometric_asian_option": "equity_step_mc",
+    "bates/lookback_option": "equity_step_mc",
+    "bates/phoenix_autocall": "equity_step_mc",
+    "bates/phoenix_memory_autocall": "equity_step_mc",
+    "bates/range_accrual": "equity_step_mc",
+    "bates/straddle": "equity_step_mc",
+    "bates/up_and_in_option": "equity_step_mc",
+    "bates/up_and_out_option": "equity_step_mc",
+    "bates/up_no_touch": "equity_step_mc",
+    "bates/up_one_touch": "equity_step_mc",
+    "cev/asian_option": "equity_step_mc",
+    "cev/asset_or_nothing_option": "equity_step_mc",
+    "cev/athena_autocall": "equity_step_mc",
+    "cev/cliquet": "equity_step_mc",
+    "cev/digital_option": "equity_step_mc",
+    "cev/double_knock_out_option": "equity_step_mc",
+    "cev/down_and_in_option": "equity_step_mc",
+    "cev/down_and_out_option": "equity_step_mc",
+    "cev/european_option": "equity_step_mc",
+    "cev/forward_start_option": "equity_step_mc",
+    "cev/gap_option": "equity_step_mc",
+    "cev/geometric_asian_option": "equity_step_mc",
+    "cev/lookback_option": "equity_step_mc",
+    "cev/phoenix_autocall": "equity_step_mc",
+    "cev/phoenix_memory_autocall": "equity_step_mc",
+    "cev/range_accrual": "equity_step_mc",
+    "cev/straddle": "equity_step_mc",
+    "cev/up_and_in_option": "equity_step_mc",
+    "cev/up_and_out_option": "equity_step_mc",
+    "cev/up_no_touch": "equity_step_mc",
+    "cev/up_one_touch": "equity_step_mc",
+    "heston/asian_option": "equity_step_mc",
+    "heston/asset_or_nothing_option": "equity_step_mc",
+    "heston/athena_autocall": "equity_step_mc",
+    "heston/cliquet": "equity_step_mc",
+    "heston/digital_option": "equity_step_mc",
+    "heston/double_knock_out_option": "equity_step_mc",
+    "heston/down_and_in_option": "equity_step_mc",
+    "heston/down_and_out_option": "equity_step_mc",
+    "heston/european_option": "equity_step_mc",
+    "heston/forward_start_option": "equity_step_mc",
+    "heston/gap_option": "equity_step_mc",
+    "heston/geometric_asian_option": "equity_step_mc",
+    "heston/lookback_option": "equity_step_mc",
+    "heston/phoenix_autocall": "equity_step_mc",
+    "heston/phoenix_memory_autocall": "equity_step_mc",
+    "heston/range_accrual": "equity_step_mc",
+    "heston/straddle": "equity_step_mc",
+    "heston/up_and_in_option": "equity_step_mc",
+    "heston/up_and_out_option": "equity_step_mc",
+    "heston/up_no_touch": "equity_step_mc",
+    "heston/up_one_touch": "equity_step_mc",
+    "heston_3_2/asian_option": "equity_step_mc",
+    "heston_3_2/asset_or_nothing_option": "equity_step_mc",
+    "heston_3_2/athena_autocall": "equity_step_mc",
+    "heston_3_2/cliquet": "equity_step_mc",
+    "heston_3_2/digital_option": "equity_step_mc",
+    "heston_3_2/double_knock_out_option": "equity_step_mc",
+    "heston_3_2/down_and_in_option": "equity_step_mc",
+    "heston_3_2/down_and_out_option": "equity_step_mc",
+    "heston_3_2/european_option": "equity_step_mc",
+    "heston_3_2/forward_start_option": "equity_step_mc",
+    "heston_3_2/gap_option": "equity_step_mc",
+    "heston_3_2/geometric_asian_option": "equity_step_mc",
+    "heston_3_2/lookback_option": "equity_step_mc",
+    "heston_3_2/phoenix_autocall": "equity_step_mc",
+    "heston_3_2/phoenix_memory_autocall": "equity_step_mc",
+    "heston_3_2/range_accrual": "equity_step_mc",
+    "heston_3_2/straddle": "equity_step_mc",
+    "heston_3_2/up_and_in_option": "equity_step_mc",
+    "heston_3_2/up_and_out_option": "equity_step_mc",
+    "heston_3_2/up_no_touch": "equity_step_mc",
+    "heston_3_2/up_one_touch": "equity_step_mc",
+    "kou/asian_option": "equity_step_mc",
+    "kou/asset_or_nothing_option": "equity_exact_mc",
+    "kou/athena_autocall": "equity_exact_mc",
+    "kou/cliquet": "equity_exact_mc",
+    "kou/digital_option": "equity_exact_mc",
+    "kou/double_knock_out_option": "equity_step_mc",
+    "kou/down_and_in_option": "equity_step_mc",
+    "kou/down_and_out_option": "equity_step_mc",
+    "kou/european_option": "equity_exact_mc",
+    "kou/forward_start_option": "equity_exact_mc",
+    "kou/gap_option": "equity_exact_mc",
+    "kou/geometric_asian_option": "equity_step_mc",
+    "kou/lookback_option": "equity_step_mc",
+    "kou/phoenix_autocall": "equity_exact_mc",
+    "kou/phoenix_memory_autocall": "equity_exact_mc",
+    "kou/range_accrual": "equity_exact_mc",
+    "kou/straddle": "equity_exact_mc",
+    "kou/up_and_in_option": "equity_step_mc",
+    "kou/up_and_out_option": "equity_step_mc",
+    "kou/up_no_touch": "equity_step_mc",
+    "kou/up_one_touch": "equity_step_mc",
+    "merton/asian_option": "equity_step_mc",
+    "merton/asset_or_nothing_option": "equity_exact_mc",
+    "merton/athena_autocall": "equity_exact_mc",
+    "merton/cliquet": "equity_exact_mc",
+    "merton/digital_option": "equity_exact_mc",
+    "merton/double_knock_out_option": "equity_step_mc",
+    "merton/down_and_in_option": "equity_step_mc",
+    "merton/down_and_out_option": "equity_step_mc",
+    "merton/european_option": "equity_exact_mc",
+    "merton/forward_start_option": "equity_exact_mc",
+    "merton/gap_option": "equity_exact_mc",
+    "merton/geometric_asian_option": "equity_step_mc",
+    "merton/lookback_option": "equity_step_mc",
+    "merton/phoenix_autocall": "equity_exact_mc",
+    "merton/phoenix_memory_autocall": "equity_exact_mc",
+    "merton/range_accrual": "equity_exact_mc",
+    "merton/straddle": "equity_exact_mc",
+    "merton/up_and_in_option": "equity_step_mc",
+    "merton/up_and_out_option": "equity_step_mc",
+    "merton/up_no_touch": "equity_step_mc",
+    "merton/up_one_touch": "equity_step_mc",
+    "normal_inverse_gaussian/asian_option": "equity_step_mc",
+    "normal_inverse_gaussian/asset_or_nothing_option": "equity_exact_mc",
+    "normal_inverse_gaussian/athena_autocall": "equity_exact_mc",
+    "normal_inverse_gaussian/cliquet": "equity_exact_mc",
+    "normal_inverse_gaussian/digital_option": "equity_exact_mc",
+    "normal_inverse_gaussian/double_knock_out_option": "equity_step_mc",
+    "normal_inverse_gaussian/down_and_in_option": "equity_step_mc",
+    "normal_inverse_gaussian/down_and_out_option": "equity_step_mc",
+    "normal_inverse_gaussian/european_option": "equity_exact_mc",
+    "normal_inverse_gaussian/forward_start_option": "equity_exact_mc",
+    "normal_inverse_gaussian/gap_option": "equity_exact_mc",
+    "normal_inverse_gaussian/geometric_asian_option": "equity_step_mc",
+    "normal_inverse_gaussian/lookback_option": "equity_step_mc",
+    "normal_inverse_gaussian/phoenix_autocall": "equity_exact_mc",
+    "normal_inverse_gaussian/phoenix_memory_autocall": "equity_exact_mc",
+    "normal_inverse_gaussian/range_accrual": "equity_exact_mc",
+    "normal_inverse_gaussian/straddle": "equity_exact_mc",
+    "normal_inverse_gaussian/up_and_in_option": "equity_step_mc",
+    "normal_inverse_gaussian/up_and_out_option": "equity_step_mc",
+    "normal_inverse_gaussian/up_no_touch": "equity_step_mc",
+    "normal_inverse_gaussian/up_one_touch": "equity_step_mc",
+    "sabr/asian_option": "equity_step_mc",
+    "sabr/asset_or_nothing_option": "equity_step_mc",
+    "sabr/athena_autocall": "equity_step_mc",
+    "sabr/cliquet": "equity_step_mc",
+    "sabr/digital_option": "equity_step_mc",
+    "sabr/double_knock_out_option": "equity_step_mc",
+    "sabr/down_and_in_option": "equity_step_mc",
+    "sabr/down_and_out_option": "equity_step_mc",
+    "sabr/european_option": "equity_step_mc",
+    "sabr/forward_start_option": "equity_step_mc",
+    "sabr/gap_option": "equity_step_mc",
+    "sabr/geometric_asian_option": "equity_step_mc",
+    "sabr/lookback_option": "equity_step_mc",
+    "sabr/phoenix_autocall": "equity_step_mc",
+    "sabr/phoenix_memory_autocall": "equity_step_mc",
+    "sabr/range_accrual": "equity_step_mc",
+    "sabr/straddle": "equity_step_mc",
+    "sabr/up_and_in_option": "equity_step_mc",
+    "sabr/up_and_out_option": "equity_step_mc",
+    "sabr/up_no_touch": "equity_step_mc",
+    "sabr/up_one_touch": "equity_step_mc",
+    "schobel_zhu/asian_option": "equity_step_mc",
+    "schobel_zhu/asset_or_nothing_option": "equity_step_mc",
+    "schobel_zhu/athena_autocall": "equity_step_mc",
+    "schobel_zhu/cliquet": "equity_step_mc",
+    "schobel_zhu/digital_option": "equity_step_mc",
+    "schobel_zhu/double_knock_out_option": "equity_step_mc",
+    "schobel_zhu/down_and_in_option": "equity_step_mc",
+    "schobel_zhu/down_and_out_option": "equity_step_mc",
+    "schobel_zhu/european_option": "equity_step_mc",
+    "schobel_zhu/forward_start_option": "equity_step_mc",
+    "schobel_zhu/gap_option": "equity_step_mc",
+    "schobel_zhu/geometric_asian_option": "equity_step_mc",
+    "schobel_zhu/lookback_option": "equity_step_mc",
+    "schobel_zhu/phoenix_autocall": "equity_step_mc",
+    "schobel_zhu/phoenix_memory_autocall": "equity_step_mc",
+    "schobel_zhu/range_accrual": "equity_step_mc",
+    "schobel_zhu/straddle": "equity_step_mc",
+    "schobel_zhu/up_and_in_option": "equity_step_mc",
+    "schobel_zhu/up_and_out_option": "equity_step_mc",
+    "schobel_zhu/up_no_touch": "equity_step_mc",
+    "schobel_zhu/up_one_touch": "equity_step_mc",
+    "stein_stein/asian_option": "equity_step_mc",
+    "stein_stein/asset_or_nothing_option": "equity_step_mc",
+    "stein_stein/athena_autocall": "equity_step_mc",
+    "stein_stein/cliquet": "equity_step_mc",
+    "stein_stein/digital_option": "equity_step_mc",
+    "stein_stein/double_knock_out_option": "equity_step_mc",
+    "stein_stein/down_and_in_option": "equity_step_mc",
+    "stein_stein/down_and_out_option": "equity_step_mc",
+    "stein_stein/european_option": "equity_step_mc",
+    "stein_stein/forward_start_option": "equity_step_mc",
+    "stein_stein/gap_option": "equity_step_mc",
+    "stein_stein/geometric_asian_option": "equity_step_mc",
+    "stein_stein/lookback_option": "equity_step_mc",
+    "stein_stein/phoenix_autocall": "equity_step_mc",
+    "stein_stein/phoenix_memory_autocall": "equity_step_mc",
+    "stein_stein/range_accrual": "equity_step_mc",
+    "stein_stein/straddle": "equity_step_mc",
+    "stein_stein/up_and_in_option": "equity_step_mc",
+    "stein_stein/up_and_out_option": "equity_step_mc",
+    "stein_stein/up_no_touch": "equity_step_mc",
+    "stein_stein/up_one_touch": "equity_step_mc",
+    "variance_gamma/asian_option": "equity_step_mc",
+    "variance_gamma/asset_or_nothing_option": "equity_exact_mc",
+    "variance_gamma/athena_autocall": "equity_exact_mc",
+    "variance_gamma/cliquet": "equity_exact_mc",
+    "variance_gamma/digital_option": "equity_exact_mc",
+    "variance_gamma/double_knock_out_option": "equity_step_mc",
+    "variance_gamma/down_and_in_option": "equity_step_mc",
+    "variance_gamma/down_and_out_option": "equity_step_mc",
+    "variance_gamma/european_option": "equity_exact_mc",
+    "variance_gamma/forward_start_option": "equity_exact_mc",
+    "variance_gamma/gap_option": "equity_exact_mc",
+    "variance_gamma/geometric_asian_option": "equity_step_mc",
+    "variance_gamma/lookback_option": "equity_step_mc",
+    "variance_gamma/phoenix_autocall": "equity_exact_mc",
+    "variance_gamma/phoenix_memory_autocall": "equity_exact_mc",
+    "variance_gamma/range_accrual": "equity_exact_mc",
+    "variance_gamma/straddle": "equity_exact_mc",
+    "variance_gamma/up_and_in_option": "equity_step_mc",
+    "variance_gamma/up_and_out_option": "equity_step_mc",
+    "variance_gamma/up_no_touch": "equity_step_mc",
+    "variance_gamma/up_one_touch": "equity_step_mc",
+    "black_scholes/asian_option": "equity_step_mc",
+    "black_scholes/athena_autocall": "equity_exact_mc",
+    "black_scholes/cliquet": "equity_exact_mc",
+    "black_scholes/double_knock_out_option": "equity_step_mc",
+    "black_scholes/down_and_in_option": "equity_step_mc",
+    "black_scholes/down_and_out_option": "equity_step_mc",
+    "black_scholes/lookback_option": "equity_step_mc",
+    "black_scholes/phoenix_autocall": "equity_exact_mc",
+    "black_scholes/phoenix_memory_autocall": "equity_exact_mc",
+    "black_scholes/up_and_in_option": "equity_step_mc",
+    "black_scholes/up_and_out_option": "equity_step_mc",
+    "black_scholes/up_no_touch": "equity_step_mc",
+    "black_scholes/up_one_touch": "equity_step_mc",
+    "black_scholes/asset_or_nothing_option": "closed_form",
+    "black_scholes/digital_option": "closed_form",
+    "black_scholes/european_option": "closed_form",
+    "black_scholes/forward_start_option": "closed_form",
+    "black_scholes/gap_option": "closed_form",
+    "black_scholes/geometric_asian_option": "closed_form",
+    "black_scholes/range_accrual": "closed_form",
+    "black_scholes/straddle": "closed_form",
+    "rough_bergomi/asian_option": "rough_fft",
+    "rough_bergomi/asset_or_nothing_option": "rough_fft",
+    "rough_bergomi/athena_autocall": "rough_fft",
+    "rough_bergomi/cliquet": "rough_fft",
+    "rough_bergomi/digital_option": "rough_fft",
+    "rough_bergomi/double_knock_out_option": "rough_fft",
+    "rough_bergomi/down_and_in_option": "rough_fft",
+    "rough_bergomi/down_and_out_option": "rough_fft",
+    "rough_bergomi/european_option": "rough_fft",
+    "rough_bergomi/forward_start_option": "rough_fft",
+    "rough_bergomi/gap_option": "rough_fft",
+    "rough_bergomi/geometric_asian_option": "rough_fft",
+    "rough_bergomi/lookback_option": "rough_fft",
+    "rough_bergomi/phoenix_autocall": "rough_fft",
+    "rough_bergomi/phoenix_memory_autocall": "rough_fft",
+    "rough_bergomi/range_accrual": "rough_fft",
+    "rough_bergomi/straddle": "rough_fft",
+    "rough_bergomi/up_and_in_option": "rough_fft",
+    "rough_bergomi/up_and_out_option": "rough_fft",
+    "rough_bergomi/up_no_touch": "rough_fft",
+    "rough_bergomi/up_one_touch": "rough_fft",
+    "rough_sabr/asian_option": "rough_fft",
+    "rough_sabr/asset_or_nothing_option": "rough_fft",
+    "rough_sabr/athena_autocall": "rough_fft",
+    "rough_sabr/cliquet": "rough_fft",
+    "rough_sabr/digital_option": "rough_fft",
+    "rough_sabr/double_knock_out_option": "rough_fft",
+    "rough_sabr/down_and_in_option": "rough_fft",
+    "rough_sabr/down_and_out_option": "rough_fft",
+    "rough_sabr/european_option": "rough_fft",
+    "rough_sabr/forward_start_option": "rough_fft",
+    "rough_sabr/gap_option": "rough_fft",
+    "rough_sabr/geometric_asian_option": "rough_fft",
+    "rough_sabr/lookback_option": "rough_fft",
+    "rough_sabr/phoenix_autocall": "rough_fft",
+    "rough_sabr/phoenix_memory_autocall": "rough_fft",
+    "rough_sabr/range_accrual": "rough_fft",
+    "rough_sabr/straddle": "rough_fft",
+    "rough_sabr/up_and_in_option": "rough_fft",
+    "rough_sabr/up_and_out_option": "rough_fft",
+    "rough_sabr/up_no_touch": "rough_fft",
+    "rough_sabr/up_one_touch": "rough_fft",
+    "log_modulated_rough_bergomi/asian_option": "rough_fft",
+    "log_modulated_rough_bergomi/asset_or_nothing_option": "rough_fft",
+    "log_modulated_rough_bergomi/athena_autocall": "rough_fft",
+    "log_modulated_rough_bergomi/cliquet": "rough_fft",
+    "log_modulated_rough_bergomi/digital_option": "rough_fft",
+    "log_modulated_rough_bergomi/double_knock_out_option": "rough_fft",
+    "log_modulated_rough_bergomi/down_and_in_option": "rough_fft",
+    "log_modulated_rough_bergomi/down_and_out_option": "rough_fft",
+    "log_modulated_rough_bergomi/european_option": "rough_fft",
+    "log_modulated_rough_bergomi/forward_start_option": "rough_fft",
+    "log_modulated_rough_bergomi/gap_option": "rough_fft",
+    "log_modulated_rough_bergomi/geometric_asian_option": "rough_fft",
+    "log_modulated_rough_bergomi/lookback_option": "rough_fft",
+    "log_modulated_rough_bergomi/phoenix_autocall": "rough_fft",
+    "log_modulated_rough_bergomi/phoenix_memory_autocall": "rough_fft",
+    "log_modulated_rough_bergomi/range_accrual": "rough_fft",
+    "log_modulated_rough_bergomi/straddle": "rough_fft",
+    "log_modulated_rough_bergomi/up_and_in_option": "rough_fft",
+    "log_modulated_rough_bergomi/up_and_out_option": "rough_fft",
+    "log_modulated_rough_bergomi/up_no_touch": "rough_fft",
+    "log_modulated_rough_bergomi/up_one_touch": "rough_fft",
+    "rough_stein_stein/asian_option": "rough_fft",
+    "rough_stein_stein/asset_or_nothing_option": "rough_fft",
+    "rough_stein_stein/athena_autocall": "rough_fft",
+    "rough_stein_stein/cliquet": "rough_fft",
+    "rough_stein_stein/digital_option": "rough_fft",
+    "rough_stein_stein/double_knock_out_option": "rough_fft",
+    "rough_stein_stein/down_and_in_option": "rough_fft",
+    "rough_stein_stein/down_and_out_option": "rough_fft",
+    "rough_stein_stein/european_option": "rough_fft",
+    "rough_stein_stein/forward_start_option": "rough_fft",
+    "rough_stein_stein/gap_option": "rough_fft",
+    "rough_stein_stein/geometric_asian_option": "rough_fft",
+    "rough_stein_stein/lookback_option": "rough_fft",
+    "rough_stein_stein/phoenix_autocall": "rough_fft",
+    "rough_stein_stein/phoenix_memory_autocall": "rough_fft",
+    "rough_stein_stein/range_accrual": "rough_fft",
+    "rough_stein_stein/straddle": "rough_fft",
+    "rough_stein_stein/up_and_in_option": "rough_fft",
+    "rough_stein_stein/up_and_out_option": "rough_fft",
+    "rough_stein_stein/up_no_touch": "rough_fft",
+    "rough_stein_stein/up_one_touch": "rough_fft",
+    "rough_heston/asian_option": "rough_n_factor",
+    "rough_heston/asset_or_nothing_option": "rough_n_factor",
+    "rough_heston/athena_autocall": "rough_n_factor",
+    "rough_heston/cliquet": "rough_n_factor",
+    "rough_heston/digital_option": "rough_n_factor",
+    "rough_heston/double_knock_out_option": "rough_n_factor",
+    "rough_heston/down_and_in_option": "rough_n_factor",
+    "rough_heston/down_and_out_option": "rough_n_factor",
+    "rough_heston/european_option": "rough_n_factor",
+    "rough_heston/forward_start_option": "rough_n_factor",
+    "rough_heston/gap_option": "rough_n_factor",
+    "rough_heston/geometric_asian_option": "rough_n_factor",
+    "rough_heston/lookback_option": "rough_n_factor",
+    "rough_heston/phoenix_autocall": "rough_n_factor",
+    "rough_heston/phoenix_memory_autocall": "rough_n_factor",
+    "rough_heston/range_accrual": "rough_n_factor",
+    "rough_heston/straddle": "rough_n_factor",
+    "rough_heston/up_and_in_option": "rough_n_factor",
+    "rough_heston/up_and_out_option": "rough_n_factor",
+    "rough_heston/up_no_touch": "rough_n_factor",
+    "rough_heston/up_one_touch": "rough_n_factor",
+    "quadratic_rough_heston/asian_option": "rough_n_factor",
+    "quadratic_rough_heston/asset_or_nothing_option": "rough_n_factor",
+    "quadratic_rough_heston/athena_autocall": "rough_n_factor",
+    "quadratic_rough_heston/cliquet": "rough_n_factor",
+    "quadratic_rough_heston/digital_option": "rough_n_factor",
+    "quadratic_rough_heston/double_knock_out_option": "rough_n_factor",
+    "quadratic_rough_heston/down_and_in_option": "rough_n_factor",
+    "quadratic_rough_heston/down_and_out_option": "rough_n_factor",
+    "quadratic_rough_heston/european_option": "rough_n_factor",
+    "quadratic_rough_heston/forward_start_option": "rough_n_factor",
+    "quadratic_rough_heston/gap_option": "rough_n_factor",
+    "quadratic_rough_heston/geometric_asian_option": "rough_n_factor",
+    "quadratic_rough_heston/lookback_option": "rough_n_factor",
+    "quadratic_rough_heston/phoenix_autocall": "rough_n_factor",
+    "quadratic_rough_heston/phoenix_memory_autocall": "rough_n_factor",
+    "quadratic_rough_heston/range_accrual": "rough_n_factor",
+    "quadratic_rough_heston/straddle": "rough_n_factor",
+    "quadratic_rough_heston/up_and_in_option": "rough_n_factor",
+    "quadratic_rough_heston/up_and_out_option": "rough_n_factor",
+    "quadratic_rough_heston/up_no_touch": "rough_n_factor",
+    "quadratic_rough_heston/up_one_touch": "rough_n_factor",
+    "bates/american_option": "equity_lsm",
+    "black_scholes/american_option": "equity_lsm",
+    "cev/american_option": "equity_lsm",
+    "heston/american_option": "equity_lsm",
+    "kou/american_option": "equity_lsm",
+    "merton/american_option": "equity_lsm",
+    "normal_inverse_gaussian/american_option": "equity_lsm",
+    "schobel_zhu/american_option": "equity_lsm",
+    "variance_gamma/american_option": "equity_lsm",
+    "cir/bermudan_swaption": "terminal_forward_lsm",
+    "cir/european_swaption": "jamshidian",
+    "cir/rate_option": "closed_form",
+    "cir/zero_coupon_bond_option": "closed_form",
+    "cir_plus_plus/nelson_siegel/bermudan_swaption": "terminal_forward_lsm",
+    "cir_plus_plus/nelson_siegel/european_swaption": "jamshidian",
+    "cir_plus_plus/nelson_siegel/rate_option": "closed_form",
+    "cir_plus_plus/nelson_siegel/zero_coupon_bond_option": "closed_form",
+    "cir_plus_plus/svensson/bermudan_swaption": "terminal_forward_lsm",
+    "cir_plus_plus/svensson/european_swaption": "jamshidian",
+    "cir_plus_plus/svensson/rate_option": "closed_form",
+    "cir_plus_plus/svensson/zero_coupon_bond_option": "closed_form",
+    "g2/bermudan_swaption": "gaussian_rate_lsm",
+    "g2/european_swaption": "fixed_income_mc",
+    "g2/rate_option": "closed_form",
+    "g2/zero_coupon_bond_option": "closed_form",
+    "g2_plus_plus/nelson_siegel/bermudan_swaption": "gaussian_rate_lsm",
+    "g2_plus_plus/nelson_siegel/european_swaption": "fixed_income_mc",
+    "g2_plus_plus/nelson_siegel/rate_option": "closed_form",
+    "g2_plus_plus/nelson_siegel/zero_coupon_bond_option": "closed_form",
+    "g2_plus_plus/svensson/bermudan_swaption": "gaussian_rate_lsm",
+    "g2_plus_plus/svensson/european_swaption": "fixed_income_mc",
+    "g2_plus_plus/svensson/rate_option": "closed_form",
+    "g2_plus_plus/svensson/zero_coupon_bond_option": "closed_form",
+    "hull_white/nelson_siegel/bermudan_swaption": "gaussian_rate_lsm",
+    "hull_white/nelson_siegel/european_swaption": "jamshidian",
+    "hull_white/nelson_siegel/rate_option": "closed_form",
+    "hull_white/nelson_siegel/zero_coupon_bond_option": "closed_form",
+    "hull_white/svensson/bermudan_swaption": "gaussian_rate_lsm",
+    "hull_white/svensson/european_swaption": "jamshidian",
+    "hull_white/svensson/rate_option": "closed_form",
+    "hull_white/svensson/zero_coupon_bond_option": "closed_form",
+    "ornstein_uhlenbeck/bermudan_swaption": "gaussian_rate_lsm",
+    "ornstein_uhlenbeck/european_swaption": "jamshidian",
+    "ornstein_uhlenbeck/rate_option": "closed_form",
+    "ornstein_uhlenbeck/zero_coupon_bond_option": "closed_form",
+    "vasicek/bermudan_swaption": "gaussian_rate_lsm",
+    "vasicek/european_swaption": "jamshidian",
+    "vasicek/rate_option": "closed_form",
+    "vasicek/zero_coupon_bond_option": "closed_form"
+  }
 }

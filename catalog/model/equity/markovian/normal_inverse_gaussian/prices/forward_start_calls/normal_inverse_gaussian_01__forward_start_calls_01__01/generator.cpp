@@ -24,13 +24,14 @@ int main() {
         PriceConstruction::Aligned,
     };
     const pricing::BatchedMonteCarloProfile profile{
-        1'048'576U,
-        4'096U,
-        4'096U,
-        ::ai_factory::workbench::offline::cuda_tuning::kMarkovianThreadsPerBlock,
+        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,
+        ::ai_factory::workbench::offline::cuda_tuning::kMonteCarloRowsPerLaunch,
+        ::ai_factory::workbench::offline::cuda_tuning::kMonteCarloBlockCountLimit,
+        ::ai_factory::workbench::offline::cuda_tuning::pricing_profile(::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::equity_exact_mc, "normal_inverse_gaussian", "forward_start_option", ""}).threads_per_block,
         11668827618064465920ULL,
         "exact transition dates",
         nlohmann::ordered_json::object(),
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::equity_exact_mc, "normal_inverse_gaussian", "forward_start_option", ""},
     };
 
     return pricing::generate_monte_carlo_equity_price_dataset(

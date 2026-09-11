@@ -1,0 +1,173 @@
+{
+  "schema": "ai_factory_pricing_dataset_runtime_v1",
+  "exported_utc": "2026-09-08T15:32:57.799451+00:00",
+  "campaign": "build-dev/pricing-launch-plan-production-cir-check-02",
+  "started_utc": "2026-09-08T15:32:05.188217+00:00",
+  "revision": "872a986b1f0947a1a832af0615ffc6d80dbedb81",
+  "source_diff_sha256": "36072b9e911b1c5c5d021ed58c5dca8557c1144cc1a5c54dcd5bc598682f501f",
+  "source_archive_sha256": "bce44742149ef834fc83ec27e0846c6fe93d6f55d87cefd62b497eb05ace08b6",
+  "input_profile": "ordered_catalogue_900_core_100_stress_v1",
+  "price_count": 1000,
+  "mc_paths_per_price": 1048576,
+  "production_launch_plans": {
+    "cir__closed_form": [
+      {
+        "pair": "cir/rate_option",
+        "plan": {
+          "profile_id": "sm89_reference_v1",
+          "family": "closed_form",
+          "selection": "host launch plan; no runtime autotuning",
+          "measured_on": "NVIDIA GeForce RTX 4090 Laptop GPU / SM89",
+          "portability": "safe reference values; benchmark before replacing on another GPU",
+          "model": "cir",
+          "product": "rate_option",
+          "curve": "",
+          "qualification": "reference_default_not_pair_qualified",
+          "evidence": "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md",
+          "price_count": 1000,
+          "paths_per_price": 0,
+          "threads_per_block": 256,
+          "prices_per_launch": 1000,
+          "price_launch_count": 1,
+          "memory_batching": "price launch bound; engine workspace guards still apply",
+          "work_distribution": "one price per thread at a time",
+          "block_count": 4,
+          "device_resources_checked": false,
+          "scope": "offline proposed launch; native engine guards and qualification still required"
+        },
+        "inspector_sha256": "d7200665209edafbbd51cbf59ded83a3c309c407b4a10de10c080d5b6a9fc877"
+      }
+    ]
+  },
+  "complete": true,
+  "timing_scope": "generation_phase_sum = preparation + median raw host API + median D2H + one native local publication; not a cold-process stopwatch, no upload or independent validation",
+  "cases": [
+    {
+      "case": "cir__closed_form",
+      "model": "cir",
+      "product": "rate_option",
+      "side": "call",
+      "family": "closed_form",
+      "recipe": "catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp",
+      "engine": "fixed_income_closed_form",
+      "factor_count": null,
+      "curve": null,
+      "rows": 1000,
+      "paths_per_price": 0,
+      "status": "measured",
+      "reason": null,
+      "configuration": {
+        "rows": 1000,
+        "offset": 0,
+        "paths_per_price": 0,
+        "requested_threads": 256,
+        "batch_rows": 1000,
+        "block_limit": 4,
+        "blocks_per_price": 0,
+        "path_chunk": 0,
+        "warmups": 2,
+        "repetitions": 3,
+        "seed": 0
+      },
+      "timings": {
+        "preparation_ms": 351.939107,
+        "raw_host_api_ms": 0.20577279296875,
+        "output_copy_ms": 0.134826,
+        "local_publication_ms": 7.572155,
+        "generation_phase_sum_ms": 359.8518607929687,
+        "gpu_median_ms": 0.20028409361839294,
+        "public_api_envelope_ms": 0.20577279296875
+      },
+      "environment_eligible_for_tuning": false,
+      "timing_ineligibility_reasons": [
+        "Observation-only campaign"
+      ],
+      "samples": {
+        "gpu_samples_ms": [
+          0.20027600228786469,
+          0.20028409361839294,
+          0.20029428601264954
+        ],
+        "raw_host_samples_ms": [
+          0.2058335751953125,
+          0.20577279296875,
+          0.205755537109375
+        ],
+        "api_samples_ms": [
+          0.2058335751953125,
+          0.20577279296875,
+          0.205755537109375
+        ]
+      },
+      "gpu_statistics": {
+        "minimum_ms": 0.20027600228786469,
+        "median_ms": 0.20028409361839294,
+        "p95_ms": 0.20029428601264954,
+        "mean_ms": 0.20028479397296906,
+        "standard_deviation_ms": 7.4807094316539215e-06,
+        "coefficient_of_variation": 3.735036136923873e-05
+      },
+      "raw_host_statistics": {
+        "minimum_ms": 0.205755537109375,
+        "median_ms": 0.20577279296875,
+        "p95_ms": 0.2058335751953125,
+        "mean_ms": 0.20578730175781249,
+        "standard_deviation_ms": 3.347003071647387e-05,
+        "coefficient_of_variation": 0.00016264380955761872
+      },
+      "operations_per_sample": 1024,
+      "fixed_time_step": "",
+      "environment": {
+        "gpu": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "compute_capability": "8.9",
+        "sm_count": 76,
+        "memory_bytes": 17170956288,
+        "pci_bus_id": 1,
+        "driver_version": 13020,
+        "runtime_version": 13030,
+        "cuda_compiler_version": "13.3.73"
+      },
+      "telemetry_ranges": {
+        "temperature_c": null,
+        "sm_clock_mhz": null,
+        "power_limit_w": null
+      },
+      "memory": {
+        "persistent_input_bytes": 36000,
+        "caller_workspace_bytes": 0,
+        "transient_call_peak_bytes": 0,
+        "output_bytes": 8000,
+        "tracked_peak_bytes": 44000,
+        "observed_resident_bytes": 1398276096,
+        "driver_context_and_pool_bytes": 1398232096,
+        "free_margin_bytes": 15772680192,
+        "total_bytes": 17170956288
+      },
+      "resources": [
+        {
+          "kernel": "cir.rate_option",
+          "variant": "call",
+          "threads": 256,
+          "registers": 40,
+          "local_bytes": 0,
+          "shared_bytes": 0,
+          "theoretical_occupancy": 1.0
+        }
+      ],
+      "lsm_batches": [],
+      "deterministic_replay": true,
+      "independent_price_certification": false,
+      "binary_sha256": "bcd82ab8188f1135083055c3128b0f04263399987841cf818522ba843c34a7ca",
+      "source_inputs_sha256": {
+        "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+        "datasets/product/rate_option/rate_options_01.json": "62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098"
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "69de0eea8cfa6a64edbfae7ce6e4ccfeab792566cecc2db7a0ee5a26e1c0b6fb",
+        "outcome.json": "d86df2e67f95fc8f44f95ac0c271f86605843e58f5792da358ca7bd37a8c5458",
+        "resources.json": "090b87f105458b01ca59466d3683945eb1b784a85dfd570e9cf31219f17466b4",
+        "provenance.json": "5e029a572913130a1e22f3a563cea41ac28ad377a9a7a7a5ea25958ca19a56b4"
+      }
+    }
+  ]
+}

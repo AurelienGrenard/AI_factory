@@ -1,0 +1,7 @@
+[
+  {"id":"old_repeat_seed_b","method":"old","indices":[362,570,590,676,784],"paths":1048576,"seed":11668829049698640896},
+  {"id":"forward_repeat_seed_b","method":"forward","indices":[362,570,590,676,784],"paths":1048576,"seed":12668829049698640896},
+  {"id":"old_dt_252","method":"old","indices":[362,570,590,676,784],"paths":1048576,"seed":11668829039698640896,"steps_per_day":1},
+  {"id":"old_dt_1008","method":"old","indices":[362,570,590,676,784],"paths":1048576,"seed":11668829039698640896,"steps_per_day":4},
+  {"id":"old_dt_2016","method":"old","indices":[362,570,590,676,784],"paths":1048576,"seed":11668829039698640896,"steps_per_day":8}
+]

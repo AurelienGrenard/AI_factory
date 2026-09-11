@@ -5,7 +5,7 @@
 #include "common/price_construction.cuh"
 #include "common/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
-#include "tools/cuda/tuning_profile.hpp"
+#include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/datasets/price_dataset.hpp"
 
 #include <nlohmann/json.hpp>
@@ -43,6 +43,7 @@ struct BatchedMonteCarloProfile {
     std::string delta_t_description;
     nlohmann::ordered_json execution_metadata =
         nlohmann::ordered_json::object();
+    cuda_tuning::PricingIdentity identity;
 };
 
 struct VolterraMonteCarloProfile {
@@ -52,12 +53,14 @@ struct VolterraMonteCarloProfile {
     std::size_t path_chunk_size = 0U;
     std::uint64_t seed = 0U;
     std::string delta_t_description;
+    cuda_tuning::PricingIdentity identity{cuda_tuning::PricingFamily::rough_fft, {}, {}, {}};
 };
 
 struct AnalyticalProfile {
     float day_fraction = 0.0f;
     unsigned int threads_per_block = 0U;
     std::uint32_t simulation_steps_per_day = 0U;
+    cuda_tuning::PricingIdentity identity{cuda_tuning::PricingFamily::closed_form, {}, {}, {}};
 };
 
 struct BatchedLaunchContext {
@@ -146,6 +149,18 @@ inline std::uint32_t rounded_volterra_step_count(
     return static_cast<std::uint32_t>(rounded);
 }
 
+inline cuda_tuning::PricingLaunchPlan monte_carlo_launch_plan(
+    const BatchedMonteCarloProfile& profile, std::size_t result_count
+) {
+    auto settings = cuda_tuning::pricing_profile(profile.identity);
+    settings.threads_per_block = profile.threads_per_block;
+    settings.prices_per_launch = profile.results_per_launch;
+    settings.block_count_limit = profile.block_count_limit;
+    return cuda_tuning::make_pricing_launch_plan(
+        profile.identity, result_count, profile.paths_per_price, settings
+    );
+}
+
 template<class Models, class Products, class Launcher>
 MonteCarloExecution execute_batched_monte_carlo(
     const Models& models,
@@ -157,15 +172,11 @@ MonteCarloExecution execute_batched_monte_carlo(
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
     );
-    const std::size_t launch_count =
-        (result_count + profile.results_per_launch - 1U)
-        / profile.results_per_launch;
-    const std::size_t maximum_block_count = bounded_block_count(
-        std::min(result_count, profile.results_per_launch),
-        profile.block_count_limit
-    );
-    const std::size_t warmup_count = warmup_row_count(
-        models.size(), products.size()
+    const auto plan = monte_carlo_launch_plan(profile, result_count);
+    const std::size_t launch_count = plan.price_launch_count();
+    const std::size_t maximum_block_count = plan.blocks_for(plan.prices_per_launch);
+    const std::size_t warmup_count = std::min(
+        warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
 
     auto run = cuda::run_monte_carlo(
@@ -178,9 +189,7 @@ MonteCarloExecution execute_batched_monte_carlo(
                 0U,
                 warmup_count,
                 profile.paths_per_price,
-                bounded_block_count(
-                    warmup_count, profile.block_count_limit
-                ),
+                plan.blocks_for(warmup_count),
                 profile.seed,
             };
             std::invoke(
@@ -198,18 +207,15 @@ MonteCarloExecution execute_batched_monte_carlo(
         [&](auto& execution) {
             for (std::size_t offset = 0U;
                  offset < result_count;
-                 offset += profile.results_per_launch) {
-                const std::size_t count = std::min(
-                    profile.results_per_launch,
-                    result_count - offset
-                );
+                 /* Advance by the actual final batch size, without overflow. */) {
+                const std::size_t count = plan.price_count_at(offset);
                 const BatchedLaunchContext context{
                     construction,
                     result_count,
                     offset,
                     count,
                     profile.paths_per_price,
-                    bounded_block_count(count, profile.block_count_limit),
+                    plan.blocks_for(count),
                     profile.seed,
                 };
                 std::invoke(
@@ -223,6 +229,7 @@ MonteCarloExecution execute_batched_monte_carlo(
                     execution.prices(),
                     execution.standard_errors()
                 );
+                offset += count;
             }
         }
     );
@@ -231,7 +238,10 @@ MonteCarloExecution execute_batched_monte_carlo(
     metadata["block_count"] = maximum_block_count;
     metadata["threads_per_block"] = profile.threads_per_block;
     metadata["kernel_launch_count"] = launch_count;
-    metadata["maximum_prices_per_block"] = 1U;
+    metadata["maximum_prices_per_block"] = cuda_tuning::ceiling_divide(
+        plan.prices_per_launch, maximum_block_count
+    );
+    metadata["launch_plan"] = cuda_tuning::pricing_launch_metadata(plan);
     metadata["tuning_profile"] = cuda_tuning::metadata(
         metadata.contains("factor_count")
             ? "rough_n_factor_pricing"
@@ -252,15 +262,11 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
     );
-    const std::size_t launch_count =
-        (result_count + profile.results_per_launch - 1U)
-        / profile.results_per_launch;
-    const std::size_t maximum_block_count = bounded_block_count(
-        std::min(result_count, profile.results_per_launch),
-        profile.block_count_limit
-    );
-    const std::size_t warmup_count = warmup_row_count(
-        models.size(), products.size()
+    const auto plan = monte_carlo_launch_plan(profile, result_count);
+    const std::size_t launch_count = plan.price_launch_count();
+    const std::size_t maximum_block_count = plan.blocks_for(plan.prices_per_launch);
+    const std::size_t warmup_count = std::min(
+        warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
 
     auto run = cuda::run_monte_carlo(
@@ -273,9 +279,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
                 0U,
                 warmup_count,
                 profile.paths_per_price,
-                bounded_block_count(
-                    warmup_count, profile.block_count_limit
-                ),
+                plan.blocks_for(warmup_count),
                 profile.seed,
             };
             std::invoke(
@@ -295,18 +299,15 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
         [&](auto& execution) {
             for (std::size_t offset = 0U;
                  offset < result_count;
-                 offset += profile.results_per_launch) {
-                const std::size_t count = std::min(
-                    profile.results_per_launch,
-                    result_count - offset
-                );
+                 /* Advance by the actual final batch size, without overflow. */) {
+                const std::size_t count = plan.price_count_at(offset);
                 const BatchedLaunchContext context{
                     construction,
                     result_count,
                     offset,
                     count,
                     profile.paths_per_price,
-                    bounded_block_count(count, profile.block_count_limit),
+                    plan.blocks_for(count),
                     profile.seed,
                 };
                 std::invoke(
@@ -322,6 +323,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
                     execution.prices(),
                     execution.standard_errors()
                 );
+                offset += count;
             }
         }
     );
@@ -330,7 +332,10 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     metadata["block_count"] = maximum_block_count;
     metadata["threads_per_block"] = profile.threads_per_block;
     metadata["kernel_launch_count"] = launch_count;
-    metadata["maximum_prices_per_block"] = 1U;
+    metadata["maximum_prices_per_block"] = cuda_tuning::ceiling_divide(
+        plan.prices_per_launch, maximum_block_count
+    );
+    metadata["launch_plan"] = cuda_tuning::pricing_launch_metadata(plan);
     metadata["tuning_profile"] = cuda_tuning::metadata(
         "rough_n_factor_pricing"
     );
@@ -360,6 +365,11 @@ MonteCarloExecution execute_volterra_monte_carlo(
             )
         );
     }
+    auto settings = cuda_tuning::pricing_profile(profile.identity);
+    settings.path_chunk_size = profile.path_chunk_size;
+    const auto plan = cuda_tuning::make_pricing_launch_plan(
+        profile.identity, result_count, profile.paths_per_price, settings
+    );
     const auto workspace = std::invoke(
         workspace_planner,
         maximum_step_count,
@@ -420,12 +430,12 @@ MonteCarloExecution execute_volterra_monte_carlo(
             {"path_chunk_size", profile.path_chunk_size},
             {
                 "chunks_per_price",
-                (profile.paths_per_price + profile.path_chunk_size - 1U)
-                    / profile.path_chunk_size
+                cuda_tuning::ceiling_divide(profile.paths_per_price, profile.path_chunk_size)
             },
             {"maximum_step_count", maximum_step_count},
             {"workspace_bytes", workspace.workspace_bytes},
-            {"kernel_launch_count", result_count},
+            {"price_submission_count", result_count},
+            {"launch_plan", cuda_tuning::pricing_launch_metadata(plan)},
             {"tuning_profile", cuda_tuning::metadata("volterra_fft_pricing")},
         }
     };
@@ -445,9 +455,10 @@ AnalyticalExecution execute_analytical(
     const std::size_t warmup_count = warmup_row_count(
         models.size(), products.size()
     );
-    const auto blocks_for = [&](std::size_t count) {
-        return (count - 1U) / profile.threads_per_block + 1U;
-    };
+    auto settings = cuda_tuning::pricing_profile(profile.identity);
+    settings.threads_per_block = profile.threads_per_block;
+    const auto plan = cuda_tuning::make_pricing_launch_plan(profile.identity, result_count, 0U, settings);
+    const auto blocks_for = [&](std::size_t count) { return plan.blocks_for(count); };
     auto run = cuda::run_analytical(
         cuda::inputs(models, products),
         result_count,
@@ -500,6 +511,7 @@ AnalyticalExecution execute_analytical(
         {"kernel_launch_count", 1U},
         {"work_distribution", "one price per thread"},
         {"tuning_profile", cuda_tuning::metadata("analytical_pricing")},
+        {"launch_plan", cuda_tuning::pricing_launch_metadata(plan)},
     };
     if (profile.simulation_steps_per_day != 0U) {
         metadata["simulation_steps_per_day"] =

@@ -1,4 +1,4 @@
-// Public Longstaff-Schwartz launcher for CIR Bermudan swaptions.
+// CIR Bermudan LSM under the last-exercise bond numeraire, at exact exercise dates.
 #pragma once
 
 #include "common/price_construction.cuh"
@@ -23,8 +23,7 @@ longstaff_schwartz::LaunchResult launch_cir_bermudan_swaption_cuda(
     PriceConstruction construction,
     std::size_t result_count,
     std::size_t monte_carlo_paths_per_price,
-    float dt,
-    std::uint32_t simulation_steps_per_day,
+    float time_day_fraction,
     unsigned int threads_per_block,
     std::size_t blocks_per_price,
     std::uint64_t base_seed,

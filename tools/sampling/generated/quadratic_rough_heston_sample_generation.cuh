@@ -81,7 +81,8 @@ inline datasets::ModelSampleRecipe recipe(
         "seven-factor Markovian lift at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_feedback", "quadratic_scale", "quadratic_shift", "variance_floor", "feedback_rate", "feedback_volatility", "hurst_exponent"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
@@ -110,6 +111,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_prepared_model_sample_dataset<ModelParameters, model_binding::PreparedDynamics<factor_count>>(
         argc,
         argv,

@@ -37,6 +37,7 @@ __global__ void prepare_rows_kernel(
     std::uint64_t base_seed,
     std::size_t paths_per_price,
     const std::size_t* __restrict__ state_offsets,
+    typename PricingPolicy::StateView states,
     typename PricingPolicy::PreparedRow* __restrict__ prepared_rows
 ) {
     const std::size_t batch_price =
@@ -53,6 +54,18 @@ __global__ void prepare_rows_kernel(
             state_offsets[batch_price],
             paths_per_price
         );
+    if constexpr (requires {
+        PricingPolicy::prepare_observations(prepared_rows[batch_price], states);
+    }) {
+        PricingPolicy::prepare_observations(prepared_rows[batch_price], states);
+    }
+    if constexpr (requires {
+        PricingPolicy::prepare_path_outputs(prepared_rows[batch_price], states,
+                                            batch_price, paths_per_price);
+    }) {
+        PricingPolicy::prepare_path_outputs(prepared_rows[batch_price], states,
+                                            batch_price, paths_per_price);
+    }
 }
 
 template<
@@ -98,7 +111,8 @@ __global__ void simulate_paths_kernel(
 
 template<
     EarlyExercisePricingPolicy PricingPolicy,
-    SmallLinearRegressor Regressor
+    SmallLinearRegressor Regressor,
+    bool ResidualCorrection = false
 >
 requires LongstaffSchwartzPolicy<PricingPolicy, Regressor>
 __global__ void regression_partials_kernel(
@@ -108,12 +122,25 @@ __global__ void regression_partials_kernel(
     std::size_t blocks_per_price,
     typename PricingPolicy::StateView states,
     const float* __restrict__ cashflows,
-    double* __restrict__ regression_partials
+    double* __restrict__ regression_partials,
+    const double* __restrict__ regression_coefficients = nullptr,
+    const RegressionStatus* __restrict__ regression_statuses = nullptr
 ) {
     __shared__ typename PricingPolicy::PreparedRow row;
+    __shared__ double coefficients[ResidualCorrection ? Regressor::kBasisSize : 1U];
     if (threadIdx.x == 0U) row = prepared_rows[blockIdx.y];
+    if constexpr (ResidualCorrection) {
+        if (threadIdx.x < Regressor::kBasisSize) {
+            coefficients[threadIdx.x] = regression_coefficients[
+                blockIdx.y * Regressor::kBasisSize + threadIdx.x
+            ];
+        }
+    }
     __syncthreads();
     if (backward_level >= row.regression_count) return;
+    if constexpr (ResidualCorrection) {
+        if (regression_statuses[blockIdx.y] != RegressionStatus::success) return;
+    }
 
     const float* const row_cashflows =
         cashflows + static_cast<std::size_t>(blockIdx.y) * paths_per_price;
@@ -121,7 +148,9 @@ __global__ void regression_partials_kernel(
         static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     const std::size_t path_stride =
         static_cast<std::size_t>(gridDim.x) * blockDim.x;
-    double statistics[Regressor::kRegressionValueCount] = {};
+    constexpr std::size_t statistic_count = ResidualCorrection
+        ? Regressor::kBasisSize : Regressor::kRegressionValueCount;
+    double statistics[statistic_count] = {};
     for (std::size_t path = first_path;
          path < paths_per_price;
          path += path_stride) {
@@ -138,29 +167,30 @@ __global__ void regression_partials_kernel(
         const typename Regressor::Features features = Regressor::evaluate(
             PricingPolicy::regression_input(row, states, observation)
         );
-        Regressor::accumulate(
-            features,
-            PricingPolicy::regression_target(
-                row,
-                states,
-                observation,
-                row_cashflows[path]
-            ),
-            statistics
+        const double target = PricingPolicy::regression_target(
+            row, states, observation, row_cashflows[path]
+        );
+        if constexpr (ResidualCorrection) {
+            Regressor::accumulate_residual(features, target, coefficients, statistics);
+        } else {
+            Regressor::accumulate(features, target, statistics);
+        }
+    }
+    if constexpr (ResidualCorrection) {
+        Regressor::reduce_and_store_residual_partials(
+            statistics, blockIdx.y, blockIdx.x, blocks_per_price, regression_partials
+        );
+    } else {
+        Regressor::reduce_and_store_partials(
+            statistics, blockIdx.y, blockIdx.x, blocks_per_price, regression_partials
         );
     }
-    Regressor::reduce_and_store_partials(
-        statistics,
-        blockIdx.y,
-        blockIdx.x,
-        blocks_per_price,
-        regression_partials
-    );
 }
 
 template<
     EarlyExercisePricingPolicy PricingPolicy,
-    SmallLinearRegressor Regressor
+    SmallLinearRegressor Regressor,
+    bool ResidualCorrection = false
 >
 requires LongstaffSchwartzPolicy<PricingPolicy, Regressor>
 __global__ void solve_regressions_kernel(
@@ -173,7 +203,7 @@ __global__ void solve_regressions_kernel(
     RegressionDiagnostics* __restrict__ regression_diagnostics
 ) {
     const std::size_t batch_price = blockIdx.x;
-    Regressor::solve_for_row(
+    Regressor::template solve_for_row<ResidualCorrection>(
         prepared_rows[batch_price].regression_count,
         backward_level,
         batch_price,
@@ -256,6 +286,15 @@ __global__ void update_cashflows_kernel(
             updated = select_exercise_cashflow(
                 immediate, continuation, updated
             );
+            if constexpr (requires {
+                PricingPolicy::record_exercise(row, states, observation, path,
+                                                backward_level);
+            }) {
+                if (exercise_is_preferred(immediate, continuation)) {
+                    PricingPolicy::record_exercise(row, states, observation, path,
+                                                    backward_level);
+                }
+            }
         }
         row_cashflows[path] = updated;
     }
@@ -369,6 +408,10 @@ __global__ void finalize_prices_kernel(
     const double immediate = static_cast<double>(
         PricingPolicy::initial_exercise_value(row)
     );
+    if constexpr (requires { PricingPolicy::record_initial_exercise(row, false, false); }) {
+        PricingPolicy::record_initial_exercise(row, immediate > continuation,
+            isfinite(immediate) && isfinite(continuation) && isfinite(standard_error));
+    }
     if (immediate > continuation) {
         prices[row.result_index] = static_cast<float>(immediate);
         standard_errors[row.result_index] = 0.0f;
@@ -626,6 +669,12 @@ LaunchResult launch_longstaff_schwartz_cuda(
             Regressor::shared_bytes(threads_per_block);
         const std::size_t moment_shared_bytes =
             2U * (threads_per_block / 32U) * sizeof(double);
+        std::string residual_name;
+        std::string refinement_name;
+        if constexpr (Regressor::kRefineNormalResidual) {
+            residual_name = std::string(diagnostic_name) + ".regression_residual_partials";
+            refinement_name = std::string(diagnostic_name) + ".refine_regressions";
+        }
 
         resources.start_batch();
 
@@ -647,6 +696,7 @@ LaunchResult launch_longstaff_schwartz_cuda(
             base_seed,
             paths_per_price,
             device_state_offsets,
+            states,
             prepared_rows
         );
         check_cuda(cudaGetLastError(), "prepare early-exercise rows");
@@ -723,6 +773,40 @@ LaunchResult launch_longstaff_schwartz_cuda(
             );
             check_cuda(cudaGetLastError(), "solve early-exercise regression");
 
+            if constexpr (Regressor::kRefineNormalResidual) {
+                // A single correction reuses RHS workspace and the original
+                // Gram. Other compositions emit neither additional kernel.
+                report_cuda_kernel_launch_if_enabled(
+                    residual_name.c_str(), diagnostic_variant,
+                    regression_partials_kernel<PricingPolicy, Regressor, true>,
+                    path_grid, dim3(threads_per_block), regression_shared_bytes
+                );
+                regression_partials_kernel<PricingPolicy, Regressor, true><<<
+                    path_grid, threads_per_block, regression_shared_bytes
+                >>>(
+                    prepared_rows, backward_level, paths_per_price,
+                    launched_blocks_per_price, states, cashflows,
+                    regression_partials, regression_coefficients, regression_statuses
+                );
+                check_cuda(cudaGetLastError(), "accumulate regression residual");
+                report_cuda_kernel_launch_if_enabled(
+                    refinement_name.c_str(), diagnostic_variant,
+                    solve_regressions_kernel<PricingPolicy, Regressor, true>,
+                    dim3(static_cast<unsigned int>(batch.result_count)),
+                    dim3(threads_per_block), regression_shared_bytes
+                );
+                solve_regressions_kernel<PricingPolicy, Regressor, true><<<
+                    static_cast<unsigned int>(batch.result_count),
+                    threads_per_block, regression_shared_bytes
+                >>>(
+                    prepared_rows, backward_level, launched_blocks_per_price,
+                    regression_partials, regression_coefficients,
+                    regression_statuses, regression_diagnostics
+                );
+                check_cuda(cudaGetLastError(), "correct regression coefficients");
+                kernel_launch_count += 2U;
+            }
+
             report_cuda_kernel_launch_if_enabled(
                 update_name.c_str(),
                 diagnostic_variant,
@@ -790,6 +874,20 @@ LaunchResult launch_longstaff_schwartz_cuda(
         );
         check_cuda(cudaGetLastError(), "finalize early-exercise prices");
         ++kernel_launch_count;
+
+        // A composed consumer may use the completed stopping trace before this
+        // batch's workspace is recycled. Price-only policies emit no extra work.
+        if constexpr (requires {
+            PricingPolicy::finish_batch(device_inputs, prepared_rows, path_grid,
+                threads_per_block, paths_per_price, launched_blocks_per_price,
+                moment_partials, regression_diagnostics, diagnostic_name);
+        }) {
+            kernel_launch_count += PricingPolicy::finish_batch(
+                device_inputs, prepared_rows, path_grid, threads_per_block,
+                paths_per_price, launched_blocks_per_price, moment_partials,
+                regression_diagnostics, diagnostic_name
+            );
+        }
 
         kernel_seconds += resources.finish_batch();
         check_cuda(

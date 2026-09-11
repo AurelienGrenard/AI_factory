@@ -94,6 +94,23 @@
     {
       "name": "tests",
       "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "^main$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "validation",
+      "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "^validation$"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }

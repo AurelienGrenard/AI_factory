@@ -48,12 +48,18 @@ __device__ __forceinline__ float small_time_integral_variance(
     float delta,
     float scaled_time
 ) {
-    const float scaled_time2 = scaled_time * scaled_time;
-    const float normalized =
-        1.0f / 3.0f
-        - scaled_time / 4.0f
-        + 7.0f * scaled_time2 / 60.0f
-        - scaled_time2 * scaled_time / 24.0f;
+    // Taylor coefficients of integral_0^1 ((1-exp(-x*u))/x)^2 du.
+    // Degree eight permits |x| < 0.5 without the endpoint cancellation
+    // that contaminates correlated two-factor integral covariances.
+    float normalized = 73.0f / 2851200.0f;
+    normalized = fmaf(scaled_time, normalized, -17.0f / 120960.0f);
+    normalized = fmaf(scaled_time, normalized, 127.0f / 181440.0f);
+    normalized = fmaf(scaled_time, normalized, -1.0f / 320.0f);
+    normalized = fmaf(scaled_time, normalized, 31.0f / 2520.0f);
+    normalized = fmaf(scaled_time, normalized, -1.0f / 24.0f);
+    normalized = fmaf(scaled_time, normalized, 7.0f / 60.0f);
+    normalized = fmaf(scaled_time, normalized, -0.25f);
+    normalized = fmaf(scaled_time, normalized, 1.0f / 3.0f);
     return volatility_squared * delta * delta * delta * normalized;
 }
 
@@ -112,7 +118,7 @@ __device__ __forceinline__ float integral_variance_from_decay(
     float one_minus_decay
 ) {
     const float scaled_time = mean_reversion * delta;
-    if (fabsf(scaled_time) < 0.02f) {
+    if (fabsf(scaled_time) < 0.5f) {
         return detail::small_time_integral_variance(
             volatility_squared, delta, scaled_time
         );
@@ -135,7 +141,7 @@ __device__ __forceinline__ float integral_variance(
 ) {
     const float scaled_time = mean_reversion * delta;
     const float volatility_squared = volatility * volatility;
-    if (fabsf(scaled_time) < 0.02f) {
+    if (fabsf(scaled_time) < 0.5f) {
         return detail::small_time_integral_variance(
             volatility_squared, delta, scaled_time
         );

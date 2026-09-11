@@ -20,7 +20,7 @@ int main() {
         "Black-Scholes closed-form range-accruals",
         PriceConstruction::Aligned,
     };
-    const pricing::AnalyticalProfile profile{1.0f / 252.0f, ::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock, 0U};
+    const pricing::AnalyticalProfile profile{1.0f / 252.0f, ::ai_factory::workbench::offline::cuda_tuning::kAnalyticalThreadsPerBlock, 0U, ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "range_accrual", ""}};
 
     return pricing::generate_analytical_equity_price_dataset(
         recipe,

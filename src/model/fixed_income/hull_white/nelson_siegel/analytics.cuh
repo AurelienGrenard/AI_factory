@@ -44,7 +44,7 @@ struct FittedModelComposition {
         ::ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters;
     using FittedModel = HullWhiteFittedParameters;
 
-    __device__ __forceinline__ static float initial_state() {
+    __device__ __forceinline__ static float initial_state(const FittedModel&) {
         return 0.0f;
     }
 

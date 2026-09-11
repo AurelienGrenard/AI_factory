@@ -1,0 +1,67 @@
+[
+  {
+    "id": "ou_memory_rows64",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 64,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 14336
+    }
+  },
+  {
+    "id": "ou_memory_rows96",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 96,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 14336
+    }
+  },
+  {
+    "id": "ou_memory_rows128",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 128,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 14336
+    }
+  },
+  {
+    "id": "ou_memory_rows144",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 144,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 14336
+    }
+  },
+  {
+    "id": "ou_memory_rows160",
+    "options": {
+      "model": "ornstein_uhlenbeck",
+      "rows": 160,
+      "paths": 1048576,
+      "threads": 128,
+      "blocks": 64,
+      "warmups": 0,
+      "repetitions": 1,
+      "memory_limit_mib": 14336
+    }
+  }
+]

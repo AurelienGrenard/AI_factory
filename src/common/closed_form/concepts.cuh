@@ -8,6 +8,9 @@
 
 namespace ai_factory::workbench::closed_form {
 
+// Host launch choice; no runtime dispatch is introduced inside a price.
+enum class WorkDistribution { scalar, cooperative };
+
 // Closed-form rows are local to one pricing thread.
 inline constexpr std::size_t kMaximumThreadPreparedRowBytes = 256U;
 

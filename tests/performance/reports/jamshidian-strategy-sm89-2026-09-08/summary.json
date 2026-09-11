@@ -1,0 +1,44 @@
+{
+  "purpose": "strategy experiment, not a regression rebaseline",
+  "record_count": 1624,
+  "statuses": {
+    "reference_incomplete": 346,
+    "passed": 1278
+  },
+  "campaign_hashes": {
+    "build-dev/jamshidian-strategy-pilot-03": "fc9224510e6a4b7f881e54e0a977eadd45eaa5f098dfa1228f09a887b2a17afa",
+    "build-dev/jamshidian-strategy-screen-02": "d1b86025f4daf513d062c460028b92f5d405a60a540ab0f34265614131571473",
+    "build-dev/jamshidian-strategy-profiles-01": "de2aac0a09a5b36cf2df9f079afe22745bdab5b8c5becbdb71b9cfc9bf0d464c",
+    "build-dev/jamshidian-strategy-large-01": "8983bd03704c413b030ab110f0aebe43e6276db0cd0c44ec85f4ae13fdc37238",
+    "build-dev/jamshidian-strategy-confirm-payer-01": "c1474f84bfecb541068dec33bb5539e8c8d203a365338cc3d205134ea820854e",
+    "build-dev/jamshidian-strategy-confirm-payer-02": "15368272fafac4302fe4d4f98b71c25d5d6608a18db89b8f835ae213e390df5e",
+    "build-dev/jamshidian-strategy-confirm-payer-03": "a5c01ad4267d8635fa0030757f657227fdcbbc1061aff3dcdb9226df79b970c4",
+    "build-dev/jamshidian-strategy-confirm-receiver-01": "d8ac2e94f315db08ed0e4c20a30434f48f0c383a9c87e021e980cb2399c32850",
+    "build-dev/jamshidian-strategy-confirm-receiver-resume-01": "f0b2119f7fb6942edd2c1d0cd12e46bdfc416f21885f66c6d82eeeba55fddc24"
+  },
+  "configuration_count": 1456,
+  "configuration_file": "configurations.ndjson",
+  "raw_measurements_file": "measurements.ndjson",
+  "table_file": "summary.csv",
+  "provenance_file": "provenance.ndjson",
+  "measured_snapshot": {
+    "path": "build-dev/jamshidian-strategy-snapshot-01",
+    "sha256": {
+      "CMakeCache.txt": "f70734c456c9eea8e465fee87c204df135acbe4ba7eff773970271ce8d2b03a7",
+      "jamshidian_strategy_benchmark.cu": "259b5c548f3a284deef234cd84e22eb9bd1d9ad37ea4fbabfbbba1f1c2011ebd",
+      "source-and-inputs.tar.gz": "4261bb32f353aca4249358ae13739d660f6c47a6e5bb0c7abbd33d6b695b1481",
+      "git-diff.patch": "ed9b45efe09fb20d52ba20926b795fa8a81ab3298f8c3ea73de639bc5252796b",
+      "successful-build.log": "84f2621a6dda0f3b51e24481def86cf075b5eb6fdbe585f4c561a17c4a1ad100",
+      "ai_factory_jamshidian_strategy_benchmark": "154f173bf24d2a744463e2de4d929b1d9839b703fc672146815be27cefb5bce3",
+      "git-status.txt": "efdbcafe17fca6173a92b38e6e9230eb4f9366483da24d1b469407debf23a222"
+    }
+  },
+  "files_sha256": {
+    "summary.csv": "cf0d364768d704382f7f462b7885c3946768524fb14a5b843a5b941767972e79",
+    "numerical-diagnostics.json": "4f5f9bf6cc22f8fedf3934871ed2124020a52860c46e6ce82ca30bd333d5227a",
+    "provenance.ndjson": "3eba6d7ea663d29062ab2b61bf91f572ab9d937224f533759d26a47fe49b09bd",
+    "configurations.ndjson": "5dd745b4b275525eec7449cd1c21d29af8b6de2fbb9137c386b562e553164cc8",
+    "measurements.ndjson": "d1eb9c55441a27c8f49f780e3795d697284e46792162be6a5a1eeead0dc3716b"
+  },
+  "numerical_diagnostics_file": "numerical-diagnostics.json"
+}

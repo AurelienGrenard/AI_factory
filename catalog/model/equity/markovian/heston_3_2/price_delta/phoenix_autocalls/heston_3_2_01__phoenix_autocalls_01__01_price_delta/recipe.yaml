@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "heston_3_2_01__phoenix_autocalls_01__01_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
+  "product_input": "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
+  "dataset": "datasets/model/equity/markovian/heston_3_2/price_delta/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/heston_3_2/price_delta/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_delta/dataset.yaml",
+  "construction": "aligned",
+  "paths_per_price": 1048576,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_crn",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01/generator.cpp"
+  },
+  "dynamics_seed": 11668827222927474688,
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  },
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}

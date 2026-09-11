@@ -23,9 +23,10 @@ void launch_${model}_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution
 ) {
-    ::ai_factory::workbench::fixed_income::launch_cooperative_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_one_factor_european_swaption<
         Side,
         AnalyticsProvider
     >(
@@ -43,7 +44,8 @@ void launch_${model}_european_swaption_cuda(
         threads_per_block,
         block_count,
         device_prices,
-        maximum_payment_count
+        maximum_payment_count,
+        distribution
     );
 }
 
@@ -64,9 +66,10 @@ void launch_${model}_european_swaption_cuda(
     unsigned int threads_per_block,
     std::size_t block_count,
     float* device_prices,
-    std::uint32_t maximum_payment_count
+    std::uint32_t maximum_payment_count,
+    closed_form::WorkDistribution distribution
 ) {
-    ::ai_factory::workbench::fixed_income::launch_cooperative_one_factor_european_swaption<
+    ::ai_factory::workbench::fixed_income::launch_one_factor_european_swaption<
         Side,
         AnalyticsProvider
     >(
@@ -89,7 +92,8 @@ void launch_${model}_european_swaption_cuda(
         threads_per_block,
         block_count,
         device_prices,
-        maximum_payment_count
+        maximum_payment_count,
+        distribution
     );
 }
 
@@ -97,27 +101,27 @@ template void launch_${model}_european_swaption_cuda<SwaptionSide::payer>(
     const ModelParameters*, std::size_t,
     const product::RegularEuropeanSwaptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    unsigned int, std::size_t, float*, std::uint32_t, closed_form::WorkDistribution
 );
 template void launch_${model}_european_swaption_cuda<SwaptionSide::receiver>(
     const ModelParameters*, std::size_t,
     const product::RegularEuropeanSwaptionParameters*, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    unsigned int, std::size_t, float*, std::uint32_t, closed_form::WorkDistribution
 );
 template void launch_${model}_european_swaption_cuda<SwaptionSide::payer>(
     const ModelParameters*, std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
     const std::uint32_t*, const float*, std::size_t, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    unsigned int, std::size_t, float*, std::uint32_t, closed_form::WorkDistribution
 );
 template void launch_${model}_european_swaption_cuda<SwaptionSide::receiver>(
     const ModelParameters*, std::size_t,
     const product::ExplicitEuropeanSwaptionParameters*,
     const std::uint32_t*, const float*, std::size_t, std::size_t,
     PriceConstruction, std::size_t, std::size_t, std::size_t, float,
-    unsigned int, std::size_t, float*, std::uint32_t
+    unsigned int, std::size_t, float*, std::uint32_t, closed_form::WorkDistribution
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::${model}

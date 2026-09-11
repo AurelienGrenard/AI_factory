@@ -21,17 +21,21 @@ int main() {
     const std::filesystem::path product_path =
         "datasets/product/european_swaption/"
         "european_swaptions_01.json";
+    const auto product_dataset = product::load_european_swaptions(product_path);
     datasets::generate_regular_european_swaption_prices(
         model_path,
         curve_path,
         product_path,
         hw::load_models(model_path),
         ns::load_curves(curve_path),
-        product::load_european_swaptions(product_path),
-        [](auto... arguments) {
+        product_dataset,
+        [maximum_payment_count = product_dataset.maximum_payment_count](
+            const offline::cuda_tuning::PricingLaunchPlan& plan, auto... arguments) {
             fitted::launch_hull_white_svensson_european_swaption_cuda<
                 SwaptionSide::payer
-            >(arguments...);
+            >(arguments..., maximum_payment_count,
+                plan.profile.distribution == offline::cuda_tuning::PriceWorkDistribution::block
+                    ? closed_form::WorkDistribution::cooperative : closed_form::WorkDistribution::scalar);
         },
         "datasets/model/fixed_income/hull_white/prices/svensson/"
         "european_payer_swaptions/"
@@ -44,6 +48,7 @@ int main() {
         "prices/svensson/european_payer_swaptions/"
         "hull_white_01__svensson_01__european_payer_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond puts",
-        "Hull-White Svensson European payer swaption"
+        "Hull-White Svensson European payer swaption",
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "hull_white", "european_swaption", "svensson"}
     );
 }

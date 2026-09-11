@@ -21,6 +21,18 @@ struct ProductPreparationContext {
     float maturity_years;
 };
 
+template<typename Parameters>
+concept RiskFreeRateModelParameters = requires(const Parameters& parameters) {
+    { parameters.risk_free_rate } -> std::convertible_to<float>;
+};
+
+template<typename Parameters>
+concept SpotAndRiskFreeRateModelParameters =
+    RiskFreeRateModelParameters<Parameters>
+    && requires(const Parameters& parameters) {
+        { parameters.spot } -> std::convertible_to<float>;
+    };
+
 template<typename StatePolicy, ObservationCoordinate Coordinate>
 concept StatePolicyForObservationCoordinate =
     (Coordinate == ObservationCoordinate::spot

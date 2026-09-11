@@ -3,6 +3,7 @@
 
 #include "common/fixed_income/one_factor_affine.cuh"
 #include "common/fixed_income/swaption_side.cuh"
+#include "common/compensated_sum.cuh"
 
 #include <cuda_runtime.h>
 
@@ -18,6 +19,61 @@ struct JamshidianBoundaryEvaluation {
     float residual;
     float derivative;
 };
+
+// Refine a small displacement around an FP32 anchor when adjacent absolute
+// states cannot represent a certified root. All arithmetic remains FP32.
+template<typename Evaluator>
+__device__ __forceinline__ float refine_jamshidian_boundary(
+    float anchor,
+    float lower,
+    float upper,
+    Evaluator evaluate,
+    float* state_correction
+) {
+    // Recheck the bracket in the shifted arithmetic: rounding the affine
+    // exponent at the anchor can move it outside the absolute-state bracket.
+    float width = fmaxf(upper - lower, fmaxf(
+        nextafterf(anchor, INFINITY) - anchor,
+        anchor - nextafterf(anchor, -INFINITY)
+    ));
+    lower = fminf(lower, -width);
+    upper = fmaxf(upper, width);
+    bool bracketed = false;
+    for (unsigned int expansion = 0U; expansion < 8U; ++expansion) {
+        const float left = evaluate(lower).residual;
+        const float right = evaluate(upper).residual;
+        if (isnan(left) || isnan(right)) return nanf("");
+        if (left >= 0.0f && right <= 0.0f) {
+            bracketed = true;
+            break;
+        }
+        width *= 2.0f;
+        lower = fminf(lower, -width);
+        upper = fmaxf(upper, width);
+    }
+    if (!bracketed) return nanf("");
+    float correction = 0.5f * (lower + upper);
+    for (std::uint32_t iteration = 0U;
+         iteration < kMaximumJamshidianNewtonIterations; ++iteration) {
+        const auto value = evaluate(correction);
+        if (isfinite(value.residual)
+            && fabsf(value.residual) <= kJamshidianResidualTolerance) {
+            *state_correction = correction;
+            return anchor;
+        }
+        if (!isfinite(value.residual)) return nanf("");
+        if (value.residual > 0.0f) lower = correction;
+        else upper = correction;
+        float next = 0.5f * (lower + upper);
+        if (isfinite(value.derivative) && value.derivative < 0.0f) {
+            const float newton = correction - value.residual / value.derivative;
+            if (newton > lower && newton < upper) next = newton;
+        }
+        if (next == correction) break;
+        correction = next;
+    }
+    return nanf("");
+}
 
 // Return c_i = K*delta_i plus the final unit redemption.
 __device__ __forceinline__ float jamshidian_cashflow_coefficient(
@@ -41,9 +97,11 @@ evaluate_jamshidian_boundary(
     float exercise_time,
     float fixed_rate,
     const ScheduleView& schedule,
-    float state
+    float state,
+    float state_correction = 0.0f
 ) {
-    float coupon_bond = 0.0f;
+    // A long fixed leg must not lose small coupons before testing its root.
+    CompensatedFloatSum coupon_bond;
     float derivative = 0.0f;
     const std::uint32_t payment_count = schedule.payment_count();
     for (std::uint32_t payment = 0U;
@@ -63,12 +121,17 @@ evaluate_jamshidian_boundary(
                 schedule.payment_time(payment)
             );
         const float term = coefficient * expf(
-            fmaf(-bond.B, state, bond.log_A)
+            fmaf(-bond.B, state_correction, fmaf(-bond.B, state, bond.log_A))
         );
-        coupon_bond += term;
+        coupon_bond.add(term);
+        // All coupons are non-negative. Preserve +infinity as the sign of
+        // an overflowing trial bond instead of feeding it back through Kahan.
+        if (!isfinite(coupon_bond.value())) {
+            return {coupon_bond.value(), -INFINITY};
+        }
         derivative = fmaf(-bond.B, term, derivative);
     }
-    return {coupon_bond - 1.0f, derivative};
+    return {coupon_bond.value() - 1.0f, derivative};
 }
 
 __device__ __forceinline__ float checked_jamshidian_boundary(
@@ -95,8 +158,10 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     const Parameters& parameters,
     float exercise_time,
     float fixed_rate,
-    const ScheduleView& schedule
+    const ScheduleView& schedule,
+    float* state_correction = nullptr
 ) {
+    if (state_correction != nullptr) *state_correction = 0.0f;
     if (!schedule.valid()
         || !isfinite(exercise_time)
         || !isfinite(fixed_rate)
@@ -201,9 +266,34 @@ __device__ __forceinline__ float jamshidian_state_boundary(
                     schedule,
                     midpoint
                 );
-            return checked_jamshidian_boundary(
+            const float midpoint_candidate = checked_jamshidian_boundary(
                 midpoint, final_evaluation.residual
             );
+            if (isfinite(midpoint_candidate)) return midpoint_candidate;
+            // A rounded midpoint can select the worse of two adjacent floats.
+            // Accept an endpoint only under the unchanged residual criterion.
+            for (unsigned int endpoint = 0U; endpoint < 2U; ++endpoint) {
+                const float candidate = endpoint == 0U ? lower_state : upper_state;
+                const auto candidate_evaluation = evaluate_jamshidian_boundary(
+                    provider, parameters, exercise_time, fixed_rate, schedule, candidate
+                );
+                const float checked = checked_jamshidian_boundary(
+                    candidate, candidate_evaluation.residual
+                );
+                if (isfinite(checked)) return checked;
+            }
+            if (state_correction != nullptr) {
+                return refine_jamshidian_boundary(
+                    midpoint, lower_state - midpoint, upper_state - midpoint,
+                    [&](float correction) {
+                        return evaluate_jamshidian_boundary(
+                            provider, parameters, exercise_time, fixed_rate,
+                            schedule, midpoint, correction
+                        );
+                    }, state_correction
+                );
+            }
+            return nanf("");
         }
         state = next_state;
       }
@@ -218,9 +308,21 @@ __device__ __forceinline__ float jamshidian_state_boundary(
             schedule,
             midpoint
         );
-    return checked_jamshidian_boundary(
-        midpoint, final_evaluation.residual
-    );
+    const float checked = checked_jamshidian_boundary(midpoint, final_evaluation.residual);
+    if constexpr (MaximumIterations > 0U) {
+        if (!isfinite(checked) && state_correction != nullptr) {
+            return refine_jamshidian_boundary(
+                midpoint, lower_state - midpoint, upper_state - midpoint,
+                [&](float correction) {
+                    return evaluate_jamshidian_boundary(
+                        provider, parameters, exercise_time, fixed_rate,
+                        schedule, midpoint, correction
+                    );
+                }, state_correction
+            );
+        }
+    }
+    return checked;
 }
 
 // Evaluate P(T_e,T_i;x*) once the common state boundary is known.
@@ -230,14 +332,14 @@ __device__ __forceinline__ float jamshidian_bond_strike(
     const Parameters& parameters,
     float exercise_time,
     float payment_time,
-    float state_boundary
+    float state_boundary,
+    float state_correction = 0.0f
 ) {
-    return provider.zero_coupon_bond(
-        parameters,
-        state_boundary,
-        exercise_time,
-        payment_time
+    const auto bond = provider.affine_bond_coefficients(
+        parameters, exercise_time, payment_time
     );
+    return expf(fmaf(-bond.B, state_correction,
+        fmaf(-bond.B, state_boundary, bond.log_A)));
 }
 
 // Decompose payer into bond puts and receiver into bond calls.
@@ -257,8 +359,9 @@ __device__ __forceinline__ float european_swaption_price(
     float fixed_rate,
     const ScheduleView& schedule
 ) {
+    float state_correction = 0.0f;
     const float boundary = jamshidian_state_boundary(
-        provider, parameters, exercise_time, fixed_rate, schedule
+        provider, parameters, exercise_time, fixed_rate, schedule, &state_correction
     );
     if (!isfinite(boundary)) return boundary;
 
@@ -285,7 +388,8 @@ __device__ __forceinline__ float european_swaption_price(
             parameters,
             exercise_time,
             payment_time,
-            boundary
+            boundary,
+            state_correction
         );
         price = fmaf(
             coefficient,

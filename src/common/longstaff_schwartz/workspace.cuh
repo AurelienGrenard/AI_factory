@@ -25,6 +25,11 @@ struct WorkspaceDescriptor {
     std::vector<StateFieldDescriptor> state_fields;
     std::size_t basis_size;
     std::size_t regression_value_count;
+    // Optional immutable coefficients, once per stored observation (not per path).
+    std::vector<StateFieldDescriptor> observation_fields{};
+    // Optional outputs retained once per path or row, independently of dates.
+    std::vector<StateFieldDescriptor> path_fields{};
+    std::vector<StateFieldDescriptor> row_fields{};
 };
 
 // All common arrays required by one proposed early-exercise batch.
@@ -39,6 +44,9 @@ struct WorkspaceLayout {
     WorkspaceRegion regression_diagnostics;
     WorkspaceRegion moment_partials;
     std::size_t total_bytes;
+    std::vector<WorkspaceRegion> observation_fields;
+    std::vector<WorkspaceRegion> path_fields;
+    std::vector<WorkspaceRegion> row_fields;
 };
 
 // Schedule and state-storage requirement for one result row.

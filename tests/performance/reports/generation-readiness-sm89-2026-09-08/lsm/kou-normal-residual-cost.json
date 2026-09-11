@@ -1,0 +1,513 @@
+{
+  "scope": "fixed-order cost confirmation, not retuning or protocol-v3 acceptance",
+  "plan": {
+    "order": [
+      "before",
+      "corrected",
+      "corrected",
+      "before",
+      "before",
+      "corrected"
+    ],
+    "scope": "Same 1000 catalogue rows, seeds, paths and geometry; no retuning or retry-until-stable",
+    "job": {
+      "id": "kou_cost_1000_n1048576_t128_b128",
+      "rows": 1000,
+      "offset": 0,
+      "paths": 1048576,
+      "threads": 128,
+      "batch_rows": 1000,
+      "blocks_per_price": 128,
+      "block_limit": 4096,
+      "path_chunk": 65536,
+      "warmups": 1,
+      "repetitions": 3
+    }
+  },
+  "runs": [
+    {
+      "run": "cost-01-before",
+      "provenance": {
+        "variant": "before",
+        "binary_sha256": "802caf254ec278b9b9d4ae0e893d315b23e6a7ec5a42d974a99491397e4f6c18",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 9600.649536132812,
+        "median_ms": 9605.499267578125,
+        "p95_ms": 9637.550537109377,
+        "mean_ms": 9614.566446940104,
+        "standard_deviation_ms": 16.372360335940858,
+        "coefficient_of_variation": 0.0017028703713573548
+      },
+      "raw_host_clock": {
+        "minimum_ms": 10426.308903,
+        "median_ms": 10448.908815,
+        "p95_ms": 10466.588203,
+        "mean_ms": 10447.268640333334,
+        "standard_deviation_ms": 16.48480374618569,
+        "coefficient_of_variation": 0.0015779056051591798
+      },
+      "gpu_samples_ms": [
+        9605.499267578125,
+        9637.550537109377,
+        9600.649536132812
+      ],
+      "raw_host_samples_ms": [
+        10448.908815,
+        10466.588203,
+        10426.308903
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 42.72284242499882
+      },
+      "gpu_cv_pass": true,
+      "price_max_abs_error": 8.285045623779297e-06,
+      "standard_error_max_abs_error": 4.6158675104379654e-08,
+      "prices_outside_reference_budget": 8,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1830.0,
+          2310.0
+        ],
+        "temperature_c": [
+          71.0,
+          79.0
+        ],
+        "power_limit_w": [
+          163.32,
+          169.36
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "a0fa068350a5cb1e0adee3237fe708e9790180b1f3ce9a2d8f696dc95d44a9a9",
+        "telemetry.ndjson": "cdce0358d5e95b9aef46e545eab2d09ffea9d7c35580c5f2237c418461b321c5",
+        "resources.json": "10de05dd7a794f1bff7db6350c1230b14b0ffe61ea5bff25f7af4a46a23e104a"
+      }
+    },
+    {
+      "run": "cost-02-corrected",
+      "provenance": {
+        "variant": "corrected",
+        "binary_sha256": "561f775f7b1e4026b58a2ed651730f8f9845e1b548cd90b2f5c44cd6adf3ede3",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 14895.373718261719,
+        "median_ms": 16062.229125976557,
+        "p95_ms": 17049.349914550785,
+        "mean_ms": 16002.317586263021,
+        "standard_deviation_ms": 880.3769677390526,
+        "coefficient_of_variation": 0.055015591522493
+      },
+      "raw_host_clock": {
+        "minimum_ms": 15967.634996,
+        "median_ms": 17164.734614,
+        "p95_ms": 18197.371113,
+        "mean_ms": 17109.913574333335,
+        "standard_deviation_ms": 911.1109693321886,
+        "coefficient_of_variation": 0.05325047174399236
+      },
+      "gpu_samples_ms": [
+        14895.373718261719,
+        16062.229125976557,
+        17049.349914550785
+      ],
+      "raw_host_samples_ms": [
+        15967.634996,
+        17164.734614,
+        18197.371113
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 67.4487218639988
+      },
+      "gpu_cv_pass": false,
+      "price_max_abs_error": 0.0,
+      "standard_error_max_abs_error": 0.0,
+      "prices_outside_reference_budget": 0,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1590.0,
+          2310.0
+        ],
+        "temperature_c": [
+          78.0,
+          83.0
+        ],
+        "power_limit_w": [
+          168.18,
+          174.64
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "83abf8bfbd2fdf4bf84bdd10b02cbd0e4154946697cf2d893f786e0e67268571",
+        "telemetry.ndjson": "f16a9c71f47d6fd581afdfe2489c925bbff038e959be2c583f3baa93d3e8fa52",
+        "resources.json": "5e4bb43da1dccbe075447653bdd8d431be4a961dbad94b1b51bd80bf46483643"
+      }
+    },
+    {
+      "run": "cost-03-corrected",
+      "provenance": {
+        "variant": "corrected",
+        "binary_sha256": "561f775f7b1e4026b58a2ed651730f8f9845e1b548cd90b2f5c44cd6adf3ede3",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 16868.91241455078,
+        "median_ms": 17144.054626464844,
+        "p95_ms": 17162.79272460937,
+        "mean_ms": 17058.586588541668,
+        "standard_deviation_ms": 134.3378782271569,
+        "coefficient_of_variation": 0.007875088450610104
+      },
+      "raw_host_clock": {
+        "minimum_ms": 18066.442925,
+        "median_ms": 18282.173902,
+        "p95_ms": 18419.83224,
+        "mean_ms": 18256.149688999998,
+        "standard_deviation_ms": 145.43944154583005,
+        "coefficient_of_variation": 0.00796659996896622
+      },
+      "gpu_samples_ms": [
+        17144.054626464844,
+        17162.79272460937,
+        16868.91241455078
+      ],
+      "raw_host_samples_ms": [
+        18282.173902,
+        18419.83224,
+        18066.442925
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 71.99981788800505
+      },
+      "gpu_cv_pass": true,
+      "price_max_abs_error": 0.0,
+      "standard_error_max_abs_error": 0.0,
+      "prices_outside_reference_budget": 0,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1590.0,
+          2310.0
+        ],
+        "temperature_c": [
+          79.0,
+          84.0
+        ],
+        "power_limit_w": [
+          170.15,
+          175.0
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "e5d4bbd1900998291f67f20c296bddf8680193db2c7a039c3a4116f99afc0b10",
+        "telemetry.ndjson": "1c1350b1138db830adaa4061b584d952044dd9192325aae7ed5f149fe5934152",
+        "resources.json": "5e4bb43da1dccbe075447653bdd8d431be4a961dbad94b1b51bd80bf46483643"
+      }
+    },
+    {
+      "run": "cost-04-before",
+      "provenance": {
+        "variant": "before",
+        "binary_sha256": "802caf254ec278b9b9d4ae0e893d315b23e6a7ec5a42d974a99491397e4f6c18",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 12162.626892089844,
+        "median_ms": 12651.10189819336,
+        "p95_ms": 12652.982971191406,
+        "mean_ms": 12488.903920491537,
+        "standard_deviation_ms": 230.71397740620344,
+        "coefficient_of_variation": 0.01847351688146569
+      },
+      "raw_host_clock": {
+        "minimum_ms": 13251.892113,
+        "median_ms": 13630.119308,
+        "p95_ms": 13699.292145,
+        "mean_ms": 13527.101188666667,
+        "standard_deviation_ms": 196.640529633191,
+        "coefficient_of_variation": 0.01453678263292221
+      },
+      "gpu_samples_ms": [
+        12162.626892089844,
+        12652.982971191406,
+        12651.10189819336
+      ],
+      "raw_host_samples_ms": [
+        13251.892113,
+        13630.119308,
+        13699.292145
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 53.38412963999872
+      },
+      "gpu_cv_pass": true,
+      "price_max_abs_error": 8.285045623779297e-06,
+      "standard_error_max_abs_error": 4.6158675104379654e-08,
+      "prices_outside_reference_budget": 8,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1590.0,
+          2205.0
+        ],
+        "temperature_c": [
+          77.0,
+          80.0
+        ],
+        "power_limit_w": [
+          170.22,
+          174.01
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "fddefc7273e5e66b37a4f6775eb4865daff2864395b4e32fc6c41e6ecefe2be6",
+        "telemetry.ndjson": "04ccf1557f2f61fe022cc836c53ba06b33ed645e8ebdfe45f52c2c4265a36609",
+        "resources.json": "10de05dd7a794f1bff7db6350c1230b14b0ffe61ea5bff25f7af4a46a23e104a"
+      }
+    },
+    {
+      "run": "cost-05-before",
+      "provenance": {
+        "variant": "before",
+        "binary_sha256": "802caf254ec278b9b9d4ae0e893d315b23e6a7ec5a42d974a99491397e4f6c18",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 12078.355895996096,
+        "median_ms": 12673.760314941408,
+        "p95_ms": 12734.958251953125,
+        "mean_ms": 12495.691487630209,
+        "standard_deviation_ms": 296.1565395834546,
+        "coefficient_of_variation": 0.023700692344767574
+      },
+      "raw_host_clock": {
+        "minimum_ms": 13055.391332,
+        "median_ms": 13674.130747,
+        "p95_ms": 13686.598471,
+        "mean_ms": 13472.040183333333,
+        "standard_deviation_ms": 294.65919299361724,
+        "coefficient_of_variation": 0.02187190573838616
+      },
+      "gpu_samples_ms": [
+        12078.355895996096,
+        12734.958251953125,
+        12673.760314941408
+      ],
+      "raw_host_samples_ms": [
+        13055.391332,
+        13686.598471,
+        13674.130747
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 53.711578954003926
+      },
+      "gpu_cv_pass": true,
+      "price_max_abs_error": 8.285045623779297e-06,
+      "standard_error_max_abs_error": 4.6158675104379654e-08,
+      "prices_outside_reference_budget": 8,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1590.0,
+          2145.0
+        ],
+        "temperature_c": [
+          78.0,
+          82.0
+        ],
+        "power_limit_w": [
+          171.27,
+          174.03
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "f732db62fef238828416e435307f2dfc5a9befe285e556a92b2689517c34c718",
+        "telemetry.ndjson": "6f230e91f5aefbf7ab752afca5c0f2027bf881a571bf884c6243a9c18fbc35d0",
+        "resources.json": "10de05dd7a794f1bff7db6350c1230b14b0ffe61ea5bff25f7af4a46a23e104a"
+      }
+    },
+    {
+      "run": "cost-06-corrected",
+      "provenance": {
+        "variant": "corrected",
+        "binary_sha256": "561f775f7b1e4026b58a2ed651730f8f9845e1b548cd90b2f5c44cd6adf3ede3",
+        "inputs": {
+          "model": "9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28",
+          "product": "72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793"
+        }
+      },
+      "gpu": {
+        "minimum_ms": 17179.859497070312,
+        "median_ms": 18511.809814453125,
+        "p95_ms": 18544.33056640625,
+        "mean_ms": 18078.666625976562,
+        "standard_deviation_ms": 635.691272582544,
+        "coefficient_of_variation": 0.035162508703442924
+      },
+      "raw_host_clock": {
+        "minimum_ms": 18425.772388,
+        "median_ms": 19745.388246,
+        "p95_ms": 19822.854918,
+        "mean_ms": 19331.338517333334,
+        "standard_deviation_ms": 641.1124614108949,
+        "coefficient_of_variation": 0.03316441129185364
+      },
+      "gpu_samples_ms": [
+        17179.859497070312,
+        18544.33056640625,
+        18511.809814453125
+      ],
+      "raw_host_samples_ms": [
+        18425.772388,
+        19822.854918,
+        19745.388246
+      ],
+      "outcome": {
+        "environment_policy": "strict",
+        "timing_eligible": true,
+        "timing_ineligibility_reasons": [],
+        "returncode": 0,
+        "stop_reason": null,
+        "process_wall_seconds": 76.91736202899483
+      },
+      "gpu_cv_pass": true,
+      "price_max_abs_error": 0.0,
+      "standard_error_max_abs_error": 0.0,
+      "prices_outside_reference_budget": 0,
+      "deterministic_replay": true,
+      "telemetry_ranges": {
+        "sm_clock_mhz": [
+          1590.0,
+          2100.0
+        ],
+        "temperature_c": [
+          79.0,
+          82.0
+        ],
+        "power_limit_w": [
+          170.33,
+          174.4
+        ]
+      },
+      "evidence_sha256": {
+        "stdout.ndjson": "7590baa7d8a87948709176741b2c64eac31d919c9fa9eb609ceba49c1a3c7dc4",
+        "telemetry.ndjson": "602dfc639d1b79a9aa2991bbccf2566f049fac340c80bd05fb1a61ac51282124",
+        "resources.json": "5e4bb43da1dccbe075447653bdd8d431be4a961dbad94b1b51bd80bf46483643"
+      }
+    }
+  ],
+  "paired_gpu_cost_ratios": [
+    1.672190968791401,
+    1.3551431934093505,
+    1.4606406744673164
+  ],
+  "phase_profile": {
+    "scope": "one instrumented call; kernel durations exclude CPU gaps and are not uninstrumented dataset timing",
+    "binary_sha256": "561f775f7b1e4026b58a2ed651730f8f9845e1b548cd90b2f5c44cd6adf3ede3",
+    "phases": [
+      {
+        "phase": "regression_partials_kernel",
+        "instances": 2306,
+        "total_ns": 6558993172,
+        "percent": 46.1
+      },
+      {
+        "phase": "regression_partials_kernel_residual_correction",
+        "instances": 2306,
+        "total_ns": 4241860171,
+        "percent": 29.8
+      },
+      {
+        "phase": "update_cashflows_kernel",
+        "instances": 2306,
+        "total_ns": 2357890757,
+        "percent": 16.6
+      },
+      {
+        "phase": "simulate_paths_kernel",
+        "instances": 16,
+        "total_ns": 930458900,
+        "percent": 6.5
+      },
+      {
+        "phase": "solve_regressions_kernel_residual_correction",
+        "instances": 2306,
+        "total_ns": 68842363,
+        "percent": 0.5
+      },
+      {
+        "phase": "solve_regressions_kernel",
+        "instances": 2306,
+        "total_ns": 67396209,
+        "percent": 0.5
+      },
+      {
+        "phase": "moment_partials_kernel",
+        "instances": 16,
+        "total_ns": 11538953,
+        "percent": 0.1
+      },
+      {
+        "phase": "finalize_prices_kernel",
+        "instances": 16,
+        "total_ns": 71338,
+        "percent": 0.0
+      },
+      {
+        "phase": "prepare_rows_kernel",
+        "instances": 16,
+        "total_ns": 33903,
+        "percent": 0.0
+      }
+    ],
+    "evidence_sha256": {
+      "kou-phases_cuda_gpu_kern_sum.csv": "df7a93afa5304f4ad7b20f64e2e71c55d96f91352c33fee278da49ff7ac87476",
+      "kou-kernel-phases.nsys-rep": "4810108f2b01cb95cba376f5f4ee49aebfd669a6aaccf7a8a12e3b65e4480af5",
+      "profile-job.json": "e840799ea12ebc8f0ac5229312b35636bb3a7aed0b32cf4b0bbf27e57cce902a"
+    }
+  }
+}

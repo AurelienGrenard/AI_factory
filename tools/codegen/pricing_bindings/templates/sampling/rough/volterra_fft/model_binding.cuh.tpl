@@ -2,11 +2,15 @@
 #pragma once
 
 #include "model/$source_folder/parameters.hpp"
+#include <cuda_runtime.h>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace ai_factory::workbench::$namespace {
+
+// Host-only query; dimensions come from the compiled sampling FFT specialization.
+dim3 ${model_name}_sample_block_dimensions(std::uint32_t maximum_maturity_days);
 
 void launch_${model_name}_terminal_samples_cuda(
     const ModelParameters* device_parameters,

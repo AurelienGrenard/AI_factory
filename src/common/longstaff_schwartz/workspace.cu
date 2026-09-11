@@ -198,6 +198,33 @@ WorkspaceLayout make_workspace_layout(
         product_name,
         "moment partials"
     );
+    if (!descriptor.observation_fields.empty()) {
+        if (paths_per_price == 0U || state_value_count % paths_per_price != 0U) {
+            throw std::invalid_argument("Observation storage requires complete path rows.");
+        }
+        for (const StateFieldDescriptor& field : descriptor.observation_fields) {
+            if (field.value_size == 0U || field.alignment == 0U) {
+                throw std::invalid_argument("An observation field contains an empty dimension.");
+            }
+            layout.observation_fields.push_back(append_region(
+                cursor, state_value_count / paths_per_price,
+                field.value_size, field.alignment, product_name,
+                "prepared observation values"
+            ));
+        }
+    }
+    const auto append_fields = [&](const auto& fields, auto& regions,
+                                   std::size_t count, const char* name) {
+        for (const StateFieldDescriptor& field : fields) {
+            if (field.value_size == 0U || field.alignment == 0U) {
+                throw std::invalid_argument("An LSM output field contains an empty dimension.");
+            }
+            regions.push_back(append_region(cursor, count, field.value_size,
+                                            field.alignment, product_name, name));
+        }
+    };
+    append_fields(descriptor.path_fields, layout.path_fields, path_value_count, "path outputs");
+    append_fields(descriptor.row_fields, layout.row_fields, batch_size, "row outputs");
     layout.total_bytes = cursor;
     return layout;
 }

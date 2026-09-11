@@ -22,12 +22,13 @@ int main() {{
         PriceConstruction::Aligned,
     }};
     const pricing::VolterraMonteCarloProfile profile{{
-        {monte_carlo_paths}U,
+        {monte_carlo_paths},
         1.0f / 252.0f,
         1.0f / 504.0f,
         ::ai_factory::workbench::offline::cuda_tuning::kVolterraPathChunkSize,
         {seed}ULL,
         "1 / 504",
+        {launch_identity},
     }};
 
     return pricing::generate_volterra_equity_price_dataset(

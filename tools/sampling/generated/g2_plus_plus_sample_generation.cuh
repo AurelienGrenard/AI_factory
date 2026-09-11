@@ -70,7 +70,8 @@ inline datasets::ModelSampleRecipe recipe(
         "exact finite-horizon transition",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals by parameter row"},
+            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"proposal_draw_order", {"mean_reversion_x", "mean_reversion_y", "volatility_x", "volatility_y", "correlation"}},
             {"latent_uniform_bounds", {
                 {"mean_reversion_x", {0.03f, 0.35f}},
                 {"mean_reversion_y", {0.1f, 1.0f}},
@@ -89,6 +90,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+
     return generate_model_sample_dataset<ModelParameters>(
         argc,
         argv,

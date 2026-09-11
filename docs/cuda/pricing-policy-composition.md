@@ -1,892 +1,234 @@
 # Composition des politiques de pricing CUDA
 
-## Objet
+Cette page explique où se fait la factorisation entre modèles, moteurs et
+produits. Elle montre les flux et les frontières de responsabilité ; les
+signatures et invariants normatifs restent dans les contrats
+[dynamics](model-dynamics-contract.md),
+[pricing](closed-form-and-monte-carlo-pricing-contract.md),
+[analytics](model-analytics-contract.md) et
+[early exercise](american-and-bermudan-pricing-contract.md).
 
-Ce document explique comment les objets de simulation et de pricing sont
-composes. Il complete les contrats normatifs de dynamique et de pricing sans
-les remplacer. Il privilegie les flux de donnees et le cycle de vie des objets
-afin de rendre visible l'origine de chaque information.
+Le
+[`capability_manifest.py`](../../tools/codegen/pricing_bindings/capability_manifest.py)
+est l'unique inventaire des combinaisons actives. Cette page ne doit pas
+devenir une seconde matrice modèle-produit.
 
-Les sections couvrent toutes les familles actives du manifeste de capacites :
-Monte Carlo markovien, Volterra gaussien hybride FFT, approximation rough
-markovienne N-facteurs, formules fermees equity et fixed income,
-Longstaff--Schwartz et sampling modele. Le manifeste type reste proprietaire de
-l'inventaire des compositions; ce document explique leurs frontieres sans
-recopier la matrice modele-produit.
-
-| Engine du manifeste | Composition expliquee |
-|---|---|
-| `equity_markovian` | section 1 |
-| `equity_volterra_fft` | section 2 |
-| `equity_n_factor` | section 3 |
-| `equity_closed_form` | section 4 |
-| `fixed_income_closed_form` | section 4 |
-| `equity_lsm_fixed` | section 5 |
-| `equity_lsm_exact` | section 5 |
-| `fixed_income_lsm` | section 5 |
-| `sample_markovian` | section 6 |
-| `sample_n_factor` | section 6 |
-| `sample_volterra_fft` | section 6 |
-| `sample_fixed_income` | section 6 |
-
-## 1. Monte Carlo markovien
-
-### 1.1 Vue generale
-
-La composition possede deux niveaux distincts :
-
-- les types de politiques sont assembles a la compilation ;
-- leurs objets prepares sont construits pour une ligne de prix au runtime.
-
-Les policies sont des structures statiques sans donnee membre, sans heritage,
-sans fonction virtuelle et sans dispatch runtime dans le kernel.
-
-#### Composition des types
+## Lire la pyramide
 
 ```mermaid
-flowchart TD
-    Model[Modele] --> Dynamics[DynamicsPolicy]
-    Dynamics --> ScheduleType[SchedulePolicy&lt;DynamicsPolicy&gt;]
-    Product[Produit] --> ProductPolicy[ProductPathPolicy]
-    ScheduleType --> Pricing[PricingPolicy&lt;SchedulePolicy, ProductPathPolicy&gt;]
-    ProductPolicy --> Pricing
-    Pricing --> Kernel[Kernel Monte Carlo generique]
+flowchart BT
+    PRODUCT[Contrats produit et calendriers]
+    EXEC[Exécution commune : launch, réduction, diagnostics]
+    MARKOV[Simulation markovienne]
+    ROUGH[Simulation rough]
+    CLOSED[Formules fermées]
+    LSM[Longstaff--Schwartz]
+    MODELS[Équations et analytics des modèles]
+
+    PRODUCT --> EXEC
+    EXEC --> MARKOV
+    EXEC --> ROUGH
+    EXEC --> CLOSED
+    EXEC --> LSM
+    MODELS --> MARKOV
+    MODELS --> ROUGH
+    MODELS --> CLOSED
+    MODELS --> LSM
 ```
 
-Un exemple de composition est :
+La factorisation monte du spécifique vers le commun :
 
-```cpp
-using Dynamics = heston::DynamicsPolicy;
-using Schedule = simulation::FixedStepDenseSchedule<Dynamics>;
-using Product = product::AsianOptionPathPolicy<OptionSide::call>;
-using Pricing = equity::PathProductMonteCarloPricingPolicy<
-    Schedule,
-    Product
->;
-```
+1. une policy modèle possède les équations et la préparation numérique ;
+2. une policy de schedule traduit le calendrier produit en transitions ;
+3. une policy produit possède observations, état path-dependent et payoff ;
+4. une policy de pricing assemble une ligne préparée ;
+5. un moteur générique possède kernels, workspace, réduction et diagnostics.
 
-#### Construction runtime d'une ligne de prix
+Une composition modèle-produit sous `src/model/.../<model>/product/` ne doit
+être qu'une façade mince vers ces briques. Le codegen génère les façades
+répétitives à partir du manifeste.
 
-```mermaid
-flowchart TD
-    MP[ModelParameters]
-    TC[TimeConfiguration]
-    PP[ProductParameters]
+## Vocabulaire commun
 
-    MP --> DP[DynamicsPolicy::prepare_dynamics ou prepare_model]
-    TC --> DP
-    DP --> PD[PreparedDynamics ou PreparedModel]
-
-    PP --> CAL[ProductPolicy::calendar]
-    CAL --> C[Calendar]
-
-    PD --> SP[SchedulePolicy::prepare_from_input]
-    C --> SP
-    TC --> SP
-    SP --> PS[PreparedSchedule]
-
-    MP --> PPR[ProductPolicy::prepare_product]
-    PP --> PPR
-    C --> CTX[ProductPreparationContext]
-    TC --> CTX
-    CTX --> PPR
-    PPR --> PPROD[PreparedProduct]
-
-    PS --> ROW[PreparedRow]
-    PPROD --> ROW
-    ROW --> EVAL[evaluate_path]
-```
-
-Le calendrier du `PreparedSchedule` vient donc toujours du produit :
-
-```text
-ProductParameters
-    -> ProductPolicy::calendar(ProductParameters)
-    -> Calendar
-    -> SchedulePolicy
-    -> PreparedSchedule
-```
-
-### 1.2 `DynamicsPolicy` : equations et transitions du modele
-
-`DynamicsPolicy` interprete les `ModelParameters`. Elle encode uniquement le
-processus stochastique, son etat et sa consommation aleatoire. Elle ne connait
-ni produit, ni calendrier, ni payoff.
-
-Le socle commun expose :
-
-```cpp
-using Parameters;
-using RandomContext;
-using State;
-```
-
-| Element | Responsabilite |
-|---|---|
-| `Parameters` | Ligne brute du modele. |
-| `RandomContext` | Suite Philox et caches path-local requis par la dynamique. |
-| `State` | Variables mutables d'un chemin, conservees en registres si possible. |
-
-Une dynamique equity ajoute `spot(state)` et, lorsqu'elle le peut,
-`log_spot(state)`. Ces observables sont des capacites de marche separees du
-contrat stochastique minimal.
-
-#### Schema numerique a pas fixe
-
-Une dynamique preparee pour un pas homogene expose :
-
-```cpp
-using PreparedDynamics;
-
-static constexpr bool kPartitionInvariantAdvance;
-
-static PreparedDynamics prepare_dynamics(
-    const Parameters& parameters,
-    float dt
-);
-
-static State initial_state(
-    const PreparedDynamics& dynamics
-);
-
-static void advance(
-    const PreparedDynamics& dynamics,
-    std::uint32_t step_count,
-    RandomContext& random,
-    State& state
-);
-```
-
-`PreparedDynamics` contient les coefficients invariants pour les transitions
-de taille `dt` : exponentielles, coefficients de drift et de diffusion,
-coefficients QE-M, correlations ou autres quantites propres au schema.
-
-`advance(dynamics, n, random, state)` avance un intervalle non observe de `n`
-pas homogenes. Le schedule decide la valeur de `n`; la dynamique ne connait
-pas la raison contractuelle de cet intervalle.
-
-La methode `prepare_dynamics` n'est requise sur le device que lorsque la
-preparation y est suffisamment legere. Une dynamique couteuse preparee sur
-l'hote peut fournir directement `PreparedDynamics` au schedule.
-
-#### Transition exacte
-
-Un modele a transition exacte separe les invariants du modele et ceux d'un
-intervalle :
-
-```cpp
-using PreparedModel;
-using PreparedTransition;
-
-static PreparedModel prepare_model(
-    const Parameters& parameters
-);
-
-static PreparedTransition prepare_transition(
-    const PreparedModel& model,
-    float delta_t
-);
-
-static State initial_state(
-    const PreparedModel& model
-);
-
-static void simulate_one_step(
-    const PreparedModel& model,
-    const PreparedTransition& transition,
-    RandomContext& random,
-    State& state
-);
-```
-
-`PreparedModel` est invariant par rapport au temps. Le schedule construit un
-`PreparedTransition` pour chaque duree contractuelle distincte dont il a
-besoin. Une option terminale peut ainsi etre simulee par une transition exacte
-de `0` a `T`, sans introduire de sous-pas artificiels.
-
-### 1.3 `SchedulePolicy` : traduction du calendrier en transitions
-
-Le schedule est specialise statiquement sur une dynamique :
-
-```cpp
-SchedulePolicy<DynamicsPolicy>
-```
-
-Il expose :
-
-```cpp
-using Dynamics;
-using Calendar;
-using TimeConfiguration;
-using PreparedSchedule;
-```
-
-| Element | Responsabilite |
-|---|---|
-| `Dynamics` | Policy utilisee pour preparer et faire avancer l'etat. |
-| `Calendar` | Dates contractuelles, exprimees en jours entiers. |
-| `TimeConfiguration` | Convention transformant les jours en temps numerique. |
-| `PreparedSchedule` | Dynamique preparee, transitions et indices d'observation compacts. |
-
-Les calendriers communs sont :
-
-```cpp
-MaturityCalendar { maturity_days };
-
-RegularCalendar {
-    observation_interval_days,
-    observation_count
-};
-
-StubbedRegularCalendar {
-    first_observation_day,
-    observation_interval_days,
-    observation_count
-};
-
-StaticCalendar<N> { interval_days[N] };
-```
-
-Pour un schema fixe :
-
-```cpp
-FixedStepTimeConfiguration {
-    float dt;
-    std::uint32_t simulation_steps_per_day;
-};
-```
-
-Pour une transition exacte, la configuration ne porte que la convention de
-fraction d'annee requise pour convertir les jours contractuels.
-
-#### Preparation explicite
-
-La decomposition conceptuelle complete est :
-
-```cpp
-const PreparedDynamics dynamics = Dynamics::prepare_dynamics(
-    model_parameters,
-    time_configuration.dt
-);
-
-const Calendar calendar = ProductPolicy::calendar(product_parameters);
-
-const PreparedSchedule schedule = Schedule::prepare_from_dynamics(
-    dynamics,
-    calendar,
-    time_configuration
-);
-```
-
-La methode de commodite :
-
-```cpp
-Schedule::prepare(model_parameters, calendar, time_configuration)
-```
-
-effectue ces operations interieurement. Elle ne change pas la frontiere de
-responsabilite : les equations restent dans `DynamicsPolicy`, le calendrier
-reste fourni par le produit et le schedule ne fait que les composer.
-
-#### Capacites de simulation
-
-Un produit terminal demande :
-
-```cpp
-State Schedule::simulate_terminal(
-    const PreparedSchedule& schedule,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-```
-
-Un produit de chemin demande :
-
-```cpp
-State Schedule::simulate(
-    const PreparedSchedule& schedule,
-    philox::PhiloxKey key,
-    std::size_t path,
-    Handler& handler
-);
-```
-
-Le schedule possede la boucle temporelle et appelle le handler uniquement aux
-dates contractuelles. Il ignore ce que l'observation signifie pour le produit.
-
-Les principales compositions sont :
-
-| Besoin | Pas fixe | Transition exacte |
+| Objet | Propriétaire | Ne connaît pas |
 |---|---|---|
-| Etat terminal | `FixedStepTerminalSchedule` | `ExactTransitionTerminalSchedule` |
-| Observations regulieres | `FixedStepRegularSchedule` | `ExactTransitionRegularSchedule` |
-| Observation de chaque pas | `FixedStepDenseSchedule` | grille exacte reguliere si requise |
-| Calendrier statique | `FixedStepCalendarSchedule<N>` | `ExactTransitionCalendarSchedule<N>` |
+| `ModelParameters` | modèle | produit, calendrier, moteur |
+| `ProductParameters` | produit | dynamique, kernel |
+| `DynamicsPolicy` ou `ModelPathPolicy` | modèle | payoff |
+| `SchedulePolicy` | moteur de simulation | sens financier des observations |
+| `ProductPathPolicy` | produit | méthode de simulation |
+| `PreparedRow` | policy de pricing | sortie ou format de dataset |
+| `DeviceInputs` | composition | équations internes du modèle |
+| launcher et kernel | moteur générique | identité métier du couple modèle-produit |
 
-### 1.4 `ProductPathPolicy` : contrat et payoff
+La préparation est effectuée une fois par ligne chaque fois que sa taille et
+son coût le permettent. L'état et le handler mutables sont path-local. Les
+choix de modèles, de produits, de côtés call/put et de nombres de facteurs sont
+résolus à la compilation ; aucun dispatch indirect n'est ajouté dans une
+boucle chaude.
 
-Le produit fournit le calendrier contractuel et la logique de payoff sans
-dependre du moteur de simulation. Le contrat partageable expose :
+## 1. Factorisation markovienne
 
-```cpp
-using ProductParameters;
-using Calendar;
-using PreparedProduct;
-using Handler;
+### 1.1 Transition exacte
 
-static constexpr equity::ObservationCoordinate kObservationCoordinate;
-
-static Calendar calendar(
-    const ProductParameters& parameters
-);
-
-static PreparedProduct prepare_product(
-    const ModelParameters& model,
-    const ProductParameters& product,
-    equity::ProductPreparationContext context
-);
-
-static Handler make_handler(
-    const PreparedProduct& product
-);
-
-template<typename StatePolicy>
-static float finalize(
-    const PreparedProduct& product,
-    const StatePolicy::State& terminal,
-    const Handler& handler
-);
-```
-
-#### `ProductParameters`
-
-Il s'agit de la ligne brute du contrat : maturite, strike, barriere, intervalles
-d'observation, coupons ou autres termes contractuels.
-
-#### `Calendar`
-
-`ProductPolicy::calendar(product_parameters)` extrait uniquement la structure
-temporelle du contrat. Cette valeur est transmise au schedule et sert aussi a
-construire le contexte temporel du produit.
-
-#### `PreparedProduct`
-
-Il contient les quantites invariantes entre tous les chemins d'un prix :
-strike, discount, niveaux de barriere ou coefficients de payoff. Il ne contient
-normalement pas le handler mutable.
-
-#### `Handler`
-
-Le handler est construit separement pour chaque trajectoire :
-
-```cpp
-Handler handler = ProductPolicy::make_handler(prepared_product);
-```
-
-Il recoit les observations et conserve l'etat path-dependent : somme pour une
-asiatique, minimum ou maximum pour un lookback, etat de barriere, coupons ou
-etat d'autocall. Retourner `false` depuis une observation autorise l'arret
-immediat du chemin.
-
-Le contrat produit commun travaille sur une coordonnee scalaire : spot ou
-log-spot. `PathProductObservationAdapter` extrait cette coordonnee depuis
-l'etat du modele avant d'appeler :
-
-```cpp
-bool Handler::on_initial_value(float value);
-
-bool Handler::on_observation(
-    std::uint32_t observation,
-    float value
-);
-```
-
-### 1.5 `PricingPolicy` : assemblage de la ligne et evaluation
-
-La pricing policy est la colle entre le schedule et le produit. Le kernel
-Monte Carlo scalaire lui impose :
-
-```cpp
-using Schedule;
-using DeviceInputs;
-using ProductParameters;
-using PreparedRow;
-
-static PreparedRow prepare_row(...);
-
-static float evaluate_path(
-    const PreparedRow& row,
-    philox::PhiloxKey key,
-    std::size_t path
-);
-```
-
-Pour le contrat produit partageable :
-
-```cpp
-struct PreparedRow {
-    typename Schedule::PreparedSchedule schedule;
-    typename ProductPolicy::PreparedProduct product;
-};
-```
-
-La preparation d'une ligne rend explicite l'origine du calendrier :
-
-```cpp
-static PreparedRow prepare_row(
-    const ModelParameters& model,
-    const ProductParameters& product_parameters,
-    const TimeConfiguration& time_configuration
-) {
-    const typename ProductPolicy::Calendar calendar =
-        ProductPolicy::calendar(product_parameters);
-
-    return {
-        Schedule::prepare(model, calendar, time_configuration),
-        ProductPolicy::prepare_product(
-            model,
-            product_parameters,
-            preparation_context(calendar, time_configuration)
-        ),
-    };
-}
-```
-
-`Schedule::prepare` est ici la forme compacte de la preparation en deux etapes
-`Dynamics::prepare_*` puis `Schedule::prepare_from_input` decrite plus haut.
-
-L'evaluation d'un chemin est :
-
-```mermaid
-flowchart TD
-    ROW[PreparedRow] --> H[ProductPolicy::make_handler]
-    H --> HANDLER[Handler path-local]
-    ROW --> SIM[SchedulePolicy::simulate]
-    HANDLER --> SIM
-    SIM --> LOOP[DynamicsPolicy::advance / simulate_one_step]
-    LOOP --> OBS[Observations contractuelles]
-    OBS --> HANDLER
-    LOOP --> TERMINAL[State terminal]
-    TERMINAL --> FINAL[ProductPolicy::finalize]
-    HANDLER --> FINAL
-    ROW --> FINAL
-    FINAL --> PAYOFF[Payoff]
-```
-
-Sous forme de code :
-
-```cpp
-static float evaluate_path(
-    const PreparedRow& row,
-    philox::PhiloxKey key,
-    std::size_t path
-) {
-    auto handler = ProductPolicy::make_handler(row.product);
-
-    const State terminal = Schedule::simulate(
-        row.schedule,
-        key,
-        path,
-        handler
-    );
-
-    return ProductPolicy::finalize(
-        row.product,
-        terminal,
-        handler
-    );
-}
-```
-
-Un terminal schedule remplace `simulate(..., handler)` par
-`simulate_terminal(...)`; la finalisation reste propriete du produit.
-
-### 1.6 `DeviceInputs` et kernel Monte Carlo
-
-`DeviceInputs` decode l'indice de resultat et charge les lignes de modele et de
-produit, en construction alignee ou cartesienne. Il appelle ensuite
-`PricingPolicy::prepare_row`.
-
-Le kernel generique effectue, pour chaque ligne de prix :
-
-1. la construction d'un unique `PreparedRow` par bloc ;
-2. son stockage en shared memory ;
-3. la creation d'une cle Philox partagee ;
-4. la distribution des paths entre les threads ;
-5. l'appel de `PricingPolicy::evaluate_path` ;
-6. l'accumulation et la reduction FP64 des moments ;
-7. l'ecriture du prix et de l'erreur standard.
-
-Le kernel ne connait ni le modele, ni le type de calendrier, ni le produit :
-toutes ces decisions ont ete resolues par la specialisation de la
-`PricingPolicy`.
-
-### 1.7 Exemples
-
-#### Asiatique Heston a pas fixe
+Une dynamique exacte sépare les invariants du modèle de ceux d'un intervalle :
 
 ```text
-Heston ModelParameters + dt
-    -> heston::DynamicsPolicy::prepare_dynamics
-    -> Heston PreparedDynamics
-
-AsianOptionParameters
-    -> AsianOptionPathPolicy::calendar
-    -> MaturityCalendar
-
-PreparedDynamics + MaturityCalendar + FixedStepTimeConfiguration
-    -> FixedStepDenseSchedule
-    -> PreparedSchedule
-
-PreparedSchedule + Asian PreparedProduct
-    -> PreparedRow
-    -> un Handler somme/compteur par path
-    -> payoff sur la moyenne arithmetique
+ModelParameters -> prepare_model -> PreparedModel
+(PreparedModel, delta_t) -> prepare_transition -> PreparedTransition
+(PreparedModel, PreparedTransition, random, state) -> simulate_one_step
 ```
 
-#### Option terminale Black-Scholes exacte
+Le schedule crée uniquement les transitions correspondant aux intervalles
+contractuels. Une option terminale utilise donc une transition de `0` à `T`,
+sans sous-pas artificiels. Les calendriers réguliers ou irréguliers réutilisent
+le même contrat en préparant les durées distinctes nécessaires.
+
+### 1.2 Schéma à pas fixe
+
+Une dynamique discrétisée prépare ses coefficients pour le `dt` global :
 
 ```text
-Black-Scholes ModelParameters
-    -> DynamicsPolicy::prepare_model
-    -> PreparedModel
-
-EuropeanOptionParameters
-    -> EuropeanOptionPathPolicy::calendar
-    -> MaturityCalendar
-
-PreparedModel + maturite + ExactTransitionTimeConfiguration
-    -> DynamicsPolicy::prepare_transition(T)
-    -> ExactTransitionTerminalSchedule::PreparedSchedule
-
-PreparedSchedule + European PreparedProduct
-    -> PreparedRow
-    -> transition exacte 0 -> T
-    -> payoff terminal
+(ModelParameters, dt) -> prepare_dynamics -> PreparedDynamics
+(PreparedDynamics, step_count, random, state) -> advance
 ```
 
-### 1.8 Une composition produit, plusieurs alias publics
+Le produit fournit des jours contractuels entiers. Le schedule les convertit
+en nombres de pas et possède la boucle temporelle ; la dynamique ne sait pas
+pourquoi un intervalle est observé. Les variantes terminale, dense, régulière,
+avec stub ou calendrier statique diffèrent par leur schedule, pas par une
+copie du moteur Monte Carlo.
 
-La factorisation produit est unique. Une surface publique specialisee telle
-que `AsianOptionPricingPolicy<Schedule, Side>` est un alias de la composition
-canonique
-`PathProductMonteCarloPricingPolicy<Schedule, AsianOptionPathPolicy<Side>>`;
-elle ne possede ni second corps, ni second calendrier, ni payoff duplique.
+### 1.3 Socle markovien général
 
-`ProductPathPolicy` rend explicites `calendar`, `PreparedProduct`, `Handler` et
-`finalize`. La meme policy produit est composee sans duplication par un
-schedule markovien, un lift N-facteurs ou l'executeur Volterra FFT. Le test
-`path_product_factorization_cuda` impose l'identite de type des alias publics
-markoviens avec cette composition canonique pour les 21 produits concernes.
-
-### 1.9 Invariants a retenir
-
-- `ModelParameters` sont interpretes d'abord par `DynamicsPolicy`.
-- Le produit est l'unique source du calendrier contractuel.
-- La time configuration est une convention numerique fournie par le launcher.
-- Le schedule combine dynamique preparee, calendrier et time configuration.
-- Le schedule possede la boucle de simulation, jamais le payoff.
-- `PreparedProduct` est invariant entre les paths ; `Handler` est path-local.
-- La pricing policy assemble `PreparedSchedule` et `PreparedProduct`.
-- Le kernel Monte Carlo ne depend que de l'interface finale de la pricing
-  policy.
-
-## 2. Volterra gaussien par schema hybride et FFT
-
-### 2.1 Frontieres de responsabilite
-
-Le moteur FFT conserve le meme `ProductPathPolicy` que le Monte Carlo
-markovien. La difference porte sur la dynamique : une transition locale
-`t -> t + dt` ne peut pas produire seule la valeur Volterra, car celle-ci
-depend de tout le bruit passe. Cette responsabilite est donc separee entre :
-
-- `HybridKernelPolicy`, qui discretise le noyau et reconstruit la valeur
-  Volterra a partir de la convolution ;
-- `ModelPathPolicy`, qui transforme cette valeur en variance ou volatilite et
-  fait avancer l'etat du modele ;
-- `SchedulePolicy`, qui traduit le calendrier contractuel en indices de la
-  grille FFT ;
-- `ProductPathPolicy`, inchange, qui fournit calendrier, handler et payoff.
-
-Ici, `KernelPolicy` designe le noyau mathematique de la convolution. Ce n'est
-pas un point d'entree `__global__` CUDA.
-
-```mermaid
-flowchart TD
-    MP[ModelParameters]
-    KP[HybridKernelPolicy]
-    PATH[ModelPathPolicy]
-    PP[ProductPathPolicy]
-    SP[SchedulePolicy]
-
-    MP --> PATH
-    PATH --> KPAR[kernel_parameters]
-    KPAR --> KP
-    PP --> CAL[Calendar]
-    CAL --> SP
-
-    KP --> ENGINE[hybrid_fft::launch_pricing_cuda]
-    PATH --> ENGINE
-    SP --> ENGINE
-    PP --> ENGINE
-    ENGINE --> PRICE[Prix + erreur standard]
-```
-
-La composition concrete est resolue a la compilation :
-
-```cpp
-volterra::hybrid_fft::launch_pricing_cuda<
-    FractionalHybridKernelPolicy,
-    rough_bergomi::PathPolicy,
-    ProductPathPolicy,
-    SchedulePolicy
->(...);
-```
-
-### 2.2 `HybridKernelPolicy` : discretisation Volterra
-
-Le contrat generique est formalise par
-`volterra::HybridKernelPolicy`. Pour le noyau fractionnaire normalise :
-
-```cpp
-struct FractionalHybridKernelPolicy {
-    using Parameters = float;
-
-    struct PreparedKernel {
-        // Noyau, dt, normalisation et cellule singuliere.
-    };
-
-    static PreparedKernel prepare(Parameters parameters, float dt);
-
-    static float far_cell_weight(
-        const PreparedKernel& kernel,
-        unsigned int lag
-    );
-
-    static float volterra_variance(
-        const PreparedKernel& kernel,
-        float time
-    );
-
-    static float reconstruct_volterra_value(
-        const PreparedKernel& kernel,
-        float far_convolution,
-        float rough_normal,
-        float singular_independent_normal
-    );
-};
-```
-
-Les quatre operations ont des roles distincts :
-
-| Methode | Responsabilite |
-|---|---|
-| `prepare` | Prepare une seule fois les invariants du noyau pour `dt`. |
-| `far_cell_weight` | Donne le poids stationnaire d'une cellule ancienne en fonction du seul lag. |
-| `volterra_variance` | Donne la variance deterministe de la valeur Volterra a une date. |
-| `reconstruct_volterra_value` | Ajoute a la convolution lointaine la cellule singuliere, decomposee sur deux normales. |
-
-`PreparedKernel` est opaque pour le moteur. En particulier, le moteur conserve
-lui-meme `sqrt(dt)` : il ne lit aucun champ prive a une implementation de
-noyau. Les implementations actuelles sont fractionnaire, fractionnaire
-log-module et resolvante fractionnaire.
-
-### 2.3 `ModelPathPolicy` : transformation vers l'etat du modele
-
-Le contrat `volterra::HybridPathPolicyFor<PathPolicy, KernelPolicy>` impose :
-
-```cpp
-struct PathPolicy {
-    using Parameters;
-    using PreparedModel;
-    using State;
-
-    static constexpr bool kUsesVolterraVariance;
-
-    static KernelPolicy::Parameters kernel_parameters(
-        const Parameters& parameters
-    );
-
-    static PreparedModel prepare_model(
-        const Parameters& parameters,
-        float dt
-    );
-
-    static State initial_state(const PreparedModel& model);
-
-    static void advance(
-        const PreparedModel& model,
-        float volterra_value,
-        float volterra_variance,
-        float rough_normal,
-        float independent_spot_normal,
-        State& state
-    );
-};
-```
-
-`kernel_parameters` est l'unique pont entre les parametres du modele et ceux
-du noyau. Le concept verifie que son type de retour est exactement
-`KernelPolicy::Parameters`.
-
-`advance` possede seul les equations propres au modele. Pour rough Bergomi, il
-transforme `Y_i` et `Var(Y_i)` en variance lognormale puis avance le log-spot.
-Pour rough SABR, il produit la volatilite et avance la coordonnee de Lamperti.
-Pour rough Stein--Stein, il transforme la valeur resolvante en volatilite ; sa
-variance deterministe n'est pas requise et
-`kUsesVolterraVariance == false` evite son calcul utile au chemin.
-
-Comme dans le moteur markovien equity, la policy expose aussi `spot(state)` et
-`log_spot(state)` afin que l'adaptateur produit observe la bonne coordonnee.
-
-### 2.4 Preparation d'une ligne
-
-```mermaid
-flowchart TD
-    MP[ModelParameters]
-    PP[ProductParameters]
-    TC[HybridTimeConfiguration]
-    N[step_count N]
-
-    MP --> KPAR[PathPolicy::kernel_parameters]
-    KPAR --> KPREP[KernelPolicy::prepare]
-    TC --> KPREP
-    KPREP --> PK[PreparedKernel]
-
-    MP --> MPREP[PathPolicy::prepare_model]
-    TC --> MPREP
-    MPREP --> PM[PreparedModel]
-
-    PP --> CAL[ProductPolicy::calendar]
-    CAL --> SPREP[SchedulePolicy::prepare]
-    TC --> SPREP
-    N --> SPREP
-    SPREP --> PS[PreparedSchedule]
-
-    MP --> PPREP[ProductPolicy::prepare_product]
-    PP --> PPREP
-    PS --> CTX[ProductPreparationContext]
-    CTX --> PPREP
-    PPREP --> PPROD[PreparedProduct]
-
-    PK --> ROW[PreparedRow]
-    PM --> ROW
-    PS --> ROW
-    PPROD --> ROW
-```
-
-Le `PreparedRow` contient donc :
-
-```cpp
-PreparedKernel   kernel;
-PreparedModel    model;
-PreparedProduct  product;
-PreparedSchedule schedule;
-PhiloxKey        key;
-float            sqrt_time_step;
-```
-
-Le kernel de preparation calcule ensuite une seule fois par ligne les poids
-du noyau, leur spectre FFT et, si le modele les utilise, les variances
-Volterra aux `N` dates.
-
-### 2.5 Convolution puis evaluation des chemins
-
-`N` est le nombre de pas de simulation. `L` est la longueur de FFT, choisie
-comme une puissance de deux suffisante pour zero-padder les deux suites et
-obtenir une convolution lineaire sans repliement circulaire ; typiquement
-`L >= 2N`.
-
-Deux chemins reels sont empaquetes dans les parties reelle et imaginaire d'une
-FFT complexe. Un groupe cooperatif de threads du bloc possede une transformee,
-et plusieurs groupes peuvent traiter plusieurs paires de chemins dans le meme
-bloc selon `ffts_per_block`.
-
-```mermaid
-flowchart TD
-    G[Poids far_cell_weight] --> FG[FFT unique du noyau]
-    W[Deux chemins de Delta W empaquetes] --> FW[FFT C2C]
-    FG --> PROD[Produit spectral]
-    FW --> PROD
-    PROD --> IFFT[IFFT C2C]
-    IFFT --> FAR[Convolutions lointaines des deux chemins]
-
-    FAR --> RECON[reconstruct_volterra_value]
-    RN[rough_normal] --> RECON
-    SN[singular_independent_normal] --> RECON
-    RECON --> Y[Y_i]
-    Y --> ADV[PathPolicy::advance]
-    VAR[volterra_variance] --> ADV
-    RN --> ADV
-    Z[independent_spot_normal] --> ADV
-    ADV --> STATE[State_i]
-    STATE --> SCHED[SchedulePolicy::on_step]
-    SCHED --> HANDLER[Product Handler aux seules observations]
-    HANDLER --> FINAL[ProductPolicy::finalize]
-```
-
-La convolution produit toutes les contributions lointaines du chemin en
-`O(N log N)`. L'evaluation temporelle reste ensuite sequentielle en `O(N)` par
-chemin, car `S_i` depend de `S_(i-1)`. Aucune trajectoire complete de spot ou de
-volatilite n'est ecrite en VRAM : l'etat et le handler restent path-local, et
-seules les dates demandees par le schedule sont observees.
-
-### 2.6 Invariants a retenir
-
-- `KernelPolicy` ne connait ni le modele equity, ni le produit.
-- `PathPolicy` ne calcule ni poids FFT, ni calendrier, ni payoff.
-- `ProductPathPolicy` est partage avec le Monte Carlo markovien.
-- Le calendrier provient toujours des `ProductParameters`.
-- La FFT calcule le passe Volterra ; `PathPolicy::advance` calcule l'etat du
-  modele.
-- Le spectre du noyau et les variances deterministes sont prepares une seule
-  fois par ligne.
-- Deux chemins reels partagent une transformee C2C par empaquetage complexe.
-- Le moteur ne materialise en VRAM ni les browniens, ni les spots, ni les
-  volatilites complets.
-
-## 3. Approximation rough markovienne N-facteurs
-
-### 3.1 Preparation hote, execution Monte Carlo commune
-
-Les lifts rough Heston et quadratic rough Heston approchent leur noyau par une
-somme exponentielle a 2, 3 ou 7 facteurs. L'ajustement des nodes, weights et
-coefficients recurrents est une preparation hote couteuse, executee une fois
-par ligne de modele. Le device recoit ensuite un
-`PreparedDynamics<FactorCount>` compact.
+Les transitions exactes et à pas fixe convergent vers la même composition :
 
 ```mermaid
 flowchart LR
-    MP[ModelParameters] --> FIT[Preparation N-facteurs hote]
-    FIT --> PD[PreparedDynamics&lt;N&gt; device]
-    PP[ProductParameters] --> PPATH[ProductPathPolicy]
-    PD --> INPUTS[PreparedModelProductDeviceInputs]
-    PPATH --> INPUTS
-    INPUTS --> MC[Kernel Monte Carlo generique]
+    M[ModelParameters] --> D[DynamicsPolicy]
+    P[ProductParameters] --> C[ProductPathPolicy::calendar]
+    D --> S[SchedulePolicy]
+    C --> S
+    S --> R[PreparedRow]
+    P --> Q[PreparedProduct]
+    Q --> R
+    R --> K[Monte Carlo générique]
 ```
 
-`launch_prepared_path_product_cuda` adapte ces dynamiques deja preparees a
-`PathProductMonteCarloPricingPolicy`. Schedules, calendriers, handlers,
-reduction des moments et geometrie de kernel restent ceux de la section 1. Le
-lift ne reimplemente donc aucun produit et ne doit pas introduire un moteur
-Monte Carlo concurrent.
+`ProductPathPolicy` possède le calendrier, la préparation du produit, le
+handler d'observation et la finalisation du payoff. Le même handler sert avec
+un schedule compatible sans connaître la dynamique. Le produit reste donc la
+source unique du calendrier contractuel.
 
-### 3.2 Invariants
+Le kernel générique `monte_carlo_price_kernel<PricingPolicy>` :
 
-- la preparation N-facteurs est validee avant sa copie device;
-- le nombre de facteurs est un parametre de template, sans boucle ou dispatch
-  runtime sur la variante dans le kernel;
-- `PreparedDynamics` est aligne avec la ligne modele correspondante;
-- la policy produit et le schedule fixed-step sont exactement ceux du chemin
-  markovien canonique;
-- toute modification du fit doit verifier convergence en temps et en facteurs,
-  reproductibilite Philox, registres, spills et cout end-to-end.
+1. charge et prépare une ligne modèle-produit ;
+2. partage ses invariants dans le bloc ;
+3. distribue les chemins avec le mapping Philox contractuel ;
+4. appelle `PricingPolicy::evaluate_path` ;
+5. réduit les moments en FP64 ;
+6. écrit prix et erreur standard.
 
-## 4. Formules fermees equity et fixed income
+L'identifiant de manifeste `equity_markovian` sélectionne cette famille. Les
+signatures complètes, budgets de stockage et conventions temporelles sont dans
+le [contrat de pricing](closed-form-and-monte-carlo-pricing-contract.md).
 
-### 4.1 Contrat d'execution commun
+`fixed_income_monte_carlo` réutilise exactement ce kernel pour les swaptions
+européennes gaussiennes à deux facteurs. Le schedule simule conjointement les
+facteurs terminaux et leur intégrale ; la policy produit évalue le swap avec
+les ZCB conditionnels, puis actualise son payoff. La composition ajustée ajoute
+la courbe aux analytics, sans moteur MC parallèle ni grille temporelle fine.
 
-Une formule fermee expose une `ClosedFormPricingPolicy` avec :
+## 2. Factorisation rough
+
+### 2.1 Volterra gaussien par FFT
+
+Le moteur `equity_volterra_fft` sépare quatre responsabilités :
+
+| Policy | Responsabilité |
+|---|---|
+| `HybridKernelPolicy` | Préparer le noyau, ses poids, sa variance et reconstruire la valeur Volterra |
+| `ModelPathPolicy` | Transformer la valeur Volterra en état propre au modèle |
+| `SchedulePolicy` | Mapper les dates produit sur la grille FFT |
+| `ProductPathPolicy` | Observer le chemin et calculer le payoff |
+
+Ici, `KernelPolicy` désigne le noyau mathématique de convolution, pas une
+fonction CUDA `__global__`.
+
+```mermaid
+flowchart LR
+    MP[ModelParameters] --> KP[kernel_parameters]
+    KP --> HK[HybridKernelPolicy]
+    MP --> PATH[ModelPathPolicy]
+    PP[ProductParameters] --> S[SchedulePolicy]
+    PP --> PROD[ProductPathPolicy]
+    HK --> FFT[Moteur Volterra FFT]
+    PATH --> FFT
+    S --> FFT
+    PROD --> FFT
+```
+
+Le moteur prépare une fois par ligne le spectre du noyau et les variances
+déterministes requises. Il calcule la convolution lointaine en
+$`O(N\log N)`$, reconstruit la cellule singulière, puis appelle
+`ModelPathPolicy::advance`. L'évolution de l'état reste séquentielle en
+$`O(N)`$ par chemin. Le moteur ne dépend d'aucun champ interne de
+`PreparedKernel` et ne matérialise pas les trajectoires complètes de spot ou de
+volatilité en VRAM.
+
+Le contrat `HybridPathPolicyFor` vérifie notamment que
+`kernel_parameters()` retourne exactement `KernelPolicy::Parameters`.
+
+### 2.2 Approximation markovienne N-facteurs
+
+Le moteur `equity_n_factor` ajuste le noyau rough par une somme exponentielle.
+La préparation coûteuse des nœuds, poids et coefficients récurrents se fait
+sur l'hôte, une fois par ligne. Le nombre de facteurs est un paramètre de
+template ; le device reçoit un `PreparedDynamics<FactorCount>` compact.
+
+```text
+ModelParameters -> fit N-facteurs sur l'hôte -> PreparedDynamics<N>
+PreparedDynamics<N> + ProductPathPolicy -> moteur Monte Carlo markovien commun
+```
+
+Le lift ne possède donc ni second payoff, ni second schedule, ni second kernel
+de réduction. Une modification du fit doit requalifier convergence en temps et
+en facteurs, mapping Philox, registres, spills et coût end-to-end.
+
+### 2.3 Socle rough général
+
+FFT et N-facteurs factorisent ce qui est mathématiquement commun, sans masquer
+leurs différences d'exécution :
+
+- les paramètres rough et la transformation modèle restent dans le modèle ;
+- calendrier, handler et payoff restent dans `ProductPathPolicy` ;
+- FFT possède convolution et workspace fréquentiel ;
+- N-facteurs possède le fit hôte puis réutilise le moteur markovien ;
+- les deux exposent les mêmes coordonnées observables au produit ;
+- aucun réglage de chunk, de bloc ou de nombre de facteurs n'est présenté comme
+  universel sans mesure par architecture.
+
+## 3. Factorisation rough–markovienne
+
+La frontière partagée n'est pas une super-dynamique artificielle. Elle est
+constituée des contrats qui ne dépendent pas de la mémoire du processus :
+
+- `ProductPathPolicy` et son handler ;
+- extraction du calendrier depuis `ProductParameters` ;
+- contexte de préparation du produit ;
+- conventions d'observation spot/log-spot ;
+- mapping déterministe ligne-chemin vers Philox ;
+- accumulation FP64 des moments, résultat et erreur standard ;
+- validations de lancement et diagnostics de ressources.
+
+Ainsi, ajouter un produit compatible ne doit pas créer une implémentation par
+moteur. Ajouter un moteur ne doit pas recopier les produits. Seuls les adapters
+de composition et les préparations réellement différentes restent spécifiques.
+
+## 4. Formules fermées equity–fixed income
+
+Les engines `equity_closed_form` et `fixed_income_closed_form` partagent le
+même contrat d'exécution :
 
 ```cpp
 using DeviceInputs;
@@ -897,55 +239,76 @@ static PreparedRow prepare_row(...);
 static float evaluate_price(const PreparedRow& row);
 ```
 
-`closed_form::launch_closed_form_cuda` valide les dimensions, prepare une ligne
-par thread et choisit statiquement le kernel direct ou grid-stride selon la
-geometrie. Il n'y a ni etat de chemin, ni Philox, ni reduction Monte Carlo.
-Les lignes preparees restent sous le budget per-thread du contrat closed form.
+`closed_form::launch_closed_form_cuda` valide les dimensions, prépare une ligne
+par thread et sélectionne statiquement le kernel direct ou grid-stride. Il n'y
+a ni Philox, ni état de chemin, ni réduction Monte Carlo.
 
-### 4.2 Black--Scholes et formules fixed income
+La factorisation s'arrête à la frontière mathématique :
 
-Les compositions Black--Scholes combinent analytics lognormales et contrat
-produit. La geometric Asian valide en plus son calendrier host avant lancement;
-le range accrual utilise une somme FP32 compensee qualifiee numeriquement.
+- Black--Scholes combine les analytics lognormales et le contrat produit ;
+- les modèles de taux autonomes fournissent leurs analytics affines ;
+- les modèles ajustés à une courbe composent un provider de courbe sans
+  l'intégrer aux paramètres du modèle ;
+- les familles un facteur, deux facteurs, CIR et gaussiennes restent des
+  spécialisations explicites lorsque leurs formules diffèrent ;
+- les schedules variables restent des vues produit, pas une dépendance des
+  analytics modèle.
 
-Les compositions fixed income selectionnent a la compilation un provider
-analytique autonome ou ajuste a Nelson--Siegel/Svensson. Les branches de
-templates sont separees par factorisation mathematique : affine un facteur
-CIR, affine gaussienne un facteur, affine deux facteurs, courbe ajustee un
-facteur et courbe ajustee deux facteurs. Les schedules variables restent des
-vues de donnees produit; ils ne deviennent pas une dependance des analytics
-modele.
+Les formules et tolérances appartiennent au contrat de pricing et aux
+références mathématiques locales ; les templates de codegen ne doivent contenir
+que la façade répétitive.
 
-## 5. Longstaff--Schwartz equity et fixed income
+## 5. Factorisation fixed income–equity
 
-Les moteurs early exercise possedent une execution distincte parce qu'ils
-stockent les etats/cashflows aux dates d'exercice puis effectuent une induction
-backward et des regressions. La policy produit fournit calendrier d'exercice,
-valeur immediate, etat de regression et actualisation; l'execution generique
-possede workspace, moments, Cholesky et diagnostics.
+Les deux domaines partagent les mécanismes d'exécution qui ont le même contrat,
+pas leurs états financiers :
 
-Les modeles equity selectionnent un schedule fixed-step ou exact selon leur
-dynamique. En fixed income, les modeles gaussiens emploient leur transition
-jointe exacte et CIR emploie explicitement la dynamique jointe fixed-step avec
-integrale trapezoidale. CIR ne doit donc jamais etre publie comme transition
-jointe exacte dans le manifeste.
+| Niveau partagé | Spécialisation conservée |
+|---|---|
+| Launcher closed form | Analytics et `PreparedRow` propres au domaine |
+| Kernel Monte Carlo et réduction | Dynamics, schedule et payoff |
+| Longstaff--Schwartz | État de régression, actualisation et valeur immédiate |
+| Diagnostics et guards | Géométrie et budgets propres au kernel spécialisé |
+| Codegen des façades | Métadonnées de composition du manifeste |
 
-Le contrat normatif complet, y compris les decisions FP64 mesurees de la
-regression et de la frontiere d'exercice, est
-[`american-and-bermudan-pricing-contract.md`](american-and-bermudan-pricing-contract.md).
+Pour l'early exercise, les engines `equity_lsm_fixed`, `equity_lsm_exact` et
+`fixed_income_lsm` partagent workspace, induction backward, régression,
+Cholesky et diagnostics. La policy domaine fournit les dates d'exercice,
+l'état de régression, la valeur immédiate et l'actualisation. Une transition
+jointe exacte n'est déclarée que lorsqu'elle existe réellement ; une
+discrétisation fixed-step ne peut pas être renommée « exacte » pour homogénéiser
+la surface.
 
-## 6. Sampling modele
+## 6. Sampling modèle
 
-Le sampling ne compose aucun produit : une source de parametres, une source de
-calendriers et une policy d'observation construisent des trajectoires modele.
-Il reutilise les memes dynamiques et les memes familles de preparation que le
-pricing : markovien fixed/exact, N-facteurs prepare ou Volterra hybride FFT.
-Les calendriers aleatoires sont valides cote host sur leur borne maximale avant
-lancement.
+Le sampling ne compose aucun produit. Une source de paramètres, une source de
+calendriers et une policy d'observation construisent les trajectoires du modèle.
+Il réutilise les mêmes dynamiques et préparations que le pricing :
 
-Les bindings `sample.cuh`/`sample.cu`, helpers de generation et recettes YAML
-sont derives du manifeste. Ajouter un modele ne doit pas conduire a recopier un
-kernel sample : seules les capacites et fonctions propres au modele sont
-declarees, puis le codegen choisit la famille de templates. Le contrat de
-dataset et les layouts publies sont decrits dans
-[`../model-sample-dataset-generation.md`](../model-sample-dataset-generation.md).
+| Engine du manifeste | Réutilisation |
+|---|---|
+| `sample_markovian` | Dynamics exactes ou fixed-step |
+| `sample_n_factor` | Fit hôte et `PreparedDynamics<N>` |
+| `sample_volterra_fft` | `HybridKernelPolicy`, `ModelPathPolicy` et moteur FFT |
+| `sample_fixed_income` | Dynamics et observations de taux |
+
+Les bindings `sample.cuh/.cu`, helpers et recettes sont dérivés du manifeste.
+Le contrat des formes publiées, grilles et limites mémoire est
+[`model-sample-dataset-generation.md`](../model-sample-dataset-generation.md).
+
+## Règles d'extension
+
+Avant d'ajouter une implémentation, déterminer dans cet ordre :
+
+1. l'équation appartient-elle au modèle ou à une primitive commune ?
+2. le calendrier et le payoff existent-ils déjà comme contrat produit ?
+3. la simulation est-elle exacte, fixed-step, N-facteurs ou Volterra FFT ?
+4. la composition satisfait-elle un engine existant du manifeste ?
+5. le code demandé est-il une façade générable ou une vraie spécialisation ?
+6. la différence modifie-t-elle le contrat numérique, les ressources ou le
+   mapping Philox ?
+
+Une nouvelle copie de boucle, de payoff, de réduction, de launcher ou de
+binding est un signal de factorisation manquante. Une abstraction commune qui
+ajoute une branche runtime dans un kernel chaud, augmente les ressources sans
+mesure ou confond deux schémas numériques est également incorrecte.

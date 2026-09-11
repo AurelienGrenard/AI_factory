@@ -55,6 +55,7 @@ concept SmallLinearRegressor =
         unsigned int threads_per_block
     ) {
         { Regressor::kBasisSize } -> std::convertible_to<std::size_t>;
+        { Regressor::kRefineNormalResidual } -> std::convertible_to<bool>;
         {
             Regressor::kRegressionValueCount
         } -> std::convertible_to<std::size_t>;

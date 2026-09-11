@@ -63,9 +63,12 @@ __host__ __device__ inline std::uint32_t rounded_observation_step(
     std::uint32_t step_count
 ) {
     const std::uint64_t numerator = cumulative_days * step_count;
-    return static_cast<std::uint32_t>(
+    const auto rounded = static_cast<std::uint32_t>(
         (numerator + maturity_days / 2U) / maturity_days
     );
+    // Positive contractual dates map to positive grid dates. On a coarse
+    // grid several events may coincide; schedules deliver each in order.
+    return cumulative_days != 0U && rounded == 0U ? 1U : rounded;
 }
 
 struct TerminalHybridSchedule {
@@ -293,8 +296,9 @@ struct StubbedRegularHybridSchedule {
         float maturity_years;
         float time_step;
         std::uint32_t step_count;
-        std::uint32_t first_observation_step;
-        std::uint32_t observation_interval_steps;
+        std::uint32_t first_observation_day;
+        std::uint32_t observation_interval_days;
+        std::uint32_t maturity_days;
         std::uint32_t observation_count;
     };
 
@@ -335,16 +339,9 @@ struct StubbedRegularHybridSchedule {
             maturity_years,
             maturity_years / static_cast<float>(step_count),
             step_count,
-            rounded_observation_step(
-                calendar.first_observation_day,
-                maturity_days,
-                step_count
-            ),
-            rounded_observation_step(
-                calendar.observation_interval_days,
-                maturity_days,
-                step_count
-            ),
+            calendar.first_observation_day,
+            calendar.observation_interval_days,
+            static_cast<std::uint32_t>(maturity_days),
             calendar.observation_count,
         };
     }
@@ -376,10 +373,13 @@ struct StubbedRegularHybridSchedule {
         bool keep_running = true;
         while (keep_running
                && cursor.observation < schedule.observation_count
-               && schedule.first_observation_step
-                    + cursor.observation
-                        * schedule.observation_interval_steps
-                    == step + 1U) {
+               && rounded_observation_step(
+                    schedule.first_observation_day
+                        + static_cast<std::uint64_t>(cursor.observation)
+                            * schedule.observation_interval_days,
+                    schedule.maturity_days,
+                    schedule.step_count
+               ) == step + 1U) {
             keep_running = handler.on_observation(
                 cursor.observation,
                 state

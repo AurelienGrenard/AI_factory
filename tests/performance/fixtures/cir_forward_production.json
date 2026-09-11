@@ -1,0 +1,6 @@
+[
+  {"id":"warmup_production","method":"production","indices":[0,100,362,590,784,899,900,999],"paths":16384,"seed":9182026000,"warmup":true},
+  {"id":"production_payer","method":"production","indices":"all","paths":1048576,"seed":12668829039698640896},
+  {"id":"production_receiver","method":"production","side":"receiver","indices":"all","paths":1048576,"seed":12668829043993608192},
+  {"id":"production_payer_geometry512","method":"production","indices":[0,100,362,590,784,899,900,999],"paths":1048576,"threads":512,"blocks":16,"seed":12668829039698640896}
+]

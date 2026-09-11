@@ -1,0 +1,811 @@
+{
+  "scope": "post-campaign diagnostics only; timings excluded",
+  "campaign": "build-dev/jamshidian-strategy-final-diagnostics-01",
+  "inputs_and_executable_sha256": {
+    "build-dev/ai_factory_jamshidian_strategy_benchmark": "61b770d565fb63507aade0dd835bfa94b734c5c7b0e1a7ea87a02d794e85b09f",
+    "datasets/curve/nelson_siegel/nelson_siegel_01.json": "e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94",
+    "datasets/curve/svensson/svensson_01.json": "66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a",
+    "datasets/model/fixed_income/cir/parameters/cir_01.json": "4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1",
+    "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json": "f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915",
+    "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json": "13fcf2d23d843352b95166e0e8533519c208d22d9da62f765b9cc9b38a653247",
+    "datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json": "1966f6147218ec57ac8e90dead97464944c0d037ed064d7fc522ba46e779571e",
+    "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json": "eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479",
+    "datasets/product/european_swaption/european_swaptions_01.json": "5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf"
+  },
+  "sources": [
+    {
+      "model": "cir",
+      "source_index": 916,
+      "model_row": {
+        "id": "000917",
+        "parameters": {
+          "mean_reversion": 2.3375487327575684,
+          "long_term_mean": 0.14969220757484436,
+          "initial_state": 0.009378142654895782,
+          "volatility": 0.501526951789856
+        }
+      },
+      "product_row": {
+        "id": "000917",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 1,
+          "payment_interval": 252,
+          "payment_count": 50,
+          "accrual_fraction": 1.0
+        }
+      }
+    },
+    {
+      "model": "cir",
+      "source_index": 948,
+      "model_row": {
+        "id": "000949",
+        "parameters": {
+          "mean_reversion": 1.3311567306518555,
+          "long_term_mean": 0.17828887701034546,
+          "initial_state": 0.07589762657880783,
+          "volatility": 0.2767195999622345
+        }
+      },
+      "product_row": {
+        "id": "000949",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 21,
+          "payment_interval": 21,
+          "payment_count": 600,
+          "accrual_fraction": 0.0833333358168602
+        }
+      }
+    },
+    {
+      "model": "cir",
+      "source_index": 952,
+      "model_row": {
+        "id": "000953",
+        "parameters": {
+          "mean_reversion": 2.1520187854766846,
+          "long_term_mean": 0.19518226385116577,
+          "initial_state": 0.026100996881723404,
+          "volatility": 0.31367743015289307
+        }
+      },
+      "product_row": {
+        "id": "000953",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 21,
+          "payment_interval": 63,
+          "payment_count": 200,
+          "accrual_fraction": 0.25
+        }
+      }
+    },
+    {
+      "model": "cir",
+      "source_index": 957,
+      "model_row": {
+        "id": "000958",
+        "parameters": {
+          "mean_reversion": 0.25887054204940796,
+          "long_term_mean": 0.1444702446460724,
+          "initial_state": 0.16375575959682465,
+          "volatility": 0.12965041399002075
+        }
+      },
+      "product_row": {
+        "id": "000958",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0010000000474974513,
+          "exercise_time": 21,
+          "payment_interval": 252,
+          "payment_count": 50,
+          "accrual_fraction": 1.0
+        }
+      }
+    },
+    {
+      "model": "cir",
+      "source_index": 988,
+      "model_row": {
+        "id": "000989",
+        "parameters": {
+          "mean_reversion": 0.706378698348999,
+          "long_term_mean": 0.15055815875530243,
+          "initial_state": 0.18681620061397552,
+          "volatility": 0.13484551012516022
+        }
+      },
+      "product_row": {
+        "id": "000989",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 12600,
+          "payment_interval": 21,
+          "payment_count": 600,
+          "accrual_fraction": 0.0833333358168602
+        }
+      }
+    },
+    {
+      "model": "cir",
+      "source_index": 992,
+      "model_row": {
+        "id": "000993",
+        "parameters": {
+          "mean_reversion": 0.7221033573150635,
+          "long_term_mean": 0.1919848769903183,
+          "initial_state": 0.15112964808940887,
+          "volatility": 0.25034841895103455
+        }
+      },
+      "product_row": {
+        "id": "000993",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 12600,
+          "payment_interval": 63,
+          "payment_count": 200,
+          "accrual_fraction": 0.25
+        }
+      }
+    },
+    {
+      "model": "vasicek",
+      "source_index": 996,
+      "model_row": {
+        "id": "000997",
+        "parameters": {
+          "mean_reversion": 1.069475769996643,
+          "long_term_mean": 0.1271408647298813,
+          "volatility": 0.04266421124339104,
+          "initial_state": -0.04122953861951828
+        }
+      },
+      "product_row": {
+        "id": "000997",
+        "parameters": {
+          "notional": 1.0,
+          "strike": 0.0,
+          "exercise_time": 12600,
+          "payment_interval": 252,
+          "payment_count": 50,
+          "accrual_fraction": 1.0
+        }
+      }
+    }
+  ],
+  "observations": [
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 64,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_004",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 512,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_007",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 64,
+        "blocks": 16,
+        "grid_policy": "full",
+        "id": "job_000",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 128,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_005",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 256,
+        "blocks": 4,
+        "grid_policy": "full",
+        "id": "job_002",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 128,
+        "blocks": 8,
+        "grid_policy": "full",
+        "id": "job_001",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 256,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_006",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "cir",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 512,
+        "blocks": 2,
+        "grid_policy": "full",
+        "id": "job_003",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 916,
+          "source_index": 916,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 948,
+          "source_index": 948,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 952,
+          "source_index": 952,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 957,
+          "source_index": 957,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 988,
+          "source_index": 988,
+          "actual": null,
+          "finite": false
+        },
+        {
+          "result_index": 992,
+          "source_index": 992,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 64,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_004",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 512,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_007",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 64,
+        "blocks": 16,
+        "grid_policy": "full",
+        "id": "job_000",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 128,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_005",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 256,
+        "blocks": 4,
+        "grid_policy": "full",
+        "id": "job_002",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 128,
+        "blocks": 8,
+        "grid_policy": "full",
+        "id": "job_001",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "cooperative",
+        "threads": 256,
+        "blocks": 1000,
+        "grid_policy": "full",
+        "id": "job_006",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    },
+    {
+      "model": "vasicek",
+      "side": "payer",
+      "geometry": {
+        "rows": 1000,
+        "strategy": "scalar",
+        "threads": 512,
+        "blocks": 2,
+        "grid_policy": "full",
+        "id": "job_003",
+        "warmups": 1,
+        "repetitions": 3,
+        "operations": 1,
+        "predicted_ms": 10.0
+      },
+      "values": [
+        {
+          "result_index": 996,
+          "source_index": 996,
+          "actual": null,
+          "finite": false
+        }
+      ]
+    }
+  ]
+}

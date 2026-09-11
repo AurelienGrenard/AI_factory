@@ -24,11 +24,13 @@ int main() {
         ${model_alias}::load_models(model_path),
         product_dataset,
         [maximum_payment_count = product_dataset.maximum_payment_count](
-            auto... arguments
+            const offline::cuda_tuning::PricingLaunchPlan& plan, auto... arguments
         ) {
             ${model_alias}::launch_${model}_european_swaption_cuda<SwaptionSide::${swaption_side}>(
                 arguments...,
-                maximum_payment_count
+                maximum_payment_count,
+                plan.profile.distribution == offline::cuda_tuning::PriceWorkDistribution::block
+                    ? closed_form::WorkDistribution::cooperative : closed_form::WorkDistribution::scalar
             );
         },
         "datasets/model/fixed_income/${model}/prices/${variant}/"
@@ -40,9 +42,6 @@ int main() {
         "${model}_01__${variant}_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond ${bond_option_side_plural}",
         "${model_display} European ${swaption_side} swaption",
-        datasets::EuropeanSwaptionGenerationConfiguration{
-            128U,
-            datasets::EuropeanSwaptionWorkDistribution::one_price_per_block,
-        }
+        ${launch_identity}
     );
 }

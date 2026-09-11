@@ -16,10 +16,9 @@ Dynamics -> Schedule -> PricingPolicy <- ContinuationState
 Les concepts vérifient cette composition à la compilation. Il n'existe ni
 classe de base, ni appel virtuel, ni allocation dans une trajectoire CUDA.
 
-Les implémentations actuelles couvrent Heston, Bates, Variance Gamma, Normal
-Inverse Gaussian, ainsi que les swaptions bermudéennes OU, Vasicek, CIR, G2,
-Hull-White et G2++. Elles partagent les mêmes kernels et spécialisent seulement
-schedule, état de continuation, payoff et base de régression.
+Le manifeste de capacités possède la liste des compositions actives. Toutes
+partagent les mêmes kernels et spécialisent seulement schedule, état de
+continuation, payoff et base de régression.
 
 ## Calendrier d'exercice
 
@@ -94,6 +93,45 @@ modifie pas les kernels.
 Les swaptions utilisent `OneFactorRateContinuationState` ou
 `TwoFactorRateContinuationState`. Ces projections stockent les facteurs requis
 par la régression et l'intégrale du taux requise par l'actualisation pathwise.
+
+CIR utilise `ScalarRateContinuationState` sous la mesure forward du dernier
+exercice : aucune intégrale n'est stockée. Les modèles gaussiens conservent la
+transition jointe exacte facteurs–intégrale sous la mesure risque-neutre.
+
+### Numéraire terminal pour CIR
+
+`cir/forward_measure.cuh` expose la transition exacte sous `Q(T*)`, avec
+`T*` fixé à la dernière date d'exercice. Sa durée et le temps restant jusqu'à
+`T*` sont deux arguments distincts ; le concept `TerminalForwardDynamicsPolicy`
+ne prétend pas être une dynamique exacte homogène. Les fonctions affines du
+numéraire réutilisent les analytics CIR existantes. Les samples et la dynamique
+risque-neutre ne changent pas.
+
+CIR++ partage cette transition : le décalage déterministe s'annule dans la
+densité normalisée du changement de mesure. Le schedule conserve les paramètres
+de dynamique séparément des analytics fitted. Les valeurs du numéraire
+utilisent `P_fitted(t,T*)` aux dates absolues, jamais `P_fitted(0,T*-t)`.
+La même policy terminal-forward compose les deux modèles ; les moteurs LSM,
+le régresseur et le mapping Philox restent communs.
+
+`TerminalForwardRegularExerciseSchedule` simule uniquement les exercices.
+`TerminalForwardBermudanSwaptionPricingPolicy` réutilise le payoff Bermudan et
+exprime chaque cashflow comme `H(t) * P(0,T*) / P(t,T*)`. La cible de régression
+et la continuation sont déjà dans ces unités : aucune actualisation par
+intervalle ni multiplication finale supplémentaire. La régression Hermite
+cubique et son partage FP32/FP64 restent inchangés. L'identité de mesure est
+exacte, mais pas l'approximation LSM à base finie ; comparer son biais à une
+référence indépendante, pas seulement à l'ancien schéma de discounting.
+
+Les coefficients variables sont préparés une fois par exercice dans
+`WorkspaceDescriptor::observation_fields`, jamais une fois par trajectoire.
+Une policy qui déclare `observation_field_descriptors()` fournit aussi
+`prepare_observations(PreparedRow&, StateView)` ; le kernel de préparation
+appelle ce hook statiquement avant la simulation. Le nombre d'entrées est le
+nombre d'états stockés divisé par le nombre de trajectoires, vérifié entier.
+Le planner inclut ces régions dans son budget VRAM. Les autres policies
+n'allouent rien et n'exécutent aucun branchement runtime supplémentaire.
+Il n'existe pas de plafond arbitraire à 32 exercices dans le pricer CIR.
 
 ### `EarlyExercisePricingPolicy`
 
@@ -173,6 +211,38 @@ FP64 et la comparaison exercice/continuation reste en FP64.
 `select_exercise_cashflow` porte cette dernière décision : aucun cast FP32 de
 la continuation n'est autorisé avant le choix du cashflow.
 
+### Correction résiduelle bornée
+
+Une composition dont les équations normales sont trop sensibles aux arrondis
+peut sélectionner `RegressionRefinement::normal_residual` dans
+`NormalEquationRegressor`. Kou American est actuellement la seule composition
+qui l'active. Les autres gardent leurs opérations et leurs sept kernels.
+
+Après la première résolution, un passage relit les mêmes candidats et forme
+`g = sum(phi * (Y - phi^T beta))` en FP64. Les résidus sont évalués par FMA;
+les réductions de bloc conservent leur erreur d'addition. Le second solve
+résout `(G + lambda I) delta = g - lambda beta`, puis ajoute `delta` aux
+coefficients. Il s'agit d'une seule correction, pas d'une boucle jusqu'à
+convergence. Base, ridge, chemins, calendrier et règle d'exercice ne changent
+pas; les coefficients corrigés peuvent changer les décisions sensibles.
+
+Le passage réutilise les emplacements du second membre dans les partials :
+aucune VRAM supplémentaire, aucune copie CPU par exercice. Les deux kernels
+sont des spécialisations des mêmes passages accumulation/résolution, avec
+dispatch à la compilation. Les dates ignorées restent ignorées; une correction
+non finie est fatale. Un seul statut est compté par date, après la correction
+lorsqu'elle s'applique.
+
+Le surcoût FP64 est accepté seulement pour la sensibilité démontrée, jamais
+comme un défaut universel. `longstaff_schwartz_normal_residual_cuda` compare les
+coefficients à une référence CPU et vérifie les statuts;
+`kou_lsm_geometry_cuda` rejoue huit lignes sensibles à `2^20` chemins,
+call/put et trois géométries. Les campagnes catalogue comparent séparément prix,
+erreurs, temps et ressources. Une extension à une autre composition doit refaire
+ces contrôles; la correction ne garantit pas la convergence sur tout domaine.
+
+### Statuts et publication
+
 Chaque résolution produit un `RegressionStatus` typé :
 
 | Statut | Politique backward | Publication |
@@ -231,7 +301,7 @@ pas seulement le solveur isolé.
 
 ## Kernels partagés
 
-`longstaff_schwartz_kernels.cuh` contient les sept kernels communs :
+`longstaff_schwartz_kernels.cuh` contient sept passages communs :
 
 1. `prepare_rows_kernel` prépare une ligne par résultat ;
 2. `simulate_paths_kernel` simule les trajectoires et écrit les états SoA ;
@@ -245,6 +315,12 @@ Une grille 2D affecte `blockIdx.y` au prix et `blockIdx.x` à un bloc de chemins
 La boucle backward est orchestrée sur l'hôte afin de synchroniser globalement
 les trois kernels de chaque date. `PreparedRow` est partagé par bloc et reste
 sous la limite commune de 2 048 octets.
+
+La correction résiduelle optionnelle ajoute deux lancements par date : une
+spécialisation résiduelle de `regression_partials_kernel` puis une résolution
+de correction. Les diagnostics les nomment `regression_residual_partials` et
+`refine_regressions`; ils ne doivent pas être confondus avec les premiers
+passages ni omis du compteur de lancements.
 
 ## Workspace et planning
 
@@ -269,6 +345,29 @@ batch, après la synchronisation déjà requise par le chronométrage ; aucune
 copie hôte n'est ajoutée dans la boucle backward.
 
 ## Fichier modèle-produit
+
+### Sorties optionnelles de dates d'exercice
+
+La voie prix-delta américaine réutilise les passages et la régression ci-dessus.
+Une policy peut déclarer `path_field_descriptors()` et
+`row_field_descriptors()` : ces champs sont budgétés une fois par chemin ou par
+prix, indépendamment du nombre d'observations. Les policies prix seules
+n'allouent aucune de ces régions.
+
+`prepare_path_outputs` raccorde les vues après préparation de la ligne.
+`record_exercise` reçoit uniquement les exercices réellement choisis avec le
+prédicat FP64 commun; `record_initial_exercise` reçoit le choix global en zéro
+et la validité des statistiques centrales. Ce sont des capacités statiques,
+sans drapeau runtime ni modification de la régression. Enfin `finish_batch`
+consomme les sorties avant réutilisation du workspace; ses kernels doivent
+être comptés et chronométrés dans le même `LaunchResult`.
+
+La première application est le [delta à dates gelées](equity-price-delta-contract.md#frozen-exercise-lsm-pilot).
+Elle possède ses launchers publics et deux kernels de moments/finalisation,
+pas un second solveur LSM. Les autres modèles et les swaptions ne sont pas
+automatiquement déclarés compatibles avec ce contrat equity S0.
+
+### Composition du launcher
 
 Un nouveau couple modèle-produit ne conserve que la composition et le launcher
 public :

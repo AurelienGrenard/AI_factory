@@ -1,0 +1,141 @@
+{
+  "model": "cir",
+  "curve": "",
+  "profile": "catalogue",
+  "side": "payer",
+  "stage": "fp32_numerical_replay",
+  "jobs": [
+    {
+      "id": "scalar_128_full",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 128,
+      "blocks": 8,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "scalar_128_persistent",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 128,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "scalar_256_full",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 256,
+      "blocks": 4,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "scalar_256_persistent",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 256,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "scalar_512_full",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 512,
+      "blocks": 2,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "scalar_512_persistent",
+      "rows": 1000,
+      "strategy": "scalar",
+      "threads": 512,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_128_full",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 128,
+      "blocks": 1000,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_128_persistent",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 128,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_256_full",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 256,
+      "blocks": 1000,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_256_persistent",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 256,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_512_full",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 512,
+      "blocks": 1000,
+      "grid_policy": "full",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    },
+    {
+      "id": "cooperative_512_persistent",
+      "rows": 1000,
+      "strategy": "cooperative",
+      "threads": 512,
+      "blocks": 2,
+      "grid_policy": "persistent",
+      "warmups": 2,
+      "repetitions": 5,
+      "operations": 1
+    }
+  ]
+}

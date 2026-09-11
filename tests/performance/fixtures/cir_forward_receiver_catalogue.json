@@ -1,0 +1,7 @@
+[
+  {"id":"forward_catalogue_payer_seed_b","method":"forward","indices":"all","paths":1048576,"seed":12668829049698640896},
+  {"id":"forward_catalogue_payer_replay","method":"forward","indices":"all","paths":1048576,"seed":12668829039698640896},
+  {"id":"old_catalogue_receiver","method":"old","side":"receiver","indices":"all","paths":1048576,"seed":11668829043993608192},
+  {"id":"forward_catalogue_receiver","method":"forward","side":"receiver","indices":"all","paths":1048576,"seed":12668829043993608192},
+  {"id":"forward_catalogue_receiver_seed_b","method":"forward","side":"receiver","indices":"all","paths":1048576,"seed":12668829053993608192}
+]

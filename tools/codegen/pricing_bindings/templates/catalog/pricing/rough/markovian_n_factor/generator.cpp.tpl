@@ -28,9 +28,9 @@ int main() {{
         PriceConstruction::Aligned,
     }};
     const pricing::BatchedMonteCarloProfile profile{{
-        {monte_carlo_paths}U,
-        4'096U,
-        4'096U,
+        {monte_carlo_paths},
+        ::ai_factory::workbench::offline::cuda_tuning::kMonteCarloRowsPerLaunch,
+        ::ai_factory::workbench::offline::cuda_tuning::kMonteCarloBlockCountLimit,
         {threads_per_block},
         {seed}ULL,
         "1 / 504",
@@ -38,6 +38,7 @@ int main() {{
             {{"simulation_steps_per_day", simulation_steps_per_day}},
             {{"factor_count", factor_count}},
         }},
+        {launch_identity},
     }};
 
     return pricing::generate_monte_carlo_equity_price_dataset(

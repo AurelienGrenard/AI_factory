@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import ast
+import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 
@@ -20,6 +23,9 @@ from capability_manifest import (  # noqa: E402
     ENGINE_SPECS,
     GENERATED_PRODUCT_BINDING_PATHS,
     GENERATED_PRODUCT_BINDING_SPECS,
+    GENERATED_PRICE_DELTA_BINDING_PATHS,
+    GENERATED_CLOSED_FORM_POLICY_PATHS,
+    PRICE_DELTA_BINDING_SPECS,
 )
 CPP_SUFFIXES = {".cu", ".cuh", ".cpp", ".hpp"}
 TEXT_SUFFIXES = CPP_SUFFIXES | {".cmake", ".md", ".py", ".txt"}
@@ -33,9 +39,15 @@ CANONICAL_INFRASTRUCTURE_FILENAMES = {
     "dynamics.cuh",
     "dynamics_impl.cuh",
     "fitted_analytics.cuh",
+    "fitted_analytics_impl.cuh",
+    "forward_measure.cuh",
+    "forward_measure_impl.cuh",
     "markovian_n_factor_preparation.hpp",
     "markovian_n_factor_pricing.cuh",
     "parameters.hpp",
+    "price_delta_dynamics.cuh",
+    "price_delta_dynamics_impl.cuh",
+    "parameter_row.hpp",
     "sample.cu",
     "sample.cuh",
     "state.hpp",
@@ -102,10 +114,17 @@ REQUIRED_TEMPLATE_PATHS = {
     "sampling/rough/markovian_n_factor/model_binding.cu.tpl",
     "sampling/rough/volterra_fft/model_binding.cuh.tpl",
     "sampling/rough/volterra_fft/model_binding.cu.tpl",
+    "sampling/catalog/model_parameter_factory.cuh.tpl",
+    "sampling/catalog/model_parameter_json.cuh.tpl",
+    "sampling/catalog/sample_launch_lambda.cuh.tpl",
+    "sampling/catalog/preparation/markovian_n_factor_lambda.cuh.tpl",
+    "sampling/catalog/preparation/quadratic_rough_heston_lambda.cuh.tpl",
+    "sampling/catalog/preparation/quadratic_rough_heston_metadata.cuh.tpl",
+    "catalog/pricing/side_aware_product_loader_expression.cuh.tpl",
 } | {
     f"{spec.template_family}/{spec.product}.{suffix}.tpl"
     for spec in GENERATED_PRODUCT_BINDING_SPECS
-    if spec.engine in {"equity_closed_form", "fixed_income_closed_form"}
+    if spec.engine in {"equity_closed_form", "fixed_income_closed_form", "fixed_income_monte_carlo", "fixed_income_lsm"}
     and spec.template_family is not None
     for suffix in ("cuh", "cu")
 } | {
@@ -114,15 +133,142 @@ REQUIRED_TEMPLATE_PATHS = {
     if dataset.owner == "generated" and dataset.template is not None
 }
 
+CPP_DEFINITION_IN_STRING = re.compile(
+    r"(?:^|\n)\s*(?:template\s*<[^;{}]+>\s*)?"
+    r"(?:\[\s*[^\]]*\s*\]\s*\([^;{}]*\)\s*(?:mutable\s*)?\{|"
+    r"(?:inline\s+|static\s+|__host__\s+|__device__\s+)*"
+    r"[\w:<>,&*\s]+\s+[A-Za-z_]\w*\s*\([^;{}]*\)\s*\{)",
+    re.MULTILINE,
+)
+MARKDOWN_LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+
 
 def relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
 
 
+def python_cpp_definitions(path: Path) -> list[int]:
+    """Return lines of complete C++ functions or lambdas in Python strings."""
+    tree = ast.parse(path.read_text(), filename=str(path))
+    definitions: list[int] = []
+    for node in ast.walk(tree):
+        values: list[str] = []
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            values.append(node.value)
+        elif isinstance(node, ast.JoinedStr):
+            values.append(
+                "".join(
+                    value.value
+                    for value in node.values
+                    if isinstance(value, ast.Constant)
+                    and isinstance(value.value, str)
+                )
+            )
+        if any(CPP_DEFINITION_IN_STRING.search(value) for value in values):
+            definitions.append(node.lineno)
+    return sorted(set(definitions))
+
+
+def maintained_markdown_paths() -> list[Path]:
+    """Enumerate versioned and non-ignored Markdown inputs for clean clones."""
+    result = subprocess.run(
+        [
+            "git", "ls-files", "--cached", "--others", "--exclude-standard",
+            "--", "*.md",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    excluded_prefixes = ("docs/audit/", "docs/validation/", "validation/")
+    return [
+        ROOT / item
+        for item in result.stdout.splitlines()
+        if item
+        and not item.startswith(excluded_prefixes)
+        and (ROOT / item).is_file()
+    ]
+
+
+def markdown_link_destinations(source: str) -> list[str]:
+    # Inline/fenced code can contain mathematical [index](expression), not links.
+    prose = re.sub(r"(`+).*?\1", "", source, flags=re.DOTALL)
+    return MARKDOWN_LINK.findall(prose)
+
+
+def local_markdown_targets(path: Path) -> list[Path]:
+    targets: list[Path] = []
+    for raw_target in markdown_link_destinations(path.read_text(errors="ignore")):
+        target = raw_target.strip().strip("<>").split("#", maxsplit=1)[0]
+        if (
+            not target
+            or re.match(r"^[a-z][a-z0-9+.-]*:", target, re.IGNORECASE)
+        ):
+            continue
+        targets.append((path.parent / target).resolve())
+    return targets
+
+
+def ignored_paths(paths: list[Path]) -> set[Path]:
+    relative_paths = [relative(path) for path in paths if path.is_relative_to(ROOT)]
+    if not relative_paths:
+        return set()
+    result = subprocess.run(
+        ["git", "check-ignore", "--stdin"],
+        cwd=ROOT,
+        input="\n".join(relative_paths),
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode not in {0, 1}:
+        raise RuntimeError(result.stderr.strip() or "git check-ignore failed")
+    return {ROOT / item for item in result.stdout.splitlines() if item}
+
+
+def validate_cmake_presets() -> list[str]:
+    failures: list[str] = []
+    presets = json.loads((ROOT / "CMakePresets.json").read_text())
+    build_by_name = {preset["name"]: preset for preset in presets["buildPresets"]}
+    test_by_name = {preset["name"]: preset for preset in presets["testPresets"]}
+    if build_by_name.get("tests", {}).get("targets") != ["ai_factory_tests"]:
+        failures.append("build preset tests must own exactly ai_factory_tests")
+    tests_inclusion = (
+        test_by_name.get("tests", {}).get("filter", {}).get("include", {})
+    )
+    if tests_inclusion.get("label") != "^main$":
+        failures.append("CTest preset tests must include only the exact main label")
+    validation_inclusion = (
+        test_by_name.get("validation", {}).get("filter", {}).get("include", {})
+    )
+    if validation_inclusion.get("label") != "^validation$":
+        failures.append(
+            "CTest preset validation must include only the exact validation label"
+        )
+    return failures
+
+
+def validate_cmake_documentation() -> list[str]:
+    readme = (ROOT / "cmake" / "README.md").read_text()
+    documented = set(re.findall(r"`(AIFactory[^`]+\.cmake)`", readme))
+    modules = {
+        path.name for path in (ROOT / "cmake").glob("AIFactory*.cmake")
+    }
+    failures = [
+        f"CMake ownership map omits module: {module}"
+        for module in sorted(modules - documented)
+    ]
+    failures.extend(
+        f"CMake ownership map names a missing module: {module}"
+        for module in sorted(documented - modules)
+    )
+    return failures
+
+
 def is_generated_implementation(path: Path) -> bool:
     """Classify only outputs owned by the pricing-binding generator."""
     path_text = relative(path)
-    if path_text == "cmake/generated/EquityPricingBindings.cmake":
+    if path_text == "cmake/generated/CapabilityManifest.cmake":
         return True
     if path_text.startswith("tools/sampling/generated/"):
         return True
@@ -130,7 +276,7 @@ def is_generated_implementation(path: Path) -> bool:
         "src/model/"
     ):
         return True
-    return path_text in GENERATED_PRODUCT_BINDING_PATHS
+    return path_text in GENERATED_PRODUCT_BINDING_PATHS or path_text in GENERATED_PRICE_DELTA_BINDING_PATHS
 
 
 def responsibility_format(path: Path, source: str) -> tuple[str, int]:
@@ -224,6 +370,36 @@ def validate_model_path(path: Path, under_product: bool) -> list[str]:
 
 def main() -> int:
     failures: list[str] = []
+    failures.extend(validate_cmake_presets())
+    failures.extend(validate_cmake_documentation())
+
+    markdown_paths = maintained_markdown_paths()
+    link_pairs = [
+        (source, target)
+        for source in markdown_paths
+        for target in local_markdown_targets(source)
+    ]
+    ignored_targets = ignored_paths([target for _, target in link_pairs])
+    for source, target in link_pairs:
+        if not target.is_relative_to(ROOT):
+            failures.append(
+                f"local Markdown link escapes the repository: {relative(source)}"
+            )
+        elif target in ignored_targets:
+            failures.append(
+                "local Markdown link targets an ignored path: "
+                f"{relative(source)} -> {relative(target)}"
+            )
+        elif not target.exists():
+            failures.append(
+                "local Markdown link target is missing: "
+                f"{relative(source)} -> {relative(target)}"
+            )
+    ignored_fixture = ROOT / "AI_factory_website" / "README.md"
+    if markdown_link_destinations("`[j](P-j)` [real](README.md)\n```text\n[x](fake)\n```") != ["README.md"]:
+        failures.append("Markdown code spans were incorrectly treated as links")
+    if ignored_fixture not in ignored_paths([ignored_fixture]):
+        failures.append("ignored-Markdown-link negative fixture was not rejected")
     pricing_composition = (
         ROOT / "docs" / "cuda" / "pricing-policy-composition.md"
     ).read_text()
@@ -329,6 +505,9 @@ def main() -> int:
         path.name for path in (ROOT / "src" / "product").iterdir()
         if path.is_dir()
     }
+    product_names.update(
+        f"{spec.pricing.product}_price_delta" for spec in PRICE_DELTA_BINDING_SPECS
+    )
     model_files = sorted(
         path for path in MODEL_ROOT.rglob("*")
         if path.is_file() and path.suffix in CPP_SUFFIXES
@@ -354,6 +533,9 @@ def main() -> int:
             product_pairs.setdefault(parts[:-1] + (path.stem,), set()).add(
                 path.suffix
             )
+        elif under_product and relative(path) in GENERATED_CLOSED_FORM_POLICY_PATHS:
+            if not path.read_text().startswith("// Shared Black-Scholes"):
+                failures.append(f"product policy lacks its ownership summary: {relative(path)}")
         elif under_product:
             failures.append(
                 f"non-product implementation inside product/: {relative(path)}"
@@ -429,14 +611,20 @@ def main() -> int:
         if "/" not in path
     )
 
-    generator_source = (
-        ROOT / "tools" / "codegen" / "pricing_bindings" / "generate.py"
-    ).read_text()
-    if re.search(r"return\s+f?[\"']{3}// Generated", generator_source):
+    generator_path = ROOT / "tools" / "codegen" / "pricing_bindings" / "generate.py"
+    for line in python_cpp_definitions(generator_path):
         failures.append(
-            "generate.py contains a complete generated C++ artifact inline; "
-            "move it under templates/"
+            "generate.py contains a complete C++ definition in a Python string "
+            f"at line {line}; move it under templates/"
         )
+    fixture_tree = ast.parse('fragment = "inline void hidden() { work(); }"\n')
+    fixture_strings = [
+        node.value
+        for node in ast.walk(fixture_tree)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    ]
+    if not any(CPP_DEFINITION_IN_STRING.search(value) for value in fixture_strings):
+        failures.append("inline-C++ negative fixture was not rejected")
 
     product_pattern = "|".join(
         re.escape(name) for name in sorted(product_names, key=len, reverse=True)

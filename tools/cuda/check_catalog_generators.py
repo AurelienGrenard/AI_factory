@@ -122,11 +122,21 @@ def main() -> int:
             else (
                 '"tools/cuda/pricing_runner.cuh"',
                 '"tools/pricing/european_swaption_price_generation.cuh"',
+                '"tools/pricing/european_swaption_monte_carlo_generation.cuh"',
+                '"tools/pricing/bermudan_swaption_price_generation.cuh"',
             )
         )
         if not any(helper in source for helper in expected_helpers):
             failures.append(
                 f"generated recipe bypasses its orchestrator: {path_text}"
+            )
+        if (
+            path_text in GENERATED_AMERICAN_RECIPES
+            and '"product/american_option/dataset.hpp"' not in source
+        ):
+            failures.append(
+                "generated American recipe does not directly declare its "
+                f"product loader: {path_text}"
             )
 
     for dataset in AVAILABLE_DATASET_SPECS:
@@ -134,6 +144,16 @@ def main() -> int:
         if not path.is_file():
             continue
         source = path.read_text()
+        if dataset.dataset_kind == "prices" and dataset.engine not in {
+            "equity_closed_form", "fixed_income_closed_form"
+        }:
+            # The G2 recipe owns its count in its shared typed configuration.
+            # Other stochastic recipes must name the central production count.
+            if ("kProductionPathsPerPrice" not in source
+                    and "EuropeanSwaptionMonteCarloRecipe" not in source):
+                failures.append(
+                    f"stochastic price recipe bypasses the 2^20 production path count: {dataset.recipe_path}"
+                )
         try:
             rng_domain = resolve_rng_domain(dataset)
         except KeyError:
@@ -171,7 +191,8 @@ def main() -> int:
                         f"sample helper has a noncanonical {label} prefix: "
                         f"{relative(helper)}"
                     )
-        elif dataset.dataset_kind == "prices" and dataset.owner == "generated":
+        elif (dataset.dataset_kind == "prices" and dataset.owner == "generated"
+              and dataset.engine != "fixed_income_lsm"):
             for label, value in (
                 ("dataset", dataset.dataset_path),
                 ("catalog", dataset.catalog_yaml_path),
@@ -188,8 +209,17 @@ def main() -> int:
                 and '"product/bermudan_swaption/dataset.hpp"' not in source
             ):
                 failures.append(
-                    "handwritten Bermudan recipe does not directly declare "
+                    "Bermudan recipe does not directly declare "
                     f"its product loader: {dataset.recipe_path}"
+                )
+            if (
+                dataset.engine == "fixed_income_lsm"
+                and dataset.curve is not None
+                and f'"curve/{dataset.curve}/dataset.hpp"' not in source
+            ):
+                failures.append(
+                    "handwritten fitted Bermudan recipe does not directly "
+                    f"declare its curve loader: {dataset.recipe_path}"
                 )
             if f'"{dataset.model}"' not in source:
                 failures.append(
@@ -245,7 +275,7 @@ def main() -> int:
             )
         if (
             "BatchedMonteCarloProfile profile" in source
-            and "BatchedMonteCarloProfile profile{\n        1'048'576U,"
+            and "BatchedMonteCarloProfile profile{\n        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,"
                 not in source
         ):
             failures.append(
@@ -254,7 +284,7 @@ def main() -> int:
             )
         if (
             "AmericanOptionProfile profile" in source
-            and "AmericanOptionProfile profile{\n        1U << 20U,"
+            and "AmericanOptionProfile profile{\n        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,"
                 not in source
         ):
             failures.append(
@@ -262,7 +292,7 @@ def main() -> int:
             )
         if (
             "bermudan_swaption" in path_text
-            and "constexpr std::size_t paths = 1U << 20U;" not in source
+            and not re.search(r"constexpr std::size_t paths = (?:::)?(?:\w+::)*kProductionPathsPerPrice;", source)
         ):
             failures.append(
                 f"Bermudan price recipe does not use 2^20 paths: {path_text}"

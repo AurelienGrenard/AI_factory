@@ -84,6 +84,10 @@ set(AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT 4096 CACHE STRING
     "Persistent block ceiling for model-sample kernels")
 set(AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE 65536 CACHE STRING
     "Reusable path chunk for Volterra FFT pricing")
+set(AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS 256 CACHE STRING
+    "Threads per block for Volterra path evaluation")
+set(AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS 256 CACHE STRING
+    "Threads per block for Volterra result finalization")
 
 if(NOT AI_FACTORY_CUDA_TUNING_PROFILE_ID MATCHES "^[A-Za-z0-9_.-]+$")
     message(FATAL_ERROR
@@ -97,6 +101,8 @@ foreach(variable IN ITEMS
     AI_FACTORY_CUDA_ANALYTICAL_THREADS_PER_BLOCK
     AI_FACTORY_CUDA_EARLY_EXERCISE_THREADS_PER_BLOCK
     AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS
+    AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS
 )
     if(NOT ${variable} MATCHES "^[0-9]+$"
         OR ${variable} LESS 32 OR ${variable} GREATER 1024)
@@ -118,10 +124,53 @@ foreach(variable IN ITEMS
     endif()
 endforeach()
 
+# Domain modules own target registration; this root only configures and
+# orchestrates. Taking the configured target inventory before and after each
+# include records ownership without maintaining a parallel target list.
+macro(ai_factory_include_owned_module module_path)
+    get_property(_ai_factory_targets_before DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+    include(${module_path})
+    get_property(_ai_factory_targets_after DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+    set(_ai_factory_new_targets ${_ai_factory_targets_after})
+    if(_ai_factory_targets_before)
+        list(REMOVE_ITEM _ai_factory_new_targets ${_ai_factory_targets_before})
+    endif()
+    foreach(_ai_factory_owned_target IN LISTS _ai_factory_new_targets)
+        set_property(
+            TARGET ${_ai_factory_owned_target}
+            PROPERTY AI_FACTORY_OWNER_MODULE ${module_path}
+        )
+    endforeach()
+endmacro()
 
-# Domain modules own target registration; this root only configures and orchestrates.
-include(cmake/AIFactoryRuntime.cmake)
-include(cmake/AIFactoryTargets.cmake)
-include(cmake/AIFactoryCatalog.cmake)
-include(cmake/AIFactoryPerformance.cmake)
-include(cmake/AIFactoryTests.cmake)
+# CTest creates dashboard targets while processing the root configuration.
+get_property(_ai_factory_root_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_ai_factory_root_target IN LISTS _ai_factory_root_targets)
+    set_property(
+        TARGET ${_ai_factory_root_target}
+        PROPERTY AI_FACTORY_OWNER_MODULE CMakeLists.txt
+    )
+endforeach()
+
+ai_factory_include_owned_module(cmake/AIFactoryRuntime.cmake)
+ai_factory_include_owned_module(cmake/AIFactoryTargets.cmake)
+ai_factory_include_owned_module(cmake/AIFactoryCatalog.cmake)
+ai_factory_include_owned_module(cmake/AIFactoryPerformance.cmake)
+ai_factory_include_owned_module(cmake/AIFactoryTests.cmake)
+if(BUILD_TESTING)
+    ai_factory_include_owned_module(cmake/AIFactoryValidation.cmake)
+endif()
+
+get_property(_ai_factory_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_ai_factory_target IN LISTS _ai_factory_targets)
+    get_property(
+        _ai_factory_owner_module
+        TARGET ${_ai_factory_target}
+        PROPERTY AI_FACTORY_OWNER_MODULE
+    )
+    if(NOT _ai_factory_owner_module)
+        message(FATAL_ERROR
+            "Target ${_ai_factory_target} has no owning CMake module"
+        )
+    endif()
+endforeach()

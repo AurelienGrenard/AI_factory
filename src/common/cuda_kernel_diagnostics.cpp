@@ -34,6 +34,7 @@ bool environment_flag_enabled(const char* value) {
 std::string report_key(
     const char* kernel_name,
     const char* variant,
+    const char* phase,
     dim3 grid,
     dim3 block,
     std::size_t dynamic_shared_bytes
@@ -41,6 +42,7 @@ std::string report_key(
     std::ostringstream key;
     key << kernel_name << '\n'
         << variant << '\n'
+        << (phase == nullptr ? "" : phase) << '\n'
         << grid.x << ',' << grid.y << ',' << grid.z << '\n'
         << block.x << ',' << block.y << ',' << block.z << '\n'
         << dynamic_shared_bytes;
@@ -63,6 +65,24 @@ bool reserve_cuda_kernel_launch_diagnostics(
     dim3 block,
     std::size_t dynamic_shared_bytes
 ) {
+    return reserve_cuda_kernel_phase_launch_diagnostics(
+        kernel_name,
+        variant,
+        nullptr,
+        grid,
+        block,
+        dynamic_shared_bytes
+    );
+}
+
+bool reserve_cuda_kernel_phase_launch_diagnostics(
+    const char* kernel_name,
+    const char* variant,
+    const char* phase,
+    dim3 grid,
+    dim3 block,
+    std::size_t dynamic_shared_bytes
+) {
     static std::mutex reservation_mutex;
     static std::set<std::string> reserved_reports;
     const std::lock_guard<std::mutex> lock(reservation_mutex);
@@ -70,6 +90,7 @@ bool reserve_cuda_kernel_launch_diagnostics(
         report_key(
             kernel_name,
             variant,
+            phase,
             grid,
             block,
             dynamic_shared_bytes
@@ -82,9 +103,23 @@ void emit_cuda_kernel_launch_diagnostics(
     const char* variant,
     const CudaKernelLaunchDiagnostics& diagnostics
 ) {
+    emit_cuda_kernel_phase_launch_diagnostics(
+        kernel_name,
+        variant,
+        nullptr,
+        diagnostics
+    );
+}
+
+void emit_cuda_kernel_phase_launch_diagnostics(
+    const char* kernel_name,
+    const char* variant,
+    const char* phase,
+    const CudaKernelLaunchDiagnostics& diagnostics
+) {
     static std::mutex output_mutex;
     const std::lock_guard<std::mutex> lock(output_mutex);
-    const nlohmann::ordered_json report{
+    nlohmann::ordered_json report{
         {"type", "cuda_kernel_launch_diagnostics"},
         {"kernel", kernel_name},
         {"variant", variant},
@@ -136,6 +171,7 @@ void emit_cuda_kernel_launch_diagnostics(
             {"ptx_version", diagnostics.ptx_version},
         }},
     };
+    if (phase != nullptr && phase[0] != '\0') report["phase"] = phase;
     std::cerr << report.dump() << '\n';
 }
 

@@ -1,6 +1,7 @@
 // Generated {model_display} American-{side} price-dataset recipe.
 #include "model/equity/markovian/{model}/product/american_option.cuh"
 #include "model/equity/markovian/{model}/dataset.hpp"
+#include "product/american_option/dataset.hpp"
 #include "tools/pricing/american_option_price_generation.cuh"
 
 #include <cstddef>
@@ -25,7 +26,7 @@ int main() {{
         PriceConstruction::Aligned,
     }};
     const pricing::AmericanOptionProfile profile{{
-        1U << 20U,
+        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseThreadsPerBlock,
         ::ai_factory::workbench::offline::cuda_tuning::kEarlyExerciseBlocksPerPrice,
         {seed}ULL,
@@ -38,13 +39,15 @@ int main() {{
         nlohmann::ordered_json::array({basis_normalization}),
         nlohmann::ordered_json::array({basis_functions}),
         {exact_exercise_dates},
+        {launch_identity},
     }};
 
     return pricing::generate_american_option_equity_price_dataset(
         recipe,
         profile,
         model_binding::load_models,
-        [&](const auto* device_models, std::size_t model_count,
+        [&](const offline::cuda_tuning::PricingLaunchPlan& plan,
+            const auto* device_models, std::size_t model_count,
             const auto* host_products, const auto* device_products,
             std::size_t product_count, PriceConstruction construction,
             std::size_t result_count, std::size_t paths_per_price,
@@ -60,8 +63,8 @@ int main() {{
                 construction,
                 result_count,
                 paths_per_price,
-{time_arguments}                profile.threads_per_block,
-                profile.blocks_per_price,
+{time_arguments}                plan.profile.threads_per_block,
+                plan.profile.blocks_per_price,
                 profile.seed,
                 device_prices,
                 device_standard_errors

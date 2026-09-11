@@ -14,7 +14,6 @@ import shutil
 import statistics
 import subprocess
 import sys
-import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -211,6 +210,9 @@ def collect_preflight() -> dict[str, Any]:
             "hardware_slowdown": values[11],
             "hardware_thermal_slowdown": values[12],
             "software_thermal_slowdown": values[13],
+            "hardware_power_brake": ET.fromstring(xml_status.stdout).findtext(
+                "gpu/clocks_event_reasons/clocks_event_reason_hw_power_brake_slowdown"
+            ),
         },
         "power_limits_w": parse_nvidia_power_limits(xml_status.stdout),
         "power_source": _power_source(),
@@ -229,8 +231,6 @@ def validate_preflight(baseline: dict[str, Any], snapshot: dict[str, Any]) -> No
             f"preflight power source is {snapshot['power_source']}; external "
             "power is required"
         )
-    if snapshot["temperature_c"] > policy["maximum_temperature_c"]:
-        raise ValueError("preflight GPU temperature exceeds the manifest bound")
     minimum_power_limit = policy.get("minimum_current_power_limit_w")
     current_power_limit = snapshot.get("power_limits_w", {}).get("current")
     if minimum_power_limit is not None and (
@@ -243,6 +243,9 @@ def validate_preflight(baseline: dict[str, Any], snapshot: dict[str, Any]) -> No
     if snapshot["concurrent_compute_processes"]:
         raise ValueError("preflight found concurrent GPU compute processes")
     forbidden = policy["forbidden_throttle_reasons"]
+    if any(snapshot["throttle"].get(reason) not in ("Active", "Not Active")
+           for reason in forbidden):
+        raise ValueError("preflight missing required GPU power-brake telemetry")
     active = [
         reason
         for reason in forbidden
@@ -264,64 +267,6 @@ def validate_campaign_preflight(
     validate_preflight(baseline, after)
     if before["power_source"] != after["power_source"]:
         raise ValueError("campaign power source changed")
-
-
-def stabilize_thermal_environment(
-    baseline: dict[str, Any],
-    build_directory: Path,
-    evidence: list[dict[str, Any]],
-) -> dict[str, Any]:
-    """Reach the profile's warm operating range before the official snapshot."""
-    policy = baseline["decision_policy"]["preflight"]["thermal_stabilization"]
-    command_id = policy["command_id"]
-    matches = [
-        command for identifier, command in commands(baseline, build_directory)
-        if identifier == command_id
-    ]
-    if len(matches) != 1:
-        raise ValueError(
-            f"thermal stabilization command is not unique: {command_id}"
-        )
-    command = matches[0]
-    snapshot = collect_preflight()
-    validate_preflight(baseline, snapshot)
-    evidence.append({"phase": "initial", "snapshot": snapshot})
-    environment = os.environ.copy()
-    environment.pop("AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS", None)
-    temperatures: list[int] = []
-    started_at = time.monotonic()
-    for run in range(policy["maximum_runs"]):
-        completed = subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=environment,
-        )
-        snapshot = collect_preflight()
-        validate_preflight(baseline, snapshot)
-        elapsed_seconds = time.monotonic() - started_at
-        evidence.append({
-            "phase": "after_stabilization_run",
-            "run": run + 1,
-            "command_id": command_id,
-            "stdout_sha256": hashlib.sha256(completed.stdout).hexdigest(),
-            "elapsed_seconds": elapsed_seconds,
-            "snapshot": snapshot,
-        })
-        temperatures.append(snapshot["temperature_c"])
-        window = temperatures[-policy["temperature_window"]:]
-        if (
-            run + 1 >= policy["minimum_runs"]
-            and elapsed_seconds >= policy["minimum_duration_seconds"]
-            and len(window) == policy["temperature_window"]
-            and max(window) - min(window)
-                <= policy["maximum_temperature_range_c"]
-        ):
-            return snapshot
-    raise ValueError(
-        "thermal stabilization did not converge within the declared runs"
-    )
 
 
 def campaign_series_can_complete(
@@ -523,6 +468,25 @@ def run_commands(
     return measurements
 
 
+def validate_resource_phase_contract(
+    baseline: dict[str, Any],
+    reference: dict[str, Any],
+    measurement: dict[str, Any],
+) -> None:
+    contract_key = f"{reference['benchmark']}::{reference['variant']}"
+    expected = baseline.get("resource_phase_contracts", {}).get(contract_key)
+    if expected is None:
+        return
+    observed = [
+        resource.get("phase") for resource in measurement.get("resources", [])
+    ]
+    if len(observed) != len(set(observed)) or sorted(observed) != sorted(expected):
+        raise ValueError(
+            f"{reference['id']}: launch resource phases {observed} do not "
+            f"match {expected}"
+        )
+
+
 def select_manifest(
     baseline: dict[str, Any],
     raw_measurements: list[dict[str, Any]],
@@ -542,6 +506,7 @@ def select_manifest(
         if key in selected:
             raise ValueError(f"benchmark commands emitted duplicate key {key}")
         reference = expected[key]
+        validate_resource_phase_contract(baseline, reference, measurement)
         if measurement["command_id"] != reference["command_id"]:
             raise ValueError(
                 f"benchmark key {key} emitted by {measurement['command_id']}, "
@@ -593,6 +558,7 @@ def select_initialization_manifest(
                     "protocol initialization changed stable identity field "
                     f"{field} for {measurement_id}"
                 )
+        validate_resource_phase_contract(baseline, reference, measurement)
         measurement["measurement_id"] = measurement_id
         selected[measurement_id] = measurement
     missing = expected.keys() - selected.keys()
@@ -1381,19 +1347,6 @@ def main() -> int:
             raise ValueError(
                 "manifest maximum campaign attempts must cover eligible attempts"
             )
-        retry_seconds = baseline["decision_policy"]["preflight"].get(
-            "retry_cooldown_seconds", 0
-        )
-        if (
-            not isinstance(retry_seconds, int)
-            or isinstance(retry_seconds, bool)
-            or retry_seconds < 0
-            or retry_seconds > 60
-        ):
-            raise ValueError(
-                "manifest preflight retry cooldown must be an integer from "
-                "zero to 60 seconds"
-            )
         validate_build_configuration(baseline, arguments.build_dir)
         attempts: list[list[dict[str, Any]]] = []
         campaign_records: list[dict[str, Any]] = []
@@ -1462,11 +1415,10 @@ def main() -> int:
                 f"({len(attempts)}/{attempt_count} eligible)",
                 flush=True,
             )
-            stabilization_evidence: list[dict[str, Any]] = []
+            before = None
             try:
-                before = stabilize_thermal_environment(
-                    baseline, arguments.build_dir, stabilization_evidence
-                )
+                before = collect_preflight()
+                validate_preflight(baseline, before)
             except (
                 KeyError,
                 TypeError,
@@ -1477,9 +1429,7 @@ def main() -> int:
                 campaign_records.append({
                     "status": "rejected_environment",
                     "reason": str(error),
-                    "preflight": {
-                        "thermal_stabilization": stabilization_evidence
-                    },
+                    "preflight": {"before": before},
                     "measurements": None,
                 })
                 raw_campaign_directory = write_raw_campaigns(
@@ -1488,13 +1438,6 @@ def main() -> int:
                     raw_campaign_directory,
                 )
                 print(f"Rejected campaign before execution: {error}", flush=True)
-                if retry_seconds and attempt + 1 < maximum_attempt_count:
-                    print(
-                        f"Cooling down for {retry_seconds} second(s) before "
-                        "the next declared attempt.",
-                        flush=True,
-                    )
-                    time.sleep(retry_seconds)
                 continue
             try:
                 raw = run_commands(commands(baseline, arguments.build_dir))
@@ -1510,7 +1453,6 @@ def main() -> int:
                     "status": "execution_error",
                     "reason": str(error),
                     "preflight": {
-                        "thermal_stabilization": stabilization_evidence,
                         "before": before,
                     },
                     "measurements": None,
@@ -1536,7 +1478,6 @@ def main() -> int:
                     "status": "rejected_environment",
                     "reason": str(error),
                     "preflight": {
-                        "thermal_stabilization": stabilization_evidence,
                         "before": before,
                         "after": after,
                     },
@@ -1554,7 +1495,6 @@ def main() -> int:
                 "status": "eligible",
                 "reason": None,
                 "preflight": {
-                    "thermal_stabilization": stabilization_evidence,
                     "before": before,
                     "after": after,
                 },

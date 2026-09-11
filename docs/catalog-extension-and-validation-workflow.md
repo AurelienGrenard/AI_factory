@@ -1,437 +1,226 @@
-# Workflow d'extension et de validation du catalogue
+# Workflow d'extension du catalogue
 
-Ce document est la checklist de référence pour toute extension du catalogue.
-Une extension n'est terminée que lorsque le code, les datasets, les tests, la
-validation indépendante et le site ont tous été mis à jour.
+Ce workflow est le point d'entrée pour ajouter un modèle, une courbe, un
+produit, un sample ou un prix. Une extension est terminée lorsque son code, sa
+recette, ses tests et son entrée publique sont cohérents, avec une validation
+indépendante lorsqu'elle publie un prix.
 
-## Regles non negociables
+Les règles détaillées restent dans leurs contrats propriétaires :
 
-- [ ] Reprendre l'ossature de l'exemple existant le plus proche.
-- [ ] Conserver les memes noms, signatures, ordre des fonctions et commentaires
-      lorsque la semantique est identique.
-- [ ] Ne mettre dans `src/` que le chargement, les mathematiques, le pricing et
-      les bibliotheques generatives reutilisables; les recettes restent dans
-      `catalog/`.
-- [ ] Mettre les helpers de generation et de validation de datasets dans
-      `tools/datasets/`.
-- [ ] Generer les JSON et YAML avec le code; ne pas les corriger a la main.
-- [ ] Terminer chaque generateur de modele, courbe, produit ou prix par le
-      validateur de structure correspondant au fichier qu'il vient d'ecrire.
-- [ ] Faire preceder les validations metier de chaque `load_*` par la validation
-      de l'ossature JSON commune a sa famille de dataset.
-- [ ] Ajouter chaque nouveau modele, courbe, produit et prix au site.
-- [ ] Inventorier d'abord toutes les methodes Premia du couple `(modele,
-      produit)` dans tous les menus Premia; ne selectionner un moteur qu'apres
-      cet inventaire exhaustif.
-- [ ] Ordonner les moteurs Premia compatibles par robustesse et performance
-      mesuree, puis appliquer: liste Premia complete, pricer specialise
-      QuantLib, Monte-Carlo QuantLib, enfin `none`.
-- [ ] Decider la disponibilite de Premia sur l'existence d'au moins un moteur
-      compatible, jamais sur la methode numerique employee par le generateur
-      AI_factory.
-- [ ] Garder le YAML de validation minimal: il pointe vers le dataset de
-      reference; les details backend restent dans le JSON.
-- [ ] Ne jamais activer CUDA fast math (`--use_fast_math`). Le projet exige des
-      résultats reproductibles et n'expose volontairement aucune option de
-      compilation correspondante.
-- [ ] Ne pas ajouter `__launch_bounds__` sans une conception explicitement
-      approuvée, adaptée aux architectures CUDA ciblées, puis validée par les
-      registres, les spills, l'occupation et les temps mesurés sur chaque cible.
-- [ ] Préserver le mapping déterministe des lignes et des chemins, l'ordre des
-      réductions, ainsi que les accumulations FP64 déjà utilisées.
+- [paramètres modèle et produit](model-and-product-parameter-dataset-generation.md) ;
+- [samples modèle](model-sample-dataset-generation.md) ;
+- [validation indépendante des prix](independent-price-validation-pipeline.md) ;
+- [contrats CUDA](cuda/README.md) ;
+- [génération automatique des bindings](../tools/codegen/pricing_bindings/README.md).
 
-Un statut de reference `not_available` est un etat explicite, pas une
-validation. Il interdit `verified: true` lorsque Premia et QuantLib ne
-fournissent aucune reference comparable. La selection s'effectue ligne par
-ligne sur les regimes core et stress selon
-[`independent-price-validation-pipeline.md`](independent-price-validation-pipeline.md).
-Un echec technique Premia autorise un repli documente pour les seules lignes
-concernees, d'abord vers les autres moteurs Premia compatibles et seulement
-ensuite vers QuantLib. Une divergence apres un calcul Premia reussi reste un
-echec et ne doit jamais etre masquee par le choix retrospectif d'une reference
-plus proche.
+Générer un prix et le certifier sont deux opérations distinctes. Une génération
+écrit toujours `validation.status: pending` et `verified: false`, avec le
+chemin prévu du cache indépendant, même si une ancienne version était certifiée.
+Elle ne lance aucun moteur de référence et ne crée pas de notebook de validation
+adjacent. Le YAML décrit les données réellement générées : modifier seulement
+le nombre de trajectoires ou `verified` à la main ne met pas à jour les données
+ni leurs preuves. Le lien vers un validateur explique le contrôle à effectuer ;
+il ne remplace jamais son résultat.
 
-## Identifier la nature de l'extension
+## 1. Classer l'extension
 
-Avant de creer un dossier, separer les couches reellement nouvelles:
+Identifier les couches réellement nouvelles avant de créer un fichier :
 
-- une famille de parametres produit appartient a `src/product/` et a
-  `catalog/product/`;
-- une dynamique ou des analytiques appartiennent a
-  `src/model/<asset_class>/[<family>/]<model>/`; la famille `markovian` ou
-  `rough` est obligatoire pour l'equity. Ses recettes reprennent exactement
-  ce prefixe sous `catalog/model/` et `datasets/model/`;
-- une courbe appartient a `src/curve/` et a `catalog/curve/`;
-- le pricing d'un couple modele-produit appartient au modele, dans
-  `src/model/<asset_class>/[<family>/]<model>/product/[<curve>/]`; aucun launcher produit
-  ne reste au milieu de `dynamics`, `analytics`, `dataset` ou `sample` ;
-- une base de prix conserve son propre generateur et YAML sous
-  `catalog/model/<asset_class>/[<family>/]<model>/prices/`; un dataset migre ne stocke ni
-  rapport ni notebook dans ce dossier, ses references vivent sous
-  `validation/datasets/price/`;
-- l'orchestration de validation appartient a `validation/model/`, tandis que
-  les conversions propres a Premia et QuantLib restent dans leurs backends.
+| Élément | Propriétaire runtime | Recette |
+|---|---|---|
+| Modèle equity | `src/model/equity/<markovian|rough>/<model>` | `catalog/model/equity/<family>/<model>` |
+| Modèle fixed income | `src/model/fixed_income/<model>` | `catalog/model/fixed_income/<model>` |
+| Courbe | `src/curve/<curve>` | `catalog/curve/<curve>` |
+| Produit | `src/product/<product>` | `catalog/product/<product>` |
+| Composition modèle-produit | `<model>/product/[<curve>/]<product>.{cuh,cu}` | `<model>/prices/[<curve>/]<product>/<dataset_id>` |
+| Outil partagé | `tools/<responsibility>` | aucune recette concrète |
 
-Une extension peut ne concerner qu'une de ces couches. Ne pas dupliquer une
-structure produit parce qu'un nouveau modele la price, ni une dynamique parce
-qu'un nouveau payoff l'utilise.
+`catalog` et `datasets` reprennent exactement le préfixe canonique de `src`.
+La famille equity est toujours visible. Une courbe apparaît dans le chemin
+fixed-income uniquement lorsqu'elle appartient au contrat de pricing.
 
-## Avant de coder
+Ne pas recréer un produit pour un nouveau modèle, une dynamique pour un
+nouveau payoff, ou une infrastructure partagée dans une recette.
 
-- [ ] Definir le nom canonique en `snake_case` et le nom affiche sur le site.
-- [ ] Lister les combinaisons modele, courbe et produit a supporter.
-- [ ] Identifier l'implementation existante la plus proche a copier.
-- [ ] Fixer les conventions financieres: temps, paiements, exercice, notionnel,
-      strike, actualisation et mesure de pricing.
-- [ ] Stocker les dates contractuelles comme des jours ouvrés entiers sous la
-      convention globale `days_per_year: 252`; employer une grille numérique
-      distincte, actuellement `dt = 1 / 504`, seulement lorsqu'un schéma ou un
-      monitoring fin est effectivement nécessaire.
-- [ ] Choisir la methode: formule exacte, Monte-Carlo, Longstaff-Schwartz, etc.
-- [ ] Enumerer toutes les methodes Premia du couple, dans tous les menus/classes
-      d'actifs, et relever pour chacune le nom natif exact (`CF_*`, `AP_*`,
-      `FD_*`, `TR_*`, `MC_*`), son domaine et ses conventions.
-- [ ] Chercher le contrat direct et les reductions exactes composees de moteurs
-      Premia, meme si le moteur est continu, PDE ou Monte Carlo alors que le
-      prix CUDA utilise une approximation discrete; documenter ensuite l'ecart
-      de contrat.
-- [ ] Sonder les candidats sur des lignes representatives du `core`,
-      puis choisir le moteur principal le plus rapide parmi ceux qui sont
-      compatibles et robustes; conserver les autres comme replis Premia.
+## 2. Déclarer le contrat
 
-## Ajouter un modele
+Avant l'implémentation :
 
-- [ ] Creer `src/model/<asset_class>/<model>/parameters.hpp` et y declarer une
-      structure de parametres compacte, explicite et adaptee au GPU.
-- [ ] Creer `src/model/<asset_class>/<model>/dataset.hpp` et `dataset.cpp` pour
-      le loader hote, tous deux dependants de `parameters.hpp`.
-- [ ] Implementer `load_models(...)` en preservant l'ordre des lignes.
-- [ ] Valider la structure JSON avant de lire les lignes.
-- [ ] Valider chaque parametre; toute erreur doit citer l'identifiant de ligne.
-- [ ] Ajouter `dynamics.cuh` et `dynamics_impl.cuh` seulement si le modele doit
-  etre simule.
-- [ ] Reprendre les primitives propres au modele: `prepare_model`, l'eventuel
-      `prepare_transition`, `initial_state` et `one_step_transition`.
-- [ ] Pour un modele equity standard, exposer `DynamicsPolicy` et reutiliser
-      les chemins de `common/simulation/path_simulation.cuh`.
-- [ ] Ajouter `analytics.cuh` et `analytics_impl.cuh` pour les quantites
-  analytiques reutilisables.
-- [ ] Conserver les noms et l'ordre des fonctions des modeles voisins.
-- [ ] Ajouter les sources et les tests au `CMakeLists.txt`.
+- choisir le nom canonique `snake_case` et le nom d'affichage ;
+- déclarer les couples modèle, courbe, produit et variante attendus ;
+- fixer temps, jours ouvrés, paiements, exercice, notionnel, strike,
+  actualisation et mesure de pricing ;
+- distinguer dates contractuelles et grille numérique ;
+- choisir formule fermée, Monte Carlo, Volterra FFT, lift N-facteurs ou
+  Longstaff--Schwartz ;
+- identifier le contrat CUDA et l'implémentation voisine les plus proches ;
+- définir les domaines numériques normaux, stress et limites.
 
-### Dataset du modele
+Les dates du calendrier modèle sont des jours ouvrés entiers sous la convention
+globale `days_per_year: 252`. Un schéma discrétisé dérive son `dt` du
+`steps_per_year` déclaré ; une transition exacte ne reçoit pas de sous-pas
+artificiels.
 
-- [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
-- [ ] Creer
-      `catalog/model/<asset_class>/[<family>/]<model>/parameters/<dataset_id>/generator.cpp`.
-- [ ] Creer
-      `catalog/model/<asset_class>/[<family>/]<model>/parameters/<dataset_id>/dataset.yaml`
-      par le generateur.
-- [ ] Utiliser des plages financieres raisonnables.
-- [ ] Placer les cas extremes en queue de distribution, pas au centre.
-- [ ] Rejeter les lignes mathematiquement ou numeriquement invalides.
-- [ ] Verifier `database_id`, `model_family`, `catalog`, `url`, `row_count` et
-      `models` dans le JSON genere.
-- [ ] Recharger le JSON genere avec `load_models(...)` avant de terminer.
+## 3. Implémenter le runtime minimal
 
-### Dataset de samples du modele
+### Modèle
 
-- [ ] Consulter d'abord le `ModelSpec`, le `SampleModelSpec` et les deux
-      `DatasetSpec` de `tools/codegen/pricing_bindings/`. Ajouter la loi core,
-      l'observation et le backend au manifeste, puis regenerer bindings et
-      recettes; ne pas introduire une recette ad hoc.
-- [ ] Creer
-      `catalog/model/<asset_class>/[<family>/]<model>/samples/<dataset_id>/generator.cpp`.
-- [ ] Generer le JSON complet sous
-      `datasets/model/<asset_class>/<model>/samples/<dataset_id>.json`.
-- [ ] Produire le YAML adjacent exclusivement depuis le generateur.
-- [ ] Considerer le generateur comme source de verite: le YAML documente la
-      recette executee et ne sert jamais d'entree au generateur.
-- [ ] Generer les parametres plausibles directement dans un vecteur type
-      contigu avec un flux Philox par ligne; ne pas ecrire puis recharger un
-      dataset de parametres intermediaire.
-- [ ] Reprendre uniquement le regime core de 90% du dataset de parametres de
-      pricing, sans sa queue stress de 10%.
-- [ ] Faire appeler au generateur la dynamique de reference placee sous
-      `src/model/<asset_class>/<model>/`; ne pas reimplementer le modele dans la
-      recette.
-- [ ] Produire exactement 3 000 000 de samples d'entrainement.
-- [ ] Pour tout modele dont la publication samples est `available`, fournir les
-      deux recettes: `samples_01` avec
-      `12 000 * 250 = 3 000 000`, puis `samples_02` avec
-      `3 000 000 * 1 = 3 000 000` et des seeds independantes.
-- [ ] Tirer independamment chaque maturite selon la loi uniforme discrete sur
-      `{63/252, ..., 504/252}` et utiliser exactement deux pas numeriques par
-      jour, soit `dt = 1 / 504`, pour les schemas discretises.
-- [ ] Declarer les parametres, la loi de `T`, les observables, la methode
-      numerique et les trois seeds dans le YAML.
-- [ ] Ecrire une liste plate de 3M lignes autonomes contenant chacune les
-      parametres, `maturity_days`, `T` et les valeurs terminales; accepter la
-      repetition des parametres dans les paquets de 250 de `samples_01`.
-- [ ] Ajouter un test `--smoke-test` de 1 000 samples, avec relecture du JSON,
-      controle des dimensions et rejet de toute valeur non finie.
+Créer uniquement les responsabilités applicables :
 
-## Ajouter une courbe
+- `parameters.hpp` pour la ligne compacte transférable au GPU ;
+- `dataset.hpp/.cpp` pour le chargement et la validation host ;
+- `dynamics.cuh` et `dynamics_impl.cuh` pour une dynamique simulée ;
+- `analytics.cuh` et `analytics_impl.cuh` pour les quantités réutilisables ;
+- une préparation explicitement qualifiée lorsqu'un moteur l'exige.
 
-- [ ] Creer `src/curve/<curve>/dataset.hpp` et `dataset.cpp`.
-- [ ] Implementer `load_curves(...)` avec validation de structure et de lignes.
-- [ ] Creer `term_structure.cuh` et `term_structure_impl.cuh` avec l'interface
-  commune pertinente :
-      `zero_rate`, `log_discount_factor`, `discount_factor`,
-      `instantaneous_forward`, `forward_derivative` et `forward_rate`.
-- [ ] Garder exactement les memes noms entre courbes lorsque les objets
-      financiers calcules sont identiques.
-- [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
-- [ ] Creer `catalog/curve/<curve>/<dataset_id>/generator.cpp` et
-      `dataset.yaml`.
-- [ ] Controler les taux et forwards sur une grille de maturites.
-- [ ] Rejeter les courbes absurdes selon les bornes documentees.
-- [ ] Recharger et valider le JSON genere.
+Respecter le [contrat des dynamiques](cuda/model-dynamics-contract.md) et le
+[contrat des analytics](cuda/model-analytics-contract.md). Une erreur de ligne
+cite son identifiant et les loaders préservent l'ordre des données.
 
-### Modeles ajustes a la courbe
+### Courbe
 
-- [ ] Creer `src/model/<asset_class>/<model>/<curve>/` a partir de la courbe deja supportee la
-      plus proche.
-- [ ] Modifier uniquement le namespace, le type de courbe et les termes qui
-      dependent reellement de sa parametrisation.
-- [ ] Verifier que les fonctions analytiques communes gardent la meme interface.
-- [ ] Ajouter toutes les combinaisons produit supportees, leurs generateurs et
-      leurs validations QuantLib.
+Une courbe possède sa ligne, son loader et les fonctions term-structure
+applicables : taux zéro, facteur d'actualisation, forward instantané, dérivée
+du forward et forward de période. Les modèles ajustés composent cette API sans
+recopier la courbe.
 
-## Ajouter un produit
+### Produit
 
-- [ ] Creer `src/product/<product>/parameters.hpp`, `dataset.hpp` et
-      `dataset.cpp`.
-- [ ] Declarer dans `parameters.hpp` uniquement les parametres necessaires au
-      payoff ou au contrat, avec leurs invariants de representation.
-- [ ] Reserver `dataset.hpp/.cpp` aux conteneurs hote et au chargement JSON;
-      les pricers et interfaces CUDA incluent directement `parameters.hpp`.
-- [ ] Implementer `load_products(...)` avec validation de structure et de lignes.
-- [ ] Verifier au minimum les valeurs finies, positivites, maturites croissantes,
-      calendriers et conventions propres au produit.
-- [ ] Ajouter les helpers reutilisables dans `tools/datasets/`.
-- [ ] Creer `catalog/product/<product>/<dataset_id>/generator.cpp`; le produit
-      conserve le meme prefixe sous `src/product/` et `datasets/product/`, et
-      ajouter le `dataset.yaml` adjacent.
-- [ ] Generer des strikes, maturites et tenors plausibles pour le produit.
-- [ ] Recharger et valider le JSON genere.
+Créer sous `src/product/<product>` :
 
-### Familles call/put
+- `parameters.hpp` et `dataset.hpp/.cpp` ;
+- `pricing_policy.cuh` ;
+- `schedule.cuh` ou `continuation_state.cuh` seulement si nécessaires.
 
-Lorsque call et put different uniquement par l'orientation du payoff:
+Les paramètres décrivent le contrat financier, pas un modèle. Le payoff, le
+calendrier et les invariants sont validés une seule fois dans leur propriétaire.
 
-- [ ] Utiliser une seule famille produit, par exemple `european_options`, et un
-      seul couple de fichiers de pricing `<product>.cuh/.cu`.
-- [ ] Selectionner `OptionSide::call` ou `OptionSide::put` par template public;
-      ne pas stocker un signe dans chaque ligne et ne pas brancher dans chaque
-      trajectoire.
-- [ ] Instancier explicitement les deux versions dans le `.cu`, afin que les
-      generateurs C++ puissent les lier sans inclure l'implementation CUDA.
-- [ ] Conserver deux dossiers sous
-      `catalog/model/<asset_class>/[<family>/]<model>/prices/`: les prix call et put sont
-      deux datasets publics distincts, meme s'ils partagent les parametres.
-- [ ] Ne creer des bases de parametres propres au call ou au put que si leur
-      construction differe reellement; les ranger alors dans la meme famille
-      produit, comme les deux grilles de gap options.
+### Composition pricing
 
-Une barriere montante et une barriere descendante, ou une knock-in et une
-knock-out, ne sont pas automatiquement la meme famille d'implementation: leur
-etat de chemin et leur contrat doivent d'abord etre identiques a un simple
-changement de signe.
+Le dossier `product/` du modèle contient uniquement la composition mince entre
+modèle, courbe éventuelle et produit. Les moteurs, workspaces, réductions et
+schedules génériques restent partagés.
 
-### Pricing du produit
+Pour call/put ou payer/receiver, utiliser la spécialisation template publique
+et ses instanciations explicites. Ne pas ajouter un branchement de côté dans le
+hot path ni dupliquer un produit dont seuls le signe ou l'orientation changent.
 
-- [ ] Ajouter `<product>.cuh/.cu` dans chaque modele compatible.
-- [ ] Copier l'ossature du produit numeriquement le plus proche.
-- [ ] Garder `PreparedRow`, `prepare_row`, `evaluate_price` ou `evaluate_path`
-      dans la politique; reutiliser le kernel et la validation communs.
-- [ ] Choisir une topologie adaptee sans casser l'uniformite:
-      specialisation directe ou grid-stride pour une formule fermee, blocs
-      persistants avec reduction pour le Monte-Carlo standard, kernel specialise
-      seulement lorsque l'algorithme l'exige.
-- [ ] Verifier les acces globaux contigus, la pression registre, les reductions,
-      l'occupation et les allocations temporaires.
-- [ ] Ajouter le generateur de prix pour chaque dataset public distinct, meme
-      lorsqu'il ne fait que choisir une specialisation call/put.
-- [ ] Ajouter le validateur modele-produit mince et les adaptateurs de backend
-      necessaires avant de considerer le produit publiable.
+Suivre le [contrat closed form et Monte Carlo](cuda/closed-form-and-monte-carlo-pricing-contract.md)
+ou le [contrat American/Bermudan](cuda/american-and-bermudan-pricing-contract.md).
 
-Pour les signatures, l'ordre des fonctions et la strategie de kernel, suivre
-le contrat
-[`cuda/closed-form-and-monte-carlo-pricing-contract.md`](cuda/closed-form-and-monte-carlo-pricing-contract.md)
-ou, pour l'exercice anticipe,
-[`cuda/american-and-bermudan-pricing-contract.md`](cuda/american-and-bermudan-pricing-contract.md).
+## 4. Déclarer la capacité et générer
 
-## Ajouter une base de prix
+Mettre à jour le manifeste typé avant d'écrire un binding ou une recette
+mécanique. Il doit résoudre sans ambiguïté :
 
-- [ ] Creer
-      `catalog/model/<asset_class>/[<family>/]<model>/prices/[<curve>/]<product>/<dataset_id>/`.
-- [ ] Ajouter `generator.cpp` et `dataset.yaml` dans ce meme dossier.
-- [ ] Charger les datasets modele, courbe si necessaire, et produit.
-- [ ] Verifier la construction `Aligned` ou `CartesianProduct` et le nombre de
-      lignes attendu.
-- [ ] Garder le bloc de configuration separe de la logique CUDA et des metadonnees.
-- [ ] Allouer, copier, lancer, synchroniser et liberer toutes les ressources CUDA.
-- [ ] Verifier les erreurs CUDA et la validite de la configuration de lancement.
-- [ ] Ecrire prix, erreur standard si pertinente et timings.
-- [ ] Valider la structure du JSON de prix juste apres son ecriture.
-- [ ] Verifier que tous les prix et erreurs standards attendus sont finis.
-
-### Hierarchie de validation obligatoire
-
-- [ ] Separer explicitement les 900 lignes `core` des 100 lignes `stress` et
-      exiger une reference independante sur les deux regimes.
-- [ ] Inventorier exhaustivement tous les moteurs Premia compatibles avec le
-      modele et le produit, dans tous les menus Premia, avant d'en choisir un.
-- [ ] Inclure les contrats directs et les reductions exactes fondees sur des
-      moteurs Premia; une difference discret/continu n'est pas une absence de
-      moteur.
-- [ ] Mesurer les candidats sur un echantillon representatif du `core`,
-      puis les ordonner par compatibilite, robustesse et vitesse.
-- [ ] Ne declarer Premia indisponible que si aucun moteur compatible n'existe;
-      pour une ligne, n'autoriser la sortie de Premia qu'apres l'echec technique
-      de tous les moteurs Premia declares.
-- [ ] A defaut, chercher un pricer specialise QuantLib.
-- [ ] A defaut, construire une simulation Monte-Carlo QuantLib independante.
-- [ ] Si aucun backend fiable n'existe, conserver la reference
-      `not_available` et interdire la publication avec `verified: true`.
-- [ ] Ajouter le validateur unifie sous
-      `validation/model/<asset_class>/<model>/[<curve>/]<product>.py`, avec la
-      meme ossature que les produits voisins; omettre la courbe en equity.
-- [ ] Reutiliser le `reference_pipeline.py` de la classe d'actifs et conserver
-      les memes fonctions, leur ordre et leurs signatures que le modele voisin.
-- [ ] Exposer `python -m <module> DATASET REFERENCE_DATASET`;
-      la commande est cache-only par defaut et `--generate` est la seule voie
-      qui relance un backend externe.
-- [ ] Declarer la liste ordonnee complete des moteurs Premia, puis les
-      emplacements QuantLib specialise et QuantLib Monte Carlo, avec un
-      adaptateur ou une raison d'indisponibilite explicite.
-- [ ] Laisser `validation/hierarchy.py` transmettre au moteur suivant les seules
-      exceptions techniques ligne par ligne; ne jamais y envoyer une divergence.
-- [ ] Conserver les adaptateurs de backend reutilisables sous
-      `validation/premia/` et `validation/quantlib/`.
-- [ ] Mettre les conversions reutilisables dans un fichier commun au modele.
-- [ ] Pour un modele equity stochastique, reutiliser
-      `validation/model/equity/stochastic_equity.py`: le fichier du modele
-      declare seulement produits, moteurs et noms natifs; les fichiers produits
-      restent des wrappers CLI minces.
-- [ ] Lire le JSON de prix produit par le vrai generateur CUDA.
-- [ ] Reconstruire chaque ligne dans le backend avec les memes conventions.
-- [ ] Comparer les 900 lignes core et les 100 lignes stress, pas seulement un
-      echantillon favorable.
-- [ ] En cas d'echec technique du moteur Premia principal, conserver ligne,
-      statut et raison, puis essayer successivement chaque autre moteur Premia;
-      appliquer QuantLib uniquement si tous ont techniquement echoue.
-- [ ] Ne jamais basculer vers QuantLib lorsque Premia a calcule un prix fini et
-      comparable qui diverge: enregistrer une `comparison failure` et corriger
-      la cause.
-- [ ] Rejeter comme exception technique toute sortie pourtant finie qui viole
-      une borne de non-arbitrage; conserver le diagnostic avant le repli.
-- [ ] Controler erreur absolue, erreur relative, erreur maximale et taux d'echec.
-- [ ] Controler le biais signe moyen pour detecter une erreur systematique.
-- [ ] Lorsqu'une relation mathematique continu/discret justifie le biais,
-      conserver `systematic_bias: true`, ajouter une explication non vide et
-      verifier la borne ligne par ligne; ne jamais masquer un biais inexplique.
-- [ ] Expliquer les tolerances par la precision FP32 ou la statistique Monte-Carlo;
-      ne pas les elargir uniquement pour faire passer le test.
-- [ ] Ecrire les 1 000 prix sous `validation/datasets/price`, avec empreintes
-      semantiques des sources et `validation_policy_fingerprint`,
-      provenance `reference_pricer_id`, `row_priced`, version du backend
-      utilisee et verification core/stress.
-- [ ] Apres un changement des seuls criteres de validation fixed income,
-      executer `python -m
-      validation.model.fixed_income.refresh_policy_fingerprints`: cette
-      migration revalide les caches sans relancer Premia ou QuantLib.
-- [ ] Regenerer avec `--generate` lorsque les sources ou le pricer de reference
-      changent; ne jamais recalculer une empreinte ou une metrique a la main.
-- [ ] Supprimer tout `validation_report.json` ou
-      `validation.ipynb` adjacent au YAML et ne publier dans celui-ci que
-      `status`, `verified` et `dataset`.
-- [ ] Generer le cache et le bloc YAML exclusivement depuis l'execution du
-      generateur de references; ne jamais rediger les resultats a la main.
-- [ ] Ajouter au `CMakeLists.txt` un test court portant le label
-      `cached_reference`; les modules Premia et QuantLib directs restent des
-      outils de regeneration et de diagnostic.
-- [ ] Ajouter un test qui bloque les imports Premia/QuantLib sur le chemin
-      cache-only.
-- [ ] Executer le validateur isole, puis la suite CTest complete.
-
-Le YAML publie uniquement:
-
-```yaml
-validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/<asset_class>/.../<database_id>.json"
+```text
+(model, optional curve, product, variant)
+    -> engine -> binding -> CMake target -> catalog recipe
 ```
 
-Le YAML ne repete aucun moteur. Le JSON sous `validation/datasets` contient les
-trois emplacements ordonnes `premia`, `quantlib_specialized` et
-`quantlib_monte_carlo`. Seules les methodes effectivement utilisees portent un
-identifiant, une version, un nom natif et `row_priced`; une methode disponible
-mais inutilisee ne contient que son statut.
+Le codegen produit les bindings pricing, bindings sample, recettes répétitives,
+enregistrement CMake et empreintes. Les algorithmes, distributions de
+paramètres et exceptions mathématiques restent explicites chez leur
+propriétaire.
 
-La comparaison d'une fonction CUDA avec une reimplementation des memes formules
-dans le projet n'est pas une validation independante et ne remplace ni Premia
-ni QuantLib.
-
-## Mise a jour obligatoire du site
-
-Le site est un projet local separe et ignore par ce depot. Sa mise a jour est
-obligatoire pour publier le catalogue, mais elle est commitee et livree depuis
-son propre projet: elle ne doit pas etre ajoutee a la PR de la bibliotheque.
-
-- [ ] Ajouter le modele, la courbe, le produit et la base de prix dans
-      `AI_factory_website/static/catalog-data.js`.
-- [ ] Respecter la navigation: classe d'actifs, modele, courbe si necessaire,
-      produit, puis dataset.
-- [ ] Afficher le nombre de lignes, la methode de pricing et les liens essentiels.
-- [ ] Ajouter le lien de telechargement du dataset.
-- [ ] Ajouter le lien `Code on GitHub` vers le dossier contenant YAML et generateur.
-- [ ] Ajouter le lien vers la documentation du code.
-- [ ] Documenter les formules, le nom des fonctions CUDA et leurs fichiers.
-- [ ] Ajouter ou mettre a jour l'equation TeX du modele, de la courbe ou du payoff.
-- [ ] Regenerer les images avec `AI_factory_website/equations/build.sh`.
-- [ ] Verifier les cartes, les bandeaux, les liens et la navigation sur desktop et
-      mobile.
-- [ ] Mettre a jour les compteurs et listes de modeles, courbes et produits.
-
-L'ajout au code ou au catalogue sans ajout correspondant au site est incomplet.
-
-## Verification finale
+Vérifier la dérive sans modifier le dépôt :
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j 8
-ctest --test-dir build --output-on-failure
-git diff --check
-git status --short
+python3 tools/codegen/pricing_bindings/generate.py \
+  --family all \
+  --output /tmp/ai_factory-pricing-bindings \
+  --compare-root .
 ```
 
-- [ ] Executer tous les generateurs ajoutes.
-- [ ] Recharger tous les JSON generes avec les loaders de production.
-- [ ] Executer les tests CUDA sur le GPU cible.
-- [ ] Executer toutes les validations Premia et QuantLib concernees.
-- [ ] Executer la suite CTest complete sans echec.
-- [ ] Verifier que les empreintes des sources et de la politique courante sont
-      presentes et acceptees par les tests cache-only.
-- [ ] Comparer les performances au cas existant le plus proche.
-- [ ] Verifier qu'aucun dataset volumineux, build, site local ou note interne
-      n'entre dans le commit.
-- [ ] Mettre a jour le README public si l'architecture visible a change.
+Un fichier généré n'est jamais corrigé à la main.
 
-## Definition de termine
+## 5. Ajouter les datasets
 
-Une extension peut etre consideree terminee uniquement si:
+### Paramètres modèle, courbe ou produit
 
-- [ ] le code est uniforme, lisible, compile et teste;
-- [ ] les datasets sont generes, documentes et valides au chargement;
-- [ ] chaque YAML indique explicitement le meilleur validateur qui a passe, ou
-      `none` lorsqu'aucune reference independante fiable n'existe;
-- [ ] chaque rapport nomme la fonction ou methode de pricing exacte pour tous
-      les moteurs disponibles et tous les replis executes;
-- [ ] les erreurs et le biais du core sont dans les tolerances justifiees;
-- [ ] le catalogue et le site exposent la nouvelle extension;
-- [ ] les equations, liens, documentation et images du site sont verifies;
-- [ ] la suite CTest complete passe;
-- [ ] le commit ne contient que les sources et catalogues destines a GitHub.
+La recette définit les distributions, grilles et contraintes puis écrit le
+JSON et le `dataset.yaml` adjacent. Elle recharge l'artefact avec le loader de
+production avant de réussir.
+
+Les datasets modèle et produit suivent l'ordre contractuel de 900 lignes core
+puis 100 lignes stress. Utiliser le
+[contrat de génération des paramètres](model-and-product-parameter-dataset-generation.md)
+pour les bornes, domaines Philox et contrôles obligatoires.
+
+### Samples modèle
+
+Les deux recettes publiées par modèle produisent chacune trois millions de
+lignes selon les formes contractuelles `12 000 x 250` et `3 000 000 x 1`.
+Bindings, helpers et recettes sont générés depuis le manifeste ; aucune recette
+ad hoc ne réimplémente la dynamique.
+
+Chaque générateur expose `--smoke-test` et `--preflight`. Le
+[contrat des samples](model-sample-dataset-generation.md) possède la forme des
+lignes, les seeds, la mémoire, le replay et les métadonnées.
+
+### Prix
+
+Une recette de prix charge les datasets d'entrée, applique une construction
+`Aligned` ou `CartesianProduct`, lance le pricer public, puis écrit prix, erreur
+standard applicable et timings. Le JSON est relu et validé immédiatement.
+
+Le YAML reste compact et pointe vers les entrées et la référence indépendante.
+Les détails de backend et les comparaisons appartiennent au dataset de
+référence, pas à la recette publiée.
+
+## 6. Valider indépendamment un prix
+
+Appliquer le [pipeline de validation indépendant](independent-price-validation-pipeline.md)
+sans le recopier dans le validateur modèle-produit :
+
+1. inventorier tous les moteurs Premia compatibles dans tous les menus ;
+2. ordonner les candidats Premia par compatibilité, robustesse et temps mesuré ;
+3. essayer ensuite QuantLib spécialisé, puis QuantLib Monte Carlo ;
+4. conserver `not_available` si aucune référence fiable n'existe.
+
+Un échec technique peut descendre dans cette hiérarchie. Une divergence finie
+est une erreur à comprendre ; elle ne choisit jamais rétrospectivement la
+référence la plus proche.
+
+Les 900 lignes core et 100 lignes stress doivent toutes disposer d'une
+référence, respecter leurs budgets et passer avant `verified: true`. Le mode
+normal est cache-only ; les moteurs externes ne sont lancés que par une
+régénération explicite.
+
+## 7. Enregistrer le build et les tests
+
+- ajouter les unités runtime au module CMake propriétaire ;
+- laisser les artefacts générés au CMake généré ;
+- construire le target le plus étroit ;
+- tester loaders, domaines invalides, limites et symétries ;
+- exécuter les tests CUDA du moteur et du produit concernés ;
+- exécuter `pricing_binding_codegen`, `model_source_layout` et les contrôles de
+  catalogue ;
+- lancer les validations numériques concernées ;
+- exécuter les suites agrégées avant publication.
+
+Les changements sensibles aux kernels comparent avant/après temps, registres,
+spills, shared memory et occupation sur le même GPU et toolchain. Une valeur
+SM89 ne devient jamais un défaut portable.
+
+## 8. Publier
+
+- générer ensemble JSON et YAML ;
+- vérifier identifiants, chemins, URLs, nombres de lignes et empreintes ;
+- conserver les gros JSON hors Git ;
+- ne stocker aucun secret dans le catalogue ou le site statique ;
+- ajouter ou mettre à jour l'entrée correspondante dans le projet du site ;
+- tester le téléchargement et l'affichage des métadonnées.
+
+## Définition de terminé
+
+Une extension est terminée lorsque :
+
+- le manifeste déclare une composition unique et le codegen est sans diff ;
+- le runtime respecte les contrats de son domaine ;
+- les recettes reproduisent leurs JSON et YAML sans édition manuelle ;
+- les tests ciblés et contrôles d'architecture passent ;
+- chaque prix publié possède une validation indépendante core et stress ;
+- les ressources et performances sont qualifiées si le hot path change ;
+- la documentation et le site pointent vers les nouveaux propriétaires sans
+  recopier d'inventaire dérivé.

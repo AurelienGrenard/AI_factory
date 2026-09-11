@@ -10,6 +10,7 @@
 #include "product/geometric_asian_option/parameters.hpp"
 
 #include <cstdint>
+#include <math_constants.h>
 
 namespace ai_factory::workbench::product {
 
@@ -28,9 +29,16 @@ struct GeometricAsianOptionPathPolicy {
     struct Handler {
         CompensatedFloatSum log_sum;
         std::uint32_t count = 0U;
+        bool has_zero_observation = false;
 
         __device__ __forceinline__ bool observe(float log_spot) {
-            log_sum.add(log_spot);
+            // Absorption makes the mean zero; log(0) cannot enter Kahan's
+            // correction. Other non-finites must still invalidate the payoff.
+            if (log_spot == -CUDART_INF_F) {
+                has_zero_observation = true;
+            } else {
+                log_sum.add(log_spot);
+            }
             ++count;
             return true;
         }
@@ -53,7 +61,7 @@ struct GeometricAsianOptionPathPolicy {
         return {product.maturity_days};
     }
 
-    template<typename ModelParameters>
+    template<equity::RiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,
@@ -77,7 +85,10 @@ struct GeometricAsianOptionPathPolicy {
         const typename StatePolicy::State&,
         const Handler& handler
     ) {
-        const float geometric_mean = expf(
+        if (!isfinite(handler.log_sum.value()) || handler.count == 0U) {
+            return CUDART_NAN_F;
+        }
+        const float geometric_mean = handler.has_zero_observation ? 0.0f : expf(
             handler.log_sum.value() / static_cast<float>(handler.count)
         );
         return product.discount * payoff::vanilla_option_payoff<Side>(

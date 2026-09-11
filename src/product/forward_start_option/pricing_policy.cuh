@@ -49,7 +49,7 @@ struct ForwardStartOptionPathPolicy {
         return {{product.reset_time_days, product.maturity_days - product.reset_time_days}};
     }
 
-    template<typename ModelParameters>
+    template<equity::RiskFreeRateModelParameters ModelParameters>
     __device__ __forceinline__ static PreparedProduct prepare_product(
         const ModelParameters& model,
         const ProductParameters& product,

@@ -7,6 +7,13 @@ public signatures, product availability or generated target lists: those
 contracts belong to the source headers, the typed capability manifest and the
 CUDA documents indexed by [`README.md`](README.md).
 
+The index also includes source-level family and product gateways so a reader
+can move from a mathematical reference to its implementation owner.
+
+## Source ownership gateways
+
+- [Shared runtime primitives](../src/common/README.md)
+
 ## Equity families
 
 - [Markovian family](../src/model/equity/markovian/README.md)
@@ -32,7 +39,9 @@ CUDA documents indexed by [`README.md`](README.md).
 
 ## Fixed-income models
 
+- [Fixed-income family](../src/model/fixed_income/README.md)
 - [CIR](../src/model/fixed_income/cir/README.md)
+- [CIR++](../src/model/fixed_income/cir_plus_plus/README.md)
 - [G2](../src/model/fixed_income/g2/README.md)
 - [G2++](../src/model/fixed_income/g2_plus_plus/README.md)
 - [Hull--White](../src/model/fixed_income/hull_white/README.md)
@@ -41,5 +50,15 @@ CUDA documents indexed by [`README.md`](README.md).
 
 ## Curves
 
+- [Curve family](../src/curve/README.md)
 - [Nelson--Siegel](../src/curve/nelson_siegel/README.md)
 - [Svensson](../src/curve/svensson/README.md)
+
+## Product ownership
+
+- [Financial products](../src/product/README.md)
+
+## Shared numerical references
+
+- [Mean-reverting Gaussian transitions](../src/common/fixed_income/mean-reverting-gaussian-transition-reference.md)
+- [Fixed-income rate identities](../src/common/fixed_income/fixed-income-rate-identities-reference.md)

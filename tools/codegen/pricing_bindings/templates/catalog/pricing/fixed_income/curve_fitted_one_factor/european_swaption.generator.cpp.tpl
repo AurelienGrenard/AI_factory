@@ -21,17 +21,21 @@ int main() {
     const std::filesystem::path product_path =
         "datasets/product/european_swaption/"
         "european_swaptions_01.json";
+    const auto product_dataset = product::load_european_swaptions(product_path);
     datasets::generate_regular_european_swaption_prices(
         model_path,
         curve_path,
         product_path,
         ${model_alias}::load_models(model_path),
         ns::load_curves(curve_path),
-        product::load_european_swaptions(product_path),
-        [](auto... arguments) {
+        product_dataset,
+        [maximum_payment_count = product_dataset.maximum_payment_count](
+            const offline::cuda_tuning::PricingLaunchPlan& plan, auto... arguments) {
             fitted::launch_${model}_${curve}_european_swaption_cuda<
                 SwaptionSide::${swaption_side}
-            >(arguments...);
+            >(arguments..., maximum_payment_count,
+                plan.profile.distribution == offline::cuda_tuning::PriceWorkDistribution::block
+                    ? closed_form::WorkDistribution::cooperative : closed_form::WorkDistribution::scalar);
         },
         "datasets/model/fixed_income/${model}/prices/${curve}/"
         "${variant}/"
@@ -44,6 +48,7 @@ int main() {
         "prices/${curve}/${variant}/"
         "${model}_01__${curve}_01__${variant}_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond ${bond_option_side_plural}",
-        "${model_display} ${curve_display} European ${swaption_side} swaption"
+        "${model_display} ${curve_display} European ${swaption_side} swaption",
+        ${launch_identity}
     );
 }

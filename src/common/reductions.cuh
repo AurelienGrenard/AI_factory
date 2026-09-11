@@ -109,7 +109,8 @@ __device__ __forceinline__ void compute_statistics(
     const MomentSums& total,
     std::size_t sample_count,
     double& price,
-    double& standard_error
+    double& standard_error,
+    std::size_t sequential_terms = 0U
 ) {
     const double count = static_cast<double>(sample_count);
     if (sample_count < 2U
@@ -125,8 +126,20 @@ __device__ __forceinline__ void compute_statistics(
     const double cancellation_scale = fmax(
         total.sumsq, fabs(count * price * price)
     );
-    const double roundoff_tolerance =
-        64.0 * DBL_EPSILON * cancellation_scale;
+    double relative_roundoff = 64.0 * DBL_EPSILON;
+    if (sequential_terms != 0U) {
+        // gamma_k bounds the sequential additions plus the two warp trees.
+        // The centered second moment combines Q and N*mean^2: four gamma_k
+        // covers their accumulated errors. This runs once per row, not path.
+        const double scaled_epsilon = (static_cast<double>(sequential_terms) + 10.0) * DBL_EPSILON;
+        if (scaled_epsilon >= 0.01) {
+            price = nan("");
+            standard_error = nan("");
+            return;
+        }
+        relative_roundoff += 4.0 * scaled_epsilon / (1.0 - scaled_epsilon);
+    }
+    const double roundoff_tolerance = relative_roundoff * cancellation_scale;
     if (!isfinite(price)
         || !isfinite(centered_sum)
         || centered_sum < -roundoff_tolerance) {

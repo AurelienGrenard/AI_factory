@@ -1,5 +1,724 @@
 # Constats d'audit fermes
 
+## Provenance et conservation des datasets — 2026-09-10
+
+### STRUCT-028 — Distinguer provenance de génération et compatibilité des bases
+
+- **État / qualification :** ouvert et fermé le 2026-09-10; sévérité moyenne,
+  priorité haute, confiance prouvée. Propriétaire : agent référent. Chantier
+  demandé avant PERF-016, secondaire reproductibilité; distinct de STRUCT-023
+  (reprise) et STRUCT-025/026 (description/replay samples).
+- **Signature :** le contrôleur figeait binaires, entrées et recettes dans la
+  campagne, sans provenance attachée au YAML publié ni diagnostic permettant
+  de conserver une base après refactoring. Les hashes codegen et validation
+  ne prouvent pas l'équivalence de deux implémentations.
+- **Correction :** `dataset_provenance.py` possède un enregistrement versionné
+  des futures publications prix/samples : intégrité JSON/recette/enregistrement,
+  identité logique, forme, nombre de trajectoires MC, seeds par stream, entrées par rôle,
+  binaire, recette, méthode déclarée, plan compilé et build. Le contrôleur v2
+  conserve les sources réelles (dont non suivies), les recettes sélectionnées
+  et les observations GPU; enrichit uniquement le YAML en staging avant le
+  hash du journal; refuse les modifications de preuves figées en reprise.
+- **Décision :** `check_dataset_compatibility.py` inspecte sans générer ni
+  publier. Chemins et présentation des entrées ne déterminent pas leur
+  identité; ordre et champs numériques restent significatifs. Les réponses
+  distinguent compatible, revue, contrat nécessitant une nouvelle base et
+  corruption. Code/binaire/build différent signifie revue, jamais preuve
+  automatique de changement mathématique. Le résultat identifie le candidat
+  et l'ancien enregistrement pour conserver une décision étayée.
+- **Preuves :** 35 tests Python datasets/publication, dont 18 tests dédiés
+  de provenance; 21 CTests hôte réussis, comprenant codegen zéro diff et
+  contrôles d'architecture. Gel réel Heston samples et inspection du candidat
+  réussis, **sans exécution** du générateur. Dossier local ignoré
+  `build-dataset-provenance-20260910-z8KotZ/`, à conserver/exporter : snapshot,
+  commandes/retours/hashes, `python-tests`, `host-ctests`, `freeze-probe`,
+  `scope`. Comparaison au snapshot : 1 304 fichiers `src`, 1 132 fichiers
+  catalogue et 96 fichiers codegen préservés; `git diff --check` propre.
+- **Contrat durable :** [provenance et réutilisation](../dataset-provenance-contract.md),
+  lié au workflow de génération et aux guides docs/outils/tests.
+- **Limites assumées :** enregistrement automatique via le contrôleur, pas
+  les invocations natives directes ni les générateurs autonomes de paramètres.
+  Les paramètres sont identifiés comme entrées des prix. Pas de backfill
+  historique, d'allowlist d'équivalence, de modification de certification ni
+  de preuve bitwise multi-GPU. Les SDK et bibliothèques externes ne sont pas
+  archivés. Une campagne v1 se termine avec son contrôleur d'origine.
+  Aucune base existante, aucun kernel, aucun réglage ni audit de validation
+  modifié; aucune campagne PERF-016 lancée.
+- **Réouverture :** provenance inventée pour une ancienne base, classement
+  compatible malgré une entrée/seed/calcul non couvert, disparition des
+  guards de reprise, publication avant hash du YAML enrichi, ou assimilation
+  d'un hash de source à une preuve mathématique/certification indépendante.
+
+## Remédiation de l'organisation des tests — 2026-09-10
+
+### STRUCT-027 — Regrouper les tests par responsabilité et clarifier leurs noms
+
+- **État / qualification :** ouvert et corrigé le 2026-09-10; sévérité
+  moyenne, priorité moyenne, confiance prouvée. Axe 1, secondaire 4.
+- **Signature originale :** 74 sources C++/CUDA dispersées à la racine de
+  `tests`, malgré les dossiers datasets, sampling et LSM; compositions
+  American/Bermudan éloignées du solveur et noms énumérant les modèles
+  plutôt que le contrat partagé. Aucun défaut numérique déduit du rangement.
+- **Correction :** les 74 sources rejoignent leur propriétaire : datasets,
+  sampling, modèles equity/fixed income, produits, LSM, Volterra, numérique
+  ou infrastructure CUDA. La fixture Jamshidian rejoint le fixed income.
+  La racine ne conserve que son README. Les tests transversaux restent
+  groupés; aucun miroir mécanique des modèles ni nouveau moteur de test.
+  Sept noms de fichiers sont clarifiés, notamment le tirage de paramètres,
+  la composition LSM equity et les contrats Gaussian-Volterra. Quatre
+  en-têtes précisent les modèles ou la courbe couverts. CMake accepte le
+  chemin explicite des tests de stages; noms publics et labels restent stables.
+- **Contrat durable :** [guide des tests](../../tests/README.md), carte des
+  responsabilités, convention de noms/en-têtes, distinction entre tirage
+  de paramètres et trajectoires, fixtures locales et helpers partagés.
+- **Preuves :** `build-remediation-test-layout-20260910-kHS8Sz/` (ignoré,
+  à conserver/exporter) contient snapshot, `mapping.json`, commandes,
+  codes retour et hashes de logs. `qualified-layout-invariants` vérifie les
+  contenus contre le snapshot, les 83 sources natives enregistrées, les
+  346 contrats CTest et l'absence d'anciens chemins actifs. Les rapports
+  historiques conservent leurs chemins d'époque. Build complet
+  `ai_factory_tests` Release SM89 réussi; 20 CTests hôte et 11 CUDA réussis,
+  aucun sauté. Codegen 1 549 sorties zéro diff et `git diff --check` propre.
+- **Limites :** aucun changement d'assertion, oracle, algorithme ou paramètre
+  de campagne; seuls des en-têtes et un include changent dans les sources
+  déplacées. `src`, `tools`, catalogue, query et validation inchangés.
+  Pas de campagne de performance, validation externe ni qualification
+  multiarchitecture. PERF-016 reste ouvert.
+- **Réouverture :** sources sans propriétaire prévisible, tests apparentés
+  à nouveau dispersés, noms opaques, ancien chemin actif, ou perte de
+  source enregistrée, nom public, label ou couverture après déplacement.
+  Ne pas dupliquer STRUCT-016, NAME-012, NAME-007 ou STRUCT-019, dont les
+  signatures historiques portent sur d'autres responsabilités.
+
+## Remédiation des recettes samples — 2026-09-10
+
+Preuves locales : `build-remediation-samples-20260910-Z9uPBq/`, ignoré,
+à conserver/exporter. Commandes, retours, durées et hashes de logs conservés;
+snapshot et exclusions dans [status.md](status.md).
+
+### STRUCT-025 — Décrire toutes les lois dérivées des paramètres samples
+
+- **État / qualification :** ouvert le 2026-09-09, corrigé et fermé le
+  2026-09-10; sévérité moyenne, priorité moyenne, confiance prouvée.
+- **Signature :** descriptions incomplètes des transformations Heston/Bates,
+  NIG, VG, rough Heston, Hull-White/OU/Vasicek dans les deux layouts samples.
+- **Correction :** lois conditionnelles/déterministes et intermédiaires
+  d'acceptation renseignés dans `sample_manifest.py`; constantes NIG spot et
+  Stein–Stein rho explicites. Ordre des propositions sérialisé, rejet et
+  ordre des lignes décrits. Aucun changement de fabrique ou d'acceptation.
+  Le validateur refuse les champs publiés ou scalaires dérivés sans loi,
+  les doublons et les descriptions vides. Le contrat samples possède la règle.
+- **Preuves :** 28 tests Python du manifeste; mutations retirant chaque loi
+  rejetées, contrôle positif CIR/CIR++ conservé, descriptions présentes dans
+  les helpers partagés des deux recettes. Codegen 1 549 sorties zéro diff;
+  générateurs Heston des deux layouts compilés, assembly JSON/YAML testé.
+  `unchanged-numerics` vérifie les 25 fabriques octet pour octet et les
+  1 132 fichiers du catalogue inchangés par rapport au snapshot d'entrée.
+- **Portée :** métadonnées des futures générations corrigées, aucune base
+  existante ni aucun YAML publié réétiqueté. Pas de nouvelle certification
+  financière ou de changement du tirage RNG.
+- **Réouvrir si :** une transformation exécutée, constante ou intermédiaire
+  d'acceptation est absente/inexacte dans une recette, ou si une nouvelle
+  fabrique contourne la vérification de complétude.
+
+### STRUCT-026 — Faire correspondre replay et métadonnées à la géométrie FFT exécutée
+
+- **État / qualification :** ouvert le 2026-09-09, corrigé et fermé le
+  2026-09-10; sévérité moyenne, priorité haute, confiance prouvée SM89.
+- **Signature :** argument de threads ignoré par les adaptateurs FFT,
+  fausse variation de géométrie au preflight et stratégie inconditionnelle
+  décrite comme thread grid-stride alors que le kernel est parameter-block.
+- **Correction :** requête hôte mince dans les bindings générés, déléguant
+  au descripteur `Forward::block_dim` du profil cuFFTDx compilé. Le runner
+  sérialise dimensions réelles, nombre de blocs, lignes exécutées et stratégie
+  parameter-block pour les deux layouts. Le replay FFT diminue réellement
+  la grille d'un bloc; le cas un seul bloc annonce explicitement une répétition
+  à géométrie identique. Le replay Markovien continue de varier les threads.
+  `MODEL_SAMPLE_PREFLIGHT` porte un objet JSON et un `replay_scope` explicite;
+  le smoke ne publie plus une grille hypothétique de production.
+- **Preuves :** `tests/sampling/recipe_replay_cuda_test.cpp` utilise les vrais
+  helpers des quatre modèles FFT, deux layouts, 1 000 lignes chacun : finitude
+  et replay identique. `matched-native-replay` compare automatiquement les
+  huit recettes aux diagnostics des kernels effectivement lancés : blocs
+  `[128,1,1]`, grille 4→3 sur la fixture. Plans de production sans allocation :
+  grille 4 096→4 095 pour `12 000×250` et `3 000 000×1`, cas un seul bloc
+  vérifié; le descripteur n'est pas déduit du réglage générique 256.
+  `fft-regression` : deux CTests passants, dont replay bitwise aux frontières
+  de batches du lot précédent. Contrôles codegen/architecture et assembly
+  samples passants.
+- **Portée :** aucune modification des kernels, du tuning, des seeds ou des
+  équations; le diff du code device FFT est nul (`unchanged-numerics`).
+  Le descripteur et les en-têtes/bindings ajoutés sont hôte uniquement.
+  Les replays complets à trois millions de lignes et les autres architectures
+  ne sont pas exécutés dans ce lot; le preflight de la machine reste requis
+  avant sa grande génération. Aucune campagne performance ni base publiée.
+- **Réouvrir si :** métadonnées divergentes du lancement compilé, replay
+  prétendument variable mais natif identique, ou défaut de replay sur une
+  autre taille/architecture. NUM-026 reste la correction numérique distincte
+  des partenaires FFT aux frontières de batches.
+
+## Remédiation ciblée — lot 1 — 2026-09-10
+
+Preuves locales : `build-remediation-v9-lot1-20260910-xdQwSa/`, avec
+commandes, sorties, codes retour et SHA-256 des logs. Ce dossier ignoré
+doit être conservé/exporté; il n'est pas fourni par un clone.
+
+### NUM-012 — Préserver le put Asian géométrique après absorption du spot à zéro
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** après absorption, `-inf` contaminait Kahan puis le put
+  devenait zéro au lieu de K×discount.
+- **Correction :** indicateur explicite d'observation nulle; Kahan FP32 conservé
+  pour les valeurs finies, NaN/+inf non masqués. Aucun FP64 ajouté.
+- **Preuves :** `geometric_asian_boundary_cuda` : zéros initiaux,
+  intermédiaires et finaux, call/put, vraie absorption CEV et poursuite d'un
+  état SABR absorbé donnent le put .97; contrôles finis et invalides.
+  `asian_mean_precision_cuda`, factorisation produit et frontière SABR passent.
+  Logs `test-consumers-final`, `test-retained-final`.
+  Kernel CEV Asian : 59→60 registres SM89, zéro spill.
+- **Réouvrir si :** une observation nulle/invalidité est masquée ou si le
+  budget des chemins finis régresse; les limites historiques ci-dessous restent applicables.
+
+#### Qualification historique du 2026-08-30, avant réouverture
+
+- **Nature :** FP64 chaud elimine, qualifie et verifie le 2026-08-30.
+- **Signature originale :** les deux facades geometric Asian additionnaient
+  chaque log-spot et divisaient en FP64 avant `expf`, sans distinguer erreur de
+  somme, exponentielle et cout sur les trois moteurs.
+- **Cloture :** les deux variantes `GeometricMeanObservationHandler` et la
+  facade `GeometricAsianOptionPathPolicy` reutilisent `CompensatedFloatSum`;
+  la politique explicite de spot non positif est preservee. Le meme sweep
+  compare la coordonnee log et la moyenne publiee a `long double`.
+- **Preuve numerique et prix :** l'erreur relative Kahan maximale vaut
+  `3.58e-8` sur la coordonnee et `1.04e-7` apres exponentielle. Le test
+  Black--Scholes conserve sa comparaison analytique FP64; les tests Heston,
+  QRH et Volterra sont finis, QRH rejoue bitwise et sa call geometrique reste
+  sous la call arithmetique dans l'incertitude Monte Carlo.
+- **Cout et ressources SM89 :** pour 14 458 880 log-observations, FP64 mesure
+  `0.3747 ms`, FP32 simple `0.1907 ms`, Kahan FP32 `0.1149 ms`, chunks
+  `0.3812 ms`. Heston reste a 68 registres; QRH N=7 passe de 108 a 91 et
+  Volterra de 71 a 69, sans stack/local/spill.
+- **Reouvrir seulement si :** domaine de log-spots, nombre d'observations ou
+  fonction aval sort du sweep/budget, ou si une architecture cible invalide le
+  gain end-to-end ou les ressources.
+
+### NUM-027 — Employer les barrières relatives dans le range accrual Black-Scholes
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** bornes relatives S(t)/S(0) traitées comme niveaux absolus
+  dans le seul closed form Black-Scholes.
+- **Correction :** ajout de log S0 aux bornes dans le template canonique;
+  façade et manifeste régénérés, oracle du test corrigé sans changer le
+  helper de probabilités absolues.
+- **Preuves :** `black_scholes_cuda`, S0=.75/1/1.4 et cas S0=1.2 :
+  prix attendu 1.1, tolérance 2e-6. Logs `test-g2-conditioned`,
+  `test-consumers-final`; `codegen-check` zéro diff et
+  `manifest-contract` 26 tests passants.
+- **Réouvrir si :** divergence de convention entre chemin et closed form,
+  dépendance indue au spot normalisé ou perte de la correction après codegen.
+
+### NUM-022 — Tirer une vraie loi de Poisson dans les intervalles Bates de grande moyenne
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** l'inversion depuis exp(-mean) sous-débordait à grande
+  moyenne agrégée, alors que le compensateur conservait l'intensité réelle.
+- **Correction :** inversion inchangée sous 10, PTRS commun à partir de 10;
+  indices Philox inchangés, consommation de la petite branche préservée.
+- **Preuves :** `bates_dynamics_cuda`, 32 768 chemins, intervalles de
+  1/252 pas, moyennes 0/.1/9.99/10/110/1000 : comptes entiers, moyenne,
+  variance, trois points de CDF Poisson et moment exponentiel compensé
+  contre des oracles hôte, budgets de six erreurs standard. Replay
+  128/256 threads identique par branche. Les contrôles existants de
+  simulation terminale et calendrier passent (`test-consumers-final`).
+  Le sweep de grande moyenne cible la primitive commune appelée par ces
+  consommateurs; ce n'est pas une certification de prix du catalogue.
+- **Ressources :** vrai kernel européen Bates 76→78 registres SM89,
+  stack/spills nuls; aucun FP64 ajouté, pas de campagne prix longue.
+- **Réouvrir si :** loi, compensation ou replay échoue sur le domaine accepté
+  ou si un consommateur contourne la primitive corrigée.
+
+### NUM-023 — Préserver la correction de martingale VG quand nu tend vers zéro
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** l'arrondi de 1+incrément avant log effaçait la correction
+  de martingale lorsque nu tendait vers zéro.
+- **Correction :** `log1pf(-nu*(theta+.5*sigma²))/nu`, sans FP64 ajouté.
+- **Preuves :** `levy_dynamics_cuda`, 21 couples theta/nu
+  (nu=1e-9 à .25), dérive et transition contre log1p long double hôte,
+  limite brownienne et contrôles usuels conservés. Budget absolu 3e-8;
+  `test-consumers-final` passe. Kernel européen VG : 55 registres
+  avant/après, aucun spill.
+- **Réouvrir si :** perte de la limite nu→0, moment compensé incorrect
+  ou régression du domaine usuel.
+
+### NUM-024 — Stabiliser les covariances G2 lorsque les deux vitesses diffèrent fortement
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** covariance intégrée et Cholesky incohérents lorsque seule
+  une vitesse est petite; variance reconstruite du contre-exemple +48.7 %.
+- **Correction :** identité stable divisant par a+b, série petits temps,
+  formule directe réservée au domaine bien conditionné; série FP32 de degré
+  huit du helper gaussien partagé. Résidu Cholesky matériellement négatif
+  signalé par NaN, pas projeté silencieusement. Aucun FP64 ajouté.
+- **Preuves :** `g2_covariance_cuda`, 2 904 cas, deux ordres de vitesses,
+  rho=-.9/0/.9, seuils encadrés, comparaison aux noyaux intégrés par Simpson
+  long double hôte : erreur normalisée maximale 2.6431e-5, budget 3e-5.
+  G2/G2++, OU/Vasicek et pricers G2/G2++ Nelson–Siegel/Svensson passent;
+  smoke pricing à 4 096 chemins, calendriers réguliers/explicites,
+  constructions alignée/cartésienne et replay de géométrie.
+  `test-retained-final`, `test-g2-pricing-retained`,
+  `memcheck-g2-retained` : zéro erreur mémoire.
+- **Coût / choix :** seule la branche sensible reste un appel device direct,
+  non inliné; inliner toute la formule faisait monter G2++ à 157 registres
+  et interdisait 512 threads. Version retenue : G2 régulier 72→72,
+  explicite 80→78; G2++ Nelson–Siegel 109→112 et 110→114 registres.
+  `resources-*-retained` et diagnostics du vrai lancement documentent
+  stack/shared/spills. Sur 32 prix × 32 768 chemins, 256 threads/32 blocs,
+  quatre warmups/onze répétitions : G2 .896–.897→.957 ms (~+7 %),
+  G2++ 2.777→2.851 ms (~+3 %). Logs `timing-complete-before-*`
+  et `timing-retained-1`; variantes intermédiaires non retenues conservées.
+  Ce coût de justesse n'est ni un optimum universel ni une campagne scaling.
+- **Réouvrir si :** dépassement du budget, covariance non PSD masquée,
+  géométrie contractuelle impossible ou coût non acceptable sur une autre
+  architecture/charge. Contrat permanent dans `model-dynamics-contract.md`.
+
+### NUM-025 — Ne pas perdre les observations Volterra sur une grille acceptée
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** arrondis séparés du premier jour et de l'intervalle
+  perdaient des callbacks; une première date arrondie à zéro bloquait le curseur.
+- **Correction :** projection des dates cumulées, observation contractuelle
+  positive affectée au moins au premier pas, coïncidences livrées dans l'ordre.
+- **Preuves :** `volterra_hybrid_schedule_cuda`, 12 calendriers
+  réguliers/stubbed/statiques, dt=1/504,1/378,1/63 : tous les callbacks et
+  paiement Athena final présents. Projection 2/3/5/6/8 vérifiée,
+  grille canonique exacte (`test-retained-final`).
+- **Portée :** une grille non alignée reste une approximation temporelle
+  documentée; livrer les événements ne prouve pas l'exactitude du prix
+  sur une grille grossière. Pas de nouveau kernel ni de FP64.
+- **Réouvrir si :** événement manquant/désordonné, paiement final perdu
+  ou approximation présentée comme calendrier exact.
+
+### NUM-026 — Préserver les samples FFT lorsqu'une paire traverse une frontière de batch
+
+- **État / qualification :** corrigé et fermé le 2026-09-10;
+  sévérité faible, priorité moyenne, confiance prouvée sur le périmètre ci-dessous.
+- **Signature :** mettre à zéro le partenaire FFT valide hors batch changeait
+  l'arrondi du chemin conservé malgré des indices RNG identiques.
+- **Correction :** calculer les deux partenaires existant dans le paramètre;
+  seule l'écriture reste bornée à la tranche. Aucun remapping Philox.
+- **Preuves :** vrai launcher rough Bergomi et rough SABR, deux paramètres,
+  P=1/249/250/251, T=4/32/128/504 jours, coupures 1/3/125/249/250/251
+  lorsqu'applicables : comparaison bitwise; sentinelles hors première tranche
+  inchangées. `test-retained-final` et `memcheck-fft-retained`,
+  zéro erreur mémoire.
+- **Coût :** 21 spécialisations compilées rough Bergomi, aucun nouveau spill;
+  registres majoritairement identiques, variations -1 à +2.
+  Sur 2×250 samples à 128 jours, les mesures complètes fluctuent de
+  ~9.9 à 11.3 ms avant comme après; aucune accélération revendiquée.
+  Le split 1+499 reste ~10.03→10.05 ms. Ce contrôle local ne qualifie pas
+  toutes les charges/architectures.
+- **Réouvrir si :** replay non bitwise à une coupure, écriture hors tranche
+  ou coût matériel non qualifié. STRUCT-026 reste distinct et ouvert.
+
+### TEST-001 — Faire échouer les comparaisons du runner sur un résultat NaN
+
+- **État / qualification :** ouvert le 2026-09-09, corrigé et fermé le
+  2026-09-10; sévérité moyenne, priorité moyenne, confiance prouvée.
+- **Signature :** `fabs(actual-expected)>tol` acceptait NaN; le mutant
+  du faux noyau analytique passait malgré des attentes finies.
+- **Correction :** `require_close` rejette les deux opérandes non finis;
+  auto-test NaN et deux infinis, côté attendu et observé. Prix et erreurs
+  standard utilisent le même helper.
+- **Preuve :** `test-guards.json/.log` : tests natifs passants.
+  `test-runner-mutant.json/.log` : copie isolée du runner corrigé,
+  unique sortie analytique remplacée par NaN, échec explicite
+  `offline CUDA runner returned wrong data` (SIGABRT/code -6).
+  Source et compilation du mutant conservées; runner de production inchangé.
+- **Réouvrir si :** un non-fini contourne le helper ou le mutant repasse.
+
+### TEST-002 — Initialiser le padding copié par le test de robustesse numérique
+
+- **État / qualification :** ouvert le 2026-09-09, corrigé et fermé le
+  2026-09-10; sévérité faible, priorité moyenne, confiance prouvée.
+- **Signature :** huit octets de padding indéfinis dans la fixture
+  `NumericalResults` de 672 octets étaient copiés vers l'hôte.
+- **Correction :** stockage device initialisé à `0xff` avant le kernel.
+  Les champs flottants restent NaN tant qu'ils ne sont pas écrits;
+  aucune assertion supprimée ni assouplie.
+- **Preuve :** test natif passant; `initcheck-robustness.json/.log`,
+  Compute Sanitizer 13.3 Initcheck SM89, code 0, **zéro erreur**.
+- **Réouvrir si :** lecture indéfinie de cette fixture ou initialisation
+  masquant un champ numérique manquant.
+
+### BUILD-010 — Reconfigurer les dépendances inférées lorsqu'une source change
+
+- **État / qualification :** ouvert le 2026-09-09, corrigé et fermé le
+  2026-09-10; sévérité moyenne, priorité moyenne, confiance prouvée.
+- **Signature :** trois inférences CMake lisaient des sources non suivies
+  comme dépendances de configuration; includes modifiés, lien/labels périmés.
+- **Correction :** `CMAKE_CONFIGURE_DEPENDS` chez les trois propriétaires,
+  règle dans `cmake/README.md`, aucune portée PUBLIC ajoutée.
+- **Preuve :** `cmake-inference.json/.log` : le test
+  `tests/build/inferred_dependencies_test.py` exerce les fonctions
+  de production dans un projet hôte isolé. Ajout **et retrait** d'includes,
+  dépendances de test et générateur, compilation/lien et labels common/equity
+  recalculés par le seul `cmake --build`.
+  Enregistrement CTest `cmake_inferred_dependencies`.
+- **Réouvrir si :** source d'inférence non suivie, lien incrémental périmé
+  ou labels ne suivant plus les includes.
+
+## Contre-revue indépendante — query v9 — 2026-09-09/10
+
+Les 93 identifiants fermés ont été consultés avant ouverture des nouveaux
+constats. **Aucune clôture ni fusion supplémentaire; NUM-012 est réouvert.**
+Onze nouvelles signatures sont dans [response.md](response.md);
+la couverture, le snapshot et le dossier local de preuves sont décrits dans
+[status.md](status.md). Les 92 autres entrées fermées restent inchangées;
+la qualification historique de NUM-012 accompagne sa réouverture dans response.
+
+| Hypothèse ou rapprochement examiné | Décision et preuve contradictoire | Condition d'un nouvel examen |
+|---|---|---|
+| Réouvrir ANALYTICS-001 pour les méthodes Jamshidian CIR++ | Non retenu : elles délèguent au solveur commun avec un calendrier neutre, sans dépendance à un produit concret; mêmes surfaces présentes dans les autres modèles affines. `structure/report.md` suit les includes et appels. | Dépendance produit concrète ou formule dupliquée démontrée; le seul nom d'une méthode ne suffit pas. |
+| Réouvrir BUILD-004/005 pour le lien incrémental périmé | Non : leurs signatures sont portée des dépendances et ownership. L'inférence non recalculée après modification de source est reproduite séparément sous BUILD-010. | Les anciennes conditions restent celles de leurs entrées; ne pas fusionner des causes distinctes. |
+| Réouvrir STRUCT-013/017 ou PERF-015 pour les samples | Non : les recettes existent, le C++ n'est pas caché dans Python et le tuning reste central. STRUCT-025 vise la description des lois; STRUCT-026 vise des arguments de replay abandonnés. | Réapparition effective de l'ancienne absence, de l'ancien code caché ou d'une table de tuning locale. |
+| Réouvrir NUM-008 pour les quelques bits FFT différents | Non : les indices Philox du chemin sont stables; le partenaire complexe mis à zéro change l'arrondi. Nouvelle cause NUM-026, sonde publique bitwise à l'appui. | Collision ou réallocation non maîtrisée des anciens domaines RNG, selon l'entrée historique. |
+| Réouvrir CUDA-001 pour l'échec Initcheck | Non : le padding fautif appartient à NumericalResults dans un test, pas au PreparedRow Bermudan de production. Layout de 672 octets et contre-épreuve avec stockage initialisé sous TEST-002. | Réapparition d'une lecture non initialisée du PreparedRow/workspace de l'ancienne signature. |
+| Cache statique FFT invalidé par cudaDeviceReset | Hypothèse non retenue sur le cas testé : deux lancements publics réussissent avec buffers recréés, 65 536 octets de shared et même prix affiché. `cuda/context_reset_probe.static.result.txt`. Cela ne qualifie pas plusieurs GPU. | Échec attribuable au cache sur autre contexte/device, à reproduire avec binaire et contrat précis. |
+| SIGSEGV des deux sondes FFT initiales | Pas un défaut de production retenu : GDB situe l'échec dans le JIT driver avant lancement. Les mêmes unités liées statiquement comme CMake fonctionnent; sources, deux liens et logs conservés. | Reproduction dans la chaîne de liaison supportée ou preuve indépendante d'une erreur du dépôt. |
+| Cliquet au spot absorbé zéro | Pas de constat : le calcul 0/0 suivi du floor appelle une convention financière qui n'est pas suffisamment définie pour affirmer un paiement incorrect dans ce passage. Aucune correction arbitraire prescrite. | Convention opposable et contre-exemple produit établis. |
+| Étendre PERF-016 aux anciennes matrices PERF-017/019 | Non : leur fusion et la réduction du mandat restent applicables. Seule la comparaison 1 000/10 000 à 2²⁰ chemins puis extrapolation est proposée; aucune campagne longue sans accord. | Mandat utilisateur explicitement distinct, comme prévu dans leurs conditions historiques. |
+
+Les preuves historiques ne sont pas automatiquement reconduites : provenance
+des 29 cas à 1 000 prix vérifiée et copiée dans le dossier isolé, mais trois
+exécutables actuellement aux anciens chemins de profils Nsight diffèrent du
+hash du profil. Ces profils conservent leur portée historique; aucune nouvelle
+régression ni clôture n'est déduite de cette seule différence.
+
+
+## Fusion du suivi de scaling — 2026-09-09
+
+L'utilisateur remplace la matrice multi-tailles par une seule question :
+à 2²⁰ trajectoires par prix, le passage de 1 000 à un million de prix
+multiplie-t-il approximativement le temps par 1 000 ? `PERF-016` reste ouvert
+et porte le suivi commun MC terminal, barrière et LSM. Les deux entrées
+ci-dessous sont fermées **par fusion et réduction explicite du mandat**,
+pas parce que leurs anciens critères auraient été entièrement vérifiés.
+Les mentions historiques de leur état dans les passages antérieurs restent
+datées; [response.md](response.md) porte seul l'état courant.
+
+### PERF-017 — Qualifier le scaling des barrières avec leur monitoring inchangé
+
+- **Nature :** ouvert le 2026-09-06, fusionné dans `PERF-016` le 2026-09-09,
+  sur décision de l'utilisateur; sévérité originale moyenne, priorité haute,
+  confiance prouvée pour la couverture manquante, coût et géométrie à mesurer.
+  Propriétaire : agent référent.
+- **Signature originale :** la baseline de géométrie privilégie les policies
+  Phoenix Bates à 4 096 trajectoires; elle ne mesure pas un produit barrière
+  pour chaque modèle/méthode jusqu'à 1 000 prix × 1 048 576 trajectoires.
+  Arrêts anticipés et monitoring changent la charge par rapport au terminal.
+- **Preuve initiale :** `tests/performance/generic_kernel_benchmark.cu`,
+  `tests/performance/baseline_sm89_v3.json`,
+  `src/common/equity/barrier_pricing_policy.cuh`.
+- **Décision :** les barrières restent des cas distincts dans le constat
+  commun; même monitoring et charge comparable entre nombres de prix.
+  Le balayage 65 536/262 144/1 048 576 trajectoires n'est plus une condition
+  de clôture. Aucune performance barrière n'est déduite du seul terminal.
+- **Preuves conservées :** calibrage à 100 × 64k; screening Heston aux trois
+  nombres de trajectoires et de threads; 62 jobs Heston/N-facteurs à
+  1 000 × 64k; matrice Heston/Kou à 100/1 000 prix. Les reprises rough
+  interrompues restent non qualifiantes. La campagne du 2026-09-08 mesure
+  huit barrières à 1 000 lignes réelles × 2²⁰ trajectoires.
+  [Historique et campagnes brutes](../performance-reports/pricing-workload-scaling-sm89-2026-09-07.md),
+  [confirmation courante](../performance-reports/catalogue-generation-readiness-sm89-2026-09-08.md).
+- **Réouvrir seulement si :** un mandat distinct rétablit la qualification
+  spécifique des barrières hors du suivi commun. Une case manquante de
+  l'ancienne matrice ne suffit pas; les questions de débit restent rattachées
+  à `PERF-016`, sans doublon.
+
+### PERF-019 — Qualifier LSM à un million de trajectoires par prix
+
+- **Nature :** ouvert le 2026-09-06, fusionné dans `PERF-016` le 2026-09-09,
+  sur décision de l'utilisateur; sévérité originale moyenne, priorité haute,
+  confiance prouvée pour la couverture officielle insuffisante, cause du
+  ralentissement à mesurer. Propriétaire : agent référent.
+- **Signature originale :** le benchmark LSM officiel fixe 64 prix × 16 384
+  trajectoires, 128 threads et 32 blocs/prix. Il ne qualifie pas chaque modèle
+  à 1 000 prix × 1 048 576 trajectoires, ni les changements de concurrence
+  induits par le workspace. Les sondes du 2026-09-05 restent exploratoires.
+- **Preuve initiale :** `tests/performance/early_exercise_benchmark.cu`,
+  `src/common/longstaff_schwartz/longstaff_schwartz_kernels.cuh`,
+  rapports LSM sous `docs/performance-reports`.
+- **Décision :** LSM equity et fixed income restent dans le suivi commun,
+  avec leurs batches VRAM natifs et sans partitionner les trajectoires en
+  régressions indépendantes. Le nombre de trajectoires reste fixé à 2²⁰;
+  l'ancienne matrice trajectoires × prix × calendriers n'est plus exigée.
+- **Preuves conservées :** 17 adaptateurs compilés; calibrages et screenings
+  Heston/Kou/CIR; confirmation Heston/CIR 20 jobs et 18 parités bitwise;
+  contrôle CIR en ordre inverse, quatre jobs; extension Heston à
+  1 000 × 256k/1M et 10 000 × 64k, six jobs. Les réserves de puissance
+  et les frontières de temps historiques sont conservées. Les timings de
+  l'ancien CIR à intégrale discrétisée ne qualifient pas le CIR actuel.
+  La sensibilité Kou est corrigée séparément sous `NUM-017`; la campagne
+  courante mesure neuf LSM à 1 000 lignes réelles × 2²⁰ trajectoires.
+  [Historique, diagnostics et campagnes brutes](../performance-reports/pricing-workload-scaling-sm89-2026-09-07.md),
+  [correction Kou et confirmation courante](../performance-reports/catalogue-generation-readiness-sm89-2026-09-08.md).
+- **Réouvrir seulement si :** un mandat distinct rétablit une qualification
+  LSM hors du suivi commun. Les écarts numériques relèvent de leur signature
+  propre (`NUM-017` pour Kou); les questions de débit/batching à nombre de
+  trajectoires fixé restent sous `PERF-016`.
+
+## Préparation des générations — 2026-09-08
+
+### STRUCT-024 — Distinguer la RAM disponible de la RAM libre dans les samples
+
+- **Nature :** ouvert, corrigé et fermé le 2026-09-08; sévérité moyenne,
+  priorité haute, confiance prouvée. Propriétaire : agent référent.
+- **Signature originale :** la garde samples utilise `_SC_AVPHYS_PAGES`,
+  excluant le cache récupérable, après allocation des paramètres/entrées.
+  Le pilote Kou inconditionnel est refusé pour environ 114 Mio utiles,
+  avec environ 7.2 Gio disponibles mais 288 Mio libres au diagnostic effectué
+  après la sortie du processus, pas au moment précis de sa garde.
+- **Correction :** helper hôte `tools/sampling/host_memory.hpp`, lecture
+  de `MemAvailable` Linux et repli conservateur sur les pages libres.
+  Contrôle avant les allocations; seuils 70% RAM / 85% VRAM conservés.
+  Aucun cache système vidé, aucun kernel/seed/FP64 device modifié.
+- **Preuve :** test CPU cache récupérable, zéro mesuré, valeurs manquantes,
+  négatives, unités invalides et overflow. Deux pilotes de 3M lignes réussis;
+  corps de `samples_01` identique avant/après. `samples_02 --preflight`
+  retrouve les 3M maturités/observables bit à bit entre 256 et 128 threads.
+  Première tentative refusée conservée; les nouveaux binaires sont figés
+  dans une campagne distincte, pas substitués dans l'ancienne.
+- **Preuves :** [pilotes et empreintes](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json),
+  logs et archive `sample-host-memory-sources.tar.gz` sous
+  `build-dev/kou-lsm-launch-confirmation.zpDtZU`, SHA-256
+  `5742ced6541138cbd417974604063aa83173e93e23a6e2686ac3e06e4341da8d`.
+  Contrat durable : `model-sample-dataset-generation.md`.
+- **Réouvrir seulement si :** le cache récupérable redevient un faux veto,
+  une télémétrie invalide est acceptée, ou les allocations précèdent la garde.
+
+### STRUCT-023 — Rendre la campagne de génération reprenable sans écrasement prématuré
+
+- **Nature :** ouvert, corrigé et fermé le 2026-09-08; sévérité moyenne,
+  priorité haute, confiance prouvée. Propriétaire : agent référent.
+- **Signature originale :** les exécutables natifs écrivent directement
+  JSON puis YAML; leur invocation en série ne fournit ni snapshot commun
+  des entrées/binaires, ni journal par dataset, ni reprise de publication
+  avec conservation de la paire précédente.
+- **Correction :** contrôleur séquentiel dérivé du manifeste, entrées et
+  binaires figés, staging, contrôle des sorties, marge disque, journal et
+  sauvegarde JSON/YAML. Reprise explicite, sans recalcul des datasets achevés.
+  Contrat durable dans `dataset-generation-workflow.md`.
+- **Preuve :** seize tests Python (interruption entre renommages, corruption,
+  édition concurrente, verrou et reprise). Sept targets natifs courants
+  vérifiés : Kou call/put, swaptions européennes CIR/CIR++/G2++, deux shapes
+  Kou samples de 3M lignes. Les cinq prix ont 1 000 lignes, `2^20` chemins
+  si MC/LSM et `pending / verified: false`; aucune publication canonique.
+  Le put Kou retrouve les 1 000 prix/erreurs de la résolution binary128.
+  La reprise des deux samples complets vérifie leurs hashes, conserve une
+  seule tentative et ne relance aucun GPU. La tentative refusée par la garde
+  mémoire reste enregistrée, corrigée séparément sous `STRUCT-024`.
+- **Preuves :** [artefacts, hashes, temps de processus et de contrôle distincts](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json).
+  Les quatorze destinations JSON/YAML canoniques gardent leurs empreintes.
+- **Limites :** renommage atomique par fichier, pas par paire; pas de checkpoint
+  à l'intérieur d'un dataset ni de garantie de temps pour 1M × `2^20`.
+  Pas de veto thermique, changement de kernel ou certification indépendante.
+  Cette clôture ne ferme pas `PERF-016/017/019`.
+- **Réouvrir seulement si :** la reprise recalcule un dataset complet, masque
+  une corruption/édition concurrente, perd la paire précédente, ou publie
+  des sorties incomplètes ou faussement certifiées.
+
+### NUM-017 — Qualifier la resolution FP64 des equations normales LSM
+
+- **Nature :** clos le 2026-08-30, réouvert selon sa condition historique puis
+  corrigé et refermé le 2026-09-08; sévérité moyenne, priorité haute, confiance
+  prouvée. Propriétaire : agent référent.
+- **Signature originale :** assemblage, ridge, Cholesky, substitutions et
+  coefficients FP64 sans grille de conditionnement, référence haute précision
+  ni coût comparé à FP32. La clôture initiale couvre un SPD proche de `1e8`
+  après ridge `1e-10`: erreur coefficients FP64 `7.47e-10`, arrondi FP32
+  singulier; 65 536 résolutions SM89 en `0.0870 ms` FP64 contre `0.0403 ms`
+  FP32, 80/48 registres; kernels Heston/G2 à 82, sans local. Ces preuves restent
+  valables dans leur domaine, pas à tout conditionnement.
+- **Réouverture :** des lignes core Kou atteignent `6e10`. Des arrondis du
+  Gram de l'ordre de `1e-16` changent les décisions malgré des chemins
+  forward identiques. Sur 1 000 lignes à `2^20`, huit prix dépassent le budget
+  `1e-6 + 1e-6*abs(reference)`, écart maximal `8.2850456e-6`.
+- **Correction :** une seule correction du résidu normal, activée à la
+  compilation pour Kou uniquement; deux spécialisations des kernels existants,
+  RHS/workspace réutilisés. Base, ridge, mapping Philox, tolérances et stockage
+  FP32 des chemins/cashflows inchangés; aucun transfert CPU par date ni boucle
+  de convergence. Contrat durable dans `cuda/american-and-bermudan-pricing-contract.md`.
+- **Preuve numérique :** référence de résolution pivotée CPU binary128 sur
+  statistiques GPU hi/lo; six géométries du prototype, launcher intégré et
+  trois nouveaux processus corrigés retrouvent les 1 000 prix/erreurs bit à
+  bit. Les trois processus anciens reproduisent les huit écarts. Tests permanents
+  des huit lignes call/put à trois géométries, régresseur contre `long double`,
+  cas sans/avec trop peu de candidats et échec fatal de correction; CTests
+  réussis, memcheck zéro erreur, racecheck zéro hazard. La référence partage
+  chemins/features : ce n'est pas une certification financière indépendante.
+- **Coût / FP64 :** six processus sans compilation concurrente, ordre figé,
+  un warmup exclu et trois mesures chacun. Rapports de coût GPU par paire
+  1.672 / 1.355 / 1.461; premier passage corrigé CV 5.50%, non qualifiant.
+  Fréquences variables et toutes les mesures conservées : aucun pourcentage
+  universel ni optimum revendiqué. Profilage séparé : résidu 4.242 s,
+  correction du petit système 0.069 s. Nouveaux kernels 56/104 registres;
+  les sept anciens restent à 40/70/86/82/39/23/35. Tous sans stack/local ni
+  instruction SASS LDL/STL; pas de buffer de workspace ajouté, mêmes 16 batches.
+- **Preuves et limites :** [rapport compact et artefacts](../performance-reports/catalogue-generation-readiness-sm89-2026-09-08.md).
+  Portée SM89/CUDA 13.3, correction numérique ciblée; ni validation indépendante,
+  ni rebaseline, ni clôture de la matrice de scaling `PERF-019`.
+- **Réouvrir seulement si :** base, ridge, domaine/conditionnement, méthode,
+  compilateur ou architecture changent et invalident ces preuves, ou si une
+  autre composition présente cette sensibilité sans correction qualifiée.
+
+### BUILD-009 — Adapter le test de swaption OU à la signature publique complète
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-08; sévérité faible,
+  priorité moyenne, confiance prouvée. Propriétaire : agent référent.
+- **Signature originale :** les pointeurs `RegularLauncher` et
+  `ExplicitLauncher` omettaient les arguments de capacité/distribution du
+  launcher OU. Les arguments par défaut ne font pas partie du type du pointeur;
+  le build agrégé échouait avec six erreurs NVCC de résolution de surcharge.
+- **Correction :** types complets et arguments explicites dans le seul test,
+  conservant le mode scalaire régulier et coopératif explicite. Aucune formule,
+  tolérance, recette ni interface de production modifiée.
+- **Preuve :** rebuild et CTest `ornstein_uhlenbeck_european_swaptions_cuda`
+  réussis sur SM89; logs `focused-build.log` et `focused-ctest.log` sous
+  `build-dev/kou-lsm-launch-confirmation.zpDtZU`. Cas alignés, cartésiens,
+  offsets, deux côtés et jambe de 600 paiements contre référence CPU conservés.
+- **Réouvrir seulement si :** une signature publique n'est plus propagée
+  aux pointeurs de fonctions des tests ou si ce raccordement ne compile plus.
+
+### STRUCT-022 — Centraliser les métadonnées de prix non encore certifiés
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-08; sévérité moyenne,
+  priorité haute, confiance prouvée. Propriétaire : agent référent.
+- **Signature originale :** le writer générique publiait une référence à un
+  ancien `validation.ipynb`; deux pipelines taux reconstruisaient un chemin
+  contenant à tort `prices`. Les sections supplémentaires du writer MC
+  pouvaient remplacer le bloc de certification.
+- **Correction :** `price_validation_metadata(dataset_path)` est l'unique
+  propriétaire : statut `pending`, `verified: false`, chemin prévu
+  `validation/datasets/price/<taxonomie modèle>/<produit>/<dataset>.json`,
+  avec la courbe intermédiaire si applicable. Une sortie temporaire hors
+  taxonomie n'invente pas de cache. Les reconstructions des pipelines taux
+  disparaissent et une surcharge `validation` est refusée avant toute écriture.
+- **Preuve :** tests host `artifact_io_stage` et `price_dataset_stage` passés;
+  le second a été recompilé séparément contre les archives courantes pendant
+  le build agrégé, incluant le cas anti-écrasement ajouté. Famille rough,
+  modèle ajusté/courbe, sortie temporaire et tentative `verified: true`
+  couverts. Contrat durable dans `catalog-extension-and-validation-workflow.md`
+  et `dataset-generation-workflow.md`.
+- **Portée :** génération uniquement, pas audit des validateurs; aucun ancien
+  YAML, prix ou cache modifié. La vérification des sorties par le contrôleur
+  ne certifie pas les prix. La reprise/publication reste suivie sous STRUCT-023.
+- **Réouvrir seulement si :** un writer invente une autre référence, omet
+  pending/false, accepte de surcharger ce statut, ou écrit avant de refuser
+  une tentative de certification non autorisée.
+
+### NUM-021 — Résoudre les rejets Jamshidian sur les lignes de stress CIR et Vasicek
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-08; sévérité haute,
+  priorité haute, confiance prouvée. Propriétaire : agent référent.
+- **Signature originale :** sur les 1 000 lignes alignées acceptées par les
+  loaders, les swaptions CIR `000917`, `000949`, `000953`, `000958`,
+  `000989`, `000993` et la référence scalaire Vasicek `000997` donnent `NaN`.
+- **Cause / correction :** la somme des coupons et la maille d'une racine
+  absolue FP32 empêchent de certifier certains résidus à `2e-7`. La primitive
+  partagée utilise une somme compensée FP32 et, si nécessaire, représente la
+  frontière par une ancre et un petit déplacement FP32. Le même déplacement
+  entre dans les strikes obligataires. Le bracket déplacé est revérifié et
+  le raffinement borné à 48 itérations; un débordement exploratoire garde son
+  signe sans contaminer la compensation. Aucun FP64 device ajouté, aucune
+  tolérance augmentée ni ligne écartée. Les rejets légitimes de `NUM-001`
+  restent obligatoires, notamment avec zéro itération autorisée.
+- **Preuve numérique :** 12 lignes figées (8 CIR, 4 Vasicek) et leurs deux
+  voisins de volatilité FP32, soit 36 cas, comparés à des formules CPU
+  indépendantes locales, payer/receiver, scalaire/coopératif, 128/256/512
+  threads et plusieurs nombres de blocs. Budget prix `2e-6 + 2e-5 * |référence|`.
+  Les CTests `one_factor_european_swaptions_cuda` et
+  `numerical_robustness_cuda` passent. La matrice du catalogue passe 48/48
+  configurations sur les 1 000 lignes originales, sans prix invalide; deux
+  warmups puis cinq répétitions, grilles denses et persistantes.
+- **Ressources SM89 / portée :** registres scalaire CIR 59 → 60, Vasicek
+  46 → 44; coopératif CIR 56 → 56, Vasicek 39 → 40. Aucun local ni
+  instruction de spill LDL/STL observé; aucun calcul FP64 trouvé dans le
+  SASS du banc. Pas de gain avant/après revendiqué : l'ancien chemin rejetait
+  des lignes et sautait une partie du travail. Ni retuning, rebaseline,
+  certification Premia/QuantLib ni qualification d'un autre GPU.
+- **Preuves conservées :** [synthèse, hashes, matrices et ressources](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/jamshidian-correction.json),
+  fixture `tests/fixtures/jamshidian_stress_rows.hpp`; contrat permanent dans
+  `cuda/closed-form-and-monte-carlo-pricing-contract.md`. Les mesures
+  historiquement incomplètes de `PERF-022` ne sont pas requalifiées.
+- **Réouvrir seulement si :** une ligne ou son voisinage perd sa référence
+  locale, un résidu non certifié devient accepté, une géométrie produit des
+  rejets, ou un changement de domaine/compilateur/GPU invalide ces preuves.
+
+## Expériences Jamshidian one-factor — 2026-09-08
+
+### PERF-022 — Mesurer le choix scalaire/cooperatif Jamshidian selon batch et calendrier
+
+- **Nature :** ouvert puis fermé par expérience et décision bornée le
+  2026-09-08; sévérité moyenne, priorité haute, confiance prouvée.
+  Propriétaire : agent référent, mandat explicite de l'utilisateur.
+- **Signature initiale :** les recettes européennes régulières mélangent un
+  prix par thread et un prix par bloc sans matrice couvrant tous les modèles
+  one-factor, calendriers courts/longs et volumes jusqu'à 2²⁰ prix.
+- **Clôture :** 1 624 configurations mesurées sur cinq modèles/sept
+  compositions, 100 à 1 048 576 prix, 64/128/256/512 threads et plusieurs
+  grilles; profils calendaires à 16 384 prix. Screening séparé de trois
+  confirmations payer indépendantes (cinq warmups, 21 mesures), plus contrôle
+  receiver. Bruts, comparaisons, ressources, mémoire et exclusions conservés.
+- **Décision :** conserver les deux modes; l'hypothèse d'un choix universel
+  est rejetée. Coopératif favorisé à 1 000 prix; les plus grands lots rendent
+  le scalaire compétitif pour OU/Vasicek. Les couples threads/blocs et les
+  réserves statistiques figurent dans le rapport, sans transfert automatique
+  aux recettes ni à un autre GPU. Aucun kernel mathématique n'est refactorisé.
+- **Preuve :** [rapport, tableaux et bruts portables](../performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md).
+  Binaire mesuré SHA-256
+  `154f173bf24d2a744463e2de4d929b1d9839b703fc672146815be27cefb5bce3`;
+  archive source/inputs SHA-256
+  `4261bb32f353aca4249358ae13739d660f6c47a6e5bb0c7abbd33d6b695b1481`.
+  Ressources exactes : 37–85 registres, zéro stack/local et zéro instruction
+  SASS LDL/STL; buffers globaux 40–68 Mio à 2²⁰ prix, hors contexte.
+- **Limites / coordination :** clôture de l'étude, pas de tous ses candidats.
+  346 mesures ont une référence numérique incomplète; `NUM-021` reste ouvert.
+  51 des 84 géométries payer confirmées passent les gates locaux numérique et
+  CV; aucune répétition favorable ne remplace les autres. Comparaison entre
+  modes, pas certification indépendante, publication ou rebaseline. Portée
+  distincte de `PERF-006` (ELLPACK), `PERF-018` (caplets/Black–Scholes) et des
+  constats MC/LSM `PERF-016/017/019`, qui restent ouverts.
+- **Réouvrir seulement si :** la composition, le calendrier, le domaine, le
+  kernel, le compilateur ou le GPU change le classement, un retuning est
+  proposé hors couverture, ou une preuve manquante/inéligible est réutilisée
+  comme qualification positive.
+
+### BUILD-008 — Permettre la composition de plusieurs modèles ajustés dans une unité CUDA
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-08; sévérité moyenne,
+  priorité moyenne, confiance prouvée. Propriétaire : agent référent.
+- **Signature initiale :** les deux `term_structure_impl.cuh` de courbes
+  n'avaient pas de garde d'inclusion; composer CIR++ et Hull–White dans une
+  même unité CUDA redéfinissait 14 fonctions Nelson–Siegel/Svensson.
+- **Correction :** `#pragma once` ajouté aux deux headers propriétaires, sans
+  changement mathématique ni garde recopiée chez leurs consommateurs.
+  Règle durable dans le contrat `cuda/model-analytics-contract.md`.
+- **Preuve :** le banc composant les sept variantes compile en Release SM89
+  et exécute l'intégralité de `PERF-022`; build final réussi et 56 contrôles
+  GPU terminés, avec les sept références identiques au pilote mesuré, rejets
+  de `NUM-021` compris. Les headers originaux sont reconstructibles depuis Git;
+  le log du build réussi est archivé avec le binaire.
+- **Réouvrir seulement si :** l'inclusion répétée d'un header propriétaire
+  redevient non idempotente ou plusieurs compositions partagées ne peuvent
+  plus coexister dans une unité CUDA.
+
 ## Objet
 
 Ce document est le registre compact des constats issus de `query.md` qui sont
@@ -375,21 +1094,6 @@ historique de cloture.
 
 ## Remediation portabilite et samples du 2026-08-28
 
-### STRUCT-014 — Retirer la reference morte au registre volontairement supprime
-
-- **Nature :** corrige et verifie le 2026-08-28.
-- **Signature originale :** `docs/deferred-work.md` avait ete volontairement
-  supprime, mais `AGENTS.md` exigeait encore sa lecture avant une extension et
-  rendait les instructions impossibles a suivre.
-- **Cloture :** l'instruction morte est retiree sans restaurer le registre ni
-  inventer de chemin de remplacement. Les mentions restantes sont uniquement
-  l'historique de cette fermeture dans les registres d'audit.
-- **Preuve :** aucun fichier d'instruction, index documentaire ou workflow ne
-  reference le chemin supprime; la suppression reste presente dans le diff.
-- **Reouvrir seulement si :** une instruction executable ou un index suivi
-  exige de nouveau un document absent, ou si le registre supprime est restaure
-  sans nouvelle responsabilite explicite.
-
 ### BUILD-002 — Ne pas confondre tuning SM89 et compatibilite cuFFTDx
 
 - **Nature :** corrige par matrice explicite et builds representatifs le
@@ -413,32 +1117,6 @@ historique de cloture.
   descripteur annonce ne compile plus un binding pricing ou sample, si un
   fatbin selectionne une implementation non executable sur une cible, ou si
   un profil de performance redevient une garde fonctionnelle.
-
-### PERF-015 — Etiqueter et rendre retunables les profils livres depuis SM89
-
-- **Nature :** corrige structurellement le 2026-08-28; aucune performance hors
-  SM89 n'est inferee.
-- **Signature originale :** threads, blocs, chunks Volterra et geometries
-  samples provenaient de la RTX 4090 Laptop/SM89 mais etaient disperses dans
-  manifests, templates et helpers, sans identifiant de profil ni workflow
-  complet de retuning.
-- **Cloture :** `tools/cuda/tuning_profile.hpp` et les variables cache
-  `AI_FACTORY_CUDA_*` centralisent les valeurs par famille. Le profil par
-  defaut `sm89_reference_v1` est compile dans les recettes et publie dans les
-  metadonnees pricing, LSM et samples; un utilisateur peut fournir un nouvel
-  identifiant et de nouvelles valeurs sans modifier les algorithmes ou le
-  codegen. Les contrats documentent diagnostics, invariants, workloads et
-  baseline separee par GPU/toolchain.
-- **Preuve :** generation complete zero-diff sur 1 407 sorties, checker des
-  689 recettes, builds representatifs Markovian, N-facteurs, Volterra,
-  analytique, American, Bermudan et samples. Le benchmark samples couvre les
-  quatre engines et deux layouts; le checker refuse un environnement
-  incompatible. Les valeurs par defaut sont inchangees et restent etiquetees
-  comme reference SM89, jamais comme optimum universel.
-- **Reouvrir seulement si :** une geometrie de production redevient codee hors
-  profil sans justification, si les artefacts perdent la provenance, si une
-  surcharge requiert d'editer les fichiers generes, ou si une baseline compare
-  des GPU/toolchains incompatibles.
 
 ## Naming et frontieres de policies — passage de remediation du 2026-08-28
 
@@ -514,26 +1192,6 @@ historique de cloture.
 - **Reouvrir seulement si :** un binding produit revient a la racine d'un
   modele, une infrastructure entre sous `product/`, un niveau non semantique
   apparait ou un target public derive a cause du chemin physique.
-
-### STRUCT-017 — Classer les templates codegen par artefact et engine
-
-- **Nature :** corrige et verifie le 2026-08-28.
-- **Signature originale :** les templates pricing, samples et recettes etaient
-  entasses sous des noms plats; `header.tpl`/`source.tpl` ne revelaient ni
-  l'artefact ni l'engine et plusieurs fichiers C++ complets restaient encodes
-  en chaines Python dans `generate.py`.
-- **Cloture :** les 35 templates vivent sous `pricing/`, `sampling/` ou
-  `catalog/`, puis sous `markovian`, `rough/markovian_n_factor`,
-  `rough/volterra_fft`, `closed_form/black_scholes` ou la branche de recette
-  explicite. Le renderer assemble ces templates sans cacher un artefact C++
-  complet inline. La lacune fixed-income closed form reste separee sous
-  `STRUCT-015` et n'est pas masquee par cette cloture.
-- **Preuve :** aucun template plat, aucun ancien chemin reference, checker
-  bloquant, regeneration bit a bit des 1 407 sorties et CTests codegen passes;
-  preuve E26.
-- **Reouvrir seulement si :** un template generique plat reapparait, une
-  methode ne peut plus etre localisee depuis son chemin, un artefact complet
-  retourne dans le renderer ou la generation diverge du tree suivi.
 
 ### NAME-011 — Rendre le role des fichiers d'infrastructure modele immediatement lisible
 
@@ -891,29 +1549,6 @@ historique de cloture.
   echelles balayees sans nouveau budget, si un payoff non 1-Lipschitz reutilise
   la moyenne, ou si une architecture cible regresse en ressources/end-to-end.
 
-### NUM-012 — Qualifier l'accumulation FP64 des moyennes geometriques de chemin
-
-- **Nature :** FP64 chaud elimine, qualifie et verifie le 2026-08-30.
-- **Signature originale :** les deux facades geometric Asian additionnaient
-  chaque log-spot et divisaient en FP64 avant `expf`, sans distinguer erreur de
-  somme, exponentielle et cout sur les trois moteurs.
-- **Cloture :** les deux variantes `GeometricMeanObservationHandler` et la
-  facade `GeometricAsianOptionPathPolicy` reutilisent `CompensatedFloatSum`;
-  la politique explicite de spot non positif est preservee. Le meme sweep
-  compare la coordonnee log et la moyenne publiee a `long double`.
-- **Preuve numerique et prix :** l'erreur relative Kahan maximale vaut
-  `3.58e-8` sur la coordonnee et `1.04e-7` apres exponentielle. Le test
-  Black--Scholes conserve sa comparaison analytique FP64; les tests Heston,
-  QRH et Volterra sont finis, QRH rejoue bitwise et sa call geometrique reste
-  sous la call arithmetique dans l'incertitude Monte Carlo.
-- **Cout et ressources SM89 :** pour 14 458 880 log-observations, FP64 mesure
-  `0.3747 ms`, FP32 simple `0.1907 ms`, Kahan FP32 `0.1149 ms`, chunks
-  `0.3812 ms`. Heston reste a 68 registres; QRH N=7 passe de 108 a 91 et
-  Volterra de 71 a 69, sans stack/local/spill.
-- **Reouvrir seulement si :** domaine de log-spots, nombre d'observations ou
-  fonction aval sort du sweep/budget, ou si une architecture cible invalide le
-  gain end-to-end ou les ressources.
-
 ### NUM-013 — Qualifier la somme FP64 du range accrual analytique Black-Scholes
 
 - **Nature :** FP64 chaud elimine, qualifie et verifie le 2026-08-30.
@@ -1017,30 +1652,6 @@ historique de cloture.
   une architecture cible demontre une alternative plus precise et plus rapide
   end-to-end.
 
-### NUM-017 — Qualifier la resolution FP64 des equations normales LSM
-
-- **Nature :** usage FP64 conserve, qualifie et verifie le 2026-08-30.
-- **Signature originale :** assemblage, ridge, Cholesky, substitutions et
-  coefficients utilisaient FP64 sans grille de conditionnement, reference
-  haute precision ni cout isole compare a FP32.
-- **Cloture :** le solveur FP64 reste l'invariant. Le test compare Cholesky
-  FP64 et FP32 a une elimination `long double` sur un systeme bien conditionne
-  et un SPD de conditionnement voisin de `1e8`, apres le ridge `1e-10` relatif.
-- **Preuve numerique :** l'erreur relative FP64 maximale des coefficients vaut
-  `7.47e-10`; la matrice stress reste resoluble en FP64 mais devient singuliere
-  apres arrondi FP32 et sa Cholesky echoue. Ce cas couvre la colinearite que les
-  equations normales amplifient et interdit une descente globale en FP32.
-- **Cout et ressources SM89 :** 65 536 resolutions variables mesurent
-  `0.0870 ms` FP64 contre `0.0403 ms` FP32. Ce facteur isole est accepte car la
-  resolution n'a lieu qu'une fois par prix/date et l'alternative echoue. Les
-  microkernels utilisent 80 contre 48 registres, sans stack/local; les kernels
-  reels Heston/G2 utilisent 82 registres, zero local, avec 33,3 %/41,7 %
-  d'occupation theorique.
-- **Reouvrir seulement si :** taille/base, ridge ou equations normales
-  changent, si un conditionnement superieur est publie, ou si une strategie
-  mixte/QR respecte les budgets coefficients/decisions/prix et gagne
-  end-to-end sur chaque architecture cible.
-
 ### NUM-018 — Qualifier la prediction et la decision d'exercice LSM en FP64
 
 - **Nature :** usage FP64 chaud conserve; variante selective mesuree et rejetee
@@ -1068,23 +1679,6 @@ historique de cloture.
   chaque architecture cible.
 
 ## Concepts, structure et naming — remediation du 2026-08-30
-
-### POLICY-003 — Faire representer au concept produit le call graph reellement instancie
-
-- **Nature :** corrige et verifie le 2026-08-30.
-- **Signature originale :** le concept produit exigeait `log_spot()` meme pour
-  une observation spot et ne verifiait pas les deux callbacks du handler.
-- **Cloture :** `StatePolicyForObservationCoordinate` selectionne
-  `SpotStatePolicy` ou `LogSpotStatePolicy` selon la coordonnee declaree;
-  `PathProductObservationHandler` exige les callbacks directs et leur retour
-  booleen avant toute instanciation profonde du moteur.
-- **Preuve :** probes compile-time spot-only/spot positif, spot-only/log
-  negatif et handler incomplet negatif; les 21 identites de factorisation sont
-  conservees. Les tests Markov, QRH N-facteurs et rough Heston Volterra passent
-  sur GPU; le codegen complet reste zero-diff.
-- **Reouvrir seulement si :** le concept exige une observable non appelee,
-  accepte un handler incomplet ou reporte de nouveau l'erreur dans un corps de
-  kernel plutot qu'a la frontiere de composition.
 
 ### STRUCT-020 — Supprimer ou integrer les headers runtime sans consommateur
 
@@ -1246,85 +1840,6 @@ historique de cloture.
   architecture cible franchit un seuil d'occupation ou de spill, ou la
   campagne end-to-end montre une regression au-dela de son budget.
 
-### PERF-010 — Rendre le controle de baseline exhaustif, budgete et bloquant
-
-- **Nature :** protocole performance global remplace et rebaseline explicite
-  le 2026-08-30; severite originale moyenne, priorite haute.
-- **Signature originale :** la liste de workloads etait dupliquee dans le
-  runner, cinq mesures effectivement emises etaient ignorees et plusieurs
-  experiences compilees n'etaient pas lancees. Le checker bloquait mediane et
-  CV, mais ni p95, wall public uniforme, numerique complet, registres,
-  local/stack/spills, shared, occupation, taille code ou VRAM. La campagne v1
-  de 30 cles montrait en outre des regressions samples et un cas inconclusif.
-- **Cloture :** `baseline_sm89_v2.json` est l'unique manifeste autoritatif de
-  commandes, cles, budgets et decisions. `run_baseline.py` ne contient plus de
-  liste parallele : il execute les 22 commandes du manifeste avec diagnostics
-  actives, exige exactement 41 mesures, rejette toute cle inconnue/manquante ou
-  dupliquee ainsi que tout diagnostic orphelin, et attache une identite stable
-  a chaque mesure. Le build Release, l'architecture 89 et l'absence de fast
-  math sont verifies avant campagne.
-- **Budgets fail-closed :** kernel et appel public complet bloquent mediane,
-  p95 et CV; la publication sample ajoute son wall a 10 % de CV. Chaque champ
-  numerique est exact, relatif, maximum ou explicitement derive. Chaque mesure
-  porte les attributs runtime de toutes ses specialisations : registres,
-  local/stack, shared statique/dynamique, residence/occupation et versions de
-  code. VRAM live/residente et taille executable ont des plafonds. Ces budgets
-  numeriques et ressources restent bloquants pour la latence closed-form dont
-  seul le timing est informatif.
-- **Preuve campagne SM89 :** trois campagnes completes produisent 41/41 cles,
-  zero manque, doublon ou inconclusif bloquant; le checker retourne `PASS` avec
-  deux messages de bruit attaches a l'unique timing informatif. Les tests
-  fail-closed couvrent manifeste partiel/duplique/inconnu, environnement,
-  protocole, mediane, p95, CV, publication, champs numeriques non budgetes,
-  VRAM, taille binaire, registres, local et occupation. Les 41 mesures portent
-  65 diagnostics de lancement; SHA-256 du manifeste
-  `2e93b4dc7d44db7174b7e168d2de1194c2bfe4ef636af9bfc5e01d501ebd0697`
-  et du candidat NDJSON
-  `2735720804e9ef7b3e8cc64fd244fb20c3eabdd338bebd2b1fa5f5b7093a42c4`.
-- **Decisions explicites :** six selections/rejets sont versionnees. Le chemin
-  `uint32` valide mesure 1,69 ms contre 3,76 ms; Phoenix 512 threads environ
-  4,07 ms contre 6,32/11,15; CIR noinline utilise 56 contre 64 registres et
-  7,38 contre 8,14 ms; les accumulations mixtes plus rapides restent rejetees
-  pour erreur numerique; FFT huit pas mesure 4,12 contre 8,74 ms/prix direct;
-  le chunk Volterra 65 536 mesure 24,16 ms contre 27,85/75,98 ms.
-- **Rebaseline :** la reference v1 incomplete est supprimee. La v2 est publiee
-  avec la raison explicite `PERF-010 protocol v2 exhaustive manifest
-  initialization after completed audit fixes`; l'outil refuse d'ecrire une
-  nouvelle reference sans raison ou tant qu'une cle bloquante est bruyante ou
-  hors budget.
-- **Portabilite :** les valeurs runtime ne valent que pour la RTX 4090 Laptop
-  SM89 et le toolchain declares. SM75, SM86 et tout GPU futur doivent publier
-  leur propre manifeste natif; aucune geometrie SM89 n'est presentee comme
-  optimale universelle.
-- **Reouvrir seulement si :** une commande redevient hardcodee hors manifeste,
-  une emission peut etre ignoree, une cle/champ/ressource echappe au budget, le
-  p95 ou le wall public cesse de bloquer, une reference peut etre reecrite sans
-  raison ni campagne stable, ou une architecture est acceptee avec des seuils
-  infers d'un autre GPU.
-
-### STRUCT-011 — Etendre la source de verite typee a toute la matrice de capacites
-
-- **Nature :** reouverture corrigee et verifiee le 2026-08-30.
-- **Signature originale :** les identites modeles etaient repetees entre les
-  manifests pricing et sampling; les contrats modeles, produits, engines et
-  datasets etaient incomplets, et le binding CIR LSM etait faussement declare
-  exact par un contrat uniforme fixed-income.
-- **Cloture :** les 24 contrats modeles canoniques possedent transition, etat,
-  observables, analytics et architectures; les vues pricing sont derivees de
-  cette table. Produits, engines et datasets portent leurs policies,
-  calendriers, exercice, concepts, launchers, runners, instanciation,
-  construction, profil numerique et layout. Chaque recette de prix se resout
-  maintenant en un unique chemin engine, binding, target et recette. Les huit
-  bindings FI LSM portent leur transition propre : CIR fixed-step, sept exacts.
-- **Preuve :** 19 tests de contrat couvrent les champs, resolution complete,
-  ajout/retrait de modele et produit, divergence de table, suppression et
-  duplication de composition. Le codegen regenere 1 500 sorties sans diff et
-  publie le schema de provenance version 2.
-- **Reouvrir seulement si :** une identite modele est recopiee dans une table
-  concurrente, un contrat minimal redevient infere hors manifeste, une recette
-  publiee ne se resout pas exactement une fois, ou CIR joint est de nouveau
-  classe comme transition exacte.
-
 ### BUILD-005 — Déléguer les targets CMake par domaine
 
 - **Nature :** structure CMake corrigée et vérifiée le 2026-08-30; sévérité
@@ -1398,3 +1913,304 @@ historique de cloture.
   s'auto-valider sans prédécesseur/diff/raison/approbation, un scope de temps
   cesse de bloquer selon son budget, un profil ne correspond plus au binaire
   mesuré, ou une architecture réutilise les seuils observés d'un autre GPU.
+
+## Remédiation du passage indépendant version 8 — 2026-09-04
+
+### STRUCT-014 — Ne pas publier un lien interne vers un arbre ignoré
+
+- **Nature :** réouverture corrigée; sévérité originale moyenne, priorité
+  haute, confiance prouvée.
+- **Signature originale :** `docs/README.md` publiait un lien local vers
+  `AI_factory_website/README.md`, présent dans le checkout mais ignoré par Git;
+  le checker validait seulement son existence physique.
+- **Clôture :** les index suivis pointent vers la frontière suivie
+  `docs/proposed-protected-dataset-download-design.md` et présentent le site
+  comme un projet séparé. Le checker inventorie les documents maintenus depuis
+  Git, rejette les cibles absentes, ignorées ou hors dépôt et possède une
+  fixture négative visant l'ancien chemin ignoré.
+- **Preuve :** `model_source_layout` passe sur 832 unités modèle-produit, 199
+  fichiers d'infrastructure et 81 templates; tous les liens locaux maintenus
+  sont contrôlés dans le snapshot versionné.
+- **Réouvrir seulement si :** un document suivi dépend de nouveau d'une cible
+  locale absente ou ignorée, ou si le contrôle Git des liens est retiré.
+
+### DOC-001 — Aligner la carte d'ownership CMake sur les modules réels
+
+- **Nature :** corrigé; sévérité originale faible, priorité haute, confiance
+  prouvée.
+- **Signature originale :** `cmake/README.md` inversait les responsabilités de
+  `AIFactoryRuntime.cmake` et `AIFactoryTargets.cmake`.
+- **Clôture :** la carte décrit les propriétaires réels. Le root mesure
+  automatiquement les targets créés avant/après chaque include, leur affecte
+  `AI_FACTORY_OWNER_MODULE` et refuse toute target sans propriétaire. Les
+  targets CTest du root sont distingués des six modules de domaine; aucune
+  seconde liste de targets n'est maintenue dans le README.
+- **Preuve :** les configurations fraîches principale et sans mathDx passent;
+  le checker compare dynamiquement la carte à tous les modules
+  `cmake/AIFactory*.cmake` présents.
+- **Réouvrir seulement si :** une target configurée perd son owner, un module
+  n'est plus documenté, ou la carte contredit la propriété configurée.
+
+### POLICY-003 — Faire vérifier les paramètres réellement lus par `prepare_product`
+
+- **Nature :** réouverture corrigée; sévérité originale moyenne, priorité
+  haute, confiance prouvée.
+- **Signature originale :** le concept produit acceptait un modèle sans
+  `risk_free_rate`, puis l'instanciation profonde de `prepare_product`
+  échouait; range accrual lisait aussi `spot` sans l'exprimer.
+- **Clôture :** les concepts minimaux
+  `RiskFreeRateModelParameters` et
+  `SpotAndRiskFreeRateModelParameters` sont appliqués aux policies avant la
+  composition. Tous les produits concernés exigent le taux; range accrual
+  exige en plus le spot.
+- **Preuve :** le test CUDA contient les probes négatifs taux/spot, conserve
+  les identités de factorisation et passe dans la suite principale 78/78.
+- **Réouvrir seulement si :** un callback lit un membre modèle non exprimé par
+  son concept, ou si une composition insuffisante atteint de nouveau un corps
+  device avant d'être rejetée.
+
+### STRUCT-011 — Rendre le manifeste canonique, total et résolvable jusqu'aux symboles
+
+- **Nature :** réouverture corrigée; sévérité originale moyenne, priorité
+  haute, confiance prouvée.
+- **Signature originale :** alias modèles, types courbes, listes CMake et
+  états de capacité vivaient dans des tables concurrentes; plusieurs concepts,
+  launchers et runners publiés n'étaient pas des symboles réels.
+- **Clôture :** les specs typées portent alias, displays et types. Chaque
+  référence d'API est un couple chemin/symbole vérifiable et chaque cellule de
+  pricing reçoit un état distinct `available`, `deferred`, `unsupported`,
+  `ambiguous` ou `unclassified`. CMake et les renderers consomment la projection
+  unique `CapabilityManifest.cmake`, y compris la nature et la condition de
+  chaque recette.
+- **Preuve :** les fixtures ajout modèle FI/courbe/produit atteignent les
+  outputs et targets sans table auxiliaire; les symboles sont résolus dans les
+  fichiers déclarés; 50 tests manifeste/performance passent et la génération
+  des 1 500 sorties est zéro-diff.
+- **Réouvrir seulement si :** une identité ou condition est recopiée hors des
+  specs, une référence ne résout plus son chemin/symbole, ou un état absent est
+  confondu avec unsupported.
+
+### STRUCT-017 — Sortir les fonctions C++ complètes des chaînes du renderer
+
+- **Nature :** réouverture corrigée; sévérité originale moyenne, priorité
+  moyenne, confiance prouvée.
+- **Signature originale :** le renderer Python possédait des fonctions et
+  lambdas C++ complètes invisibles dans l'arbre de templates.
+- **Clôture :** factories paramètres, sérialisation JSON, lancement sample,
+  préparations N-facteurs/QRH et loader produit sided résident dans sept
+  templates fragments nommés. Python ne fournit plus que substitutions et
+  sélection de fragments.
+- **Preuve :** le checker analyse l'AST des chaînes Python, rejette une fixture
+  contenant une définition C++ complète et classe 81 templates nommés; les
+  1 500 sorties restent zéro-diff.
+- **Réouvrir seulement si :** un renderer reprend la propriété d'une fonction
+  ou lambda C++ complète, ou si le contrôle redevient dépendant d'une bannière
+  textuelle particulière.
+
+### BUILD-006 — Conserver les générateurs de paramètres host-only sans mathDx
+
+- **Nature :** corrigé; sévérité originale moyenne, priorité haute, confiance
+  prouvée.
+- **Signature originale :** une regex sur le chemin modèle supprimait quatre
+  générateurs de paramètres host-only lorsque mathDx était absent.
+- **Clôture :** CMake enregistre les recettes depuis leur kind, engine et
+  condition sémantiques projetés par le manifeste. Seuls les générateurs
+  pricing/sample réellement dépendants de mathDx sont omis.
+- **Preuve :** un build frais SM89 sans mathDx expose 53 dépendances de
+  `parameter_generators` et construit les quatre targets
+  `generate_rough_bergomi_01`, `generate_rough_sabr_01`,
+  `generate_log_modulated_rough_bergomi_01` et
+  `generate_rough_stein_stein_01`; les tests de manifeste interdisent leur
+  intersection avec la liste conditionnelle mathDx.
+- **Réouvrir seulement si :** un générateur host de paramètres dépend de la
+  présence de mathDx, ou si CMake réinfère une condition depuis un chemin ou le
+  texte d'un source.
+
+### BUILD-007 — Faire correspondre le preset de build `tests` à son preset CTest
+
+- **Nature :** corrigé; sévérité originale moyenne, priorité haute, confiance
+  prouvée.
+- **Signature originale :** le build preset construisait 78 tests principaux,
+  mais le test preset sans filtre sélectionnait aussi 254 validations
+  indépendantes.
+- **Clôture :** tout test non-validation reçoit le label exact `main` après
+  enregistrement; le preset `tests` sélectionne `^main$` et le nouveau preset
+  `validation` sélectionne `^validation$`. Les README publient cette
+  séparation.
+- **Preuve :** l'inventaire CTest configuré contient exactement 78 tests
+  `main` et 254 tests `validation`, sans recouvrement; `ctest --preset tests`
+  passe 78/78 sans exécuter la validation indépendante.
+- **Réouvrir seulement si :** le preset standard sélectionne une validation,
+  omet un test de son agrégat, ou si les deux labels cessent d'être disjoints.
+
+### PERF-015 — Rendre toutes les géométries Volterra retunables par profil
+
+- **Nature :** réouverture corrigée et qualifiée; sévérité originale moyenne,
+  priorité haute, confiance prouvée pour SM89.
+- **Signature originale :** threads path/finalizer et tables longueur/EPT/FFT
+  par bloc étaient dispersés dans pricing, sampling et workspace; sept lignes
+  étaient dupliquées et tout changement exigeait d'éditer les moteurs.
+- **Clôture :** `hybrid_fft_tuning.cuh` est l'unique propriétaire des choix
+  compile-time. Le descripteur garde des champs pricing et sampling distincts,
+  même lorsqu'ils coïncident; path et finalizer sont deux variables CMake
+  séparées. Les moteurs ne contiennent plus de table ni de constante de
+  géométrie dupliquée. Les choix SM89 ont été transférés sans changement : il
+  ne s'agit pas d'une revendication universelle ni d'une retune opportuniste.
+- **Preuve :** pricing, sampling et workspace compilent contre le même profil;
+  la campagne officielle conserve 41 mesures, dont les horizons Volterra du
+  manifeste, et le checker passe sans régression bloquante. La baseline SM89
+  porte le SHA-256
+  `de48e3a11fa4ccd50d59d151005e7b30fed2070e022346c4a36364d3a964c327`.
+- **Portabilité :** toute nouvelle architecture ou toute modification d'un
+  choix EPT/FFT par bloc doit comparer les alternatives sur ses longueurs
+  actives et publier son propre profil, sa baseline et ses ressources; elle ne
+  peut pas réutiliser cette qualification SM89.
+- **Réouvrir seulement si :** un knob revient dans un moteur, pricing et
+  sampling sont artificiellement liés, un profil change sans mesure native,
+  ou une autre architecture hérite silencieusement des seuils SM89.
+
+### PERF-010 — Budgéter les ressources de chaque phase Volterra réellement lancée
+
+- **Nature :** réouverture corrigée, profilée et rebaselinée; sévérité
+  originale moyenne, priorité haute, confiance prouvée pour SM89.
+- **Signature originale :** les workloads pricing Volterra ne diagnostiquaient
+  que convolution ou evaluator direct; préparation, path evaluation et
+  finalisation échappaient aux budgets et le checker acceptait une liste
+  seulement non vide.
+- **Clôture :** chaque diagnostic porte une phase dans sa clé de déduplication.
+  Le manifeste impose quatre phases hybrides
+  (`row_preparation`, `convolution`, `path_evaluation`, `finalization`) et trois
+  phases directes; baseline et candidat doivent contenir exactement cet
+  ensemble sans doublon. Une fixture négative retire une phase.
+- **Preuve campagne :** trois campagnes complètes recevables ont capturé 41
+  mesures sous
+  `build-dev/performance_candidate_sm89_v3.ndjson.campaigns/20260904T071757.521796Z`;
+  le checker passe avec zéro inconclusive bloquante et deux informations sur
+  le microbenchmark closed-form. Le prédécesseur SHA-256
+  `94b7370a2bf1ebed350a04a1037c42115d7a6946127399d7c4358f329786429f`
+  et le diff exhaustif SHA-256
+  `f06eb7691158e3865d5ce8d276900540e5cf2e01748966b61906c311068729ab`
+  sont conservés.
+- **Preuve ressources :** rough-SABR budgete préparation 40 registres,
+  convolution 48, evaluator 64 avec 32 octets de stack et finalizer 31. Le
+  profil Nsight Compute 2026.2.1 cible explicitement la phase
+  `path_evaluation`; son CSV porte le SHA-256
+  `3c5287140e69bbe4a2a8031527fc7fa9177b83db4982b0bcfa1b17e054f9dbdd`
+  et sa provenance le SHA-256
+  `79c185da5a085871970878121e2eeef9fa8765fd6611653c976339a47cfff2fb`.
+  Le mode `resource_only` conserve les pré/postflights stricts mais ne sert à
+  aucune décision de timing; celles-ci restent issues des campagnes
+  thermiquement stabilisées.
+- **Réouvrir seulement si :** une phase active disparaît du contrat, deux
+  phases se dédupliquent, une ressource ou un symbole échappe aux budgets, le
+  profil ne vise plus le binaire candidat, ou une baseline est remplacée sans
+  prédécesseur et diff exhaustif.
+
+### PERF-018 — Qualifier les formules fermées selon le nombre de prix et le batching
+
+- **Nature :** corrigé par couverture et mesure; sévérité originale moyenne,
+  priorité haute, confiance prouvée pour le profil SM89 observé.
+- **Signature originale :** les sondes CIR, schedules et overhead ne
+  constituaient pas une courbe de débit couvrant tous les modèles analytiques,
+  notamment les deux compositions de courbe des taux ajustés et
+  Black--Scholes.
+- **Clôture :** le manifeste de capacités génère maintenant une sonde pour les
+  neuf compositions analytiques. La campagne couvre 1/16/1 000 prix et
+  128/256/512 threads, sépare GPU, API publique, préparation, copie,
+  publication et mémoire, et refuse de transformer ce périmètre en prédiction
+  à un million de prix. Les 81 comparaisons par forme sont bitwise identiques.
+- **Décision :** conserver 256 threads. Les kernels utilisent 23--40 registres
+  par thread, sans stack, local spill ni mémoire partagée. Le seul résultat
+  initialement bruité, G2++/Nelson--Siegel, a été répété; l'ordre des
+  géométries n'est pas robuste et leur écart reste négligeable devant les
+  5.0--9.8 ms de publication native.
+- **Preuve :** rapport versionné
+  `docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md`;
+  summary principale SHA-256
+  `1de1dc68ac2d71efc88d8489df2c06fa0a7e68e46c02767c7e68e1efa7021323`,
+  summary combinée de confirmation SHA-256
+  `13151584be6b2ad47dbd7756e62c08cb13a9238da661f445910cffdb29b0b0b8`.
+- **Portabilité :** aucune géométrie n'est présentée comme optimale hors RTX
+  4090 Laptop/SM89. Chaque profil cible doit rejouer la matrice avant de
+  modifier un défaut de production.
+- **Réouvrir seulement si :** une composition analytique disparaît de la
+  matrice, la géométrie modifie les résultats, des spills apparaissent, la
+  publication cesse d'être isolée, ou un gain end-to-end d'au moins 5% devient
+  répétable.
+
+### PERF-021 — Ne pas interrompre une expérience sur variation de limite de puissance
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-07 à la demande de
+  l'utilisateur; sévérité moyenne, priorité haute, confiance prouvée.
+  Propriétaire : agent référent.
+- **Signature originale :** après retrait des veto thermiques (`PERF-020`), le
+  pilote scaling tue encore le processus quand la limite GPU varie de plus
+  de 10 %; la sonde LSM possède un veto analogue à 20 %. Les bornes de
+  comparabilité temporelle deviennent ainsi des arrêts d'expériences longues.
+- **Preuve initiale :** `pricing-scaling-20260907-representative-small-matrix-01`
+  interrompu à 170,54 → 150 W et `*-representative-rough-resume-01` à 175 →
+  150 W, sans erreur CUDA et secteur déclaré avant/après. Expériences et
+  études de génération bloquées; cela ne prouve pas une panne d'alimentation.
+- **Correction :** règle partagée dans `tools/performance/experiment_environment.py`,
+  appliquée aux deux pilotes exploratoires. La puissance est observée avant,
+  pendant et après; les excursions excluent les timings de façon persistante,
+  mais ne tuent plus le calcul et n'empêchent plus le job suivant. Les
+  synthèses conservent les motifs; résultat complet ne signifie pas qualifié.
+  Protocole permanent et query mis à jour; anciennes preuves inchangées.
+- **Preuve de clôture :** 58 tests Python scaling/protocole et six tests de
+  l'outillage LSM passent; CTest `performance_baseline_checker` et
+  `pricing_scaling_protocol` : 2/2. Processus simulés poursuivis malgré
+  excursion/rétablissement, deux jobs LSM achevés malgré écarts avant/live/après,
+  exclusion persistante et absence de faux succès à faible CV vérifiées.
+  Admission officielle toujours refusée hors de ses bornes; contrôles
+  secteur/concurrence/power-brake et watchdog conservés dans leur périmètre.
+- **Portée :** aucun kernel, réglage matériel, catalogue ou baseline modifié.
+  Cette clôture de contrôleur ne qualifie pas le scaling et ne ferme pas
+  `PERF-016`, `PERF-017` ou `PERF-019`; leurs preuves GPU restent distinctes.
+- **Réouvrir seulement si :** un veto de variation de limite de puissance
+  revient dans un pilote exploratoire, la télémétrie ou l'exclusion persistante
+  disparaît, ou la correction permet de qualifier artificiellement des
+  conditions non comparables ou de désactiver une protection matérielle.
+
+### PERF-020 — Supprimer les veto thermiques applicatifs des expériences longues
+
+- **Nature :** ouvert puis corrigé et fermé le 2026-09-06, sur demande
+  explicite de l'utilisateur; sévérité moyenne, priorité haute, confiance
+  prouvée. Propriétaire : agent référent.
+- **Signature originale :** les pilotes de campagne et de profilage imposaient
+  85 °C, refusaient les signaux de ralentissement thermique ou attendaient
+  une température cible/stabilisée. Ces veto bloquaient les expériences longues
+  et les expériences de génération/publication de bases de données, sans
+  constituer un invariant numérique. Heston barrière a été interrompu avant
+  la fin de sa troisième répétition à 1 000 prix × 1 048 576 trajectoires.
+- **Périmètre exact :** contrôleurs d'expériences et sondes de publication.
+  Aucun veto thermique trouvé dans les générateurs natifs `catalog`,
+  `tools/pricing`, `tools/sampling`, `tools/cuda` ou le runtime `src`.
+- **Correction :** retrait des plafonds, veto de ralentissement thermique,
+  attentes de refroidissement et boucles de convergence de `run_baseline.py`,
+  `run_pricing_scaling.py`, `run_fixed_income_lsm_probe.py` et
+  `profile_kernel.py`. Le manifeste, son checker, les tests, le protocole et
+  la query portent désormais la règle `thermal_policy: telemetry_only`.
+  Les warmups déclarés et les contrôles puissance/concurrence/watchdog
+  applicables restent en place. Le signal power-brake est distingué des
+  signaux thermiques; aucun réglage firmware/driver n'est modifié.
+- **Preuve :** 47 tests Python protocole/scaling et cinq tests de l'outillage
+  LSM passent; CTest `performance_baseline_checker` et
+  `pricing_scaling_protocol` : 2/2. Les fixtures vérifient les températures
+  élevées et les signaux thermiques sans veto, et l'analyse AST interdit une
+  branche ou attente thermique dans les quatre pilotes. Recherche globale
+  sans seuil actif résiduel; `git diff --check` passe. Aucun test GPU lancé.
+- **Provenance :** le manifeste précédent complet est conservé sous
+  `tests/performance/history/baseline_sm89_v3_pre_perf_020.json`, SHA-256
+  `de48e3a11fa4ccd50d59d151005e7b30fed2070e022346c4a36364d3a964c327`.
+  Les 41 mesures, workloads et budgets statistiques/numériques/ressources
+  restent strictement identiques. L'amendement de politique n'est pas une
+  rebaseline mesurée; les anciennes preuves conservent leurs conditions.
+- **Limites :** la télémétrie reste nécessaire à l'interprétation des timings.
+  Une température observée ne qualifie pas leur stabilité. Cette clôture ne
+  lève pas les refus d'autorisation externes et ne ferme pas `PERF-016`,
+  `PERF-017` ou `PERF-019`; leurs campagnes restent à réaliser séparément.
+- **Réouvrir seulement si :** un veto/attente thermique applicatif revient
+  dans une expérience ou une génération de base, la télémétrie disparaît,
+  ou cette suppression sert à masquer une dérive statistique, à réécrire les
+  anciennes preuves ou à prétendre lever une protection/autorisation externe.

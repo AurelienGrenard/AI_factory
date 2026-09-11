@@ -1,684 +1,185 @@
 # AI Factory
 
-AI Factory is a C++/CUDA library for quantitative pricing, model simulation,
-and dataset generation. The repository tracks source code, reproducible
-generation recipes, and YAML catalog entries. Complete datasets are kept
-locally or published to external storage.
-
-## Project Structure
-
-```text
-AI_factory/
-|-- src/          C++/CUDA simulation and pricing code
-|-- cmake/        target registration split by runtime, catalog, tests,
-|                 performance, and validation ownership
-|-- tools/        parameter generation and dataset-writing utilities
-|-- catalog/      one reproducible folder per published dataset
-|-- datasets/     complete JSON datasets, ignored by Git
-|-- docs/         implementation contracts and operational documentation
-|-- tests/        dataset contracts and CUDA tests
-|-- validation/   unified model/product validation and backend adapters
-`-- CMakeLists.txt
-```
-
-The root `CMakeLists.txt` owns only project-wide configuration, options, and
-module orchestration. Domain targets live in `cmake/AIFactoryRuntime.cmake`,
-`AIFactoryCatalog.cmake`, `AIFactoryPerformance.cmake`,
-`AIFactoryTests.cmake`, and `AIFactoryValidation.cmake`; reusable target
-helpers remain in `AIFactoryTargets.cmake`.
-
-All implementation contracts, workflows, derivations, and work-tracking notes
-live in [`docs/`](docs/README.md). The main CUDA contracts are:
-
-- [`closed-form-and-monte-carlo-pricing-contract.md`](docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
-  for closed-form and Monte Carlo pricers;
-- [`american-and-bermudan-pricing-contract.md`](docs/cuda/american-and-bermudan-pricing-contract.md)
-  for American and Bermudan pricers;
-- [`model-dynamics-contract.md`](docs/cuda/model-dynamics-contract.md) for
-  reusable model-state simulation interfaces;
-- [`launch-validation-and-kernel-diagnostics.md`](docs/cuda/launch-validation-and-kernel-diagnostics.md)
-  for launch guards, kernel resource diagnostics, and their test coverage.
-
-### `src`
-
-`src` contains the numerical code and does not depend on catalog files:
-
-- `src/common`: Philox, CUDA reductions, least squares, and CUDA checks;
-- `src/curve/<curve>`: curve dataset loaders and CUDA term-structure analytics;
-- `src/model/equity/<markovian|rough>/<model>`: equity dynamics, analytics,
-  loaders and model-only sampling, classified by mathematical family rather
-  than by simulation algorithm; model-product launch units are isolated under
-  its `product/` subfolder;
-- `src/model/fixed_income/<model>`: fixed-income model infrastructure, with
-  standalone and curve-qualified launch units under `product/`;
-- `src/product/<product>`: FP32 contract rows and JSON dataset loaders.
-- `src/generative`: reserved for method-neutral generative-model tooling.
-
-Each model defines its compact mathematical row in `parameters.hpp`; its
-`dataset.hpp/.cpp` pair only exposes and implements the host loader. Curves and
-products keep their compact rows with their dataset loaders. CUDA declarations
-and implementations retain descriptive names: public interfaces use
-`dynamics.cuh` or `term_structure.cuh`, included device definitions use
-`dynamics_impl.cuh` or `term_structure_impl.cuh`, and standalone `.cu` launch
-units are registered in CMake. Curve-specific dataset construction helpers
-live under `tools/datasets`; catalog generators contain only their recipe
-constants and `main`.
-
-Within one model, `product/<product>.cuh/.cu` owns only the thin composition
-between that model and one product. Fitted fixed-income compositions use
-`product/<curve>/<product>.cuh/.cu`. Everything outside `product/` is
-model-owned infrastructure and starts with a one-line summary of its role.
-Method-specific helpers spell out their engine, such as
-`volterra_fft_pricing.cuh` or `markovian_n_factor_preparation.hpp`.
-
-Pricing functions receive contiguous arrays that have already been loaded.
-They do not know output paths, dataset URLs, or catalog formats.
-
-Models retain matching type, function, and kernel layouts whenever their
-mathematics and data dependencies permit it.
-
-### CUDA kernel diagnostics
-
-Every pricing launcher can report the resources and theoretical occupancy of
-the exact kernel specialization and launch geometry it uses. Diagnostics are
-disabled by default and do not alter dataset files. Enable them for any test or
-generator with:
-
-```bash
-AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 \
-    ./build-dev/test_heston_terminal_payoffs_cuda \
-    2> build/heston-kernel-diagnostics.jsonl
-```
-
-Each JSON line identifies the kernel and variant, CUDA device, grid and block
-geometry, registers, local and shared memory, active blocks and warps per SM,
-and theoretical occupancy. Repeated batches with the same geometry are emitted
-only once. A generator can be inspected in exactly the same way; it continues
-to write its normal dataset while the diagnostic is written separately to
-standard error.
-
-### `tools`
-
-`tools/datasets` provides the operations shared by all generators:
-
-- uniform sampling and parameter grids;
-- aligned and Cartesian product constructions;
-- complete JSON dataset writing;
-- YAML catalog writing.
-
-It also contains host-only construction rules tied to a dataset family, such
-as the constrained Nelson-Siegel and Svensson forward-level reconstructions.
-
-Every dataset must declare an HTTP(S) URL. A generator fails explicitly when
-the URL is missing or invalid.
-
-### `catalog`
-
-Each catalog entry is a self-contained, versioned dataset recipe:
-
-```text
-catalog/
-|-- curve/<curve>/<dataset_id>/
-|   |-- dataset.yaml
-|   `-- generator.cpp
-|-- model/equity/<markovian|rough>/<model>/
-|   |-- parameters/<dataset_id>/
-|   |-- samples/<dataset_id>/
-|   `-- prices/<product>/<dataset_id>/
-|-- model/fixed_income/<model>/
-|   |-- parameters/<dataset_id>/
-|   |   |-- dataset.yaml
-|   |   `-- generator.cpp
-|   |-- samples/<dataset_id>/
-|   |   |-- dataset.yaml
-|   |   `-- generator.cpp
-|   `-- prices/[<curve>/]<product>/<dataset_id>/
-|       |-- dataset.yaml
-|       `-- generator.cpp
-|-- product/<product>/<dataset_id>/
-|   |-- dataset.yaml
-|   `-- generator.cpp
-```
-
-`generator.cpp` is the executable recipe. Curve, model-parameter, and product
-generators define parameter bounds and grids; sample generators simulate model
-states; price generators load complete input datasets and run the CUDA pricer.
-The adjacent `dataset.yaml` records the resulting metadata.
-
-Every `dataset.yaml` exposes only two locations:
-
-- `catalog`: repository directory containing `dataset.yaml` and `generator.cpp`;
-- `url`: external download URL of the complete dataset.
-
-Local JSON paths remain implementation details of `generator.cpp`.
-
-The current URLs use the temporary `datasets.ai-factory.example` domain. They
-must be replaced with the final data server URLs.
-
-### `datasets`
-
-`datasets/` follows the same model and product hierarchy:
-
-```text
-datasets/
-|-- curve/nelson_siegel/nelson_siegel_01.json
-|-- curve/svensson/svensson_01.json
-|-- model/equity/markovian/heston/parameters/heston_01.json
-|-- model/equity/markovian/heston/samples/<sample_dataset_id>.json
-|-- model/equity/markovian/heston/prices/<product>/<price_dataset_id>.json
-|-- model/fixed_income/g2/parameters/g2_01.json
-|-- model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
-|-- model/fixed_income/hull_white/parameters/hull_white_01.json
-|-- model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json
-|-- model/fixed_income/vasicek/parameters/vasicek_01.json
-|-- model/fixed_income/cir/parameters/cir_01.json
-|-- model/fixed_income/g2/prices/<product>/<price_dataset_id>.json
-|-- model/fixed_income/g2_plus_plus/prices/<curve>/<product>/<price_dataset_id>.json
-|-- model/fixed_income/hull_white/prices/<curve>/<product>/<price_dataset_id>.json
-|-- product/european_option/european_options_01.json
-|-- product/american_option/american_options_01.json
-|-- product/rate_option/rate_options_01.json
-`-- product/european_swaption/european_swaptions_01.json
-```
-
-This directory is ignored by Git. Its files can be generated locally or
-downloaded from the `url` declared in the catalog. Generative-training sample
-datasets will likewise remain outside Git. The typed capability manifest and
-Python codegen publish two 3M-row sample recipes for each of the 24 models,
-backed by their common Markov, Volterra FFT or N-factor CUDA sampling engine.
-Product calendar dates are stored as integer business-day
-counts under a 252-day model-time convention. Contractual year fractions are
-stored directly when their day-count convention differs from that model clock.
-Discretized price datasets use two simulation steps per business day, hence
-`dt = 1 / 504`; exact-transition models prepare a transition over the requested
-interval without artificial intermediate steps.
-
-## Curves And Short Rates
-
-A curve dataset and a short-rate model dataset are deliberately independent.
-`nelson_siegel_01` stores `beta0`, `beta1`, `beta2`, and the positive decay
-time `tau`. The source implementation evaluates:
-
-- the continuously compounded zero rate `z(0,T)`;
-- the discount factor `P(0,T)`;
-- the instantaneous forward `f(0,T)`;
-- its analytical maturity derivative.
-
-`svensson_01` exposes the same curve functions while adding `beta3` and a
-second decay scale. Its generator reconstructs four forward-rate anchors and
-rejects curves whose instantaneous forwards leave the configured range.
-
-`ornstein_uhlenbeck_01` is a standalone short-rate model with
-`r(t) = x(t)`. It samples the initial rate and mean reversion directly, then
-reconstructs volatility from a bounded stationary standard deviation. This
-avoids unstable low-reversion/high-volatility combinations.
-
-`vasicek_01` extends the same Gaussian process with a long-term mean:
-
-```text
-dr(t) = a (b - r(t)) dt + sigma dW(t)
-```
-
-It samples `a`, `b`, and `r(0)`, then reconstructs `sigma` from a bounded
-stationary standard deviation. Its dynamics, analytics, pricing launchers,
-and tests deliberately mirror the OU layout; only the deterministic mean
-increments and Vasicek bond levels differ.
-
-`cir_01` uses the positive square-root short-rate process
-
-```text
-dr(t) = kappa (theta - r(t)) dt + sigma sqrt(r(t)) dW(t).
-```
-
-It samples `kappa`, `theta`, and `r(0)` first, then draws `sigma`
-conditionally. The core rows cover Feller ratios from `1/6` to `10`; the
-stress rows widen the range from `1/10` to `16`. The exact non-central
-chi-square transition remains valid on both sides of the Feller threshold.
-
-`hull_white_01` stores only the mean-reversion speed `a` and volatility
-`sigma`. It uses the same stationary-dispersion reconstruction as OU, without
-an initial state because the centered Hull-White state starts from zero. For
-pricing, one Hull-White row is paired with one curve row. The implementation uses
-
-```text
-r(t) = x(t) + phi(t)
-dx(t) = -a x(t) dt + sigma dW(t)
-```
-
-The reusable OU layer jointly simulates the Gaussian state and its time
-integral. `src/model/fixed_income/hull_white/<curve>` composes that process with the
-selected curve analytics and computes `phi(t)` from `f(0,t)`, so the full
-model reproduces the supplied initial curve. Nelson-Siegel and Svensson are
-curve providers, not parameters embedded in Hull-White.
-
-`g2_01` is the standalone correlated two-factor Gaussian model:
-
-```text
-r(t) = x(t) + y(t)
-dx(t) = -a x(t) dt + sigma dW_x(t)
-dy(t) = -b y(t) dt + eta dW_y(t)
-d<W_x,W_y>(t) = rho dt
-```
-
-Both initial factor states are stored because `r(0)` alone does not determine
-future bond prices when the two mean-reversion speeds differ. The generator
-orders `b` above `a` and samples stationary factor dispersions before
-reconstructing `sigma` and `eta`, avoiding redundant factors and unstable
-parameter combinations.
-
-`g2_plus_plus_01` stores the same curve-independent process without initial
-states. `src/model/fixed_income/g2_plus_plus/<curve>` adds a deterministic shift `phi(t)`
-to the centered factors, exactly reproducing the supplied initial curve. Its
-public analytical interface mirrors G2 just as the Hull-White interface
-mirrors OU.
-
-The fitted Hull-White and G2++ price datasets are independently checked first
-with Premia's HW1D/HW2D closed forms. The validation runner supplies the exact
-Nelson-Siegel or Svensson discounts at the contract dates through Premia's
-external-curve interface; specialized QuantLib formulas provide row-local
-fallback only when the Premia backend fails technically.
-
-As with Heston, `parameters.hpp` contains the compact model row and
-`dataset.hpp/.cpp` contains only its host JSON loader. Numerical functions used
-by kernels live in public `.cuh`, included `*_impl.cuh`, or standalone `.cu`
-files according to their compilation boundary.
-
-Bates composes the Heston QE-M transition with an independent compound-Poisson
-lognormal jump process. Each path owns one scalar uniform sequence and one
-normal-pair cache. A jump normal is requested only when the Poisson count is
-non-zero; an already cached normal is reused before another Box-Muller pair is
-drawn. Unused values from the current Philox group remain cached for the next
-step. The compensator
-`lambda * (exp(nu + delta^2 / 2) - 1)` preserves the risk-neutral drift.
-Terminal and scheduled-observation simulations keep all required Heston QE-M
-steps but draw one exact compound-Poisson sum per observed interval. Products
-that inspect every numerical step retain the pathwise one-jump-draw-per-step
-transition.
-
-Variance-Gamma and Normal-Inverse-Gaussian use exact Lévy increments. Terminal,
-calendar, and regular-observation simulations draw directly over their
-requested intervals without an artificial daily `target_dt`.
-Products that truly monitor a path still use exact increments on each monitored
-step. VG samples its Gamma clock with Marsaglia-Tsang; NIG samples its
-inverse-Gaussian clock with Michael-Schucany-Haas. Both use the same single
-`UniformSequence` and `NormalPairCache` contract as Heston and Bates.
-
-## Philox Random Mapping
-
-Every Monte Carlo result row builds one key from
-`base_seed + result_index`. Philox then addresses each four-value random group
-with the complete 128-bit counter
-
-```text
-(path_index_low, path_index_high,
- local_group_index_low, local_group_index_high)
-```
-
-Every path starts at local group zero and advances its own local group as
-needed. Paths therefore never reserve ranges based on a predicted number of
-draws. Fixed-consumption simulations and algorithms with conditional draws or
-rejection use the same mapping.
-
-`UniformSequence` caches each group and exposes one continuous scalar stream.
-Purely Gaussian simulations use a non-owning `NormalPairCache` to reuse the
-second Box-Muller result without creating another random sequence. These
-helpers are device-only, force-inlined, and deterministic for a fixed key,
-path, algorithm, toolchain, and launch geometry.
-
-## Dataset Artifacts
-
-### Heston Model
-
-The `heston_01` catalog entry begins as follows:
-
-```yaml
-title: "Heston parameter dataset heston_01"
-database_id: "heston_01"
-model_family: "Heston"
-catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
-url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
-row_count: 1000
-```
-
-The complete JSON dataset contains rows with stable identifiers:
-
-```json
-{
-  "database_id": "heston_01",
-  "row_count": 1000,
-  "models": [
-    {
-      "id": "000001",
-      "parameters": {
-        "spot": 1.0,
-        "risk_free_rate": 0.02982048,
-        "dividend_yield": 0.04603526,
-        "initial_variance": 0.07711430,
-        "kappa": 1.59042335,
-        "theta": 0.14153057,
-        "rho": -0.46044695,
-        "gamma": 0.76693642
-      }
-    }
-  ]
-}
-```
-
-### Product
-
-The `european_options_01` dataset contains `strike` and `maturity`. For each
-maturity `T`, its grid builds linearly spaced log-strikes over `[-aT, aT]`,
-then applies `K = exp(x)`.
-
-```yaml
-catalog: "catalog/product/european_option/european_options_01"
-url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
-row_count: 1000
-construction:
-  method: "maturity-dependent exponential grid"
-```
-
-### Price
-
-A price row references its model, optional curve, and product identifiers
-instead of duplicating their parameters:
-
-```json
-{
-  "id": "000001",
-  "model_id": "000001",
-  "product_id": "000001",
-  "seed": 900000001,
-  "outputs": {
-    "price": 0.04025437,
-    "standard_error": 0.00013884
-  }
-}
-```
-
-The price catalog entry records the method, timing, and references to both
-input datasets:
-
-```yaml
-database_id: "heston_01__european_calls_01__01"
-catalog: "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01"
-url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Heston/EuropeanCall/heston_01__european_calls_01__01.json"
-row_count: 1000
-model_dataset:
-  id: "heston_01"
-  catalog: "catalog/model/equity/markovian/heston/parameters/heston_01"
-  url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
-product_dataset:
-  id: "european_options_01"
-  catalog: "catalog/product/european_option/european_options_01"
-  url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
-price_construction:
-  method: "Aligned"
-```
-
-`Aligned` pairs rows with the same index and requires equal dataset sizes.
-`CartesianProduct` generates every combination in model, optional curve,
-then product order.
-
-Call and put prices remain distinct price datasets, but share one product
-parameter dataset whenever the row construction is identical. Their pricing
-generators select `OptionSide::call` or `OptionSide::put`, which instantiates a
-small compile-time payoff specialization; no side flag is stored per row or
-branched on per simulated path. Gap options retain separate call-oriented and
-put-oriented parameter datasets inside `gap_options/` because their payoff
-strike grids differ.
-
-European payer and receiver swaptions likewise share one side-free product
-dataset, but use the dedicated compile-time specializations
-`SwaptionSide::payer` and `SwaptionSide::receiver`.
-
-Side-aware CUDA launchers expose this choice directly in their public API, for
-example `launch_heston_european_option_cuda<OptionSide::call>(...)`. Their
-`.cu` file explicitly instantiates the call and put versions, so ordinary C++
-generators can link either specialization without including CUDA
-implementations or keeping a runtime dispatch wrapper.
-
-The public C++ API deliberately uses two complementary naming rules. Product
-types share the flat `ai_factory::workbench::product` namespace and therefore
-carry a descriptive product prefix, such as `EuropeanOptionParameters` and
-`EuropeanOptionPricingPolicy`; product-private helpers remain in
-`product::detail` and carry the same descriptive prefix. Model launchers are
-external link symbols and retain the complete model/curve/operation name even
-inside their model namespace. Method-neutral implementation primitives instead
-use short role names inside their owning namespace, for example
-`closed_form::launch_closed_form_cuda`. These are stable API conventions, not
-an invitation to maintain short aliases in parallel.
-
-## Build
-
-Requirements:
-
-- a C++23 compiler (GCC 14 or newer with NVIDIA CUDA);
+AI Factory is a C++23/CUDA workbench for quantitative model simulation,
+financial-product pricing, and reproducible dataset generation. It provides
+shared CUDA engines for Markovian, rough-volatility, closed-form, Monte Carlo,
+and early-exercise workloads.
+
+The repository contains source code and versioned dataset recipes. Large JSON
+datasets are generated locally or downloaded separately; they are not stored
+in Git.
+
+## Start here
+
+Choose the shortest path for your task:
+
+| Goal | Entry point |
+|---|---|
+| Build and run a first test | [Quick start](#quick-start) |
+| Understand the repository | [Documentation map](docs/README.md) |
+| Understand CUDA composition | [Pricing-policy composition](docs/cuda/pricing-policy-composition.md) |
+| Add a model, curve, product, or dataset | [Catalogue extension workflow](docs/catalog-extension-and-validation-workflow.md) |
+| Generate model parameters or product rows | [Parameter-dataset contract](docs/model-and-product-parameter-dataset-generation.md) |
+| Generate model-only samples | [Model-sample contract](docs/model-sample-dataset-generation.md) |
+| Run or resume price/sample generation | [Dataset-generation workflow](docs/dataset-generation-workflow.md) |
+| Validate generated prices independently | [Price-validation pipeline](docs/independent-price-validation-pipeline.md) |
+| Diagnose or tune CUDA kernels | [Kernel diagnostics](docs/cuda/launch-validation-and-kernel-diagnostics.md) and [performance protocol](docs/performance-regression-protocol.md) |
+| Modify generated bindings | [Code-generation guide](tools/codegen/pricing_bindings/README.md) |
+
+## Capabilities
+
+- Exact and fixed-step Markovian simulation.
+- Gaussian-Volterra FFT simulation and Markovian N-factor rough lifts.
+- Closed-form equity and fixed-income pricing.
+- Standard Monte Carlo and Longstaff--Schwartz pricing.
+- Model-only sample generation for generative-model training.
+- Reproducible parameter, product, sample, and price datasets.
+- Independent cached price validation through Premia and QuantLib adapters.
+- Architecture-specific CUDA diagnostics and performance baselines.
+
+The typed capability manifest is the authoritative inventory of models,
+products, engines, generated bindings, and catalogue recipes:
+[`tools/codegen/pricing_bindings/capability_manifest.py`](tools/codegen/pricing_bindings/capability_manifest.py).
+Documentation does not duplicate that evolving matrix.
+
+## Quick start
+
+### Requirements
+
+- CMake 3.20 or newer and Ninja;
+- GCC 14 or another CUDA-compatible C++23 compiler;
 - CUDA Toolkit 13.3 or newer;
 - `nlohmann-json3-dev`;
-- CMake 3.20 or newer.
+- an NVIDIA GPU for CUDA runtime tests.
 
-`ccache` is optional. When installed, CMake detects it automatically for both
-C++ and CUDA compilation and reuses matching compilation results.
+cuFFTDx is optional. It is required only for mathDx-backed Volterra FFT
+targets and is enabled through `AI_FACTORY_MATHDX_ROOT`.
 
-For an RTX 4090:
+### Reference SM89 build
+
+The checked-in `dev` preset targets the repository's RTX 4090 Laptop reference
+machine (`sm_89`, GCC 14, CUDA 13.3):
 
 ```bash
 cmake --preset dev
+cmake --build --preset host-tests
+ctest --test-dir build-dev --output-on-failure -R '^dataset_catalog$'
+```
+
+The final command provides a small observable smoke result without generating
+large datasets.
+
+### Another GPU
+
+Configure a separate build directory with the target GPU's compute capability:
+
+```bash
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCUDA_WORKBENCH_ARCHITECTURES=<compute-capability> \
+  -DBUILD_TESTING=ON
+cmake --build build --target ai_factory_host_tests -j2
+ctest --test-dir build --output-on-failure -R '^dataset_catalog$'
+```
+
+The SM89 launch profile is a safe reference, not a universal optimum. Before
+publishing tuning values for another GPU, follow the
+[performance regression protocol](docs/performance-regression-protocol.md) and
+record a separate architecture profile.
+
+## Repository map
+
+```text
+src/          Runtime C++/CUDA models, products, curves, and shared primitives
+tools/        Offline generation, publication, code generation, and diagnostics
+catalog/      Versioned executable recipes and adjacent dataset metadata
+datasets/     Generated or downloaded JSON artifacts; ignored by Git
+tests/        Host, CUDA, architecture, and performance tests
+validation/   Independent price-reference pipelines and backend adapters
+cmake/        Build ownership by runtime, catalogue, tests, and performance
+docs/         Task-oriented workflows, contracts, references, and audit records
+```
+
+The runtime under `src` never depends on `tools`, `catalog`, or `validation`.
+Model-product launch units live under each model's `product/` directory.
+`catalog` and `datasets` mirror the canonical model, curve, and product paths
+defined by `src`.
+
+For the detailed ownership and file conventions, use the
+[documentation map](docs/README.md) rather than inferring them from this
+summary.
+
+## Common workflows
+
+Build the narrowest target for the change. Useful aggregate targets are
+available as presets:
+
+```bash
 cmake --build --preset core
-```
-
-The architecture list remains configurable, for example:
-`-DCUDA_WORKBENCH_ARCHITECTURES="75;86;89"`. CUDA 13 supports offline
-compilation for Turing (`sm_75`) and newer GPUs.
-
-When `AI_FACTORY_MATHDX_ROOT` enables cuFFTDx 26.06, the project accepts the
-descriptor matrix `75, 80, 86, 87, 89, 90, 100, 103, 110, 120, 121`. A
-mono-architecture build selects its exact descriptor. A fatbin uses the oldest
-requested descriptor as its portable FFT implementation profile while nvcc
-still emits code for every requested architecture. This is a compatibility
-choice, not a claim that one FFT specialization or launch geometry is optimal
-on every GPU. The checked-in runtime measurements cover only the RTX 4090
-Laptop (`sm_89`); every other GPU requires its own runtime qualification.
-
-CUDA launch geometry is exposed as a compile-time CMake tuning profile. The
-default `sm89_reference_v1` centralizes Markovian, N-factor, analytical,
-Longstaff--Schwartz, model-sample and Volterra chunk values and records that
-profile in generated execution metadata. A deployment can override the
-`AI_FACTORY_CUDA_*` cache variables and set a distinct
-`AI_FACTORY_CUDA_TUNING_PROFILE_ID` without editing generated recipes. Before
-publishing such a profile, run the numerical tests, kernel diagnostics and the
-complete performance manifest described in
-[`docs/performance-regression-protocol.md`](docs/performance-regression-protocol.md).
-
-The development build uses Ninja and deliberately excludes CUDA pricers,
-tests, and generators from the default target. Build the narrowest target for
-the current change:
-
-```bash
-# One price recipe: one model-product CUDA unit and its exact loaders.
-cmake --build build-dev --target generate_hull_white_nelson_siegel_caplets_01 -j2
-
-# One CUDA test and only the launchers included by that test.
-cmake --build build-dev --target test_one_factor_european_swaptions_cuda -j2
-ctest --test-dir build-dev -R '^one_factor_european_swaptions_cuda$' --output-on-failure
-
-# One complete model, one domain, or every public launcher.
-cmake --build build-dev --target model_hull_white -j2
+cmake --build --preset equity
 cmake --build --preset fixed-income
-cmake --build --preset all-models
-```
-
-The aggregate presets `host-tests`, `fixed-income-tests`, `equity-tests`,
-`cuda-tests`, `tests`, `parameter-generators`, and `price-generators` are
-available for broader checks. `cmake --build build-dev --target help` lists
-every granular target.
-Ninja keeps unaffected archives intact: changing one product launcher rebuilds
-that launcher and its consumers; changing a model dataset loader rebuilds only
-that loader and consumers; changing an included `dynamics_impl.cuh` or
-`analytics_impl.cuh` correctly rebuilds all launchers of the affected model. A clean
-rebuild is therefore not part of the normal development loop.
-
-## Generate Datasets
-
-Parameter datasets are quick to regenerate:
-
-```bash
-./build-dev/generate_heston_01
-./build-dev/generate_bates_01
-./build-dev/generate_variance_gamma_01
-./build-dev/generate_normal_inverse_gaussian_01
-./build-dev/generate_g2_01
-./build-dev/generate_g2_plus_plus_01
-./build-dev/generate_nelson_siegel_01
-./build-dev/generate_svensson_01
-./build-dev/generate_hull_white_01
-./build-dev/generate_ornstein_uhlenbeck_01
-./build-dev/generate_vasicek_01
-./build-dev/generate_cir_01
-./build-dev/generate_european_options_01
-./build-dev/generate_american_options_01
-./build-dev/generate_gap_call_options_01
-./build-dev/generate_gap_put_options_01
-./build-dev/generate_rate_options_01
-./build-dev/generate_zero_coupon_bond_options_01
-./build-dev/generate_european_swaptions_01
-```
-
-Each command replaces the local dataset and its YAML catalog entry together.
-Every model and product generator follows the ordered 900-row core plus 100-row
-stress policy documented in
-[`docs/model-and-product-parameter-dataset-generation.md`](docs/model-and-product-parameter-dataset-generation.md).
-Price datasets follow the same workflow:
-
-```bash
-./build-dev/generate_heston_european_calls_01
-./build-dev/generate_heston_american_puts_01
-./build-dev/generate_bates_european_calls_01
-./build-dev/generate_bates_american_puts_01
-./build-dev/generate_variance_gamma_european_calls_01
-./build-dev/generate_normal_inverse_gaussian_european_calls_01
-./build-dev/generate_g2_caplets_01
-./build-dev/generate_g2_floorlets_01
-./build-dev/generate_g2_zero_coupon_bond_calls_01
-./build-dev/generate_g2_zero_coupon_bond_puts_01
-./build-dev/generate_g2_plus_plus_nelson_siegel_caplets_01
-./build-dev/generate_g2_plus_plus_nelson_siegel_floorlets_01
-./build-dev/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_calls_01
-./build-dev/generate_g2_plus_plus_nelson_siegel_zero_coupon_bond_puts_01
-./build-dev/generate_g2_plus_plus_svensson_caplets_01
-./build-dev/generate_g2_plus_plus_svensson_floorlets_01
-./build-dev/generate_g2_plus_plus_svensson_zero_coupon_bond_calls_01
-./build-dev/generate_g2_plus_plus_svensson_zero_coupon_bond_puts_01
-./build-dev/generate_ornstein_uhlenbeck_caplets_01
-./build-dev/generate_ornstein_uhlenbeck_floorlets_01
-./build-dev/generate_ornstein_uhlenbeck_zero_coupon_bond_calls_01
-./build-dev/generate_ornstein_uhlenbeck_zero_coupon_bond_puts_01
-./build-dev/generate_vasicek_caplets_01
-./build-dev/generate_vasicek_floorlets_01
-./build-dev/generate_vasicek_zero_coupon_bond_calls_01
-./build-dev/generate_vasicek_zero_coupon_bond_puts_01
-./build-dev/generate_cir_caplets_01
-./build-dev/generate_cir_floorlets_01
-./build-dev/generate_cir_zero_coupon_bond_calls_01
-./build-dev/generate_cir_zero_coupon_bond_puts_01
-./build-dev/generate_hull_white_nelson_siegel_caplets_01
-./build-dev/generate_hull_white_nelson_siegel_floorlets_01
-./build-dev/generate_hull_white_nelson_siegel_zero_coupon_bond_calls_01
-./build-dev/generate_hull_white_nelson_siegel_zero_coupon_bond_puts_01
-./build-dev/generate_hull_white_svensson_caplets_01
-./build-dev/generate_hull_white_svensson_floorlets_01
-./build-dev/generate_hull_white_svensson_zero_coupon_bond_calls_01
-./build-dev/generate_hull_white_svensson_zero_coupon_bond_puts_01
-./build-dev/generate_ornstein_uhlenbeck_european_payer_swaptions_01
-./build-dev/generate_ornstein_uhlenbeck_european_receiver_swaptions_01
-./build-dev/generate_vasicek_european_payer_swaptions_01
-./build-dev/generate_vasicek_european_receiver_swaptions_01
-./build-dev/generate_cir_european_payer_swaptions_01
-./build-dev/generate_cir_european_receiver_swaptions_01
-./build-dev/generate_hull_white_nelson_siegel_european_payer_swaptions_01
-./build-dev/generate_hull_white_nelson_siegel_european_receiver_swaptions_01
-./build-dev/generate_hull_white_svensson_european_payer_swaptions_01
-./build-dev/generate_hull_white_svensson_european_receiver_swaptions_01
-```
-
-## Test
-
-```bash
 cmake --build --preset tests
 ctest --preset tests
 ```
 
-`dataset_catalog` validates two- and three-input constructions and mandatory
-catalog fields. CUDA tests cover reusable OU, Vasicek, CIR, G2, Hull-White, and
-G2++ analytics; caplets, floorlets, and zero-coupon options; deterministic
-Gamma/non-central-chi-square tails; one-factor payer/receiver swaptions,
-including regular, explicit and 600-payment schedules; the uniform Heston,
-Bates, VG, NIG, Merton, Kou, CEV, and Schöbel-Zhu dynamics and product
-launchers, including path averages, forward starts, jumps, and barriers; and
-the early-exercise pipelines. They use small in-memory fixtures and skip
-automatically without a CUDA GPU.
-
-Every fixed-income and Black-Scholes price dataset has an immutable 1,000-row
-reference under `validation/datasets/price`. Routine CTest checks these caches,
-their source fingerprints, row provenance, metrics, and compact catalogue YAML
-without importing QuantLib or starting Premia/Wine. Fixed-income caches also
-require a policy fingerprint over current tolerances, bias rules, regimes, and
-the semantic comparison implementation, so changed validation criteria cannot
-silently reuse an old acceptance decision. The 42 fixed-income caches cover the
-32 bond-option/caplet/floorlet datasets and ten one-factor payer/receiver
-swaption datasets. Vasicek, centered OU, Hull-White, G2++, and 25 Black-Scholes
-product families use Premia wherever its audited contract is reliable;
-specialized QuantLib supplies standalone G2, every CIR row, and explicit
-swaption fallbacks. Four Black-Scholes structured families use QuantLib Monte
-Carlo. CIR records that Premia is callable but unreliable before selecting
-QuantLib. Direct backend checks remain useful numerical diagnostics when the
-corresponding dependency is installed.
-The shared validator reports row errors, combined Monte-Carlo uncertainty,
-directional counts, and systematic bias. Premia continuous-monitoring prices
-remain the primary analytical reference for discrete Black-Scholes barriers:
-the JSON records the proven ordering and explains the expected signed bias.
-Slower direct checks for equity models not yet migrated are available with:
+Discover granular targets from the configured build instead of relying on a
+copied list:
 
 ```bash
-cmake -S . -B build -DAI_FACTORY_QUANTLIB_EXOTIC_VALIDATION=ON
+cmake --build build-dev --target help
+ctest --test-dir build-dev -N
 ```
 
-Every price validation follows specialized Premia, specialized QuantLib, then
-QuantLib Monte Carlo. Migrated JSON records all three slots in that order,
-details only methods that actually produced rows, and verifies both the 900-row
-core and 100-row stress regimes. Its YAML deliberately contains only `status`,
-`verified`, and the reference-dataset path. External engines run only during an
-explicit `--generate`; normal validation is cache-only. Equity models other
-than Black-Scholes retain their legacy validation only until they are migrated
-to this same contract. See
-[`validation/premia`](validation/premia/README.md),
-[`validation/quantlib`](validation/quantlib/README.md), and the
-[catalog extension workflow](docs/catalog-extension-and-validation-workflow.md)
-for supported products and direct command-line usage.
+One dataset recipe can be built and executed directly, for example:
 
-## Add a Dataset
+```bash
+cmake --build build-dev --target generate_heston_01 -j2
+./build-dev/generate_heston_01
+```
 
-1. Identify whether the extension adds a model, curve, product family, pricing
-   pair, or only a new price dataset; reuse every unaffected layer.
-2. Add the compact loader and numerical implementation under `src`, following
-   the closest CUDA contract and its public function order.
-3. Add the reproducible `generator.cpp` and generated `dataset.yaml` under the
-   matching `catalog/` hierarchy, then register their CMake target and tests.
-4. For a price dataset, add the unified model-product validator and apply
-   Premia, QuantLib specialized, then QuantLib Monte Carlo. Persistent
-   references belong under `validation/datasets/price` and are regenerated
-   explicitly; do not add validation JSON or notebooks beside their YAML.
-5. Run the generator, loader checks, isolated validation, relevant CUDA tests,
-   and the complete CTest suite before publication.
-6. Update the separately maintained website project with the new public entry.
+The generator owns its JSON and adjacent YAML output; do not edit generated
+metadata by hand. Use the
+[catalogue extension workflow](docs/catalog-extension-and-validation-workflow.md)
+for the complete publication and validation sequence.
 
-Call and put contracts share one product family and one templated pricer when
-only the payoff orientation changes, while their price datasets remain
-distinct. The complete, authoritative checklist is
-[`docs/catalog-extension-and-validation-workflow.md`](docs/catalog-extension-and-validation-workflow.md);
-the report and fallback contract is
-[`docs/independent-price-validation-pipeline.md`](docs/independent-price-validation-pipeline.md).
+Generated pricing and sampling bindings must round-trip without a diff:
 
-Storage credentials must not appear in YAML files or the static website.
-Private storage should use signed URLs or server-side authentication.
+```bash
+python3 tools/codegen/pricing_bindings/generate.py \
+  --family all \
+  --output /tmp/ai_factory-pricing-bindings \
+  --compare-root .
+```
+
+## Reproducibility and portability
+
+- CUDA fast math is intentionally disabled.
+- Philox keys and counters are independent of batching and launch geometry.
+- Contractual dates use integer business-day counts; discretized models derive
+  their fixed step from the declared global time grid.
+- Performance evidence is scoped to the recorded GPU, toolchain, binary, and
+  power state. Other GPUs require their own measurements.
+- Independent validation normally reads versioned caches. External engines run
+  only during explicit reference regeneration.
+
+Numerical and CUDA invariants are normative in the contracts under
+[`docs/cuda`](docs/cuda/README.md).
+
+## Current limitations
+
+- Markovian equity price and spot delta are implemented with bounded checks;
+  catalogue-wide delta bias and production performance remain unqualified.
+  The next implementation step is rough-model spot delta: rough Heston and
+  quadratic rough Heston N-factor lifts first, then rough Bergomi FFT.
+  See the [price-delta contract](docs/cuda/equity-price-delta-contract.md) and
+  [open audit work](docs/audit/response.md).
+- Catalogue URLs using `datasets.ai-factory.example` are placeholders until a
+  production data host is configured.
+- The checked-in runtime performance baseline covers only the RTX 4090 Laptop
+  `sm_89` profile.
+- CUDA tests require compatible NVIDIA hardware; host-only tests remain
+  available without running GPU kernels.
+
+For every substantial change, start from the relevant workflow in
+[`docs/README.md`](docs/README.md) and build only the affected targets before
+running the broader suites.

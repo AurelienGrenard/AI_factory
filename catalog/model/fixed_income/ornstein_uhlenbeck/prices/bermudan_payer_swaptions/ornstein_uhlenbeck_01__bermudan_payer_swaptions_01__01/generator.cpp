@@ -18,7 +18,7 @@ int main() {
         "bermudan_swaptions_01.json";
     const auto models = ou::load_models(model_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = 1U << 20U;
+    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829125597986816ULL;
 
     datasets::generate_exact_bermudan_swaption_prices(

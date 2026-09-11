@@ -1,9 +1,20 @@
 # Independent price-validation pipeline
 
 This document defines the publication contract for persistent independent
-price references. It currently applies to every fixed-income dataset and every
-Black-Scholes dataset. Other equity models are migrated separately; their
-legacy report/notebook artifacts must not be copied into a new implementation.
+price references. The catalogue and the `cached_reference` CTest inventory own
+the set of datasets that have adopted it; this page does not duplicate that
+changing list. New implementations must not copy legacy report or notebook
+artifacts into the persistent-cache design.
+
+Use the following owner for each question:
+
+| Question | Authoritative source |
+|---|---|
+| Publication and fallback rules | This document |
+| Current validated datasets | Catalogue YAML and `cached_reference` CTests |
+| Engine plan for one model/product | Its validator declaration |
+| Persisted methods, versions and row provenance | Reference JSON |
+| Current tolerances and fingerprint implementation | Shared validation code |
 
 ## Objective
 
@@ -28,14 +39,10 @@ engine for that row only. A successful, financially admissible reference that
 fails the declared comparison is not replaced retrospectively by a closer
 price.
 
-European swaptions illustrate the distinction. Premia is primary for the
-Vasicek, centered-OU, and Hull-White rows inside its audited contract and
-operational domain. A distinct coupon accrual, zero strike, 50-year expiry, or
-Hull-White 50-year swap tenor is declared unsupported before pricing and uses
-the specialized QuantLib Jamshidian reference. CIR does not use row-wise
-selection: both available Premia finite-difference methods failed representative
-payer and receiver audits, so Premia is globally recorded as
-`available but not reliable` and QuantLib supplies all CIR swaption rows.
+The distinction is contractual: compatibility is declared before observing the
+generated/reference difference. An engine found unreliable by a representative
+method audit is recorded as `available but not reliable`; it is not selected
+row by row according to which result happens to be closer.
 
 ## Repository layout
 
@@ -65,6 +72,10 @@ validation:
 
 Engine names, methods, versions, row provenance, tolerances, metrics, and bias
 rules belong in the reference JSON, not in YAML.
+
+Before certification, recipes using persistent references use the same three keys with
+`status: "pending"` and `verified: false`. The dataset path then identifies the
+intended reference cache, not evidence that it exists or certifies these prices.
 
 ## Reference JSON contract
 
@@ -246,14 +257,10 @@ The failed row moves to the next engine and keeps its final
 priced. A numerical comparison failure is not a technical failure and cannot
 fall through.
 
-For Black-Scholes, Premia is primary on 25 product families. QuantLib Monte
-Carlo supplies the four structured families for which Premia has no compatible
-pricer and the few individual fallback rows rejected technically by Premia.
-
-For CIR, Premia is explicitly `available but not reliable`; the specialized
-QuantLib `CoxIngersollRoss.discountBondOption` implementation is therefore the
-selected reference. This is different from a continuous/discrete bound: an
-unreliable formula is not used as a comparison reference.
+The validator declaration and reference JSON, not this page, record the current
+engine selected for each family. This is different from a
+continuous/discrete bound: an unreliable formula is not used as a comparison
+reference.
 
 ## Commands
 

@@ -1,0 +1,259 @@
+{
+  "scope": "1000-row native sample smoke tests after the host-memory guard correction; no performance qualification or full-shape claim",
+  "passed": 50,
+  "failed": 0,
+  "rebuilt_binaries_rechecked": 50,
+  "unchanged_binaries_reused": 0,
+  "records": {
+    "generate_bates_samples_01": {
+      "binary_sha256": "b5f203310011f1f3654cb5a5e16f869ef541a4703966f971d8817b92d9a77f44",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_bates_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_bates_samples_02": {
+      "binary_sha256": "1ae742ce8500c740834383f61b6103bd0cb709aa5e0a1d1702bd73e80b4c6d5b",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_bates_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_black_scholes_samples_01": {
+      "binary_sha256": "da470b8c26c0610291ef419956b99b54164ec39c7039b6f6d677110069525c48",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_black_scholes_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_black_scholes_samples_02": {
+      "binary_sha256": "7cfd2f561ae30451de1b7b32803b2c1ccbdfabcc936f7c69e41a1808e33a43c7",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_black_scholes_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cev_samples_01": {
+      "binary_sha256": "e66e737a07ca3825cec152ee19d4ba2887939fe4ae0980e27b2e73e83042dd7e",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cev_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cev_samples_02": {
+      "binary_sha256": "e2508f3bbc8688d5995cfd3df2db7d115c0ff60b508b4e0e013c07a33b2527e6",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cev_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cir_plus_plus_samples_01": {
+      "binary_sha256": "838e24d5df56779e550e2cc922af00499538936adb6d4ac9f9a870f62ed68bd0",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cir_plus_plus_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cir_plus_plus_samples_02": {
+      "binary_sha256": "4ffcee0e0e57a4ad4853ba091cdd913e724d9533b77566c501b10a95f00e12eb",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cir_plus_plus_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cir_samples_01": {
+      "binary_sha256": "ccb3022a7194883e856e47d72dedc0ec10350acb902cc38a6a4af4db7c867e3e",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cir_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_cir_samples_02": {
+      "binary_sha256": "9f12dadb86d584ad1a7e69c3a76db9173193ef062c7029a8359a4fff159f205b",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_cir_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_g2_plus_plus_samples_01": {
+      "binary_sha256": "56d999aa09b2bc81d3e8a764fd759655765ce5acbaa46491f002cebe9c53a807",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_g2_plus_plus_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_g2_plus_plus_samples_02": {
+      "binary_sha256": "bcffb2c091c3ab85da441048458a0c547ad1ee2401dca0210143eb2608407352",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_g2_plus_plus_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_g2_samples_01": {
+      "binary_sha256": "6fd7c8ca9c47e4009b2a6c0f665d0b02075f41bcc3f31b3e081866be2c50fc76",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_g2_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_g2_samples_02": {
+      "binary_sha256": "16ff8caf6725fb36c95dbcb858fc8260b70c5f0dba5ac20918866ad823ae287e",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_g2_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_heston_3_2_samples_01": {
+      "binary_sha256": "256f861c4e0b432efd597f6f776151d71aaab034fa8c3dca7ab484e2c84c2051",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_heston_3_2_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_heston_3_2_samples_02": {
+      "binary_sha256": "da336b95728398f9ea41270679a1518f249ad3b32f9c1eeff869234beadff611",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_heston_3_2_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_heston_samples_01": {
+      "binary_sha256": "2376608bc95478a25edc66c1eb1ca32454918dd6703d01ef8467ad14146b540c",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_heston_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_heston_samples_02": {
+      "binary_sha256": "f1bc11889429f499d6931dd7f41e9dc64e1fe0010d9484ada78ce6eba43aedf4",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_heston_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_hull_white_samples_01": {
+      "binary_sha256": "2069429b6c6171da5af079661e7b173539571a3d8bf1bc009197c5a1115d49aa",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_hull_white_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_hull_white_samples_02": {
+      "binary_sha256": "0aec3f4f28cff9d4def3db8c3e8b959104095513f2e76c8c8eeddb9a78db2e17",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_hull_white_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_kou_samples_01": {
+      "binary_sha256": "b23f6d41c53b52998dec4446a5eb6df8a80c3b485a003ddfa9c9685e0f016c0b",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_kou_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_kou_samples_02": {
+      "binary_sha256": "aac3dbcc2c244302c71578080facca226d02af5421434344a84942fc880a7db4",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_kou_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_log_modulated_rough_bergomi_samples_01": {
+      "binary_sha256": "50e6593142c6fcee52f967ef4e22ffb5a3fdc2075b4bd940284784dc9eb5290d",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_log_modulated_rough_bergomi_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_log_modulated_rough_bergomi_samples_02": {
+      "binary_sha256": "7d88b39c612b928e10fefc503e2e8e609103a06c1916da954ef13216ff3debcc",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_log_modulated_rough_bergomi_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_merton_samples_01": {
+      "binary_sha256": "2f93d1037afe7288849ebf3812f27e003e5ed43000e06582dcbaa78ab6bb9c18",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_merton_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_merton_samples_02": {
+      "binary_sha256": "839ca5b4586ee1354468a4c78e433145e4157f7b4ea4b79b23da8f66fecc5636",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_merton_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_normal_inverse_gaussian_samples_01": {
+      "binary_sha256": "3fab79ac86207e638b6970eb31dea3ffe5dcb00ce23bb1a84d190f3554c43441",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_normal_inverse_gaussian_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_normal_inverse_gaussian_samples_02": {
+      "binary_sha256": "eaa7567cf281d33262d488938c3cb9d10a90ad28914432a5e197def33786139c",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_normal_inverse_gaussian_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_ornstein_uhlenbeck_samples_01": {
+      "binary_sha256": "4264f704237dfcba86394eea45b2e874def4ffa952413b02fa610b85ff1b0b19",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_ornstein_uhlenbeck_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_ornstein_uhlenbeck_samples_02": {
+      "binary_sha256": "65932905e2a196d1536baae4bb6c6795c35b0aa25161a568650d5d705f1cdbab",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_ornstein_uhlenbeck_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_quadratic_rough_heston_samples_01": {
+      "binary_sha256": "90eea9edb5fcfbb907f074056c5d617fc28775265c411a26fc81fc1f2736fbc4",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_quadratic_rough_heston_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_quadratic_rough_heston_samples_02": {
+      "binary_sha256": "b7c5719ed59ab38c66206260ff3ee6be8aafa3673567b1570a63cc128fef15f6",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_quadratic_rough_heston_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_bergomi_samples_01": {
+      "binary_sha256": "6162fa30d720e3af4a67e7c73e3bbe7c6501e4e3e817583cabc0d10d413f855c",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_bergomi_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_bergomi_samples_02": {
+      "binary_sha256": "c178f0f1c44836a0956ade6218d979817b1a2eb001e6ea6cf677d35c551c327a",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_bergomi_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_heston_samples_01": {
+      "binary_sha256": "0ba9c77c8c2a1256329b54d9c93235cadb5521209adfc44cd9b1267d96a3a5be",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_heston_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_heston_samples_02": {
+      "binary_sha256": "1d83c7582d687d41ac43a380905ce9f03e5319494bae19abfef24f1837e88685",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_heston_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_sabr_samples_01": {
+      "binary_sha256": "5634d9db8a8628e7f08b98bc7275601f21dad7a863351be29f4f23db1a853e2a",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_sabr_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_sabr_samples_02": {
+      "binary_sha256": "f68b28ba08a398d60302f920ce7c37d1edce80b7dba1e98c1c378d5b00f8ae3c",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_sabr_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_stein_stein_samples_01": {
+      "binary_sha256": "870e88d0b5c6d4ed3d87469fe57996ed3748c54d4fcc64afe302901ee7844237",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_stein_stein_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_rough_stein_stein_samples_02": {
+      "binary_sha256": "9d53f3dd3c8dc96e00384f3f90f6b70b2c67b0251c7cdac48cf7a5a95bfb9a02",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_rough_stein_stein_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_sabr_samples_01": {
+      "binary_sha256": "e6687b513c01fe591552bf82c4b01c8a495eeb1aedc428ce6b9f8ce0cf87ec16",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_sabr_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_sabr_samples_02": {
+      "binary_sha256": "4ae60dd5cee74d7e4611840ee67dfa45087977ee0d2b0947b1e33ffa0135bc4f",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_sabr_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_schobel_zhu_samples_01": {
+      "binary_sha256": "7b2a046890a094c8508e9ccf38105e6df240b3c8e0ff048de0e98649665d9104",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_schobel_zhu_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_schobel_zhu_samples_02": {
+      "binary_sha256": "24cac801ec398ed3043a7d35c99aa237d7d2801e51cea5fa7758c76f19900eed",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_schobel_zhu_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_stein_stein_samples_01": {
+      "binary_sha256": "55af3607f975c1f64a397225cbc01862d6b745c08919ca86cdaf0e58a76ed9b3",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_stein_stein_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_stein_stein_samples_02": {
+      "binary_sha256": "d65ce11c83ec8b0e865c4bb7f7fe5b0debff25dd90c51b1977978e8c48864db1",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_stein_stein_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_variance_gamma_samples_01": {
+      "binary_sha256": "fea0a5ea82c9f643fed3726dcc6e4796e8838547aefaa7e9b8e9269818d56a6b",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_variance_gamma_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_variance_gamma_samples_02": {
+      "binary_sha256": "91321376a68bb9997831365e207918e2f8e8fbb713510ea754b146734ed19a2a",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_variance_gamma_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_vasicek_samples_01": {
+      "binary_sha256": "5fc0711451c975bc17b65c01d9469b6292bc444e0c9e362a94af6b9e232a1d3f",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_vasicek_samples_01.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generate_vasicek_samples_02": {
+      "binary_sha256": "da4f18abf67cda4326c0a69acd235fd75430371de9294271a9458fd307b34ee0",
+      "log": "build-dev/kou-lsm-launch-confirmation.zpDtZU/sample-smoke-host-guard/generate_vasicek_samples_02.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

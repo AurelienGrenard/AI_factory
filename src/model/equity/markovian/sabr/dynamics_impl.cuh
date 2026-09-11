@@ -40,17 +40,12 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
     };
 }
 
-__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+__device__ __forceinline__ void one_step_transition(
     const PreparedDynamics& dynamics,
-    RandomContext& random,
+    float alpha_normal,
+    float residual_normal,
     State& state
 ) {
-    const float alpha_normal = philox::next_normal(
-        random.uniforms, random.normals
-    );
-    const float residual_normal = philox::next_normal(
-        random.uniforms, random.normals
-    );
     const float forward_normal = fmaf(
         dynamics.rho,
         alpha_normal,
@@ -78,6 +73,14 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
         dynamics.volatility_of_volatility_sqrt_dt * alpha_normal
         - dynamics.half_volatility_of_volatility_squared_dt
     );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics, RandomContext& random, State& state
+) {
+    const float alpha_normal = philox::next_normal(random.uniforms, random.normals);
+    const float residual_normal = philox::next_normal(random.uniforms, random.normals);
+    one_step_transition(dynamics, alpha_normal, residual_normal, state);
 }
 
 __device__ __forceinline__ void DynamicsPolicy::advance(

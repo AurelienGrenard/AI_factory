@@ -1,0 +1,66 @@
+title: "CIR++ model samples samples_01"
+database_id: "samples_01"
+catalog: "catalog/model/fixed_income/cir_plus_plus/samples/samples_01"
+url: "https://datasets.ai-factory.example/v1/model/fixed_income/cir_plus_plus/samples/samples_01.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "CIR++"
+  numerical_method: "exact finite-horizon transition"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 12000
+  paths_per_parameter: 250
+  row_order: "parameter-major, then path-major"
+  threads_per_block: 256
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent parameter-block"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals by parameter row"
+    latent_uniform_bounds:
+      mean_reversion:
+        - 0.029999999329447746
+        - 1.0
+      long_term_mean:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+      initial_state:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+    acceptance: "true"
+    derived_parameters:
+      volatility: "After mean_reversion, long_term_mean and initial_state, draw the next Philox uniform: sigma ~ uniform(max(sqrt(mean_reversion * long_term_mean / 5), 0.005), min(sqrt(12 * mean_reversion * long_term_mean), 0.30)). Feller ratio 2 * mean_reversion * long_term_mean / sigma^2 lies in [1/6, 10]."
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668829202907398144
+  schedule: 11668829203981139968
+  dynamics: 11668829205054881792
+outputs:
+  state:
+    description: "Terminal nonnegative CIR factor y; not the curve-shifted short rate."
+    layout: "sample-major"
+time_grid:
+  transition: "exact"
+  delta_t: "maturity_days / 252"
+  artificial_substeps: false
+timing:
+  wall_seconds: "1.977415463 s"
+  kernel_seconds: "0.000328704 s"

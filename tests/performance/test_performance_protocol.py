@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
 
 from tools.performance.check_baseline import compare
 from tools.performance.profile_kernel import ncu_command, select_profile_target
@@ -20,7 +19,6 @@ from tools.performance.run_baseline import (
     load_raw_campaigns,
     parse_nvidia_power_limits,
     select_initialization_manifest,
-    stabilize_thermal_environment,
     validate_campaign_preflight,
     validate_preflight,
     write_audit_reports,
@@ -234,22 +232,11 @@ def baseline() -> dict[str, object]:
             ),
             "preflight": {
                 "accepted_power_sources": ["external_power", "no_battery"],
-                "maximum_temperature_c": 85,
+                "thermal_policy": "telemetry_only",
                 "minimum_current_power_limit_w": 140.0,
-                "retry_cooldown_seconds": 0,
-                "thermal_stabilization": {
-                    "command_id": "test_command",
-                    "minimum_runs": 3,
-                    "maximum_runs": 3,
-                    "minimum_duration_seconds": 0,
-                    "temperature_window": 2,
-                    "maximum_temperature_range_c": 2,
-                },
                 "concurrent_compute_processes": "forbidden",
                 "forbidden_throttle_reasons": [
-                    "hardware_slowdown",
-                    "hardware_thermal_slowdown",
-                    "software_thermal_slowdown",
+                    "hardware_power_brake",
                 ],
             },
             "timing_reports": {
@@ -409,6 +396,25 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         candidates[0]["binary"]["executable_bytes"] = 11_001
         self.assert_rejected(baseline(), candidates, "executable_bytes")
 
+    def test_rejects_a_missing_declared_pipeline_phase(self) -> None:
+        reference = baseline()
+        reference["resource_phase_contracts"] = {
+            "manifest::one": ["path_evaluation", "finalization"]
+        }
+        resources = reference["measurements"][0]["resources"]
+        resources[0]["phase"] = "path_evaluation"
+        finalization = copy.deepcopy(resources[0])
+        finalization["phase"] = "finalization"
+        resources.append(finalization)
+
+        candidates = self.candidates()
+        candidates[0]["resources"][0]["phase"] = "path_evaluation"
+        self.assert_rejected(
+            reference,
+            candidates,
+            "missing or duplicate resource phase",
+        )
+
     def test_rejects_manifest_without_four_decisions(self) -> None:
         reference = baseline()
         reference["decisions"] = reference["decisions"][:3]
@@ -417,7 +423,7 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
     def test_rejects_incomplete_power_preflight_policy(self) -> None:
         for field in (
             "minimum_current_power_limit_w",
-            "retry_cooldown_seconds",
+            "thermal_policy",
         ):
             reference = baseline()
             reference["decision_policy"]["preflight"].pop(field)
@@ -614,7 +620,7 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
                 len(candidates),
             )
 
-    def test_preflight_rejects_battery_temperature_and_throttle(self) -> None:
+    def test_preflight_records_heat_and_rejects_power_or_concurrency_failures(self) -> None:
         reference = baseline()
         snapshot = {
             "gpu": "test GPU",
@@ -626,6 +632,7 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
                 "hardware_slowdown": "Not Active",
                 "hardware_thermal_slowdown": "Not Active",
                 "software_thermal_slowdown": "Not Active",
+                "hardware_power_brake": "Not Active",
             },
         }
         validate_preflight(reference, snapshot)
@@ -633,7 +640,7 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "power source"):
             validate_preflight(reference, battery)
         throttled = copy.deepcopy(snapshot)
-        throttled["throttle"]["hardware_thermal_slowdown"] = "Active"
+        throttled["throttle"]["hardware_power_brake"] = "Active"
         with self.assertRaisesRegex(ValueError, "throttling"):
             validate_preflight(reference, throttled)
         low_power = copy.deepcopy(snapshot)
@@ -643,42 +650,40 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
         warm = {**snapshot, "temperature_c": 80}
         validate_campaign_preflight(reference, snapshot, warm)
         hot = {**snapshot, "temperature_c": 86}
-        with self.assertRaisesRegex(ValueError, "temperature"):
-            validate_campaign_preflight(reference, snapshot, hot)
+        validate_campaign_preflight(reference, snapshot, hot)
+        for reason in ("hardware_slowdown", "hardware_thermal_slowdown", "software_thermal_slowdown"):
+            observed = copy.deepcopy(hot)
+            observed["throttle"][reason] = "Active"
+            validate_campaign_preflight(reference, snapshot, observed)
+        with self.assertRaisesRegex(ValueError, "concurrent"):
+            validate_preflight(reference, {**snapshot, "concurrent_compute_processes": ["123"]})
+        missing = copy.deepcopy(snapshot)
+        missing["throttle"].pop("hardware_power_brake")
+        with self.assertRaisesRegex(ValueError, "telemetry"):
+            validate_preflight(reference, missing)
 
-    def test_stabilizes_before_the_official_preflight(self) -> None:
-        reference = baseline()
-        cold = {
-            "gpu": "test GPU",
-            "power_source": "external_power",
-            "temperature_c": 55,
-            "power_limits_w": {"current": 150.0},
-            "concurrent_compute_processes": [],
-            "throttle": {
-                "hardware_slowdown": "Not Active",
-                "hardware_thermal_slowdown": "Not Active",
-                "software_thermal_slowdown": "Not Active",
-            },
-        }
-        warming = {**cold, "temperature_c": 64}
-        warm = {**cold, "temperature_c": 65}
-        evidence: list[dict[str, object]] = []
-        with (
-            patch(
-                "tools.performance.run_baseline.collect_preflight",
-                side_effect=[cold, cold, warming, warm],
-            ),
-            patch(
-                "tools.performance.run_baseline.subprocess.run",
-                return_value=SimpleNamespace(stdout=b"warmup"),
-            ) as run,
-        ):
-            snapshot = stabilize_thermal_environment(
-                reference, Path("build"), evidence
-            )
-        self.assertEqual(snapshot["temperature_c"], 65)
-        self.assertEqual(len(evidence), 4)
-        self.assertEqual(run.call_count, 3)
+    def test_runners_do_not_branch_or_wait_on_temperature(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        for name in ("run_baseline.py", "profile_kernel.py", "run_pricing_scaling.py",
+                     "run_fixed_income_lsm_probe.py"):
+            source = root / "tools/performance" / name
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, (ast.If, ast.While, ast.IfExp)):
+                    condition = ast.dump(node.test).lower()
+                    self.assertNotIn("temperature", condition, (name, node.lineno))
+                    self.assertNotIn("thermal", condition, (name, node.lineno))
+
+    def test_thermal_policy_amendment_preserves_all_measured_values_and_budgets(self) -> None:
+        directory = Path(__file__).resolve().parent
+        current = json.loads((directory / "baseline_sm89_v3.json").read_text())
+        predecessor = json.loads((directory / "history/baseline_sm89_v3_pre_perf_020.json").read_text())
+        amendment = current.pop("policy_amendments")[-1]
+        self.assertEqual(amendment["finding"], "PERF-020")
+        self.assertEqual(hashlib.sha256((directory / amendment["predecessor"]).read_bytes()).hexdigest(),
+                         amendment["predecessor_sha256"])
+        current["decision_policy"].pop("preflight")
+        predecessor["decision_policy"].pop("preflight")
+        self.assertEqual(current, predecessor)
 
     def test_extracts_nvidia_xml_power_limits(self) -> None:
         xml = """<nvidia_smi_log><gpu><gpu_power_readings>
@@ -763,10 +768,12 @@ class PerformanceBaselineCheckerTest(unittest.TestCase):
             candidate["binary"]["executable_sha256"] = hashlib.sha256(
                 executable.read_bytes()
             ).hexdigest()
+            candidate["resources"][0]["phase"] = "path_evaluation"
             target = select_profile_target(
                 manifest, [candidate], root, "one", 0
             )
             self.assertEqual(target["scope"], "generic_cuda")
+            self.assertEqual(target["phase"], "path_evaluation")
             self.assertEqual(target["compiled_symbol"], "_Z_test_kernel_one")
             command = ncu_command(
                 "/usr/bin/ncu", target, root / "report", "detailed"

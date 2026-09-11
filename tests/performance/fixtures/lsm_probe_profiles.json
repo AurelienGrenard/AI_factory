@@ -1,0 +1,8 @@
+[
+  {"id":"cir_core", "options":{"model":"cir", "rows":4, "paths":1048576, "threads":128, "blocks":64}},
+  {"id":"cir_core_b1024", "options":{"model":"cir", "rows":4, "paths":1048576, "threads":128, "blocks":1024}},
+  {"id":"cir_200_coupons", "options":{"model":"cir", "rows":4, "paths":1048576, "threads":128, "blocks":256, "first":21, "interval":21, "exercises":8, "payments":200}},
+  {"id":"ou_10_coupons", "options":{"model":"ornstein_uhlenbeck", "rows":4, "paths":1048576, "threads":128, "blocks":256, "first":21, "interval":21, "exercises":8, "payments":10}},
+  {"id":"ou_200_coupons", "options":{"model":"ornstein_uhlenbeck", "rows":4, "paths":1048576, "threads":128, "blocks":256, "first":21, "interval":21, "exercises":8, "payments":200}},
+  {"id":"g2_core", "options":{"model":"g2", "rows":4, "paths":1048576, "threads":128, "blocks":64}}
+]

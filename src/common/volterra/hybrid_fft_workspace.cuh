@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/check_cuda.cuh"
+#include "common/volterra/hybrid_fft_tuning.cuh"
 
 #include <cuda_runtime.h>
 
@@ -22,7 +23,6 @@ inline constexpr std::size_t kHybridFftPreparedRowOffset =
     kHybridFftSpectrumBytes + kHybridFftVolterraVarianceBytes;
 inline constexpr std::size_t kHybridFftConvolutionOffset =
     kHybridFftPreparedRowOffset + kHybridFftPreparedRowBytes;
-inline constexpr std::size_t kHybridFftPathThreads = 256U;
 
 struct HybridFftWorkspacePlan {
     std::size_t maximum_step_count;
@@ -100,7 +100,10 @@ inline std::size_t hybrid_fft_convolution_bytes(
 }
 
 inline std::size_t hybrid_fft_partial_moment_count(std::size_t path_count) {
-    return hybrid_fft_ceiling_division(path_count, kHybridFftPathThreads);
+    return hybrid_fft_ceiling_division(
+        path_count,
+        tuning::kPricingPathThreads
+    );
 }
 
 inline std::size_t required_hybrid_fft_workspace_bytes(
@@ -139,10 +142,11 @@ inline HybridFftWorkspacePlan plan_hybrid_fft_workspace(
     }
     if (path_chunk_size == 0U
         || path_chunk_size > monte_carlo_paths_per_price
-        || path_chunk_size % kHybridFftPathThreads != 0U) {
+        || path_chunk_size % tuning::kPricingPathThreads != 0U) {
         throw std::invalid_argument(
             "Volterra hybrid FFT path_chunk_size must be a positive "
-            "multiple of 256 not exceeding the path count."
+            "multiple of the configured path-thread count and not exceed "
+            "the path count."
         );
     }
     const std::size_t partial_count = hybrid_fft_partial_moment_count(

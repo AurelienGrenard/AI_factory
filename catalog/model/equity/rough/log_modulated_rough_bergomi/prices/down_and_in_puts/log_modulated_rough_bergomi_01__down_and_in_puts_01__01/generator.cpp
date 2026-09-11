@@ -22,12 +22,13 @@ int main() {
         PriceConstruction::Aligned,
     };
     const pricing::VolterraMonteCarloProfile profile{
-        1'048'576U,
+        ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,
         1.0f / 252.0f,
         1.0f / 504.0f,
         ::ai_factory::workbench::offline::cuda_tuning::kVolterraPathChunkSize,
         11668828283784396800ULL,
         "1 / 504",
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::rough_fft, "log_modulated_rough_bergomi", "down_and_in_option", ""},
     };
 
     return pricing::generate_volterra_equity_price_dataset(

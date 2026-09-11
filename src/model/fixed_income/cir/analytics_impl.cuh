@@ -22,13 +22,6 @@ namespace {
 using AffineBondCoefficients =
     ::ai_factory::workbench::fixed_income::OneFactorAffineBondCoefficients;
 
-struct BondOptionContext {
-    float expiry_bond;
-    float noncentrality_numerator;
-    float base_rate;
-    float degrees_of_freedom;
-};
-
 // Compute log(A) and B together while sharing gamma and exp(-gamma*tau).
 __device__ __forceinline__ AffineBondCoefficients affine_bond_coefficients(
     const ProcessParameters& process,
@@ -184,64 +177,64 @@ __device__ __forceinline__ float zero_coupon_bond_option_price(
     );
 }
 
+}  // namespace
+
 // Bind CIR A/B and non-central-chi-square inputs to common formulas.
-struct AnalyticsProvider {
-    __device__ __forceinline__ AffineBondCoefficients
-    affine_bond_coefficients(
-        const ModelParameters& parameters,
-        float valuation_time_years,
-        float maturity_years
-    ) const {
-        return cir::affine_bond_coefficients(
-            parameters.process, maturity_years - valuation_time_years
-        );
-    }
+__device__ __forceinline__ AffineBondCoefficients
+AnalyticsProvider::affine_bond_coefficients(
+    const ModelParameters& parameters,
+    float valuation_time_years,
+    float maturity_years
+) const {
+    return cir::affine_bond_coefficients(
+        parameters.process, maturity_years - valuation_time_years
+    );
+}
 
-    __device__ __forceinline__ float zero_coupon_bond(
-        const ModelParameters& parameters,
-        float state,
-        float valuation_time_years,
-        float maturity_years
-    ) const {
-        return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
-            *this, parameters, state, valuation_time_years, maturity_years
-        );
-    }
+__device__ __forceinline__ float AnalyticsProvider::zero_coupon_bond(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time_years,
+    float maturity_years
+) const {
+    return ::ai_factory::workbench::fixed_income::zero_coupon_bond(
+        *this, parameters, state, valuation_time_years, maturity_years
+    );
+}
 
-    __device__ __forceinline__ BondOptionContext
-    prepare_bond_option_context(
-        const ModelParameters& parameters,
-        float state,
-        float valuation_time_years,
-        float option_expiry_years
-    ) const {
-        return cir::prepare_bond_option_context(
-            parameters, state, valuation_time_years, option_expiry_years
-        );
-    }
+__device__ __forceinline__ BondOptionContext
+AnalyticsProvider::prepare_bond_option_context(
+    const ModelParameters& parameters,
+    float state,
+    float valuation_time_years,
+    float option_expiry_years
+) const {
+    return cir::prepare_bond_option_context(
+        parameters, state, valuation_time_years, option_expiry_years
+    );
+}
 
-    __device__ __forceinline__ float bond_option_price(
-        const BondOptionContext& context,
-        const ModelParameters& parameters,
-        float state,
-        float option_sign,
-        float valuation_time_years,
-        float option_expiry_years,
-        float bond_maturity_years,
-        float strike
-    ) const {
-        return cir::zero_coupon_bond_option_price(
-            context,
-            parameters,
-            state,
-            option_sign,
-            valuation_time_years,
-            option_expiry_years,
-            bond_maturity_years,
-            strike
-        );
-    }
-};
+__device__ __forceinline__ float AnalyticsProvider::bond_option_price(
+    const BondOptionContext& context,
+    const ModelParameters& parameters,
+    float state,
+    float option_sign,
+    float valuation_time_years,
+    float option_expiry_years,
+    float bond_maturity_years,
+    float strike
+) const {
+    return cir::zero_coupon_bond_option_price(
+        context,
+        parameters,
+        state,
+        option_sign,
+        valuation_time_years,
+        option_expiry_years,
+        bond_maturity_years,
+        strike
+    );
+}
 
 static_assert(
     ::ai_factory::workbench::fixed_income::JamshidianAnalyticsProvider<
@@ -250,8 +243,6 @@ static_assert(
         float
     >
 );
-
-}  // namespace
 
 // The standalone CIR state is itself the short rate.
 __device__ __forceinline__ float short_rate(

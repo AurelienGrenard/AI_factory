@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "merton_01__forward_start_puts_01__01_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/merton/parameters/merton_01.json",
+  "product_input": "datasets/product/forward_start_option/forward_start_options_01.json",
+  "dataset": "datasets/model/equity/markovian/merton/price_delta/forward_start_puts/merton_01__forward_start_puts_01__01_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/merton/price_delta/forward_start_puts/merton_01__forward_start_puts_01__01_price_delta/dataset.yaml",
+  "construction": "aligned",
+  "paths_per_price": 1048576,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_crn",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01/generator.cpp"
+  },
+  "dynamics_seed": 11668827480625512448,
+  "time_grid": null,
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}
