@@ -1,6 +1,6 @@
 # Référentiel des audits du dépôt C++/CUDA
 
-Version du référentiel : **9 — 2026-09-09**.
+Version du référentiel : **9.1 — 2026-09-11**.
 
 ## Mission
 
@@ -289,6 +289,16 @@ nécessaire aux appelants. Pas d'inclusion textuelle d'un `.cu`.
 
 ### Documentation et parcours de découverte
 
+Toute documentation maintenue, y compris les README, s'adresse à un lecteur
+néophyte qui découvre le projet. Elle utilise des phrases courtes, claires et
+descriptives. Elle explique les termes techniques et les acronymes à leur
+première utilisation. Elle annonce les prérequis nécessaires.
+
+Elle aide le lecteur à comprendre le rôle des composants et leurs relations.
+Elle indique les chemins à suivre pour explorer le projet. Les exemples
+simples précèdent les variantes. La concision ne doit pas supprimer les
+explications nécessaires ni supposer une connaissance implicite du projet.
+
 Le [README racine](../../README.md) expose but, capacités, limites, prérequis,
 un premier résultat observable et les principaux parcours. L'[index docs](../README.md)
 oriente par besoin. Les README locaux précisent leur périmètre sans recopier
@@ -298,8 +308,8 @@ Vérifier exhaustivement les documents maintenus hors registres :
 
 - nom, sujet, public et autorité identifiables ; `*-contract`, `*-workflow`,
   `*-protocol`, `*-reference` ou `*-index` selon le rôle ;
-- texte compact et direct, vocabulaire cohérent, acronymes expliqués, exemples
-  minimaux avant variantes ; aucun historique nécessaire à la compréhension ;
+- rédaction accessible à un néophyte selon les règles ci-dessus ; vocabulaire
+  cohérent et aucun historique nécessaire à la compréhension ;
 - propriétaire unique des règles ; liens utiles plutôt que contrats copiés,
   inventaires manuels concurrents ou fragmentation en micro-pages ;
 - absence de pages orphelines, liens/ancres cassés, chemins ignorés présentés

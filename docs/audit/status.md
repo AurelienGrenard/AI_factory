@@ -1,5 +1,21 @@
 # État de l'audit indépendant
 
+## Rédaction accessible et bibliothèque locale — 2026-09-11
+
+- **Mandat :** préciser la règle de rédaction et retirer l'ancien dossier
+  `articles/`, à la demande de l'utilisateur. Conserver `Articles/` localement
+  sans le publier. Changements portés par la PR #12.
+- **Référentiel :** version 9.1. Toute documentation, README inclus, doit
+  aider un néophyte à comprendre et explorer le projet. Les phrases sont
+  courtes, claires et descriptives. Termes techniques, acronymes et prérequis
+  sont expliqués. Le guide documentaire renvoie à cette règle unique.
+- **Bibliothèque :** retrait des six PDF suivis dans `articles/` et exclusion
+  Git des deux dossiers `/articles/` et `/Articles/`. La grande bibliothèque
+  locale reste sur disque. Les commits historiques ne sont pas réécrits.
+- **Portée :** mise à jour des consignes, pas revue de conformité de toutes
+  les pages. Aucun code numérique ni résultat historique modifié. Aucun test
+  GPU nécessaire; `DELTA-001` et `PERF-016` restent ouverts.
+
 ## Consolidation Git et prochaine étape rough — 2026-09-11
 
 - **Trace GitHub :** le [commit de consolidation `4a8c140`](https://github.com/AurelienGrenard/AI_factory/commit/4a8c140c74d39a78920ecd8e9209b1eee6082410)

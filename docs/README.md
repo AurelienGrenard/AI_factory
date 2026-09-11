@@ -118,6 +118,8 @@ provenance.
 
 ## Documentation conventions
 
+- Follow the [writing and discovery rules](audit/query.md#documentation-et-parcours-de-découverte)
+  for all documentation, including README files.
 - `README.md` is a directory entry point, not a hidden contract or copied
   inventory.
 - `*-contract.md` defines normative interfaces and invariants.
