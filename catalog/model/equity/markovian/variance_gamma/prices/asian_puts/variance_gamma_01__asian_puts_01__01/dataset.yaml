@@ -8,7 +8,7 @@ time_convention:
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Variance-Gamma"
   numerical_method: "Exact Gamma subordination"
   payoff: "Asian Options"
@@ -18,12 +18,36 @@ summary:
   threads_per_block: 512
   kernel_launch_count: 1
   maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_step_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "variance_gamma"
+    product: "asian_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/variance_gamma/prices/asian_puts/variance_gamma_01__asian_puts_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/variance_gamma/asian_puts/variance_gamma_01__asian_puts_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -40,9 +64,78 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "2.137471803 s"
-  kernel_seconds: "1.43788855 s"
+  wall_seconds: "295.964619417 s (4 min, 56 s)"
+  kernel_seconds: "293.16125 s (4 min, 53 s)"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504
   delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: fb67af807edc27a1e86a78069fb037e54c821c2fb6b35f4cd84f8dadcc01e35b
+  contract_sha256: 1141ec2aeeeeaa15b53787cc33654640e3bfecfc03d4216614315b1f743dfdaf
+  specification:
+    kind: prices
+    identity: variance_gamma/asian_option
+    database_id: variance_gamma_01__asian_puts_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828111985704960
+    paths_per_price: 1048576
+  inputs:
+    models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
+    products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+  execution:
+    binary_sha256: c6e8cde6c04ea3ebae862dfa83719889bc048bd1a940ef332eca1f66acaa0409
+    recipe_sha256: 9acf3b3cadc5d4ff0430ef8a3ef1f9ae7758422794e14d0f2d480fba0d20fad2
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: asian_puts
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_step_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: variance_gamma
+      product: asian_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789331436.387428
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 81, 92.62 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/variance_gamma/prices/asian_puts/variance_gamma_01__asian_puts_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+      datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
+  record_sha256: 11c6fa53d9f8991cc24d5210cd5a5c20216de31c79b60cde521b24bcdbef637a

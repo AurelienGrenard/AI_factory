@@ -4,18 +4,22 @@
 #include "common/device_inputs.cuh"
 #include "common/equity/path_product_policy.cuh"
 #include "common/equity/price_delta/spot_bump.cuh"
+#include "common/equity/price_delta/path_product_observers.cuh"
 #include "common/simulation/schedule.cuh"
 
 namespace ai_factory::workbench::equity::price_delta {
 
-template<typename SchedulePolicy, typename ProductPathPolicy, typename PathPolicy>
+template<typename SchedulePolicy, typename ProductPathPolicy, typename PathPolicy,
+         typename PrimaryInputsPolicy = ModelProductDeviceInputs<
+             typename PathPolicy::ModelParameters,
+             typename ProductPathPolicy::ProductParameters>>
 struct PathProductPriceDeltaPolicy {
     using Schedule = SchedulePolicy;
     using Dynamics = typename Schedule::Dynamics;
     using ModelParameters = typename PathPolicy::ModelParameters;
     using ProductParameters = typename ProductPathPolicy::ProductParameters;
     using TimeConfiguration = typename Schedule::TimeConfiguration;
-    using PrimaryInputs = ModelProductDeviceInputs<ModelParameters, ProductParameters>;
+    using PrimaryInputs = PrimaryInputsPolicy;
     using DeviceInputs = DeviceInputsWithContext<PrimaryInputs, SpotBumpConfiguration>;
     static_assert(std::is_same_v<Dynamics, typename PathPolicy::Dynamics>);
 
@@ -49,9 +53,10 @@ struct PathProductPriceDeltaPolicy {
         float bump_width;
     };
 
-    __device__ __forceinline__ static PreparedRow prepare_row(
+    __device__ __forceinline__ static PreparedRow prepare_products(
         const ModelParameters& model, const ProductParameters& product,
-        SpotBumpConfiguration configuration, const TimeConfiguration& time
+        SpotBumpConfiguration configuration, const TimeConfiguration& time,
+        const typename Schedule::PreparedSchedule& schedule
     ) {
         const SpotBump bump = prepare_spot_bump(model.spot, configuration);
         const auto calendar = ProductPathPolicy::calendar(product);
@@ -65,7 +70,7 @@ struct PathProductPriceDeltaPolicy {
         lower.spot = bump.lower;
         upper.spot = bump.upper;
         return {
-            Schedule::prepare(PathPolicy::parameters(model, bump), calendar, time),
+            schedule,
             PathPolicy::prepare(bump),
             {ProductPathPolicy::prepare_product(model, product, context),
              ProductPathPolicy::prepare_product(lower, product, context),
@@ -74,52 +79,29 @@ struct PathProductPriceDeltaPolicy {
         };
     }
 
-    struct ScenarioObserver {
-        typename ProductPathPolicy::Handler handler;
-        SpotObservation terminal{};
-        bool active = true;
+    __device__ __forceinline__ static PreparedRow prepare_row(
+        const ModelParameters& model, const ProductParameters& product,
+        SpotBumpConfiguration configuration, const TimeConfiguration& time
+    ) {
+        const auto bump = prepare_spot_bump(model.spot, configuration);
+        return prepare_products(model, product, configuration, time,
+            Schedule::prepare(PathPolicy::parameters(model, bump),
+                              ProductPathPolicy::calendar(product), time));
+    }
 
-        __device__ __forceinline__ static float coordinate(SpotObservation state) {
-            if constexpr (ProductPathPolicy::kObservationCoordinate
-                          == ObservationCoordinate::spot) return state.spot;
-            else return state.log_spot;
-        }
-        template<bool Initial>
-        __device__ __forceinline__ void observe(
-            std::uint32_t observation, SpotObservation state
-        ) {
-            if (!active) return;
-            terminal = state;
-            if constexpr (Initial) active = handler.on_initial_value(coordinate(state));
-            else active = handler.on_observation(observation, coordinate(state));
-        }
-    };
+    template<typename PreparedInput>
+    __device__ __forceinline__ static PreparedRow prepare_row(
+        const ModelParameters& model, const ProductParameters& product,
+        const PreparedInput& prepared, SpotBumpConfiguration configuration,
+        const TimeConfiguration& time
+    ) {
+        return prepare_products(model, product, configuration, time,
+            Schedule::prepare_from_input(prepared, ProductPathPolicy::calendar(product), time));
+    }
 
-    struct Observer {
-        const typename PathPolicy::Prepared& path;
-        ScenarioObserver (&scenarios)[3];
-
-        template<bool Initial>
-        __device__ __forceinline__ bool observe(
-            std::uint32_t observation, const typename Dynamics::State& state
-        ) {
-            scenarios[0].template observe<Initial>(observation,
-                PathPolicy::template observe<0U>(path, state));
-            scenarios[1].template observe<Initial>(observation,
-                PathPolicy::template observe<1U>(path, state));
-            scenarios[2].template observe<Initial>(observation,
-                PathPolicy::template observe<2U>(path, state));
-            return scenarios[0].active || scenarios[1].active || scenarios[2].active;
-        }
-        __device__ __forceinline__ bool on_initial_state(const typename Dynamics::State& state) {
-            return observe<true>(0U, state);
-        }
-        __device__ __forceinline__ bool on_observation(
-            std::uint32_t observation, const typename Dynamics::State& state
-        ) {
-            return observe<false>(observation, state);
-        }
-    };
+    using Observers = PairedProductObservers<ProductPathPolicy, PathPolicy>;
+    using ScenarioObserver = typename Observers::ScenarioObserver;
+    using Observer = typename Observers::Observer;
 
     __device__ __forceinline__ static PairedPayoff evaluate_path(
         const PreparedRow& row, philox::PhiloxKey key, std::size_t path

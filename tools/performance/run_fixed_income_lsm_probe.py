@@ -121,7 +121,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", choices=("geometry", "scaling", "calendar", "catalog", "batch", "other-models"))
     parser.add_argument("--jobs", type=Path, help="Explicit job list instead of a suite")
-    parser.add_argument("--binary", type=Path, default=ROOT / "build-dev/ai_factory_fixed_income_lsm_probe")
+    parser.add_argument("--binary", type=Path, default=ROOT / "build/ai_factory_fixed_income_lsm_probe")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=30)
     parser.add_argument("--profile", action="store_true", help="Nsight Systems phase trace; not a timing campaign")

@@ -14,14 +14,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "ornstein_uhlenbeck"
+    product: "zero_coupon_bond_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/ornstein_uhlenbeck/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -36,5 +54,73 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.029533783 s"
-  kernel_seconds: "0.000128 s"
+  wall_seconds: "0.151713739 s"
+  kernel_seconds: "0.000007168 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 2f70af02d28a75a393aea4a104585a1e16f455c488ac7a57eb25695741c31b02
+  contract_sha256: 2cdbee68674a81aa54f636cec825ec62ed08e817555e3b9c7c903f47b2e358c7
+  specification:
+    kind: prices
+    identity: ornstein_uhlenbeck/zero_coupon_bond_option
+    database_id: ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    models: f1ca902513bb0b5e722e7c227cbe433246bcf33200bc3790f5b411bcc6fd342c
+    products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+  execution:
+    binary_sha256: 87b6ea327fba40407b1e115fa32b097dbc2cfd53400fa8690a575211d9c836d8
+    recipe_sha256: 6c2649524c1b28eaf4cd9548f4000081a4277fb45365b31ced06c5bb977b8297
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: zero_coupon_bond_puts
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: ornstein_uhlenbeck
+      product: zero_coupon_bond_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307866.0768478
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 84, 106.08 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
+    input_files:
+      datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 1966f6147218ec57ac8e90dead97464944c0d037ed064d7fc522ba46e779571e
+      datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
+  record_sha256: 4c730860a0d971249a6713f6421ee071d168195dc5d822134130ae7b0e578011

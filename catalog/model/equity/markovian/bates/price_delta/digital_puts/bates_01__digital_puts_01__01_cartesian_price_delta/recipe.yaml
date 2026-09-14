@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "bates_01__digital_puts_01__01_cartesian_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/bates/parameters/bates_01.json",
+  "product_input": "datasets/product/digital_option/digital_options_01.json",
+  "dataset": "datasets/model/equity/markovian/bates/price_delta/digital_puts/bates_01__digital_puts_01__01_cartesian_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/bates/price_delta/digital_puts/bates_01__digital_puts_01__01_cartesian_price_delta/dataset.yaml",
+  "construction": "cartesian",
+  "paths_per_price": 1048576,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_crn",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/bates/prices/digital_puts/bates_01__digital_puts_01__01_cartesian/generator.cpp"
+  },
+  "dynamics_seed": 11668826673171660800,
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  },
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}

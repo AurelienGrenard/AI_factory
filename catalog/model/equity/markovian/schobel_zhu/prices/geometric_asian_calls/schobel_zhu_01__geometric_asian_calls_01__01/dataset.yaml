@@ -1,14 +1,14 @@
 title: "schobel_zhu_01__geometric_asian_calls_01__01"
 database_id: "schobel_zhu_01__geometric_asian_calls_01__01"
 catalog: "catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01"
-url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/SchobelZhu/GeometricAsianCall/schobel_zhu_01__geometric_asian_calls_01__01.json"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01.json"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Schobel-Zhu"
   numerical_method: "exact OU factor with log-spot Euler"
   payoff: "Geometric Asian Options"
@@ -18,12 +18,36 @@ summary:
   threads_per_block: 512
   kernel_launch_count: 1
   maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_step_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "schobel_zhu"
+    product: "geometric_asian_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/schobel_zhu/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -40,9 +64,78 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.984714022 s"
-  kernel_seconds: "0.281320435 s"
+  wall_seconds: "56.02244363 s"
+  kernel_seconds: "58.85353125 s"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504
   delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: b6be440a4eccc14eecc38b71ed9099d90cf56b36e8c932608d06d2e10a6734d8
+  contract_sha256: 43e5f4e7ab980c72d838421a198ce2e71a78b17ea5a4fe7a3c1b452ca3313a9e
+  specification:
+    kind: prices
+    identity: schobel_zhu/geometric_asian_option
+    database_id: schobel_zhu_01__geometric_asian_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668827910122242048
+    paths_per_price: 1048576
+  inputs:
+    models: a86b0eea5fb8591fe9a56e3a1cf62869c90db8c2642db4af175525ec35610082
+    products: 30c26bded600da737a9f8cc2b25e2b3b990609d873f0884cf9487a825971fd84
+  execution:
+    binary_sha256: fb0fab2d96f6c4da71eab5828e549a7327103c5f9a778ca6e10b88796fb347a9
+    recipe_sha256: 376e666c5511ff0fd4fa979cc496edc59542651071b98ba72fb9d4568a20242d
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: geometric_asian_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_step_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: schobel_zhu
+      product: geometric_asian_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789328407.4214215
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 79, 90.55 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json: ced5967808def3ae1910749c9d3c8c4447fb02cfe98664ab9a72ec745ad1c8c0
+      datasets/product/geometric_asian_option/geometric_asian_options_01.json: 0b673c004701e90de8ba0b870e4d132ef17e074209b1f046c5be1a0711183df4
+  record_sha256: 30986a6753804faa36e02872a6b51a1fba8f33d1ad4d63bcdcdb77e6106d7f7b

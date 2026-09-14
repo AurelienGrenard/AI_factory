@@ -39,6 +39,7 @@ int main() {
         "vasicek_01__european_receiver_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond calls",
         "Vasicek European receiver swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "vasicek", "european_swaption", ""}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "vasicek", "european_swaption", ""},
+        PriceConstruction::Aligned
     );
 }

@@ -15,14 +15,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "hull_white"
+    product: "rate_option"
+    curve: "svensson"
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/hull_white/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -41,5 +59,75 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.086165748 s"
-  kernel_seconds: "0.00010752 s"
+  wall_seconds: "0.156088819 s"
+  kernel_seconds: "0.000007168 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 0047a9ee87ed5310adcc58967145394abb66e3cbaeeea3b52562cb761f3b3d10
+  contract_sha256: 1e33cc99efb7a353446c5fa73f8478dd2b647cd401af04c1be037195362d4305
+  specification:
+    kind: prices
+    identity: hull_white/svensson/rate_option
+    database_id: hull_white_01__svensson_01__floorlets_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+    models: c6b0a68b1a5adb1fedd64d16d087ea9b68c14527296f06b31b61bdde3f48d62c
+    products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  execution:
+    binary_sha256: ac267150b377c60b7df290e1b4d8548b0bf26aa4c441de7453f31e19ced10693
+    recipe_sha256: d14d4d5ca54b0ec9ee9c174ca32086cd52f674dc1389cd150a5c29da3f4ce263
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: floorlets
+      construction: aligned
+      has_curve: true
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: hull_white
+      product: rate_option
+      curve: svensson
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307800.4741588
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 84, 98.98 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
+    input_files:
+      datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+      datasets/model/fixed_income/hull_white/parameters/hull_white_01.json: 13fcf2d23d843352b95166e0e8533519c208d22d9da62f765b9cc9b38a653247
+      datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
+  record_sha256: 2a82b1cd3739e4405ef2d8a2dbb22e272e2215e0f36f072d9c299febc68c9865

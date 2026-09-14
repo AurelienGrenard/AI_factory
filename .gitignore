@@ -1,7 +1,11 @@
 # Local CMake and CUDA build trees.
 /build/
 /build*/
+/builds/
 /CMakeFiles/
+
+# Local audit evidence, performance runs and validation tool caches.
+/artifacts/
 
 # Full generated datasets live locally or on external storage.
 /datasets/
@@ -11,6 +15,10 @@
 
 # Personal derivations and research notes are not published with the library.
 /research_notes/
+
+# Local reference libraries are kept outside the published project.
+/Articles/
+/articles/
 
 # Editor and operating-system noise.
 .vscode/

@@ -54,6 +54,27 @@ int main() {
         const auto closed = read_json_file(recipe.dataset);
         require(!closed["results"][0]["outputs"].contains("delta_standard_error"));
         require(!closed.contains("time_grid"));
+
+        model["models"].push_back({{"id", "000002"}, {"parameters", {{"spot", 2.0f}}}});
+        product["products"].push_back({{"id", "000002"}});
+        write_json_file(directory / "model.json", model);
+        write_json_file(directory / "product.json", product);
+        recipe.construction = ai_factory::workbench::PriceConstruction::CartesianProduct;
+        result.prices = {.1f, .2f, .3f, .4f};
+        result.deltas = {.5f, .6f, .7f, .8f};
+        result.lower_spots = {.995f, .995f, 1.99f, 1.99f};
+        result.upper_spots = {1.005f, 1.005f, 2.01f, 2.01f};
+        result.bump_widths.clear();
+        for (std::size_t index = 0; index < result.lower_spots.size(); ++index)
+            result.bump_widths.push_back(result.upper_spots[index] - result.lower_spots[index]);
+        write_price_delta_dataset(recipe, result);
+        const auto cartesian = read_json_file(recipe.dataset);
+        require(cartesian["row_count"] == 4);
+        require(cartesian["price_construction"]["method"] == "Cartesian product");
+        require(cartesian["results"][0]["model_id"] == "000001");
+        require(cartesian["results"][1]["product_id"] == "000002");
+        require(cartesian["results"][2]["model_id"] == "000002");
+        require(cartesian["results"][2]["product_id"] == "000001");
         std::filesystem::remove_all(directory);
         return 0;
     } catch (const std::exception& error) {

@@ -276,7 +276,7 @@ def run_process(command: list[str], destination: Path, timeout: float,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build-dir", type=Path, default=ROOT / "build-dev")
+    parser.add_argument("--build-dir", type=Path, default=ROOT / "build")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--stage", choices=("calibration", "scaling", "geometry", "screening", "single_price", "production"), default="calibration")
     parser.add_argument("--price-counts", type=int, nargs="+", choices=PRICE_COUNTS, default=PRICE_COUNTS)

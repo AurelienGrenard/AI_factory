@@ -54,7 +54,7 @@ from capability_manifest import (
     pricing_launch_family,
     resolve_rng_domain,
 )
-from sample_manifest import SAMPLE_MODELS, SampleModelSpec
+from sample_manifest import SAMPLE_MODELS, SAMPLE_MODEL_BY_NAME, SampleModelSpec
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -580,6 +580,49 @@ def generate_price_delta_bindings(output_root: Path) -> list[Path]:
     """Compose spot-delta strategies without copying any model or payoff body."""
     generated = []
     for spec in PRICE_DELTA_BINDING_SPECS:
+        if spec.pricing.engine == "equity_volterra_fft":
+            binding = spec.pricing.manifest_binding
+            values = rough_values(binding, spec.pricing.model,
+                                  MODEL_BY_NAME[spec.pricing.model].display, "volterra")
+            sample = SAMPLE_MODEL_BY_NAME[spec.pricing.model]
+            values.update(kernel=sample.kernel, kernel_header=_volterra_kernel_header(sample.kernel),
+                          path_strategy=("CoupledVolterraSpotPaths" if spec.path_strategy == "coupled"
+                                         else "MultiplicativeVolterraSpotPath"))
+            values["explicit_instantiations"] = values["explicit_instantiations"].replace(
+                f"launch_{spec.pricing.model}_{binding.product}_cuda",
+                f"launch_{spec.pricing.model}_{binding.product}_price_delta_cuda"
+            ).replace("const ModelParameters*, std::size_t,",
+                      "const ModelParameters*, const ModelParameters*, std::size_t,").replace(
+                f"const product::{binding.product_type}Parameters*, std::size_t,",
+                f"const product::{binding.product_type}Parameters*, const product::{binding.product_type}Parameters*, std::size_t,"
+            ).replace("std::uint64_t, float*, float*", "std::uint64_t, "
+                      "::ai_factory::workbench::equity::price_delta::SpotBumpConfiguration, "
+                      "float*, float*, float*, float*")
+            for suffix in ("cuh", "cu"):
+                destination = output_root / f"{spec.unit_path}.{suffix}"
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                template = TEMPLATE_DIR / f"pricing/rough/volterra_fft/product_price_delta.{suffix}.tpl"
+                _write_generated(destination, template.read_text().format(**values))
+                generated.append(destination)
+            continue
+        if spec.pricing.engine == "equity_n_factor":
+            binding = spec.pricing.manifest_binding
+            values = rough_values(binding, spec.pricing.model,
+                                  MODEL_BY_NAME[spec.pricing.model].display, "n_factor")
+            values["explicit_instantiations"] = values["explicit_instantiations"].replace(
+                f"launch_{spec.pricing.model}_{binding.product}_cuda",
+                f"launch_{spec.pricing.model}_{binding.product}_price_delta_cuda"
+            ).replace("const ModelParameters*, std::size_t,",
+                      "const ModelParameters*, const ModelParameters*, std::size_t,").replace(
+                "    float*, float*", "    ::ai_factory::workbench::equity::price_delta::SpotBumpConfiguration,\n"
+                "    float*, float*, float*, float*")
+            for suffix in ("cuh", "cu"):
+                destination = output_root / f"{spec.unit_path}.{suffix}"
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                template = TEMPLATE_DIR / f"pricing/rough/markovian_n_factor/product_price_delta.{suffix}.tpl"
+                _write_generated(destination, template.read_text().format(**values))
+                generated.append(destination)
+            continue
         if spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}:
             model = spec.pricing.model
             exact = spec.pricing.engine == "equity_lsm_exact"
@@ -690,14 +733,19 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
                 "catalog/pricing/side_aware_product_loader_expression.cuh.tpl",
                 {"product_loader": variant.product_loader, "side": side}).rstrip()
         product_id = ("american_options_01" if lsm else variant.product_dataset_id)
-        fixed = dataset.engine == "equity_lsm_fixed" if lsm else (
+        prepared = dataset.engine == "equity_n_factor"
+        fft = dataset.engine == "equity_volterra_fft"
+        fixed = True if prepared or fft else dataset.engine == "equity_lsm_fixed" if lsm else (
             spec.pricing.manifest_binding.time_kind == "fixed" if stochastic else
             dataset.product == "geometric_asian_option")
         time_args = "1.0f / 504.0f, 2U" if fixed else "1.0f / 252.0f"
         args = ["host_models", "device_models", "model_count"]
         if stochastic or fixed:
             args.append("host_products")
-        args += ["device_products", "product_count", "PriceConstruction::Aligned", "context.results"]
+        construction = (
+            "CartesianProduct" if dataset.construction == "cartesian" else "Aligned"
+        )
+        args += ["device_products", "product_count", f"PriceConstruction::{construction}", "context.results"]
         if not lsm:
             args += ["context.offset", "context.count"]
         if stochastic:
@@ -725,16 +773,37 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "product_loader": product_loader,
             "side": f"<OptionSide::{side}>" if side else "",
             "arguments": ",\n                    ".join(args),
+            "construction": construction,
+            "construction_label": (
+                "Cartesian-product" if dataset.construction == "cartesian" else "aligned"
+            ),
+            "construction_prefix": (
+                "Cartesian-product " if dataset.construction == "cartesian" else ""
+            ),
+            "construction_argument": (
+                ", PriceConstruction::CartesianProduct"
+                if dataset.construction == "cartesian" else ""
+            ),
         }
         destination = output_root / dataset.recipe_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        _write_generated(destination, _render_dollar_template("catalog/pricing/price_delta/generator.cpp.tpl", values))
+        template = dataset.template
+        if fft:
+            values["schedule"] = rough_schedules(spec.pricing.manifest_binding)[0]
+            values["product_policy"] = "product::" + spec.pricing.manifest_binding.path_policy + (f"<OptionSide::{side}>" if side else "")
+            values["numerical_method"] = SAMPLE_MODEL_BY_NAME[dataset.model].pricing_numerical_method
+        if prepared:
+            template = "catalog/pricing/price_delta/prepared_generator.cpp.tpl"
+            values["template_arguments"] = f"OptionSide::{side}, 7U" if side else "7U"
+            values["numerical_method"] = SAMPLE_MODEL_BY_NAME[dataset.model].pricing_numerical_method
+        _write_generated(destination, _render_dollar_template(template, values))
         generated.append(destination)
         recipe = {
             "schema_version": 1, "kind": "price_delta", "database_id": dataset.dataset_id,
             "generator": "generator.cpp", "model_input": values["model_input"],
             "product_input": values["product_input"], "dataset": dataset.dataset_path,
-            "catalog_output": dataset.catalog_yaml_path, "construction": "aligned",
+            "catalog_output": dataset.catalog_yaml_path,
+            "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
             "sensitivity": {"parameter": "spot", "method": values["method"],
@@ -744,6 +813,12 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "validation": {"status": "pending", "verified": False},
         }
         recipe_path = destination.with_name("recipe.yaml")
+        if prepared:
+            recipe["preparation"] = {"method": values["numerical_method"], "factor_count": 7,
+                                     "approximation_horizon_rule": "maximum product maturity in years",
+                                     "coefficient_precision": "host FP64, device FP32"}
+        if fft:
+            recipe["preparation"] = {"method": values["numerical_method"], "shared_convolution": True}
         _write_generated(recipe_path, json.dumps(recipe, indent=2) + "\n")
         generated.append(recipe_path)
     return generated
@@ -981,6 +1056,14 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
     )
     values = _fixed_income_template_values(capability)
     values.update({
+        "database_id": dataset.dataset_id,
+        "price_dataset_path": dataset.dataset_path,
+        "catalog_path": dataset.catalog_yaml_path,
+        "url": dataset.url,
+        "construction": (
+            "CartesianProduct"
+            if dataset.construction == "cartesian" else "Aligned"
+        ),
         "launch_identity": pricing_identity_expression(dataset),
         "variant": dataset.variant or "",
         "payoff_name": {
@@ -1008,6 +1091,49 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
             else "calls"
         ),
     })
+    bermudan_methods = {
+        "cir": (
+            "Exact CIR terminal-forward transitions + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+        "cir_plus_plus": (
+            "Exact fitted CIR terminal-forward transitions + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized unshifted CIR factor",
+        ),
+        "g2": (
+            "Exact two-factor Gaussian joint transition + Longstaff-Schwartz",
+            "two-factor Hermite degree 2", "two standardized rate factors",
+        ),
+        "g2_plus_plus": (
+            "Exact fitted two-factor Gaussian joint transition + Longstaff-Schwartz",
+            "two-factor Hermite degree 2", "two standardized rate factors",
+        ),
+        "hull_white": (
+            "Exact fitted Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized centered short-rate factor",
+        ),
+        "ornstein_uhlenbeck": (
+            "Exact Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+        "vasicek": (
+            "Exact Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+    }
+    if dataset.product == "bermudan_swaption":
+        method, basis, state = bermudan_methods[dataset.model]
+        values.update({
+            "bermudan_numerical_method": method,
+            "bermudan_regression_basis": basis,
+            "bermudan_state_variables": state,
+            "bermudan_configuration_overrides": (
+                '    configuration.pricing_measure = "last_exercise_bond_forward";\n'
+                '    configuration.regression_target = "next policy cashflow in '
+                'P(0,T*) / P(t,T*) units";\n'
+                if dataset.model == "cir" else ""
+            ),
+        })
     if dataset.engine in {"fixed_income_monte_carlo", "fixed_income_lsm"}:
         values["dynamics_seed"] = str(resolve_rng_domain(dataset).seed("dynamics"))
     return values
@@ -1028,10 +1154,16 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
             )
         destination = output_root / dataset.recipe_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        _write_generated(destination, _render_dollar_template(
+        rendered = _render_dollar_template(
             dataset.template,
             _fixed_income_recipe_values(dataset),
-        ))
+        )
+        if dataset.construction == "cartesian":
+            rendered = rendered.replace(
+                dataset.dataset_id.removesuffix("_cartesian"),
+                dataset.dataset_id,
+            )
+        _write_generated(destination, rendered)
         generated.append(destination)
     return generated
 
@@ -1161,6 +1293,10 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "numerical_method": model.numerical_method,
             "monte_carlo_paths": MONTE_CARLO_PATHS_PER_PRICE,
             "launch_identity": pricing_identity_expression(dataset),
+            "construction": (
+                "CartesianProduct"
+                if dataset.construction == "cartesian" else "Aligned"
+            ),
             "seed": (
                 str(resolve_rng_domain(dataset).seed("dynamics"))
                 if dataset.engine != "equity_closed_form" else "0"
@@ -1259,6 +1395,10 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "basis_functions": quoted(model.basis_functions),
             "seed": str(resolve_rng_domain(dataset).seed("dynamics")),
             "launch_identity": pricing_identity_expression(dataset),
+            "construction": (
+                "CartesianProduct"
+                if dataset.construction == "cartesian" else "Aligned"
+            ),
         }
         _write_generated(destination, templates["american"].format(**values))
         generated.append(destination)
@@ -1306,7 +1446,7 @@ def cmake_manifest_text(
     regular_units = sorted(set(regular_units) | {
         f"{spec.pricing.model}/product/{spec.pricing.product}_price_delta"
         for spec in PRICE_DELTA_BINDING_SPECS
-        if spec.pricing in equity_binding_specs or (
+        if (spec.pricing in equity_binding_specs and spec.pricing.engine != "equity_volterra_fft") or (
             spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}
             and spec.pricing.model in equity_models
         )
@@ -1315,6 +1455,11 @@ def cmake_manifest_text(
         f"{spec.model}/product/{spec.product}"
         for spec in equity_binding_specs
         if spec.engine == "equity_volterra_fft"
+    })
+    volterra_units = sorted(set(volterra_units) | {
+        f"{spec.pricing.model}/product/{spec.pricing.product}_price_delta"
+        for spec in PRICE_DELTA_BINDING_SPECS
+        if spec.pricing in equity_binding_specs and spec.pricing.engine == "equity_volterra_fft"
     })
     parameter_sources = sorted(
         dataset.recipe_path for dataset in dataset_specs
@@ -1458,6 +1603,7 @@ def generate_provenance_manifest(
         "outputs_sha256": output_digest.hexdigest(),
         "price_delta_bindings": {
             spec.unit_path: {"pricing": spec.pricing.unit_path,
+                             "identity": "/".join(filter(None, (spec.pricing.model, spec.pricing.curve, spec.pricing.product))),
                              "path_strategy": spec.path_strategy,
                              "qualification": "bounded_checks; bias_and_performance_not_certified"}
             for spec in PRICE_DELTA_BINDING_SPECS

@@ -1,6 +1,10 @@
 # Référentiel des audits du dépôt C++/CUDA
 
-Version du référentiel : **9 — 2026-09-09**.
+Version du référentiel : **9.2 — 2026-09-13**.
+
+La v9.2 précise l'organisation du build et des preuves locales. Elle ne
+modifie pas les critères numériques, de tests, de portabilité et de performance
+ci-dessous, ni les verdicts consignés lors des audits précédents.
 
 ## Mission
 
@@ -17,7 +21,7 @@ universel ni le maximum de templates. La performance reste une exigence forte,
 étayée par des mesures sur les chemins effectivement utilisés.
 
 Ce document définit les questions et les preuves de l'audit, pas ses résultats,
-une architecture à imposer par avance ou une autorisation de refactorisation.
+un plan d'implémentation détaillé ni une autorisation de refactorisation.
 
 ## Sommaire
 
@@ -37,8 +41,10 @@ une architecture à imposer par avance ou une autorisation de refactorisation.
 ### Périmètre et autorisations
 
 L'audit principal couvre `src`, `tools`, `tests`, `catalog`, `cmake`, les
-CMake racine et la documentation maintenue. Il contrôle aussi les chemins,
-schémas et artefacts locaux de `datasets` lorsqu'ils sont disponibles.
+CMake racine et la documentation maintenue. Il contrôle aussi le build
+principal `build/` lorsqu'il existe, les chemins et schémas locaux de
+`datasets`, et les preuves pertinentes sous `artifacts/` lorsqu'elles sont
+disponibles. Un résultat historique n'est pas une exécution du code courant.
 Pricing et sampling modèle-seul sont deux parcours de premier rang.
 
 `validation/**` et `docs/validation/**` restent hors périmètre, y compris pour
@@ -57,8 +63,11 @@ mises à jour de `status.md`, `response.md` et `closed.md` sont attendues.
 Avant toute exécution, préciser le mandat, les axes couverts, le matériel
 disponible et les expériences envisagées. Ne pas modifier code, recette,
 baseline, budget, dataset publié ou réglage matériel sous prétexte de vérifier
-une hypothèse. Builds, sorties de tests, codegen et mutations de fixtures se
-font dans des emplacements isolés. Une commande documentaire qui génère ou
+une hypothèse. Le `build/` partagé ne sert pas aux mutations de l'audit : les
+builds propres ou expérimentaux, sorties de tests, codegen et fixtures mutées
+utilisent des emplacements temporaires isolés. Conserver les preuves utiles
+sous `artifacts/` avec leur provenance, sans installer un second build
+principal permanent. Une commande documentaire qui génère ou
 publie n'est pas autorisée par sa seule présence dans un README.
 
 Respecter le worktree partagé et coordonner l'accès au GPU. Une campagne
@@ -107,7 +116,10 @@ liste des fichiers non suivis et empreintes du contenu examiné. Sur un worktree
 sale, le commit seul ne décrit pas le code. Conserver un diff et les contenus
 non suivis nécessaires dans une archive reconstructible, ainsi que les hashes
 des inputs, commandes, binaires, toolchain et résultats utilisés. Une preuve
-temporaire perdue n'est plus une preuve durable.
+temporaire perdue n'est plus une preuve durable. `artifacts/` peut contenir
+d'anciens tests, logs, binaires, campagnes et snapshots ; vérifier leur
+révision, configuration, domaine et intégrité avant de les réutiliser. Leur
+présence ne prouve ni que le build actuel est à jour ni que le test repasse.
 
 Pour chaque axe ou famille, `status.md` sépare obligatoirement :
 
@@ -194,6 +206,8 @@ bénéficie d'aucune exemption de rangement, nommage ou lisibilité.
 | `catalog` et `datasets` | Recettes/métadonnées et artefacts, selon la taxonomie de `src` |
 | `tests/<domain-or-contract>` | Tests du domaine ou contrat, fixtures et supports identifiables |
 | `cmake` | Graphe de build et enregistrement des capacités |
+| `build/` | Unique build CMake principal persistant, avec exécutables et intermédiaires recréables |
+| `artifacts/` | Preuves, sorties historiques et caches d'outils séparés du build actif |
 | `docs` | Entrées, contrats, procédures et références, avec autorité explicite |
 
 Vérifier chaque chemin, rôle et consommateur, notamment :
@@ -206,6 +220,9 @@ Vérifier chaque chemin, rôle et consommateur, notamment :
   caché dans une primitive prétendument neutre ;
 - produits à ossature prévisible, avec variantes justifiées par leur contrat ;
 - séparation templates, renderer, runners, diagnostics, profils et artefacts ;
+- pas de collection permanente de `build-*` concurrents ni de preuves rangées
+  parmi les objets du build principal ; les builds isolés requis par un audit
+  ou un autre profil restent explicitement nommés et distincts ;
 - tests groupés par propriétaire ou contrat : ni racine fourre-tout, ni
   miroir mécanique de `src` qui disperserait les tests transversaux ;
 - mêmes responsabilités disposées de façon analogue entre modèles ; aucune
@@ -289,17 +306,31 @@ nécessaire aux appelants. Pas d'inclusion textuelle d'un `.cu`.
 
 ### Documentation et parcours de découverte
 
+Toute documentation maintenue, y compris les README, s'adresse à un lecteur
+néophyte qui découvre le projet. Elle utilise des phrases courtes, claires et
+descriptives. Elle explique les termes techniques et les acronymes à leur
+première utilisation. Elle annonce les prérequis nécessaires.
+
+Elle aide le lecteur à comprendre le rôle des composants et leurs relations.
+Elle indique les chemins à suivre pour explorer le projet. Les exemples
+simples précèdent les variantes. La concision ne doit pas supprimer les
+explications nécessaires ni supposer une connaissance implicite du projet.
+
 Le [README racine](../../README.md) expose but, capacités, limites, prérequis,
 un premier résultat observable et les principaux parcours. L'[index docs](../README.md)
 oriente par besoin. Les README locaux précisent leur périmètre sans recopier
 les contrats ou les listes générées.
+Le [guide CMake](../cmake-build-workflow.md) explique configuration, cible,
+compilation, exécutable et incrémentalité à partir d'un exemple simple ; le
+[plan des artefacts](../local-artifacts.md) distingue `build/` des preuves
+historiques et des campagnes.
 
 Vérifier exhaustivement les documents maintenus hors registres :
 
 - nom, sujet, public et autorité identifiables ; `*-contract`, `*-workflow`,
   `*-protocol`, `*-reference` ou `*-index` selon le rôle ;
-- texte compact et direct, vocabulaire cohérent, acronymes expliqués, exemples
-  minimaux avant variantes ; aucun historique nécessaire à la compréhension ;
+- rédaction accessible à un néophyte selon les règles ci-dessus ; vocabulaire
+  cohérent et aucun historique nécessaire à la compréhension ;
 - propriétaire unique des règles ; liens utiles plutôt que contrats copiés,
   inventaires manuels concurrents ou fragmentation en micro-pages ;
 - absence de pages orphelines, liens/ancres cassés, chemins ignorés présentés
@@ -320,6 +351,9 @@ la recherche pour diagnostiquer les difficultés :
 5. Retrouver les templates pricing/sample par méthode et le chemin d'extension.
 6. Retrouver génération/reprise, frontière de certification et adaptation à
    un autre GPU sans interpréter un profil local comme universel.
+7. Depuis le preset CMake, retrouver `build/`, une cible de générateur, ses
+   sources et dépendances, puis distinguer la compilation de son exécution et
+   les preuves historiques conservées sous `artifacts/`.
 
 Consigner détours, fichiers trompeurs, pages inutiles et informations devinées ;
 un temps de navigation n'est pas à lui seul un verdict. Un checker vert ne
@@ -872,16 +906,36 @@ remplace pas la vérification des contrats de durée de vie et de concurrence.
 
 ## CMake, dépendances et portabilité
 
-**Question :** le build est-il minimal, prévisible et conforme aux capacités
-annoncées, sans dépendance accidentelle au GPU de référence ?
+**Question :** le build principal est-il unique, lisible, minimal et
+prévisible, avec un coût de configuration/compilation justifié et sans
+dépendance accidentelle au GPU de référence ?
 
 ### Graphe et incrémentalité
 
+- `build/` est le seul build principal persistant. Le preset, les scripts, les
+  notebooks et les commandes maintenues pointent vers lui ; les sources et
+  règles restent dans Git, les exécutables et objets recréables dans le build
+  ignoré par Git. Aucun `build-dev` ou `build-*` parallèle ne devient une
+  seconde référence implicite. Un autre profil ou un essai d'audit peut créer
+  un build isolé et nommé, sans déplacer ni corrompre `build/`.
+- `artifacts/` reçoit les preuves à garder hors du build : anciens tests,
+  sorties, logs, mesures, snapshots et binaires figés lorsque leur conservation
+  est justifiée. Identifier ce qui est historique, ce qui est encore utilisé
+  et les liens vers les registres ; ne pas compter un vieux binaire comme
+  exécutable actif ni perdre les preuves en nettoyant un cache CMake. Comme
+  ce dossier est ignoré par Git, les preuves nécessaires sont inventoriées,
+  hashées et exportables selon le mandat.
 - Racine CMake centrée sur configuration et orchestration, modules de domaine
-  nommés ; pas de fonctions, options, alias ou façades sans consommateur.
+  nommés ; règles courtes, lisibles et localisées ; pas de fonctions, options,
+  alias, couches ou façades sans consommateur.
 - Un propriétaire logique explicite par source et target. Une recompilation
   volontaire d'un même source pour un test A/B ou une variante est justifiée,
   pas confondue avec un doublon accidentel ou interdite par principe.
+- Pour une cible représentative, retrouver sans ambiguïté source, bibliothèques
+  liées, options, fichier produit et commande d'exécution. Une inclusion de
+  header n'est pas prise pour une règle de lien ; un agrégat ne masque pas la
+  cible individuelle. Le nom du target et de l'exécutable est découvrable
+  depuis le graphe réellement configuré.
 - Toutes les unités autonomes et instanciations enregistrées, aucun symbole
   oublié au link, aucune double définition ou ancienne implémentation active.
 - `PUBLIC/PRIVATE/INTERFACE`, includes et définitions limités aux usages réels ;
@@ -893,11 +947,14 @@ annoncées, sans dépendance accidentelle au GPU de référence ?
   qui les utilisent ; paramètres host-only conservés sans mathDx.
 - Presets, labels et agrégats cohérents : ce que l'on construit correspond à
   ce que le preset de test exécute, sans lancer la validation indépendante.
+  Les builds ciblés ne compilent pas inutilement toutes les recettes.
 - Headers/template definitions visibles aux points nécessaires, sans exposition
   ou instanciation massive injustifiée ; erreur de compilation lisible.
 - Build propre, no-op et modifications représentatives d'un modèle, produit,
   courbe, primitive, template et manifeste : recompilations attendues/réelles,
-  temps et tailles d'artefacts. Mutations en copie isolée.
+  temps et tailles d'artefacts. Mutations en copie isolée. Examiner les cibles
+  orphelines, les doublons et l'espace retenu ; la réduction du coût doit être
+  mesurée, sans sacrifier la justesse du graphe ou sa lisibilité.
 - Cache de compilation évalué selon sa disponibilité ; son absence n'est pas
   un défaut si le build et les dépendances restent corrects.
 
@@ -925,10 +982,13 @@ modifier modèle, payoff ou mapping RNG. La documentation invite l'utilisateur
 autre profil. Pas d'auto-tuning opaque ou de nouveau dispatch par architecture
 sans besoin mesuré.
 
-**Preuve de couverture :** graphes source/target/dépendances confrontés,
-configurations et mutations applicables documentées, niveaux de support
-distincts. Une architecture sans matériel peut être déclarée compilable avec
-runtime non examiné ; elle n'est pas artificiellement rendue incompatible.
+**Preuve de couverture :** chemin preset -> `build/` -> source -> target ->
+dépendances -> exécutable confronté au graphe réel, racine du projet inspectée,
+traces historiques `artifacts/` classées et non confondues avec les tests
+actuels ; builds propres/no-op et mutations applicables documentés avec leurs
+coûts, niveaux de support distincts. Une architecture sans matériel peut être
+déclarée compilable avec runtime non examiné ; elle n'est pas artificiellement
+rendue incompatible.
 
 ## Performance
 

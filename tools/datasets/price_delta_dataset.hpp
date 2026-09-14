@@ -1,6 +1,8 @@
 // Price-delta artifact contract; CUDA execution and certification are separate.
 #pragma once
 
+#include "common/price_construction.cuh"
+
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <string>
@@ -13,6 +15,7 @@ struct PriceDeltaRecipe {
     std::string url, source_price_recipe, delta_method;
     double relative_bump_width = .01;
     unsigned simulation_steps_per_day = 0;
+    PriceConstruction construction = PriceConstruction::Aligned;
 };
 
 struct PriceDeltaResults {

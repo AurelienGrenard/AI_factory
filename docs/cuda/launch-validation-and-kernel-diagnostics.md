@@ -18,11 +18,11 @@ aucune seconde table de géométries n'est maintenue dans Python.
 Depuis la racine, inspecter le même plan que les recettes :
 
 ```bash
-cmake --build build-dev --target inspect_pricing_launch_plan -j1
-build-dev/inspect_pricing_launch_plan heston/european_option 1000
-build-dev/inspect_pricing_launch_plan cir_plus_plus/svensson/european_swaption 1000000
-build-dev/inspect_pricing_launch_plan heston/american_option 1000000
-build-dev/inspect_pricing_launch_plan bates/athena_autocall 1000 --price-delta
+cmake --build build --target inspect_pricing_launch_plan -j1
+build/inspect_pricing_launch_plan heston/european_option 1000
+build/inspect_pricing_launch_plan cir_plus_plus/svensson/european_swaption 1000000
+build/inspect_pricing_launch_plan heston/american_option 1000000
+build/inspect_pricing_launch_plan bates/athena_autocall 1000 --price-delta
 ```
 
 Les recettes MC/LSM utilisent `kProductionPathsPerPrice = 2^20 = 1 048 576`.

@@ -49,6 +49,7 @@ int main() {
         "cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond calls",
         "CIR++ Nelson-Siegel European receiver swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir_plus_plus", "european_swaption", "nelson_siegel"}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir_plus_plus", "european_swaption", "nelson_siegel"},
+        PriceConstruction::Aligned
     );
 }

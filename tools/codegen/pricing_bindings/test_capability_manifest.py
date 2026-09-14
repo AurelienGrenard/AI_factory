@@ -16,6 +16,8 @@ sys.path.insert(0, str(HERE))
 
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
+    CARTESIAN_PRICE_DATASET_SPECS,
+    CARTESIAN_PRICE_SOURCE_BY_RECIPE,
     CURVE_BY_NAME,
     CURVE_SPECS,
     DATASET_SPECS,
@@ -82,9 +84,15 @@ class CapabilityManifestTest(unittest.TestCase):
             _write_generated(path, "// changed\n")
             self.assertEqual(path.read_text(), "// changed\n")
 
-    def test_price_delta_markovian_coverage_is_explicit_and_generated(self):
-        self.assertEqual(len(PRICE_DELTA_BINDING_SPECS), 261)
-        self.assertEqual(len(set(GENERATED_PRICE_DELTA_BINDING_PATHS)), 522)
+    def test_price_delta_equity_coverage_is_explicit_and_generated(self):
+        self.assertEqual(sum(s.pricing.engine not in {"equity_n_factor", "equity_volterra_fft"}
+                             for s in PRICE_DELTA_BINDING_SPECS), 261)
+        rough = [s for s in PRICE_DELTA_BINDING_SPECS
+                 if s.pricing.engine in {"equity_n_factor", "equity_volterra_fft"}]
+        self.assertEqual(len(rough), 126)
+        for spec in rough:
+            self.assertEqual(spec.path_strategy, "coupled" if spec.pricing.model == "rough_sabr" else "multiplicative")
+        self.assertEqual(len(set(GENERATED_PRICE_DELTA_BINDING_PATHS)), 774)
         for spec in PRICE_DELTA_BINDING_SPECS:
             self.assertIn(spec.pricing, PRODUCT_BINDING_SPECS)
             self.assertEqual(spec.unit_path, spec.pricing.unit_path + "_price_delta")
@@ -94,6 +102,20 @@ class CapabilityManifestTest(unittest.TestCase):
                 PriceDeltaBindingSpec(spec.pricing, "guess_from_name")
         with self.assertRaises(ValueError):
             PriceDeltaBindingSpec(PRICE_DELTA_BINDING_SPECS[0].pricing, "closed_form_bump")
+
+        by_source = {}
+        for dataset in PRICE_DELTA_DATASET_SPECS:
+            source = PRICE_DELTA_SOURCE_BY_RECIPE[dataset.recipe_path].recipe_path
+            if source in CARTESIAN_PRICE_SOURCE_BY_RECIPE:
+                source = CARTESIAN_PRICE_SOURCE_BY_RECIPE[source].recipe_path
+            by_source.setdefault(source, []).append(dataset)
+        self.assertEqual(len(by_source), len(PRICE_DELTA_DATASET_SPECS) // 2)
+        for variants in by_source.values():
+            self.assertEqual(len(variants), 2)
+            self.assertEqual({dataset.construction for dataset in variants}, {"aligned", "cartesian"})
+            cartesian = next(dataset for dataset in variants if dataset.construction == "cartesian")
+            self.assertTrue(cartesian.dataset_id.endswith("_cartesian_price_delta"))
+            self.assertEqual(cartesian.layout, "model_major_product_fastest_price_delta_rows")
 
     def test_sample_parameter_laws_cover_factories_and_public_fields(self) -> None:
         from generate import _render_sample_generation_header
@@ -139,7 +161,11 @@ class CapabilityManifestTest(unittest.TestCase):
     def test_declared_cardinalities_are_complete(self) -> None:
         self.assertEqual(len(MODEL_SPECS), 25)
         self.assertEqual(len(PRODUCT_SPECS), 26)
-        self.assertEqual(len(AVAILABLE_DATASET_SPECS), 722 + len(PRICE_DELTA_DATASET_SPECS))
+        self.assertEqual(
+            len(AVAILABLE_DATASET_SPECS),
+            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_DELTA_DATASET_SPECS),
+        )
+        self.assertEqual(len(CARTESIAN_PRICE_DATASET_SPECS), 618)
         self.assertEqual(len(DEFERRED_DATASET_SPECS), 0)
         self.assertEqual(len(FIXED_INCOME_UNITS), 47)
         self.assertEqual(len(PRODUCT_BINDING_SPECS), 427)
@@ -263,24 +289,28 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertLessEqual(first[1], second[0])
 
     def test_rng_v2_appends_g2_mc_without_rekeying_v1(self) -> None:
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE)
         legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
-                  for d in RNG_DOMAIN_SPECS if d.ordinal < 588 and d.recipe_path not in PRICE_DELTA_SOURCE_BY_RECIPE]
+                  for d in RNG_DOMAIN_SPECS if d.ordinal < 588 and d.recipe_path not in aliases]
         self.assertEqual(len(legacy), 588)
         self.assertEqual(hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
             "7472f3fff75219add3eb1b993d5d27dcfe30db2bdc5b1457c7e3f918b6ea0638")
-        appended = [d for d in RNG_DOMAIN_SPECS if 588 <= d.ordinal < 594]
+        appended = [d for d in RNG_DOMAIN_SPECS
+                    if 588 <= d.ordinal < 594 and d.recipe_path not in aliases]
         self.assertEqual(len(appended), 6)
         self.assertTrue(all(d.version == 3 for d in RNG_DOMAIN_SPECS))
         self.assertTrue(all("/european_" in d.recipe_path and "/g2" in d.recipe_path
                             for d in appended))
 
     def test_rng_v3_appends_cir_plus_plus_without_rekeying_v2(self) -> None:
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE)
         legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
-                  for d in RNG_DOMAIN_SPECS if d.ordinal < 594 and d.recipe_path not in PRICE_DELTA_SOURCE_BY_RECIPE]
+                  for d in RNG_DOMAIN_SPECS if d.ordinal < 594 and d.recipe_path not in aliases]
         self.assertEqual(len(legacy), 594)
         self.assertEqual(hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
             "d73cd893f1a5fb413e3a1921a3631c0e3f26f00b86886772c1f33d8d61f2c617")
-        appended = [d for d in RNG_DOMAIN_SPECS if d.ordinal >= 594]
+        appended = [d for d in RNG_DOMAIN_SPECS
+                    if d.ordinal >= 594 and d.recipe_path not in aliases]
         self.assertEqual(len(appended), 6)
         self.assertTrue(all("/cir_plus_plus/" in d.recipe_path for d in appended))
 

@@ -1,4 +1,4 @@
-// Build Vasicek Bermudan-payer-swaption prices with Longstaff-Schwartz.
+// Generated Vasicek Bermudan-payer-swaption price recipe.
 #include "model/fixed_income/vasicek/product/bermudan_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/bermudan_swaption/dataset.hpp"
@@ -10,20 +10,23 @@ int main() {
     const std::filesystem::path model_path =
         "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json";
     const std::filesystem::path product_path =
-        "datasets/product/bermudan_swaption/"
-        "bermudan_swaptions_01.json";
+        "datasets/product/bermudan_swaption/bermudan_swaptions_01.json";
     const auto models = rates::load_models(model_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
+    constexpr std::size_t paths =
+        offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829142777856000ULL;
+    auto configuration = datasets::make_bermudan_swaption_generation_configuration(
+        "vasicek", "payer", paths, seed,
+        "Exact Gaussian joint transition + Longstaff-Schwartz",
+        "Hermite degree 3", "standardized short-rate factor", "",
+        {{"time_day_fraction", "1 / 252"}},
+        PriceConstruction::Aligned
+    );
     datasets::generate_exact_bermudan_swaption_prices(
         model_path, product_path, models, products,
-        &rates::launch_vasicek_bermudan_swaption_cuda<SwaptionSide::payer>,
-        datasets::make_bermudan_swaption_generation_configuration(
-            "vasicek", "payer", paths, seed,
-            "Exact Gaussian joint transition + Longstaff-Schwartz",
-            "Hermite degree 3", "standardized short-rate factor", "",
-            {{"time_day_fraction", "1 / 252"}}
-        )
+        &rates::launch_vasicek_bermudan_swaption_cuda<
+            SwaptionSide::payer>,
+        configuration
     );
 }

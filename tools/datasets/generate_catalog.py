@@ -45,8 +45,9 @@ def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) 
         inputs = sorted({item for item in strings if item.startswith("datasets/")
                          and item.endswith(".json") and item != spec.dataset_path})
         if spec.dataset_kind in {"prices", "price_delta"}:
-            if len(inputs) != (3 if spec.curve else 2) or spec.construction != "aligned":
-                raise ValueError(f"Unrecognized aligned input contract: {spec.recipe_path}")
+            if (len(inputs) != (3 if spec.curve else 2)
+                    or spec.construction not in {"aligned", "cartesian"}):
+                raise ValueError(f"Unrecognized price input contract: {spec.recipe_path}")
             shape = None
         else:
             match = re.search(r'"samples_\d+",\s*([\d\']+)U,\s*([\d\']+)U', source)
@@ -60,13 +61,15 @@ def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) 
                      "inputs": inputs, "sample_shape": shape,
                      "rng_stream_seeds": {name: domain.seed(name) for name in domain.streams} if domain else {},
                      "declared_method": {"engine": spec.engine, "profile": spec.numerical_profile,
-                                         "variant": spec.variant, "construction": spec.construction},
+                                         "variant": spec.variant, "construction": spec.construction,
+                                         "has_curve": spec.curve is not None},
                      "identity": "/".join(value for value in (spec.model, spec.curve, spec.product) if value)})
         if spec.dataset_kind == "price_delta":
             recipe_metadata = str(Path(spec.recipe_path).with_name("recipe.yaml"))
             metadata = yaml.safe_load(contained_path(root, recipe_metadata).read_text())
             jobs[-1].update(recipe_metadata=recipe_metadata,
-                            sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"])
+                            sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"],
+                            preparation=metadata.get("preparation", {}))
     if not jobs or (targets and targets != {job["target"] for job in jobs}):
         raise ValueError("Empty selection or unknown/excluded generator target")
     return jobs
@@ -142,13 +145,31 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             raise ValueError("Published MC path count contradicts the compiled production plan")
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
+        expected_construction = (
+            {
+                "method": "Cartesian product",
+                "order": (
+                    "model, curve, product"
+                    if job["declared_method"]["has_curve"]
+                    else "model, product"
+                ),
+            }
+            if job["declared_method"]["construction"] == "cartesian"
+            else {"method": "Aligned"}
+        )
+        if catalog.get("price_construction") != expected_construction:
+            raise ValueError("Price construction contradicts the frozen recipe")
         if job["kind"] == "price_delta":
             for artifact in (catalog, document):
                 if artifact.get("summary", {}).get("monte_carlo_paths_per_price") != expected_paths:
                     raise ValueError("Price-delta path count contradicts the frozen plan")
-                for key in ("threads_per_block", "blocks_per_price"):
+                for key in ("threads_per_block", "blocks_per_price", "pricing_path_threads",
+                            "pricing_finalization_threads", "path_chunk_size", "chunks_per_price"):
                     if key in job["launch_plan"] and artifact.get("summary", {}).get(key) != job["launch_plan"][key]:
                         raise ValueError("Price-delta geometry contradicts the frozen plan")
+                for key, value in job.get("preparation", {}).items():
+                    if artifact.get("summary", {}).get("preparation", {}).get(key) != value:
+                        raise ValueError("Price-delta preparation contradicts the frozen recipe")
                 for key, value in job["sensitivity"].items():
                     if artifact.get("sensitivity", {}).get(key) != value:
                         raise ValueError("Price-delta sensitivity contradicts the frozen recipe")
@@ -210,10 +231,15 @@ def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
 def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
     """Resolve shape, parameter identity and the compiled plan without CUDA execution."""
     if job["kind"] in {"prices", "price_delta"}:
-        counts = {json.loads(contained_path(inputs, name).read_text())["row_count"] for name in job["inputs"]}
-        if len(counts) != 1:
+        input_counts = [json.loads(contained_path(inputs, name).read_text())["row_count"]
+                        for name in job["inputs"]]
+        counts = set(input_counts)
+        construction = job["declared_method"].get("construction", "aligned")
+        if construction == "aligned" and len(counts) != 1:
             raise ValueError(f"Unaligned parameter inputs: {job['target']}")
-        rows = counts.pop()
+        rows = (math.prod(input_counts)
+                if construction == "cartesian"
+                else input_counts[0])
         plan = json.loads(subprocess.check_output([
             str(binaries / "inspect_pricing_launch_plan"), job["identity"], str(rows)
         ] + (["--price-delta"] if job["kind"] == "price_delta" else []), cwd=inputs, text=True))
@@ -242,6 +268,11 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
     if any(job["kind"] in {"prices", "price_delta"} for job in jobs):
         state["inspector_sha256"] = copy_frozen(build / "inspect_pricing_launch_plan",
                                                 run / "bin" / "inspect_pricing_launch_plan")
+        launch_manifest = "cmake/generated/PricingCapabilityManifest.json"
+        state["launch_manifest_sha256"] = copy_frozen(
+            contained_path(root, launch_manifest),
+            contained_path(run / "inputs", launch_manifest),
+        )
     for relative in sorted({item for job in jobs for item in job["inputs"]}):
         state["input_hashes"][relative] = copy_frozen(contained_path(root, relative),
                                                       contained_path(run / "inputs", relative))
@@ -259,10 +290,31 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
     return state
 
 
-def run_generator(binary: Path, work: Path, logs: Path) -> float:
+def append_journal(path: Path, event: str, **details: object) -> None:
+    """Append a timestamped campaign event to one dataset attempt."""
+    with path.open("a") as output:
+        output.write(json.dumps({"event": event, "unix_time": time.time(), **details}) + "\n")
+
+
+def run_generator(
+    binary: Path, work: Path, logs: Path, progress: Path
+) -> float:
     started = time.perf_counter()
+    journal = logs / "progress.jsonl"
+    append_journal(journal, "generator_started")
     with (logs / "stdout.log").open("w") as out, (logs / "stderr.log").open("w") as err:
-        process = subprocess.Popen([str(binary)], cwd=work, stdout=out, stderr=err, start_new_session=True)
+        process = subprocess.Popen(
+            [str(binary)],
+            cwd=work,
+            stdout=out,
+            stderr=err,
+            start_new_session=True,
+            env={
+                **os.environ,
+                "AI_FACTORY_GENERATION_PROGRESS": str(progress.resolve()),
+                "AI_FACTORY_GENERATION_PROGRESS_LOG": str(journal.resolve()),
+            },
+        )
         try:
             returncode = process.wait()
         except BaseException:
@@ -276,7 +328,10 @@ def run_generator(binary: Path, work: Path, logs: Path) -> float:
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
+            append_journal(journal, "generator_interrupted", returncode=process.returncode)
             raise
+    append_journal(journal, "generator_exited", returncode=returncode,
+                   wall_seconds=time.perf_counter() - started)
     if returncode:
         raise RuntimeError(f"Generator exited with code {returncode}; see {logs}")
     return time.perf_counter() - started
@@ -319,14 +374,24 @@ def execute(run: Path, state: dict) -> None:
                 raise ValueError(f"Completed output changed: {job['target']}")
             continue
         print(f"[{index}/{len(state['jobs'])}] {job['target']} ({job['state']})", flush=True)
+        attempt_journal = None
         try:
             if job["state"] != "staged":
                 # An explicit resume starts a fresh attempt for an unfinished dataset.
                 attempt = job.get("attempt", 0) + 1
                 logs = directory / f"attempt-{attempt:03d}"
+                attempt_journal = logs / "progress.jsonl"
                 work = logs / "work"
                 work.mkdir(parents=True, exist_ok=False)
-                job.update(attempt=attempt, work=str(work), state="running")
+                progress = directory / "progress.json"
+                progress.unlink(missing_ok=True)
+                job.update(
+                    attempt=attempt,
+                    work=str(work),
+                    progress=str(progress.relative_to(run)),
+                    progress_journal=str(attempt_journal.relative_to(run)),
+                    state="running",
+                )
                 save_json(run / "campaign.json", state)
                 old_bytes = sum((root / path).stat().st_size for path, value in job["previous"].items() if value)
                 # Conservative planning estimate, not a promise of final JSON size.
@@ -338,7 +403,9 @@ def execute(run: Path, state: dict) -> None:
                 job["gpu_before"] = gpu_observation()
                 save_json(run / "campaign.json", state)
                 try:
-                    job["generation_wall_seconds"] = run_generator(binary, work, logs)
+                    job["generation_wall_seconds"] = run_generator(
+                        binary, work, logs, progress
+                    )
                 finally:
                     job["gpu_after"] = gpu_observation()
                 for item in job["inputs"]:
@@ -353,6 +420,8 @@ def execute(run: Path, state: dict) -> None:
                 job["artifact_check_seconds"] = time.perf_counter() - started
                 job["state"] = "staged"
                 save_json(run / "campaign.json", state)
+            elif job.get("progress_journal"):
+                attempt_journal = contained_path(run, job["progress_journal"])
             if state["publish"]:
                 started = time.perf_counter()
                 try:
@@ -362,12 +431,20 @@ def execute(run: Path, state: dict) -> None:
             job["state"] = "complete"
             job.pop("last_error", None)
             save_json(run / "campaign.json", state)
+            if attempt_journal is not None:
+                append_journal(attempt_journal, "job_complete", published=state["publish"])
         except BaseException as error:
             job["last_error"] = str(error) or type(error).__name__
             # A staged job retains its publication journal; do not regenerate it.
             if job["state"] != "staged":
                 job["state"] = "interrupted" if isinstance(error, KeyboardInterrupt) else "failed"
             save_json(run / "campaign.json", state)
+            if attempt_journal is not None:
+                try:
+                    append_journal(attempt_journal, "job_interrupted" if isinstance(error, KeyboardInterrupt)
+                                   else "job_failed", error=job["last_error"])
+                except OSError:
+                    pass
             raise
 
 
@@ -377,7 +454,7 @@ def interrupt_campaign(*_arguments) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build", type=Path, default=ROOT / "build-dev")
+    parser.add_argument("--build", type=Path, default=ROOT / "build")
     parser.add_argument("--kind", choices=("prices", "price_delta", "samples", "all"), default="prices")
     parser.add_argument("--model", action="append", default=[])
     parser.add_argument("--target", action="append", default=[])

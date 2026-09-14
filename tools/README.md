@@ -8,7 +8,7 @@ and diagnostics. Runtime code under `src` never depends on this tree.
 | Task | Owner |
 |---|---|
 | Generate or verify pricing and sampling bindings | [`codegen/pricing_bindings`](codegen/pricing_bindings/README.md) |
-| Build parameter, sample, or price datasets | `datasets/` |
+| Build parameter, sample, or price datasets | `datasets/`; [sample campaign](datasets/generate_sample_campaign.py) |
 | Inspect dataset provenance and reuse | [`datasets/check_dataset_compatibility.py`](datasets/check_dataset_compatibility.py), [contract](../docs/dataset-provenance-contract.md) |
 | Run CUDA pricing from an offline recipe | `cuda/pricing_runner.cuh` |
 | Compose product-specific price generation | `pricing/` |

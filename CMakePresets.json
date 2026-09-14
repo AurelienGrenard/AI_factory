@@ -11,14 +11,15 @@
       "displayName": "CUDA 13.3 development",
       "description": "Ninja, GCC 14, CUDA 13.3, RTX 4090 (SM 8.9)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-dev",
+      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
         "CMAKE_CUDA_COMPILER": "/usr/local/cuda-13.3/bin/nvcc",
         "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
         "CUDA_WORKBENCH_ARCHITECTURES": "89",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "AI_FACTORY_USE_CCACHE": "OFF"
       }
     }
   ],

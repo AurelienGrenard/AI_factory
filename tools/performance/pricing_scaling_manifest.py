@@ -56,6 +56,7 @@ def workloads(include_lsm: bool = False) -> list[dict]:
         if family is None:
             continue
         recipes = [d for d in DATASET_SPECS if d.dataset_kind == "prices"
+                   and d.construction == "aligned"
                    and d.model == binding.model and d.curve == binding.curve
                    and d.product == binding.product and d.variant == variant]
         if len(recipes) != 1 and not (family == "lsm" and not recipes):

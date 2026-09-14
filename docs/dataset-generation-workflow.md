@@ -11,7 +11,7 @@ remain authoritative; generation freezes these inputs without redrawing or
 reordering the 900 core and 100 stress rows. Build the generators explicitly:
 
 ```bash
-cmake --build build-dev --target parameter_generators price_generators \
+cmake --build build --target parameter_generators price_generators \
   sample_generators ai_factory_tests inspect_pricing_launch_plan -j1
 ```
 
@@ -43,6 +43,151 @@ only price-only recipes. Generated `recipe.yaml` describes planned settings;
 The recipes reuse the price-only launch profile as a candidate, not as a
 delta-specific performance qualification. See the [price-delta contract](cuda/equity-price-delta-contract.md)
 for CRN seed sharing, paired errors, frozen LSM dates and bias limitations.
+The controller accepts explicitly declared Cartesian price and price-delta
+recipes. It computes their output row count as the product of the frozen input
+counts, including model/curve/product products for curve-fitted rates recipes.
+
+Build and inspect all Cartesian price and price-delta recipes for one model with:
+
+```bash
+python3 tools/datasets/generate_cartesian_datasets.py --model heston
+```
+
+Add `--run-dir <directory> --execute --publish` to generate and publish the
+selection locally. Use `--kind prices` or `--kind price_delta` to restrict the
+family. Omit `--model` to select every Cartesian recipe; this is a very large
+production campaign. Resume a frozen campaign with the same wrapper and
+`--run-dir <directory> --execute --resume`.
+
+For all aligned fixed-income prices, inspect the exact selection without
+building or running anything:
+
+```bash
+python3 tools/datasets/generate_pricing_campaign.py \
+  --asset-class fixed_income --construction aligned --kind prices --list
+```
+
+The selection comes from the typed capability manifest: currently 80 recipes,
+each with 1,000 aligned price rows. The price-delta family is equity-only.
+After any other campaign has finished or been stopped, build and run these
+targets sequentially with publication:
+
+```bash
+python3 tools/datasets/generate_pricing_campaign.py \
+  --asset-class fixed_income --construction aligned --kind prices \
+  --run-dir datasets/generation-runs/fixed-income-aligned-01 \
+  --execute --publish
+```
+
+The wrapper builds only the selected generators and the launch inspector in
+`build/`. The campaign controller then freezes the inputs and binaries, runs
+one job at a time, checks each dataset and publishes it to its declared
+`datasets/model/fixed_income/` and `catalog/model/fixed_income/` paths. A
+later job's failure does not roll back earlier published jobs. Resume the
+frozen campaign through `generate_catalog.py --run-dir <same directory>
+--execute --resume`; an interrupted job restarts from its first price.
+
+For all aligned equity prices in the Markovian family, inspect the selection:
+
+```bash
+python3 tools/datasets/generate_pricing_campaign.py \
+  --asset-class equity --model-family markovian \
+  --construction aligned --kind prices --list
+```
+
+This selects 364 recipes (12 models, 364,000 aligned price rows). The family
+filter follows each recipe's source path, so rough-equity recipes are excluded.
+Once the selection is confirmed, build and run the campaign with publication:
+
+```bash
+python3 tools/datasets/generate_pricing_campaign.py \
+  --asset-class equity --model-family markovian \
+  --construction aligned --kind prices \
+  --run-dir datasets/generation-runs/equity-markovian-aligned-01 \
+  --execute --publish
+```
+
+The wrapper builds these generators in the shared `build/` directory, then
+publishes each completed dataset under `datasets/model/equity/markovian/` and
+its catalogue YAML under `catalog/model/equity/markovian/`. To follow the run,
+use `python3 tools/datasets/watch_generation_progress.py
+datasets/generation-runs/equity-markovian-aligned-01` in another terminal.
+If interrupted, resume the frozen campaign with:
+
+```bash
+python3 tools/datasets/generate_catalog.py \
+  --run-dir datasets/generation-runs/equity-markovian-aligned-01 \
+  --execute --resume
+```
+
+## Generate model-terminal samples
+
+The [sample campaign wrapper](../tools/datasets/generate_sample_campaign.py)
+selects the manifest's `samples_01` and `samples_02` recipes, builds their
+executables in the main `build/`, then hands the frozen selection to the same
+sequential controller. It excludes a recipe when both its published JSON and
+adjacent YAML already exist; a half-published pair is an error. This is an
+existence check, not an independent numerical certification of older data.
+Inspect the selection first:
+
+```bash
+python3 tools/datasets/generate_sample_campaign.py --list
+```
+
+At the 2026-09-14 inventory, there are 50 terminal recipes. The two CIR++
+datasets are already present, leaving 48 datasets to produce. Every recipe
+writes three million rows: `samples_01` has 12,000 parameter packages and 250
+paths each; `samples_02` has three million packages and one path each. All rows
+include the sampled maturity `T`. Each CIR++ JSON is about 748 MiB; reserve
+space for both the published data and the campaign's retained staged copies.
+The controller checks a conservative per-job disk margin before execution.
+
+After any other campaign has stopped, compile and publish the missing recipes
+with one command from the repository root:
+
+```bash
+python3 tools/datasets/generate_sample_campaign.py \
+  --run-dir datasets/generation-runs/model-samples-01 \
+  --execute --publish
+```
+
+The wrapper builds only the selected targets, at two parallel compile jobs by
+default. The campaign then runs one GPU generator at a time, checks each
+three-million-row JSON as a stream, and publishes it to its declared
+`datasets/model/.../samples/` path with adjacent catalogue YAML and provenance.
+`--asset-class equity`, `--model-family rough`, repeatable `--model`, and
+repeatable `--target` narrow a new campaign. `--include-published` explicitly
+selects existing pairs for regeneration and is not part of the command above.
+
+In another terminal, follow the campaign with:
+
+```bash
+python3 tools/datasets/watch_generation_progress.py \
+  datasets/generation-runs/model-samples-01
+```
+
+The display counts completed datasets. During a sample generator's preparation
+and CUDA simulation, no within-dataset percentage is available. Once JSON
+writing starts, the native writer reports samples written and an ETA for that
+**writing phase** at most every ten seconds. These host-side checks add no CUDA
+synchronization; they do not estimate the remaining time of the whole campaign.
+The controller retains attempt journals and stdout/stderr logs.
+
+Stop with `Ctrl+C` in the campaign terminal. Completed datasets stay published;
+an interrupted dataset restarts from its first row on explicit resume:
+
+```bash
+python3 tools/datasets/generate_sample_campaign.py \
+  --run-dir datasets/generation-runs/model-samples-01 \
+  --execute --resume
+```
+
+Resume uses the frozen binaries and selection, and checks completed output
+hashes. Use a new run directory if source or recipes change. A generator's
+`--smoke-test` writes only 1,000 rows under `/tmp`; its `--preflight` executes
+the full shape without publication and checks a second launch geometry. Both
+require a working CUDA device. The wrapper does not silently turn either mode
+into a production dataset.
 
 ## Run a staged pilot
 
@@ -51,7 +196,7 @@ Use a new run directory on the repository filesystem:
 ```bash
 python3 tools/datasets/generate_catalog.py \
   --target generate_cir_european_payer_swaptions_01 \
-  --run-dir build-dev/generation-pilot-01 --execute
+  --run-dir datasets/generation-runs/generation-pilot-01 --execute
 ```
 
 Without `--publish`, outputs stay under the campaign's `jobs/` directory and
@@ -78,7 +223,7 @@ An unfiltered campaign can be very long; inspect its recipe list first.
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --kind all --run-dir build-dev/generation-01 --execute --publish
+  --kind all --run-dir datasets/generation-runs/generation-01 --execute --publish
 ```
 
 Jobs execute one at a time. The controller checks a conservative per-job disk
@@ -88,6 +233,49 @@ blocking. Coordinate other GPU users separately; the lock only serializes
 campaign controllers in this repository, even with different build directories.
 Direct generator invocations and external editors do not acquire this lock;
 do not run them against the same destinations during publication.
+
+While a native generator is running, it updates
+`jobs/<target>/progress.json` in the campaign directory. The sidecar reports
+completed and total prices, elapsed time, average prices per second and an ETA.
+To follow a campaign in a terminal without a notebook, run from the repository
+root:
+
+```bash
+python3 tools/datasets/watch_generation_progress.py \
+  datasets/generation-runs/<campaign-directory>
+```
+
+The display refreshes every ten seconds and formats durations in hours,
+minutes and seconds. It shows completed jobs out of the whole campaign and
+the active price job's count, percentage, speed and ETA. The ETA covers the
+active price dataset only: job counts are not a reliable measure of remaining
+campaign time when pricing methods differ. It selects the active job
+automatically; use `--target` for a specific job or `--once` for a single
+display. `Ctrl+C` stops only the display, not the generator. This read-only
+command can attach to a campaign that is already running and does not affect
+CUDA execution.
+CUDA events are queried by a separate CPU thread; progress reporting adds no
+device or stream synchronization. It writes an initial point, then at most one
+periodic point every ten seconds, and a final point on normal completion. The
+same progress records are appended to
+`jobs/<target>/attempt-NNN/progress.jsonl`, alongside timestamped controller
+events for process start/exit and job completion/failure. A new attempt gets a
+new journal; the previous attempt remains intact. `stdout.log` and `stderr.log`
+in that directory contain the native generator's output and diagnostics, and
+may be empty. `campaign.json` records the current `progress` snapshot and
+`progress_journal` paths. The journal tracks generation and campaign events;
+it is not a checkpoint and does not permit resuming halfway through a dataset.
+For sample jobs, the display uses sample counts during JSON writing as
+described above; CUDA preparation and simulation have no within-job ETA.
+The example
+[`notebooks/heston_rough_heston_price_delta_generation.ipynb`](../notebooks/heston_rough_heston_price_delta_generation.ipynb)
+verifies/builds the Heston and rough Heston Cartesian price-delta targets in
+`build`, then launches their executables directly, one notebook cell per
+generator. It uses the same native progress reporter and captures stdout/stderr
+itself. This direct path writes to the
+recipe's catalogue and dataset destinations without campaign staging,
+provenance attachment, or publication backups; use the controller above when
+those safeguards are needed.
 
 Before publication, price rows and metadata are checked; sample JSON is checked
 as a stream without loading three million records at once. Generated prices must
@@ -105,7 +293,7 @@ version until the campaign is complete.
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --run-dir build-dev/generation-01 --execute --resume
+  --run-dir datasets/generation-runs/generation-01 --execute --resume
 ```
 
 Resume uses the frozen selection and publication policy. Completed jobs are

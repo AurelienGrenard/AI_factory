@@ -1,4 +1,4 @@
-// Generated aligned $model $product price-delta recipe; production paths/profile stay shared.
+// Generated $construction_label $model $product price-delta recipe; production paths/profile stay shared.
 #include "model/equity/markovian/$model/product/${product}_price_delta.cuh"
 #include "model/equity/markovian/$model/dataset.hpp"
 #include "product/$product/dataset.hpp"
@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "$model_input", "$product_input", "$dataset", "$catalog",
-        "$url", "$source_recipe", "$method", .01, $steps_per_day};
+        "$url", "$source_recipe", "$method", .01, $steps_per_day$construction_argument};
     return pricing::generate_equity_price_delta_dataset<$stochastic, $lsm>(
         recipe, {offline::cuda_tuning::PricingFamily::$family, "$model", "$product", ""},
         ${seed}ULL, model::equity::$model::load_models, $product_loader,

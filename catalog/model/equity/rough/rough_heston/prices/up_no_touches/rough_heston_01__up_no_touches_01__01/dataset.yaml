@@ -1,0 +1,142 @@
+title: "rough_heston_01__up_no_touches_01__01"
+database_id: "rough_heston_01__up_no_touches_01__01"
+catalog: "catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 1048576
+  model: "rough Heston"
+  numerical_method: "7-factor Markovian lift"
+  payoff: "Up No-Touches"
+  implementation: "CUDA"
+  device: "gpu"
+  factor_count: 7
+  block_count: 1000
+  threads_per_block: 256
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "rough_n_factor"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "rough_heston"
+    product: "up_no_touch"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "rough_n_factor_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  dataset: "validation/datasets/price/equity/rough/rough_heston/up_no_touches/rough_heston_01__up_no_touches_01__01.json"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "rough_heston_01"
+  catalog: "catalog/model/equity/rough/rough_heston/parameters/rough_heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/parameters/rough_heston_01.json"
+product_dataset:
+  id: "up_no_touches_01"
+  catalog: "catalog/product/up_no_touch/up_no_touches_01"
+  url: "https://datasets.ai-factory.example/v1/product/up_no_touches/up_no_touches_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "41.720593607 s"
+  kernel_seconds: "44.914707031 s"
+time_grid:
+  simulation_steps_per_day: 2
+  steps_per_year: 504
+  delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: 0854e1e142eae179ac30f2f79b2a8a1c3271ff4c3adafc933ad42f30057b49b6
+  contract_sha256: 759b7d48cfd52bfb33e63fb88f80290d747ef557694bbba7be95b4279e9b8d0c
+  specification:
+    kind: prices
+    identity: rough_heston/up_no_touch
+    database_id: rough_heston_01__up_no_touches_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828756230799360
+    paths_per_price: 1048576
+  inputs:
+    models: 74bc2a19f544bbe5efb4cca68c495ecd684e5dfccf61f095c13d44aa361b8d2a
+    products: fdbff743bef44d30644d01f043a08ff49b4539279dae2fee9a9ed4e310997a50
+  execution:
+    binary_sha256: 8a76b28297ec3eadff333be453dd08c399a415de836c4ce8d53e64dd67b2c6a2
+    recipe_sha256: e61b75b9f7da5d2cac63d1172f5916ed6c22a043a166293c2f8c19b8f8c4829a
+    declared_method:
+      engine: equity_n_factor
+      profile: catalog_price_profile
+      variant: up_no_touches
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: rough_n_factor
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: rough_heston
+      product: up_no_touch
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+    runtime_observation:
+      unix_time: 1789391841.2134774
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 72, 58.88 W, [N/A], 2310 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json: 541ab1647b2830e90fbe26cdee4f604afcbb7a1ef4dd541f1e15e90788d8160c
+      datasets/product/up_no_touch/up_no_touches_01.json: b0d031f44dabd6bff5122266e9373e6f1e5f6ae9d2a80123bc39edb45a6f3aa3
+  record_sha256: 97dc354d3f3e7d70ecce9c0e6ff745438729b5764e88fbab5bdb1aee0c69045d

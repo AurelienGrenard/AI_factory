@@ -31,9 +31,9 @@ void generate_regular_european_swaption_prices(
     const std::string& url,
     const std::string& numerical_method,
     const std::string& cuda_label,
-    offline::cuda_tuning::PricingIdentity identity
+    offline::cuda_tuning::PricingIdentity identity,
+    PriceConstruction construction = PriceConstruction::Aligned
 ) {
-    constexpr PriceConstruction construction = PriceConstruction::Aligned;
     const auto& products = product_dataset.products;
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
@@ -120,9 +120,9 @@ void generate_regular_european_swaption_prices(
     const std::string& url,
     const std::string& numerical_method,
     const std::string& cuda_label,
-    offline::cuda_tuning::PricingIdentity identity
+    offline::cuda_tuning::PricingIdentity identity,
+    PriceConstruction construction = PriceConstruction::Aligned
 ) {
-    constexpr PriceConstruction construction = PriceConstruction::Aligned;
     const auto& products = product_dataset.products;
     const std::size_t result_count = price_row_count(
         models.size(), curves.size(), products.size(), construction

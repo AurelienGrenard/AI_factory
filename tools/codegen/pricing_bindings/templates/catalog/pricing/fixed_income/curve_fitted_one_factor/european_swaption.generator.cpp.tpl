@@ -49,6 +49,7 @@ int main() {
         "${model}_01__${curve}_01__${variant}_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond ${bond_option_side_plural}",
         "${model_display} ${curve_display} European ${swaption_side} swaption",
-        ${launch_identity}
+        ${launch_identity},
+        PriceConstruction::${construction}
     );
 }

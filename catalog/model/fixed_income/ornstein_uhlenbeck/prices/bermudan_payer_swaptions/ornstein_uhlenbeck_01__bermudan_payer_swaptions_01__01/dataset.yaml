@@ -8,7 +8,7 @@ time_convention:
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 65536
+  monte_carlo_paths_per_price: 1048576
   model: "Ornstein-Uhlenbeck short rate"
   numerical_method: "Exact Gaussian joint transition + Longstaff-Schwartz"
   payoff: "Bermudan Swaptions"
@@ -16,16 +16,43 @@ summary:
   device: "gpu"
   threads_per_block: 128
   blocks_per_price: 64
-  batch_count: 1
-  kernel_launch_count: 37
-  workspace_bytes: 3479678560
+  batch_count: 4
+  kernel_launch_count: 130
+  workspace_bytes: 14153918736
+  maximum_prices_per_batch: 263
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "gaussian_rate_lsm"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "ornstein_uhlenbeck"
+    product: "bermudan_swaption"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: "resolved by native LSM VRAM planner"
+    work_distribution: "multiple path blocks per price; native multi-phase LSM"
+    blocks_per_price: 64
+    maximum_resident_prices: 263
+    price_batch_count: 4
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "fixed_income_early_exercise"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   time_day_fraction: "1 / 252"
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/ornstein_uhlenbeck/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01.json"
 outputs:
   price:
     estimator: "Longstaff-Schwartz discounted policy cashflow mean"
@@ -42,13 +69,83 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.236675307 s"
-  kernel_seconds: "0.127560707 s"
+  wall_seconds: "7.295722932 s"
+  kernel_seconds: "7.311542297 s"
 exercise_policy:
   method: "Longstaff-Schwartz"
   exercise_dates: "co-terminal regular Bermudan schedule"
   regression_basis: "Hermite degree 3"
   regression_state: "standardized short-rate factor"
+  pricing_measure: "risk_neutral"
   regression_target: "next policy cashflow discounted pathwise"
   in_the_money_paths_only: true
   solver: "FP64 normal equations and Cholesky on GPU"
+generation:
+  schema_version: 1
+  dataset_sha256: e2887a43fc39afae3594759fdd6c8cbc0896d019c69e0332a47283a0039c4970
+  contract_sha256: 2a6b02b94e8fcb339f08d1b57121a01b33d189e360cacf49faaa730eb47d5f0f
+  specification:
+    kind: prices
+    identity: ornstein_uhlenbeck/bermudan_swaption
+    database_id: ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668829125597986816
+    paths_per_price: 1048576
+  inputs:
+    models: f1ca902513bb0b5e722e7c227cbe433246bcf33200bc3790f5b411bcc6fd342c
+    products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+  execution:
+    binary_sha256: fd9bdb92aa9ea55ef225d1a3b25026ac01e3859c90e6fd80e86dc42c7d85dcc1
+    recipe_sha256: 22ef2bfc8b0d7bc9c67f3222f877c2af556dc32e70802b5c547378753a996499
+    declared_method:
+      engine: fixed_income_lsm
+      profile: longstaff_schwartz_price_profile
+      variant: bermudan_payer_swaptions
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: gaussian_rate_lsm
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: ornstein_uhlenbeck
+      product: bermudan_swaption
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 128
+      prices_per_launch: null
+      price_launch_count: null
+      memory_batching: native LSM VRAM planner; unresolved offline
+      work_distribution: multiple path blocks per price; native multi-phase LSM
+      blocks_per_price: 64
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307867.3315725
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 84, 106.50 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/generator.cpp
+    input_files:
+      datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 1966f6147218ec57ac8e90dead97464944c0d037ed064d7fc522ba46e779571e
+      datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
+  record_sha256: fadac9ad397cb9cc64f1ebc94cd5f86515c88cfb6ed8252b9217bdb901f5c981

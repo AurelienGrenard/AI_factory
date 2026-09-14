@@ -1,4 +1,4 @@
-// Build G2++/Svensson Bermudan-receiver-swaption prices.
+// Generated G2++/Svensson Bermudan-receiver-swaption price recipe.
 #include "model/fixed_income/g2_plus_plus/product/svensson/bermudan_swaption.cuh"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
 #include "curve/svensson/dataset.hpp"
@@ -18,17 +18,19 @@ int main() {
     const auto models = rates::load_models(model_path);
     const auto curves = curve::svensson::load_curves(curve_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
+    constexpr std::size_t paths =
+        offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829086943281152ULL;
+    auto configuration = datasets::make_fitted_bermudan_swaption_generation_configuration(
+        "g2_plus_plus", "svensson", "receiver", paths, seed,
+        "Exact fitted two-factor Gaussian joint transition + Longstaff-Schwartz",
+        "two-factor Hermite degree 2", "two standardized rate factors",
+        PriceConstruction::Aligned
+    );
     datasets::generate_exact_fitted_bermudan_swaption_prices(
         model_path, curve_path, product_path, models, curves, products,
         &fitted::launch_g2_plus_plus_svensson_bermudan_swaption_cuda<
-            SwaptionSide::receiver
-        >,
-        datasets::make_fitted_bermudan_swaption_generation_configuration(
-            "g2_plus_plus", "svensson", "receiver", paths, seed,
-            "Exact fitted two-factor Gaussian joint transition + Longstaff-Schwartz",
-            "two-factor Hermite degree 2", "two standardized rate factors"
-        )
+            SwaptionSide::receiver>,
+        configuration
     );
 }

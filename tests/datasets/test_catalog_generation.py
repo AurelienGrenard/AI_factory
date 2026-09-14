@@ -1,5 +1,7 @@
 """Check catalogue staging and resume without CUDA or independent references."""
 import json
+import copy
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -21,6 +23,7 @@ class GenerationTests(unittest.TestCase):
                     "launch_plan": {"paths_per_price": 32}, "state": "pending", "previous": {}}
         self.catalog = {"database_id": "test", "row_count": 2,
                         "summary": {"monte_carlo_paths_per_price": 32},
+                        "price_construction": {"method": "Aligned"},
                         "validation": {"status": "pending", "verified": False,
                                        "dataset": "validation/datasets/price/equity/markovian/test/calls/test.json"}}
         self.document = {"database_id": "test", "row_count": 2, "results": [
@@ -35,7 +38,8 @@ class GenerationTests(unittest.TestCase):
         binary.write_text("frozen binary; mocked execution")
         self.job["binary_sha256"] = digest(binary)
         self.job.update(identity="test/calls", sample_shape=None, recipe="recipe.cpp", semantic_inputs={},
-                        rng_stream_seeds={"dynamics": 123}, declared_method={"engine": "test"})
+                        rng_stream_seeds={"dynamics": 123},
+                        declared_method={"engine": "test", "construction": "aligned"})
         recipe = self.run / "sources/recipe.cpp"
         recipe.parent.mkdir(parents=True)
         recipe.write_text("frozen recipe")
@@ -48,7 +52,10 @@ class GenerationTests(unittest.TestCase):
         telemetry.start()
         self.addCleanup(telemetry.stop)
 
-    def generator(self, _binary, work, _logs):
+    def generator(self, _binary, work, _logs, progress=None):
+        if progress is not None:
+            progress.parent.mkdir(parents=True, exist_ok=True)
+            progress.write_text(json.dumps({"state": "complete"}))
         for key, text in (("dataset", json.dumps(self.document)), ("catalog", yaml.safe_dump(self.catalog))):
             path = work / self.job[key]
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,12 +69,40 @@ class GenerationTests(unittest.TestCase):
                          if spec.dataset_kind in {"prices", "samples"}})
         self.assertEqual(len(jobs), len({job["target"] for job in jobs}))
 
+    def test_runner_exposes_progress_sidecar_path(self):
+        binary = self.root / "progress-generator"
+        binary.write_text(
+            "#!/bin/sh\n"
+            "printf '{\"state\":\"complete\"}\\n' > "
+            '"$AI_FACTORY_GENERATION_PROGRESS"\n'
+            "printf '{\"event\":\"progress\",\"state\":\"complete\"}\\n' >> "
+            '"$AI_FACTORY_GENERATION_PROGRESS_LOG"\n'
+        )
+        os.chmod(binary, 0o755)
+        work = self.root / "progress-work"
+        logs = self.root / "progress-logs"
+        progress = self.root / "progress.json"
+        work.mkdir()
+        logs.mkdir()
+        campaign.run_generator(binary, work, logs, progress)
+        self.assertEqual(json.loads(progress.read_text())["state"], "complete")
+        events = [json.loads(line) for line in (logs / "progress.jsonl").read_text().splitlines()]
+        self.assertEqual([event["event"] for event in events],
+                         ["generator_started", "progress", "generator_exited"])
+        self.assertEqual(events[-1]["returncode"], 0)
+
     def test_pilot_does_not_publish_or_rerun(self):
         with patch.object(campaign, "run_generator", side_effect=self.generator) as run:
             campaign.execute(self.run, self.state)
             campaign.execute(self.run, self.state)
         self.assertEqual(run.call_count, 1)
+        self.assertEqual(self.job["progress"], "jobs/generate_test/progress.json")
+        self.assertEqual(self.job["progress_journal"],
+                         "jobs/generate_test/attempt-001/progress.jsonl")
         self.assertEqual(self.job["state"], "complete")
+        events = [json.loads(line) for line in
+                  (self.run / self.job["progress_journal"]).read_text().splitlines()]
+        self.assertEqual(events[-1]["event"], "job_complete")
         metadata = yaml.safe_load((Path(self.job["work"]) / self.job["catalog"]).read_text())
         self.assertEqual(metadata["generation"]["schema_version"], 1)
         self.assertEqual(metadata["generation"]["dataset_sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
@@ -87,6 +122,10 @@ class GenerationTests(unittest.TestCase):
             if source.engine != "equity_closed_form":
                 self.assertEqual(job["rng_stream_seeds"]["dynamics"], resolve_rng_domain(source).seed("dynamics"))
 
+        cartesian = next(job for job in jobs
+                         if job["target"] == "generate_heston_european_calls_01_cartesian_price_delta")
+        self.assertEqual(cartesian["declared_method"]["construction"], "cartesian")
+
     def test_price_delta_publication_checks_paired_outputs_and_contract(self):
         self.job.update(kind="price_delta", sensitivity={"parameter": "spot", "method": "centered_crn",
                         "relative_full_width": .01, "source_price_recipe": "original.cpp"}, time_grid=None)
@@ -104,6 +143,30 @@ class GenerationTests(unittest.TestCase):
         self.document["sensitivity"]["relative_full_width"] = .02
         self.generator(None, work, None)
         with self.assertRaisesRegex(ValueError, "sensitivity"):
+            campaign.check_outputs(work, self.job)
+
+    def test_price_delta_preparation_and_fft_geometry_are_checked(self):
+        self.job.update(kind="price_delta", sensitivity={}, time_grid=None,
+                        preparation={"method": "hybrid_fft", "shared_convolution": True})
+        self.job["launch_plan"]["path_chunk_size"] = 65536
+        self.catalog["validation"] = {"status": "pending", "verified": False}
+        self.catalog["summary"].update(seed=123, path_chunk_size=65536,
+                                       preparation=self.job["preparation"].copy())
+        self.document["summary"] = copy.deepcopy(self.catalog["summary"])
+        for row in self.document["results"]:
+            row["outputs"].update(delta=.5, delta_standard_error=.02)
+            row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
+        work = self.root / "rough-paired"
+        self.generator(None, work, None)
+        campaign.check_outputs(work, self.job)
+        self.document["summary"]["preparation"]["shared_convolution"] = False
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "preparation"):
+            campaign.check_outputs(work, self.job)
+        self.document["summary"]["preparation"]["shared_convolution"] = True
+        self.document["summary"]["path_chunk_size"] = 8192
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "geometry"):
             campaign.check_outputs(work, self.job)
 
     def test_certification_and_path_count_guards(self):
@@ -154,11 +217,17 @@ class GenerationTests(unittest.TestCase):
             with self.assertRaises(KeyboardInterrupt):
                 campaign.execute(self.run, self.state)
         self.assertEqual(self.job["state"], "interrupted")
+        first_journal = self.run / self.job["progress_journal"]
+        first_contents = first_journal.read_text()
+        self.assertEqual(json.loads(first_contents.splitlines()[-1])["event"], "job_interrupted")
         with patch.object(campaign, "run_generator", side_effect=self.generator) as run:
             campaign.execute(self.run, self.state)
             campaign.execute(self.run, self.state)
         self.assertEqual(run.call_count, 1)
         self.assertEqual(self.job["attempt"], 2)
+        self.assertEqual(first_journal.read_text(), first_contents)
+        self.assertEqual(json.loads((self.run / self.job["progress_journal"])
+                                    .read_text().splitlines()[-1])["event"], "job_complete")
         self.assertNotIn("last_error", self.job)
 
     def test_streamed_samples(self):

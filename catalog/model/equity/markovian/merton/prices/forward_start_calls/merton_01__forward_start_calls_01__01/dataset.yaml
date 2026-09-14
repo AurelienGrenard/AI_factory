@@ -1,14 +1,14 @@
 title: "merton_01__forward_start_calls_01__01"
 database_id: "merton_01__forward_start_calls_01__01"
 catalog: "catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01"
-url: "https://mlp.lpma.math.upmc.fr/DataCarlo/Assets/Merton/ForwardStartCall/merton_01__forward_start_calls_01__01.json"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01.json"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Merton jump diffusion"
   numerical_method: "Exact Merton increments"
   payoff: "Forward-Start Options"
@@ -18,20 +18,36 @@ summary:
   threads_per_block: 512
   kernel_launch_count: 1
   maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_exact_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "merton"
+    product: "forward_start_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   random_generator: "Philox"
 validation:
-  status: "not_available"
+  status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01/validation.ipynb"
-  core:
-    status: "not_available"
-    row_count: 900
-    reference: "none"
-  stress:
-    status: "not_available"
-    row_count: 100
-    reference: "none"
+  dataset: "validation/datasets/price/equity/markovian/merton/forward_start_calls/merton_01__forward_start_calls_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -48,5 +64,79 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.356033609 s"
-  kernel_seconds: "0.001138688 s"
+  wall_seconds: "0.335512585 s"
+  kernel_seconds: "0.242828293 s"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "exact transition dates"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+generation:
+  schema_version: 1
+  dataset_sha256: dc6ba685ec50b434046ff0cdcd6d31115cd90ac912fc612c710c70948dbeac9d
+  contract_sha256: e190bef98add2c7bb9d652c23f0fa6f34ddfea3b193cfc5cd1b7960d4fa67866
+  specification:
+    kind: prices
+    identity: merton/forward_start_option
+    database_id: merton_01__forward_start_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668827476330545152
+    paths_per_price: 1048576
+  inputs:
+    models: 5827362340758d00f85c51e13cc12698d937fbd55334d14a728dd5bd879c067c
+    products: a5fe82d063166e580c0ec0b6e0a3b3440786fafe11fcf4eedc7554fda3f67813
+  execution:
+    binary_sha256: 0eda7127066b0cb37d4821c67360923d474157d8bbac0dec7752fd801b7d8c7a
+    recipe_sha256: 336b33ef326870394c1f35ee3a5c20b4b1edc00e56fc2d8b6d9cd9d8abb6f451
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: forward_start_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_exact_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: merton
+      product: forward_start_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789323423.5590162
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 81, 106.42 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/merton/parameters/merton_01.json: 386722815904dd83f13c2dfda530e001b5b822b7cbd91c388b1b87e95f651436
+      datasets/product/forward_start_option/forward_start_options_01.json: 3573024dfb752100ced3d67b98887b6681c9e3db9b1bf2927e9f7b8c8ca7186e
+  record_sha256: f095ad8856b04583cba9236555f2bb6da54b12c800e0a9129e44c86fbe7d0d73

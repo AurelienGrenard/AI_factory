@@ -16,6 +16,7 @@ Choose the shortest path for your task:
 | Goal | Entry point |
 |---|---|
 | Build and run a first test | [Quick start](#quick-start) |
+| Understand CMake and the `build/` folder | [CMake build guide](docs/cmake-build-workflow.md) |
 | Understand the repository | [Documentation map](docs/README.md) |
 | Understand CUDA composition | [Pricing-policy composition](docs/cuda/pricing-policy-composition.md) |
 | Add a model, curve, product, or dataset | [Catalogue extension workflow](docs/catalog-extension-and-validation-workflow.md) |
@@ -63,7 +64,7 @@ machine (`sm_89`, GCC 14, CUDA 13.3):
 ```bash
 cmake --preset dev
 cmake --build --preset host-tests
-ctest --test-dir build-dev --output-on-failure -R '^dataset_catalog$'
+ctest --test-dir build --output-on-failure -R '^dataset_catalog$'
 ```
 
 The final command provides a small observable smoke result without generating
@@ -74,12 +75,12 @@ large datasets.
 Configure a separate build directory with the target GPU's compute capability:
 
 ```bash
-cmake -S . -B build -G Ninja \
+cmake -S . -B builds/sm_XX -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCUDA_WORKBENCH_ARCHITECTURES=<compute-capability> \
   -DBUILD_TESTING=ON
-cmake --build build --target ai_factory_host_tests -j2
-ctest --test-dir build --output-on-failure -R '^dataset_catalog$'
+cmake --build builds/sm_XX --target ai_factory_host_tests -j2
+ctest --test-dir builds/sm_XX --output-on-failure -R '^dataset_catalog$'
 ```
 
 The SM89 launch profile is a safe reference, not a universal optimum. Before
@@ -91,9 +92,13 @@ record a separate architecture profile.
 
 ```text
 src/          Runtime C++/CUDA models, products, curves, and shared primitives
+learning/     Python/PyTorch training, shared data contracts and evaluation
 tools/        Offline generation, publication, code generation, and diagnostics
 catalog/      Versioned executable recipes and adjacent dataset metadata
 datasets/     Generated or downloaded JSON artifacts; ignored by Git
+build/        Main local CMake build; ignored by Git
+builds/       Optional separate CMake builds; ignored by Git
+artifacts/    Local audit evidence, performance runs and tool caches; ignored by Git
 tests/        Host, CUDA, architecture, and performance tests
 validation/   Independent price-reference pipelines and backend adapters
 cmake/        Build ownership by runtime, catalogue, tests, and performance
@@ -122,19 +127,20 @@ cmake --build --preset tests
 ctest --preset tests
 ```
 
-Discover granular targets from the configured build instead of relying on a
-copied list:
+Inspect primary targets, then search the complete Ninja target list for
+individual generators:
 
 ```bash
-cmake --build build-dev --target help
-ctest --test-dir build-dev -N
+cmake --build build --target help
+ninja -C build -t targets all | rg '^generate_heston_'
+ctest --test-dir build -N
 ```
 
 One dataset recipe can be built and executed directly, for example:
 
 ```bash
-cmake --build build-dev --target generate_heston_01 -j2
-./build-dev/generate_heston_01
+cmake --build build --target generate_heston_01 -j2
+./build/generate_heston_01
 ```
 
 The generator owns its JSON and adjacent YAML output; do not edit generated
@@ -167,10 +173,11 @@ Numerical and CUDA invariants are normative in the contracts under
 
 ## Current limitations
 
-- Markovian equity price and spot delta are implemented with bounded checks;
-  catalogue-wide delta bias and production performance remain unqualified.
-  The next implementation step is rough-model spot delta: rough Heston and
-  quadratic rough Heston N-factor lifts first, then rough Bergomi FFT.
+- Equity pricing can also compute spot delta, the price sensitivity to the
+  initial asset level. Markovian and six rough models have separate paired
+  launchers and recipes. Tests cover selected cases. Catalogue-wide delta
+  bias and production performance still need qualification. Rough early
+  exercise is not implemented.
   See the [price-delta contract](docs/cuda/equity-price-delta-contract.md) and
   [open audit work](docs/audit/response.md).
 - Catalogue URLs using `datasets.ai-factory.example` are placeholders until a

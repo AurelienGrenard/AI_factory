@@ -101,8 +101,13 @@ The 12 Markovian models have price-delta recipes under `catalog/.../price_delta`
 with generated `generator.cpp` and planned `recipe.yaml`; execution alone writes
 `dataset.yaml`. CRN aliases preserve price-only seeds, and production MC/LSM
 uses 2^20 paths. The qualification remains bounded checks, not certified bias
-or delta-specific tuning. Rough price-delta bindings are not yet generated;
-see the [implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
+or delta-specific tuning. See the
+[implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
+Every price recipe has an aligned target and a distinct Cartesian target. Every
+equity price-delta source has the same pair. Cartesian rows use
+model-major/product-fastest order, or model-major/curve/product order for fitted
+rates. Use `tools/datasets/generate_cartesian_datasets.py` to build, inspect,
+execute or resume either family without constructing a command line by hand.
 
 - Pricing bindings are written below each model's `product/` directory.
 - Model-sample bindings are written as `<model>/sample.cuh` and `sample.cu`.

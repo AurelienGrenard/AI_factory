@@ -65,6 +65,8 @@ def specification(job: dict) -> dict:
             "paths_per_price": job.get("launch_plan", {}).get("paths_per_price")}
     if job["kind"] == "price_delta":
         result.update(sensitivity=job["sensitivity"], time_grid=job["time_grid"])
+        if job.get("preparation"):
+            result["preparation"] = job["preparation"]
     return result
 
 

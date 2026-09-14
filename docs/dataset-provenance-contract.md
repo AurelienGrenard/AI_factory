@@ -58,7 +58,7 @@ its source archive identifies missing evidence but cannot reconstruct it.
 python3 tools/datasets/check_dataset_compatibility.py \
   --catalog catalog/model/equity/markovian/heston/samples/samples_01/dataset.yaml \
   --dataset datasets/model/equity/markovian/heston/samples/samples_01.json \
-  --target generate_heston_samples_01 --build build-dev
+  --target generate_heston_samples_01 --build build
 ```
 
 The checker only reads the existing pair and current inputs, checks Ninja's

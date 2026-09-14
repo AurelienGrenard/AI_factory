@@ -57,7 +57,9 @@ int main() {
                 == tuning::pricing_profile(lsm).blocks_per_price);
         require(tuning::make_equity_price_delta_launch_plan(analytical, 1000U, 0U).profile.threads_per_block
                 == tuning::pricing_profile(analytical).threads_per_block);
-        rejects([&] { tuning::make_equity_price_delta_launch_plan(fft, 1000U); });
+        const auto fft_delta = tuning::make_equity_price_delta_launch_plan(fft, 1000U);
+        require(fft_delta.profile.path_chunk_size == tuning::pricing_profile(fft, 1000U).path_chunk_size);
+        require(fft_delta.paths_per_price == tuning::kProductionPathsPerPrice);
         plan = tuning::make_pricing_launch_plan(fft, 1000U);
         require(plan.profile.path_chunk_size == tuning::kVolterraPathChunkSize);
         require(plan.paths_per_price == 1048576U && plan.prices_per_launch == 1U);

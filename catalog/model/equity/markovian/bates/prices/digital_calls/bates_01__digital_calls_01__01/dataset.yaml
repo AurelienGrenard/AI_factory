@@ -8,7 +8,7 @@ time_convention:
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 16384
+  monte_carlo_paths_per_price: 1048576
   model: "Bates"
   numerical_method: "Andersen QE-M with compound-Poisson lognormal jumps"
   payoff: "Digital Options"
@@ -18,12 +18,36 @@ summary:
   threads_per_block: 512
   kernel_launch_count: 1
   maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_step_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "bates"
+    product: "digital_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/bates/digital_calls/bates_01__digital_calls_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -40,9 +64,78 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "2.353841273 s"
-  kernel_seconds: "0.412641205 s"
+  wall_seconds: "87.71292375 s (1 min, 28 s)"
+  kernel_seconds: "93.724398437 s (1 min, 34 s)"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504
   delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: 1f343e3e9d7a426e55afe995828f1529c543f585ab842838c089b0052e4d843e
+  contract_sha256: 982e6ac3d3dd5fdff05aeb70a9c7a826ecb166ee7107c066c63e8f7514b7612d
+  specification:
+    kind: prices
+    identity: bates/digital_option
+    database_id: bates_01__digital_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668826668876693504
+    paths_per_price: 1048576
+  inputs:
+    models: 8390ab62f307a3a26783911fbf252e49322e63232dd319d1e142b108a1f4d977
+    products: cbdcb0cc45fd8eedb79c69c01484d7694f356c8d0f70b48a69a9ed29f22c0e02
+  execution:
+    binary_sha256: ce40613a12398d5f551eb8a25ab58eb25afd0d5ecd5810cc19f054bafd1d8241
+    recipe_sha256: 6b0835b7d18d4af643a04c41cdb3660736665a7330be9712c744d6276a1bbf03
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: digital_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_step_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: bates
+      product: digital_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789312274.7876503
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 79, 91.30 W, [N/A], 1770 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/bates/parameters/bates_01.json: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
+      datasets/product/digital_option/digital_options_01.json: 94f11e19391f8b06ae835fbfc61363687aeb3ce52645ef89d75271eb444dc746
+  record_sha256: 519dd2f369ccd3d87e770c51055045f9960db9bfc681e190dff6bd425ccf3644

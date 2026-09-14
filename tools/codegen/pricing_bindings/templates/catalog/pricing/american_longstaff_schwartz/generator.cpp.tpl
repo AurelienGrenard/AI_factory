@@ -23,7 +23,7 @@ int main() {{
         "https://datasets.ai-factory.example/v1/model/equity/markovian/{model}/prices/"
         "american_{side}s/{database_id}.json",
         "{numerical_method} + Longstaff-Schwartz",
-        PriceConstruction::Aligned,
+        PriceConstruction::{construction},
     }};
     const pricing::AmericanOptionProfile profile{{
         ::ai_factory::workbench::offline::cuda_tuning::kProductionPathsPerPrice,

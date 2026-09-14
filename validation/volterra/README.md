@@ -128,8 +128,8 @@ nvcc -ccbin=/usr/bin/g++-14 -std=c++23 -O3 -arch=sm_89 \
   -o /tmp/rough_heston_cuda_probe.o
 
 g++-14 -O3 /tmp/rough_heston_cuda_probe.o \
-  build-dev/libai_factory_equity_rough_heston_european_option.a \
-  build-dev/libai_factory_runtime.a \
+  build/libai_factory_equity_rough_heston_european_option.a \
+  build/libai_factory_runtime.a \
   -L/usr/local/cuda/lib64 \
   -lcudadevrt -lcudart_static -lrt -lpthread -ldl \
   -o /tmp/rough_heston_cuda_probe
@@ -192,8 +192,8 @@ nvcc -ccbin=/usr/bin/g++-14 -std=c++23 -O3 -arch=sm_89 \
   -o /tmp/rough_sabr_cuda_probe.o
 
 g++-14 -O3 /tmp/rough_sabr_cuda_probe.o \
-  build-dev/libai_factory_equity_rough_sabr_european_option.a \
-  build-dev/libai_factory_runtime.a \
+  build/libai_factory_equity_rough_sabr_european_option.a \
+  build/libai_factory_runtime.a \
   -L/usr/local/cuda/lib64 \
   -lcudadevrt -lcudart_static -lrt -lpthread -ldl \
   -o /tmp/rough_sabr_cuda_probe

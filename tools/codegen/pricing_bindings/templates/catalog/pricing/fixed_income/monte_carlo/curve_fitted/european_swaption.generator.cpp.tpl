@@ -17,12 +17,13 @@ int main() {
         "https://datasets.ai-factory.example/v1/model/fixed_income/${model}/prices/${curve}/${variant}/${model}_01__${curve}_01__${variant}_01__01.json",
         ${dynamics_seed}ULL,
         ${launch_identity},
+        PriceConstruction::${construction},
     };
     const auto models = rates::load_models(recipe.model_dataset_path);
     const auto curves = curve::${curve}::load_curves(recipe.curve_dataset_path);
     const auto product_dataset = product::load_european_swaptions(recipe.product_dataset_path);
     const auto& products = product_dataset.products;
-    const auto count = price_row_count(models.size(), curves.size(), products.size(), PriceConstruction::Aligned);
+    const auto count = price_row_count(models.size(), curves.size(), products.size(), recipe.construction);
     datasets::generate_european_swaption_monte_carlo_prices(
         recipe, offline::cuda::inputs(models, curves, products), count,
         [&](auto& execution, std::size_t offset, std::size_t batch, std::size_t paths,
@@ -31,7 +32,7 @@ int main() {
                 execution.template input<0U>(), models.size(),
                 execution.template input<1U>(), curves.size(),
                 products.data(), execution.template input<2U>(), products.size(),
-                PriceConstruction::Aligned, count, offset, batch, paths, 1.0f / 252.0f,
+                recipe.construction, count, offset, batch, paths, 1.0f / 252.0f,
                 plan.profile.threads_per_block, plan.blocks_for(batch), recipe.seed, execution.prices(), execution.standard_errors()
             );
         }

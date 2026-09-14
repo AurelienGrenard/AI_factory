@@ -22,7 +22,8 @@ int main() {
     auto configuration = datasets::make_fitted_bermudan_swaption_generation_configuration(
         "${model}", "${curve}", "${swaption_side}", paths, seed,
         "Exact fitted CIR terminal-forward transitions + Longstaff-Schwartz",
-        "Hermite degree 3", "standardized unshifted CIR factor"
+        "Hermite degree 3", "standardized unshifted CIR factor",
+        PriceConstruction::${construction}
     );
     configuration.pricing_measure = "last_exercise_bond_forward";
     configuration.regression_target = "next policy cashflow in P(0,T*) / P(t,T*) units";

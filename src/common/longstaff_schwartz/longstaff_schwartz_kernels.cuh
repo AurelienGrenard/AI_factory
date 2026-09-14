@@ -9,6 +9,7 @@
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/reductions.cuh"
 #include "common/simulation/schedule.cuh"
+#include "tools/cuda/generation_progress.hpp"
 
 #include <cuda_runtime.h>
 
@@ -898,6 +899,9 @@ LaunchResult launch_longstaff_schwartz_cuda(
                 cudaMemcpyDeviceToHost
             ),
             "cudaMemcpy early-exercise regression diagnostics"
+        );
+        offline::cuda::record_active_host_progress(
+            batch.result_offset + batch.result_count
         );
         for (std::size_t batch_price = 0U;
              batch_price < batch.result_count;

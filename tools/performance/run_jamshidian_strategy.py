@@ -210,7 +210,7 @@ def main() -> int:
     parser.add_argument("--stage", required=True, choices=("pilot", "screen", "profiles", "large", "confirm"))
     parser.add_argument("--source", action="append", type=Path, default=[])
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--binary", type=Path, default=ROOT / "build-dev/ai_factory_jamshidian_strategy_benchmark")
+    parser.add_argument("--binary", type=Path, default=ROOT / "build/ai_factory_jamshidian_strategy_benchmark")
     parser.add_argument("--repeat", type=int, default=0, help="Independent process campaign identifier")
     parser.add_argument("--side", choices=("payer", "receiver"), default="payer")
     parser.add_argument("--start-index", type=int, default=0,

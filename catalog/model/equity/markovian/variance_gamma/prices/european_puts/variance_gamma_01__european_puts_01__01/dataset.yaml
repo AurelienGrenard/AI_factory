@@ -8,7 +8,7 @@ time_convention:
   days_per_year: 252
 summary:
   pricing_method: "Monte Carlo"
-  monte_carlo_paths_per_price: 262144
+  monte_carlo_paths_per_price: 1048576
   model: "Variance-Gamma"
   numerical_method: "Exact Gamma subordination"
   payoff: "European Options"
@@ -18,12 +18,36 @@ summary:
   threads_per_block: 512
   kernel_launch_count: 1
   maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_exact_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "variance_gamma"
+    product: "european_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/variance_gamma/european_puts/variance_gamma_01__european_puts_01__01.json"
 outputs:
   price:
     estimator: "Monte Carlo discounted payoff mean"
@@ -40,5 +64,79 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.284507891 s"
-  kernel_seconds: "0.0060672 s"
+  wall_seconds: "0.197485992 s"
+  kernel_seconds: "0.099743744 s"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "exact transition dates"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+generation:
+  schema_version: 1
+  dataset_sha256: f553bf82e57c6e5253903abbe30f832826e007e7f3b8e3b46bce30bf79deb27a
+  contract_sha256: 778873af6b709a00a07527ba746a74d483eeec84ec318d495904a530e7df3f04
+  specification:
+    kind: prices
+    identity: variance_gamma/european_option
+    database_id: variance_gamma_01__european_puts_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828163525312512
+    paths_per_price: 1048576
+  inputs:
+    models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
+    products: d1e8abd86da1fd6cf0818a35f32ee757df320bfa72a95dcb804d53c77d68b80e
+  execution:
+    binary_sha256: 9bfef9997452b84f06ff4c1c46733dc46b9b00429d9fb49dfa6e288f992a6a73
+    recipe_sha256: 4c29f09980cdfe182356ee0b06bde537f59adec2d8d16bb49a6074f82311a080
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: european_puts
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_exact_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: variance_gamma
+      product: european_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789332750.1207254
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 81, 101.08 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+      datasets/product/european_option/european_options_01.json: e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6
+  record_sha256: f02eb1bf9669002a6ed5a21a2e7d201d01de25028d93e6d420cd1a8c33a93bcd

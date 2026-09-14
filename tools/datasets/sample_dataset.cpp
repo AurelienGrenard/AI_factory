@@ -5,13 +5,116 @@
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/sampling.hpp"
 
+#include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_set>
 
 namespace ai_factory::workbench::datasets {
 namespace {
+
+// Reporting is optional and checks the clock only once per 16,384 JSON rows.
+// It observes completed host writes without synchronizing or altering CUDA work.
+class SampleWriteProgress {
+public:
+    explicit SampleWriteProgress(std::size_t total) noexcept
+        : total_(total), started_(std::chrono::steady_clock::now()) {
+        try {
+            const char* path = std::getenv("AI_FACTORY_GENERATION_PROGRESS");
+            if (path == nullptr || *path == '\0' || total == 0U) return;
+            path_ = path;
+            if (const char* journal = std::getenv(
+                    "AI_FACTORY_GENERATION_PROGRESS_LOG"
+                ); journal != nullptr && *journal != '\0') {
+                journal_path_ = journal;
+            }
+            enabled_ = true;
+            write("running", 0U);
+        } catch (...) {
+            enabled_ = false;
+        }
+    }
+
+    ~SampleWriteProgress() noexcept {
+        if (enabled_ && !finished_) write("stopped", completed_);
+    }
+
+    void record(std::size_t completed) noexcept {
+        if (!enabled_) return;
+        completed_ = completed;
+        if ((completed & 16'383U) != 0U) return;
+        const auto now = std::chrono::steady_clock::now();
+        if (now - last_write_ < std::chrono::seconds(10)) return;
+        write("running", completed_);
+    }
+
+    void complete() noexcept {
+        if (!enabled_) return;
+        completed_ = total_;
+        finished_ = true;
+        write("complete", total_);
+    }
+
+private:
+    void write(const char* state, std::size_t completed) noexcept {
+        try {
+            const auto now = std::chrono::steady_clock::now();
+            const double elapsed = std::chrono::duration<double>(
+                now - started_
+            ).count();
+            const double rate = elapsed > 0.0
+                ? static_cast<double>(completed) / elapsed : 0.0;
+            const double timestamp = std::chrono::duration<double>(
+                std::chrono::system_clock::now().time_since_epoch()
+            ).count();
+            std::ostringstream record;
+            record << std::setprecision(12)
+                   << "{\"event\":\"progress\",\"unix_time\":" << timestamp
+                   << ",\"state\":\"" << state << "\""
+                   << ",\"phase\":\"writing\""
+                   << ",\"completed_samples\":" << completed
+                   << ",\"total_samples\":" << total_
+                   << ",\"elapsed_seconds\":" << elapsed
+                   << ",\"samples_per_second\":" << rate
+                   << ",\"estimated_seconds_remaining\":";
+            if (rate > 0.0 && completed < total_) {
+                record << static_cast<double>(total_ - completed) / rate;
+            } else if (completed == total_) {
+                record << 0.0;
+            } else {
+                record << "null";
+            }
+            record << "}\n";
+            const std::filesystem::path temporary = path_.string() + ".tmp";
+            std::filesystem::create_directories(path_.parent_path());
+            std::ofstream output(temporary, std::ios::trunc);
+            output << record.str();
+            output.close();
+            if (!output) return;
+            std::filesystem::rename(temporary, path_);
+            if (!journal_path_.empty()) {
+                std::ofstream journal(journal_path_, std::ios::app);
+                journal << record.str();
+            }
+            last_write_ = now;
+        } catch (...) {
+            // Observability must not change sample values or stop generation.
+        }
+    }
+
+    std::size_t total_;
+    std::size_t completed_ = 0U;
+    std::chrono::steady_clock::time_point started_;
+    std::chrono::steady_clock::time_point last_write_{};
+    std::filesystem::path path_;
+    std::filesystem::path journal_path_;
+    bool enabled_ = false;
+    bool finished_ = false;
+};
 
 std::size_t checked_sample_count(
     std::size_t parameter_count,
@@ -54,7 +157,8 @@ void write_streamed_json(
     const ParameterJsonFunction& parameter_json,
     const std::vector<std::uint32_t>& maturity_days,
     const std::vector<NamedSampleValues>& outputs,
-    std::size_t row_count
+    std::size_t row_count,
+    SampleWriteProgress& progress
 ) {
     std::filesystem::create_directories(recipe.dataset_path.parent_path());
     std::ofstream output(recipe.dataset_path);
@@ -144,6 +248,7 @@ void write_streamed_json(
         output << "    " << row.dump();
         if (sample_index + 1U != row_count) output << ',';
         output << '\n';
+        progress.record(sample_index + 1U);
     }
     output << "  ]\n}\n";
     if (!output) {
@@ -194,13 +299,15 @@ void write_model_sample_dataset(
         );
     }
 
+    SampleWriteProgress progress(row_count);
     write_streamed_json(
         recipe,
         execution,
         parameter_json,
         maturity_days,
         outputs,
-        row_count
+        row_count,
+        progress
     );
 
     const std::size_t production_row_count = checked_sample_count(
@@ -262,6 +369,7 @@ void write_model_sample_dataset(
         };
     }
     write_catalog_yaml(recipe.catalog_path, catalog);
+    progress.complete();
 }
 
 void validate_model_sample_dataset_file(
