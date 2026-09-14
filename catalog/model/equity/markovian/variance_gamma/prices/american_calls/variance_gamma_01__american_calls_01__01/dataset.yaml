@@ -16,12 +16,42 @@ summary:
   device: "gpu"
   threads_per_block: 128
   blocks_per_price: 128
+  batch_count: 16
+  kernel_launch_count: 6982
+  workspace_bytes: 14190752016
+  maximum_prices_per_batch: 239
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "equity_early_exercise"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_lsm"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "variance_gamma"
+    product: "american_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: "resolved by native LSM VRAM planner"
+    work_distribution: "multiple path blocks per price; native multi-phase LSM"
+    blocks_per_price: 128
+    maximum_resident_prices: 239
+    price_batch_count: 16
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/variance_gamma/prices/american_calls/variance_gamma_01__american_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/variance_gamma/american_calls/variance_gamma_01__american_calls_01__01.json"
 outputs:
   price:
     estimator: "Longstaff-Schwartz discounted cashflow mean"
@@ -38,8 +68,32 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "9.977642004 s"
-  kernel_seconds: "10.148020599 s"
+  wall_seconds: "39.09364643 s"
+  kernel_seconds: "38.572622925 s"
+exercise_policy:
+  method: "Longstaff-Schwartz"
+  regression_basis: "Spot and log-moneyness six-term basis"
+  exercise_dates: "time zero and maturity-anchored product dates"
+  regression_target: "realized future cashflow discounted one exercise interval"
+  in_the_money_paths_only: true
+  solver: "FP64 normal equations and Cholesky on GPU"
+  failure_policy: "fatal regression statuses reject publication"
+  basis:
+    state:
+      - "spot"
+      - "log_moneyness"
+    normalization:
+      - "spot / strike"
+      - "log(spot / strike)"
+    functions:
+      - "1"
+      - "L1(spot / strike)"
+      - "L2(spot / strike)"
+      - "log(spot / strike)"
+      - "log(spot / strike)^2"
+      - "L1(spot / strike) * log(spot / strike)"
+    regularization:
+      ridge: "1e-10 * trace(G) / basis_size"
 observation_schedule:
   rule: "exact independent increments on exercise dates"
   initial_stub:
@@ -48,26 +102,72 @@ observation_schedule:
   regular_exercise_interval:
     increments: 1
     interval: "exercise_interval"
-exercise_policy:
-  method: "Longstaff-Schwartz"
-  regression_basis: "Spot and log-moneyness six-term basis"
-  exercise_dates: "time zero and maturity-anchored product dates"
-  regression_target: "realized future cashflow discounted one exercise interval"
-  in_the_money_paths_only: true
-  solver: "Cholesky on GPU"
-  basis:
-    state:
-      - "spot"
-      - "instantaneous_variance"
-    normalization:
-      - "spot / strike"
-      - "variance / theta"
-    functions:
-      - "1"
-      - "L1(spot / strike)"
-      - "L2(spot / strike)"
-      - "variance / theta"
-      - "(variance / theta)^2"
-      - "L1(spot / strike) * variance / theta"
-    regularization:
-      ridge: "1e-10 * trace(G) / basis_size"
+generation:
+  schema_version: 1
+  dataset_sha256: b4414a214b13eb2d9e41603c2c46e185d2af822bf233f1439b86f329622a4dbb
+  contract_sha256: 5fb60f9befc890cc715ad3b756cd5f81be723bb2b5a6ca9cbf9035c9a15eead2
+  specification:
+    kind: prices
+    identity: variance_gamma/american_option
+    database_id: variance_gamma_01__american_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828099100803072
+    paths_per_price: 1048576
+  inputs:
+    models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
+    products: 18926e2e529f2a009f94ac58f130795bf38b0c062806b508295905f33135843f
+  execution:
+    binary_sha256: 8d78e11df11366fe0d469a22539271570ddc46321b662218b6dd404ba0e69539
+    recipe_sha256: b595dad06cf0dc9fbd48b9a04bd0d8b27b1ec7c53ae670e631ab99147e485d8c
+    declared_method:
+      engine: equity_lsm_exact
+      profile: longstaff_schwartz_price_profile
+      variant: american_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_lsm
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: variance_gamma
+      product: american_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 128
+      prices_per_launch: null
+      price_launch_count: null
+      memory_batching: native LSM VRAM planner; unresolved offline
+      work_distribution: multiple path blocks per price; native multi-phase LSM
+      blocks_per_price: 128
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789336046.4299092
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 79, 79.13 W, [N/A], 2085 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/variance_gamma/prices/american_calls/variance_gamma_01__american_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+      datasets/product/american_option/american_options_01.json: 72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793
+  record_sha256: 357e43f5113c4a10f36985656e66bb00540bb41d9e93b233d80ffad015aef3c0

@@ -83,7 +83,7 @@ def main() -> int:
         failures.append("duplicate available DatasetSpec recipe path")
 
     for dataset in AVAILABLE_DATASET_SPECS:
-        if dataset.dataset_kind != "prices":
+        if dataset.dataset_kind != "prices" or dataset.construction != "aligned":
             continue
         try:
             resolved = resolve_price_capability(

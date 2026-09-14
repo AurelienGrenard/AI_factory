@@ -2,6 +2,7 @@
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/sample_dataset.hpp"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
@@ -14,6 +15,11 @@ int main() {
     const std::filesystem::path directory =
         "/tmp/ai_factory_sample_dataset_stage_test";
     std::filesystem::remove_all(directory);
+    std::filesystem::create_directories(directory);
+    const std::string progress_path = (directory / "progress.json").string();
+    const std::string journal_path = (directory / "progress.jsonl").string();
+    setenv("AI_FACTORY_GENERATION_PROGRESS", progress_path.c_str(), 1);
+    setenv("AI_FACTORY_GENERATION_PROGRESS_LOG", journal_path.c_str(), 1);
 
     const std::vector<nlohmann::ordered_json> parameters = {
         {{"sigma", 0.2f}},
@@ -63,6 +69,21 @@ int main() {
         63U,
         504U
     );
+    const auto progress = read_json_file(progress_path);
+    if (progress.at("state") != "complete"
+        || progress.at("completed_samples") != 4U
+        || progress.at("total_samples") != 4U
+        || progress.at("phase") != "writing") {
+        throw std::runtime_error("sample write progress did not finish");
+    }
+    std::ifstream journal(journal_path);
+    std::size_t progress_records = 0U;
+    for (std::string line; std::getline(journal, line);) {
+        ++progress_records;
+    }
+    if (progress_records != 2U) {
+        throw std::runtime_error("sample progress journal is incomplete");
+    }
     const auto document = read_json_file(recipe.dataset_path);
     if (document.at("samples").at(0).at("parameters").at("sigma") != 0.2f
         || document.at("samples").at(1).at("parameters").at("sigma") != 0.2f
@@ -82,4 +103,6 @@ int main() {
         throw std::runtime_error("sample catalog assembly failed");
     }
     std::filesystem::remove_all(directory);
+    unsetenv("AI_FACTORY_GENERATION_PROGRESS");
+    unsetenv("AI_FACTORY_GENERATION_PROGRESS_LOG");
 }

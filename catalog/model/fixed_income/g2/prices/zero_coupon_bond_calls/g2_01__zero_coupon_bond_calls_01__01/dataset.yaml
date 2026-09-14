@@ -14,14 +14,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "g2"
+    product: "zero_coupon_bond_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/g2/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -36,5 +54,73 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.509009004 s"
-  kernel_seconds: "0.000121856 s"
+  wall_seconds: "0.15896758 s"
+  kernel_seconds: "0.000011264 s"
+generation:
+  schema_version: 1
+  dataset_sha256: c5c624a64dd742874383aeefd3d7cd33654dd65214315b0b567ec25aee2a254d
+  contract_sha256: 9af9cddb0f1184790d3e88dd5de0eff85d24f47847ff9d0e51a0254b6cc467e4
+  specification:
+    kind: prices
+    identity: g2/zero_coupon_bond_option
+    database_id: g2_01__zero_coupon_bond_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    models: 335a9cd3e7c01d3b6819e3f40b998a86e010913c478d6cb40c23c97408fce2d7
+    products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+  execution:
+    binary_sha256: 3504f5823b0c6a124c69f6f326fa320b0afa620f04ec18101291c2b81e7d7f95
+    recipe_sha256: 558865ba5d2306ac02e72018fcfa60d320a6f3b1006afdbc81a6803cde056a18
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: zero_coupon_bond_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: g2
+      product: zero_coupon_bond_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307212.6118288
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 86, 104.16 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/fixed_income/g2/parameters/g2_01.json: 2ecf6e4b03ccbadb78130211f519d0ac115768ad2853f5c75bec7f8df9a59ee4
+      datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
+  record_sha256: 0beeb82b42e66a7ab3f64756ca0c8a8f5d0c5244ae2e53ffa77945deed9fc966

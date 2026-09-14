@@ -1,0 +1,142 @@
+title: "rough_heston_01__asset_or_nothing_puts_01__01"
+database_id: "rough_heston_01__asset_or_nothing_puts_01__01"
+catalog: "catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 1048576
+  model: "rough Heston"
+  numerical_method: "7-factor Markovian lift"
+  payoff: "Asset-or-Nothing Options"
+  implementation: "CUDA"
+  device: "gpu"
+  factor_count: 7
+  block_count: 1000
+  threads_per_block: 256
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "rough_n_factor"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "rough_heston"
+    product: "asset_or_nothing_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "rough_n_factor_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  dataset: "validation/datasets/price/equity/rough/rough_heston/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01.json"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "rough_heston_01"
+  catalog: "catalog/model/equity/rough/rough_heston/parameters/rough_heston_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/parameters/rough_heston_01.json"
+product_dataset:
+  id: "asset_or_nothing_options_01"
+  catalog: "catalog/product/asset_or_nothing_option/asset_or_nothing_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/asset_or_nothing_options/asset_or_nothing_options_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "51.212674611 s"
+  kernel_seconds: "48.653316406 s"
+time_grid:
+  simulation_steps_per_day: 2
+  steps_per_year: 504
+  delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: 275ad0e78c61bea0c34cd971a70b6809846fd1fea70ae68a3d66559e1ec1d123
+  contract_sha256: 8e68c88d8613c920b132794754896a1d4b2320d4e895662e233b4eb32dd28ba7
+  specification:
+    kind: prices
+    identity: rough_heston/asset_or_nothing_option
+    database_id: rough_heston_01__asset_or_nothing_puts_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828653151584256
+    paths_per_price: 1048576
+  inputs:
+    models: 74bc2a19f544bbe5efb4cca68c495ecd684e5dfccf61f095c13d44aa361b8d2a
+    products: 74adffb24098626915f451718bec824847be21b33b065cd8dfe515d92447dc75
+  execution:
+    binary_sha256: ef4e242ed385fc5f6b133267ff92a9efa2b0f630db2afeffe28b78cc8c50e31d
+    recipe_sha256: 71d92aa259c43b8ff788f147f07e4e8ebc008135e49609478919e4332a5499b0
+    declared_method:
+      engine: equity_n_factor
+      profile: catalog_price_profile
+      variant: asset_or_nothing_puts
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: rough_n_factor
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: rough_heston
+      product: asset_or_nothing_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+    runtime_observation:
+      unix_time: 1789362746.704029
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 75, 61.38 W, [N/A], 2310 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json: 541ab1647b2830e90fbe26cdee4f604afcbb7a1ef4dd541f1e15e90788d8160c
+      datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json: 2bfee81ff281f8832f8ad4c73ec00f65597b72569d7f34701abecd9f4df56a42
+  record_sha256: 8b7f5e48a989f80675d01c79a2a37d57dc2d0f60bd24f724426b654b8412ddb8

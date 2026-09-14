@@ -10,6 +10,7 @@ contains this guide, not test sources. Use this map before adding a test:
 | Directory | What to look for or add |
 |---|---|
 | `datasets/` | Parameter-row sampling, loaders, catalogue contracts, dataset assembly, provenance/reuse and publication |
+| `learning/` | Python training-data contracts and leakage-safe sample splits |
 | `sampling/` | Model-only trajectories, host memory guards, recipe metadata and replay |
 | `model/equity/` | Equity dynamics contracts and model-specific pricing; rough engines under `rough/` |
 | `model/fixed_income/` | Rate dynamics, analytics and closed-form/terminal pricing, including cross-model contracts |
@@ -46,8 +47,8 @@ stable when files move; they need not repeat the physical filename. Discover
 names and labels with:
 
 ```sh
-ctest --test-dir build-dev -N
-ctest --test-dir build-dev --print-labels
+ctest --test-dir build -N
+ctest --test-dir build --print-labels
 ```
 
 Use the narrowest label or test regex while developing, then the aggregate

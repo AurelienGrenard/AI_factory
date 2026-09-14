@@ -1,5 +1,8 @@
 # CMake target ownership
 
+For a first explanation of configuration, targets, compilation and the local
+`build/` directory, start with the [CMake build guide](../docs/cmake-build-workflow.md).
+
 The root `CMakeLists.txt` owns project-wide configuration and CTest dashboard
 targets, then includes these domain modules. Product target registration and
 source inventories belong to the narrowest applicable module.
@@ -17,12 +20,13 @@ source inventories belong to the narrowest applicable module.
 Do not add a second monolithic target list to the root file or this README.
 The root orchestration derives each target's `AI_FACTORY_OWNER_MODULE` property
 from the target inventory created by each module and rejects unowned targets at
-configure time. The configured build graph is authoritative and can be
-inspected with:
+configure time. The configured build graph is authoritative. `help` lists
+primary targets; Ninja's full list also includes individual generators:
 
 ```sh
-cmake --build build-dev --target help
-ctest --test-dir build-dev -N
+cmake --build build --target help
+ninja -C build -t targets all | rg '^generate_heston_'
+ctest --test-dir build -N
 ```
 
 Generated CMake files are updated through the

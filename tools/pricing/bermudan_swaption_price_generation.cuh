@@ -5,6 +5,7 @@
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/generation_progress.hpp"
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "common/dataset_validation.hpp"
 
@@ -35,6 +36,7 @@ struct BermudanSwaptionGenerationConfiguration {
     offline::cuda_tuning::PricingIdentity identity{offline::cuda_tuning::PricingFamily::gaussian_rate_lsm, {}, "bermudan_swaption", {}};
     std::string pricing_measure = "risk_neutral";
     std::string regression_target = "next policy cashflow discounted pathwise";
+    PriceConstruction construction = PriceConstruction::Aligned;
 };
 
 inline BermudanSwaptionGenerationConfiguration
@@ -47,11 +49,13 @@ make_bermudan_swaption_generation_configuration(
     const std::string& regression_basis,
     const std::string& state_variables,
     const std::string& delta_t,
-    nlohmann::ordered_json time_discretization
+    nlohmann::ordered_json time_discretization,
+    PriceConstruction construction = PriceConstruction::Aligned
 ) {
     const std::string product = "bermudan_" + side + "_swaptions";
     const std::string database_id =
-        model + "_01__" + product + "_01__01";
+        model + "_01__" + product + "_01__01"
+        + (construction == PriceConstruction::CartesianProduct ? "_cartesian" : "");
     const std::string relative =
         "model/fixed_income/" + model + "/prices/" + product + "/"
         + database_id;
@@ -72,6 +76,9 @@ make_bermudan_swaption_generation_configuration(
         {model == "cir" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm
                         : offline::cuda_tuning::PricingFamily::gaussian_rate_lsm,
          model, "bermudan_swaption", {}},
+        "risk_neutral",
+        "next policy cashflow discounted pathwise",
+        construction,
     };
 }
 
@@ -84,11 +91,13 @@ make_fitted_bermudan_swaption_generation_configuration(
     std::uint64_t seed,
     const std::string& numerical_method,
     const std::string& regression_basis,
-    const std::string& state_variables
+    const std::string& state_variables,
+    PriceConstruction construction = PriceConstruction::Aligned
 ) {
     const std::string product = "bermudan_" + side + "_swaptions";
     const std::string database_id = model + "_01__" + curve + "_01__"
-        + product + "_01__01";
+        + product + "_01__01"
+        + (construction == PriceConstruction::CartesianProduct ? "_cartesian" : "");
     const std::string relative = "model/fixed_income/" + model + "/prices/"
         + curve + "/" + product + "/" + database_id;
     return {
@@ -108,6 +117,9 @@ make_fitted_bermudan_swaption_generation_configuration(
         {model == "cir_plus_plus" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm
                                   : offline::cuda_tuning::PricingFamily::gaussian_rate_lsm,
          model, "bermudan_swaption", curve},
+        "risk_neutral",
+        "next policy cashflow discounted pathwise",
+        construction,
     };
 }
 
@@ -188,10 +200,11 @@ void generate_bermudan_swaption_prices(
     Launcher launcher,
     const BermudanSwaptionGenerationConfiguration& configuration
 ) {
-    constexpr PriceConstruction construction = PriceConstruction::Aligned;
+    const PriceConstruction construction = configuration.construction;
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), construction
     );
+    offline::cuda::GenerationProgress progress(result_count);
     const auto plan = bermudan_swaption_launch_plan(configuration, result_count);
     longstaff_schwartz::LaunchResult execution{};
     const auto run = offline::cuda::run_monte_carlo(
@@ -214,6 +227,7 @@ void generate_bermudan_swaption_prices(
             );
         },
         [&](auto& resources) {
+            offline::cuda::ScopedGenerationProgress active(progress);
             execution = launcher(
                 plan,
                 resources.template input<0U>(),
@@ -231,6 +245,7 @@ void generate_bermudan_swaption_prices(
             );
         }
     );
+    progress.complete();
 
     write_monte_carlo_price_dataset(
         model_dataset_path,
@@ -265,10 +280,11 @@ void generate_bermudan_swaption_prices(
     Launcher launcher,
     const BermudanSwaptionGenerationConfiguration& configuration
 ) {
-    constexpr PriceConstruction construction = PriceConstruction::Aligned;
+    const PriceConstruction construction = configuration.construction;
     const std::size_t result_count = price_row_count(
         models.size(), curves.size(), products.size(), construction
     );
+    offline::cuda::GenerationProgress progress(result_count);
     const auto plan = bermudan_swaption_launch_plan(configuration, result_count);
     longstaff_schwartz::LaunchResult execution{};
     const auto run = offline::cuda::run_monte_carlo(
@@ -293,6 +309,7 @@ void generate_bermudan_swaption_prices(
             );
         },
         [&](auto& resources) {
+            offline::cuda::ScopedGenerationProgress active(progress);
             execution = launcher(
                 plan,
                 resources.template input<0U>(),
@@ -312,6 +329,7 @@ void generate_bermudan_swaption_prices(
             );
         }
     );
+    progress.complete();
 
     write_monte_carlo_price_dataset(
         model_dataset_path,
@@ -368,7 +386,7 @@ void generate_exact_bermudan_swaption_prices(
                 host_products,
                 device_products,
                 product_count,
-                PriceConstruction::Aligned,
+                configuration.construction,
                 result_count,
                 paths_per_price,
                 1.0f / 252.0f,
@@ -424,7 +442,7 @@ void generate_exact_fitted_bermudan_swaption_prices(
                 host_products,
                 device_products,
                 product_count,
-                PriceConstruction::Aligned,
+                configuration.construction,
                 result_count,
                 paths_per_price,
                 1.0f / 252.0f,

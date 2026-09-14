@@ -1,5 +1,8 @@
 # Constats d'audit fermes
 
+Les anciens chemins de preuves `build-*` se retrouvent via le
+[plan des artefacts locaux](../local-artifacts.md).
+
 ## Provenance et conservation des datasets — 2026-09-10
 
 ### STRUCT-028 — Distinguer provenance de génération et compatibilité des bases

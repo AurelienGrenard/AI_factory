@@ -15,14 +15,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "cir_plus_plus"
+    product: "zero_coupon_bond_option"
+    curve: "nelson_siegel"
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/cir_plus_plus/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -41,5 +59,75 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.364494631 s"
-  kernel_seconds: "0.000198656 s"
+  wall_seconds: "0.169343342 s"
+  kernel_seconds: "0.000288768 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 9913a2580478e61ea9b34e945347dea50efed4c6505fe3f3845061c48c16cd61
+  contract_sha256: 17349b51b92e49326ab503ca5e45a7a96e7006492212137d56b9a8cbac05377b
+  specification:
+    kind: prices
+    identity: cir_plus_plus/nelson_siegel/zero_coupon_bond_option
+    database_id: cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
+    models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
+    products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+  execution:
+    binary_sha256: 3cf10a81a227deb27ef3d431d4a066d8fb124008aacf2d6571c89a9892198a67
+    recipe_sha256: a51c0ff8684bf8626359c117d3173b282905765459370b04e07318f9c9c01ced
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: zero_coupon_bond_calls
+      construction: aligned
+      has_curve: true
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: cir_plus_plus
+      product: zero_coupon_bond_option
+      curve: nelson_siegel
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307097.111379
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 87, 109.96 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    input_files:
+      datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
+      datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
+      datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
+  record_sha256: 35fcfa18de9aa0f89a852d7bf9bc7160235304dc34594328b24d8ef07b6f488b

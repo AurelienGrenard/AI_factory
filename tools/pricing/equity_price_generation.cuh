@@ -6,6 +6,7 @@
 #include "common/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
+#include "tools/cuda/generation_progress.hpp"
 #include "tools/datasets/price_dataset.hpp"
 
 #include <nlohmann/json.hpp>
@@ -178,6 +179,7 @@ MonteCarloExecution execute_batched_monte_carlo(
     const std::size_t warmup_count = std::min(
         warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
+    cuda::GenerationProgress progress(result_count);
 
     auto run = cuda::run_monte_carlo(
         cuda::inputs(models, products),
@@ -230,9 +232,11 @@ MonteCarloExecution execute_batched_monte_carlo(
                     execution.standard_errors()
                 );
                 offset += count;
+                progress.record_cuda_progress(offset);
             }
         }
     );
+    progress.complete();
 
     nlohmann::ordered_json metadata = profile.execution_metadata;
     metadata["block_count"] = maximum_block_count;
@@ -268,6 +272,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     const std::size_t warmup_count = std::min(
         warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
+    cuda::GenerationProgress progress(result_count);
 
     auto run = cuda::run_monte_carlo(
         cuda::inputs(models, prepared, products),
@@ -324,9 +329,11 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
                     execution.standard_errors()
                 );
                 offset += count;
+                progress.record_cuda_progress(offset);
             }
         }
     );
+    progress.complete();
 
     nlohmann::ordered_json metadata = profile.execution_metadata;
     metadata["block_count"] = maximum_block_count;
@@ -376,6 +383,7 @@ MonteCarloExecution execute_volterra_monte_carlo(
         profile.paths_per_price,
         profile.path_chunk_size
     );
+    cuda::GenerationProgress progress(result_count);
 
     auto invoke_row = [&](auto& execution, std::size_t result_index) {
         const ModelProductIndices indices = decode_model_product_result_index(
@@ -420,9 +428,11 @@ MonteCarloExecution execute_volterra_monte_carlo(
         [&](auto& execution) {
             for (std::size_t index = 0U; index < result_count; ++index) {
                 invoke_row(execution, index);
+                progress.record_cuda_progress(index + 1U);
             }
         }
     );
+    progress.complete();
 
     return {
         std::move(run),

@@ -15,13 +15,31 @@ summary:
   device: "gpu"
   block_count: 4
   threads_per_block: 256
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "jamshidian"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "vasicek"
+    product: "european_swaption"
+    curve: ""
+    qualification: "native_geometry_pending_confirmation"
+    evidence: "docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   kernel_launch_count: 1
-  work_distribution: "one price per thread"
+  requested_work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/vasicek/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -36,5 +54,73 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.834995091 s"
-  kernel_seconds: "0.007003136 s"
+  wall_seconds: "0.137765318 s"
+  kernel_seconds: "0.019647488 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 624c44fefe2549314cb796757ba08448a06dbb7b9f3dac42cd98ca016a24c143
+  contract_sha256: 88c9bf72b8e9bea0ebcc9e9283b27f47f30f843f4f02a0ac3ce7f4b3151b17fe
+  specification:
+    kind: prices
+    identity: vasicek/european_swaption
+    database_id: vasicek_01__european_receiver_swaptions_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    models: 359e723991c28fb574048f7a53b5874f216a7c717fe53afa8b9f456fac744f5f
+    products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+  execution:
+    binary_sha256: 8923836444810eaa70ba069f21d7956dfb4fadde73bd91e4daf91fd2fc899562
+    recipe_sha256: 6a04858fc75d0f5aeb09117c7b7cba2169e7a09a9eedda2b650bb0a90e1349cf
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: european_receiver_swaptions
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: jamshidian
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: vasicek
+      product: european_swaption
+      curve: ''
+      qualification: native_geometry_pending_confirmation
+      evidence: docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307885.0009916
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 84, 107.49 W, [N/A], 1680 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/generator.cpp
+    input_files:
+      datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479
+      datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
+  record_sha256: 7444260625f715fecb43ee4939ac66bd0e292b8e4d8f17dd3884a3b6eb6aaa7f

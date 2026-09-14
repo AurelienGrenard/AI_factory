@@ -1,5 +1,88 @@
 # État de l'audit indépendant
 
+Les anciens chemins locaux `build-*` et `build-dev` sont conservés avec leur
+correspondance dans le [plan des artefacts locaux](../local-artifacts.md).
+
+## Qualité ciblée des prix rough alignés — 2026-09-14
+
+- **Mandat :** à la demande de l'utilisateur, contrôler les datasets rough
+  publiés après la campagne alignée de prix seuls : complétude, intégrité,
+  valeurs non finies, prix manifestement instables et cohérence financière
+  élémentaire. Passage ciblé, pas nouvel audit global ni validation
+  indépendante des six modèles et 29 payoffs.
+- **Snapshot :** branche `feat/rough-price-delta`, HEAD
+  `620642bd79f7d756a34bfa5e125a6cef4677fdd2`, worktree modifié
+  (1 898 entrées `git status --porcelain` avant cette rédaction), query v9.2.
+  Campagne `datasets/generation-runs/equity-rough-aligned-01/campaign.json`
+  SHA-256 `2bdb78b2929784e332e187e42714e877ab438b562e86a0b3c1dc8481b5b64bc6` ;
+  sa révision déclarée est le même HEAD. L'état complet est celui des 174
+  `progress.json` et `publication.json` ; le `.queue.exitcode=1` adjacent
+  conserve l'interruption antérieure et ne décrit pas cette reprise terminée.
+- **Commande et preuve locale :** depuis la racine,
+  `python3 artifacts/audit/rough-price-quality-2026-09-14/reproduce.py > artifacts/audit/rough-price-quality-2026-09-14/result.json`.
+  [Script](../../artifacts/audit/rough-price-quality-2026-09-14/reproduce.py)
+  SHA-256 `4f030bb3e2a68928b4631a83255c983dd304809409ca9f86107d8fa7f1bd7b30` ;
+  [résultat](../../artifacts/audit/rough-price-quality-2026-09-14/result.json)
+  SHA-256 `f0f0771a92d63fd8e1f590378204e9c44e3db5bb9c285f7d44250c7ea81c21f2`.
+  Les deux fichiers sous `artifacts/` sont locaux et ignorés par Git ; la
+  commande permet de recalculer le résultat à partir des datasets publiés.
+
+| Axe | Couverture | Verdict borné |
+| --- | --- | --- |
+| Publication et structure | complète sur les 174 recettes de la campagne | conforme : 174/174 états complets, 348 empreintes publiées correspondantes, 1 000 IDs alignés par dataset |
+| Finitude des sorties | complète sur les 174 000 prix et erreurs standards | conforme : aucun NaN, infini, prix ou erreur standard négatifs |
+| Précision MC et parité diagnostique | partielle : 6 000 couples call/put européens et indicateur SE/prix sur tous les payoffs | indéterminé sur la cause ; signaux matériels ouverts sous NUM-028/029/030 |
+| Justesse financière indépendante des autres payoffs | non examinée | indéterminé |
+
+- **Règle du diagnostic :** `T = maturity_days / 252`, résidu
+  `C-P-[S0 exp(-qT)-K exp(-rT)]`, appels call et put de mêmes datasets modèle
+  et produit, mais graines de dynamique distinctes. Signal si
+  `abs(résidu) > max(5 hypot(SE_call, SE_put), 0.005 max(S0,K))`.
+  Les 900 premières lignes sont core, les 100 dernières stress selon le
+  [contrat des paramètres](../model-and-product-parameter-dataset-generation.md).
+  Ce calcul suppose le forward martingale annoncé ; il ne prouve pas seul
+  la cause d'un écart et ne remplace pas une référence indépendante.
+- **Résultat numérique :** quadratic rough Heston : 107 écarts core et 62
+  stress ; rough SABR : 13 core et deux stress ; log-modulated rough Bergomi :
+  huit stress et zéro core. Les trois autres modèles ont zéro écart au seuil.
+  Pour `prix >0.01` et `SE/prix >25 %`, quadratic rough Heston compte 59
+  core et 27 stress, log-modulated rough Bergomi six stress, les autres zéro.
+  Le maximum est le lookback quadratic rough Heston ligne 770 :
+  `1053.8477783 ± 1051.7395020` (erreur standard).
+- **Mouvements d'identifiants :** [NUM-028](response.md#num-028--qualifier-les-prix-quadratic-rough-heston-dominés-par-les-queues-extrêmes),
+  [NUM-029](response.md#num-029--expliquer-les-écarts-de-parité-des-prix-rough-sabr)
+  et [NUM-030](response.md#num-030--qualifier-la-queue-stress-des-prix-log-modulated-rough-bergomi)
+  ouverts. `NUM-006` et `NUM-007` restent clos pour leurs signatures
+  historiques ; fusion/réouverture seulement si une cause commune est prouvée.
+- **Exclusions et limites :** aucun GPU, nouveau chemin, réplication de graines,
+  raffinement temporel/factoriel, référence externe, modification des
+  datasets, du moteur ou de `validation/` dans ce passage. Le SHA de campagne
+  et les hashes de publication prouvent l'identité des fichiers contrôlés,
+  pas la validité financière de leurs prix.
+
+## Extension demandée des produits fixed income — 2026-09-14
+
+- **Mandat :** ouvrir un constat pour trois nouveaux produits de taux :
+  range accrual quotidien non callable, caplet/floorlet overnight composé,
+  puis note callable range accrual. Il s'agit d'une extension demandée,
+  pas d'une reprise de l'audit indépendant complet.
+- **Révision et état :** base `620642bd79f7d756a34bfa5e125a6cef4677fdd2`,
+  worktree modifié (1 859 entrées `git status --porcelain` avant rédaction).
+  Référentiel d'audit v9.2 ; les modifications préexistantes sont conservées.
+- **Couverture :** lecture de `query.md` et des constats clos pertinents ;
+  inventaire du manifeste pour les prix fixed income alignés. Les 80 recettes
+  présentes appartiennent à quatre familles de produits et ne comprennent
+  aucun des trois nouveaux contrats. Le range accrual equity existant a une
+  sous-jacence différente.
+- **Preuve / résultat :** `AVAILABLE_DATASET_SPECS`, filtré sur
+  `fixed_income`, `prices`, `aligned` : 20 recettes `rate_option`, 20
+  `zero_coupon_bond_option`, 20 `european_swaption`, 20 `bermudan_swaption`.
+  Le constat ouvert est [PRODUCT-001](response.md#product-001--ajouter-trois-produits-de-taux-dépendant-du-chemin).
+- **Exclusions :** aucun moteur, paramètre, générateur, dataset, test CUDA,
+  validation de prix ou mesure de performance ajouté dans ce passage.
+  Aucune disponibilité des produits proposés ni qualification numérique
+  n'est revendiquée.
+
 ## Prix-delta rough — implémentation et contrôles bornés — 2026-09-11
 
 - **Mandat :** réaliser le chantier rough après lecture du travail markovien.

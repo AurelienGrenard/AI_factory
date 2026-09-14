@@ -42,6 +42,7 @@ int main() {
         "cir_01__european_payer_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond puts",
         "CIR European payer swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir", "european_swaption", ""}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir", "european_swaption", ""},
+        PriceConstruction::Aligned
     );
 }

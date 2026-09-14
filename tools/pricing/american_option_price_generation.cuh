@@ -4,6 +4,7 @@
 #include "common/longstaff_schwartz/launch.cuh"
 #include "product/american_option/dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/generation_progress.hpp"
 #include "tools/cuda/tuning_profile.hpp"
 #include "tools/pricing/equity_price_generation.cuh"
 
@@ -129,6 +130,7 @@ int generate_american_option_equity_price_dataset(
     const std::size_t result_count = price_row_count(
         models.size(), products.size(), recipe.construction
     );
+    cuda::GenerationProgress progress(result_count);
     longstaff_schwartz::LaunchResult execution{};
     auto settings = cuda_tuning::pricing_profile(profile.identity);
     settings.threads_per_block = profile.threads_per_block;
@@ -156,6 +158,7 @@ int generate_american_option_equity_price_dataset(
             );
         },
         [&](auto& resources) {
+            cuda::ScopedGenerationProgress active(progress);
             execution = std::invoke(
                 launcher,
                 plan,
@@ -175,6 +178,7 @@ int generate_american_option_equity_price_dataset(
             );
         }
     );
+    progress.complete();
 
     datasets::write_monte_carlo_price_dataset(
         recipe.model_dataset_path,

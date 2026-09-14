@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "stein_stein_01__straddles_01__01_cartesian_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
+  "product_input": "datasets/product/straddle/straddles_01.json",
+  "dataset": "datasets/model/equity/markovian/stein_stein/price_delta/straddles/stein_stein_01__straddles_01__01_cartesian_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/stein_stein/price_delta/straddles/stein_stein_01__straddles_01__01_cartesian_price_delta/dataset.yaml",
+  "construction": "cartesian",
+  "paths_per_price": 1048576,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_crn",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/stein_stein/prices/straddles/stein_stein_01__straddles_01__01_cartesian/generator.cpp"
+  },
+  "dynamics_seed": 11668828069036032000,
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  },
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}

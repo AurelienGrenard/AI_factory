@@ -39,6 +39,7 @@ int main() {
         "ornstein_uhlenbeck_01__european_payer_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond puts",
         "Ornstein-Uhlenbeck European payer swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "ornstein_uhlenbeck", "european_swaption", ""}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "ornstein_uhlenbeck", "european_swaption", ""},
+        PriceConstruction::Aligned
     );
 }

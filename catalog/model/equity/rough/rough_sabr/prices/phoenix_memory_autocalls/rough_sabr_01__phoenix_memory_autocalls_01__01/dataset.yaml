@@ -1,0 +1,152 @@
+title: "rough_sabr_01__phoenix_memory_autocalls_01__01"
+database_id: "rough_sabr_01__phoenix_memory_autocalls_01__01"
+catalog: "catalog/model/equity/rough/rough_sabr/prices/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/prices/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 1048576
+  model: "rough SABR"
+  numerical_method: "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot"
+  payoff: "Phoenix Memory Autocalls"
+  implementation: "CUDA"
+  device: "gpu"
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "rough_fft"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "rough_sabr"
+    product: "phoenix_memory_autocall"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: "src/common/volterra/hybrid_fft_tuning.cuh"
+    work_distribution: "compiled FFT specialization; sequential price submissions"
+    path_chunk_size: 65536
+    chunks_per_price: 16
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "volterra_fft_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  dataset: "validation/datasets/price/equity/rough/rough_sabr/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01.json"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "rough_sabr_01"
+  catalog: "catalog/model/equity/rough/rough_sabr/parameters/rough_sabr_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json"
+product_dataset:
+  id: "phoenix_memory_autocalls_01"
+  catalog: "catalog/product/phoenix_memory_autocall/phoenix_memory_autocalls_01"
+  url: "https://datasets.ai-factory.example/v1/product/phoenix_memory_autocalls/phoenix_memory_autocalls_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "294.960640596 s (4 min, 55 s)"
+  kernel_seconds: "288.4818125 s (4 min, 48 s)"
+time_grid:
+  rule: "nearest integer step count to target dt"
+  target_dt: "1 / 504"
+  step_count: "round(maturity / target_dt)"
+  effective_dt: "maturity / step_count"
+generation:
+  schema_version: 1
+  dataset_sha256: f1d3b4e8bb840f216816a7f78a0031ba0263ce7f31a49005dffbc3854cd4319d
+  contract_sha256: 5f871c943c0e54b8050ab82edccafa2c9f230612030587bf7cfe8c9d973deedc
+  specification:
+    kind: prices
+    identity: rough_sabr/phoenix_memory_autocall
+    database_id: rough_sabr_01__phoenix_memory_autocalls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668828867899949056
+    paths_per_price: 1048576
+  inputs:
+    models: b944dd49346ffce3c3c983b1ee5a6d2752fe3e232afb618733c2e23baf446a4a
+    products: 14b753ccf732d1b3d66a20ee30bb8ca746a1106fc211d5e659b0cf1fd8f5865d
+  execution:
+    binary_sha256: e184d6d395f39aaa5d556250519fe87c328bceb07dfc6562f7e18c6421a546d4
+    recipe_sha256: 504e428adbf798a279e5712299c339135f0cd56f0a647e1a40a46c5232ae1482
+    declared_method:
+      engine: equity_volterra_fft
+      profile: catalog_price_profile
+      variant: phoenix_memory_autocalls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: rough_fft
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: rough_sabr
+      product: phoenix_memory_autocall
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      prices_per_launch: 1
+      price_launch_count: 1000
+      memory_batching: price launch bound; engine workspace guards still apply
+      pricing_path_threads: 256
+      pricing_finalization_threads: 256
+      fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+      work_distribution: compiled FFT specialization; sequential price submissions
+      path_chunk_size: 65536
+      chunks_per_price: 16
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+    runtime_observation:
+      unix_time: 1789351380.83743
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 83, 105.01 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/rough/rough_sabr/prices/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json: acc1d1f590f6d94bb2630c2ef6aab972eeda820fce90bf8cb2a2a852be8fc753
+      datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: f138eca849694b8d0659390a1523828a16759c56f3c733823c908070d5a926a5
+  record_sha256: 8780a59bbde303c1f1080957c62106e6d851fcb70e0200c7f56b3a03a753bac5

@@ -20,7 +20,7 @@ int main() {{
         "{catalog_path}",
         "{url}",
         "{numerical_method}",
-        PriceConstruction::Aligned,
+        PriceConstruction::{construction},
     }};
     const pricing::BatchedMonteCarloProfile profile{{
         {monte_carlo_paths},

@@ -49,6 +49,7 @@ int main() {
         "cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond puts",
         "CIR++ Svensson European payer swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir_plus_plus", "european_swaption", "svensson"}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "cir_plus_plus", "european_swaption", "svensson"},
+        PriceConstruction::Aligned
     );
 }

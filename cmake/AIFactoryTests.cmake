@@ -177,6 +177,18 @@ if(BUILD_TESTING)
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 LABELS "workbench;offline;generation" TIMEOUT 30)
         endforeach()
+        add_test(NAME sample_campaign_selection
+            COMMAND ${Python3_EXECUTABLE} -m unittest discover
+                -s tests/datasets -p test_sample_campaign_selection.py)
+        set_tests_properties(sample_campaign_selection PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;generation" TIMEOUT 30)
+        add_test(NAME learning_terminal_samples
+            COMMAND ${Python3_EXECUTABLE} -m unittest discover
+                -s tests/learning -p test_terminal_samples.py)
+        set_tests_properties(learning_terminal_samples PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;learning" TIMEOUT 30)
         add_test(
             NAME performance_baseline_checker
             COMMAND

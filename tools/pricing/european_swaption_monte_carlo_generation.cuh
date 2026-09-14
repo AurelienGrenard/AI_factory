@@ -5,6 +5,7 @@
 #include "common/dataset_validation.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
+#include "tools/cuda/generation_progress.hpp"
 #include "tools/datasets/price_dataset.hpp"
 
 #include <algorithm>
@@ -22,6 +23,7 @@ struct EuropeanSwaptionMonteCarloRecipe {
     std::string url;
     std::uint64_t seed;
     offline::cuda_tuning::PricingIdentity identity{offline::cuda_tuning::PricingFamily::fixed_income_mc, {}, "european_swaption", {}};
+    PriceConstruction construction = PriceConstruction::Aligned;
     std::size_t paths_per_price = offline::cuda_tuning::kProductionPathsPerPrice;
     unsigned int threads_per_block = offline::cuda_tuning::pricing_profile(identity).threads_per_block;
     std::size_t rows_per_launch = offline::cuda_tuning::pricing_profile(identity).prices_per_launch;
@@ -40,6 +42,7 @@ void generate_european_swaption_monte_carlo_prices(
     const auto plan = offline::cuda_tuning::make_pricing_launch_plan(
         recipe.identity, result_count, recipe.paths_per_price, settings
     );
+    offline::cuda::GenerationProgress progress(result_count);
     const auto run = offline::cuda::run_monte_carlo(inputs, result_count,
         [&](auto& execution) {
             launcher(execution, 0U, std::min<std::size_t>(4U, plan.prices_per_launch),
@@ -50,13 +53,15 @@ void generate_european_swaption_monte_carlo_prices(
                 const auto count = plan.price_count_at(offset);
                 launcher(execution, offset, count, recipe.paths_per_price, plan);
                 offset += count;
+                progress.record_cuda_progress(offset);
             }
         }
     );
+    progress.complete();
     const auto publish = [&](const auto&... input_paths) {
       write_monte_carlo_price_dataset(
         input_paths...,
-        PriceConstruction::Aligned, run.prices, run.standard_errors, "Philox",
+        recipe.construction, run.prices, run.standard_errors, "Philox",
         recipe.dataset_path, recipe.catalog_path, recipe.url,
         "Exact Gaussian joint factor/integral transition + terminal Monte Carlo",
         recipe.paths_per_price, "",

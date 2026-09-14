@@ -1,0 +1,173 @@
+title: "merton_01__american_calls_01__01"
+database_id: "merton_01__american_calls_01__01"
+catalog: "catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 1048576
+  model: "Merton jump diffusion"
+  numerical_method: "Exact Merton increments + Longstaff-Schwartz"
+  payoff: "American Options"
+  implementation: "CUDA"
+  device: "gpu"
+  threads_per_block: 128
+  blocks_per_price: 128
+  batch_count: 16
+  kernel_launch_count: 6982
+  workspace_bytes: 14190752752
+  maximum_prices_per_batch: 239
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "equity_early_exercise"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_lsm"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "merton"
+    product: "american_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: "resolved by native LSM VRAM planner"
+    work_distribution: "multiple path blocks per price; native multi-phase LSM"
+    blocks_per_price: 128
+    maximum_resident_prices: 239
+    price_batch_count: 16
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  dataset: "validation/datasets/price/equity/markovian/merton/american_calls/merton_01__american_calls_01__01.json"
+outputs:
+  price:
+    estimator: "Longstaff-Schwartz discounted cashflow mean"
+  standard_error:
+    estimator: "Conditional standard error of discounted policy cashflows"
+model_dataset:
+  id: "merton_01"
+  catalog: "catalog/model/equity/markovian/merton/parameters/merton_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/parameters/merton_01.json"
+product_dataset:
+  id: "american_options_01"
+  catalog: "catalog/product/american_option/american_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/american_options/american_options_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "39.660087694 s"
+  kernel_seconds: "39.090072754 s"
+exercise_policy:
+  method: "Longstaff-Schwartz"
+  regression_basis: "Spot and log-moneyness six-term basis"
+  exercise_dates: "time zero and maturity-anchored product dates"
+  regression_target: "realized future cashflow discounted one exercise interval"
+  in_the_money_paths_only: true
+  solver: "FP64 normal equations and Cholesky on GPU"
+  failure_policy: "fatal regression statuses reject publication"
+  basis:
+    state:
+      - "spot"
+      - "log_moneyness"
+    normalization:
+      - "spot / strike"
+      - "log(spot / strike)"
+    functions:
+      - "1"
+      - "L1(spot / strike)"
+      - "L2(spot / strike)"
+      - "log(spot / strike)"
+      - "log(spot / strike)^2"
+      - "L1(spot / strike) * log(spot / strike)"
+    regularization:
+      ridge: "1e-10 * trace(G) / basis_size"
+observation_schedule:
+  rule: "exact independent increments on exercise dates"
+  initial_stub:
+    increments: 1
+    interval: "first_exercise_time"
+  regular_exercise_interval:
+    increments: 1
+    interval: "exercise_interval"
+generation:
+  schema_version: 1
+  dataset_sha256: 445ca61b28493dd87fe4cc077ac40c3de8e903a9ac5ac4cf9e3b03e25c1b877e
+  contract_sha256: 23e82752d8d6aa5eae07177561d327316901e86dd283eed5cb1a7a97acf6101a
+  specification:
+    kind: prices
+    identity: merton/american_option
+    database_id: merton_01__american_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668827407611068416
+    paths_per_price: 1048576
+  inputs:
+    models: 5827362340758d00f85c51e13cc12698d937fbd55334d14a728dd5bd879c067c
+    products: 18926e2e529f2a009f94ac58f130795bf38b0c062806b508295905f33135843f
+  execution:
+    binary_sha256: 82c9f5c7f9d1165d23b73d973679d0692a232f38db847b8ef9e49ec88f4d7ad7
+    recipe_sha256: c5770bf648b8ab037dbc77b8c896b814f833faf6ce7ad1dd2b7c19e0e57830c3
+    declared_method:
+      engine: equity_lsm_exact
+      profile: longstaff_schwartz_price_profile
+      variant: american_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_lsm
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: merton
+      product: american_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 128
+      prices_per_launch: null
+      price_launch_count: null
+      memory_batching: native LSM VRAM planner; unresolved offline
+      work_distribution: multiple path blocks per price; native multi-phase LSM
+      blocks_per_price: 128
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789335723.9087982
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 79, 91.42 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/merton/parameters/merton_01.json: 386722815904dd83f13c2dfda530e001b5b822b7cbd91c388b1b87e95f651436
+      datasets/product/american_option/american_options_01.json: 72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793
+  record_sha256: 53f9c4486f5ce62bfe6876fefa0aa7226a3b2965e0eb343eb029dbbfa178f175

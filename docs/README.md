@@ -11,10 +11,12 @@ and project records.
 |---|---|---|
 | Explore runtime ownership | [Source reference index](model-and-curve-reference-index.md) | [Shared primitives](../src/common/README.md) |
 | Understand the CUDA architecture | [CUDA documentation](cuda/README.md) | [Pricing-policy composition](cuda/pricing-policy-composition.md) |
-| Understand the build graph | [CMake ownership](../cmake/README.md) | Discover configured targets from CMake and CTest |
+| Understand CMake and build a target | [CMake build guide](cmake-build-workflow.md) | [CMake ownership](../cmake/README.md) |
+| Find local builds or historical evidence | [Local artifact layout](local-artifacts.md) | Active binaries, audit proofs and campaign records |
 | Add a model, curve, product, or price | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) | Relevant [CUDA contract](cuda/README.md) |
 | Generate model or product parameters | [Parameter-dataset contract](model-and-product-parameter-dataset-generation.md) | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) |
 | Generate model-only training samples | [Model-sample contract](model-sample-dataset-generation.md) | [Code generation](../tools/codegen/pricing_bindings/README.md) |
+| Read terminal samples for learning | [Learning guide](../learning/README.md) | [Model-sample contract](model-sample-dataset-generation.md) |
 | Run or resume a price/sample campaign | [Dataset-generation workflow](dataset-generation-workflow.md) | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) |
 | Keep a dataset after a refactor | [Provenance and reuse](dataset-provenance-contract.md) | Read-only compatibility checker and legacy-data rules |
 | Explore recipes and tests | [Catalogue guide](../catalog/README.md) | [Test-suite guide](../tests/README.md) |

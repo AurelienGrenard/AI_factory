@@ -30,11 +30,11 @@ workspace; it has no fixed 32-exercise limit.
 ## Reproduce
 
 ```sh
-cmake --build build-dev --target ai_factory_cir_forward_measure_probe \
+cmake --build build --target ai_factory_cir_forward_measure_probe \
   ai_factory_cir_forward_transition_probe ai_factory_cir_discount_chain_probe -j2
 python3 tools/performance/run_cir_forward_comparison.py \
   --jobs tests/performance/fixtures/cir_forward_production.json \
-  --output build-dev/cir-forward-smoke-<new-run>
+  --output artifacts/performance/cir-forward-smoke-<new-run>
 OPENBLAS_NUM_THREADS=1 python3 -m unittest \
   tests.performance.test_cir_forward_reference \
   tests.performance.test_cir_forward_comparison -v
@@ -42,17 +42,17 @@ OPENBLAS_NUM_THREADS=1 python3 -m unittest \
 
 The CPU checks explicitly call QuantLib analytics but never regenerate a
 validation cache. Run GPU probes sequentially. Raw measurements belong in a
-fresh build directory, not in `datasets` or `catalog`; checked compact exports
+fresh directory under `artifacts/performance`, not in `datasets` or `catalog`; checked compact exports
 may be retained under `tests/performance/reports`.
 
 After the numerical jobs have finished, run the bounded memory checks:
 
 ```sh
 timeout 180 compute-sanitizer --tool memcheck --error-exitcode 99 \
-  build-dev/ai_factory_cir_forward_measure_probe \
+  build/ai_factory_cir_forward_measure_probe \
   --jobs tests/performance/fixtures/cir_forward_sanitizer.json
 timeout 180 compute-sanitizer --tool racecheck --error-exitcode 99 \
-  build-dev/ai_factory_cir_forward_measure_probe \
+  build/ai_factory_cir_forward_measure_probe \
   --jobs tests/performance/fixtures/cir_forward_sanitizer.json
 ```
 

@@ -49,6 +49,7 @@ int main() {
         "hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond puts",
         "Hull-White Nelson-Siegel European payer swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "hull_white", "european_swaption", "nelson_siegel"}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "hull_white", "european_swaption", "nelson_siegel"},
+        PriceConstruction::Aligned
     );
 }

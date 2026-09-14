@@ -602,11 +602,18 @@ int main() {
             validate_catalog_locations(entry.path());
         }
     }
+    const bool has_batch_count = catalog.find("\n  batch_count:")
+        != std::string::npos;
     require(
-        catalog.find("batch_count:") == std::string::npos
-            && catalog.find("kernel_launch_count:") == std::string::npos
-            && catalog.find("maximum_prices_per_batch:") == std::string::npos
-            && catalog.find("workspace_bytes:") == std::string::npos,
-        "American-put YAML exposes internal batching metadata"
+        has_batch_count
+            == (catalog.find("\n  kernel_launch_count:")
+                != std::string::npos)
+            && has_batch_count
+                == (catalog.find("\n  maximum_prices_per_batch:")
+                    != std::string::npos)
+            && has_batch_count
+                == (catalog.find("\n  workspace_bytes:")
+                    != std::string::npos),
+        "American-put YAML has incomplete executed batching metadata"
     );
 }

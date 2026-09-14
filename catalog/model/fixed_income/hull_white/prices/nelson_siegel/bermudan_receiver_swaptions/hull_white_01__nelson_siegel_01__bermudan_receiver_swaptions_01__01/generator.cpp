@@ -1,4 +1,4 @@
-// Build Hull-White/NS Bermudan-receiver-swaption prices.
+// Generated Hull-White/Nelson-Siegel Bermudan-receiver-swaption price recipe.
 #include "model/fixed_income/hull_white/product/nelson_siegel/bermudan_swaption.cuh"
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "curve/nelson_siegel/dataset.hpp"
@@ -18,17 +18,19 @@ int main() {
     const auto models = rates::load_models(model_path);
     const auto curves = curve::nelson_siegel::load_curves(curve_path);
     const auto products = product::load_bermudan_swaptions(product_path);
-    constexpr std::size_t paths = offline::cuda_tuning::kProductionPathsPerPrice;
+    constexpr std::size_t paths =
+        offline::cuda_tuning::kProductionPathsPerPrice;
     constexpr std::uint64_t seed = 11668829104123150336ULL;
+    auto configuration = datasets::make_fitted_bermudan_swaption_generation_configuration(
+        "hull_white", "nelson_siegel", "receiver", paths, seed,
+        "Exact fitted Gaussian joint transition + Longstaff-Schwartz",
+        "Hermite degree 3", "standardized centered short-rate factor",
+        PriceConstruction::Aligned
+    );
     datasets::generate_exact_fitted_bermudan_swaption_prices(
         model_path, curve_path, product_path, models, curves, products,
         &fitted::launch_hull_white_nelson_siegel_bermudan_swaption_cuda<
-            SwaptionSide::receiver
-        >,
-        datasets::make_fitted_bermudan_swaption_generation_configuration(
-            "hull_white", "nelson_siegel", "receiver", paths, seed,
-            "Exact fitted Gaussian joint transition + Longstaff-Schwartz",
-            "Hermite degree 3", "standardized centered short-rate factor"
-        )
+            SwaptionSide::receiver>,
+        configuration
     );
 }

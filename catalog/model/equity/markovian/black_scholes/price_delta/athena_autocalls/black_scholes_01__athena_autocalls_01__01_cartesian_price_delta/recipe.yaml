@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "price_delta",
+  "database_id": "black_scholes_01__athena_autocalls_01__01_cartesian_price_delta",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
+  "product_input": "datasets/product/athena_autocall/athena_autocalls_01.json",
+  "dataset": "datasets/model/equity/markovian/black_scholes/price_delta/athena_autocalls/black_scholes_01__athena_autocalls_01__01_cartesian_price_delta.json",
+  "catalog_output": "catalog/model/equity/markovian/black_scholes/price_delta/athena_autocalls/black_scholes_01__athena_autocalls_01__01_cartesian_price_delta/dataset.yaml",
+  "construction": "cartesian",
+  "paths_per_price": 1048576,
+  "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
+  "sensitivity": {
+    "parameter": "spot",
+    "method": "centered_crn",
+    "relative_full_width": 0.01,
+    "source_price_recipe": "catalog/model/equity/markovian/black_scholes/prices/athena_autocalls/black_scholes_01__athena_autocalls_01__01_cartesian/generator.cpp"
+  },
+  "dynamics_seed": 11668826784840810496,
+  "time_grid": null,
+  "validation": {
+    "status": "pending",
+    "verified": false
+  }
+}

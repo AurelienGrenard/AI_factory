@@ -15,8 +15,7 @@ int generate_prepared_price_delta_dataset(const datasets::PriceDeltaRecipe& reci
         const auto models = load_models(recipe.model_input);
         const auto products = load_products(recipe.product_input);
         const auto wall_start = std::chrono::steady_clock::now();
-        if (models.empty() || models.size() != products.size())
-            throw std::invalid_argument("N-factor price-delta requires non-empty aligned inputs.");
+        price_row_count(models.size(), products.size(), recipe.construction);
         float horizon = 1.0f / 252.0f;
         for (const auto& product : products)
             horizon = std::max(horizon, static_cast<float>(product.maturity_days) * (1.0f / 252.0f));

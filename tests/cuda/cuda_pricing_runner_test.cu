@@ -1,13 +1,19 @@
 // Exercise the offline CUDA runner independently of a catalog recipe.
 #include "common/check_cuda.cuh"
 #include "tools/cuda/pricing_runner.cuh"
+#include "tools/cuda/generation_progress.hpp"
 
 #include <cuda_runtime.h>
 
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace {
@@ -126,6 +132,43 @@ int main() {
             monte_carlo_launch,
             monte_carlo_launch
         );
+
+    const std::filesystem::path progress_path =
+        std::filesystem::temp_directory_path()
+        / "ai_factory_generation_progress_test.json";
+    setenv(
+        "AI_FACTORY_GENERATION_PROGRESS",
+        progress_path.c_str(),
+        1
+    );
+    {
+        offline_cuda::GenerationProgress progress(inputs.size());
+        const offline_cuda::MonteCarloRun monitored =
+            offline_cuda::run_monte_carlo(
+                host_inputs,
+                inputs.size(),
+                monte_carlo_launch,
+                [&](auto& execution) {
+                    monte_carlo_launch(execution);
+                    progress.record_cuda_progress(inputs.size());
+                }
+            );
+        progress.complete();
+        require_close(monitored.prices.back(), 3.0f * inputs.back());
+    }
+    unsetenv("AI_FACTORY_GENERATION_PROGRESS");
+    std::ifstream progress_stream(progress_path);
+    const std::string progress_document{
+        std::istreambuf_iterator<char>(progress_stream),
+        std::istreambuf_iterator<char>()
+    };
+    if (progress_document.find("\"state\": \"complete\"")
+            == std::string::npos
+        || progress_document.find("\"completed_prices\": 4")
+            == std::string::npos) {
+        throw std::runtime_error("generation progress sidecar is incomplete");
+    }
+    std::filesystem::remove(progress_path);
     for (std::size_t index = 0U; index < inputs.size(); ++index) {
         require_close(monte_carlo.prices[index], 3.0f * inputs[index]);
         require_close(monte_carlo.standard_errors[index], 0.125f);

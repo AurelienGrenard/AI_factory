@@ -18,7 +18,7 @@ int main() {{
         "{catalog_path}",
         "{url}",
         "Black-Scholes closed-form {variant_comment}",
-        PriceConstruction::Aligned,
+        PriceConstruction::{construction},
     }};
     const pricing::AnalyticalProfile profile{{{analytical_profile_values}, {launch_identity}}};
 

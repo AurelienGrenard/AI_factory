@@ -20,7 +20,7 @@ const std::filesystem::path model_dataset_path =
 const std::filesystem::path product_dataset_path =
     "datasets/product/rate_option/rate_options_01.json";
 constexpr ai_factory::workbench::PriceConstruction construction =
-    ai_factory::workbench::PriceConstruction::Aligned;
+    ai_factory::workbench::PriceConstruction::${construction};
 
 // CUDA configuration for the one-thread-per-price analytical kernel.
 constexpr unsigned int threads_per_block =

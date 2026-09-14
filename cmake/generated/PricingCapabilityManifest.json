@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "source_sha256": "f28b2c3cbbc8a874693e0c7fda8f74f39a12abd10c90e3f24f3bf77e3ca34642",
+  "source_sha256": "f6729b95b409c48486cc5c9d5faae99cfa4b35d1f13369919b0ac7a1757e0c77",
   "counts": {
     "engines": 13,
     "models": 25,
     "products": 26,
-    "available_datasets": 1260,
+    "available_datasets": 2416,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 3405
+    "generated_outputs": 5115
   },
-  "outputs_sha256": "d9205b51ab68f3097e8a5481f9ea473aabd671347acc52994736f1857da14e8d",
+  "outputs_sha256": "8f22a45caea26bccf6b9056bbd11ec0c26edf59c771aa8c8f838fe1a920504bf",
   "price_delta_bindings": {
     "src/model/equity/markovian/bates/product/asian_option_price_delta": {
       "pricing": "src/model/equity/markovian/bates/product/asian_option",

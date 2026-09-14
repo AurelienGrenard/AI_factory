@@ -49,6 +49,7 @@ int main() {
         "hull_white_01__svensson_01__european_receiver_swaptions_01__01.json",
         "Closed-form Jamshidian decomposition into zero-coupon bond calls",
         "Hull-White Svensson European receiver swaption",
-        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "hull_white", "european_swaption", "svensson"}
+        ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::jamshidian, "hull_white", "european_swaption", "svensson"},
+        PriceConstruction::Aligned
     );
 }

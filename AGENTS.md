@@ -62,7 +62,9 @@
   `product/` subfolder (`asset_class` is `equity` or `fixed_income`).
 - `src/curve/<curve>`: curve datasets and term-structure analytics.
 - `src/product/<product>`: product parameter rows and JSON loaders.
-- `src/generative`: method-neutral generative-model source code.
+- `learning/`: Python/PyTorch training and evaluation for published datasets;
+  `learning/common/` owns reusable data, network and training components.
+  `src/` remains the C++/CUDA simulation and pricing runtime.
 - `catalog/model/<asset_class>/<model>`: model-owned `parameters`, `samples`,
   and `prices` recipes and generators.
 - `catalog/curve` and `catalog/product`: curve and product recipes.

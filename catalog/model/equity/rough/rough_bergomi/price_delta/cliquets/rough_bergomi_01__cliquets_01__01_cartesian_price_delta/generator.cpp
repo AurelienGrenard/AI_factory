@@ -1,0 +1,20 @@
+// Generated Cartesian-product rough_bergomi cliquet paired recipe with one shared FFT workspace.
+#include "model/equity/rough/rough_bergomi/product/cliquet_price_delta.cuh"
+#include "model/equity/rough/rough_bergomi/dataset.hpp"
+#include "product/cliquet/dataset.hpp"
+#include "product/cliquet/pricing_policy.cuh"
+#include "tools/pricing/volterra_price_delta_generation.cuh"
+
+int main() {
+    using namespace ai_factory::workbench;
+    namespace pricing = offline::pricing;
+    const datasets::PriceDeltaRecipe recipe{
+        "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/rough/rough_bergomi/price_delta/cliquets/rough_bergomi_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/price_delta/cliquets/rough_bergomi_01__cliquets_01__01_cartesian_price_delta/dataset.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/price_delta/cliquets/rough_bergomi_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/cliquets/rough_bergomi_01__cliquets_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+    return pricing::generate_volterra_price_delta_dataset<volterra::RegularHybridSchedule, product::CliquetPathPolicy>(
+        recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_bergomi", "cliquet", ""},
+        11668828528597532672ULL, "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)", model::equity::rough_bergomi::load_models, product::load_cliquets,
+        [](auto... arguments) {
+            model::equity::rough_bergomi::launch_rough_bergomi_cliquet_price_delta_cuda(arguments...);
+        });
+}

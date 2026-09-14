@@ -1,11 +1,15 @@
 # Constats d'audit non résolus
 
-## État courant — extension prix-delta en cours — 2026-09-11
+Les anciens chemins de preuves `build-*` se retrouvent via le
+[plan des artefacts locaux](../local-artifacts.md).
 
-**Deux constats ouverts, 106 fermés, 108 identifiants.** Le lot 1 puis
+## État courant — prix rough, prix-delta et produits de taux — 2026-09-14
+
+**Six constats ouverts, 106 fermés, 112 identifiants.** Le lot 1 puis
 STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
-[closed.md](closed.md). Restent PERF-016 et le chantier demandé DELTA-001; aucune clôture de
-performance globale ou de validation.
+[closed.md](closed.md). Restent PERF-016, DELTA-001, PRODUCT-001 et les trois
+constats de qualité des prix rough NUM-028/029/030. Aucune clôture de performance
+globale ou de validation indépendante n'est revendiquée.
 
 Le passage indépendant portait sur le worktree réel de main, HEAD
 `872a986b1f0947a1a832af0615ffc6d80dbedb81`, query v9, pas sur le seul commit.
@@ -79,6 +83,149 @@ dans PERF-016; aucune campagne longue n'est lancée dans ce lot.
   globale de disponibilité. Aucun test ou certificat Premia/QuantLib inventé.
 - **Contrat :** [prix-delta equity](../cuda/equity-price-delta-contract.md).
   PERF-016 reste indépendant et reporté; aucune campagne de scaling lancée.
+
+## Produits fixed income à trajectoire fine
+
+### PRODUCT-001 — Ajouter trois produits de taux dépendant du chemin
+
+- **État / date / propriétaire :** ouvert le 2026-09-14 à la demande de
+  l'utilisateur ; extension fonctionnelle à réaliser, pas défaut des prix
+  fixed income existants ; propriétaire : chantier produits fixed income.
+- **Sévérité / priorité / confiance :** moyenne / haute / élevée sur l'absence
+  de capacité, choix et coût des produits encore à qualifier.
+- **Contrat et localisation :** [workflow d'extension](../catalog-extension-and-validation-workflow.md),
+  `src/product/`, `src/model/fixed_income/**/product/`,
+  `tools/codegen/pricing_bindings/capability_manifest.py`, `catalog/` et `datasets/`.
+- **Preuve reproductible :** dans `AVAILABLE_DATASET_SPECS`, filtrer
+  `asset_class == "fixed_income"`, `dataset_kind == "prices"` et
+  `construction == "aligned"` : les 80 recettes couvrent `rate_option`,
+  `zero_coupon_bond_option`, `european_swaption` et `bermudan_swaption`, mais
+  aucun range accrual de taux ni coupon overnight composé. Le range accrual
+  equity existant ne remplit pas ce contrat de taux.
+- **Conséquence :** la famille fixed income n'exerce pas encore le suivi fin
+  d'un taux le long du chemin, l'accumulation de coupons et l'actualisation
+  correspondante. Les Bermudans testent des dates d'exercice, pas une
+  observation quotidienne de coupon.
+- **Ordre demandé :** (1) coupon range accrual non callable sur un indice de
+  taux défini par le modèle, avec observations quotidiennes ; (2)
+  caplet/floorlet sur taux overnight composé en fin de période ; (3) note
+  callable range accrual à coupons multiples, avec décision de rappel de
+  l'émetteur. Les conventions d'indice, calendrier, jours d'accumulation,
+  paiement et actualisation seront déclarées avant implémentation. Ne pas
+  appeler le taux court simulé « SOFR » sans correspondance explicite.
+- **Correction minimale :** déclarer chaque produit et les compositions
+  modèle-produit réellement supportées dans le manifeste ; réutiliser un
+  observateur de chemin et un accumulateur d'actualisation communs, sans
+  recopier les dynamiques par produit. Étendre ensuite les recettes codegen,
+  les générateurs, la validation et les métadonnées selon le contrat existant.
+  La note callable vient après les deux coupons non callable et réemploie le
+  moteur LSM lorsque ses états de continuation sont définis.
+- **Clôture vérifiable :** paramètres et payoff documentés, générateurs et
+  cibles CMake disponibles pour la matrice déclarée, limites financières et
+  cas dégénérés testés, contrôle de raffinement temporel et de ressources sur
+  les observations fines, datasets de prix générés avec provenance, puis
+  validation indépendante appropriée. Une couverture partielle ou une
+  recette créée sans prix exécuté reste explicitement ouverte.
+
+## Qualité des prix rough alignés publiés
+
+Le contrôle ciblé des 174 datasets de prix seuls compare les calls/puts
+européens de même modèle et de mêmes lignes d'entrée. L'écart diagnostique est
+`C - P - (S0 exp(-qT) - K exp(-rT))`, avec `T = maturity_days / 252`.
+Une ligne est signalée si sa valeur absolue dépasse à la fois cinq erreurs
+standards combinées et 0,5 % de `max(S0, K)`. Ce n'est pas une référence de
+prix indépendante : la cause d'un écart peut être une queue rare, le biais de
+discrétisation, le statut martingale du modèle ou une erreur de code.
+[Le script et son résultat local](../../artifacts/audit/rough-price-quality-2026-09-14/result.json)
+figent la règle et les nombres ; le passage est détaillé dans
+[status.md](status.md#qualité-ciblée-des-prix-rough-alignés--2026-09-14).
+
+### NUM-028 — Qualifier les prix quadratic rough Heston dominés par les queues extrêmes
+
+- **État / date / propriétaire :** ouvert le 2026-09-14 ; propriétaire :
+  moteur quadratic rough Heston et qualification des prix MC.
+- **Sévérité / priorité / confiance :** haute / haute / élevée sur les écarts
+  et l'incertitude observés, cause encore indéterminée.
+- **Contrat / localisation :** [contrat MC](../cuda/closed-form-and-monte-carlo-pricing-contract.md),
+  `src/model/equity/rough/quadratic_rough_heston/`,
+  `datasets/model/equity/rough/quadratic_rough_heston/prices/`.
+- **Preuve reproductible :** les 29 datasets de ce modèle ont 1 000 prix
+  finis et 2²⁰ chemins par prix. Le lookback ligne 770 affiche
+  `1053.8477783 ± 1051.7395020` en erreur standard, pour `S0=1` et
+  `K=0.9663277`. Sur les prix `>0.01`, 59 lignes core et 27 stress ont
+  `SE/prix >25 %`. La parité diagnostique échoue sur 107 lignes core et
+  62 stress, dont la ligne européenne 984 avec un résidu `-0.77448`
+  pour une erreur combinée `3.35e-6`.
+- **Conséquence / portée :** la finitude et les hashes corrects ne suffisent
+  pas à qualifier ces étiquettes pour l'apprentissage ou la comparaison de
+  méthodes. Les deux symptômes peuvent avoir des causes différentes ; ce
+  constat ne tranche ni biais du modèle ni défaut de l'estimateur.
+- **Correction minimale proposée :** rejouer des lignes core et stress ciblées
+  avec graines indépendantes ; mesurer la convergence en chemins, temps et
+  facteurs, le premier moment actualisé du spot et les quantiles des payoffs.
+  Corriger la dynamique, le domaine ou la méthode d'estimation seulement
+  après localisation de la cause ; régénérer les sorties affectées avec
+  provenance. Ne pas simplement écrêter les prix extrêmes.
+- **Clôture vérifiable :** domaine admissible et estimation MC qualifiés sur
+  les lignes signalées, incertitude reproductible par répétitions indépendantes,
+  écart de premier moment expliqué ou corrigé, et datasets concernés
+  régénérés/écartés explicitement. `NUM-007` demeure clos pour son ancienne
+  signature (samples non finis) ; ce constat vise la qualité de prix de la
+  campagne publiée.
+
+### NUM-029 — Expliquer les écarts de parité des prix rough SABR
+
+- **État / date / propriétaire :** ouvert le 2026-09-14 ; propriétaire :
+  moteur rough SABR FFT et qualification des prix MC.
+- **Sévérité / priorité / confiance :** moyenne / haute / élevée sur les 15
+  écarts, cause indéterminée.
+- **Contrat / localisation :** [modèle rough SABR](../../src/model/equity/rough/rough_sabr/README.md),
+  `src/model/equity/rough/rough_sabr/`,
+  `datasets/model/equity/rough/rough_sabr/prices/european_{calls,puts}/`.
+- **Preuve reproductible :** 13 lignes core et deux stress sur 1 000
+  dépassent le seuil commun. Ligne 394 : résidu de parité `+0.0628550`
+  pour `SE` combinée `0.0003255`, environ 193 fois celle-ci. Les datasets
+  sont finis, alignés et publiés ; les prix nominaux proches de 10 sont
+  compatibles avec certains spots d'entrée proches de 10 et ne fondent pas
+  ce constat à eux seuls.
+- **Conséquence / portée :** la précision déclarée de ces lignes ne suffit
+  pas à justifier leur usage comme référence. La frontière absorbante et le
+  pas Lamperti sont des pistes à mesurer, pas une cause démontrée ; la
+  correction historique `NUM-006` n'est pas rouverte sans cette preuve.
+- **Correction minimale proposée :** rejouer les 15 lignes avec d'autres
+  graines et pas, contrôler `E[e^{-rT}S_T]`, l'incidence de l'absorption et
+  les moments des payoffs. Corriger seulement le mécanisme identifié, puis
+  republier les lignes concernées si leurs prix changent.
+- **Clôture vérifiable :** les écarts sont expliqués par une limite documentée
+  et admissible ou disparaissent après correction ; la qualification inclut
+  les 13 lignes core, des répétitions indépendantes et les nouvelles preuves
+  de provenance des datasets corrigés.
+
+### NUM-030 — Qualifier la queue stress des prix log-modulated rough Bergomi
+
+- **État / date / propriétaire :** ouvert le 2026-09-14 ; propriétaire :
+  moteur log-modulated rough Bergomi FFT et qualification des prix MC.
+- **Sévérité / priorité / confiance :** moyenne / moyenne / élevée sur le
+  signal local, cause indéterminée.
+- **Contrat / localisation :** [contrat MC](../cuda/closed-form-and-monte-carlo-pricing-contract.md),
+  `src/model/equity/rough/log_modulated_rough_bergomi/`,
+  `datasets/model/equity/rough/log_modulated_rough_bergomi/prices/`.
+- **Preuve reproductible :** huit écarts de parité sur 100 lignes stress,
+  zéro sur les 900 lignes core au seuil commun. Ligne 948 : résidu
+  `-0.0090962`, `SE` combinée `0.0004228`, soit environ 21,5 fois celle-ci.
+  Six prix stress `>0.01` ont aussi `SE/prix >25 %` ; aucun core dans ce
+  critère. Les fichiers et leurs empreintes de publication sont intègres.
+- **Conséquence / portée :** la queue stress ne peut être considérée
+  qualifiée par le seul contrôle de finitude. Le signal ne justifie pas
+  d'invalider sans examen les 900 lignes core ou les autres modèles FFT.
+- **Correction minimale proposée :** reproduire les huit lignes avec
+  répétitions indépendantes, isoler effet des paramètres stress, premier
+  moment du spot, convolution FFT, discrétisation et erreur d'échantillonnage ;
+  corriger ou documenter le domaine affecté avec provenance.
+- **Clôture vérifiable :** les huit écarts et les six lignes à forte
+  incertitude sont expliqués ou corrigés, avec contrôle des 900 lignes core
+  et résultats indépendants sur la queue stress ; toute sortie modifiée est
+  régénérée et liée à sa recette.
 
 ## Performance
 

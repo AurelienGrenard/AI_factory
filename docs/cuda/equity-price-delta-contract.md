@@ -12,7 +12,10 @@ part has 244 Monte Carlo (MC) bindings, eight Black-Scholes closed formulas
 and nine American least-squares Monte Carlo (LSM) bindings. The rough part
 adds 126 bindings across six models.
 `PRICE_DELTA_BINDING_SPECS` owns the generated launchers;
-`PRICE_DELTA_DATASET_SPECS` derives recipes from the existing price catalogue.
+`PRICE_DELTA_DATASET_SPECS` derives aligned and Cartesian recipes from the
+existing price catalogue. Cartesian products use the existing model and product
+rows without changing either input dataset; products vary fastest within each
+model.
 This is implementation coverage, not catalogue-wide numerical, singularity
 or performance certification. Rough early exercise is not implemented.
 No existing dataset or price-only launch profile is changed.
@@ -154,6 +157,9 @@ planned inputs, method, full bump, CRN seed, fixed time grid when applicable
 and 2^20 paths (zero for closed form). It is not a claim that data were generated.
 Execution writes the mirrored JSON under `datasets/.../price_delta/` and an
 adjacent `dataset.yaml` describing the actual outputs and geometry.
+Each source price recipe has distinct aligned and Cartesian price-delta targets.
+The writer records the construction and the controller derives the result count
+from the frozen input cardinalities.
 
 Run these through `tools/datasets/generate_catalog.py --kind price_delta`.
 The controller freezes both recipe files and inputs, checks paired outputs

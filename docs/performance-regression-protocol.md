@@ -113,7 +113,7 @@ Configure the `dev` preset, then build the dedicated targets:
 
 ```sh
 cmake --preset dev
-cmake --build build-dev --target performance_benchmarks -j2
+cmake --build build --target performance_benchmarks -j2
 ```
 
 The generic harness covers `index`, `accumulation`, `overhead`, `geometry` and
@@ -206,7 +206,7 @@ table. Build the inspector and the selected probes first. For example:
 python3 tools/performance/run_pricing_scaling.py \
   --stage production --price-counts 1000 --path-counts 1048576 \
   --input-profile catalogue --cases kou__mc_terminal cir__closed_form \
-  --output build-dev/production-plan-example --plan-only
+  --output artifacts/performance/production-plan-example --plan-only
 ```
 
 Use a fresh output directory and omit `--plan-only` to execute two excluded
@@ -315,10 +315,10 @@ new evidence directory. Case IDs may be supplied to keep one GPU process active
 at a time:
 
 ```sh
-cmake --build build-dev --target pricing_scaling_benchmarks -j2
+cmake --build build --target pricing_scaling_benchmarks -j2
 python3 tools/performance/run_pricing_scaling.py \
-  --build-dir build-dev \
-  --output build-dev/pricing-scaling-<campaign> \
+  --build-dir build \
+  --output artifacts/performance/pricing-scaling-<campaign> \
   --stage scaling \
   --cases <manifest-case-id>
 ```
@@ -351,8 +351,8 @@ relaxed tolerance after seeing the results.
 
 ```sh
 python3 tools/performance/summarize_pricing_scaling.py \
-  build-dev/pricing-scaling-<campaign> \
-  --output build-dev/pricing-scaling-<campaign>/summary.json
+  artifacts/performance/pricing-scaling-<campaign> \
+  --output artifacts/performance/pricing-scaling-<campaign>/summary.json
 ```
 
 Volterra FFT geometry has one implementation owner:
@@ -371,7 +371,7 @@ missing, duplicate, unknown, incompatible, numerically invalid,
 resource-regressed, timing-regressed or blocking-inconclusive rows:
 
 ```sh
-cmake --build build-dev --target performance_regression_gate -j2
+cmake --build build --target performance_regression_gate -j2
 ```
 
 No timing result determines campaign eligibility and no campaign is recomposed
@@ -394,8 +394,8 @@ exhaustive leaf-level diff before publication:
 ```sh
 python3 tools/performance/run_baseline.py \
   --baseline tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
-  --build-dir build-dev \
-  --output build-dev/performance_candidate_sm89_v3.ndjson \
+  --build-dir build \
+  --output artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --predecessor-baseline \
     tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
   --rebaseline-output tests/performance/baseline_sm89_v3.json \
@@ -456,30 +456,30 @@ reject any concurrent GPU use:
 ```sh
 python3 tools/performance/profile_kernel.py \
   --baseline tests/performance/baseline_sm89_v3.json \
-  --candidate build-dev/performance_candidate_sm89_v3.ndjson \
-  --build-dir build-dev \
+  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --build-dir build \
   --measurement-id cir_noinline \
   --output-dir tests/performance/profiles/sm89
 
 python3 tools/performance/profile_kernel.py \
   --baseline tests/performance/baseline_sm89_v3.json \
-  --candidate build-dev/performance_candidate_sm89_v3.ndjson \
-  --build-dir build-dev \
+  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --build-dir build \
   --measurement-id model_samples__rough_n_factor_7_12000_x_250 \
   --output-dir tests/performance/profiles/sm89
 
 python3 tools/performance/profile_kernel.py \
   --baseline tests/performance/baseline_sm89_v3.json \
-  --candidate build-dev/performance_candidate_sm89_v3.ndjson \
-  --build-dir build-dev \
+  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --build-dir build \
   --measurement-id lsm__equity_multi_state_heston \
   --resource-index 1 \
   --output-dir tests/performance/profiles/sm89
 
 python3 tools/performance/profile_kernel.py \
   --baseline tests/performance/baseline_sm89_v3.json \
-  --candidate build-dev/performance_candidate_sm89_v3.ndjson \
-  --build-dir build-dev \
+  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --build-dir build \
   --measurement-id rough_sabr_fft \
   --resource-index 2 \
   --environment-mode resource_only \

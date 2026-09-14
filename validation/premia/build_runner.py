@@ -15,10 +15,10 @@ def project_root() -> Path:
 
 
 def runner_path(root: Path | None = None) -> Path:
-    """Return the untracked build location of the Premia runner."""
+    """Return the local artifact location of the Premia runner."""
 
     repository = root or project_root()
-    return repository / "build" / "validation" / "premia" / "premia_runner.exe"
+    return repository / "artifacts" / "tooling" / "premia" / "premia_runner.exe"
 
 
 def build_runner(root: Path | None = None, force: bool = False) -> Path:

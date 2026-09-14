@@ -240,6 +240,9 @@ class FixedIncomeCapabilitySpec:
     def recipe_template_for(self, product: str) -> str:
         if product == "bermudan_swaption" and self.curve and self.terminal_forward_dynamics:
             return "catalog/pricing/fixed_income/longstaff_schwartz/terminal_forward/curve_fitted/bermudan_swaption.generator.cpp.tpl"
+        if product == "bermudan_swaption":
+            family = "curve_fitted" if self.curve else "standalone"
+            return f"catalog/pricing/fixed_income/longstaff_schwartz/joint/{family}/bermudan_swaption.generator.cpp.tpl"
         if self.engine_for(product) == "fixed_income_monte_carlo":
             family = "curve_fitted" if self.curve else "standalone"
             return f"catalog/pricing/fixed_income/monte_carlo/{family}/{product}.generator.cpp.tpl"
@@ -910,17 +913,10 @@ def _fixed_income_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                     f"catalog/{capability.source_prefix}/prices/{curve_path}"
                     f"{variant}/{dataset_id}/generator.cpp"
                 ),
-                owner=(
-                    "generated" if capability.is_generated(FIXED_INCOME_VARIANTS[variant])
-                    else "hand_written"
-                ),
+                owner="generated",
                 status="available",
                 source_prefix=capability.source_prefix,
-                template=(
-                    None
-                    if not capability.is_generated(FIXED_INCOME_VARIANTS[variant])
-                    else capability.recipe_template_for(FIXED_INCOME_VARIANTS[variant])
-                ),
+                template=capability.recipe_template_for(FIXED_INCOME_VARIANTS[variant]),
                 engine=engine,
                 model=capability.model,
                 curve=capability.curve,
@@ -1123,7 +1119,7 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
             f"non-generated dataset declares a renderer: {dataset.recipe_path}"
         )
     if dataset.construction not in {
-        "ordered_core_stress", "aligned", "cartesian_parameter_paths",
+        "ordered_core_stress", "aligned", "cartesian", "cartesian_parameter_paths",
     }:
         raise ValueError(
             f"unknown dataset construction {dataset.construction}: "
@@ -1149,6 +1145,7 @@ def classify_price_capability(
     matches = [
         dataset for dataset in datasets
         if dataset.dataset_kind == "prices"
+        and dataset.construction == "aligned"
         and dataset.model == model
         and dataset.product == product
         and dataset.variant == variant
@@ -1483,15 +1480,59 @@ GENERATED_PRICE_DELTA_BINDING_PATHS = tuple(
 
 # Sensitivities inherit the exact input/variant contract of an existing price
 # recipe. They do not reserve new random streams: CRN aliases are explicit.
+ALIGNED_PRICE_DATASET_SPECS = tuple(
+    dataset for dataset in AVAILABLE_DATASET_SPECS
+    if dataset.dataset_kind == "prices" and dataset.construction == "aligned"
+)
+CARTESIAN_PRICE_DATASET_SPECS = tuple(
+    replace(
+        dataset,
+        dataset_id=dataset.dataset_id + "_cartesian",
+        recipe_path=dataset.recipe_path.replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id + "_cartesian/",
+        ),
+        construction="cartesian",
+        layout=(
+            "model_major_curve_then_product_cartesian_price_rows"
+            if dataset.curve is not None
+            else "model_major_product_fastest_cartesian_price_rows"
+        ),
+    )
+    for dataset in ALIGNED_PRICE_DATASET_SPECS
+)
+CARTESIAN_PRICE_SOURCE_BY_RECIPE = {
+    cartesian.recipe_path: aligned
+    for aligned, cartesian in zip(
+        ALIGNED_PRICE_DATASET_SPECS,
+        CARTESIAN_PRICE_DATASET_SPECS,
+        strict=True,
+    )
+}
+DATASET_SPECS += CARTESIAN_PRICE_DATASET_SPECS
+AVAILABLE_DATASET_SPECS += CARTESIAN_PRICE_DATASET_SPECS
+RNG_DOMAIN_SPECS += tuple(
+    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=cartesian.recipe_path)
+    for cartesian in CARTESIAN_PRICE_DATASET_SPECS
+    if (source := CARTESIAN_PRICE_SOURCE_BY_RECIPE[cartesian.recipe_path]).recipe_path
+    in RNG_DOMAIN_BY_RECIPE
+)
+RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
+for _dataset in CARTESIAN_PRICE_DATASET_SPECS:
+    validate_dataset_spec(_dataset)
+
+
 PRICE_DELTA_SOURCE_DATASETS = {
     dataset.recipe_path: dataset for dataset in AVAILABLE_DATASET_SPECS
-    if dataset.dataset_kind == "prices" and any(
+    if dataset.dataset_kind == "prices"
+    and dataset.construction == "aligned"
+    and any(
         (spec.pricing.model, spec.pricing.product, spec.pricing.engine)
         == (dataset.model, dataset.product, dataset.engine)
         for spec in PRICE_DELTA_BINDING_SPECS
     )
 }
-PRICE_DELTA_DATASET_SPECS = tuple(
+_ALIGNED_PRICE_DELTA_DATASET_SPECS = tuple(
     replace(dataset, dataset_kind="price_delta", owner="generated",
             dataset_id=dataset.dataset_id + "_price_delta",
             recipe_path=dataset.recipe_path.replace("/prices/", "/price_delta/")
@@ -1504,23 +1545,81 @@ PRICE_DELTA_DATASET_SPECS = tuple(
             layout="aligned_price_delta_rows", numerical_profile="price_delta_production_paths")
     for dataset in PRICE_DELTA_SOURCE_DATASETS.values()
 )
+_CARTESIAN_PRICE_DELTA_DATASET_SPECS = tuple(
+    replace(
+        dataset,
+        dataset_id=dataset.dataset_id.removesuffix("_price_delta")
+            + "_cartesian_price_delta",
+        recipe_path=dataset.recipe_path.replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id.removesuffix("_price_delta")
+            + "_cartesian_price_delta/",
+        ),
+        construction="cartesian",
+        layout="model_major_product_fastest_price_delta_rows",
+    )
+    for dataset in _ALIGNED_PRICE_DELTA_DATASET_SPECS
+)
+PRICE_DELTA_DATASET_SPECS = (
+    *_ALIGNED_PRICE_DELTA_DATASET_SPECS,
+    *_CARTESIAN_PRICE_DELTA_DATASET_SPECS,
+)
 PRICE_DELTA_SOURCE_BY_RECIPE = {
     delta.recipe_path: source for delta, source in zip(
-        PRICE_DELTA_DATASET_SPECS, PRICE_DELTA_SOURCE_DATASETS.values(), strict=True)
+        _ALIGNED_PRICE_DELTA_DATASET_SPECS,
+        PRICE_DELTA_SOURCE_DATASETS.values(),
+        strict=True,
+    )
 }
+PRICE_DELTA_SOURCE_BY_RECIPE.update({
+    cartesian.recipe_path: next(
+        price for price in CARTESIAN_PRICE_DATASET_SPECS
+        if price.model == cartesian.model
+        and price.product == cartesian.product
+        and price.variant == cartesian.variant
+        and price.curve == cartesian.curve
+    )
+    for aligned, cartesian in zip(
+        _ALIGNED_PRICE_DELTA_DATASET_SPECS,
+        _CARTESIAN_PRICE_DELTA_DATASET_SPECS,
+        strict=True,
+    )
+})
 DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
-RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
-    tuple(sorted((delta.recipe_path, source.recipe_path)))
-    for delta in PRICE_DELTA_DATASET_SPECS
-    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
-)
 RNG_DOMAIN_SPECS += tuple(
     replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=delta.recipe_path)
     for delta in PRICE_DELTA_DATASET_SPECS
     if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
 )
 RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
+_RNG_ALIAS_ROOT_BY_RECIPE = {
+    dataset.recipe_path: dataset.recipe_path
+    for dataset in ALIGNED_PRICE_DATASET_SPECS
+    if dataset.recipe_path in RNG_DOMAIN_BY_RECIPE
+}
+_RNG_ALIAS_ROOT_BY_RECIPE.update({
+    cartesian.recipe_path: source.recipe_path
+    for cartesian in CARTESIAN_PRICE_DATASET_SPECS
+    if (source := CARTESIAN_PRICE_SOURCE_BY_RECIPE[cartesian.recipe_path]).recipe_path
+    in RNG_DOMAIN_BY_RECIPE
+})
+_RNG_ALIAS_ROOT_BY_RECIPE.update({
+    delta.recipe_path: (
+        CARTESIAN_PRICE_SOURCE_BY_RECIPE[source.recipe_path].recipe_path
+        if source.recipe_path in CARTESIAN_PRICE_SOURCE_BY_RECIPE
+        else source.recipe_path
+    )
+    for delta in PRICE_DELTA_DATASET_SPECS
+    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path
+    in RNG_DOMAIN_BY_RECIPE
+})
+RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
+    tuple(sorted((left, right)))
+    for left, left_root in _RNG_ALIAS_ROOT_BY_RECIPE.items()
+    for right, right_root in _RNG_ALIAS_ROOT_BY_RECIPE.items()
+    if left < right and left_root == right_root
+)
 validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
 for _dataset in PRICE_DELTA_DATASET_SPECS:
     validate_dataset_spec(_dataset)

@@ -49,7 +49,7 @@ def main() -> int:
     parser.add_argument("--jobs", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=1200)
-    parser.add_argument("--binary", type=Path, default=ROOT / "build-dev/ai_factory_cir_forward_measure_probe")
+    parser.add_argument("--binary", type=Path, default=ROOT / "build/ai_factory_cir_forward_measure_probe")
     args = parser.parse_args()
     if not 0 < args.timeout <= 3600:
         parser.error("Watchdog must be between zero and 3600 seconds per job")

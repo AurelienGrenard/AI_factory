@@ -15,14 +15,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "g2_plus_plus"
+    product: "zero_coupon_bond_option"
+    curve: "svensson"
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/g2_plus_plus/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -41,5 +59,75 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "1.025416705 s"
-  kernel_seconds: "0.000142464 s"
+  wall_seconds: "0.115085038 s"
+  kernel_seconds: "0.000008192 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 89aa632494b6c52ec9e2b29235122590fec2abc6efd747e39fbcf231b7ecc695
+  contract_sha256: 7c99d21093ff53802a03574fe0b59771b1805985e4e1790649e480940d3e8e0f
+  specification:
+    kind: prices
+    identity: g2_plus_plus/svensson/zero_coupon_bond_option
+    database_id: g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+    models: 9be0d16aa5d7dd3e9e900d20b8fca601bb1a71ee1d241677cb7c7dd5712c76a9
+    products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+  execution:
+    binary_sha256: b36e558bcbbd3cfd9bb3cc7408293265afa382d9861a722b50958e9711cbbdd2
+    recipe_sha256: 9610febe7ed91c755b0bc948132a7360fcda87744021271e0eead11a8f4ca007
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: zero_coupon_bond_puts
+      construction: aligned
+      has_curve: true
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: g2_plus_plus
+      product: zero_coupon_bond_option
+      curve: svensson
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307504.2506635
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 84, 108.18 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    input_files:
+      datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+      datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: e2dd953ab4e521eb3514c1ad1b5fc180bbbcb51864d47d1923c1f9a07ad36819
+      datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
+  record_sha256: 5d755410011fc095f7fcb090508efed691b4de9d44844cbe9474a5b93994148d

@@ -42,7 +42,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, required=True, help="YAML published with the existing dataset")
     parser.add_argument("--dataset", type=Path, required=True, help="Existing JSON, even if relocated")
     parser.add_argument("--target", required=True, help="Current native generator target")
-    parser.add_argument("--build", type=Path, default=ROOT / "build-dev")
+    parser.add_argument("--build", type=Path, default=ROOT / "build")
     args = parser.parse_args()
     try:
         catalog = yaml.safe_load(args.catalog.read_text())

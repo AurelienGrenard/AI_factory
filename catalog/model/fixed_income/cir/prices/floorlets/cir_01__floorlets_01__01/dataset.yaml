@@ -14,14 +14,32 @@ summary:
   implementation: "CUDA"
   device: "gpu"
   block_count: 4
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "closed_form"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "cir"
+    product: "rate_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md"
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per thread at a time"
+    block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: "one price per thread"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/fixed_income/cir/floorlets/cir_01__floorlets_01__01.json"
 outputs:
   price:
     estimator: "closed-form price"
@@ -36,5 +54,73 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "0.578976746 s"
-  kernel_seconds: "0.00022528 s"
+  wall_seconds: "0.134285392 s"
+  kernel_seconds: "0.000295936 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 7c2a1bdc652b482689beb79e6c48696c7bfb073eedbc21f302029c9e31cc348e
+  contract_sha256: 7dde2ed271ff6841902dad34674e3e79594032fc714284ced14d6b600e8bd78f
+  specification:
+    kind: prices
+    identity: cir/rate_option
+    database_id: cir_01__floorlets_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds: {}
+    paths_per_price: 0
+  inputs:
+    models: 7df367a120df98017f4728c34388236aea8dad3d9e7ab4cce473df927178990a
+    products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  execution:
+    binary_sha256: b6b968abdd3f9303d798c909ef84856112888aa7593ba419a82e75c4bb7beb32
+    recipe_sha256: 5c5e7b317f7b47bf381645bd8ec03032d6cd029d9a3f6ff620f609586788af87
+    declared_method:
+      engine: fixed_income_closed_form
+      profile: closed_form_price_profile
+      variant: floorlets
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: closed_form
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: cir
+      product: rate_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+      price_count: 1000
+      paths_per_price: 0
+      threads_per_block: 256
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per thread at a time
+      block_count: 4
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+    runtime_observation:
+      unix_time: 1789307075.4502988
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 87, 109.83 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/generator.cpp
+    input_files:
+      datasets/model/fixed_income/cir/parameters/cir_01.json: 4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1
+      datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
+  record_sha256: ccd96c71a8c35473bc8afb4f856ce5ddd9b95e8912c5da59eb0b6d2d5f5ba52d

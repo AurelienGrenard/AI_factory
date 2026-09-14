@@ -1,7 +1,11 @@
 # Local CMake and CUDA build trees.
 /build/
 /build*/
+/builds/
 /CMakeFiles/
+
+# Local audit evidence, performance runs and validation tool caches.
+/artifacts/
 
 # Full generated datasets live locally or on external storage.
 /datasets/

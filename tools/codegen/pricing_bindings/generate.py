@@ -742,7 +742,10 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
         args = ["host_models", "device_models", "model_count"]
         if stochastic or fixed:
             args.append("host_products")
-        args += ["device_products", "product_count", "PriceConstruction::Aligned", "context.results"]
+        construction = (
+            "CartesianProduct" if dataset.construction == "cartesian" else "Aligned"
+        )
+        args += ["device_products", "product_count", f"PriceConstruction::{construction}", "context.results"]
         if not lsm:
             args += ["context.offset", "context.count"]
         if stochastic:
@@ -770,6 +773,17 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "product_loader": product_loader,
             "side": f"<OptionSide::{side}>" if side else "",
             "arguments": ",\n                    ".join(args),
+            "construction": construction,
+            "construction_label": (
+                "Cartesian-product" if dataset.construction == "cartesian" else "aligned"
+            ),
+            "construction_prefix": (
+                "Cartesian-product " if dataset.construction == "cartesian" else ""
+            ),
+            "construction_argument": (
+                ", PriceConstruction::CartesianProduct"
+                if dataset.construction == "cartesian" else ""
+            ),
         }
         destination = output_root / dataset.recipe_path
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -788,7 +802,8 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "schema_version": 1, "kind": "price_delta", "database_id": dataset.dataset_id,
             "generator": "generator.cpp", "model_input": values["model_input"],
             "product_input": values["product_input"], "dataset": dataset.dataset_path,
-            "catalog_output": dataset.catalog_yaml_path, "construction": "aligned",
+            "catalog_output": dataset.catalog_yaml_path,
+            "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
             "sensitivity": {"parameter": "spot", "method": values["method"],
@@ -1041,6 +1056,14 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
     )
     values = _fixed_income_template_values(capability)
     values.update({
+        "database_id": dataset.dataset_id,
+        "price_dataset_path": dataset.dataset_path,
+        "catalog_path": dataset.catalog_yaml_path,
+        "url": dataset.url,
+        "construction": (
+            "CartesianProduct"
+            if dataset.construction == "cartesian" else "Aligned"
+        ),
         "launch_identity": pricing_identity_expression(dataset),
         "variant": dataset.variant or "",
         "payoff_name": {
@@ -1068,6 +1091,49 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
             else "calls"
         ),
     })
+    bermudan_methods = {
+        "cir": (
+            "Exact CIR terminal-forward transitions + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+        "cir_plus_plus": (
+            "Exact fitted CIR terminal-forward transitions + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized unshifted CIR factor",
+        ),
+        "g2": (
+            "Exact two-factor Gaussian joint transition + Longstaff-Schwartz",
+            "two-factor Hermite degree 2", "two standardized rate factors",
+        ),
+        "g2_plus_plus": (
+            "Exact fitted two-factor Gaussian joint transition + Longstaff-Schwartz",
+            "two-factor Hermite degree 2", "two standardized rate factors",
+        ),
+        "hull_white": (
+            "Exact fitted Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized centered short-rate factor",
+        ),
+        "ornstein_uhlenbeck": (
+            "Exact Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+        "vasicek": (
+            "Exact Gaussian joint transition + Longstaff-Schwartz",
+            "Hermite degree 3", "standardized short-rate factor",
+        ),
+    }
+    if dataset.product == "bermudan_swaption":
+        method, basis, state = bermudan_methods[dataset.model]
+        values.update({
+            "bermudan_numerical_method": method,
+            "bermudan_regression_basis": basis,
+            "bermudan_state_variables": state,
+            "bermudan_configuration_overrides": (
+                '    configuration.pricing_measure = "last_exercise_bond_forward";\n'
+                '    configuration.regression_target = "next policy cashflow in '
+                'P(0,T*) / P(t,T*) units";\n'
+                if dataset.model == "cir" else ""
+            ),
+        })
     if dataset.engine in {"fixed_income_monte_carlo", "fixed_income_lsm"}:
         values["dynamics_seed"] = str(resolve_rng_domain(dataset).seed("dynamics"))
     return values
@@ -1088,10 +1154,16 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
             )
         destination = output_root / dataset.recipe_path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        _write_generated(destination, _render_dollar_template(
+        rendered = _render_dollar_template(
             dataset.template,
             _fixed_income_recipe_values(dataset),
-        ))
+        )
+        if dataset.construction == "cartesian":
+            rendered = rendered.replace(
+                dataset.dataset_id.removesuffix("_cartesian"),
+                dataset.dataset_id,
+            )
+        _write_generated(destination, rendered)
         generated.append(destination)
     return generated
 
@@ -1221,6 +1293,10 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "numerical_method": model.numerical_method,
             "monte_carlo_paths": MONTE_CARLO_PATHS_PER_PRICE,
             "launch_identity": pricing_identity_expression(dataset),
+            "construction": (
+                "CartesianProduct"
+                if dataset.construction == "cartesian" else "Aligned"
+            ),
             "seed": (
                 str(resolve_rng_domain(dataset).seed("dynamics"))
                 if dataset.engine != "equity_closed_form" else "0"
@@ -1319,6 +1395,10 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
             "basis_functions": quoted(model.basis_functions),
             "seed": str(resolve_rng_domain(dataset).seed("dynamics")),
             "launch_identity": pricing_identity_expression(dataset),
+            "construction": (
+                "CartesianProduct"
+                if dataset.construction == "cartesian" else "Aligned"
+            ),
         }
         _write_generated(destination, templates["american"].format(**values))
         generated.append(destination)

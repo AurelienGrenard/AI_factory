@@ -1,0 +1,141 @@
+title: "sabr_01__european_calls_01__01"
+database_id: "sabr_01__european_calls_01__01"
+catalog: "catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01.json"
+row_count: 1000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  pricing_method: "Monte Carlo"
+  monte_carlo_paths_per_price: 1048576
+  model: "SABR equity"
+  numerical_method: "Lamperti SABR Euler"
+  payoff: "European Options"
+  implementation: "CUDA"
+  device: "gpu"
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_step_mc"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "sabr"
+    product: "european_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: "price launch bound; engine workspace guards still apply"
+    work_distribution: "one price per block at a time"
+    block_count: 1000
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_pricing"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  random_generator: "Philox"
+validation:
+  status: "pending"
+  verified: false
+  dataset: "validation/datasets/price/equity/markovian/sabr/european_calls/sabr_01__european_calls_01__01.json"
+outputs:
+  price:
+    estimator: "Monte Carlo discounted payoff mean"
+  standard_error:
+    estimator: "Monte Carlo standard error of discounted payoff"
+model_dataset:
+  id: "sabr_01"
+  catalog: "catalog/model/equity/markovian/sabr/parameters/sabr_01"
+  url: "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/parameters/sabr_01.json"
+product_dataset:
+  id: "european_options_01"
+  catalog: "catalog/product/european_option/european_options_01"
+  url: "https://datasets.ai-factory.example/v1/product/european_options/european_options_01.json"
+price_construction:
+  method: "Aligned"
+timing:
+  wall_seconds: "73.774261889 s (1 min, 14 s)"
+  kernel_seconds: "75.378398437 s (1 min, 15 s)"
+time_grid:
+  simulation_steps_per_day: 2
+  steps_per_year: 504
+  delta_t: "1 / 504"
+generation:
+  schema_version: 1
+  dataset_sha256: 287385a8fd297f7a0c4fde1b112447855d764af4f84da7be2b01097680a4162e
+  contract_sha256: ef12dbaf2b01651f155736f024dd50c89cd7aeac7013f1bb64a4087a33ab89ab
+  specification:
+    kind: prices
+    identity: sabr/european_option
+    database_id: sabr_01__european_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668827742618517504
+    paths_per_price: 1048576
+  inputs:
+    models: 489dd7b24c08558002a3cf225e11ab6b025330aab52f0819d162e6af3c77b4fc
+    products: d1e8abd86da1fd6cf0818a35f32ee757df320bfa72a95dcb804d53c77d68b80e
+  execution:
+    binary_sha256: 44d679ff88b1022c7e3f9f143db228bc4123b75d32d1c3c0d4eaa2e254095b88
+    recipe_sha256: a59e200cfb3693bb5fbad3bdd5eac7c85933ce27e6813bf4e39876b9d7a79e74
+    declared_method:
+      engine: equity_markovian
+      profile: catalog_price_profile
+      variant: european_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_step_mc
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: sabr
+      product: european_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 512
+      prices_per_launch: 1000
+      price_launch_count: 1
+      memory_batching: price launch bound; engine workspace guards still apply
+      work_distribution: one price per block at a time
+      block_count: 1000
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789325934.1270382
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 80, 88.12 W, [N/A], 1710 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/sabr/parameters/sabr_01.json: c21e08d3818676b55b7a613677a57a6c2b6e763825e8989bc76229eed82e7842
+      datasets/product/european_option/european_options_01.json: e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6
+  record_sha256: 1dc69c98a3f392a3a94db4d05260b20a38cec2b116cf23149e89a3b8b4895da9

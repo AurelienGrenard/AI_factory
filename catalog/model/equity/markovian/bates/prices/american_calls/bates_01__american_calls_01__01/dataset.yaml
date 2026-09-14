@@ -16,12 +16,42 @@ summary:
   device: "gpu"
   threads_per_block: 128
   blocks_per_price: 128
+  batch_count: 32
+  kernel_launch_count: 13676
+  workspace_bytes: 14157540264
+  maximum_prices_per_batch: 170
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "equity_early_exercise"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+  launch_plan:
+    profile_id: "sm89_reference_v1"
+    family: "equity_lsm"
+    selection: "host launch plan; no runtime autotuning"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    model: "bates"
+    product: "american_option"
+    curve: ""
+    qualification: "reference_default_not_pair_qualified"
+    evidence: "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md"
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: "resolved by native LSM VRAM planner"
+    work_distribution: "multiple path blocks per price; native multi-phase LSM"
+    blocks_per_price: 128
+    maximum_resident_prices: 170
+    price_batch_count: 32
   random_generator: "Philox"
 validation:
   status: "pending"
   verified: false
-  reference: "none"
-  notebook: "catalog/model/equity/markovian/bates/prices/american_calls/bates_01__american_calls_01__01/validation.ipynb"
+  dataset: "validation/datasets/price/equity/markovian/bates/american_calls/bates_01__american_calls_01__01.json"
 outputs:
   price:
     estimator: "Longstaff-Schwartz discounted cashflow mean"
@@ -38,8 +68,8 @@ product_dataset:
 price_construction:
   method: "Aligned"
 timing:
-  wall_seconds: "42.502501432 s"
-  kernel_seconds: "44.288960663 s"
+  wall_seconds: "153.893237486 s (2 min, 34 s)"
+  kernel_seconds: "153.060527588 s (2 min, 33 s)"
 time_grid:
   simulation_steps_per_day: 2
   steps_per_year: 504
@@ -50,7 +80,8 @@ exercise_policy:
   exercise_dates: "time zero and maturity-anchored product dates"
   regression_target: "realized future cashflow discounted one exercise interval"
   in_the_money_paths_only: true
-  solver: "Cholesky on GPU"
+  solver: "FP64 normal equations and Cholesky on GPU"
+  failure_policy: "fatal regression statuses reject publication"
   basis:
     state:
       - "spot"
@@ -67,3 +98,72 @@ exercise_policy:
       - "L1(spot / strike) * variance / theta"
     regularization:
       ridge: "1e-10 * trace(G) / basis_size"
+generation:
+  schema_version: 1
+  dataset_sha256: 39a50fd7db909350ab1bd2701e66151abee03ea01f43beb033ce9ffb953fb4eb
+  contract_sha256: b9c32c4a59fb54d8b18362ce2ce4b3f7c94afc428d6848b246101ae9b22c2f27
+  specification:
+    kind: prices
+    identity: bates/american_option
+    database_id: bates_01__american_calls_01__01
+    rows: 1000
+    sample_shape: null
+    rng_stream_seeds:
+      dynamics: 11668826634516955136
+    paths_per_price: 1048576
+  inputs:
+    models: 8390ab62f307a3a26783911fbf252e49322e63232dd319d1e142b108a1f4d977
+    products: 18926e2e529f2a009f94ac58f130795bf38b0c062806b508295905f33135843f
+  execution:
+    binary_sha256: d0aa0485b96efde37e8e51212fa466b2c729e4c0af8d7a79b25b75547664842a
+    recipe_sha256: d928b5430c019810fc7f4ce0e44ca0318d9ace8919da4261717be5e7257856c4
+    declared_method:
+      engine: equity_lsm_fixed
+      profile: longstaff_schwartz_price_profile
+      variant: american_calls
+      construction: aligned
+      has_curve: false
+    launch_plan:
+      profile_id: sm89_reference_v1
+      family: equity_lsm
+      selection: host launch plan; no runtime autotuning
+      measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+      portability: safe reference values; benchmark before replacing on another GPU
+      model: bates
+      product: american_option
+      curve: ''
+      qualification: reference_default_not_pair_qualified
+      evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+      price_count: 1000
+      paths_per_price: 1048576
+      threads_per_block: 128
+      prices_per_launch: null
+      price_launch_count: null
+      memory_batching: native LSM VRAM planner; unresolved offline
+      work_distribution: multiple path blocks per price; native multi-phase LSM
+      blocks_per_price: 128
+      device_resources_checked: false
+      scope: offline proposed launch; native engine guards and qualification still
+        required
+    build_hashes:
+      CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+      build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  provenance:
+    revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+    source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+    runtime_observation:
+      unix_time: 1789334950.8942504
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 79, 92.72 W, [N/A], 1590 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/bates/prices/american_calls/bates_01__american_calls_01__01/generator.cpp
+    input_files:
+      datasets/model/equity/markovian/bates/parameters/bates_01.json: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
+      datasets/product/american_option/american_options_01.json: 72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793
+  record_sha256: 7d2d4519ca70ec55ea25ce50c0d21e3da9e76be4b73a9292afb917bad5098148

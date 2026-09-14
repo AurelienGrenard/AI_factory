@@ -225,7 +225,9 @@ def _wine_environment(repository: Path) -> dict[str, str]:
     environment.update(
         {
             "WINEARCH": "win64",
-            "WINEPREFIX": str(repository / "build" / "premia-wine"),
+            "WINEPREFIX": str(
+                repository / "artifacts" / "tooling" / "premia" / "wine-prefix"
+            ),
             "WINEDEBUG": "-all",
         }
     )
@@ -260,7 +262,7 @@ def _serialized_wine_execution(repository: Path) -> Iterator[None]:
     QuantLib validations remain parallel; only the Wine bridge is serialized.
     """
 
-    lock_path = repository / "build" / "premia-wine.lock"
+    lock_path = repository / "artifacts" / "tooling" / "premia" / "wine-prefix.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a", encoding="utf-8") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
