@@ -102,10 +102,13 @@ Existing datasets are not regenerated or backfilled by this change. Missing
 provenance cannot be reconstructed from today's checkout alone. Recover the
 original campaign evidence and review it; otherwise leave the origin unknown.
 
-Campaign state version 2 freezes the new provenance module and source archive.
-It refuses changed frozen sources, recipes, build files, inputs or executables.
-Version-1 campaigns must finish with their original frozen controller; do not
-migrate a half-published pair or relax resume guards to use newer code.
+Campaign state version 3 freezes the provenance module and source archive and
+binds terminal Monte Carlo checkpoints to the exact executable, recipe, inputs,
+shape, seeds and launch plan. It refuses changed frozen sources, recipes, build
+files, inputs or executables. Version-1 and version-2 campaigns must finish with
+their original frozen controller; do not migrate a half-published pair or relax
+resume guards to use newer code. Their progress records contain no calculated
+prices and therefore cannot recover an unfinished numerical prefix.
 
 Independent validation remains governed by the
 [price-validation contract](independent-price-validation-pipeline.md).

@@ -296,3 +296,20 @@ rough time-discretization error, factor-approximation error or bump bias.
 Long maturities, singular parameters and rare threshold crossings still need
 separate qualification. Measured resources and before/after evidence are in
 [the audit status](../audit/status.md).
+
+## Offline checkpoint boundary
+
+Campaign-controlled stochastic European price-delta generation checkpoints the
+four completed host outputs (price, price standard error, delta and delta
+standard error) after each existing native price batch. Resume starts at the
+first missing result index with the same global row index and Philox key, then
+restores the durable prefix before serialization. The checkpoint identity is
+owned by the frozen campaign and rejects a changed executable, input, recipe,
+seed, sensitivity, time grid or launch plan.
+
+This mechanism changes neither a pricing kernel nor the CRN construction. It
+adds a synchronization, four small output-slice copies and one durable file
+flush per checkpointed batch. Without the campaign checkpoint environment, the
+existing asynchronous progress path remains active. Frozen-exercise
+Longstaff--Schwartz price-delta generation is outside checkpoint schema version
+1 and restarts the current dataset after interruption.

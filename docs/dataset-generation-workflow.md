@@ -85,7 +85,9 @@ one job at a time, checks each dataset and publishes it to its declared
 `datasets/model/fixed_income/` and `catalog/model/fixed_income/` paths. A
 later job's failure does not roll back earlier published jobs. Resume the
 frozen campaign through `generate_catalog.py --run-dir <same directory>
---execute --resume`; an interrupted job restarts from its first price.
+--execute --resume`. A checkpoint-capable terminal Monte Carlo job continues
+at its first unfinished native batch; an unsupported early-exercise job
+restarts from its first price.
 
 For all aligned equity prices in the Markovian family, inspect the selection:
 
@@ -174,7 +176,7 @@ synchronization; they do not estimate the remaining time of the whole campaign.
 The controller retains attempt journals and stdout/stderr logs.
 
 Stop with `Ctrl+C` in the campaign terminal. Completed datasets stay published;
-an interrupted dataset restarts from its first row on explicit resume:
+an interrupted sample dataset restarts from its first row on explicit resume:
 
 ```bash
 python3 tools/datasets/generate_sample_campaign.py \
@@ -208,7 +210,7 @@ The controller requires Python 3, PyYAML and Ninja. It freezes parameter inputs,
 recipe sources and executables with SHA-256 checks. Each job retains stdout,
 stderr, its full process time, artifact-check time and separate publication time.
 The build configuration and launch inspector are retained, with before/after GPU
-observations (informative only). Version-2 campaigns also retain the dirty
+observations (informative only). Version-3 campaigns also retain the dirty
 implementation-source archive and attach generation provenance to staged YAML;
 SDKs and external dependencies are not archived. This is not a hermetic build
 or a qualified timing campaign. GPU and native runner
@@ -264,7 +266,9 @@ new journal; the previous attempt remains intact. `stdout.log` and `stderr.log`
 in that directory contain the native generator's output and diagnostics, and
 may be empty. `campaign.json` records the current `progress` snapshot and
 `progress_journal` paths. The journal tracks generation and campaign events;
-it is not a checkpoint and does not permit resuming halfway through a dataset.
+it does not contain numerical results. Supported Monte Carlo price generators
+keep those results separately under
+`jobs/<target>/checkpoint/results.checkpoint`.
 For sample jobs, the display uses sample counts during JSON writing as
 described above; CUDA preparation and simulation have no within-job ETA.
 The example
@@ -274,8 +278,8 @@ verifies/builds the Heston and rough Heston Cartesian price-delta targets in
 generator. It uses the same native progress reporter and captures stdout/stderr
 itself. This direct path writes to the
 recipe's catalogue and dataset destinations without campaign staging,
-provenance attachment, or publication backups; use the controller above when
-those safeguards are needed.
+provenance attachment, publication backups, or a controller-provided checkpoint;
+use the controller above when those safeguards are needed.
 
 Before publication, price rows and metadata are checked; sample JSON is checked
 as a stream without loading three million records at once. Generated prices must
@@ -298,9 +302,38 @@ python3 tools/datasets/generate_catalog.py \
 
 Resume uses the frozen selection and publication policy. Completed jobs are
 hash-checked and skipped. A staged job resumes publication without running the
-GPU again. An interrupted/failed generator receives a new attempt directory and
-restarts that dataset from the beginning; there is no within-dataset checkpoint
-or automatic retry. Existing attempts and backups are retained.
+GPU again. An interrupted/failed generator receives a new attempt directory;
+there is no automatic retry.
+
+Version-3 campaigns provide within-dataset checkpoints for batched terminal
+Monte Carlo price generation. This covers ordinary equity prices, prepared
+N-factor prices, Volterra FFT prices, fixed-income terminal Monte Carlo prices,
+and stochastic European equity price-delta recipes such as Heston and Bates.
+At every native batch boundary, the generator copies only the completed output
+slice, appends it to `results.checkpoint`, validates it with a checksum and
+flushes it to durable storage. A truncated final record is discarded after a
+power loss; the preceding contiguous prefix remains usable. Price-only records
+store price and standard error (8 bytes per price before small record headers);
+price-delta records store price, price error, delta and delta error (16 bytes per
+price). The controller deletes the checkpoint only after the final JSON/YAML
+pair has passed structural checks and reached the durable `staged` state.
+
+The checkpoint identity binds the exact frozen executable, recipe, parameter
+files, row count, RNG seeds, launch plan, sensitivity and time grid. A mismatch
+is a blocking error, never an implicit reset or cross-version reuse. Result
+metadata records how many prices came from a previous attempt; native GPU and
+wall timings cover the current process attempt, while earlier attempt durations
+remain in their journals. Checkpointing changes neither a pricing kernel, RNG
+mapping, reduction order nor launch geometry. When enabled, it adds a host
+synchronization, a small device-to-host copy and `fsync` at each existing price
+batch. When the checkpoint environment is absent, the previous non-blocking path
+is preserved.
+
+Longstaff--Schwartz price/price-delta jobs and model-sample generators do not yet
+have a numerical checkpoint and restart the active dataset from the beginning.
+Campaign versions 1 and 2 likewise contain progress observations only; they
+cannot be upgraded after the fact because their completed GPU values were never
+written. Existing attempts and publication backups are retained.
 
 Changed pricing code or parameters require a new campaign, not a resume with
 different inputs. Independent certification is performed later through the

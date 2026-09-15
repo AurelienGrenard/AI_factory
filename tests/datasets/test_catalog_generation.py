@@ -39,23 +39,29 @@ class GenerationTests(unittest.TestCase):
         self.job["binary_sha256"] = digest(binary)
         self.job.update(identity="test/calls", sample_shape=None, recipe="recipe.cpp", semantic_inputs={},
                         rng_stream_seeds={"dynamics": 123},
-                        declared_method={"engine": "test", "construction": "aligned"})
+                        declared_method={"engine": "test", "construction": "aligned"},
+                        checkpoint="jobs/generate_test/checkpoint", checkpoint_id="a" * 64)
         recipe = self.run / "sources/recipe.cpp"
         recipe.parent.mkdir(parents=True)
         recipe.write_text("frozen recipe")
         self.job["recipe_sha256"] = digest(recipe)
         (self.run / "sources.tar.gz").write_text("frozen source archive")
-        self.state = {"version": 2, "root": str(self.root), "publish": False, "jobs": [self.job],
+        self.state = {"version": 3, "root": str(self.root), "publish": False, "jobs": [self.job],
                       "input_hashes": {}, "build_hashes": {}, "revision": "unit-test",
                       "source_archive_sha256": digest(self.run / "sources.tar.gz")}
         telemetry = patch.object(campaign, "gpu_observation", return_value={"unavailable": "unit test"})
         telemetry.start()
         self.addCleanup(telemetry.stop)
 
-    def generator(self, _binary, work, _logs, progress=None):
+    def generator(self, _binary, work, _logs, progress=None,
+                  checkpoint=None, checkpoint_id=None):
         if progress is not None:
             progress.parent.mkdir(parents=True, exist_ok=True)
             progress.write_text(json.dumps({"state": "complete"}))
+        if checkpoint is not None:
+            self.assertEqual(checkpoint_id, "a" * 64)
+            checkpoint.mkdir(parents=True, exist_ok=True)
+            (checkpoint / "results.checkpoint").write_text("mock checkpoint")
         for key, text in (("dataset", json.dumps(self.document)), ("catalog", yaml.safe_dump(self.catalog))):
             path = work / self.job[key]
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -77,19 +83,24 @@ class GenerationTests(unittest.TestCase):
             '"$AI_FACTORY_GENERATION_PROGRESS"\n'
             "printf '{\"event\":\"progress\",\"state\":\"complete\"}\\n' >> "
             '"$AI_FACTORY_GENERATION_PROGRESS_LOG"\n'
+            'mkdir -p "$AI_FACTORY_GENERATION_CHECKPOINT_DIR"\n'
+            'printf "%s" "$AI_FACTORY_GENERATION_CHECKPOINT_ID" > '
+            '"$AI_FACTORY_GENERATION_CHECKPOINT_DIR/identity"\n'
         )
         os.chmod(binary, 0o755)
         work = self.root / "progress-work"
         logs = self.root / "progress-logs"
         progress = self.root / "progress.json"
+        checkpoint = self.root / "progress-checkpoint"
         work.mkdir()
         logs.mkdir()
-        campaign.run_generator(binary, work, logs, progress)
+        campaign.run_generator(binary, work, logs, progress, checkpoint, "b" * 64)
         self.assertEqual(json.loads(progress.read_text())["state"], "complete")
         events = [json.loads(line) for line in (logs / "progress.jsonl").read_text().splitlines()]
         self.assertEqual([event["event"] for event in events],
                          ["generator_started", "progress", "generator_exited"])
         self.assertEqual(events[-1]["returncode"], 0)
+        self.assertEqual((checkpoint / "identity").read_text(), "b" * 64)
 
     def test_pilot_does_not_publish_or_rerun(self):
         with patch.object(campaign, "run_generator", side_effect=self.generator) as run:
@@ -100,6 +111,8 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(self.job["progress_journal"],
                          "jobs/generate_test/attempt-001/progress.jsonl")
         self.assertEqual(self.job["state"], "complete")
+        self.assertTrue(self.job["checkpoint_cleared"])
+        self.assertFalse((self.run / self.job["checkpoint"]).exists())
         events = [json.loads(line) for line in
                   (self.run / self.job["progress_journal"]).read_text().splitlines()]
         self.assertEqual(events[-1]["event"], "job_complete")
@@ -212,15 +225,29 @@ class GenerationTests(unittest.TestCase):
                 campaign.execute(self.run, self.state)
         self.assertEqual(digest(self.root / self.job["dataset"]), self.job["previous"][self.job["dataset"]])
 
-    def test_failed_dataset_restarts_only_on_explicit_execute(self):
-        with patch.object(campaign, "run_generator", side_effect=KeyboardInterrupt):
+    def test_failed_dataset_reuses_checkpoint_only_on_explicit_execute(self):
+        checkpoint_path = self.run / self.job["checkpoint"]
+
+        def interrupted(_binary, _work, _logs, _progress, checkpoint, checkpoint_id):
+            self.assertEqual(checkpoint, checkpoint_path)
+            self.assertEqual(checkpoint_id, self.job["checkpoint_id"])
+            checkpoint.mkdir(parents=True)
+            (checkpoint / "durable-prefix").write_text("two batches")
+            raise KeyboardInterrupt
+
+        with patch.object(campaign, "run_generator", side_effect=interrupted):
             with self.assertRaises(KeyboardInterrupt):
                 campaign.execute(self.run, self.state)
         self.assertEqual(self.job["state"], "interrupted")
+        self.assertEqual((checkpoint_path / "durable-prefix").read_text(), "two batches")
         first_journal = self.run / self.job["progress_journal"]
         first_contents = first_journal.read_text()
         self.assertEqual(json.loads(first_contents.splitlines()[-1])["event"], "job_interrupted")
-        with patch.object(campaign, "run_generator", side_effect=self.generator) as run:
+        def resumed(*arguments):
+            self.assertEqual((checkpoint_path / "durable-prefix").read_text(), "two batches")
+            return self.generator(*arguments)
+
+        with patch.object(campaign, "run_generator", side_effect=resumed) as run:
             campaign.execute(self.run, self.state)
             campaign.execute(self.run, self.state)
         self.assertEqual(run.call_count, 1)
@@ -229,6 +256,9 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(json.loads((self.run / self.job["progress_journal"])
                                     .read_text().splitlines()[-1])["event"], "job_complete")
         self.assertNotIn("last_error", self.job)
+        checkpoint_arguments = run.call_args.args
+        self.assertEqual(checkpoint_arguments[4], self.run / self.job["checkpoint"])
+        self.assertEqual(checkpoint_arguments[5], self.job["checkpoint_id"])
 
     def test_streamed_samples(self):
         path = self.root / "samples.json"

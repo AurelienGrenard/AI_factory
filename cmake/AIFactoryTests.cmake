@@ -94,6 +94,18 @@ if(BUILD_TESTING)
     set_tests_properties(sample_host_memory PROPERTIES
         LABELS "workbench;offline;sampling" TIMEOUT 30)
 
+    add_executable(test_generation_checkpoint EXCLUDE_FROM_ALL
+        tests/datasets/generation_checkpoint_test.cpp)
+    target_include_directories(test_generation_checkpoint PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_generation_checkpoint PRIVATE
+        nlohmann_json::nlohmann_json)
+    target_compile_features(test_generation_checkpoint PRIVATE cxx_std_23)
+    add_dependencies(ai_factory_host_tests test_generation_checkpoint)
+    add_test(NAME generation_checkpoint COMMAND test_generation_checkpoint)
+    set_tests_properties(generation_checkpoint PROPERTIES
+        LABELS "workbench;offline;generation" TIMEOUT 30)
+
     add_executable(
         test_dataset_loaders EXCLUDE_FROM_ALL tests/datasets/dataset_loaders_test.cpp
     )

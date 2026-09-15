@@ -25,7 +25,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.datasets.artifact_publication import contained_path, digest, publish_pair, save_json
-from tools.datasets.dataset_provenance import attach_generation, input_fingerprints, snapshot_sources
+from tools.datasets.dataset_provenance import (
+    attach_generation,
+    fingerprint,
+    input_fingerprints,
+    snapshot_sources,
+)
 
 
 def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) -> list[dict]:
@@ -252,7 +257,7 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
 def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) -> dict:
     require_current_build(root, build, jobs)
     run.mkdir(parents=True, exist_ok=False)
-    state = {"version": 2, "root": str(root), "build": str(build), "publish": publish,
+    state = {"version": 3, "root": str(root), "build": str(build), "publish": publish,
              "revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
              "worktree": subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True),
              "input_hashes": {}, "jobs": jobs}
@@ -284,6 +289,24 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
                 contained_path(run / "sources", job["recipe_metadata"]))
         job["previous"] = {path: digest(contained_path(root, path)) for path in (job["dataset"], job["catalog"])}
         job.update(describe_job(run / "inputs", run / "bin", job))
+        if job["kind"] in {"prices", "price_delta"} and job["launch_plan"]["paths_per_price"]:
+            checkpoint_contract = {
+                "schema_version": 1,
+                "kind": job["kind"],
+                "target": job["target"],
+                "rows": job["rows"],
+                "binary_sha256": job["binary_sha256"],
+                "recipe_sha256": job["recipe_sha256"],
+                "recipe_metadata_sha256": job.get("recipe_metadata_sha256"),
+                "input_hashes": {name: state["input_hashes"][name] for name in job["inputs"]},
+                "launch_plan": job["launch_plan"],
+                "rng_stream_seeds": job["rng_stream_seeds"],
+                "sensitivity": job.get("sensitivity"),
+                "time_grid": job.get("time_grid"),
+                "preparation": job.get("preparation"),
+            }
+            job["checkpoint"] = f"jobs/{job['target']}/checkpoint"
+            job["checkpoint_id"] = fingerprint(checkpoint_contract)
         job["state"] = "pending"
     require_current_build(root, build, jobs)
     save_json(run / "campaign.json", state)
@@ -297,11 +320,32 @@ def append_journal(path: Path, event: str, **details: object) -> None:
 
 
 def run_generator(
-    binary: Path, work: Path, logs: Path, progress: Path
+    binary: Path,
+    work: Path,
+    logs: Path,
+    progress: Path,
+    checkpoint: Path | None = None,
+    checkpoint_id: str | None = None,
 ) -> float:
     started = time.perf_counter()
     journal = logs / "progress.jsonl"
-    append_journal(journal, "generator_started")
+    if (checkpoint is None) != (checkpoint_id is None):
+        raise ValueError("A checkpoint directory and identity must be provided together")
+    environment = {
+        **os.environ,
+        "AI_FACTORY_GENERATION_PROGRESS": str(progress.resolve()),
+        "AI_FACTORY_GENERATION_PROGRESS_LOG": str(journal.resolve()),
+    }
+    if checkpoint is not None:
+        environment.update(
+            AI_FACTORY_GENERATION_CHECKPOINT_DIR=str(checkpoint.resolve()),
+            AI_FACTORY_GENERATION_CHECKPOINT_ID=checkpoint_id,
+        )
+    append_journal(
+        journal,
+        "generator_started",
+        checkpoint=str(checkpoint) if checkpoint is not None else None,
+    )
     with (logs / "stdout.log").open("w") as out, (logs / "stderr.log").open("w") as err:
         process = subprocess.Popen(
             [str(binary)],
@@ -309,11 +353,7 @@ def run_generator(
             stdout=out,
             stderr=err,
             start_new_session=True,
-            env={
-                **os.environ,
-                "AI_FACTORY_GENERATION_PROGRESS": str(progress.resolve()),
-                "AI_FACTORY_GENERATION_PROGRESS_LOG": str(journal.resolve()),
-            },
+            env=environment,
         )
         try:
             returncode = process.wait()
@@ -375,6 +415,7 @@ def execute(run: Path, state: dict) -> None:
             continue
         print(f"[{index}/{len(state['jobs'])}] {job['target']} ({job['state']})", flush=True)
         attempt_journal = None
+        checkpoint = contained_path(run, job["checkpoint"]) if job.get("checkpoint") else None
         try:
             if job["state"] != "staged":
                 # An explicit resume starts a fresh attempt for an unfinished dataset.
@@ -404,7 +445,12 @@ def execute(run: Path, state: dict) -> None:
                 save_json(run / "campaign.json", state)
                 try:
                     job["generation_wall_seconds"] = run_generator(
-                        binary, work, logs, progress
+                        binary,
+                        work,
+                        logs,
+                        progress,
+                        checkpoint,
+                        job.get("checkpoint_id"),
                     )
                 finally:
                     job["gpu_after"] = gpu_observation()
@@ -422,6 +468,12 @@ def execute(run: Path, state: dict) -> None:
                 save_json(run / "campaign.json", state)
             elif job.get("progress_journal"):
                 attempt_journal = contained_path(run, job["progress_journal"])
+            if checkpoint is not None and checkpoint.exists():
+                shutil.rmtree(checkpoint)
+                job["checkpoint_cleared"] = True
+                save_json(run / "campaign.json", state)
+                if attempt_journal is not None:
+                    append_journal(attempt_journal, "checkpoint_cleared")
             if state["publish"]:
                 started = time.perf_counter()
                 try:
@@ -469,7 +521,7 @@ def main() -> int:
         parser.error("--publish requires --execute")
     if arguments.resume:
         state = json.loads((arguments.run_dir / "campaign.json").read_text())
-        if state["version"] != 2 or state["root"] != str(ROOT):
+        if state["version"] != 3 or state["root"] != str(ROOT):
             raise ValueError("Unsupported campaign version or repository; retain its original controller")
         for name, expected in state["controller_hashes"].items():
             if digest(contained_path(ROOT, name)) != expected:
