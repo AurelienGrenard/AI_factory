@@ -38,7 +38,7 @@ CUDA rebuilds.
 | Compose models, curves, products, engines, recipes, and CMake targets | `capability_manifest.py` |
 | Store complete C++ and recipe templates | `templates/` |
 | Record generated-file fingerprints | `PricingCapabilityManifest.json` |
-| Test manifest composition | `test_capability_manifest.py` |
+| Test manifest composition | [`tests/codegen/test_capability_manifest.py`](../../../tests/codegen/test_capability_manifest.py) |
 
 `capability_manifest.py` is the public inventory. It resolves each declared
 `(model, curve, product, variant)` to one engine, binding, target, and recipe,
@@ -106,8 +106,8 @@ or delta-specific tuning. See the
 Every price recipe has an aligned target and a distinct Cartesian target. Every
 equity price-delta source has the same pair. Cartesian rows use
 model-major/product-fastest order, or model-major/curve/product order for fitted
-rates. Use `tools/datasets/generate_cartesian_datasets.py` to build, inspect,
-execute or resume either family without constructing a command line by hand.
+rates. Use `tools/datasets/generate_catalog.py --construction cartesian` to
+compile, inspect, execute or resume either family.
 
 - Pricing bindings are written below each model's `product/` directory.
 - Model-sample bindings are written as `<model>/sample.cuh` and `sample.cu`.

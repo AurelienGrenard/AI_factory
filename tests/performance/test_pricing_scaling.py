@@ -9,26 +9,31 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-try:
-    from .pricing_scaling_manifest import MODEL_SPECS, ROOT, coverage, generate, render_case, workloads
-    from .run_pricing_scaling import jobs_for, production_jobs, compiled_thread_limit, digest, read_job_progress, run_process
-    from .experiment_environment import (power_comparability_issue, record_timing_issue,
-        hardware_power_brake_issue, validate_experiment_preflight)
-    from .run_baseline import validate_preflight
-    from .pricing_scaling_inputs import source_indices, expand_document, prepare_inputs, TILE_INDICES, CATALOGUE_INPUT_PROFILE
-    from .plan_pricing_scaling_confirmation import confirmation_jobs, execution_key
-    from .summarize_pricing_scaling import summarize, within_tolerance, geometry_envelope, single_price_information
-    from .export_pricing_dataset_runtime import timing_breakdown, export_campaign, case_result
-except ImportError:
-    from pricing_scaling_manifest import MODEL_SPECS, ROOT, coverage, generate, render_case, workloads
-    from run_pricing_scaling import jobs_for, production_jobs, compiled_thread_limit, digest, read_job_progress, run_process
-    from experiment_environment import (power_comparability_issue, record_timing_issue,
-        hardware_power_brake_issue, validate_experiment_preflight)
-    from run_baseline import validate_preflight
-    from pricing_scaling_inputs import source_indices, expand_document, prepare_inputs, TILE_INDICES, CATALOGUE_INPUT_PROFILE
-    from plan_pricing_scaling_confirmation import confirmation_jobs, execution_key
-    from summarize_pricing_scaling import summarize, within_tolerance, geometry_envelope, single_price_information
-    from export_pricing_dataset_runtime import timing_breakdown, export_campaign, case_result
+from tools.performance.pricing_scaling_manifest import (
+    MODEL_SPECS, ROOT, coverage, generate, render_case, workloads,
+)
+from tools.performance.run_pricing_scaling import (
+    compiled_thread_limit, digest, jobs_for, production_jobs, read_job_progress,
+    run_process,
+)
+from tools.performance.experiment_environment import (
+    hardware_power_brake_issue, power_comparability_issue, record_timing_issue,
+    validate_experiment_preflight,
+)
+from tools.performance.run_baseline import validate_preflight
+from tools.performance.pricing_scaling_inputs import (
+    CATALOGUE_INPUT_PROFILE, TILE_INDICES, expand_document, prepare_inputs,
+    source_indices,
+)
+from tools.performance.plan_pricing_scaling_confirmation import (
+    confirmation_jobs, execution_key,
+)
+from tools.performance.summarize_pricing_scaling import (
+    geometry_envelope, single_price_information, summarize, within_tolerance,
+)
+from tools.performance.export_pricing_dataset_runtime import (
+    case_result, export_campaign, timing_breakdown,
+)
 
 
 class PricingScalingTest(unittest.TestCase):

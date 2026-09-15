@@ -231,7 +231,7 @@ historique, couvre maintenant les modèles ci-dessus. Compilation limitée :
 
 ```sh
 cmake --build build-dev --target ai_factory_fixed_income_lsm_probe -j 1
-python3 tools/performance/test_lsm_probe_tools.py
+python3 -m unittest tests.performance.test_lsm_probe_tools
 ```
 
 Les cinq tests CPU du harnais passent ; tous les launchers mesurés ont compilé

@@ -1,5 +1,5 @@
 // Host implementation of constrained Svensson dataset generation.
-#include "tools/datasets/svensson_generation.hpp"
+#include "tools/sampling/parameters/svensson_generation.hpp"
 
 #include "curve/svensson/instantaneous_forward.cuh"
 

@@ -1,5 +1,5 @@
 // Host implementation of constrained core-tail Range Accrual generation.
-#include "tools/datasets/range_accrual_generation.hpp"
+#include "tools/sampling/parameters/range_accrual_generation.hpp"
 
 #include <algorithm>
 #include <array>

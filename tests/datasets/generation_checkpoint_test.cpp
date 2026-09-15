@@ -1,3 +1,4 @@
+// Verifies durable checkpoint recovery, identity guards, and prefix restoration.
 #include "tools/cuda/generation_checkpoint.hpp"
 
 #include <cstdlib>

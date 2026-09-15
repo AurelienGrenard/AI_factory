@@ -1,5 +1,5 @@
 // Host implementation of constrained G2 parameter generation.
-#include "tools/datasets/g2_generation.hpp"
+#include "tools/sampling/parameters/g2_generation.hpp"
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"
 

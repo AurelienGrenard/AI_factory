@@ -13,8 +13,12 @@ import re
 from pathlib import Path
 import subprocess
 
-from run_baseline import collect_preflight
-from run_fixed_income_lsm_probe import bounded
+try:
+    from .run_baseline import collect_preflight
+    from .run_fixed_income_lsm_probe import bounded
+except ImportError:
+    from run_baseline import collect_preflight
+    from run_fixed_income_lsm_probe import bounded
 
 ROOT = Path(__file__).resolve().parents[2]
 INPUTS = (

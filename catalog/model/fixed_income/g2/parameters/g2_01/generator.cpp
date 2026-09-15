@@ -1,7 +1,7 @@
 // Generate reproducible standalone G2 short-rate parameters.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
-#include "tools/datasets/g2_generation.hpp"
+#include "tools/sampling/parameters/g2_generation.hpp"
 
 #include <cstdint>
 #include <filesystem>

@@ -1,5 +1,5 @@
 // Conditional volatility draws and complete recipe metadata for CIR-factor rows.
-#include "tools/datasets/cir_generation.hpp"
+#include "tools/sampling/parameters/cir_generation.hpp"
 #include <algorithm>
 #include <cmath>
 #include <random>

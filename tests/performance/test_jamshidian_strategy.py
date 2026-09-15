@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-import run_jamshidian_strategy as runner
+from tools.performance import run_jamshidian_strategy as runner
 
 
 class StrategyTest(unittest.TestCase):

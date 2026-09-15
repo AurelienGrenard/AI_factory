@@ -11,14 +11,14 @@ function(ai_factory_collect_generation_dependencies output source)
     )
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
     string(REGEX MATCHALL
-        "tools/datasets/[a-z0-9_]+_generation\\.hpp"
+        "tools/sampling/parameters/[a-z0-9_]+_generation\\.hpp"
         generation_headers
         "${source_text}"
     )
     set(dependencies)
     foreach(header IN LISTS generation_headers)
         string(REGEX REPLACE
-            "tools/datasets/([^/]+)\\.hpp" "ai_factory_\\1"
+            "tools/sampling/parameters/([^/]+)\\.hpp" "ai_factory_\\1"
             candidate "${header}"
         )
         if(TARGET ${candidate})

@@ -1,5 +1,5 @@
 // Generate issuance terms for equity Range Accrual notes.
-#include "tools/datasets/range_accrual_generation.hpp"
+#include "tools/sampling/parameters/range_accrual_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
 

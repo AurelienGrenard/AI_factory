@@ -1,6 +1,6 @@
 // Generate CIR++ factor rows with the shared CIR core/stress law and metadata.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "tools/datasets/cir_generation.hpp"
+#include "tools/sampling/parameters/cir_generation.hpp"
 #include "common/dataset_validation.hpp"
 #include "model/fixed_income/cir_plus_plus/dataset.hpp"
 

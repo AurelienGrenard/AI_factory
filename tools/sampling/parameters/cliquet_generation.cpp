@@ -1,5 +1,5 @@
 // Host implementation of constrained core-tail Cliquet generation.
-#include "tools/datasets/cliquet_generation.hpp"
+#include "tools/sampling/parameters/cliquet_generation.hpp"
 
 #include <algorithm>
 #include <array>

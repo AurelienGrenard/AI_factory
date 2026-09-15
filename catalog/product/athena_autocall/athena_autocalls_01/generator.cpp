@@ -1,5 +1,5 @@
 // Generate issuance terms for accumulated-gain Athena autocalls.
-#include "tools/datasets/autocall_generation.hpp"
+#include "tools/sampling/parameters/autocall_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
 

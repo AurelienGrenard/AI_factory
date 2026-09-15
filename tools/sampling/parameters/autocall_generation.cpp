@@ -1,5 +1,5 @@
 // Host implementation of constrained core-tail autocall generation.
-#include "tools/datasets/autocall_generation.hpp"
+#include "tools/sampling/parameters/autocall_generation.hpp"
 
 #include <algorithm>
 #include <array>

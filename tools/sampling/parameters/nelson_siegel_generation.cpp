@@ -1,5 +1,5 @@
 // Host implementation of constrained Nelson-Siegel dataset generation.
-#include "tools/datasets/nelson_siegel_generation.hpp"
+#include "tools/sampling/parameters/nelson_siegel_generation.hpp"
 
 #include "curve/nelson_siegel/instantaneous_forward.cuh"
 

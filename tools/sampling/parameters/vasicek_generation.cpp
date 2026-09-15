@@ -1,5 +1,5 @@
-// Host implementation of constrained Ornstein-Uhlenbeck generation.
-#include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
+// Host implementation of constrained Vasicek generation.
+#include "tools/sampling/parameters/vasicek_generation.hpp"
 
 #include "common/fixed_income/mean_reverting_gaussian.cuh"
 
@@ -8,13 +8,13 @@
 #include <stdexcept>
 #include <utility>
 
-namespace ai_factory::workbench::datasets::ornstein_uhlenbeck {
+namespace ai_factory::workbench::datasets::vasicek {
 namespace {
 
-// Reject empty, reversed, non-finite, or invalid dynamics bounds.
-void validate_dynamics_bounds(
+// Reject empty, reversed, non-finite, or invalid process bounds.
+void validate_process_bounds(
     std::size_t row_count,
-    const DynamicsGenerationBounds& bounds
+    const ProcessGenerationBounds& bounds
 ) {
     const auto valid_range = [](const SamplingRange& range) {
         return std::isfinite(range.minimum)
@@ -23,11 +23,12 @@ void validate_dynamics_bounds(
     };
     if (row_count == 0U
         || !valid_range(bounds.mean_reversion)
+        || !valid_range(bounds.long_term_mean)
         || !valid_range(bounds.stationary_standard_deviation)
         || !(bounds.mean_reversion.minimum > 0.0f)
         || !(bounds.stationary_standard_deviation.minimum >= 0.0f)) {
         throw std::invalid_argument(
-            "Invalid Ornstein-Uhlenbeck generation bounds."
+            "Invalid Vasicek generation bounds."
         );
     }
 }
@@ -38,7 +39,7 @@ void validate_initial_state(const SamplingRange& range) {
         || !std::isfinite(range.maximum)
         || range.minimum > range.maximum) {
         throw std::invalid_argument(
-            "Invalid Ornstein-Uhlenbeck initial-state bounds."
+            "Invalid Vasicek initial-state bounds."
         );
     }
 }
@@ -54,17 +55,20 @@ nlohmann::ordered_json range_metadata(const SamplingRange& range) {
 
 }  // namespace
 
-// Draw stable reusable OU dynamics without choosing an initial state.
-GeneratedRows generate_dynamics_rows(
+// Draw stable reusable Vasicek process parameters without choosing an initial state.
+GeneratedRows generate_process_rows(
     std::size_t row_count,
     std::uint64_t seed,
-    const DynamicsGenerationBounds& bounds
+    const ProcessGenerationBounds& bounds
 ) {
-    validate_dynamics_bounds(row_count, bounds);
+    validate_process_bounds(row_count, bounds);
 
     std::mt19937_64 generator(seed);
     std::uniform_real_distribution<float> mean_reversion_distribution(
         bounds.mean_reversion.minimum, bounds.mean_reversion.maximum
+    );
+    std::uniform_real_distribution<float> long_term_mean_distribution(
+        bounds.long_term_mean.minimum, bounds.long_term_mean.maximum
     );
     std::uniform_real_distribution<float> stationary_deviation_distribution(
         bounds.stationary_standard_deviation.minimum,
@@ -75,10 +79,12 @@ GeneratedRows generate_dynamics_rows(
     rows.reserve(row_count);
     for (std::size_t row = 0U; row < row_count; ++row) {
         const float mean_reversion = mean_reversion_distribution(generator);
+        const float long_term_mean = long_term_mean_distribution(generator);
         const float stationary_standard_deviation =
             stationary_deviation_distribution(generator);
         rows.push_back({
             {"mean_reversion", mean_reversion},
+            {"long_term_mean", long_term_mean},
             {
                 "volatility",
                 fixed_income::mean_reverting_gaussian::
@@ -96,6 +102,9 @@ GeneratedRows generate_dynamics_rows(
             {"sampled_factors", {
                 {"mean_reversion", {
                     {"uniform_bounds", range_metadata(bounds.mean_reversion)},
+                }},
+                {"long_term_mean", {
+                    {"uniform_bounds", range_metadata(bounds.long_term_mean)},
                 }},
                 {"stationary_standard_deviation", {
                     {
@@ -120,32 +129,37 @@ GeneratedRows generate_dynamics_rows(
     };
 }
 
-// Draw a, x0, and stationary dispersion before reconstructing sigma.
+// Draw a, b, r0, and stationary dispersion before reconstructing sigma.
 GeneratedRows generate_rows(
     std::size_t row_count,
     std::uint64_t seed,
     const GenerationBounds& bounds
 ) {
-    validate_dynamics_bounds(row_count, bounds.dynamics);
+    validate_process_bounds(row_count, bounds.process);
     validate_initial_state(bounds.initial_state);
 
     std::mt19937_64 generator(seed);
     std::uniform_real_distribution<float> mean_reversion_distribution(
-        bounds.dynamics.mean_reversion.minimum,
-        bounds.dynamics.mean_reversion.maximum
+        bounds.process.mean_reversion.minimum,
+        bounds.process.mean_reversion.maximum
+    );
+    std::uniform_real_distribution<float> long_term_mean_distribution(
+        bounds.process.long_term_mean.minimum,
+        bounds.process.long_term_mean.maximum
     );
     std::uniform_real_distribution<float> initial_state_distribution(
         bounds.initial_state.minimum, bounds.initial_state.maximum
     );
     std::uniform_real_distribution<float> stationary_deviation_distribution(
-        bounds.dynamics.stationary_standard_deviation.minimum,
-        bounds.dynamics.stationary_standard_deviation.maximum
+        bounds.process.stationary_standard_deviation.minimum,
+        bounds.process.stationary_standard_deviation.maximum
     );
 
     std::vector<ParameterRow> rows;
     rows.reserve(row_count);
     for (std::size_t row = 0U; row < row_count; ++row) {
         const float mean_reversion = mean_reversion_distribution(generator);
+        const float long_term_mean = long_term_mean_distribution(generator);
         const float initial_state = initial_state_distribution(generator);
         const float stationary_standard_deviation =
             stationary_deviation_distribution(generator);
@@ -155,6 +169,7 @@ GeneratedRows generate_rows(
             );
         rows.push_back({
             {"mean_reversion", mean_reversion},
+            {"long_term_mean", long_term_mean},
             {"volatility", volatility},
             {"initial_state", initial_state},
         });
@@ -168,7 +183,13 @@ GeneratedRows generate_rows(
                 {"mean_reversion", {
                     {
                         "uniform_bounds",
-                        range_metadata(bounds.dynamics.mean_reversion)
+                        range_metadata(bounds.process.mean_reversion)
+                    },
+                }},
+                {"long_term_mean", {
+                    {
+                        "uniform_bounds",
+                        range_metadata(bounds.process.long_term_mean)
                     },
                 }},
                 {"initial_state", {
@@ -182,7 +203,7 @@ GeneratedRows generate_rows(
                     {
                         "uniform_bounds",
                         range_metadata(
-                            bounds.dynamics.stationary_standard_deviation
+                            bounds.process.stationary_standard_deviation
                         )
                     },
                 }},
@@ -197,4 +218,4 @@ GeneratedRows generate_rows(
     };
 }
 
-}  // namespace ai_factory::workbench::datasets::ornstein_uhlenbeck
+}  // namespace ai_factory::workbench::datasets::vasicek

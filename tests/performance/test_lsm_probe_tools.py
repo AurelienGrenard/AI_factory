@@ -7,9 +7,9 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-import run_fixed_income_lsm_probe as runner
-from run_fixed_income_lsm_probe import bounded, cases
-from summarize_lsm_probe import events, output_bytes
+from tools.performance import run_fixed_income_lsm_probe as runner
+from tools.performance.run_fixed_income_lsm_probe import bounded, cases
+from tools.performance.summarize_lsm_probe import events, output_bytes
 
 
 class ProbeToolsTest(unittest.TestCase):

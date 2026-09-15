@@ -25,11 +25,14 @@ Inspect a selection without CUDA execution or publication:
 python3 tools/datasets/generate_catalog.py --kind all --model cir
 ```
 
-`--model` and `--target` can be repeated. Omitting filters selects every available
-recipe of `--kind prices`, `price_delta`, `samples`, or `all`. The inventory comes from the
-typed capability manifest. Input paths and sample shapes come from the recipes;
-the compiled launch inspector supplies proposed pricing settings. No second
-Python table of CUDA geometries is maintained.
+`--model` and `--target` can be repeated. Omitting filters selects every
+available recipe of `--kind prices`, `price_delta`, `samples`, or `all`. The
+inventory comes from the typed capability manifest. Input paths and sample
+shapes come from the recipes. The compiled launch inspector supplies proposed
+pricing settings. No second Python table of CUDA geometries is maintained.
+
+Extend this controller when a campaign needs another manifest filter. Do not
+add a Python controller for one campaign.
 
 MC/LSM prices use the compiled production count, currently `2^20` paths per price.
 Closed-form prices have no paths. Samples retain their independent shapes from
@@ -47,24 +50,24 @@ The controller accepts explicitly declared Cartesian price and price-delta
 recipes. It computes their output row count as the product of the frozen input
 counts, including model/curve/product products for curve-fitted rates recipes.
 
-Build and inspect all Cartesian price and price-delta recipes for one model with:
+Compile and inspect every Cartesian price and price-delta recipe for one model:
 
 ```bash
-python3 tools/datasets/generate_cartesian_datasets.py --model heston
+python3 tools/datasets/generate_catalog.py \
+  --kind all --construction cartesian --model heston --compile
 ```
 
-Add `--run-dir <directory> --execute --publish` to generate and publish the
-selection locally. Use `--kind prices` or `--kind price_delta` to restrict the
-family. Omit `--model` to select every Cartesian recipe; this is a very large
-production campaign. Resume a frozen campaign with the same wrapper and
-`--run-dir <directory> --execute --resume`.
+Add `--run-dir <directory> --execute --publish` to run and publish this
+selection. Use `--kind prices` or `--kind price_delta` to select one output
+family. Omitting `--model` selects every Cartesian recipe. This can take a long
+time. Resume with `--run-dir <directory> --execute --resume`.
 
 For all aligned fixed-income prices, inspect the exact selection without
 building or running anything:
 
 ```bash
-python3 tools/datasets/generate_pricing_campaign.py \
-  --asset-class fixed_income --construction aligned --kind prices --list
+python3 tools/datasets/generate_catalog.py \
+  --asset-class fixed_income --construction aligned --kind prices
 ```
 
 The selection comes from the typed capability manifest: currently 80 recipes,
@@ -73,15 +76,16 @@ After any other campaign has finished or been stopped, build and run these
 targets sequentially with publication:
 
 ```bash
-python3 tools/datasets/generate_pricing_campaign.py \
+python3 tools/datasets/generate_catalog.py \
   --asset-class fixed_income --construction aligned --kind prices \
+  --compile \
   --run-dir datasets/generation-runs/fixed-income-aligned-01 \
   --execute --publish
 ```
 
-The wrapper builds only the selected generators and the launch inspector in
-`build/`. The campaign controller then freezes the inputs and binaries, runs
-one job at a time, checks each dataset and publishes it to its declared
+The controller builds only the selected generators and the launch inspector in
+`build/`. It then freezes the inputs and binaries. It runs one job at a time.
+It checks each dataset and publishes it to its declared
 `datasets/model/fixed_income/` and `catalog/model/fixed_income/` paths. A
 later job's failure does not roll back earlier published jobs. Resume the
 frozen campaign through `generate_catalog.py --run-dir <same directory>
@@ -92,9 +96,9 @@ restarts from its first price.
 For all aligned equity prices in the Markovian family, inspect the selection:
 
 ```bash
-python3 tools/datasets/generate_pricing_campaign.py \
+python3 tools/datasets/generate_catalog.py \
   --asset-class equity --model-family markovian \
-  --construction aligned --kind prices --list
+  --construction aligned --kind prices
 ```
 
 This selects 364 recipes (12 models, 364,000 aligned price rows). The family
@@ -102,15 +106,16 @@ filter follows each recipe's source path, so rough-equity recipes are excluded.
 Once the selection is confirmed, build and run the campaign with publication:
 
 ```bash
-python3 tools/datasets/generate_pricing_campaign.py \
+python3 tools/datasets/generate_catalog.py \
   --asset-class equity --model-family markovian \
   --construction aligned --kind prices \
+  --compile \
   --run-dir datasets/generation-runs/equity-markovian-aligned-01 \
   --execute --publish
 ```
 
-The wrapper builds these generators in the shared `build/` directory, then
-publishes each completed dataset under `datasets/model/equity/markovian/` and
+The controller builds these generators in `build/`. It publishes each completed
+dataset under `datasets/model/equity/markovian/` and
 its catalogue YAML under `catalog/model/equity/markovian/`. To follow the run,
 use `python3 tools/datasets/watch_generation_progress.py
 datasets/generation-runs/equity-markovian-aligned-01` in another terminal.
@@ -124,42 +129,38 @@ python3 tools/datasets/generate_catalog.py \
 
 ## Generate model-terminal samples
 
-The [sample campaign wrapper](../tools/datasets/generate_sample_campaign.py)
-selects the manifest's `samples_01` and `samples_02` recipes, builds their
-executables in the main `build/`, then hands the frozen selection to the same
-sequential controller. It excludes a recipe when both its published JSON and
-adjacent YAML already exist; a half-published pair is an error. This is an
-existence check, not an independent numerical certification of older data.
-Inspect the selection first:
+The controller also owns terminal sample campaigns. `--skip-published` excludes
+a recipe when its JSON and YAML already exist. A half-published pair is an
+error. This only checks file presence. It does not certify old data. Inspect the
+selection first:
 
 ```bash
-python3 tools/datasets/generate_sample_campaign.py --list
+python3 tools/datasets/generate_catalog.py --kind samples --skip-published
 ```
 
-At the 2026-09-14 inventory, there are 50 terminal recipes. The two CIR++
-datasets are already present, leaving 48 datasets to produce. Every recipe
-writes three million rows: `samples_01` has 12,000 parameter packages and 250
-paths each; `samples_02` has three million packages and one path each. All rows
-include the sampled maturity `T`. Each CIR++ JSON is about 748 MiB; reserve
-space for both the published data and the campaign's retained staged copies.
-The controller checks a conservative per-job disk margin before execution.
+Every recipe writes three million rows. `samples_01` uses 12,000 parameter sets
+and 250 paths per set. `samples_02` uses three million parameter sets and one
+path per set. Every row includes the sampled maturity `T`. Large JSON files need
+space for the published file and the staged copy. The controller checks free
+space before each job.
 
 After any other campaign has stopped, compile and publish the missing recipes
 with one command from the repository root:
 
 ```bash
-python3 tools/datasets/generate_sample_campaign.py \
+python3 tools/datasets/generate_catalog.py --kind samples --skip-published \
+  --compile --compile-jobs 2 \
   --run-dir datasets/generation-runs/model-samples-01 \
   --execute --publish
 ```
 
-The wrapper builds only the selected targets, at two parallel compile jobs by
-default. The campaign then runs one GPU generator at a time, checks each
-three-million-row JSON as a stream, and publishes it to its declared
+The command builds only the selected targets. It uses two parallel compile jobs.
+The campaign then runs one GPU generator at a time. It checks each
+three-million-row JSON as a stream. It publishes it to its declared
 `datasets/model/.../samples/` path with adjacent catalogue YAML and provenance.
 `--asset-class equity`, `--model-family rough`, repeatable `--model`, and
-repeatable `--target` narrow a new campaign. `--include-published` explicitly
-selects existing pairs for regeneration and is not part of the command above.
+repeatable `--target` narrow a new campaign. Omit `--skip-published` to select
+existing pairs for regeneration.
 
 In another terminal, follow the campaign with:
 
@@ -179,17 +180,16 @@ Stop with `Ctrl+C` in the campaign terminal. Completed datasets stay published;
 an interrupted sample dataset restarts from its first row on explicit resume:
 
 ```bash
-python3 tools/datasets/generate_sample_campaign.py \
+python3 tools/datasets/generate_catalog.py \
   --run-dir datasets/generation-runs/model-samples-01 \
   --execute --resume
 ```
 
 Resume uses the frozen binaries and selection, and checks completed output
 hashes. Use a new run directory if source or recipes change. A generator's
-`--smoke-test` writes only 1,000 rows under `/tmp`; its `--preflight` executes
+`--smoke-test` writes only 1,000 rows under `/tmp`. Its `--preflight` executes
 the full shape without publication and checks a second launch geometry. Both
-require a working CUDA device. The wrapper does not silently turn either mode
-into a production dataset.
+require a working CUDA device. Neither mode creates a production dataset.
 
 ## Run a staged pilot
 

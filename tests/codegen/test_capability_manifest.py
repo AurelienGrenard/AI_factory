@@ -11,8 +11,9 @@ from tempfile import TemporaryDirectory
 import unittest
 
 
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+ROOT = Path(__file__).resolve().parents[2]
+CODEGEN = ROOT / "tools/codegen/pricing_bindings"
+sys.path.insert(0, str(CODEGEN))
 
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
@@ -67,10 +68,6 @@ from generate import (  # noqa: E402
     cmake_manifest_text,
     compare,
 )
-
-
-ROOT = HERE.parents[2]
-
 
 class CapabilityManifestTest(unittest.TestCase):
     def test_unchanged_generated_output_preserves_timestamp(self):

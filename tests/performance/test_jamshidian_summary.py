@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from summarize_jamshidian_strategy import summarize
+from tools.performance.summarize_jamshidian_strategy import summarize
 
 
 def record(repeat):

@@ -18,12 +18,12 @@ import sys
 import numpy as np
 import QuantLib as ql
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT))
 from validation.quantlib.model.fixed_income.cir.reference import quantlib_model
+from validation.quantlib.model.fixed_income.cir.forward_reference import pde_price
 from validation.quantlib.swaption import swaption_price
 from validation.quantlib.term_structure import nelson_siegel_discount, svensson_discount
-from tools.performance.cir_forward_reference import pde_price
 
 
 class ShiftedCirReference:

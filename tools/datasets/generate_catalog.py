@@ -33,16 +33,96 @@ from tools.datasets.dataset_provenance import (
 )
 
 
-def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) -> list[dict]:
+def source_family(spec) -> str | None:
+    """Return the equity source family declared by a model dataset spec."""
+    parts = Path(spec.source_prefix).parts
+    if len(parts) >= 4 and parts[:2] == ("model", "equity"):
+        return parts[2]
+    return None
+
+
+def select_specs(
+    root: Path,
+    specs,
+    kinds: set[str],
+    models: set[str],
+    targets: set[str],
+    *,
+    asset_classes: set[str] | None = None,
+    model_families: set[str] | None = None,
+    constructions: set[str] | None = None,
+    skip_published: bool = False,
+) -> list:
+    """Filter manifest specs and optionally exclude complete published pairs."""
+    asset_classes = asset_classes or set()
+    model_families = model_families or set()
+    constructions = constructions or set()
+    selected = []
+    matched_targets = set()
+    skipped_published = 0
+    for spec in specs:
+        if spec.dataset_kind not in kinds:
+            continue
+        if models and spec.model not in models:
+            continue
+        if targets and spec.cmake_target not in targets:
+            continue
+        if asset_classes and spec.asset_class not in asset_classes:
+            continue
+        if model_families and source_family(spec) not in model_families:
+            continue
+        if constructions and spec.construction not in constructions:
+            continue
+        matched_targets.add(spec.cmake_target)
+        if skip_published:
+            dataset_exists = contained_path(root, spec.dataset_path).exists()
+            catalog_exists = contained_path(root, spec.catalog_yaml_path).exists()
+            if dataset_exists != catalog_exists:
+                raise ValueError(
+                    f"Partial published pair for {spec.cmake_target}: "
+                    f"{spec.dataset_path}, {spec.catalog_yaml_path}"
+                )
+            if dataset_exists:
+                skipped_published += 1
+                continue
+        selected.append(spec)
+    unknown_targets = targets - matched_targets
+    if unknown_targets:
+        raise ValueError(
+            "Targets outside the selection: " + ", ".join(sorted(unknown_targets))
+        )
+    if not selected and not (skip_published and skipped_published):
+        raise ValueError("Empty dataset generator selection")
+    return selected
+
+
+def inventory(
+    root: Path,
+    kinds: set[str],
+    models: set[str],
+    targets: set[str],
+    *,
+    asset_classes: set[str] | None = None,
+    model_families: set[str] | None = None,
+    constructions: set[str] | None = None,
+    skip_published: bool = False,
+) -> list[dict]:
     sys.path.insert(0, str(root / "tools/codegen/pricing_bindings"))
     from capability_manifest import AVAILABLE_DATASET_SPECS, RNG_DOMAIN_BY_RECIPE
 
     jobs = []
-    for spec in AVAILABLE_DATASET_SPECS:
-        if spec.dataset_kind not in kinds or (models and spec.model not in models):
-            continue
-        if targets and spec.cmake_target not in targets:
-            continue
+    selected = select_specs(
+        root,
+        AVAILABLE_DATASET_SPECS,
+        kinds,
+        models,
+        targets,
+        asset_classes=asset_classes,
+        model_families=model_families,
+        constructions=constructions,
+        skip_published=skip_published,
+    )
+    for spec in selected:
         source = contained_path(root, spec.recipe_path).read_text()
         # Join adjacent C++ literals, including split output paths. No evaluation.
         strings = ["".join(json.loads(token) for token in re.findall(r'"(?:[^"\\]|\\.)*"', group))
@@ -75,8 +155,6 @@ def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) 
             jobs[-1].update(recipe_metadata=recipe_metadata,
                             sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"],
                             preparation=metadata.get("preparation", {}))
-    if not jobs or (targets and targets != {job["target"] for job in jobs}):
-        raise ValueError("Empty selection or unknown/excluded generator target")
     return jobs
 
 
@@ -231,6 +309,28 @@ def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
                          text=True, capture_output=True, check=True, env={**os.environ, "LC_ALL": "C"})
     if "no work to do" not in dry.stdout:
         raise ValueError("Generators need rebuilding; run the CMake aggregate build first")
+
+
+def compile_selected(root: Path, build: Path, jobs: list[dict], parallel_jobs: int) -> None:
+    """Compile only the selected generators and their shared launch inspector."""
+    if parallel_jobs <= 0:
+        raise ValueError("Compile jobs must be positive")
+    targets = {job["target"] for job in jobs}
+    if any(job["kind"] in {"prices", "price_delta"} for job in jobs):
+        targets.add("inspect_pricing_launch_plan")
+    subprocess.run(
+        [
+            "cmake",
+            "--build",
+            str(build),
+            "--target",
+            *sorted(targets),
+            f"-j{parallel_jobs}",
+        ],
+        cwd=root,
+        env={**os.environ, "CCACHE_DISABLE": "1"},
+        check=True,
+    )
 
 
 def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
@@ -508,8 +608,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", type=Path, default=ROOT / "build")
     parser.add_argument("--kind", choices=("prices", "price_delta", "samples", "all"), default="prices")
+    parser.add_argument("--asset-class", action="append", choices=("equity", "fixed_income"), default=[])
+    parser.add_argument("--model-family", action="append", choices=("markovian", "rough"), default=[])
+    parser.add_argument("--construction", action="append", choices=("aligned", "cartesian"), default=[])
     parser.add_argument("--model", action="append", default=[])
     parser.add_argument("--target", action="append", default=[])
+    parser.add_argument("--skip-published", action="store_true",
+                        help="exclude complete JSON/YAML pairs and reject partial pairs")
+    parser.add_argument("--compile", action="store_true", help="build only the selected generators")
+    parser.add_argument("--compile-jobs", type=int, default=1)
     parser.add_argument("--run-dir", type=Path)
     parser.add_argument("--execute", action="store_true", help="otherwise only inspect the selection")
     parser.add_argument("--publish", action="store_true", help="replace verified staged outputs, retaining backups")
@@ -519,6 +626,10 @@ def main() -> int:
         parser.error("--resume requires --execute and --run-dir")
     if arguments.publish and not arguments.execute:
         parser.error("--publish requires --execute")
+    if arguments.compile_jobs <= 0:
+        parser.error("--compile-jobs must be positive")
+    if arguments.compile_jobs != 1 and not arguments.compile:
+        parser.error("--compile-jobs requires --compile")
     if arguments.resume:
         state = json.loads((arguments.run_dir / "campaign.json").read_text())
         if state["version"] != 3 or state["root"] != str(ROOT):
@@ -526,18 +637,36 @@ def main() -> int:
         for name, expected in state["controller_hashes"].items():
             if digest(contained_path(ROOT, name)) != expected:
                 raise ValueError(f"Controller changed since this campaign was frozen: {name}")
-        if arguments.model or arguments.target or arguments.kind != "prices" or (arguments.publish and not state["publish"]):
+        if (arguments.model or arguments.target or arguments.asset_class
+                or arguments.model_family or arguments.construction
+                or arguments.skip_published or arguments.compile
+                or arguments.kind != "prices"
+                or (arguments.publish and not state["publish"])):
             raise ValueError("Resume uses the frozen selection and publication policy; do not override them")
         jobs = state["jobs"]
     else:
         kinds = {"prices", "price_delta", "samples"} if arguments.kind == "all" else {arguments.kind}
-        jobs = inventory(ROOT, kinds, set(arguments.model), set(arguments.target))
+        jobs = inventory(
+            ROOT,
+            kinds,
+            set(arguments.model),
+            set(arguments.target),
+            asset_classes=set(arguments.asset_class),
+            model_families=set(arguments.model_family),
+            constructions=set(arguments.construction),
+            skip_published=arguments.skip_published,
+        )
+    build = Path(state["build"]) if arguments.resume else arguments.build.resolve()
+    if not jobs:
+        print(json.dumps({"job_count": 0, "jobs": []}, indent=2))
+        return 0
+    if arguments.compile:
+        compile_selected(ROOT, build, jobs, arguments.compile_jobs)
     if not arguments.execute:
         print(json.dumps({"job_count": len(jobs), "jobs": jobs}, indent=2))
         return 0
     if arguments.run_dir is None:
         parser.error("--execute requires a new --run-dir (or --resume)")
-    build = Path(state["build"]) if arguments.resume else arguments.build.resolve()
     # One lock for the repository, including controllers using different builds.
     lock_path = ROOT / "datasets" / ".generation-campaign.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)

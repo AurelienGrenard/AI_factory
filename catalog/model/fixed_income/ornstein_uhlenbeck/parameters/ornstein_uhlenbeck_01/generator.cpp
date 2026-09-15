@@ -1,7 +1,7 @@
 // Generate reproducible Ornstein-Uhlenbeck short-rate parameters.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
-#include "tools/datasets/ornstein_uhlenbeck_generation.hpp"
+#include "tools/sampling/parameters/ornstein_uhlenbeck_generation.hpp"
 
 #include <cstdint>
 #include <filesystem>
