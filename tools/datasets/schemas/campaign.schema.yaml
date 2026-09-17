@@ -1,0 +1,35 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ai-factory.example/schemas/dataset-campaign-v4"
+title: AI Factory generation campaign state
+type: object
+required: [version, root, build, publish, revision, jobs]
+properties:
+  version:
+    const: 4
+  root:
+    type: string
+  build:
+    type: string
+  publish:
+    type: boolean
+  revision:
+    type: string
+    pattern: "^[0-9a-f]{40}$"
+  worktree:
+    type: string
+  jobs:
+    type: array
+    items:
+      type: object
+      required: [target, generator, recipe, generation, dataset, state]
+      properties:
+        target: {type: string}
+        generator: {type: string}
+        recipe: {type: string}
+        generation: {type: string}
+        validation: {type: string}
+        dataset: {type: string}
+        state:
+          enum: [pending, running, interrupted, failed, staged, complete]
+      additionalProperties: true
+additionalProperties: true

@@ -68,7 +68,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "Log-modulated rough-Bergomi",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
-        "catalog/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + "/dataset.yaml",
+        "catalog/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

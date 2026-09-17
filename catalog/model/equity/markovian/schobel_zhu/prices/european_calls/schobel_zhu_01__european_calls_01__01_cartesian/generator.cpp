@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json",
         "datasets/product/european_option/european_options_01.json",
         "datasets/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian.json",
         "exact OU factor with log-spot Euler",
         PriceConstruction::CartesianProduct,

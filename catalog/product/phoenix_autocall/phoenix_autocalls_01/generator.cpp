@@ -16,7 +16,7 @@ int main() {
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/phoenix_autocall/"
-        "phoenix_autocalls_01/dataset.yaml";
+        "phoenix_autocalls_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/phoenix_autocalls/"
         "phoenix_autocalls_01.json";

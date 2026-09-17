@@ -1,0 +1,86 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/recipe.yaml
+  sha256: 933b8509786db715b81101640de9b29ddcd121f17078b8d70f1e0c1e3ad4b138
+artifact:
+  row_count: 1000
+  sha256: e36a302969c5188e66c8fd6d461eb48d3d4e1249724adaba607e2ab281fc1aed
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: 9be0d16aa5d7dd3e9e900d20b8fca601bb1a71ee1d241677cb7c7dd5712c76a9
+  products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+execution:
+  binary_sha256: d459a677afb9c5e87c343db9a626b78652dec8be8206bd8ef0728b7df34be399
+  declared_method:
+    engine: fixed_income_monte_carlo
+    profile: exact_joint_monte_carlo_price_profile
+    variant: european_receiver_swaptions
+    construction: aligned
+    has_curve: true
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: fixed_income_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: g2_plus_plus
+    product: european_swaption
+    curve: svensson
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/g2-european-swaption-monte-carlo-sm89-2026-09-08.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 256
+    price_launch_count: 4
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 256
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 1ae6725b2a6487d80e17e9768c9971a02fc2a2adc68a1ae2c091482544215cf2
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  threads_per_block: 256
+  block_count: 256
+  kernel_launch_count: 4
+  results_per_launch: 256
+  work_distribution: one block per price; independent paths per thread
+  time_day_fraction: 1 / 252
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: fixed_income_terminal_mc
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 27.731494952
+  kernel_seconds: 29.989140625
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307532.5001714
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 85.54 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: e2dd953ab4e521eb3514c1ad1b5fc180bbbcb51864d47d1923c1f9a07ad36819
+    datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
+  generator: catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 898e63d6b3165e531ddedd5f7ed23a4c54c2e810699e9cf26a43b15639dd8403
+  record_sha256: 91ef04a5a254297669976b9da90bfbf64ee5264c307eac134bb5bb5bb484daae
+record_sha256: 85029b18a85ed815ca57bb10c5ccc8a73af6bcbe6affa1ff1c62457cd03ad076

@@ -21,7 +21,7 @@ int main() {
         products["time_convention"] = {{"unit","business_day"},{"days_per_year",252}};
         datasets::write_json_file(directory/"models.json",models);
         datasets::write_json_file(directory/"products.json",products);
-        data::Recipe recipe{directory/"models.json",directory/"products.json",directory/"gradients.json",directory/"dataset.yaml",
+        data::Recipe recipe{directory/"models.json",directory/"products.json",directory/"gradients.json",directory/"generation.yaml",
             "https://datasets.ai-factory.example/gradients.json","source/generator.cpp",PriceConstruction::Aligned,
             {{{"model.rho",{.125,pg::BumpScale::absolute}}}}, {}};
         data::Results result{{.1f},{.01f},{.2f},{.02f},

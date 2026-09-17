@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/bates/parameters/bates_01.json",
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01.json",
-        "catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01.json",
         "Andersen QE-M with compound-Poisson lognormal jumps",
         PriceConstruction::Aligned,

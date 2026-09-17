@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/phoenix_autocall/phoenix_autocalls_01/recipe.yaml
+  sha256: a8d8d0fb69d63a13005c3edd41ffb04950cb3e110a20cdb5bb9fdc4f2f2ee6fc
+artifact:
+  row_count: 1000
+  sha256: 51d08ef039565d95fd7f4fabaaf5c3790379c8b1aa854c6b3ddd427041ec9d8b
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: b90643ac18ccd755d8b94ce293923b408a0df2bf40fdafd509fc1e6fab0821cf

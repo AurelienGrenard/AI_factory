@@ -93,7 +93,7 @@ class PricingScalingTest(unittest.TestCase):
                         else ("rate_option", "call")}[case["family"]]
             self.assertEqual((case["product"], case["side"]), expected)
             self.assertTrue((ROOT / case["header"]).is_file())
-            self.assertTrue((ROOT / case["recipe"]).is_file())
+            self.assertTrue((ROOT / case["generator"]).is_file())
 
     def test_generated_adapters_have_no_unsubstituted_field(self):
         for case in workloads(include_lsm=True):
@@ -131,7 +131,7 @@ class PricingScalingTest(unittest.TestCase):
     def test_lsm_binding_only_scope_and_exact_calendar_are_explicit(self):
         cases = {c["id"]: c for c in workloads(include_lsm=True)}
         black_scholes = cases["black_scholes__lsm"]
-        self.assertIsNone(black_scholes["recipe"])
+        self.assertIsNone(black_scholes["generator"])
         self.assertEqual(black_scholes["scope"], "binding_only_no_price_recipe")
         self.assertEqual(black_scholes["seed_source"], "scaling_only_sha256_case_id_56bit")
         self.assertLess(black_scholes["seed"] + 1000, 2**64)

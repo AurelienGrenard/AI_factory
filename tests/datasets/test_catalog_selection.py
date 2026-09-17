@@ -23,7 +23,7 @@ def spec(
         model=name,
         construction=construction,
         dataset_path=f"datasets/model/equity/{family}/{name}/samples/samples_01.json",
-        catalog_yaml_path=f"catalog/model/equity/{family}/{name}/samples/samples_01/dataset.yaml",
+        generation_yaml_path=f"catalog/model/equity/{family}/{name}/samples/samples_01/generation.yaml",
     )
 
 
@@ -43,7 +43,7 @@ class CatalogSelectionTest(unittest.TestCase):
         missing = spec("missing", family="rough")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for relative in (existing.dataset_path, existing.catalog_yaml_path):
+            for relative in (existing.dataset_path, existing.generation_yaml_path):
                 path = root / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("published")

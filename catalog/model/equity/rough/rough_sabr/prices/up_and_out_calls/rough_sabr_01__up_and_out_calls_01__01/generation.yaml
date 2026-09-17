@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/recipe.yaml
+  sha256: d5acfc2bffbe4da70dc6c796854ced817e75b57178fc9ab76ca544b32d4b9096
+artifact:
+  row_count: 1000
+  sha256: 227e0122b9f354b0ace679455f1d37690bf486998c49c8a4a5080be85c93134c
+inputs:
+  models: b944dd49346ffce3c3c983b1ee5a6d2752fe3e232afb618733c2e23baf446a4a
+  products: 1b1caffda978b7f8ba7c7fb1d940aa7403f7fbd24a68f49cbb98fed958cf3349
+execution:
+  binary_sha256: 3e096d4aeea2f3e51e99769a09a775d1dcd1f9580173046240b7dd1b21905310
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: up_and_out_calls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: rough_sabr
+    product: up_and_out_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: d2eefca12a96ea79ff396bc737cfc324c26c922e3cd3e75dd9408a40968e4fa4
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 121.209372065
+  kernel_seconds: 117.778859375
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789352474.4773095
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 108.29 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json: acc1d1f590f6d94bb2630c2ef6aab972eeda820fce90bf8cb2a2a852be8fc753
+    datasets/product/up_and_out_option/up_and_out_options_01.json: e117773336dd47d27a828c06163813e81a4359a1bbd75d6b7fea81fc179ee2d3
+  generator: catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 4a43dcccc420ff8d4ac00b1cb84291a10131d0010527be7096365af3164f72af
+  record_sha256: 7548d50c633b8c031ea7ab9b95426ba0469ca4ac6cf4f308426d019f3d11f783
+record_sha256: 2afd6b722bb32000a26745b697509b542af90b3b7a5eda00b017b7d47d891a82

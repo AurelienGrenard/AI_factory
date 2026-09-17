@@ -17,36 +17,43 @@ class GenerationTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.run = self.root / "run"
+        base = "catalog/model/equity/markovian/test/prices/calls/test"
         self.job = {"target": "generate_test", "kind": "prices", "rows": 2, "inputs": [],
                     "dataset": "datasets/model/equity/markovian/test/prices/calls/test.json",
-                    "catalog": "catalog/model/equity/markovian/test/prices/calls/test/dataset.yaml",
+                    "generator": f"{base}/generator.cpp",
+                    "recipe": f"{base}/recipe.yaml",
+                    "generation": f"{base}/generation.yaml",
+                    "validation": f"{base}/validation.yaml",
                     "launch_plan": {"paths_per_price": 32}, "state": "pending", "previous": {}}
-        self.catalog = {"database_id": "test", "row_count": 2,
-                        "summary": {"monte_carlo_paths_per_price": 32},
-                        "price_construction": {"method": "Aligned"},
-                        "validation": {"status": "pending", "verified": False,
-                                       "dataset": "validation/datasets/price/equity/markovian/test/calls/test.json"}}
+        self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
+                       "generator": "generator.cpp",
+                       "output": {"path": self.job["dataset"], "format": "json"},
+                       "generation_output": self.job["generation"], "construction": "aligned"}
+        self.receipt = {"schema_version": 1, "status": "complete",
+                        "artifact": {"row_count": 2},
+                        "execution": {"paths_per_price": 32},
+                        "timing": {"wall_seconds": .1, "kernel_seconds": .05}}
         self.document = {"database_id": "test", "row_count": 2, "results": [
             {"id": f"{i:06d}", "outputs": {"price": 0.1, "standard_error": 0.01}} for i in (1, 2)]}
-        for key in ("dataset", "catalog"):
-            path = self.root / self.job[key]
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("old artifact")
-            self.job["previous"][self.job[key]] = digest(path)
+        for key in ("dataset", "generation"):
+            self.job["previous"][self.job[key]] = None
         binary = self.run / "bin" / self.job["target"]
         binary.parent.mkdir(parents=True)
         binary.write_text("frozen binary; mocked execution")
         self.job["binary_sha256"] = digest(binary)
-        self.job.update(identity="test/calls", sample_shape=None, recipe="recipe.cpp", semantic_inputs={},
+        self.job.update(identity="test/calls", sample_shape=None, semantic_inputs={},
                         rng_stream_seeds={"dynamics": 123},
                         declared_method={"engine": "test", "construction": "aligned"},
                         checkpoint="jobs/generate_test/checkpoint", checkpoint_id="a" * 64)
-        recipe = self.run / "sources/recipe.cpp"
-        recipe.parent.mkdir(parents=True)
-        recipe.write_text("frozen recipe")
+        generator = self.run / "sources" / self.job["generator"]
+        generator.parent.mkdir(parents=True)
+        generator.write_text("frozen generator")
+        self.job["generator_sha256"] = digest(generator)
+        recipe = self.run / "sources" / self.job["recipe"]
+        recipe.write_text(yaml.safe_dump(self.recipe))
         self.job["recipe_sha256"] = digest(recipe)
         (self.run / "sources.tar.gz").write_text("frozen source archive")
-        self.state = {"version": 3, "root": str(self.root), "publish": False, "jobs": [self.job],
+        self.state = {"version": 4, "root": str(self.root), "publish": False, "jobs": [self.job],
                       "input_hashes": {}, "build_hashes": {}, "revision": "unit-test",
                       "source_archive_sha256": digest(self.run / "sources.tar.gz")}
         telemetry = patch.object(campaign, "gpu_observation", return_value={"unavailable": "unit test"})
@@ -62,7 +69,10 @@ class GenerationTests(unittest.TestCase):
             self.assertEqual(checkpoint_id, "a" * 64)
             checkpoint.mkdir(parents=True, exist_ok=True)
             (checkpoint / "results.checkpoint").write_text("mock checkpoint")
-        for key, text in (("dataset", json.dumps(self.document)), ("catalog", yaml.safe_dump(self.catalog))):
+        recipe = work / self.job["recipe"]
+        recipe.parent.mkdir(parents=True, exist_ok=True)
+        recipe.write_text(yaml.safe_dump(self.recipe))
+        for key, text in (("dataset", json.dumps(self.document)), ("generation", yaml.safe_dump(self.receipt))):
             path = work / self.job[key]
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
@@ -142,22 +152,22 @@ class GenerationTests(unittest.TestCase):
         events = [json.loads(line) for line in
                   (self.run / self.job["progress_journal"]).read_text().splitlines()]
         self.assertEqual(events[-1]["event"], "job_complete")
-        metadata = yaml.safe_load((Path(self.job["work"]) / self.job["catalog"]).read_text())
-        self.assertEqual(metadata["generation"]["schema_version"], 1)
-        self.assertEqual(metadata["generation"]["dataset_sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
-        self.assertEqual(digest(self.root / self.job["dataset"]), self.job["previous"][self.job["dataset"]])
+        metadata = yaml.safe_load((Path(self.job["work"]) / self.job["generation"]).read_text())
+        self.assertEqual(metadata["schema_version"], 1)
+        self.assertEqual(metadata["artifact"]["sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
+        self.assertFalse((self.root / self.job["dataset"]).exists())
         (Path(self.job["work"]) / self.job["dataset"]).write_text("changed")
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
             campaign.execute(self.run, self.state)
 
     def test_price_delta_inventory_inherits_seeds_and_records_bump(self):
         jobs = campaign.inventory(campaign.ROOT, {"price_delta"}, set(), set())
-        from capability_manifest import PRICE_DELTA_DATASET_SPECS, PRICE_DELTA_SOURCE_BY_RECIPE, resolve_rng_domain
+        from capability_manifest import PRICE_DELTA_DATASET_SPECS, PRICE_DELTA_SOURCE_BY_GENERATOR, resolve_rng_domain
         self.assertEqual(len(jobs), len(PRICE_DELTA_DATASET_SPECS))
         for job in jobs:
             self.assertEqual(job["sensitivity"]["relative_full_width"], .01)
-            source = PRICE_DELTA_SOURCE_BY_RECIPE[job["recipe"]]
-            self.assertEqual(job["sensitivity"]["source_price_recipe"], source.recipe_path)
+            source = PRICE_DELTA_SOURCE_BY_GENERATOR[job["generator"]]
+            self.assertEqual(job["sensitivity"]["source_price_recipe"], source.recipe_yaml_path)
             if source.engine != "equity_closed_form":
                 self.assertEqual(job["rng_stream_seeds"]["dynamics"], resolve_rng_domain(source).seed("dynamics"))
 
@@ -167,12 +177,12 @@ class GenerationTests(unittest.TestCase):
 
     def test_price_delta_publication_checks_paired_outputs_and_contract(self):
         self.job.update(kind="price_delta", sensitivity={"parameter": "spot", "method": "centered_crn",
-                        "relative_full_width": .01, "source_price_recipe": "original.cpp"}, time_grid=None)
-        self.catalog["validation"] = {"status": "pending", "verified": False}
-        self.catalog["sensitivity"] = self.job["sensitivity"].copy()
+                        "relative_full_width": .01, "source_price_recipe": "original.yaml"}, time_grid=None)
+        self.recipe["kind"] = "price_delta"
+        self.recipe["sensitivity"] = self.job["sensitivity"].copy()
         self.document["sensitivity"] = self.job["sensitivity"].copy()
-        self.catalog["summary"]["seed"] = 123
-        self.document["summary"] = self.catalog["summary"].copy()
+        self.receipt["execution"]["seed"] = 123
+        self.document["summary"] = {"paths_per_price": 32, "seed": 123}
         for row in self.document["results"]:
             row["outputs"].update(delta=.5, delta_standard_error=.02)
             row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
@@ -188,10 +198,11 @@ class GenerationTests(unittest.TestCase):
         self.job.update(kind="price_delta", sensitivity={}, time_grid=None,
                         preparation={"method": "hybrid_fft", "shared_convolution": True})
         self.job["launch_plan"]["path_chunk_size"] = 65536
-        self.catalog["validation"] = {"status": "pending", "verified": False}
-        self.catalog["summary"].update(seed=123, path_chunk_size=65536,
-                                       preparation=self.job["preparation"].copy())
-        self.document["summary"] = copy.deepcopy(self.catalog["summary"])
+        self.recipe["kind"] = "price_delta"
+        self.recipe["preparation"] = self.job["preparation"].copy()
+        self.receipt["execution"].update(seed=123, path_chunk_size=65536,
+                                         preparation=self.job["preparation"].copy())
+        self.document["summary"] = copy.deepcopy(self.receipt["execution"])
         for row in self.document["results"]:
             row["outputs"].update(delta=.5, delta_standard_error=.02)
             row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
@@ -208,14 +219,17 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "geometry"):
             campaign.check_outputs(work, self.job)
 
-    def test_certification_and_path_count_guards(self):
-        for certified, paths in ((True, 32), (False, 16)):
-            self.catalog["validation"]["verified"] = certified
-            self.catalog["summary"]["monte_carlo_paths_per_price"] = paths
+    def test_generation_cannot_claim_validation_and_path_count_is_checked(self):
+        for validation, paths in (({"verified": True}, 32), (None, 16)):
+            self.receipt["execution"]["paths_per_price"] = paths
+            if validation is None:
+                self.receipt.pop("validation", None)
+            else:
+                self.receipt["validation"] = validation
             with patch.object(campaign, "run_generator", side_effect=self.generator):
                 with self.assertRaises(ValueError):
                     campaign.execute(self.run, self.state)
-            self.assertEqual(digest(self.root / self.job["dataset"]), self.job["previous"][self.job["dataset"]])
+            self.assertFalse((self.root / self.job["dataset"]).exists())
         self.assertEqual(self.job["attempt"], 2)
 
     def test_publication_resumes_without_rerunning_generator(self):
@@ -235,7 +249,9 @@ class GenerationTests(unittest.TestCase):
             campaign.execute(self.run, self.state)
 
     def test_changed_source_archive_and_recipe_are_rejected(self):
-        for relative, message in (("sources.tar.gz", "source archive"), ("sources/recipe.cpp", "recipe")):
+        for relative, message in (("sources.tar.gz", "source archive"),
+                                  (f"sources/{self.job['generator']}", "generator"),
+                                  (f"sources/{self.job['recipe']}", "recipe")):
             path = self.run / relative
             original = path.read_bytes()
             path.write_text("changed")
@@ -249,7 +265,7 @@ class GenerationTests(unittest.TestCase):
         with patch.object(campaign, "run_generator", side_effect=self.generator):
             with self.assertRaisesRegex(ValueError, "standard error"):
                 campaign.execute(self.run, self.state)
-        self.assertEqual(digest(self.root / self.job["dataset"]), self.job["previous"][self.job["dataset"]])
+        self.assertFalse((self.root / self.job["dataset"]).exists())
 
     def test_failed_dataset_reuses_checkpoint_only_on_explicit_execute(self):
         checkpoint_path = self.run / self.job["checkpoint"]
@@ -289,7 +305,7 @@ class GenerationTests(unittest.TestCase):
     def test_streamed_samples(self):
         path = self.root / "samples.json"
         job = {"rows": 2, "dataset": "samples.json", "sample_shape": [1, 2]}
-        catalog = {"construction": {"maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}}
+        recipe = {"maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}
         envelope = {"database_id": "samples", "row_count": 2,
                     "construction": {"parameter_count": 1, "paths_per_parameter": 2}}
         rows = [{"id": f"{i:06d}", "parameters": {"x": 1.0}, "values": {"spot": 1.1},
@@ -297,11 +313,11 @@ class GenerationTests(unittest.TestCase):
         contents = json.dumps(envelope)[:-1] + ',\n  "samples": [\n'
         contents += ",\n".join(json.dumps(row) for row in rows) + "\n  ]\n}\n"
         path.write_text(contents)
-        campaign.check_samples(path, job, catalog)
+        campaign.check_samples(path, job, recipe)
         for invalid in (contents[:-6], contents.replace('"spot": 1.1', '"spot": NaN')):
             path.write_text(invalid)
             with self.assertRaises(ValueError):
-                campaign.check_samples(path, job, catalog)
+                campaign.check_samples(path, job, recipe)
 
 
 if __name__ == "__main__":

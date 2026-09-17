@@ -42,7 +42,9 @@ no path-count or shape override.
 For equity sensitivities, build the separate `price_delta_generators` target
 and select `--kind price_delta`. Building `price_generators` alone still builds
 only price-only recipes. Generated `recipe.yaml` describes planned settings;
-`dataset.yaml` is produced only by execution.
+the native generator produces a minimal `generation.yaml` receipt during
+execution. The controller enriches that receipt with frozen hashes and
+provenance without copying recipe semantics into it.
 The recipes reuse the price-only launch profile as a candidate, not as a
 delta-specific performance qualification. See the [price-delta contract](cuda/equity-price-delta-contract.md)
 for CRN seed sharing, paired errors, frozen LSM dates and bias limitations.
@@ -79,14 +81,15 @@ targets sequentially with publication:
 python3 tools/datasets/generate_catalog.py \
   --asset-class fixed_income --construction aligned --kind prices \
   --compile \
-  --run-dir datasets/generation-runs/fixed-income-aligned-01 \
+  --run-dir work/generation/fixed-income-aligned-01 \
   --execute --publish
 ```
 
 The controller builds only the selected generators and the launch inspector in
 `build/`. It then freezes the inputs and binaries. It runs one job at a time.
-It checks each dataset and publishes it to its declared
-`datasets/model/fixed_income/` and `catalog/model/fixed_income/` paths. A
+It checks each dataset and publishes the immutable JSON first, then its
+`generation.yaml` completion marker, to the declared `datasets/` and
+`catalog/` paths. A
 later job's failure does not roll back earlier published jobs. Resume the
 frozen campaign through `generate_catalog.py --run-dir <same directory>
 --execute --resume`. A checkpoint-capable terminal Monte Carlo job continues
@@ -110,27 +113,27 @@ python3 tools/datasets/generate_catalog.py \
   --asset-class equity --model-family markovian \
   --construction aligned --kind prices \
   --compile \
-  --run-dir datasets/generation-runs/equity-markovian-aligned-01 \
+  --run-dir work/generation/equity-markovian-aligned-01 \
   --execute --publish
 ```
 
 The controller builds these generators in `build/`. It publishes each completed
-dataset under `datasets/model/equity/markovian/` and
-its catalogue YAML under `catalog/model/equity/markovian/`. To follow the run,
+dataset under `datasets/model/equity/markovian/` and its generation receipt
+under `catalog/model/equity/markovian/`. To follow the run,
 use `python3 tools/datasets/watch_generation_progress.py
-datasets/generation-runs/equity-markovian-aligned-01` in another terminal.
+work/generation/equity-markovian-aligned-01` in another terminal.
 If interrupted, resume the frozen campaign with:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --run-dir datasets/generation-runs/equity-markovian-aligned-01 \
+  --run-dir work/generation/equity-markovian-aligned-01 \
   --execute --resume
 ```
 
 ## Generate model-terminal samples
 
 The controller also owns terminal sample campaigns. `--skip-published` excludes
-a recipe when its JSON and YAML already exist. A half-published pair is an
+a recipe when its JSON and `generation.yaml` already exist. A half-published pair is an
 error. This only checks file presence. It does not certify old data. Inspect the
 selection first:
 
@@ -150,14 +153,14 @@ with one command from the repository root:
 ```bash
 python3 tools/datasets/generate_catalog.py --kind samples --skip-published \
   --compile --compile-jobs 2 \
-  --run-dir datasets/generation-runs/model-samples-01 \
+  --run-dir work/generation/model-samples-01 \
   --execute --publish
 ```
 
 The command builds only the selected targets. It uses two parallel compile jobs.
 The campaign then runs one GPU generator at a time. It checks each
 three-million-row JSON as a stream. It publishes it to its declared
-`datasets/model/.../samples/` path with adjacent catalogue YAML and provenance.
+`datasets/model/.../samples/` path with adjacent generation receipt and provenance.
 `--asset-class equity`, `--model-family rough`, repeatable `--model`, and
 repeatable `--target` narrow a new campaign. Omit `--skip-published` to select
 existing pairs for regeneration.
@@ -166,7 +169,7 @@ In another terminal, follow the campaign with:
 
 ```bash
 python3 tools/datasets/watch_generation_progress.py \
-  datasets/generation-runs/model-samples-01
+  work/generation/model-samples-01
 ```
 
 The display counts completed datasets. During a sample generator's preparation
@@ -181,7 +184,7 @@ an interrupted sample dataset restarts from its first row on explicit resume:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --run-dir datasets/generation-runs/model-samples-01 \
+  --run-dir work/generation/model-samples-01 \
   --execute --resume
 ```
 
@@ -198,7 +201,7 @@ Use a new run directory on the repository filesystem:
 ```bash
 python3 tools/datasets/generate_catalog.py \
   --target generate_cir_european_payer_swaptions_01 \
-  --run-dir datasets/generation-runs/generation-pilot-01 --execute
+  --run-dir work/generation/generation-pilot-01 --execute
 ```
 
 Without `--publish`, outputs stay under the campaign's `jobs/` directory and
@@ -207,11 +210,11 @@ its full shape, not a reduced benchmark. Sample `--smoke-test` and `--preflight`
 remain separate native verification modes; consult the sample contract.
 
 The controller requires Python 3, PyYAML and Ninja. It freezes parameter inputs,
-recipe sources and executables with SHA-256 checks. Each job retains stdout,
+generator sources, canonical recipes and executables with SHA-256 checks. Each job retains stdout,
 stderr, its full process time, artifact-check time and separate publication time.
 The build configuration and launch inspector are retained, with before/after GPU
-observations (informative only). Version-3 campaigns also retain the dirty
-implementation-source archive and attach generation provenance to staged YAML;
+observations (informative only). Version-4 campaigns also retain the exact
+implementation-source archive and attach generation provenance to the staged receipt;
 SDKs and external dependencies are not archived. This is not a hermetic build
 or a qualified timing campaign. GPU and native runner
 times remain in the generated JSON/YAML; they are not confused with full
@@ -225,7 +228,7 @@ An unfiltered campaign can be very long; inspect its recipe list first.
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --kind all --run-dir datasets/generation-runs/generation-01 --execute --publish
+  --kind all --run-dir work/generation/generation-01 --execute --publish
 ```
 
 Jobs execute one at a time. The controller checks a conservative per-job disk
@@ -244,7 +247,7 @@ root:
 
 ```bash
 python3 tools/datasets/watch_generation_progress.py \
-  datasets/generation-runs/<campaign-directory>
+  work/generation/<campaign-directory>
 ```
 
 The display refreshes every ten seconds and formats durations in hours,
@@ -271,33 +274,35 @@ keep those results separately under
 `jobs/<target>/checkpoint/results.checkpoint`.
 For sample jobs, the display uses sample counts during JSON writing as
 described above; CUDA preparation and simulation have no within-job ETA.
-The example
-[`notebook.ipynb`](../experiments/equity/cross_model/heston_rough_heston_price_delta_generation/notebook.ipynb)
+The optional local example at
+`work/experiments/equity/cross_model/heston_rough_heston_price_delta_generation/notebook.ipynb`
 verifies/builds the Heston and rough Heston Cartesian price-delta targets in
 `build`, then launches their executables directly, one notebook cell per
 generator. It uses the same native progress reporter and captures stdout/stderr
 itself. This direct path writes to the
 recipe's catalogue and dataset destinations without campaign staging,
-provenance attachment, publication backups, or a controller-provided checkpoint;
+provenance attachment, immutable-publication checks, or a controller-provided checkpoint;
 use the controller above when those safeguards are needed.
 
-Before publication, price rows and metadata are checked; sample JSON is checked
-as a stream without loading three million records at once. Generated prices must
-be `pending / verified: false`, with their intended independent-reference path.
-This is structural/numerical output checking, not Premia/QuantLib validation.
-Never set `verified: true` manually to substitute for certification.
+Before publication, price rows, the canonical recipe and the generation receipt
+are checked; sample JSON is checked as a stream without loading three million
+records at once. Validation is deliberately separate and is never inferred from
+generation. Independent certification remains the responsibility of
+Premia/QuantLib validation tooling.
 
-Publication preserves the previous JSON/YAML under the job's `backup/` directory.
-Each rename is atomic, **not the pair**: a journal completes an interrupted pair
-on resume. Do not consume a publishing job until its state is `complete`.
-An external edit to a destination or a changed frozen input/output blocks resume
-instead of being overwritten or silently accepted.
+Publication is immutable: an existing different destination is never replaced
+or backed up. Identical bytes make retry idempotent; changed content requires a
+new dataset ID. The JSON rename is atomic and the `generation.yaml` rename is
+atomic, but the pair is completed through the publication journal. Consumers
+must require the receipt marker. A publishing campaign may be frozen only from
+a clean Git worktree so its revision identifies the exact recipe and code.
+An external edit or changed frozen input/output blocks resume.
 Changing a frozen controller/provenance module also blocks resume; keep the frozen controller
 version until the campaign is complete.
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --run-dir datasets/generation-runs/generation-01 --execute --resume
+  --run-dir work/generation/generation-01 --execute --resume
 ```
 
 Resume uses the frozen selection and publication policy. Completed jobs are
@@ -305,7 +310,7 @@ hash-checked and skipped. A staged job resumes publication without running the
 GPU again. An interrupted/failed generator receives a new attempt directory;
 there is no automatic retry.
 
-Version-3 campaigns provide within-dataset checkpoints for batched terminal
+Version-4 campaigns provide within-dataset checkpoints for batched terminal
 Monte Carlo price generation. This covers ordinary equity prices, prepared
 N-factor prices, Volterra FFT prices, fixed-income terminal Monte Carlo prices,
 and stochastic European equity price-delta recipes such as Heston and Bates.
@@ -315,7 +320,7 @@ flushes it to durable storage. A truncated final record is discarded after a
 power loss; the preceding contiguous prefix remains usable. Price-only records
 store price and standard error (8 bytes per price before small record headers);
 price-delta records store price, price error, delta and delta error (16 bytes per
-price). The controller deletes the checkpoint only after the final JSON/YAML
+price). The controller deletes the checkpoint only after the final JSON/receipt
 pair has passed structural checks and reached the durable `staged` state.
 
 The checkpoint identity binds the exact frozen executable, recipe, parameter
@@ -331,9 +336,10 @@ is preserved.
 
 Longstaff--Schwartz price/price-delta jobs and model-sample generators do not yet
 have a numerical checkpoint and restart the active dataset from the beginning.
-Campaign versions 1 and 2 likewise contain progress observations only; they
-cannot be upgraded after the fact because their completed GPU values were never
-written. Existing attempts and publication backups are retained.
+Older campaign versions use earlier metadata contracts and cannot be resumed by
+the version-4 controller. Versions 1 and 2 also contain progress observations
+only; they cannot be upgraded after the fact because their completed GPU values
+were never written. Existing historical attempts are retained.
 
 Changed pricing code or parameters require a new campaign, not a resume with
 different inputs. Independent certification is performed later through the

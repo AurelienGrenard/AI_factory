@@ -9,7 +9,7 @@ int main() {
     namespace pg = price_gradients;
     try {
         const datasets::price_gradients::Recipe recipe{
-            "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients.json", "catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients/dataset.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients.json", "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01_cartesian/generator.cpp",
+            "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients.json", "catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients/generation.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients.json", "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01_cartesian/recipe.yaml",
             PriceConstruction::CartesianProduct, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.initial_variance", {0.001, pg::BumpScale::absolute}},

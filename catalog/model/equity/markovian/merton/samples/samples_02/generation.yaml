@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/merton/samples/samples_02/recipe.yaml
+  sha256: afe7d3e9d5c0b3fb33ac53fedaba314d2b3e22722a35f8d2da88460af231949c
+artifact:
+  row_count: 3000000
+  sha256: 68ecd2435826fe4774719517abb84b059d66df1a7e80ba65127451ceae997f4d
+inputs: {}
+execution:
+  binary_sha256: eeefef29818831cfc37376c948dbfcd71d2f42376f478a59f15060d616b91e7f
+  declared_method:
+    engine: sample_markovian
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: fc54082d9742296e1b4aac26ef558af4e22cebc263e4ce0f9fea8564e75d5299
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent thread grid-stride
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.244738006
+  kernel_seconds: 0.000189248
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789410919.7006023
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 64, 43.87 W, [N/A], 1950 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/markovian/merton/samples/samples_02/generator.cpp
+legacy_checksums:
+  contract_sha256: 64be3815698aa16facd6fc622aa281832cefb4fed74f0204dbc5ccbc14f2f01f
+  record_sha256: 41ba792bb87f5bd3f63ac3648edb0389a3dd7231537299f455d40b28382ca005
+record_sha256: c88c7213a0c0a9390a4c336355185418fbac226f3e76664d037f4c7d05818de4

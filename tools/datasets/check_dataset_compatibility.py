@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from tools.datasets.artifact_publication import contained_path, digest
-from tools.datasets.dataset_provenance import assess, specification
+from tools.datasets.dataset_provenance import assess
 from tools.datasets.generate_catalog import describe_job, inventory, require_current_build
 
 
@@ -24,35 +24,39 @@ def candidate_descriptor(root: Path, build: Path, target: str) -> dict:
     job = jobs[0]
     job.update(describe_job(root, build, job))
     result = {
-        "specification": specification(job),
+        "recipe_sha256": digest(contained_path(root, job["recipe"])),
         "inputs": job["semantic_inputs"],
         "execution": {"binary_sha256": digest(build / job["target"]),
-                      "recipe_sha256": digest(contained_path(root, job["recipe"])),
+                      "generator_sha256": digest(contained_path(root, job["generator"])),
                       "declared_method": job["declared_method"],
                       "launch_plan": job.get("launch_plan"),
                       "build_hashes": {name: digest(build / name) for name in ("CMakeCache.txt", "build.ninja")}},
     }
-    if job.get("recipe_metadata"):
-        result["execution"]["recipe_metadata_sha256"] = digest(contained_path(root, job["recipe_metadata"]))
     return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--catalog", type=Path, required=True, help="YAML published with the existing dataset")
+    parser.add_argument("--recipe", type=Path, required=True, help="Canonical recipe YAML")
+    parser.add_argument("--generation", type=Path, required=True, help="Published generation receipt YAML")
     parser.add_argument("--dataset", type=Path, required=True, help="Existing JSON, even if relocated")
     parser.add_argument("--target", required=True, help="Current native generator target")
     parser.add_argument("--build", type=Path, default=ROOT / "build")
     args = parser.parse_args()
     try:
-        catalog = yaml.safe_load(args.catalog.read_text())
-        if not isinstance(catalog, dict):
-            raise ValueError("Catalogue must be a mapping")
+        recipe = yaml.safe_load(args.recipe.read_text())
+        generation = yaml.safe_load(args.generation.read_text())
+        if not isinstance(recipe, dict) or not isinstance(generation, dict):
+            raise ValueError("Recipe and generation receipt must be mappings")
         # Integrity and legacy checks do not depend on having a current build.
-        result = assess(catalog, args.dataset, None)
+        result = assess(
+            recipe, generation, args.dataset, None, digest(args.recipe)
+        )
         if result.pop("candidate_required", False):
             candidate = candidate_descriptor(ROOT, args.build.resolve(), args.target)
-            result = assess(catalog, args.dataset, candidate)
+            result = assess(
+                recipe, generation, args.dataset, candidate, digest(args.recipe)
+            )
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, yaml.YAMLError) as error:
         result = {"status": "review_required", "reasons": [str(error)], "certification": "not_assessed"}
     print(json.dumps(result, indent=2, allow_nan=False))

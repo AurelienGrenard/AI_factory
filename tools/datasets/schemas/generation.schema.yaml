@@ -1,0 +1,69 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ai-factory.example/schemas/dataset-generation-v1"
+title: AI Factory dataset generation receipt
+type: object
+required:
+  - schema_version
+  - status
+  - recipe
+  - artifact
+  - execution
+  - timing
+  - record_sha256
+properties:
+  schema_version:
+    const: 1
+  status:
+    const: complete
+  recipe:
+    type: object
+    required: [path, sha256]
+    properties:
+      path:
+        type: string
+        pattern: "^catalog/.+/recipe\\.yaml$"
+      sha256:
+        type: string
+        pattern: "^[0-9a-f]{64}$"
+    additionalProperties: false
+  artifact:
+    type: object
+    required: [row_count]
+    properties:
+      row_count:
+        type: integer
+        minimum: 1
+      sha256:
+        type: string
+        pattern: "^[0-9a-f]{64}$"
+    additionalProperties: true
+  inputs:
+    type: object
+  execution:
+    type: object
+  timing:
+    type: object
+    required: [wall_seconds, kernel_seconds]
+    properties:
+      wall_seconds:
+        type: [number, "null"]
+        minimum: 0
+      kernel_seconds:
+        type: [number, "null"]
+        minimum: 0
+    additionalProperties: true
+  provenance:
+    type: object
+  record_sha256:
+    type: string
+    pattern: "^[0-9a-f]{64}$"
+allOf:
+  - not:
+      anyOf:
+        - required: [dataset_id]
+        - required: [database_id]
+        - required: [validation]
+        - required: [outputs]
+        - required: [sensitivity]
+        - required: [time_grid]
+additionalProperties: true

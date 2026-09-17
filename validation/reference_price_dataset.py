@@ -818,19 +818,20 @@ def validate_published_reference(
     if reference_document.get("url") != expected_url:
         raise ValueError("Published reference URL contradicts its repository path.")
     source_document = _read_object(source_path)
-    catalog_path = root / source_document["catalog"] / "dataset.yaml"
+    validation_path = root / source_document["catalog"] / "validation.yaml"
     try:
-        catalog = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
+        validation = yaml.safe_load(validation_path.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError) as error:
         raise ValueError(
-            f"Cannot read catalog YAML '{catalog_path}': {error}"
+            f"Cannot read validation YAML '{validation_path}': {error}"
         ) from error
     expected = {
+        "schema_version": 1,
         "status": "available",
         "verified": True,
         "dataset": reference_relative,
     }
-    if not isinstance(catalog, dict) or catalog.get("validation") != expected:
+    if validation != expected:
         raise ValueError("Catalog validation metadata contradicts the reference cache.")
     return report
 
@@ -901,32 +902,25 @@ def synchronize_catalog_validation(
     source_path = Path(source_price_dataset).resolve()
     root = _project_root(source_path)
     source_document = _read_object(source_path)
-    catalog_path = root / source_document["catalog"] / "dataset.yaml"
+    validation_path = root / source_document["catalog"] / "validation.yaml"
     try:
         reference_relative = (
             Path(reference_price_dataset).resolve().relative_to(root).as_posix()
         )
     except ValueError as error:
         raise ValueError("Reference prices must live inside the project.") from error
-    text = catalog_path.read_text(encoding="utf-8")
-    marker = "\nvalidation:\n"
-    if marker not in text:
-        raise ValueError(f"Catalog YAML '{catalog_path}' has no validation block.")
-    start = text.index(marker) + 1
-    end = len(text)
-    for next_marker in ("\noutputs:\n", "\nmodel_dataset:\n"):
-        position = text.find(next_marker, start)
-        if position >= 0:
-            end = min(end, position + 1)
-    block = "\n".join(
-        (
-            "validation:",
-            '  status: "available"',
-            f"  verified: {'true' if verified else 'false'}",
-            f"  dataset: {json.dumps(reference_relative)}",
-        )
-    ) + "\n"
-    catalog_path.write_text(text[:start] + block + text[end:], encoding="utf-8")
+    validation_path.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "status": "available",
+                "verified": verified,
+                "dataset": reference_relative,
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
 
 
 def format_reference_validation(

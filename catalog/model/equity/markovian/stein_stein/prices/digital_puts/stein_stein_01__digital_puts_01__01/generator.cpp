@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01.json",
-        "catalog/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01.json",
         "exact OU volatility with log-spot Euler",
         PriceConstruction::Aligned,

@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/digital_option/digital_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01/generator.cpp", "centered_crn", .01, 0U};
+        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/digital_option/digital_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "normal_inverse_gaussian", "digital_option", ""},
         11668827587999694848ULL, model::equity::normal_inverse_gaussian::load_models, product::load_digital_options,

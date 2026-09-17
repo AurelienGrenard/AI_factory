@@ -10,6 +10,8 @@ and diagnostics. Runtime code under `src` never depends on this tree.
 | Generate or verify pricing and sampling bindings | [`codegen/pricing_bindings`](codegen/pricing_bindings/README.md) |
 | Compile or run a dataset campaign | [`datasets/generate_catalog.py`](datasets/generate_catalog.py) |
 | Assemble parameter, sample, or price artifacts | `datasets/` |
+| Validate dataset metadata contracts | [`datasets/schemas`](datasets/schemas/README.md) |
+| Define a disposable study manifest | [`experiments`](experiments/README.md) |
 | Inspect dataset provenance and reuse | [`datasets/check_dataset_compatibility.py`](datasets/check_dataset_compatibility.py), [contract](../docs/dataset-provenance-contract.md) |
 | Run CUDA pricing from an offline recipe | `cuda/pricing_runner.cuh` |
 | Compose product-specific price generation | `pricing/` |
@@ -22,6 +24,9 @@ and diagnostics. Runtime code under `src` never depends on this tree.
 - `datasets/*_dataset.*` owns dataset assembly and publication by artifact
   family.
 - `datasets/artifact_io.*` owns JSON/YAML serialization.
+- `datasets/schemas/` owns recipe, generation and validation document schemas.
+- `experiments/` owns only reusable contracts for local studies; concrete
+  studies live below ignored `work/experiments/`.
 - `cuda/` owns reusable offline CUDA execution and architecture checks.
 - `pricing/` owns product-specific price-generation orchestration.
 - `sampling/parameters/` owns model, curve, and product parameter construction.

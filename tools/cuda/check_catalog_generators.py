@@ -29,12 +29,12 @@ RAW_CUDA = (
 )
 
 GENERATED_RECIPES = {
-    dataset.recipe_path
+    dataset.generator_path
     for dataset in AVAILABLE_DATASET_SPECS
     if dataset.owner == "generated"
 }
 GENERATED_AMERICAN_RECIPES = {
-    dataset.recipe_path
+    dataset.generator_path
     for dataset in AVAILABLE_DATASET_SPECS
     if dataset.engine in {"equity_lsm_fixed", "equity_lsm_exact"}
 }
@@ -53,10 +53,10 @@ def main() -> int:
     generators = sorted((ROOT / "catalog").rglob("generator.cpp"))
     generator_paths = {relative(path) for path in generators}
     expected_recipe_paths = {
-        dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
+        dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
     }
     deferred_recipe_paths = {
-        dataset.recipe_path for dataset in DEFERRED_DATASET_SPECS
+        dataset.generator_path for dataset in DEFERRED_DATASET_SPECS
     }
     failures.extend(
         f"undeclared catalog recipe: {path}"
@@ -98,7 +98,7 @@ def main() -> int:
         if resolved != dataset:
             failures.append(
                 f"capability resolver returned the wrong DatasetSpec: "
-                f"{dataset.recipe_path}"
+                f"{dataset.generator_path}"
             )
 
     missing_generated = GENERATED_RECIPES - generator_paths
@@ -140,7 +140,7 @@ def main() -> int:
             )
 
     for dataset in AVAILABLE_DATASET_SPECS:
-        path = ROOT / dataset.recipe_path
+        path = ROOT / dataset.generator_path
         if not path.is_file():
             continue
         source = path.read_text()
@@ -152,7 +152,7 @@ def main() -> int:
             if ("kProductionPathsPerPrice" not in source
                     and "EuropeanSwaptionMonteCarloRecipe" not in source):
                 failures.append(
-                    f"stochastic price recipe bypasses the 2^20 production path count: {dataset.recipe_path}"
+                    f"stochastic price recipe bypasses the 2^20 production path count: {dataset.generator_path}"
                 )
         try:
             rng_domain = resolve_rng_domain(dataset)
@@ -164,7 +164,7 @@ def main() -> int:
                 if source.count(seed_literal) != 1:
                     failures.append(
                         f"recipe does not use exactly one declared {stream} "
-                        f"RNG seed {seed_literal}: {dataset.recipe_path}"
+                        f"RNG seed {seed_literal}: {dataset.generator_path}"
                     )
         literals = "".join(re.findall(
             r'"([^"\\]*(?:\\.[^"\\]*)*)"', source
@@ -195,13 +195,13 @@ def main() -> int:
               and dataset.engine != "fixed_income_lsm"):
             for label, value in (
                 ("dataset", dataset.dataset_path),
-                ("catalog", dataset.catalog_yaml_path),
+                ("catalog", dataset.generation_yaml_path),
                 ("URL", dataset.url),
             ):
                 if value not in literals:
                     failures.append(
                         f"generated recipe has the wrong {label} mapping: "
-                        f"{dataset.recipe_path}"
+                        f"{dataset.generator_path}"
                     )
         elif dataset.dataset_kind == "prices":
             if (
@@ -210,7 +210,7 @@ def main() -> int:
             ):
                 failures.append(
                     "Bermudan recipe does not directly declare "
-                    f"its product loader: {dataset.recipe_path}"
+                    f"its product loader: {dataset.generator_path}"
                 )
             if (
                 dataset.engine == "fixed_income_lsm"
@@ -219,17 +219,17 @@ def main() -> int:
             ):
                 failures.append(
                     "handwritten fitted Bermudan recipe does not directly "
-                    f"declare its curve loader: {dataset.recipe_path}"
+                    f"declare its curve loader: {dataset.generator_path}"
                 )
             if f'"{dataset.model}"' not in source:
                 failures.append(
                     f"handwritten price recipe has the wrong model mapping: "
-                    f"{dataset.recipe_path}"
+                    f"{dataset.generator_path}"
                 )
             if dataset.curve is not None and f'"{dataset.curve}"' not in source:
                 failures.append(
                     f"handwritten price recipe has the wrong curve mapping: "
-                    f"{dataset.recipe_path}"
+                    f"{dataset.generator_path}"
                 )
             side = (
                 "payer" if "payer" in (dataset.variant or "") else "receiver"
@@ -237,17 +237,17 @@ def main() -> int:
             if f'"{side}"' not in source:
                 failures.append(
                     f"handwritten price recipe has the wrong side mapping: "
-                    f"{dataset.recipe_path}"
+                    f"{dataset.generator_path}"
                 )
         else:
             for label, value in (
                 ("dataset", dataset.dataset_path),
-                ("catalog", dataset.catalog_yaml_path),
+                ("catalog", dataset.generation_yaml_path),
             ):
                 if value not in literals:
                     failures.append(
                         f"parameter recipe has the wrong {label} mapping: "
-                        f"{dataset.recipe_path}"
+                        f"{dataset.generator_path}"
                     )
     raw = {
         relative(path)

@@ -18,7 +18,7 @@ sys.path.insert(0, str(CODEGEN))
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
     CARTESIAN_PRICE_DATASET_SPECS,
-    CARTESIAN_PRICE_SOURCE_BY_RECIPE,
+    CARTESIAN_PRICE_SOURCE_BY_GENERATOR,
     CURVE_BY_NAME,
     CURVE_SPECS,
     DATASET_SPECS,
@@ -37,9 +37,9 @@ from capability_manifest import (  # noqa: E402
     GENERATED_PRICE_DELTA_BINDING_PATHS,
     PriceDeltaBindingSpec,
     PRICE_DELTA_DATASET_SPECS,
-    PRICE_DELTA_SOURCE_BY_RECIPE,
+    PRICE_DELTA_SOURCE_BY_GENERATOR,
     PRICE_GRADIENT_DATASET_SPECS,
-    PRICE_GRADIENT_SOURCE_BY_RECIPE,
+    PRICE_GRADIENT_SOURCE_BY_GENERATOR,
     pricing_launch_family,
     PRODUCT_SPECS,
     RNG_COMMON_RANDOM_NUMBER_ALLOWLIST,
@@ -104,9 +104,9 @@ class CapabilityManifestTest(unittest.TestCase):
 
         by_source = {}
         for dataset in PRICE_DELTA_DATASET_SPECS:
-            source = PRICE_DELTA_SOURCE_BY_RECIPE[dataset.recipe_path].recipe_path
-            if source in CARTESIAN_PRICE_SOURCE_BY_RECIPE:
-                source = CARTESIAN_PRICE_SOURCE_BY_RECIPE[source].recipe_path
+            source = PRICE_DELTA_SOURCE_BY_GENERATOR[dataset.generator_path].generator_path
+            if source in CARTESIAN_PRICE_SOURCE_BY_GENERATOR:
+                source = CARTESIAN_PRICE_SOURCE_BY_GENERATOR[source].generator_path
             by_source.setdefault(source, []).append(dataset)
         self.assertEqual(len(by_source), len(PRICE_DELTA_DATASET_SPECS) // 2)
         for variants in by_source.values():
@@ -191,10 +191,10 @@ class CapabilityManifestTest(unittest.TestCase):
     def test_dataset_paths_inherit_one_canonical_prefix(self) -> None:
         for dataset in DATASET_SPECS:
             self.assertTrue(
-                dataset.recipe_path.startswith(
+                dataset.generator_path.startswith(
                     f"catalog/{dataset.source_prefix}/"
                 ),
-                dataset.recipe_path,
+                dataset.generator_path,
             )
             self.assertTrue(
                 dataset.dataset_path.startswith(
@@ -259,22 +259,22 @@ class CapabilityManifestTest(unittest.TestCase):
             "fixed_income_monte_carlo",
         }
         stochastic_datasets = {
-            dataset.recipe_path
+            dataset.generator_path
             for dataset in AVAILABLE_DATASET_SPECS
             if dataset.dataset_kind == "samples"
             or dataset.engine in stochastic_engines
         }
         self.assertEqual(
-            {domain.recipe_path for domain in RNG_DOMAIN_SPECS},
+            {domain.generator_path for domain in RNG_DOMAIN_SPECS},
             stochastic_datasets,
         )
         self.assertTrue(RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
         for delta in PRICE_DELTA_DATASET_SPECS:
-            source = PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]
+            source = PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]
             if delta.engine != "equity_closed_form":
                 self.assertEqual(resolve_rng_domain(delta).seed("dynamics"),
                                  resolve_rng_domain(source).seed("dynamics"))
-                self.assertIn(tuple(sorted((delta.recipe_path, source.recipe_path))),
+                self.assertIn(tuple(sorted((delta.generator_path, source.generator_path))),
                               RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
         validate_rng_domain_specs(RNG_DOMAIN_SPECS)
 
@@ -288,30 +288,30 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertLessEqual(first[1], second[0])
 
     def test_rng_v2_appends_g2_mc_without_rekeying_v1(self) -> None:
-        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE) | set(PRICE_GRADIENT_SOURCE_BY_RECIPE)
-        legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
-                  for d in RNG_DOMAIN_SPECS if d.ordinal < 588 and d.recipe_path not in aliases]
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_GENERATOR) | set(PRICE_DELTA_SOURCE_BY_GENERATOR) | set(PRICE_GRADIENT_SOURCE_BY_GENERATOR)
+        legacy = [(d.generator_path, d.ordinal, d.seed("dynamics"))
+                  for d in RNG_DOMAIN_SPECS if d.ordinal < 588 and d.generator_path not in aliases]
         self.assertEqual(len(legacy), 588)
         self.assertEqual(hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
             "7472f3fff75219add3eb1b993d5d27dcfe30db2bdc5b1457c7e3f918b6ea0638")
         appended = [d for d in RNG_DOMAIN_SPECS
-                    if 588 <= d.ordinal < 594 and d.recipe_path not in aliases]
+                    if 588 <= d.ordinal < 594 and d.generator_path not in aliases]
         self.assertEqual(len(appended), 6)
         self.assertTrue(all(d.version == 3 for d in RNG_DOMAIN_SPECS))
-        self.assertTrue(all("/european_" in d.recipe_path and "/g2" in d.recipe_path
+        self.assertTrue(all("/european_" in d.generator_path and "/g2" in d.generator_path
                             for d in appended))
 
     def test_rng_v3_appends_cir_plus_plus_without_rekeying_v2(self) -> None:
-        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE) | set(PRICE_GRADIENT_SOURCE_BY_RECIPE)
-        legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
-                  for d in RNG_DOMAIN_SPECS if d.ordinal < 594 and d.recipe_path not in aliases]
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_GENERATOR) | set(PRICE_DELTA_SOURCE_BY_GENERATOR) | set(PRICE_GRADIENT_SOURCE_BY_GENERATOR)
+        legacy = [(d.generator_path, d.ordinal, d.seed("dynamics"))
+                  for d in RNG_DOMAIN_SPECS if d.ordinal < 594 and d.generator_path not in aliases]
         self.assertEqual(len(legacy), 594)
         self.assertEqual(hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
             "d73cd893f1a5fb413e3a1921a3631c0e3f26f00b86886772c1f33d8d61f2c617")
         appended = [d for d in RNG_DOMAIN_SPECS
-                    if d.ordinal >= 594 and d.recipe_path not in aliases]
+                    if d.ordinal >= 594 and d.generator_path not in aliases]
         self.assertEqual(len(appended), 6)
-        self.assertTrue(all("/cir_plus_plus/" in d.recipe_path for d in appended))
+        self.assertTrue(all("/cir_plus_plus/" in d.generator_path for d in appended))
 
     def test_cir_plus_plus_composes_all_products_for_both_curves(self) -> None:
         self.assertEqual(set(SAMPLE_MODEL_BY_NAME), {model.name for model in SAMPLE_MODELS})
@@ -340,7 +340,7 @@ class CapabilityManifestTest(unittest.TestCase):
         first, second = RNG_DOMAIN_SPECS[:2]
         collision = RngDomainSpec(
             version=second.version,
-            recipe_path=second.recipe_path,
+            generator_path=second.generator_path,
             ordinal=first.ordinal,
             streams=second.streams,
         )
@@ -355,7 +355,7 @@ class CapabilityManifestTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not inherit"):
             validate_dataset_spec(replace(
                 rough_dataset,
-                recipe_path=rough_dataset.recipe_path.replace("/rough", "", 1),
+                generator_path=rough_dataset.generator_path.replace("/rough", "", 1),
             ))
         product_dataset = next(
             dataset for dataset in DATASET_SPECS
@@ -364,7 +364,7 @@ class CapabilityManifestTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not inherit"):
             validate_dataset_spec(replace(
                 product_dataset,
-                recipe_path=product_dataset.recipe_path.replace(
+                generator_path=product_dataset.generator_path.replace(
                     "product/asian_option", "product/equity/asian_options"
                 ),
             ))
@@ -477,7 +477,7 @@ class CapabilityManifestTest(unittest.TestCase):
             resolved.target,
             "generate_heston_asian_calls_01",
         )
-        self.assertEqual(resolved.recipe_path, resolved.dataset.recipe_path)
+        self.assertEqual(resolved.generator_path, resolved.dataset.generator_path)
 
     def test_fixed_income_lsm_transitions_are_binding_specific(self) -> None:
         bindings = [
@@ -676,7 +676,7 @@ class CapabilityManifestTest(unittest.TestCase):
             dataset_id="fixture_model_01",
             model=model.name,
             source_prefix="model/fixed_income/fixture_model",
-            recipe_path=(
+            generator_path=(
                 "catalog/model/fixed_income/fixture_model/parameters/"
                 "fixture_model_01/generator.cpp"
             ),
@@ -690,16 +690,16 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertIn("fixture_model", rendered)
         self.assertIn("fixture_product", rendered)
         self.assertIn("fixture_curve", rendered)
-        self.assertIn(dataset.recipe_path, rendered)
+        self.assertIn(dataset.generator_path, rendered)
         self.assertEqual(dataset.cmake_target, "generate_fixture_model_01")
 
     def test_optional_mathdx_never_removes_parameter_generators(self) -> None:
         conditional = {
-            dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
+            dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
             if dataset.condition == "AI_FACTORY_MATHDX_ROOT"
         }
         parameter_sources = {
-            dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
+            dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
             if dataset.dataset_kind.endswith("_parameters")
         }
         self.assertFalse(conditional & parameter_sources)

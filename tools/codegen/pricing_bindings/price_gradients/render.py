@@ -39,7 +39,7 @@ def render_recipes(output_root, specifications, sources, model_specs, resolve_rn
                 "american_option_generator.cpp.tpl"
             )
         template = Template((template_root / template_path).read_text())
-        source = sources[spec.recipe_path]
+        source = sources[spec.generator_path]
         model = model_specs[spec.model]
         stochastic = spec.engine != "equity_closed_form"
         exact_transition = model.transition_contract == "exact transition"
@@ -61,26 +61,26 @@ def render_recipes(output_root, specifications, sources, model_specs, resolve_rn
                 f"{variant.product_dataset_id}.json"
             )
         values = {"model": spec.model, "model_input": model_input, "product_input": product_input,
-            "dataset": spec.dataset_path, "catalog": spec.catalog_yaml_path, "url": spec.url,
-            "source_recipe": source.recipe_path, "seed": str(seed), "stochastic": str(stochastic).lower(),
+            "dataset": spec.dataset_path, "catalog": spec.generation_yaml_path, "url": spec.url,
+            "source_recipe": source.recipe_yaml_path, "seed": str(seed), "stochastic": str(stochastic).lower(),
             "side": "call" if spec.variant.endswith("calls") else "put",
             "construction": "Aligned" if spec.construction == "aligned" else "CartesianProduct",
             "family": "closed_form" if not stochastic else "equity_exact_mc" if exact_transition else "equity_step_mc",
             "exact_transition": str(exact_transition).lower(),
             "selections": ",\n        ".join('{"' + item["parameter"] + '", {' + repr(item["displacement"])
                 + ', pg::BumpScale::' + item["scale"] + '}}' for item in selected)}
-        destination = output_root / spec.recipe_path
+        destination = output_root / spec.generator_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         write_generated(destination, template.substitute(values))
         generated.append(destination)
-        metadata = {"schema_version":1, "kind":"price_gradients", "database_id":spec.dataset_id,
+        metadata = {"schema_version":1, "kind":"price_gradients", "dataset_id":spec.dataset_id,
             "generator":"generator.cpp", "model_input":model_input, "product_input":product_input,
-            "dataset":spec.dataset_path, "catalog_output":spec.catalog_yaml_path, "construction":spec.construction,
+            "output":{"path":spec.dataset_path,"format":"json"},
+            "generation_output":spec.generation_yaml_path, "construction":spec.construction,
             "paths_per_price":1048576 if stochastic else 0, "dynamics_seed":seed,
             "sensitivity":{"method":"finite_difference_shared_innovations", "parameters":selected,
-                           "source_price_recipe":source.recipe_path},
-            "launch_profile":"gradient candidate; inspect compiled specialization; not performance-qualified",
-            "validation":{"status":"pending","verified":False}}
+                           "source_price_recipe":source.recipe_yaml_path},
+            "launch_profile":"gradient candidate; inspect compiled specialization; not performance-qualified"}
         if exact_transition:
             metadata["time_representation"] = {"kind":"exact_terminal_transition",
                 "contractual_days_per_year":252,"maturity_bump_steps_per_year":504}

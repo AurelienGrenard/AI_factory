@@ -39,7 +39,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/curve/nelson_siegel/nelson_siegel_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/curve/nelson_siegel/nelson_siegel_01/dataset.yaml";
+        "catalog/curve/nelson_siegel/nelson_siegel_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/curve/"
         "nelson_siegel/nelson_siegel_01.json";

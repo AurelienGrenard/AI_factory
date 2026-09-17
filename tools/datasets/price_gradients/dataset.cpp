@@ -104,6 +104,17 @@ void write_dataset(const Recipe& recipe, const Results& result) {
     document.erase("title");
     document["results"] = std::move(rows);
     write_json_file(recipe.dataset, document);
-    write_catalog_yaml(recipe.catalog, metadata);
+    nlohmann::ordered_json receipt_execution = result.execution;
+    receipt_execution["paths_per_price"] = result.execution.value(
+        "paths_per_price",
+        result.execution.value("monte_carlo_paths_per_price", 0U)
+    );
+    write_generation_receipt(
+        recipe.catalog,
+        count,
+        receipt_execution,
+        result.wall_seconds,
+        result.kernel_seconds
+    );
 }
 }  // namespace ai_factory::workbench::datasets::price_gradients

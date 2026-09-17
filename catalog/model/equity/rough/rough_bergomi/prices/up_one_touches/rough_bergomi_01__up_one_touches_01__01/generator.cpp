@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01.json",
-        "catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,

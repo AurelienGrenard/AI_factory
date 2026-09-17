@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
         "datasets/product/geometric_asian_option/geometric_asian_options_01.json",
         "datasets/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01_cartesian.json",
         "Exact Gamma subordination",
         PriceConstruction::CartesianProduct,

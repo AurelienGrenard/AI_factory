@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "stein_stein",
+  "output": {
+    "path": "datasets/model/equity/markovian/stein_stein/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/stein_stein/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "spot",
+      "risk_free_rate",
+      "dividend_yield",
+      "initial_volatility",
+      "mean_reversion",
+      "volatility_of_volatility"
+    ],
+    "latent_uniform_bounds": {
+      "spot": [
+        1.0,
+        1.0
+      ],
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "initial_volatility": [
+        0.1,
+        0.35
+      ],
+      "mean_reversion": [
+        0.5,
+        8.0
+      ],
+      "volatility_of_volatility": [
+        0.05,
+        0.5
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {
+      "rho": "Constant 0; independent spot and volatility innovations; no parameter draw."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668828094805835776,
+    "schedule": 11668828095879577600,
+    "dynamics": 11668828096953319424
+  },
+  "numerical_method": {
+    "engine": "sample_markovian",
+    "profile": "model_sample_profile",
+    "description": "exact OU volatility with log-spot Euler"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    },
+    "volatility": {
+      "description": "Terminal volatility.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "fixed-step",
+    "delta_t": "1 / 504",
+    "simulation_steps_per_day": 2
+  }
+}

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/cev/parameters/cev_01.json",
         "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json",
         "datasets/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01.json",
-        "catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01.json",
         "absorbed Milstein",
         PriceConstruction::Aligned,

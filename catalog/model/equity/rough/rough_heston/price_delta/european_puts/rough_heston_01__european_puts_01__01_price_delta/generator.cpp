@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/european_puts/rough_heston_01__european_puts_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/price_delta/european_puts/rough_heston_01__european_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/european_puts/rough_heston_01__european_puts_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_prepared_price_delta_dataset(
         recipe, {offline::cuda_tuning::PricingFamily::rough_n_factor, "rough_heston", "european_option", ""},
         11668828696101257216ULL, 7U, "7-factor Markovian lift", model::equity::rough_heston::load_models, product::load_european_options,

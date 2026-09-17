@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/kou/parameters/kou_01/recipe.yaml
+  sha256: 8a81ba3a52ad7fa243af8253d0edea11fb317aac7ae078ef8cc330139fa20132
+artifact:
+  row_count: 1000
+  sha256: 9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 78e7e1ce36092366c16126e44dc577b837dbd81c4052ba7d1fe6b77bcfca3121

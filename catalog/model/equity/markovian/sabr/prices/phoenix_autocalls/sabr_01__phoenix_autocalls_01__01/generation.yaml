@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/sabr/prices/phoenix_autocalls/sabr_01__phoenix_autocalls_01__01/recipe.yaml
+  sha256: db0b8429299ae42f56254003580390407a0e53552a8a4d430a4dfeee422b9686
+artifact:
+  row_count: 1000
+  sha256: e750833173ae33bef60beb7b509548aa9d22a5adaec12163f577001650e5b155
+inputs:
+  models: 489dd7b24c08558002a3cf225e11ab6b025330aab52f0819d162e6af3c77b4fc
+  products: a78dbc8eef9b170ee2b201adb609e22af2a8d5347e132664f2be524456759604
+execution:
+  binary_sha256: a90589a2104110a638aeb518586da0b6103f2108a8817d851c496f3d582c2d65
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: phoenix_autocalls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: sabr
+    product: phoenix_autocall
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 39fdf576e88f3789dfcdc7cf0b4310f513ecdd49e49c211affadcd607d614de1
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 64.279749959
+  kernel_seconds: 55.156773438
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789326683.5688438
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 78, 86.21 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: c21e08d3818676b55b7a613677a57a6c2b6e763825e8989bc76229eed82e7842
+    datasets/product/phoenix_autocall/phoenix_autocalls_01.json: 51d08ef039565d95fd7f4fabaaf5c3790379c8b1aa854c6b3ddd427041ec9d8b
+  generator: catalog/model/equity/markovian/sabr/prices/phoenix_autocalls/sabr_01__phoenix_autocalls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 5fcc738f4839f59c23b845a4487effafc5a54d92e71de9d0cdee187ea957dc7b
+  record_sha256: f57c98d1092b4c3322f5267a27fd85b76ec5a0de7ea5495647dc5245b5ab879c
+record_sha256: dd6987b0110983d623c26d81896da60259b38a98ecba32145bef37158e4a19d3

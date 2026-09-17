@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_sabr/parameters/rough_sabr_01/recipe.yaml
+  sha256: 9cbd571476a051bcf58c2e517c261489237b44e40e3e3fcc0ce9cc3e8c5e9334
+artifact:
+  row_count: 1000
+  sha256: acc1d1f590f6d94bb2630c2ef6aab972eeda820fce90bf8cb2a2a852be8fc753
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 4fcce64120466a0ed384130776e4deec5dc487a3c6601fbfa90219e85300b05c

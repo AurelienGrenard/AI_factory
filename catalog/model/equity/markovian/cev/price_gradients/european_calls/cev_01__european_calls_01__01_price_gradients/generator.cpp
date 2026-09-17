@@ -9,7 +9,7 @@ int main() {
     namespace pg = price_gradients;
     try {
         const datasets::price_gradients::Recipe recipe{
-            "datasets/model/equity/markovian/cev/parameters/cev_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients/dataset.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01/generator.cpp",
+            "datasets/model/equity/markovian/cev/parameters/cev_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients/generation.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.sigma", {0.005, pg::BumpScale::relative}},

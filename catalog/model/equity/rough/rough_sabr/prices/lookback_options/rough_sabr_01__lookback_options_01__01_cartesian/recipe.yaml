@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "rough_sabr_01__lookback_options_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json",
+    "product": "datasets/product/lookback_option/lookback_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/rough/rough_sabr/prices/lookback_options/rough_sabr_01__lookback_options_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/rough/rough_sabr/prices/lookback_options/rough_sabr_01__lookback_options_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_volterra_fft",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668828859310014464
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/merton/parameters/merton_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01_cartesian.json",
         "Exact Merton increments",
         PriceConstruction::CartesianProduct,

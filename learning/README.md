@@ -39,8 +39,8 @@ terms over the same training engine. The normative rules, including nested
 training subsets and fixed held-out rows, are in the
 [deep-pricing learning contract](../docs/deep-pricing-learning-contract.md).
 
-The complete configurable example is part of the corresponding Heston study:
-[`config.yaml`](../experiments/equity/heston/european_call_price_delta_v1/training/single_run_example/config.yaml).
+The complete configurable example is part of the optional local Heston study at
+`work/experiments/equity/heston/european_call_price_delta_v1/training/single_run_example/config.yaml`.
 Run 30,000-row
 supervised and Sobolev experiments on the same price-delta publication with:
 
@@ -77,16 +77,16 @@ dataset-size campaign:
 
 ```sh
 python3 -m learning.deep_pricing.campaign \
-  experiments/equity/heston/european_call_price_delta_v1/training/architecture_pilot/campaign.yaml
+  work/experiments/equity/heston/european_call_price_delta_v1/training/architecture_pilot/campaign.yaml
 
 python3 -m learning.deep_pricing.campaign \
-  experiments/equity/heston/european_call_price_delta_v1/training/dataset_scaling/campaign.yaml
+  work/experiments/equity/heston/european_call_price_delta_v1/training/dataset_scaling/campaign.yaml
 ```
 
 Each price-only run is paired with Sobolev runs at gradient weights 0.1 and 1.
 Campaigns skip completed runs and restart an interrupted run from its latest
-epoch checkpoint. The generated
-[`deep_pricing_results.ipynb`](../experiments/equity/heston/european_call_price_delta_v1/analysis/deep_pricing_results.ipynb)
+epoch checkpoint. The generated local notebook at
+`work/experiments/equity/heston/european_call_price_delta_v1/analysis/deep_pricing_results.ipynb`
 uses validation surfaces for model selection and reserves test surfaces for the
 final report.
 
@@ -96,15 +96,15 @@ homogeneous European-call representation `P(S,K,z) = S p(K/S,z)` on the same
 
 ```sh
 python3 -m learning.deep_pricing.campaign \
-  experiments/equity/heston/european_call_price_delta_v1/training/spot_strike_ablation/campaign.yaml
+  work/experiments/equity/heston/european_call_price_delta_v1/training/spot_strike_ablation/campaign.yaml
 ```
 
 The homogeneous wrapper is deliberately restricted to datasets whose selected
 training spots all equal one. It removes spot from the inner MLP, replaces
 strike by moneyness, reconstructs the price outside the MLP and lets PyTorch
 differentiate that complete expression. No price or delta row is regenerated.
-The executed
-[`analysis.ipynb`](../experiments/equity/heston/european_call_price_delta_v1/training/spot_strike_ablation/analysis.ipynb)
+The executed local notebook at
+`work/experiments/equity/heston/european_call_price_delta_v1/training/spot_strike_ablation/analysis.ipynb`
 reports the paired validation and held-out test results.
 
 Path generation and signature GANs are later work; they require a trajectory

@@ -78,7 +78,7 @@ def workloads(include_lsm: bool = False) -> list[dict]:
             "model_prefix": model.source_prefix,
             "model_dataset": f"datasets/{model.source_prefix}/parameters/{model.parameter_dataset_id}.json",
             "product_dataset": product_datasets[0].dataset_path,
-            "recipe": recipe.recipe_path if recipe else None, "header": binding.paths[0],
+            "generator": recipe.generator_path if recipe else None, "header": binding.paths[0],
             "scope": "catalogue_recipe" if recipe else "binding_only_no_price_recipe",
             "target": "ai_factory_" + binding.asset_class + "_" + "_".join(
                 filter(None, (binding.model, binding.curve, binding.product))),

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/cev/parameters/cev_01.json",
         "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json",
         "datasets/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01_cartesian.json",
         "absorbed Milstein",
         PriceConstruction::CartesianProduct,

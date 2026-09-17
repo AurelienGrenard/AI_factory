@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/cev/parameters/cev_01.json",
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01_cartesian.json",
-        "catalog/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01_cartesian.json",
         "absorbed Milstein",
         PriceConstruction::CartesianProduct,

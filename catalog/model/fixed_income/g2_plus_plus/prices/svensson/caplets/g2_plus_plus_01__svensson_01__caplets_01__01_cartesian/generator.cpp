@@ -37,7 +37,7 @@ const std::filesystem::path dataset_path =
     "g2_plus_plus_01__svensson_01__caplets_01__01_cartesian.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/"
-    "g2_plus_plus_01__svensson_01__caplets_01__01_cartesian/dataset.yaml";
+    "g2_plus_plus_01__svensson_01__caplets_01__01_cartesian/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/fixed_income/g2_plus_plus/prices/"
     "svensson/caplets/"

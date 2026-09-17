@@ -66,7 +66,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "Rough Stein-Stein",
         "datasets/model/equity/rough/rough_stein_stein/samples/" + id + ".json",
-        "catalog/model/equity/rough/rough_stein_stein/samples/" + id + "/dataset.yaml",
+        "catalog/model/equity/rough/rough_stein_stein/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

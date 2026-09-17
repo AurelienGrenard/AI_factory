@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/up_one_touch/up_one_touches_01.json", "datasets/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/up_one_touch/up_one_touches_01.json", "datasets/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "heston", "up_one_touch", ""},
         11668827119848259584ULL, model::equity::heston::load_models, product::load_up_one_touches,

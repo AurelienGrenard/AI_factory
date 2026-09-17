@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/rough_heston/gap_calls/rough_heston_01__gap_calls_01__01.json

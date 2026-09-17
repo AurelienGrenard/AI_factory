@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01/recipe.yaml
+  sha256: cf8225e63046af40d158e7d51dcff7b47dc27047497e3881803271faf847b3a9
+artifact:
+  row_count: 1000
+  sha256: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 018bf474f9e56aa5765ba0001afd1f33cdf088ba7dbebadc370072ff9bcd3a6f

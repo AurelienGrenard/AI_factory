@@ -122,7 +122,7 @@ int main() {
         "parameters/normal_inverse_gaussian_01.json";
     const std::filesystem::path catalog_path =
         "catalog/model/equity/markovian/normal_inverse_gaussian/"
-        "parameters/normal_inverse_gaussian_01/dataset.yaml";
+        "parameters/normal_inverse_gaussian_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/"
         "normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json";

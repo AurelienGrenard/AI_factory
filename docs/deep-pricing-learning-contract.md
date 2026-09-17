@@ -4,7 +4,7 @@ This contract defines reproducible neural pricing experiments over published
 AI Factory price and price-gradient datasets. Simulation and pricing remain
 owned by C++/CUDA. `learning/` contains only reusable implementation. Concrete
 dataset choices, campaign configurations, notebooks and reports live below
-`experiments/`. Re-creatable caches and run outputs use the directory selected
+`work/experiments/`. Re-creatable caches and run outputs use the directory selected
 by the experiment and remain ignored by Git; ad hoc commands default to
 `artifacts/learning/`.
 

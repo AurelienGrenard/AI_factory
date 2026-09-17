@@ -138,9 +138,10 @@ Un fichier généré n'est jamais corrigé à la main.
 
 ### Paramètres modèle, courbe ou produit
 
-La recette définit les distributions, grilles et contraintes puis écrit le
-JSON et le `dataset.yaml` adjacent. Elle recharge l'artefact avec le loader de
-production avant de réussir.
+La recette définit les distributions, grilles et contraintes. Le générateur
+écrit le JSON et un `generation.yaml` minimal ; le contrôleur enrichit ce reçu
+avec la provenance, puis le publie en dernier. Le générateur recharge l'artefact
+avec le loader de production avant de réussir.
 
 Les datasets modèle et produit suivent l'ordre contractuel de 900 lignes core
 puis 100 lignes stress. Utiliser le

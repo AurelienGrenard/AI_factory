@@ -7,9 +7,9 @@ does not, by itself, require recalculating prices or samples.
 
 ## Ownership and scope
 
-[`generate_catalog.py`](../tools/datasets/generate_catalog.py) attaches a
-versioned `generation` block to newly staged price/sample YAML, after checking
-the native outputs and before freezing the publication hashes. JSON bytes,
+[`generate_catalog.py`](../tools/datasets/generate_catalog.py) enriches the
+standalone `generation.yaml` receipt after checking the native outputs and
+before freezing the publication hashes. JSON bytes,
 pricing kernels, sample factories, seeds and launch configurations are unchanged.
 Publication and interrupted-pair recovery remain owned by `artifact_publication.py`.
 
@@ -22,7 +22,7 @@ and curve parameters are fingerprinted as the actual inputs of a price job.
 
 ## What is recorded
 
-The YAML block contains schema version 1 and four distinct kinds of evidence:
+The receipt contains schema version 1 and four distinct kinds of evidence:
 
 | Evidence | Purpose |
 |---|---|
@@ -31,16 +31,16 @@ The YAML block contains schema version 1 and four distinct kinds of evidence:
 | Parameter fingerprints by role | Preserve ordered rows and all non-presentation fields, without depending on input paths |
 | Executable, recipe, launch plan, build hashes and source provenance | Identify the actual generation, without claiming mathematical equivalence |
 
-The recipe-metadata fingerprint includes time grids, numerical-method metadata,
-output definitions, parameter laws, seeds and execution settings when present.
-It excludes catalogue locations, URLs, titles, timings and the independent
-`validation` block. Parameter fingerprints likewise exclude only top-level
+The canonical `recipe.yaml` fingerprint includes time grids,
+numerical-method metadata, output definitions, parameter laws, seeds and
+execution settings when present. Validation is stored independently in
+`validation.yaml`. Parameter fingerprints likewise exclude only top-level
 presentation fields; unknown non-presentation fields remain significant.
 Row ordering is never sorted away. JSON output integrity is deliberately
 byte-exact, including its original envelope; do not edit a published JSON to
 update its paths or timings.
 
-Each new campaign retains its dirty-worktree revision/status, selected recipes,
+Each new campaign retains its revision and worktree status, selected recipes,
 inputs, executables, build files and a source archive covering maintained
 `src`, `tools`, CMake modules and presets, including untracked source files.
 The archive hash is provenance, **not a global invalidation key**. SDKs, system
@@ -49,6 +49,10 @@ are retained with the generation. This is not a hermetic build or a promise
 of bitwise replay on another GPU/toolchain. SHA-256 is not an authenticity
 signature against a party able to replace both data and records.
 
+A non-publishing pilot may freeze a dirty worktree because its outputs remain
+inside `work/generation/`. A publishing campaign requires a clean worktree so
+the recorded revision names the exact maintained sources.
+
 Retain/export the campaign directory with the dataset release: a hash without
 its source archive identifies missing evidence but cannot reconstruct it.
 
@@ -56,7 +60,8 @@ its source archive identifies missing evidence but cannot reconstruct it.
 
 ```bash
 python3 tools/datasets/check_dataset_compatibility.py \
-  --catalog catalog/model/equity/markovian/heston/samples/samples_01/dataset.yaml \
+  --recipe catalog/model/equity/markovian/heston/samples/samples_01/recipe.yaml \
+  --generation catalog/model/equity/markovian/heston/samples/samples_01/generation.yaml \
   --dataset datasets/model/equity/markovian/heston/samples/samples_01.json \
   --target generate_heston_samples_01 --build build
 ```
@@ -102,12 +107,14 @@ Existing datasets are not regenerated or backfilled by this change. Missing
 provenance cannot be reconstructed from today's checkout alone. Recover the
 original campaign evidence and review it; otherwise leave the origin unknown.
 
-Campaign state version 3 freezes the provenance module and source archive and
+Campaign state version 4 freezes the provenance module, generator, canonical
+recipe and source archive and
 binds terminal Monte Carlo checkpoints to the exact executable, recipe, inputs,
 shape, seeds and launch plan. It refuses changed frozen sources, recipes, build
 files, inputs or executables. Version-1 and version-2 campaigns must finish with
 their original frozen controller; do not migrate a half-published pair or relax
-resume guards to use newer code. Their progress records contain no calculated
+resume guards to use newer code. Older campaign versions are not accepted by
+the current controller. Their progress records contain no calculated
 prices and therefore cannot recover an unfinished numerical prefix.
 
 Independent validation remains governed by the

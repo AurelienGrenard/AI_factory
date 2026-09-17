@@ -3,6 +3,7 @@
 #include "tools/datasets/price_dataset.hpp"
 
 #include <filesystem>
+#include <fstream>
 #include <stdexcept>
 #include <vector>
 
@@ -38,7 +39,7 @@ int main() {
         PriceConstruction::Aligned,
         std::vector<float>{1.25f},
         directory / "price.json",
-        directory / "dataset.yaml",
+        directory / "generation.yaml",
         "https://datasets.ai-factory.example/test/price.json",
         "test formula",
         {{"block_count", 1U}},
@@ -50,12 +51,19 @@ int main() {
         || result.at("results").at(0).at("outputs").at("price") != 1.25f) {
         throw std::runtime_error("price artifact assembly failed");
     }
+    std::ifstream yaml(directory / "generation.yaml");
+    const std::string receipt{std::istreambuf_iterator<char>(yaml), {}};
+    if (receipt.find("status: \"complete\"") == std::string::npos
+        || receipt.find("paths_per_price: 0") == std::string::npos
+        || receipt.find("validation:") != std::string::npos) {
+        throw std::runtime_error("price generation receipt assembly failed");
+    }
     bool certification_rejected = false;
     try {
         write_monte_carlo_price_dataset(
             directory / "model.json", directory / "product.json",
             PriceConstruction::Aligned, {1.0f}, {0.01f}, "Philox",
-            directory / "price.json", directory / "dataset.yaml",
+            directory / "price.json", directory / "generation.yaml",
             "https://datasets.ai-factory.example/test/price.json", "test MC",
             32U, "", {{"block_count", 1U}},
             {{"validation", {{"verified", true}}}}, 1U, 0.01, 0.001

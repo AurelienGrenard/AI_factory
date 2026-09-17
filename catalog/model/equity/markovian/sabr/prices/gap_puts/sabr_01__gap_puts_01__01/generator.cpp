@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json",
         "datasets/product/gap_option/gap_put_options_01.json",
         "datasets/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01.json",
-        "catalog/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01.json",
         "Lamperti SABR Euler",
         PriceConstruction::Aligned,

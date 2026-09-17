@@ -18,7 +18,7 @@ and project records.
 | Generate model-only training samples | [Model-sample contract](model-sample-dataset-generation.md) | [Code generation](../tools/codegen/pricing_bindings/README.md) |
 | Read terminal samples for learning | [Learning guide](../learning/README.md) | [Model-sample contract](model-sample-dataset-generation.md) |
 | Train and compare deep pricers | [Learning guide](../learning/README.md) | [Deep-pricing learning contract](deep-pricing-learning-contract.md) |
-| Browse concrete model studies | [Experiments guide](../experiments/README.md) | Model-specific README and campaign configuration |
+| Organize concrete local studies | [Local workspaces](local-workspaces.md) | Disposable experiments and resumable generation campaigns |
 | Run or resume a price/sample campaign | [Dataset-generation workflow](dataset-generation-workflow.md) | [Catalogue extension workflow](catalog-extension-and-validation-workflow.md) |
 | Keep a dataset after a refactor | [Provenance and reuse](dataset-provenance-contract.md) | Read-only compatibility checker and legacy-data rules |
 | Explore recipes and tests | [Catalogue guide](../catalog/README.md) | [Test-suite guide](../tests/README.md) |

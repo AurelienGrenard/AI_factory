@@ -67,9 +67,14 @@
   `src/` remains the C++/CUDA simulation and pricing runtime.
 - `tools/`: reusable offline commands and orchestration. Keep concrete model,
   dataset, seed and campaign choices out of this tree.
-- `experiments/<asset_class>/<model>/<study>`: concrete dataset generation,
+- `work/experiments/<asset_class>/<model>/<study>`: local, disposable dataset generation,
   training campaigns, notebooks, analyses and reports. Experiment-specific
-  YAML files do not belong under `learning/`.
+  YAML files do not belong under `learning/`; `work/` is ignored by Git.
+- `work/generation/<campaign>`: resumable generation campaigns, frozen sources,
+  logs, checkpoints and publication journals. These files never belong under
+  `datasets/`.
+- `datasets/`: published dataset artifacts only. Do not store campaign state,
+  experiment inputs, notebooks or logs here.
 - `catalog/model/<asset_class>/<model>`: model-owned `parameters`, `samples`,
   and `prices` recipes and generators.
 - `catalog/curve` and `catalog/product`: curve and product recipes.

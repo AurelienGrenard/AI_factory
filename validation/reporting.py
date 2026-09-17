@@ -507,7 +507,7 @@ def _price_catalog_yaml_path(price_dataset_path: Path) -> Path:
         raise ValueError("The price dataset catalog must be a non-empty string.")
     for candidate in (price_dataset_path.parent, *price_dataset_path.parents):
         if (candidate / "CMakeLists.txt").is_file():
-            return candidate / catalog / "dataset.yaml"
+            return candidate / catalog / "recipe.yaml"
     raise ValueError("Could not locate the project root for the price dataset.")
 
 
@@ -532,16 +532,9 @@ def validation_fingerprint(path: str | Path) -> str:
         for field in reference_fields
         if field in price_document
     }
-    configuration_fields = (
-        "summary",
-        "time_grid",
-        "outputs",
-        "price_construction",
-    )
     configuration = {
-        field: yaml_document[field]
-        for field in configuration_fields
-        if field in yaml_document
+        field: value for field, value in yaml_document.items()
+        if field not in {"output", "generation_output"}
     }
     canonical = {
         "database_id": price_document["database_id"],
@@ -593,7 +586,8 @@ def synchronize_validation_yaml(
 ) -> Path:
     """Replace only the generated YAML validation block from a real report."""
 
-    yaml_path = _price_catalog_yaml_path(Path(price_dataset_path).resolve())
+    recipe_path = _price_catalog_yaml_path(Path(price_dataset_path).resolve())
+    yaml_path = recipe_path.with_name("validation.yaml")
     project_root = next(
         parent for parent in yaml_path.parents
         if (parent / "CMakeLists.txt").is_file()
@@ -601,30 +595,14 @@ def synchronize_validation_yaml(
     notebook_path = (yaml_path.parent / "validation.ipynb").relative_to(
         project_root
     ).as_posix()
-    text = yaml_path.read_text(encoding="utf-8")
-    lines = text.splitlines(keepends=True)
-    try:
-        start = next(
-            index for index, line in enumerate(lines) if line == "validation:\n"
-        )
-    except StopIteration as error:
-        raise ValueError(
-            f"Catalog YAML '{yaml_path}' has no validation block."
-        ) from error
-    end = next(
-        (
-            index
-            for index in range(start + 1, len(lines))
-            if lines[index].strip() and not lines[index][0].isspace()
+    block = yaml.safe_load(_yaml_validation_block(report, notebook_path))
+    yaml_path.write_text(
+        yaml.safe_dump(
+            {"schema_version": 1, **block["validation"]},
+            sort_keys=False,
         ),
-        len(lines),
+        encoding="utf-8",
     )
-    updated = (
-        "".join(lines[:start])
-        + _yaml_validation_block(report, notebook_path)
-        + "".join(lines[end:])
-    )
-    yaml_path.write_text(updated, encoding="utf-8")
     return yaml_path
 
 

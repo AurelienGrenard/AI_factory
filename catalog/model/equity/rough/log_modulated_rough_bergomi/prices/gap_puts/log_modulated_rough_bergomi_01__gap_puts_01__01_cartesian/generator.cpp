@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json",
         "datasets/product/gap_option/gap_put_options_01.json",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_cartesian.json",
-        "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01_cartesian.json",
         "log-modulated hybrid FFT (kappa=1)",
         PriceConstruction::CartesianProduct,

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "normal_inverse_gaussian",
+  "output": {
+    "path": "datasets/model/equity/markovian/normal_inverse_gaussian/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/normal_inverse_gaussian/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "risk_free_rate",
+      "dividend_yield",
+      "alpha",
+      "skew_ratio",
+      "target_volatility"
+    ],
+    "latent_uniform_bounds": {
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "alpha": [
+        4.0,
+        25.0
+      ],
+      "skew_ratio": [
+        -0.75,
+        0.05
+      ],
+      "target_volatility": [
+        0.1,
+        0.55
+      ]
+    },
+    "acceptance": "alpha > std::max(std::fabs(beta + 1.0f), std::fabs(beta + 2.0f)) + 0.05f",
+    "derived_parameters": {
+      "spot": "Constant 1; no random draw.",
+      "beta": "beta = skew_ratio * alpha.",
+      "gamma": "gamma = sqrt(alpha * alpha - beta * beta); intermediate, not a published parameter.",
+      "delta": "delta = target_volatility^2 * gamma^3 / alpha^2; deterministic reconstruction, before the declared acceptance test."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668827686783942656,
+    "schedule": 11668827687857684480,
+    "dynamics": 11668827688931426304
+  },
+  "numerical_method": {
+    "engine": "sample_markovian",
+    "profile": "model_sample_profile",
+    "description": "Exact inverse-Gaussian subordination"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "exact",
+    "delta_t": "maturity_days / 252",
+    "artificial_substeps": false
+  }
+}

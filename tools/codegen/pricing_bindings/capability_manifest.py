@@ -120,7 +120,7 @@ class DatasetSpec:
     dataset_id: str
     dataset_kind: str
     asset_class: str
-    recipe_path: str
+    generator_path: str
     owner: str
     status: str
     source_prefix: str
@@ -136,12 +136,16 @@ class DatasetSpec:
     layout: str = ""
 
     @property
-    def catalog_yaml_path(self) -> str:
-        return str(PurePosixPath(self.recipe_path).with_name("dataset.yaml"))
+    def recipe_yaml_path(self) -> str:
+        return str(PurePosixPath(self.generator_path).with_name("recipe.yaml"))
+
+    @property
+    def generation_yaml_path(self) -> str:
+        return str(PurePosixPath(self.generator_path).with_name("generation.yaml"))
 
     @property
     def dataset_path(self) -> str:
-        recipe = PurePosixPath(self.recipe_path)
+        recipe = PurePosixPath(self.generator_path)
         relative = recipe.relative_to("catalog")
         return str(
             PurePosixPath("datasets")
@@ -171,7 +175,7 @@ class RngDomainSpec:
     """Versioned, disjoint Philox-key reservation for one dataset recipe."""
 
     version: int
-    recipe_path: str
+    generator_path: str
     ordinal: int
     streams: tuple[str, ...]
     common_random_number_group: str | None = None
@@ -185,7 +189,7 @@ class RngDomainSpec:
             stream_index = self.streams.index(stream)
         except ValueError as error:
             raise KeyError(
-                f"unknown RNG stream {stream!r} for {self.recipe_path}"
+                f"unknown RNG stream {stream!r} for {self.generator_path}"
             ) from error
         return self.base_seed + stream_index * RNG_STREAM_CAPACITY
 
@@ -303,8 +307,8 @@ class ResolvedPriceCapability:
         return self.dataset.cmake_target
 
     @property
-    def recipe_path(self) -> str:
-        return self.dataset.recipe_path
+    def generator_path(self) -> str:
+        return self.dataset.generator_path
 
 
 class PriceCapabilityState(Enum):
@@ -758,7 +762,7 @@ def _model_parameter_dataset_specs() -> tuple[DatasetSpec, ...]:
             dataset_id=model.parameter_dataset_id,
             dataset_kind="model_parameters",
             asset_class=model.asset_class,
-            recipe_path=(
+            generator_path=(
                 f"catalog/{model.source_prefix}/parameters/"
                 f"{model.parameter_dataset_id}/generator.cpp"
             ),
@@ -780,7 +784,7 @@ def _product_parameter_dataset_specs() -> tuple[DatasetSpec, ...]:
             dataset_id=dataset_id,
             dataset_kind="product_parameters",
             asset_class=product.asset_class,
-            recipe_path=(
+            generator_path=(
                 f"catalog/{product.source_prefix}/{dataset_id}/generator.cpp"
             ),
             owner="hand_written",
@@ -802,7 +806,7 @@ def _curve_dataset_specs() -> tuple[DatasetSpec, ...]:
             dataset_id=curve.parameter_dataset_id,
             dataset_kind="curve_parameters",
             asset_class="fixed_income",
-            recipe_path=(
+            generator_path=(
                 f"catalog/{curve.source_prefix}/"
                 f"{curve.parameter_dataset_id}/generator.cpp"
             ),
@@ -834,7 +838,7 @@ def _ordinary_equity_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                 dataset_id=dataset_id,
                 dataset_kind="prices",
                 asset_class="equity",
-                recipe_path=(
+                generator_path=(
                     f"catalog/{model_spec.source_prefix}/prices/"
                     f"{variant.name}/{dataset_id}/generator.cpp"
                 ),
@@ -866,7 +870,7 @@ def _american_price_dataset_specs() -> tuple[DatasetSpec, ...]:
             dataset_id=f"{model.model}_01__american_{side}s_01__01",
             dataset_kind="prices",
             asset_class="equity",
-            recipe_path=(
+            generator_path=(
                 f"catalog/{MODEL_BY_NAME[model.model].source_prefix}/prices/"
                 f"american_{side}s/"
                 f"{model.model}_01__american_{side}s_01__01/generator.cpp"
@@ -909,7 +913,7 @@ def _fixed_income_price_dataset_specs() -> tuple[DatasetSpec, ...]:
                 dataset_id=dataset_id,
                 dataset_kind="prices",
                 asset_class="fixed_income",
-                recipe_path=(
+                generator_path=(
                     f"catalog/{capability.source_prefix}/prices/{curve_path}"
                     f"{variant}/{dataset_id}/generator.cpp"
                 ),
@@ -941,7 +945,7 @@ def _sample_dataset_specs() -> tuple[DatasetSpec, ...]:
             dataset_id=f"samples_{recipe_index:02d}",
             dataset_kind="samples",
             asset_class=model.asset_class,
-            recipe_path=(
+            generator_path=(
                 f"catalog/{model.source_prefix}/samples/"
                 f"samples_{recipe_index:02d}/generator.cpp"
             ),
@@ -1005,7 +1009,7 @@ def _rng_streams(dataset: DatasetSpec) -> tuple[str, ...]:
 RNG_DOMAIN_SPECS = tuple(
     RngDomainSpec(
         version=RNG_DOMAIN_VERSION,
-        recipe_path=dataset.recipe_path,
+        generator_path=dataset.generator_path,
         ordinal=ordinal,
         streams=_rng_streams(dataset),
     )
@@ -1019,13 +1023,13 @@ RNG_DOMAIN_SPECS = tuple(
             key=lambda dataset: (
                 max(MODEL_BY_NAME[dataset.model].rng_domain_epoch,
                     int(dataset.engine == "fixed_income_monte_carlo")),
-                dataset.recipe_path,
+                dataset.generator_path,
             ),
         )
     )
 )
-RNG_DOMAIN_BY_RECIPE = {
-    domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS
+RNG_DOMAIN_BY_GENERATOR = {
+    domain.generator_path: domain for domain in RNG_DOMAIN_SPECS
 }
 
 
@@ -1036,32 +1040,32 @@ def validate_rng_domain_specs(
     """Reject ambiguous, overlapping or out-of-range Philox reservations."""
     if common_random_number_allowlist is None:
         common_random_number_allowlist = RNG_COMMON_RANDOM_NUMBER_ALLOWLIST
-    recipe_paths = [domain.recipe_path for domain in domains]
-    if len(recipe_paths) != len(set(recipe_paths)):
-        raise ValueError("duplicate RNG-domain recipe path")
+    generator_paths = [domain.generator_path for domain in domains]
+    if len(generator_paths) != len(set(generator_paths)):
+        raise ValueError("duplicate RNG-domain generator path")
 
     intervals: list[tuple[int, int, str, str]] = []
     for domain in domains:
         if domain.version != RNG_DOMAIN_VERSION:
             raise ValueError(
                 f"unsupported RNG-domain version {domain.version}: "
-                f"{domain.recipe_path}"
+                f"{domain.generator_path}"
             )
         if not domain.streams or len(domain.streams) != len(set(domain.streams)):
             raise ValueError(
-                f"empty or duplicate RNG streams: {domain.recipe_path}"
+                f"empty or duplicate RNG streams: {domain.generator_path}"
             )
         if len(domain.streams) * RNG_STREAM_CAPACITY > RNG_DOMAIN_STRIDE:
             raise ValueError(
-                f"RNG streams exceed domain stride: {domain.recipe_path}"
+                f"RNG streams exceed domain stride: {domain.generator_path}"
             )
         for stream in domain.streams:
             start, end = domain.interval(stream)
             if end > 1 << 64:
                 raise ValueError(
-                    f"RNG interval exceeds uint64: {domain.recipe_path}"
+                    f"RNG interval exceeds uint64: {domain.generator_path}"
                 )
-            intervals.append((start, end, domain.recipe_path, stream))
+            intervals.append((start, end, domain.generator_path, stream))
 
     intervals.sort()
     for previous, current in zip(intervals, intervals[1:]):
@@ -1081,14 +1085,14 @@ def validate_rng_domain_specs(
 
 
 def resolve_rng_domain(dataset: DatasetSpec | str) -> RngDomainSpec:
-    recipe_path = (
-        dataset.recipe_path if isinstance(dataset, DatasetSpec) else dataset
+    generator_path = (
+        dataset.generator_path if isinstance(dataset, DatasetSpec) else dataset
     )
     try:
-        return RNG_DOMAIN_BY_RECIPE[recipe_path]
+        return RNG_DOMAIN_BY_GENERATOR[generator_path]
     except KeyError as error:
         raise KeyError(
-            f"dataset has no declared Philox domain: {recipe_path}"
+            f"dataset has no declared Philox domain: {generator_path}"
         ) from error
 
 
@@ -1098,36 +1102,36 @@ validate_rng_domain_specs(RNG_DOMAIN_SPECS)
 def validate_dataset_spec(dataset: DatasetSpec) -> None:
     """Reject path, owner and renderer metadata that diverge from one owner."""
     expected_prefix = f"catalog/{dataset.source_prefix}/"
-    if not dataset.recipe_path.startswith(expected_prefix):
+    if not dataset.generator_path.startswith(expected_prefix):
         raise ValueError(
             f"recipe path does not inherit source prefix "
-            f"{dataset.source_prefix}: {dataset.recipe_path}"
+            f"{dataset.source_prefix}: {dataset.generator_path}"
         )
     if dataset.owner not in {
         "generated", "hand_written", "explicit_exception", "unsupported",
         "deferred",
     }:
         raise ValueError(
-            f"unknown artifact owner {dataset.owner}: {dataset.recipe_path}"
+            f"unknown artifact owner {dataset.owner}: {dataset.generator_path}"
         )
     if dataset.owner == "generated" and dataset.template is None:
         raise ValueError(
-            f"generated dataset lacks a template: {dataset.recipe_path}"
+            f"generated dataset lacks a template: {dataset.generator_path}"
         )
     if dataset.owner != "generated" and dataset.template is not None:
         raise ValueError(
-            f"non-generated dataset declares a renderer: {dataset.recipe_path}"
+            f"non-generated dataset declares a renderer: {dataset.generator_path}"
         )
     if dataset.construction not in {
         "ordered_core_stress", "aligned", "cartesian", "cartesian_parameter_paths",
     }:
         raise ValueError(
             f"unknown dataset construction {dataset.construction}: "
-            f"{dataset.recipe_path}"
+            f"{dataset.generator_path}"
         )
     if not dataset.numerical_profile or not dataset.layout:
         raise ValueError(
-            f"dataset lacks numerical profile or layout: {dataset.recipe_path}"
+            f"dataset lacks numerical profile or layout: {dataset.generator_path}"
         )
 
 
@@ -1239,7 +1243,7 @@ def validate_price_capability_graph(
         if len(matches) != 1:
             raise ValueError(
                 "published price recipe must resolve to exactly one binding: "
-                f"{dataset.recipe_path} resolved {len(matches)}"
+                f"{dataset.generator_path} resolved {len(matches)}"
             )
 
 
@@ -1495,7 +1499,7 @@ CARTESIAN_PRICE_DATASET_SPECS = tuple(
     replace(
         dataset,
         dataset_id=dataset.dataset_id + "_cartesian",
-        recipe_path=dataset.recipe_path.replace(
+        generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
             "/" + dataset.dataset_id + "_cartesian/",
         ),
@@ -1508,8 +1512,8 @@ CARTESIAN_PRICE_DATASET_SPECS = tuple(
     )
     for dataset in ALIGNED_PRICE_DATASET_SPECS
 )
-CARTESIAN_PRICE_SOURCE_BY_RECIPE = {
-    cartesian.recipe_path: aligned
+CARTESIAN_PRICE_SOURCE_BY_GENERATOR = {
+    cartesian.generator_path: aligned
     for aligned, cartesian in zip(
         ALIGNED_PRICE_DATASET_SPECS,
         CARTESIAN_PRICE_DATASET_SPECS,
@@ -1519,18 +1523,18 @@ CARTESIAN_PRICE_SOURCE_BY_RECIPE = {
 DATASET_SPECS += CARTESIAN_PRICE_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += CARTESIAN_PRICE_DATASET_SPECS
 RNG_DOMAIN_SPECS += tuple(
-    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=cartesian.recipe_path)
+    replace(RNG_DOMAIN_BY_GENERATOR[source.generator_path], generator_path=cartesian.generator_path)
     for cartesian in CARTESIAN_PRICE_DATASET_SPECS
-    if (source := CARTESIAN_PRICE_SOURCE_BY_RECIPE[cartesian.recipe_path]).recipe_path
-    in RNG_DOMAIN_BY_RECIPE
+    if (source := CARTESIAN_PRICE_SOURCE_BY_GENERATOR[cartesian.generator_path]).generator_path
+    in RNG_DOMAIN_BY_GENERATOR
 )
-RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
+RNG_DOMAIN_BY_GENERATOR = {domain.generator_path: domain for domain in RNG_DOMAIN_SPECS}
 for _dataset in CARTESIAN_PRICE_DATASET_SPECS:
     validate_dataset_spec(_dataset)
 
 
 PRICE_DELTA_SOURCE_DATASETS = {
-    dataset.recipe_path: dataset for dataset in AVAILABLE_DATASET_SPECS
+    dataset.generator_path: dataset for dataset in AVAILABLE_DATASET_SPECS
     if dataset.dataset_kind == "prices"
     and dataset.construction == "aligned"
     and any(
@@ -1542,7 +1546,7 @@ PRICE_DELTA_SOURCE_DATASETS = {
 _ALIGNED_PRICE_DELTA_DATASET_SPECS = tuple(
     replace(dataset, dataset_kind="price_delta", owner="generated",
             dataset_id=dataset.dataset_id + "_price_delta",
-            recipe_path=dataset.recipe_path.replace("/prices/", "/price_delta/")
+            generator_path=dataset.generator_path.replace("/prices/", "/price_delta/")
                 .replace("/" + dataset.dataset_id + "/", "/" + dataset.dataset_id + "_price_delta/"),
             template=("catalog/pricing/price_delta/prepared_generator.cpp.tpl"
                       if dataset.engine == "equity_n_factor" else
@@ -1557,7 +1561,7 @@ _CARTESIAN_PRICE_DELTA_DATASET_SPECS = tuple(
         dataset,
         dataset_id=dataset.dataset_id.removesuffix("_price_delta")
             + "_cartesian_price_delta",
-        recipe_path=dataset.recipe_path.replace(
+        generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
             "/" + dataset.dataset_id.removesuffix("_price_delta")
             + "_cartesian_price_delta/",
@@ -1571,15 +1575,15 @@ PRICE_DELTA_DATASET_SPECS = (
     *_ALIGNED_PRICE_DELTA_DATASET_SPECS,
     *_CARTESIAN_PRICE_DELTA_DATASET_SPECS,
 )
-PRICE_DELTA_SOURCE_BY_RECIPE = {
-    delta.recipe_path: source for delta, source in zip(
+PRICE_DELTA_SOURCE_BY_GENERATOR = {
+    delta.generator_path: source for delta, source in zip(
         _ALIGNED_PRICE_DELTA_DATASET_SPECS,
         PRICE_DELTA_SOURCE_DATASETS.values(),
         strict=True,
     )
 }
-PRICE_DELTA_SOURCE_BY_RECIPE.update({
-    cartesian.recipe_path: next(
+PRICE_DELTA_SOURCE_BY_GENERATOR.update({
+    cartesian.generator_path: next(
         price for price in CARTESIAN_PRICE_DATASET_SPECS
         if price.model == cartesian.model
         and price.product == cartesian.product
@@ -1595,9 +1599,9 @@ PRICE_DELTA_SOURCE_BY_RECIPE.update({
 DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
 PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(PRICE_DELTA_DATASET_SPECS, PRICE_GRADIENT_BINDING_SPECS)
-PRICE_GRADIENT_SOURCE_BY_RECIPE = {
-    gradient.recipe_path: PRICE_DELTA_SOURCE_BY_RECIPE[next(
-        delta.recipe_path for delta in PRICE_DELTA_DATASET_SPECS
+PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
+    gradient.generator_path: PRICE_DELTA_SOURCE_BY_GENERATOR[next(
+        delta.generator_path for delta in PRICE_DELTA_DATASET_SPECS
         if (delta.model, delta.product, delta.variant, delta.construction)
         == (gradient.model, gradient.product, gradient.variant, gradient.construction))]
     for gradient in PRICE_GRADIENT_DATASET_SPECS
@@ -1605,48 +1609,48 @@ PRICE_GRADIENT_SOURCE_BY_RECIPE = {
 DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
 RNG_DOMAIN_SPECS += tuple(
-    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=delta.recipe_path)
+    replace(RNG_DOMAIN_BY_GENERATOR[source.generator_path], generator_path=delta.generator_path)
     for delta in PRICE_DELTA_DATASET_SPECS
-    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+    if (source := PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
 )
-RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
-_RNG_ALIAS_ROOT_BY_RECIPE = {
-    dataset.recipe_path: dataset.recipe_path
+RNG_DOMAIN_BY_GENERATOR = {domain.generator_path: domain for domain in RNG_DOMAIN_SPECS}
+_RNG_ALIAS_ROOT_BY_GENERATOR = {
+    dataset.generator_path: dataset.generator_path
     for dataset in ALIGNED_PRICE_DATASET_SPECS
-    if dataset.recipe_path in RNG_DOMAIN_BY_RECIPE
+    if dataset.generator_path in RNG_DOMAIN_BY_GENERATOR
 }
 RNG_DOMAIN_SPECS += tuple(
-    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=gradient.recipe_path)
+    replace(RNG_DOMAIN_BY_GENERATOR[source.generator_path], generator_path=gradient.generator_path)
     for gradient in PRICE_GRADIENT_DATASET_SPECS
-    if (source := PRICE_GRADIENT_SOURCE_BY_RECIPE[gradient.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+    if (source := PRICE_GRADIENT_SOURCE_BY_GENERATOR[gradient.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
 )
-RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
-_RNG_ALIAS_ROOT_BY_RECIPE.update({
-    gradient.recipe_path: (CARTESIAN_PRICE_SOURCE_BY_RECIPE[source.recipe_path].recipe_path
-        if source.recipe_path in CARTESIAN_PRICE_SOURCE_BY_RECIPE else source.recipe_path)
+RNG_DOMAIN_BY_GENERATOR = {domain.generator_path: domain for domain in RNG_DOMAIN_SPECS}
+_RNG_ALIAS_ROOT_BY_GENERATOR.update({
+    gradient.generator_path: (CARTESIAN_PRICE_SOURCE_BY_GENERATOR[source.generator_path].generator_path
+        if source.generator_path in CARTESIAN_PRICE_SOURCE_BY_GENERATOR else source.generator_path)
     for gradient in PRICE_GRADIENT_DATASET_SPECS
-    if (source := PRICE_GRADIENT_SOURCE_BY_RECIPE[gradient.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+    if (source := PRICE_GRADIENT_SOURCE_BY_GENERATOR[gradient.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
 })
-_RNG_ALIAS_ROOT_BY_RECIPE.update({
-    cartesian.recipe_path: source.recipe_path
+_RNG_ALIAS_ROOT_BY_GENERATOR.update({
+    cartesian.generator_path: source.generator_path
     for cartesian in CARTESIAN_PRICE_DATASET_SPECS
-    if (source := CARTESIAN_PRICE_SOURCE_BY_RECIPE[cartesian.recipe_path]).recipe_path
-    in RNG_DOMAIN_BY_RECIPE
+    if (source := CARTESIAN_PRICE_SOURCE_BY_GENERATOR[cartesian.generator_path]).generator_path
+    in RNG_DOMAIN_BY_GENERATOR
 })
-_RNG_ALIAS_ROOT_BY_RECIPE.update({
-    delta.recipe_path: (
-        CARTESIAN_PRICE_SOURCE_BY_RECIPE[source.recipe_path].recipe_path
-        if source.recipe_path in CARTESIAN_PRICE_SOURCE_BY_RECIPE
-        else source.recipe_path
+_RNG_ALIAS_ROOT_BY_GENERATOR.update({
+    delta.generator_path: (
+        CARTESIAN_PRICE_SOURCE_BY_GENERATOR[source.generator_path].generator_path
+        if source.generator_path in CARTESIAN_PRICE_SOURCE_BY_GENERATOR
+        else source.generator_path
     )
     for delta in PRICE_DELTA_DATASET_SPECS
-    if (source := PRICE_DELTA_SOURCE_BY_RECIPE[delta.recipe_path]).recipe_path
-    in RNG_DOMAIN_BY_RECIPE
+    if (source := PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]).generator_path
+    in RNG_DOMAIN_BY_GENERATOR
 })
 RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
     tuple(sorted((left, right)))
-    for left, left_root in _RNG_ALIAS_ROOT_BY_RECIPE.items()
-    for right, right_root in _RNG_ALIAS_ROOT_BY_RECIPE.items()
+    for left, left_root in _RNG_ALIAS_ROOT_BY_GENERATOR.items()
+    for right, right_root in _RNG_ALIAS_ROOT_BY_GENERATOR.items()
     if left < right and left_root == right_root
 )
 validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)

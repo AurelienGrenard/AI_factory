@@ -12,7 +12,7 @@ int main() {
         "",
         "datasets/product/european_swaption/european_swaptions_01.json",
         "datasets/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01.json",
-        "catalog/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01/dataset.yaml",
+        "catalog/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01.json",
         11668829159957725184ULL,
         ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::fixed_income_mc, "g2", "european_swaption", ""},

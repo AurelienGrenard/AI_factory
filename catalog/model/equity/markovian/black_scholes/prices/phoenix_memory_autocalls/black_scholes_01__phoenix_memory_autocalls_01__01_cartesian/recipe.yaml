@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "black_scholes_01__phoenix_memory_autocalls_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
+    "product": "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_markovian",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668826819200548864
+  }
+}

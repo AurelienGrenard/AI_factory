@@ -23,7 +23,7 @@ Choose the shortest path for your task:
 | Generate model parameters or product rows | [Parameter-dataset contract](docs/model-and-product-parameter-dataset-generation.md) |
 | Generate model-only samples | [Model-sample contract](docs/model-sample-dataset-generation.md) |
 | Train or compare deep pricers | [Learning guide](learning/README.md) |
-| Browse concrete studies | [Experiments guide](experiments/README.md) |
+| Organize local studies | [Local workspaces](docs/local-workspaces.md) |
 | Run or resume price/sample generation | [Dataset-generation workflow](docs/dataset-generation-workflow.md) |
 | Validate generated prices independently | [Price-validation pipeline](docs/independent-price-validation-pipeline.md) |
 | Diagnose or tune CUDA kernels | [Kernel diagnostics](docs/cuda/launch-validation-and-kernel-diagnostics.md) and [performance protocol](docs/performance-regression-protocol.md) |
@@ -96,9 +96,9 @@ record a separate architecture profile.
 src/          Runtime C++/CUDA models, products, curves, and shared primitives
 learning/     Python/PyTorch training, shared data contracts and evaluation
 tools/        Offline generation, publication, code generation, and diagnostics
-experiments/  Model-oriented studies, concrete campaigns, notebooks, and reports
-catalog/      Versioned executable recipes and adjacent dataset metadata
-datasets/     Generated or downloaded JSON artifacts; ignored by Git
+work/         Ignored, disposable generation campaigns and experiments
+catalog/      Versioned recipes plus generation and validation metadata
+datasets/     Published or downloaded dataset artifacts only; ignored by Git
 build/        Main local CMake build; ignored by Git
 builds/       Optional separate CMake builds; ignored by Git
 artifacts/    Local audit evidence, performance runs and tool caches; ignored by Git
@@ -110,7 +110,9 @@ docs/         Task-oriented workflows, contracts, references, and audit records
 
 The reusable code under `src`, `learning`, and `tools` never depends on a
 concrete experiment. Experiment-specific datasets, seeds, training budgets,
-notebooks, and reports live under `experiments/<asset_class>/<model>/`.
+notebooks, and reports live under `work/experiments/<asset_class>/<model>/`.
+Frozen generation campaigns live under `work/generation/`; a result enters
+`datasets/` only through explicit publication.
 The runtime under `src` never depends on `tools`, `catalog`, or `validation`.
 Model-product launch units live under each model's `product/` directory.
 `catalog` and `datasets` mirror the canonical model, curve, and product paths

@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json",
         "datasets/product/down_and_out_option/down_and_out_options_01.json",
         "datasets/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_cartesian.json",
-        "catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_cartesian.json",
         "7-factor Markovian lift",
         PriceConstruction::CartesianProduct,

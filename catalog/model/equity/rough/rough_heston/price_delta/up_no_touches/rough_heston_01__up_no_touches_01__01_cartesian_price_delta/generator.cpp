@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/up_no_touch/up_no_touches_01.json", "datasets/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/up_no_touch/up_no_touches_01.json", "datasets/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/price_delta/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_prepared_price_delta_dataset(
         recipe, {offline::cuda_tuning::PricingFamily::rough_n_factor, "rough_heston", "up_no_touch", ""},
         11668828756230799360ULL, 7U, "7-factor Markovian lift", model::equity::rough_heston::load_models, product::load_up_no_touches,

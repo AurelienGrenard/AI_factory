@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/gap_option/gap_put_options_01/recipe.yaml
+  sha256: 88c9fdf8057be5d998f07582d09d8b0a78e5b03df5b3f9da1e31281b17e4d982
+artifact:
+  row_count: 1000
+  sha256: 3bdc863ff2ce9fc35e57789a65c03fa91f37ed99b24c9ee499f2c161440967a3
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 9a33c86cc85aea2817909babf401be8d3a946bfa87bcaa250b209abf4bbe8575

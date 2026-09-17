@@ -211,7 +211,7 @@ def _catalog_monte_carlo_path_count(
     catalog = document.get("catalog")
     if not isinstance(catalog, str) or not catalog:
         return None
-    yaml_path = root / catalog / "dataset.yaml"
+    yaml_path = root / catalog / "recipe.yaml"
     if not yaml_path.is_file():
         return None
     try:
@@ -220,13 +220,10 @@ def _catalog_monte_carlo_path_count(
         raise ValueError(
             f"Cannot read catalogue YAML '{yaml_path}': {error}"
         ) from error
-    summary = yaml_document.get("summary") if isinstance(yaml_document, dict) else None
-    value = (
-        summary.get("monte_carlo_paths_per_price")
-        if isinstance(summary, dict)
-        else None
-    )
+    value = yaml_document.get("paths_per_price") if isinstance(yaml_document, dict) else None
     if value is None:
+        return None
+    if value == 0:
         return None
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
         raise ValueError(

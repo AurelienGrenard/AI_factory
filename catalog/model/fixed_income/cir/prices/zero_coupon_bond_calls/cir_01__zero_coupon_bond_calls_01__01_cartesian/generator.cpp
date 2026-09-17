@@ -34,7 +34,7 @@ const std::filesystem::path dataset_path =
     "cir_01__zero_coupon_bond_calls_01__01_cartesian.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/"
-    "cir_01__zero_coupon_bond_calls_01__01_cartesian/dataset.yaml";
+    "cir_01__zero_coupon_bond_calls_01__01_cartesian/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/"
     "fixed_income/cir/prices/zero_coupon_bond_calls/"

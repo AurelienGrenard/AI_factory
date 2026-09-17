@@ -34,7 +34,7 @@ int main() {
         "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json";
     write_model_dataset(
         "rough_stein_stein_01", "rough Stein-Stein", dataset,
-        "catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/dataset.yaml",
+        "catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json",
         {
             {"spot", "Initial spot; fixed to 1."},

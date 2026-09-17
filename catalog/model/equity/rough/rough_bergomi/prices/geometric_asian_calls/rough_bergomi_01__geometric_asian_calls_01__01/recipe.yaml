@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "rough_bergomi_01__geometric_asian_calls_01__01",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
+    "product": "datasets/product/geometric_asian_option/geometric_asian_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/rough/rough_bergomi/prices/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01/generation.yaml",
+  "construction": "aligned",
+  "numerical_method": {
+    "engine": "equity_volterra_fft",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668828584432107520
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

@@ -6,11 +6,11 @@ into two ordered regimes:
 - rows 1–900 are the representative **core** regime;
 - rows 901–1,000 are the wider **stress** regime.
 
-The split is deterministic, never shuffled, and recorded under `construction`
-in the adjacent catalogue YAML. The executable `generator.cpp` is the source
-of truth; it writes YAML that records the seed, proposal bounds or grids,
-conditional reconstruction, rejection rule, row ordering, and payoff or
-calendar constraints actually used. A generator rejects an invalid candidate
+The split is deterministic and never shuffled. The canonical `recipe.yaml`
+records the seed, proposal bounds or grids, conditional reconstruction,
+rejection rule, row ordering, and payoff or calendar constraints. The
+executable `generator.cpp` implements that recipe; `generation.yaml` records
+only the completed materialization and timing. A generator rejects an invalid candidate
 rather than clipping it silently.
 
 Every core regime that contains a risk-free rate, an initial short rate, or an
@@ -58,7 +58,7 @@ Plain equity terms use a maturity-dependent exponential strike grid. The core
 contains 45 maturities with 20 log-spaced strikes each; stress contains 10
 maturities with 10 wider log-spaced strikes each. Derived terms such as barriers,
 gap strikes, reset dates, and exercise schedules are then constructed from the
-same row, with their exact formula recorded in YAML.
+same row, with their exact formula recorded in `recipe.yaml`.
 
 Autocalls, cliquets, and range accruals use seeded uniform and categorical
 draws with explicit ordering, cap/floor, and calendar constraints. Fixed-income
@@ -83,8 +83,9 @@ single product-parameter dataset.
 
 Every production recipe that reaches Philox owns one versioned reservation in
 `tools/codegen/pricing_bindings/capability_manifest.py`. `RngDomainSpec` is the
-only source of recipe seeds: catalogue generators must not invent local bases.
-The reservation scheme allocates one `2^32`-key domain per canonical recipe path and one
+only source of dataset seeds: catalogue generators must not invent local bases.
+The reservation scheme allocates one `2^32`-key domain per canonical dataset
+generator and one
 `2^30`-key half-open interval per named stream. Sample recipes reserve distinct
 `parameters`, `schedule`, and `dynamics` streams; stochastic price recipes
 reserve `dynamics`. Analytical recipes reserve no Philox domain. Version 2

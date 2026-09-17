@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01.json",
-        "catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01.json",
         "exact OU factor with log-spot Euler",
         PriceConstruction::Aligned,

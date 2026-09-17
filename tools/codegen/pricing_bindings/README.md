@@ -100,7 +100,7 @@ All nine American bindings use templates under
 `pricing/longstaff_schwartz/equity/`, composing the common frozen-date policy.
 The 12 Markovian models have price-delta recipes under `catalog/.../price_delta`,
 with generated `generator.cpp` and planned `recipe.yaml`; execution alone writes
-`dataset.yaml`. CRN aliases preserve price-only seeds, and production MC/LSM
+`generation.yaml`. CRN aliases preserve price-only seeds, and production MC/LSM
 uses 2^20 paths. The qualification remains bounded checks, not certified bias
 or delta-specific tuning. See the
 [implementation contract](../../../docs/cuda/equity-price-delta-contract.md).

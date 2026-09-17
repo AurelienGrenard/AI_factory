@@ -64,7 +64,7 @@ class ArtifactContractTests(unittest.TestCase):
     def test_manifest_aliases_and_selection_inventory(self):
         root = Path(__file__).resolve().parents[2]
         sys.path.insert(0,str(root/"tools/codegen/pricing_bindings"))
-        from capability_manifest import PRICE_GRADIENT_DATASET_SPECS, PRICE_GRADIENT_SOURCE_BY_RECIPE, resolve_rng_domain
+        from capability_manifest import PRICE_GRADIENT_DATASET_SPECS, PRICE_GRADIENT_SOURCE_BY_GENERATOR, resolve_rng_domain
         from tools.datasets.generate_catalog import inventory
         jobs = inventory(root,{"price_gradients"},set(),set())
         self.assertEqual(len(jobs),20)
@@ -73,7 +73,7 @@ class ArtifactContractTests(unittest.TestCase):
         self.assertEqual({job["target"] for job in jobs},{spec.cmake_target for spec in PRICE_GRADIENT_DATASET_SPECS})
         import json
         for spec in PRICE_GRADIENT_DATASET_SPECS:
-            recipe = json.loads((root/spec.recipe_path).with_name("recipe.yaml").read_text())
+            recipe = json.loads((root/spec.generator_path).with_name("recipe.yaml").read_text())
             expected_product = (
                 "datasets/product/american_option/american_options_01.json"
                 if spec.product == "american_option"
@@ -82,7 +82,7 @@ class ArtifactContractTests(unittest.TestCase):
             self.assertEqual(recipe["product_input"], expected_product)
             if spec.engine != "equity_closed_form":
                 self.assertEqual(resolve_rng_domain(spec).seed("dynamics"),
-                    resolve_rng_domain(PRICE_GRADIENT_SOURCE_BY_RECIPE[spec.recipe_path]).seed("dynamics"))
+                    resolve_rng_domain(PRICE_GRADIENT_SOURCE_BY_GENERATOR[spec.generator_path]).seed("dynamics"))
 
 
 if __name__ == "__main__":

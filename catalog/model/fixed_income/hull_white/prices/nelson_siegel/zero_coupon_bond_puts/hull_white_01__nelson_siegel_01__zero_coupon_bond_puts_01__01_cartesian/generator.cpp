@@ -37,7 +37,7 @@ const std::filesystem::path dataset_path =
     "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/"
-    "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian/dataset.yaml";
+    "hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/fixed_income/hull_white/prices/"
     "nelson_siegel/zero_coupon_bond_puts/"

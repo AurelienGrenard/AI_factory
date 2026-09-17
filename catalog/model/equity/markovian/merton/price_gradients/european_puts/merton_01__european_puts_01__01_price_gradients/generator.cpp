@@ -9,7 +9,7 @@ int main() {
     namespace pg = price_gradients;
     try {
         const datasets::price_gradients::Recipe recipe{
-            "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients/dataset.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01/generator.cpp",
+            "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients/generation.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},

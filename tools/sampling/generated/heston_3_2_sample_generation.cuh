@@ -66,7 +66,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "Heston 3/2",
         "datasets/model/equity/markovian/heston_3_2/samples/" + id + ".json",
-        "catalog/model/equity/markovian/heston_3_2/samples/" + id + "/dataset.yaml",
+        "catalog/model/equity/markovian/heston_3_2/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

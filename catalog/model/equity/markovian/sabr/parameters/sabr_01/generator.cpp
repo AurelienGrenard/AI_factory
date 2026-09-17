@@ -44,7 +44,7 @@ int main() {
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json";
     write_model_dataset(
         "sabr_01", "SABR equity", dataset,
-        "catalog/model/equity/markovian/sabr/parameters/sabr_01/dataset.yaml",
+        "catalog/model/equity/markovian/sabr/parameters/sabr_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/parameters/sabr_01.json",
         {
             {"spot", "Initial equity spot, sampled between S0_min and S0_max."},

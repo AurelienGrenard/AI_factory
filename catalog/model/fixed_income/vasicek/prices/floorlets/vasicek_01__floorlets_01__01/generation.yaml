@@ -1,0 +1,76 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/recipe.yaml
+  sha256: 0fc908c19d11d49190fc39cd5d78a5bcc706b942ba4e8f6b0a3e0b98346d9653
+artifact:
+  row_count: 1000
+  sha256: 41347d75e0361627e86651e30e6d227a21013a8049ae346c6447d7535bfc4295
+inputs:
+  models: 359e723991c28fb574048f7a53b5874f216a7c717fe53afa8b9f456fac744f5f
+  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+execution:
+  binary_sha256: 6ad1ae589f6da313ea4d8bace2add87301a325354f7635c38c8ef97270a988af
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: floorlets
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: closed_form
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: vasicek
+    product: rate_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 7b34570be61648cdd5b4651a7e2838a827f5170a139d6b376433e3bf611e53b3
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  block_count: 4
+  threads_per_block: 256
+  kernel_launch_count: 1
+  work_distribution: one price per thread
+timing:
+  wall_seconds: 0.148690687
+  kernel_seconds: 7.168e-06
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307883.394435
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 105.72 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479
+    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
+  generator: catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: c8ee8c9f9d44b1274a144b732aa6744533087ca1c8447ffb697cfc33bf127879
+  record_sha256: be4261d5afae1de3abf0dca611c8d88ecbb4fb25189c0c98f2257df11fbed0ae
+record_sha256: 18658209d1cc54b8bca5913ef10e46e00d314dfe421058cd1f4476755a1fc08b

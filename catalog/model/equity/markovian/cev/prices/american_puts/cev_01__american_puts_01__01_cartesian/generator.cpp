@@ -21,7 +21,7 @@ int main() {
         "datasets/model/equity/markovian/cev/prices/american_puts/"
         "cev_01__american_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/cev/prices/american_puts/"
-        "cev_01__american_puts_01__01_cartesian/dataset.yaml",
+        "cev_01__american_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/"
         "american_puts/cev_01__american_puts_01__01_cartesian.json",
         "absorbed Milstein + Longstaff-Schwartz",

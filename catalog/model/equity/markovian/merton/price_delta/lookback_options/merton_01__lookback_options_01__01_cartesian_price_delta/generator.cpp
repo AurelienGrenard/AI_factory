@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/lookback_option/lookback_options_01.json", "datasets/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/lookback_options/merton_01__lookback_options_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/lookback_option/lookback_options_01.json", "datasets/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/lookback_options/merton_01__lookback_options_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/lookback_options/merton_01__lookback_options_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "merton", "lookback_option", ""},
         11668827502100348928ULL, model::equity::merton::load_models, product::load_lookback_options,

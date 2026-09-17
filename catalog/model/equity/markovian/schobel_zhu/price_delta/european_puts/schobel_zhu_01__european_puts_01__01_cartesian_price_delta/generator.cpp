@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/price_delta/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "schobel_zhu", "european_option", ""},
         11668827888647405568ULL, model::equity::schobel_zhu::load_models, product::load_european_options,

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/bates/parameters/bates_01.json",
         "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json",
         "datasets/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01.json",
-        "catalog/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01.json",
         "Andersen QE-M with compound-Poisson lognormal jumps",
         PriceConstruction::Aligned,

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/heston/parameters/heston_01.json",
         "datasets/product/athena_autocall/athena_autocalls_01.json",
         "datasets/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian.json",
         "Andersen QE-M",
         PriceConstruction::CartesianProduct,

@@ -46,7 +46,7 @@ def compose_datasets(delta_datasets, bindings):
     return tuple(replace(dataset,
         dataset_id=dataset.dataset_id.removesuffix("_price_delta") + "_price_gradients",
         dataset_kind="price_gradients",
-        recipe_path=dataset.recipe_path.replace("/price_delta/", "/price_gradients/")
+        generator_path=dataset.generator_path.replace("/price_delta/", "/price_gradients/")
             .replace("_price_delta/", "_price_gradients/"),
         template="catalog/pricing/price_gradients/generator.cpp.tpl",
         numerical_profile="selected_gradients_production_paths", layout="row_major_selected_gradients")

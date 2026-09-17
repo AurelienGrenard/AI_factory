@@ -12,7 +12,7 @@ int main() {
         "",
         "datasets/product/european_swaption/european_swaptions_01.json",
         "datasets/model/fixed_income/${model}/prices/${variant}/${model}_01__${variant}_01__01.json",
-        "catalog/model/fixed_income/${model}/prices/${variant}/${model}_01__${variant}_01__01/dataset.yaml",
+        "catalog/model/fixed_income/${model}/prices/${variant}/${model}_01__${variant}_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/${model}/prices/${variant}/${model}_01__${variant}_01__01.json",
         ${dynamics_seed}ULL,
         ${launch_identity},

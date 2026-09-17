@@ -127,7 +127,7 @@ int main() {
         "rough_heston_01",
         "rough Heston",
         dataset,
-        "catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/"
         "rough_heston/parameters/rough_heston_01.json",
         {

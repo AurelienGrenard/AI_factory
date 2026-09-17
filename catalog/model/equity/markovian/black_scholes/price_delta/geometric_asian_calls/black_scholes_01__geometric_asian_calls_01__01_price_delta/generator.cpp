@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/geometric_asian_option/geometric_asian_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/generator.cpp", "centered_closed_form", .01, 2U};
+        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/geometric_asian_option/geometric_asian_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/recipe.yaml", "centered_closed_form", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<false, false>(
         recipe, {offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "geometric_asian_option", ""},
         0ULL, model::equity::black_scholes::load_models, product::load_geometric_asian_options,

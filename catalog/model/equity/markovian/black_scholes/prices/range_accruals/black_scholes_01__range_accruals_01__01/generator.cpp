@@ -15,7 +15,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01.json",
-        "catalog/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01.json",
         "Black-Scholes closed-form range-accruals",
         PriceConstruction::Aligned,

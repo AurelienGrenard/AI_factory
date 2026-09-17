@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/up_one_touch/up_one_touches_01/recipe.yaml
+  sha256: cde160c15138327fe619b0bcb046faaa5b358ecac2fdfdea10989edab00242a8
+artifact:
+  row_count: 1000
+  sha256: 95e86dcbe4a7a77bc62bb47df636ae0e861ae08be40bb522d9fab36124a232d1
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: f2714d04dc346386bca352b810ad1b57aaab0e48c13ec78cf7b799f578c7080c

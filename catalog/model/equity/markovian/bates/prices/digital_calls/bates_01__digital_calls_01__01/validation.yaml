@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/markovian/bates/digital_calls/bates_01__digital_calls_01__01.json

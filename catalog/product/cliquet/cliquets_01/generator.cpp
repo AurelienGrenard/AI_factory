@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/cliquet/cliquets_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/cliquet/cliquets_01/dataset.yaml";
+        "catalog/product/cliquet/cliquets_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/cliquets/"
         "cliquets_01.json";

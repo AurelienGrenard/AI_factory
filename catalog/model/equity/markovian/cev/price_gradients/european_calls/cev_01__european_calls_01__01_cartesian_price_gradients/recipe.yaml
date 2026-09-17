@@ -1,12 +1,15 @@
 {
   "schema_version": 1,
   "kind": "price_gradients",
-  "database_id": "cev_01__european_calls_01__01_cartesian_price_gradients",
+  "dataset_id": "cev_01__european_calls_01__01_cartesian_price_gradients",
   "generator": "generator.cpp",
   "model_input": "datasets/model/equity/markovian/cev/parameters/cev_01.json",
   "product_input": "datasets/product/european_option/european_options_01.json",
-  "dataset": "datasets/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_cartesian_price_gradients.json",
-  "catalog_output": "catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_cartesian_price_gradients/dataset.yaml",
+  "output": {
+    "path": "datasets/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_cartesian_price_gradients.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_cartesian_price_gradients/generation.yaml",
   "construction": "cartesian",
   "paths_per_price": 1048576,
   "dynamics_seed": 11668826909394862080,
@@ -38,13 +41,9 @@
         "boundary": "central_then_one_sided_order2"
       }
     ],
-    "source_price_recipe": "catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01_cartesian/generator.cpp"
+    "source_price_recipe": "catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01_cartesian/recipe.yaml"
   },
   "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
-  "validation": {
-    "status": "pending",
-    "verified": false
-  },
   "time_grid": {
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,

@@ -27,19 +27,27 @@ def _write_price_fixture(root: Path) -> tuple[Path, Path]:
     (root / "CMakeLists.txt").write_text("# fixture\n", encoding="utf-8")
     catalog = root / "catalog/model/equity/markovian/sample/prices/sample_01"
     catalog.mkdir(parents=True)
-    yaml_path = catalog / "dataset.yaml"
-    yaml_path.write_text(
-        "summary:\n"
-        "  pricing_method: \"Monte Carlo\"\n"
-        "validation:\n"
-        "  status: \"pending\"\n"
-        "time_grid:\n"
-        "  target_dt: \"1 / 360\"\n"
-        "outputs:\n"
-        "  price:\n"
-        "    estimator: \"mean\"\n"
-        "price_construction:\n"
-        "  method: \"Aligned\"\n",
+    recipe_path = catalog / "recipe.yaml"
+    recipe_path.write_text(
+        "schema_version: 1\n"
+        "kind: prices\n"
+        "dataset_id: sample\n"
+        "generator: generator.cpp\n"
+        "inputs: {}\n"
+        "output:\n"
+        "  path: prices.json\n"
+        "  format: json\n"
+        "generation_output: generation.yaml\n"
+        "construction: aligned\n"
+        "numerical_method:\n"
+        "  engine: Monte Carlo\n"
+        "outputs: [price, standard_error]\n"
+        "paths_per_price: 1000\n",
+        encoding="utf-8",
+    )
+    validation_path = catalog / "validation.yaml"
+    validation_path.write_text(
+        "schema_version: 1\nstatus: pending\nverified: false\n",
         encoding="utf-8",
     )
     dataset_path = root / "prices.json"
@@ -67,7 +75,7 @@ def _write_price_fixture(root: Path) -> tuple[Path, Path]:
         + "\n",
         encoding="utf-8",
     )
-    return dataset_path, yaml_path
+    return dataset_path, validation_path
 
 
 class ValidationReportingTest(unittest.TestCase):
@@ -160,7 +168,7 @@ class ValidationReportingTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             report_path = root / "validation_report.json"
-            dataset_path, yaml_path = _write_price_fixture(root)
+            dataset_path, validation_path = _write_price_fixture(root)
             report = DatasetValidationReport(
                 validation_fingerprint(dataset_path), section, section
             )
@@ -177,8 +185,11 @@ class ValidationReportingTest(unittest.TestCase):
                 json.dumps(document, indent=2) + "\n", encoding="utf-8"
             )
             self.assertEqual(validation_fingerprint(dataset_path), original_fingerprint)
-            yaml_path.write_text(
-                yaml_path.read_text(encoding="utf-8").replace("1 / 360", "1 / 365"),
+            recipe_path = validation_path.with_name("recipe.yaml")
+            recipe_path.write_text(
+                recipe_path.read_text(encoding="utf-8").replace(
+                    "paths_per_price: 1000", "paths_per_price: 2000"
+                ),
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(ValueError, "stale"):
@@ -217,25 +228,22 @@ class ValidationReportingTest(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            dataset_path, yaml_path = _write_price_fixture(root)
+            dataset_path, validation_path = _write_price_fixture(root)
             report = DatasetValidationReport(
                 validation_fingerprint(dataset_path), section, section
             )
 
             synchronize_validation_yaml(report, dataset_path)
-            yaml_text = yaml_path.read_text(encoding="utf-8")
+            yaml_text = validation_path.read_text(encoding="utf-8")
 
-            self.assertIn('reference: "Premia (specialized pricer)"', yaml_text)
+            self.assertIn("reference: Premia (specialized pricer)", yaml_text)
             self.assertIn(
-                'notebook: "catalog/model/equity/markovian/sample/prices/'
-                'sample_01/validation.ipynb"',
+                "notebook: catalog/model/equity/markovian/sample/prices/"
+                "sample_01/validation.ipynb",
                 yaml_text,
             )
-            self.assertIn('status: "passed"', yaml_text)
-            validation_block = yaml_text.split("validation:\n", 1)[1].split(
-                "time_grid:", 1
-            )[0]
-            self.assertNotIn("method:", validation_block)
+            self.assertIn("status: passed", yaml_text)
+            self.assertNotIn("method:", yaml_text)
             self.assertNotIn("relationship:", yaml_text)
             self.assertNotIn("engine_plan:", yaml_text)
 
@@ -269,18 +277,18 @@ class ValidationReportingTest(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            dataset_path, yaml_path = _write_price_fixture(root)
+            dataset_path, validation_path = _write_price_fixture(root)
             report = DatasetValidationReport(
                 validation_fingerprint(dataset_path), core, stress
             )
 
             self.assertTrue(report.passed)
             synchronize_validation_yaml(report, dataset_path)
-            yaml_text = yaml_path.read_text(encoding="utf-8")
-            self.assertIn('status: "passed"', yaml_text)
+            yaml_text = validation_path.read_text(encoding="utf-8")
+            self.assertIn("status: passed", yaml_text)
             self.assertIn("verified: true", yaml_text)
-            self.assertIn('reference: "Premia (specialized pricer)"', yaml_text)
-            self.assertIn('stress:\n    status: "failed"', yaml_text)
+            self.assertIn("reference: Premia (specialized pricer)", yaml_text)
+            self.assertIn("stress:\n  status: failed", yaml_text)
 
     def test_unavailable_validation_has_a_dedicated_display(self) -> None:
         report = ValidationDisplayReport(
