@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/kou/parameters/kou_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01.json",
-        "catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01.json",
         "Exact Kou increments",
         PriceConstruction::Aligned,

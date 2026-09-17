@@ -70,37 +70,44 @@ __device__ __forceinline__ void one_step_transition(
 
 // ==================== Model-specific implementation =======================
 
-namespace {
-
-__device__ __forceinline__ void simulate_one_step(
-    const PreparedModel& prepared_model,
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
-    State& state
+    philox::NormalRandomContext& random
 ) {
     constexpr float kPoissonInversionThreshold = 10.0f;
     const std::uint32_t jump_count =
         prepared_transition.poisson_mean < kPoissonInversionThreshold
         ? philox::poisson_from_uniform(
-            uniforms.next(),
+            random.uniforms.next(),
             prepared_transition.poisson_mean,
             prepared_transition.zero_jump_probability
         )
         : philox::poisson_from_uniform_sequence(
-            uniforms,
+            random.uniforms,
             prepared_transition.poisson_mean
         );
-    const float diffusion_normal = philox::next_normal(uniforms, normal_cache);
+    const float diffusion_normal = philox::next_normal(random.uniforms, random.normals);
     const float jump_normal = jump_count == 0U
         ? 0.0f
-        : philox::next_normal(uniforms, normal_cache);
+        : philox::next_normal(random.uniforms, random.normals);
+    return {jump_count, diffusion_normal, jump_normal};
+}
+
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::NormalRandomContext& random,
+    State& state
+) {
+    const auto innovations = draw_transition_innovations(prepared_transition, random);
     one_step_transition(
         prepared_model,
         prepared_transition,
-        jump_count,
-        diffusion_normal,
-        jump_normal,
+        innovations.jump_count,
+        innovations.diffusion_normal,
+        innovations.jump_normal,
         state
     );
 }
@@ -178,8 +185,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     merton::simulate_one_step(
         prepared_model,
         prepared_transition,
-        random.uniforms,
-        random.normals,
+        random,
         state
     );
 }

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "hull_white_01__svensson_01__caplets_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json",
+    "curve": "datasets/curve/svensson/svensson_01.json",
+    "product": "datasets/product/rate_option/rate_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "fixed_income_closed_form",
+    "profile": "closed_form_price_profile"
+  },
+  "outputs": [
+    "price"
+  ],
+  "paths_per_price": 0
+}

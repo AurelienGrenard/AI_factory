@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/kou/prices/american_calls/"
         "kou_01__american_calls_01__01.json",
         "catalog/model/equity/markovian/kou/prices/american_calls/"
-        "kou_01__american_calls_01__01/dataset.yaml",
+        "kou_01__american_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/"
         "american_calls/kou_01__american_calls_01__01.json",
         "Exact Kou increments + Longstaff-Schwartz",

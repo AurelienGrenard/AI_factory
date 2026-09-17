@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/fixed_income/hull_white/svensson/bermudan_receiver_swaptions/hull_white_01__svensson_01__bermudan_receiver_swaptions_01__01.json

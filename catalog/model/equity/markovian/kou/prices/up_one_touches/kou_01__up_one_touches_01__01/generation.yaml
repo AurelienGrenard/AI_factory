@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/kou/prices/up_one_touches/kou_01__up_one_touches_01__01/recipe.yaml
+  sha256: 507f5d59913451c7503d28d6cc9e110df52b92dc5092c6c3364cbc26082b8ffc
+artifact:
+  row_count: 1000
+  sha256: 697a5fe45622f16e85546cf3d0cab43d2f8f982cd27ecd67be9709ef68723c84
+inputs:
+  models: 5867fba85d7f5574c7240d8cfb4ea6ef2d471857b0c28b7daeb81b69daa93276
+  products: 37bed9acd9705fa4e81b25f8b6b72c0060c827cb989ac72dd3b86574205aa807
+execution:
+  binary_sha256: 6934d30c0294d904c65d0eba0e4a60e0e3567401aaa1088820a883ee4522499a
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_one_touches
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: kou
+    product: up_one_touch
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 820bd1a79c1a8b35a4fa03901d59c070968b650f85093c6c2504047d03a4feaf
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 53.539425452
+  kernel_seconds: 55.746699219
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789322924.5050464
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 87.27 W, [N/A], 1935 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/kou/parameters/kou_01.json: 9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28
+    datasets/product/up_one_touch/up_one_touches_01.json: 95e86dcbe4a7a77bc62bb47df636ae0e861ae08be40bb522d9fab36124a232d1
+  generator: catalog/model/equity/markovian/kou/prices/up_one_touches/kou_01__up_one_touches_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 711e3d8e0afddca13d9e1fe9539142a049c50f5c6a1d9b1d8b96cb5402509976
+  record_sha256: 8cfa5f93a7d3a4ad564237236b1237127b07ee1651daf2b20d8f8f5a5ba9afc3
+record_sha256: 08a5a7a873270048c7eef7b23fb861e541f2036b9b968a5e728d83ef6535053d

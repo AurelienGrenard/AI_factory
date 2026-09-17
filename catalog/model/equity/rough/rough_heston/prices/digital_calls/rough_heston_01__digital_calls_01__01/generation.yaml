@@ -1,0 +1,83 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_heston/prices/digital_calls/rough_heston_01__digital_calls_01__01/recipe.yaml
+  sha256: 36d82fc54683f4e2237ac1ad24f101634be0ab753a4bc2054b946c8fad5e3701
+artifact:
+  row_count: 1000
+  sha256: af213c7cbae942dd5c139e4e8465d0cd9385767afccdc30391fd8e39da7404be
+inputs:
+  models: 74bc2a19f544bbe5efb4cca68c495ecd684e5dfccf61f095c13d44aa361b8d2a
+  products: cbdcb0cc45fd8eedb79c69c01484d7694f356c8d0f70b48a69a9ed29f22c0e02
+execution:
+  binary_sha256: df7c0bae411a55a793168e1a7200a2c3bbec61773dc6048af76d56f3dfac0ce5
+  declared_method:
+    engine: equity_n_factor
+    profile: catalog_price_profile
+    variant: digital_calls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_n_factor
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: rough_heston
+    product: digital_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 0b36fe52ab9ee444c38078853fcea8c3d01c5cd36361eb3d7dd58140e309bfed
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  factor_count: 7
+  block_count: 1000
+  threads_per_block: 256
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: rough_n_factor_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 50.63236914
+  kernel_seconds: 48.028953125
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789363111.8087661
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 75, 60.12 W, [N/A], 2310 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json: 541ab1647b2830e90fbe26cdee4f604afcbb7a1ef4dd541f1e15e90788d8160c
+    datasets/product/digital_option/digital_options_01.json: 94f11e19391f8b06ae835fbfc61363687aeb3ce52645ef89d75271eb444dc746
+  generator: catalog/model/equity/rough/rough_heston/prices/digital_calls/rough_heston_01__digital_calls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 96f5326b6d6316563e07b22a8bc7752a75ff617a44199a246a368ae732cd8704
+  record_sha256: a177b711e63cf3b3edb8b52df92cc4df1b4b20e0ecc75e148ab253075d214059
+record_sha256: 7da1b3f82e765a19fb4bafb22f7c6751f92f410da86df579a9e8c1bd096ba857

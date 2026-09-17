@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json", "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json", "datasets/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json", "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json", "datasets/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/price_delta/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01_price_delta.json", "catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_volterra_price_delta_dataset<volterra::TerminalHybridSchedule, product::AssetOrNothingOptionPathPolicy<OptionSide::put>>(
         recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_sabr", "asset_or_nothing_option", ""},
         11668828786295570432ULL, "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot", model::equity::rough_sabr::load_models, product::load_asset_or_nothing_options,

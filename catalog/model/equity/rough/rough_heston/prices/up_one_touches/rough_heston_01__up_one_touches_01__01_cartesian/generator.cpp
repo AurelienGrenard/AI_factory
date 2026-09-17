@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01_cartesian.json",
         "7-factor Markovian lift",
         PriceConstruction::CartesianProduct,

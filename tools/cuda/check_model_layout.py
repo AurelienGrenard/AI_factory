@@ -26,6 +26,8 @@ from capability_manifest import (  # noqa: E402
     GENERATED_PRICE_DELTA_BINDING_PATHS,
     GENERATED_CLOSED_FORM_POLICY_PATHS,
     PRICE_DELTA_BINDING_SPECS,
+    PRICE_GRADIENT_BINDING_SPECS,
+    GENERATED_PRICE_GRADIENT_BINDING_PATHS,
 )
 CPP_SUFFIXES = {".cu", ".cuh", ".cpp", ".hpp"}
 TEXT_SUFFIXES = CPP_SUFFIXES | {".cmake", ".md", ".py", ".txt"}
@@ -47,6 +49,9 @@ CANONICAL_INFRASTRUCTURE_FILENAMES = {
     "parameters.hpp",
     "price_delta_dynamics.cuh",
     "price_delta_dynamics_impl.cuh",
+    "coupled_dynamics.cuh",
+    "coupled_dynamics_impl.cuh",
+    "parameter_policy.cuh",
     "parameter_row.hpp",
     "sample.cu",
     "sample.cuh",
@@ -276,7 +281,8 @@ def is_generated_implementation(path: Path) -> bool:
         "src/model/"
     ):
         return True
-    return path_text in GENERATED_PRODUCT_BINDING_PATHS or path_text in GENERATED_PRICE_DELTA_BINDING_PATHS
+    return (path_text in GENERATED_PRODUCT_BINDING_PATHS or path_text in GENERATED_PRICE_DELTA_BINDING_PATHS
+            or path_text in GENERATED_PRICE_GRADIENT_BINDING_PATHS)
 
 
 def responsibility_format(path: Path, source: str) -> tuple[str, int]:
@@ -361,7 +367,9 @@ def validate_model_path(path: Path, under_product: bool) -> list[str]:
                 and tail[0] in CURVE_NAMES
                 and tail[1] in {"analytics.cuh", "analytics_impl.cuh"}
             )
-            if not is_curve_analytics:
+            is_gradient_adapter = (len(tail) == 2 and tail[0] == "price_gradients"
+                and tail[1] in {"coupled_dynamics.cuh", "coupled_dynamics_impl.cuh", "parameter_policy.cuh"})
+            if not is_curve_analytics and not is_gradient_adapter:
                 failures.append(
                     f"unexpected model-infrastructure nesting: {relative(path)}"
                 )
@@ -507,6 +515,9 @@ def main() -> int:
     }
     product_names.update(
         f"{spec.pricing.product}_price_delta" for spec in PRICE_DELTA_BINDING_SPECS
+    )
+    product_names.update(
+        f"{spec.pricing.product}_price_gradients" for spec in PRICE_GRADIENT_BINDING_SPECS
     )
     model_files = sorted(
         path for path in MODEL_ROOT.rglob("*")

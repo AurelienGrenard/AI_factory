@@ -154,11 +154,35 @@ void validate_dataset_url(const std::string& url) {
     }
 }
 
-void write_catalog_yaml(
+void write_yaml_document(
     const std::filesystem::path& path,
     const nlohmann::ordered_json& document
 ) {
     write_yaml_file(path, document);
+}
+
+void write_generation_receipt(
+    const std::filesystem::path& path,
+    std::size_t row_count,
+    const nlohmann::ordered_json& execution,
+    double wall_seconds,
+    double kernel_seconds
+) {
+    if (row_count == 0U || !execution.is_object()
+        || !std::isfinite(wall_seconds) || wall_seconds < 0.0
+        || !std::isfinite(kernel_seconds) || kernel_seconds < 0.0) {
+        throw std::invalid_argument("Invalid generation receipt.");
+    }
+    write_yaml_file(path, {
+        {"schema_version", 1},
+        {"status", "complete"},
+        {"artifact", {{"row_count", row_count}}},
+        {"execution", execution},
+        {"timing", {
+            {"wall_seconds", wall_seconds},
+            {"kernel_seconds", kernel_seconds},
+        }},
+    });
 }
 
 }  // namespace ai_factory::workbench::datasets

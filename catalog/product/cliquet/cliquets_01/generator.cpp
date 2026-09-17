@@ -1,5 +1,5 @@
 // Generate issuance terms for locally and globally capped Cliquets.
-#include "tools/datasets/cliquet_generation.hpp"
+#include "tools/sampling/parameters/cliquet_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
 
@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/cliquet/cliquets_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/cliquet/cliquets_01/dataset.yaml";
+        "catalog/product/cliquet/cliquets_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/cliquets/"
         "cliquets_01.json";

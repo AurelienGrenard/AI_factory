@@ -1,12 +1,15 @@
 {
   "schema_version": 1,
   "kind": "price_delta",
-  "database_id": "merton_01__phoenix_memory_autocalls_01__01_price_delta",
+  "dataset_id": "merton_01__phoenix_memory_autocalls_01__01_price_delta",
   "generator": "generator.cpp",
   "model_input": "datasets/model/equity/markovian/merton/parameters/merton_01.json",
   "product_input": "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json",
-  "dataset": "datasets/model/equity/markovian/merton/price_delta/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01_price_delta.json",
-  "catalog_output": "catalog/model/equity/markovian/merton/price_delta/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01_price_delta/dataset.yaml",
+  "output": {
+    "path": "datasets/model/equity/markovian/merton/price_delta/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01_price_delta.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/merton/price_delta/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01_price_delta/generation.yaml",
   "construction": "aligned",
   "paths_per_price": 1048576,
   "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
@@ -14,12 +17,8 @@
     "parameter": "spot",
     "method": "centered_crn",
     "relative_full_width": 0.01,
-    "source_price_recipe": "catalog/model/equity/markovian/merton/prices/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01/generator.cpp"
+    "source_price_recipe": "catalog/model/equity/markovian/merton/prices/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01/recipe.yaml"
   },
   "dynamics_seed": 11668827510690283520,
-  "time_grid": null,
-  "validation": {
-    "status": "pending",
-    "verified": false
-  }
+  "time_grid": null
 }

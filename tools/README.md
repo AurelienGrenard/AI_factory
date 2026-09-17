@@ -8,7 +8,10 @@ and diagnostics. Runtime code under `src` never depends on this tree.
 | Task | Owner |
 |---|---|
 | Generate or verify pricing and sampling bindings | [`codegen/pricing_bindings`](codegen/pricing_bindings/README.md) |
-| Build parameter, sample, or price datasets | `datasets/`; [sample campaign](datasets/generate_sample_campaign.py) |
+| Compile or run a dataset campaign | [`datasets/generate_catalog.py`](datasets/generate_catalog.py) |
+| Assemble parameter, sample, or price artifacts | `datasets/` |
+| Validate dataset metadata contracts | [`datasets/schemas`](datasets/schemas/README.md) |
+| Define a disposable study manifest | [`experiments`](experiments/README.md) |
 | Inspect dataset provenance and reuse | [`datasets/check_dataset_compatibility.py`](datasets/check_dataset_compatibility.py), [contract](../docs/dataset-provenance-contract.md) |
 | Run CUDA pricing from an offline recipe | `cuda/pricing_runner.cuh` |
 | Compose product-specific price generation | `pricing/` |
@@ -21,12 +24,21 @@ and diagnostics. Runtime code under `src` never depends on this tree.
 - `datasets/*_dataset.*` owns dataset assembly and publication by artifact
   family.
 - `datasets/artifact_io.*` owns JSON/YAML serialization.
+- `datasets/schemas/` owns recipe, generation and validation document schemas.
+- `experiments/` owns only reusable contracts for local studies; concrete
+  studies live below ignored `work/experiments/`.
 - `cuda/` owns reusable offline CUDA execution and architecture checks.
 - `pricing/` owns product-specific price-generation orchestration.
-- `sampling/` owns Philox parameter generation and model-sample orchestration.
+- `sampling/parameters/` owns model, curve, and product parameter construction.
+- `sampling/generated/` owns generated model-sample compositions.
+- The other files in `sampling/` own shared Philox and sample orchestration.
 - `codegen/` owns generated bindings, recipes, manifests, and drift checks.
 - `performance/` owns benchmark execution, comparison, rebaseline, and
   profiling tools.
+
+Add a filter to `datasets/generate_catalog.py` when a new campaign needs a
+different selection. Do not add a campaign-specific controller. Keep tool
+tests under `tests/`.
 
 Catalogue `generator.cpp` files are thin executable recipes. They select
 inputs, launch arguments, and publication metadata; they do not own generic

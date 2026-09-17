@@ -1,0 +1,67 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_stein_stein/samples/samples_01/recipe.yaml
+  sha256: 4b92116ff22cededb3cea017785049e749afba96f9715606566a8b40b8e4e8ed
+artifact:
+  row_count: 3000000
+  sha256: 76ac1c518a94a777ae31eef5d20c1528ca19cf6389af2fba7f688a117c8c8d32
+inputs: {}
+execution:
+  binary_sha256: 66b45633fc5cccf6ecad67b9d4896718357202b7afc38bfb687ec24ca49dc1bf
+  declared_method:
+    engine: sample_volterra_fft
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: cc579f0d6243c86dd0e85b15baffd46bbe9ad3a6a8de90c80d942bd47d4bcb69
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 128
+  block_dimensions:
+  - 128
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent parameter-block
+  block_dimensions_source: compiled cuFFTDx Forward::block_dim
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 4.136525063
+  kernel_seconds: 4.263504883
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789411529.241176
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 64, 46.65 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/rough/rough_stein_stein/samples/samples_01/generator.cpp
+legacy_checksums:
+  contract_sha256: 46d1b849cd7f8deddf0d773ee5d78d7e527b277ec6062369c2f4c3e44d4b0080
+  record_sha256: e70c84c94b2869dd3b618db96d6e1cabf3a0f9b69c65f1fdec1e5f58e36090b5
+record_sha256: 58cf4640a61dbacfa915e83057b588a5018f8d6e7968c864f03c89da03c69a7b

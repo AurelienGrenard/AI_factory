@@ -34,7 +34,7 @@ int main() {
         "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json";
     write_model_dataset(
         "heston_3_2_01", "Heston 3/2", dataset,
-        "catalog/model/equity/markovian/heston_3_2/parameters/heston_3_2_01/dataset.yaml",
+        "catalog/model/equity/markovian/heston_3_2/parameters/heston_3_2_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
         {
             {"spot", "Initial spot; fixed to 1."},

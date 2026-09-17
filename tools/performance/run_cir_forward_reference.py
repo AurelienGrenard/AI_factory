@@ -6,12 +6,15 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
 import time
 
-from cir_forward_reference import pde_price, held_out_lsm
-
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from validation.quantlib.model.fixed_income.cir import forward_reference
 
+held_out_lsm = forward_reference.held_out_lsm
+pde_price = forward_reference.pde_price
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -34,7 +37,7 @@ def main():
         'input_sha256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                          for p in (model_path, product_path)}}
     (args.output / 'manifest.json').write_text(json.dumps(manifest, indent=2))
-    (args.output / 'reference_source.py').write_bytes((Path(__file__).with_name('cir_forward_reference.py')).read_bytes())
+    (args.output / 'reference_source.py').write_bytes(Path(forward_reference.__file__).read_bytes())
     with (args.output / 'rows.ndjson').open('w') as stream:
         for index in indices:
             start = time.monotonic()

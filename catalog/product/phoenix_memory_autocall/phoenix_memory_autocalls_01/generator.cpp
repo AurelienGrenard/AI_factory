@@ -1,5 +1,5 @@
 // Generate issuance terms for memory-coupon Phoenix autocalls.
-#include "tools/datasets/autocall_generation.hpp"
+#include "tools/sampling/parameters/autocall_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
 
@@ -17,7 +17,7 @@ int main() {
         "phoenix_memory_autocalls_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/phoenix_memory_autocall/"
-        "phoenix_memory_autocalls_01/dataset.yaml";
+        "phoenix_memory_autocalls_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/"
         "phoenix_memory_autocalls/phoenix_memory_autocalls_01.json";

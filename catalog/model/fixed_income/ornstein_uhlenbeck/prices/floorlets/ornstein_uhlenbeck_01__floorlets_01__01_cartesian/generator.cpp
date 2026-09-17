@@ -33,7 +33,7 @@ const std::filesystem::path dataset_path =
     "ornstein_uhlenbeck_01__floorlets_01__01_cartesian.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/"
-    "ornstein_uhlenbeck_01__floorlets_01__01_cartesian/dataset.yaml";
+    "ornstein_uhlenbeck_01__floorlets_01__01_cartesian/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/"
     "fixed_income/ornstein_uhlenbeck/prices/floorlets/"

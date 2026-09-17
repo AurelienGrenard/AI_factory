@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/recipe.yaml
+  sha256: bbd6c05ced4430975fc735e9a20daebf8300b45a4cb5975db239cb3b0828e66a
+artifact:
+  row_count: 1000
+  sha256: 91828746b163d81597af5e11f9a08fba6ec59a942b6676d5b0ee28e2ae07a101
+inputs:
+  models: 8390ab62f307a3a26783911fbf252e49322e63232dd319d1e142b108a1f4d977
+  products: a04a2cde120aaecfdb0c9b3091a436c10bc7028092bd15f58928d8799ca6e491
+execution:
+  binary_sha256: 26e143793cd5fe299b92aa338f72f57af027a85d31d12b158ebab08785f00b5e
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: straddles
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: bates
+    product: straddle
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 9f91dce79d04b1ec34e1e399320c83a3429812dabe7dbb8dc66ee5594413c47e
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 85.761203187
+  kernel_seconds: 91.511695312
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789314968.2587814
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 81, 85.43 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/bates/parameters/bates_01.json: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
+    datasets/product/straddle/straddles_01.json: 40f69879f5647cd09bd4a12406cd9f0ed11385698c54a309bcfe626dec8c9d2d
+  generator: catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 2a811489631c59b9467d414022f039a2e4e5fdc19599578a717d1c00ede09cb4
+  record_sha256: e31d1336bf78dbf7d0db2e4893834d69c20959b116a0ab26eb3d23259c79c56c
+record_sha256: 9dcd9b26f8046683c117baa2a5c60fb909a2599c38ca7077d681c8cce883c531

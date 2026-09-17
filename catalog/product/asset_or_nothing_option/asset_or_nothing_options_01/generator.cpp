@@ -14,7 +14,7 @@ int main() {
         "asset_or_nothing_options_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/asset_or_nothing_option/"
-        "asset_or_nothing_options_01/dataset.yaml";
+        "asset_or_nothing_options_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/"
         "asset_or_nothing_options/asset_or_nothing_options_01.json";

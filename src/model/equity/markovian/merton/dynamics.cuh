@@ -39,6 +39,12 @@ struct PreparedDynamics {
     PreparedTransition transition;
 };
 
+struct TransitionInnovations {
+    std::uint32_t jump_count;
+    float diffusion_normal;
+    float jump_normal;
+};
+
 // ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -61,6 +67,13 @@ __device__ __forceinline__ void one_step_transition(
     float diffusion_normal,
     float jump_normal,
     State& state
+);
+
+// Draw the canonical variable-consumption transition input once. Coupled
+// estimators may reuse it only while intensity and interval remain unchanged.
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedTransition& prepared_transition,
+    philox::NormalRandomContext& random
 );
 
 struct DynamicsPolicy {

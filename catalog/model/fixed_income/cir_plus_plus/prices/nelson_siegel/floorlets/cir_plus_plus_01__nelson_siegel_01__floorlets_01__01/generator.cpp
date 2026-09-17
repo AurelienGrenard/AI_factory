@@ -37,7 +37,7 @@ const std::filesystem::path dataset_path =
     "cir_plus_plus_01__nelson_siegel_01__floorlets_01__01.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/"
-    "cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/dataset.yaml";
+    "cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/fixed_income/cir_plus_plus/prices/"
     "nelson_siegel/floorlets/"

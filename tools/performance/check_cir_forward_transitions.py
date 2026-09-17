@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import QuantLib as ql
 
-from tools.performance.cir_forward_reference import bond, forward_transition
+from validation.quantlib.model.fixed_income.cir.forward_reference import bond, forward_transition
 from validation.quantlib.model.fixed_income.cir.reference import quantlib_model
 
 

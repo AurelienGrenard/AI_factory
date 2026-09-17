@@ -26,7 +26,7 @@ int main() {
         write_json_file(directory / "model.json", model);
         write_json_file(directory / "product.json", product);
         PriceDeltaRecipe recipe{directory / "model.json", directory / "product.json",
-            directory / "paired.json", directory / "dataset.yaml",
+            directory / "paired.json", directory / "generation.yaml",
             "https://datasets.ai-factory.example/paired.json", "source/generator.cpp", "centered_crn", .01, 2};
         PriceDeltaResults result;
         result.prices = {.1f}; result.price_errors = {.01f};

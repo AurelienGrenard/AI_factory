@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -73,6 +74,22 @@ public:
         );
     }
 
+    void copy_range_to(
+        Value* destination, std::size_t offset, std::size_t count
+    ) const {
+        if (offset > count_ || count > count_ - offset) {
+            throw std::out_of_range("offline CUDA output copy range");
+        }
+        if (count == 0U) return;
+        check_cuda(
+            cudaMemcpy(
+                destination, data_ + offset, count * sizeof(Value),
+                cudaMemcpyDeviceToHost
+            ),
+            "offline CUDA output range copy"
+        );
+    }
+
 private:
     Value* data_ = nullptr;
     std::size_t count_ = 0U;
@@ -95,6 +112,40 @@ public:
 
 private:
     cudaEvent_t event_ = nullptr;
+};
+
+class KernelDurationAccumulator {
+public:
+    void start_batch() {
+        check_cuda(
+            cudaEventRecord(start_.get()),
+            "offline CUDA checkpoint batch timer start"
+        );
+    }
+
+    void finish_batch() {
+        check_cuda(
+            cudaEventRecord(stop_.get()),
+            "offline CUDA checkpoint batch timer stop"
+        );
+        check_cuda(
+            cudaEventSynchronize(stop_.get()),
+            "offline CUDA checkpoint batch timer wait"
+        );
+        float milliseconds = 0.0f;
+        check_cuda(
+            cudaEventElapsedTime(&milliseconds, start_.get(), stop_.get()),
+            "offline CUDA checkpoint batch elapsed time"
+        );
+        seconds_ += static_cast<double>(milliseconds) * 1.0e-3;
+    }
+
+    double seconds() const noexcept { return seconds_; }
+
+private:
+    Event start_;
+    Event stop_;
+    double seconds_ = 0.0;
 };
 
 template<class... Values>
@@ -149,12 +200,28 @@ public:
         prices_.copy_to(destination.data());
     }
 
+    void copy_prices_range_to(
+        float* destination, std::size_t offset, std::size_t count
+    ) const {
+        prices_.copy_range_to(destination, offset, count);
+    }
+
     void copy_standard_errors_to(std::vector<float>& destination) const {
         static_assert(
             WithStandardErrors,
             "Analytical executions do not allocate standard errors."
         );
         standard_errors_.copy_to(destination.data());
+    }
+
+    void copy_standard_errors_range_to(
+        float* destination, std::size_t offset, std::size_t count
+    ) const {
+        static_assert(
+            WithStandardErrors,
+            "Analytical executions do not allocate standard errors."
+        );
+        standard_errors_.copy_range_to(destination, offset, count);
     }
 
 private:

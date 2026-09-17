@@ -3,6 +3,7 @@
 add_custom_target(parameter_generators)
 add_custom_target(price_generators)
 add_custom_target(price_delta_generators)
+add_custom_target(price_gradient_generators)
 add_custom_target(sample_generators)
 
 function(ai_factory_collect_generation_dependencies output source)
@@ -11,14 +12,14 @@ function(ai_factory_collect_generation_dependencies output source)
     )
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" source_text)
     string(REGEX MATCHALL
-        "tools/datasets/[a-z0-9_]+_generation\\.hpp"
+        "tools/sampling/parameters/[a-z0-9_]+_generation\\.hpp"
         generation_headers
         "${source_text}"
     )
     set(dependencies)
     foreach(header IN LISTS generation_headers)
         string(REGEX REPLACE
-            "tools/datasets/([^/]+)\\.hpp" "ai_factory_\\1"
+            "tools/sampling/parameters/([^/]+)\\.hpp" "ai_factory_\\1"
             candidate "${header}"
         )
         if(TARGET ${candidate})
@@ -99,7 +100,10 @@ function(add_price_generator target source)
         CUDA_STANDARD 23
         CUDA_STANDARD_REQUIRED YES
     )
-    if(source MATCHES "/price_delta/")
+    if(source MATCHES "/price_gradients/")
+        target_link_libraries(${target} PRIVATE ai_factory_price_gradient_dataset)
+        add_dependencies(price_gradient_generators ${target})
+    elseif(source MATCHES "/price_delta/")
         add_dependencies(price_delta_generators ${target})
     else()
         add_dependencies(price_generators ${target})
@@ -138,7 +142,7 @@ endfunction()
 function(ai_factory_catalog_generator_target output source)
     get_filename_component(recipe_directory "${source}" DIRECTORY)
     get_filename_component(recipe_id "${recipe_directory}" NAME)
-    if(source MATCHES "/(prices|price_delta)/")
+    if(source MATCHES "/(prices|price_delta|price_gradients)/")
         string(REPLACE "__" ";" components "${recipe_id}")
         list(POP_BACK components version)
         set(target generate)

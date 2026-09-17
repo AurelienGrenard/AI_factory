@@ -15,8 +15,6 @@
 namespace ai_factory::workbench::longstaff_schwartz {
 namespace {
 
-constexpr std::size_t kMomentValueCount = 2U;
-
 std::string workspace_error(
     const char* product_name,
     const char* region_name
@@ -70,7 +68,8 @@ void validate_descriptor(const WorkspaceDescriptor& descriptor) {
         || descriptor.prepared_row_alignment == 0U
         || descriptor.state_fields.empty()
         || descriptor.basis_size == 0U
-        || descriptor.regression_value_count == 0U) {
+        || descriptor.regression_value_count == 0U
+        || descriptor.moment_value_count == 0U) {
         throw std::invalid_argument(
             "An early-exercise workspace descriptor contains an empty dimension."
         );
@@ -117,7 +116,7 @@ WorkspaceLayout make_workspace_layout(
     );
     const std::size_t moment_partial_count = checked_workspace_product(
         partial_block_count,
-        kMomentValueCount,
+        descriptor.moment_value_count,
         workspace_error(product_name, "moment partial count").c_str()
     );
 
@@ -235,10 +234,16 @@ ExecutionPlan plan_batches(
     std::size_t paths_per_price,
     std::size_t blocks_per_price,
     std::size_t workspace_budget,
-    const char* product_name
+    const char* product_name,
+    std::size_t maximum_batch_size
 ) {
     if (rows.empty()) {
         throw std::invalid_argument("Early-exercise batch planning requires rows.");
+    }
+    if (maximum_batch_size == 0U) {
+        throw std::invalid_argument(
+            "Early-exercise maximum batch size must be positive."
+        );
     }
     ExecutionPlan plan{};
     plan.descriptor = descriptor;
@@ -250,7 +255,8 @@ ExecutionPlan plan_batches(
         std::size_t state_value_count = 0U;
         std::uint32_t maximum_regression_count = 0U;
 
-        while (result_offset + batch_size < rows.size()) {
+        while (result_offset + batch_size < rows.size()
+               && batch_size < maximum_batch_size) {
             const EarlyExerciseRowPlan& row = rows[result_offset + batch_size];
             if (state_value_count
                 > std::numeric_limits<std::size_t>::max()

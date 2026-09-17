@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/heston/samples/samples_02/recipe.yaml
+  sha256: d1c47faf4a05defcf899950d4ab0586113e08b05c0328760148fb00decfafebf
+artifact:
+  row_count: 3000000
+  sha256: 4a8d8097b4202f32a0cc8ac927c86a08360785726c3a0e03264b97430f947795
+inputs: {}
+execution:
+  binary_sha256: 91745a31f1fd0371964124f5d6c0ebc6d0402c733b7a7e0162009bc2439255f8
+  declared_method:
+    engine: sample_markovian
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 49b12affa0deb0d9e88a03efbfdd7babe29fda2cac26c776d2570c7acecfc2e6
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent thread grid-stride
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.390978493
+  kernel_seconds: 0.0628736
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789410703.9116035
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 65, 44.01 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/markovian/heston/samples/samples_02/generator.cpp
+legacy_checksums:
+  contract_sha256: d94c33e4b0cbdba433b9c003946731ee63e55dc6ca1ec2eaa929b8bb0dbcae38
+  record_sha256: b27793527085b69a27ddb2e8064a94e10368e9405640aeba81139fb873a994a2
+record_sha256: 8631d6ccc7ff7b41460a9af3cd1c4c4083fb3ee8c52cd58357fa41045f0dd79c

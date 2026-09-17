@@ -76,7 +76,7 @@ int main() {
         "rough_sabr_01",
         "rough SABR",
         dataset,
-        "catalog/model/equity/rough/rough_sabr/parameters/rough_sabr_01/dataset.yaml",
+        "catalog/model/equity/rough/rough_sabr/parameters/rough_sabr_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/"
         "rough_sabr/parameters/rough_sabr_01.json",
         {

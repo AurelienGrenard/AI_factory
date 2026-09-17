@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/bates/parameters/bates_01.json", "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json", "datasets/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/bates/parameters/bates_01.json", "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json", "datasets/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/price_delta/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "bates", "phoenix_memory_autocall", ""},
         11668826737596170240ULL, model::equity::bates::load_models, product::load_phoenix_memory_autocalls,

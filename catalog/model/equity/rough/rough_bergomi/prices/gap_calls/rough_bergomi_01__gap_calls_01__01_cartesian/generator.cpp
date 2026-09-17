@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
         "datasets/product/gap_option/gap_call_options_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::CartesianProduct,

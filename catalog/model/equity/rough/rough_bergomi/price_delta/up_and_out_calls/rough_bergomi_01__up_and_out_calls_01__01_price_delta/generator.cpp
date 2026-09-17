@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/up_and_out_option/up_and_out_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/up_and_out_option/up_and_out_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/price_delta/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_volterra_price_delta_dataset<volterra::DenseHybridSchedule, product::UpAndOutOptionPathPolicy<OptionSide::call>>(
         recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_bergomi", "up_and_out_option", ""},
         11668828618791845888ULL, "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)", model::equity::rough_bergomi::load_models, product::load_up_and_out_options,

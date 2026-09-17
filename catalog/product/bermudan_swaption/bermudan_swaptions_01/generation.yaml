@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/bermudan_swaption/bermudan_swaptions_01/recipe.yaml
+  sha256: faa6a694ecdd74b8965c72cb615e2e13c8095fed544388b82cf0844836b7a2d6
+artifact:
+  row_count: 1000
+  sha256: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 0953a2f53ee3c64c61f7cb7860c6fcc0bc938ecae348fe12eb1a4eb11ceaeaa4

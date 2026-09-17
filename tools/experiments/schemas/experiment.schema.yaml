@@ -1,0 +1,29 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://ai-factory.example/schemas/experiment.schema.yaml
+title: AI Factory local experiment manifest
+type: object
+additionalProperties: false
+required: [schema_version, experiment_id, purpose, status, inputs, commands, outputs]
+properties:
+  schema_version:
+    const: 1
+  experiment_id:
+    type: string
+    pattern: '^[a-z0-9][a-z0-9_-]*$'
+  purpose:
+    type: string
+    minLength: 1
+  status:
+    enum: [planned, running, complete, abandoned]
+  inputs:
+    type: array
+    items: {type: string}
+  commands:
+    type: array
+    items: {type: string}
+  outputs:
+    type: array
+    items: {type: string}
+  related_generation_campaigns:
+    type: array
+    items: {type: string}

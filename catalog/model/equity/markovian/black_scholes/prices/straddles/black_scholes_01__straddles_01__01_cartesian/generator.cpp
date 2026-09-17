@@ -15,7 +15,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01_cartesian.json",
-        "catalog/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01_cartesian.json",
         "Black-Scholes closed-form straddles",
         PriceConstruction::CartesianProduct,

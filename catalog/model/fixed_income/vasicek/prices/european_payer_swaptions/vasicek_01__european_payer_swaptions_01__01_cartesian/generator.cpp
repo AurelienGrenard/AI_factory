@@ -33,7 +33,7 @@ int main() {
         "datasets/model/fixed_income/vasicek/prices/european_payer_swaptions/"
         "vasicek_01__european_payer_swaptions_01__01_cartesian.json",
         "catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/"
-        "vasicek_01__european_payer_swaptions_01__01_cartesian/dataset.yaml",
+        "vasicek_01__european_payer_swaptions_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/"
         "prices/european_payer_swaptions/"
         "vasicek_01__european_payer_swaptions_01__01_cartesian.json",

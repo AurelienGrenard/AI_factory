@@ -94,6 +94,18 @@ if(BUILD_TESTING)
     set_tests_properties(sample_host_memory PROPERTIES
         LABELS "workbench;offline;sampling" TIMEOUT 30)
 
+    add_executable(test_generation_checkpoint EXCLUDE_FROM_ALL
+        tests/datasets/generation_checkpoint_test.cpp)
+    target_include_directories(test_generation_checkpoint PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_generation_checkpoint PRIVATE
+        nlohmann_json::nlohmann_json)
+    target_compile_features(test_generation_checkpoint PRIVATE cxx_std_23)
+    add_dependencies(ai_factory_host_tests test_generation_checkpoint)
+    add_test(NAME generation_checkpoint COMMAND test_generation_checkpoint)
+    set_tests_properties(generation_checkpoint PROPERTIES
+        LABELS "workbench;offline;generation" TIMEOUT 30)
+
     add_executable(
         test_dataset_loaders EXCLUDE_FROM_ALL tests/datasets/dataset_loaders_test.cpp
     )
@@ -169,7 +181,12 @@ if(BUILD_TESTING)
                 ${CMAKE_SOURCE_DIR}/tests/build/inferred_dependencies_test.py)
         set_tests_properties(cmake_inferred_dependencies PROPERTIES
             LABELS "workbench;build" TIMEOUT 120)
-        foreach(stage IN ITEMS artifact_publication catalog_generation dataset_provenance)
+        foreach(stage IN ITEMS
+                artifact_publication
+                catalog_generation
+                catalog_selection
+                dataset_provenance
+                generation_progress)
             add_test(NAME ${stage}
                 COMMAND ${Python3_EXECUTABLE} -m unittest discover
                     -s tests/datasets -p test_${stage}.py)
@@ -177,16 +194,16 @@ if(BUILD_TESTING)
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 LABELS "workbench;offline;generation" TIMEOUT 30)
         endforeach()
-        add_test(NAME sample_campaign_selection
-            COMMAND ${Python3_EXECUTABLE} -m unittest discover
-                -s tests/datasets -p test_sample_campaign_selection.py)
-        set_tests_properties(sample_campaign_selection PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;offline;generation" TIMEOUT 30)
         add_test(NAME learning_terminal_samples
             COMMAND ${Python3_EXECUTABLE} -m unittest discover
                 -s tests/learning -p test_terminal_samples.py)
         set_tests_properties(learning_terminal_samples PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;learning" TIMEOUT 30)
+        add_test(NAME learning_deep_pricing
+            COMMAND ${Python3_EXECUTABLE} -m unittest discover
+                -s tests/learning -p test_deep_pricing.py)
+        set_tests_properties(learning_deep_pricing PROPERTIES
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             LABELS "workbench;offline;learning" TIMEOUT 30)
         add_test(
@@ -204,11 +221,24 @@ if(BUILD_TESTING)
             NAME pricing_scaling_protocol
             COMMAND
                 ${Python3_EXECUTABLE} -m unittest
-                tools.performance.test_pricing_scaling
+                tests.performance.test_pricing_scaling
         )
         set_tests_properties(pricing_scaling_protocol PROPERTIES
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             LABELS "workbench;performance;scaling"
+            TIMEOUT 30
+        )
+        add_test(
+            NAME performance_specialized_tools
+            COMMAND
+                ${Python3_EXECUTABLE} -m unittest
+                tests.performance.test_jamshidian_strategy
+                tests.performance.test_jamshidian_summary
+                tests.performance.test_lsm_probe_tools
+        )
+        set_tests_properties(performance_specialized_tools PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;performance;tools"
             TIMEOUT 30
         )
         add_test(
@@ -230,7 +260,7 @@ if(BUILD_TESTING)
             NAME pricing_capability_manifest
             COMMAND
                 ${Python3_EXECUTABLE} -m unittest
-                tools.codegen.pricing_bindings.test_capability_manifest
+                tests.codegen.test_capability_manifest
         )
         set_tests_properties(pricing_capability_manifest PROPERTIES
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -304,6 +334,8 @@ if(BUILD_TESTING)
             TIMEOUT ${timeout}
         )
     endfunction()
+
+    include(cmake/price_gradients/Tests.cmake)
 
     add_cuda_workbench_test(
         philox_cuda tests/numerical/philox_cuda_test.cu philox 30

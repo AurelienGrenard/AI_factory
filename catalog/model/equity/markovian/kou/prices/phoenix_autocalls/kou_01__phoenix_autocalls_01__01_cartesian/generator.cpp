@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/kou/parameters/kou_01.json",
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
         "datasets/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01_cartesian.json",
         "Exact Kou increments",
         PriceConstruction::CartesianProduct,

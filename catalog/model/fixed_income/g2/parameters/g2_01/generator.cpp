@@ -1,7 +1,7 @@
 // Generate reproducible standalone G2 short-rate parameters.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
-#include "tools/datasets/g2_generation.hpp"
+#include "tools/sampling/parameters/g2_generation.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/model/fixed_income/g2/parameters/g2_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/model/fixed_income/g2/parameters/g2_01/dataset.yaml";
+        "catalog/model/fixed_income/g2/parameters/g2_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/fixed_income/g2/parameters/g2_01.json";
 

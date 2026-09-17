@@ -25,7 +25,7 @@ int main() {
     }
     std::filesystem::remove_all(directory);
     write_json_file(directory / "document.json", {{"answer", 42}});
-    write_catalog_yaml(directory / "catalog.yaml", {{"answer", 42}});
+    write_yaml_document(directory / "catalog.yaml", {{"answer", 42}});
     if (read_json_file(directory / "document.json").at("answer") != 42) {
         throw std::runtime_error("JSON artifact round trip failed");
     }

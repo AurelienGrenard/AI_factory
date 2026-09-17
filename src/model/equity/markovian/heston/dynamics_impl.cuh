@@ -150,8 +150,7 @@ __device__ __forceinline__ void one_step_transition(
         fmaf(prepared_model.k3, previous_variance, prepared_model.k4 * next_variance),
         0.0f
     );
-    const float stock_diffusion =
-        sqrtf(variance_integral_proxy) * stock_normal;
+    const float diffusion_scale = sqrtf(variance_integral_proxy);
     // Apply QE-M when valid, otherwise use the stable QE fallback.
     if (martingale_valid) {
         float increment = fmaf(
@@ -160,13 +159,15 @@ __device__ __forceinline__ void one_step_transition(
             prepared_model.drift_dt - log_moment
         );
         increment = fmaf(prepared_model.k2, next_variance, increment);
-        state.log_spot += increment + stock_diffusion;
+        // Preserve the native contraction independently of surrounding scenarios.
+        state.log_spot += fmaf(diffusion_scale, stock_normal, increment);
     } else {
         float increment = fmaf(
             prepared_model.k1, previous_variance, prepared_model.k0
         );
         increment = fmaf(prepared_model.k2, next_variance, increment);
-        state.log_spot += increment + stock_diffusion;
+        // Preserve the native contraction independently of surrounding scenarios.
+        state.log_spot += fmaf(diffusion_scale, stock_normal, increment);
     }
     state.variance = next_variance;
 }

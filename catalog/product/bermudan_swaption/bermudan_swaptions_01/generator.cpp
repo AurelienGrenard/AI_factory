@@ -77,7 +77,7 @@ int main() {
         "bermudan_swaptions_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/bermudan_swaption/"
-        "bermudan_swaptions_01/dataset.yaml";
+        "bermudan_swaptions_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/"
         "bermudan_swaptions/bermudan_swaptions_01.json";

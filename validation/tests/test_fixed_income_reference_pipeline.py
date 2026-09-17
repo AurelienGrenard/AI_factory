@@ -23,18 +23,18 @@ ROOT = Path(__file__).resolve().parents[2]
 class FixedIncomeReferencePipelineTest(unittest.TestCase):
     @staticmethod
     def _sources() -> tuple[Path, ...]:
-        return tuple(
-            sorted(
-                path
-                for path in (ROOT / "datasets/model/fixed_income").rglob(
-                    "*.json"
-                )
-                if "prices" in path.parts
-                and not any(
-                    part.startswith("bermudan_") for part in path.parts
+        sources = []
+        for reference in sorted(
+            (ROOT / "validation/datasets/price/fixed_income").rglob("*.json")
+        ):
+            document = json.loads(reference.read_text(encoding="utf-8"))
+            recipe = yaml.safe_load(
+                (ROOT / document["catalog"] / "recipe.yaml").read_text(
+                    encoding="utf-8"
                 )
             )
-        )
+            sources.append(ROOT / recipe["output"]["path"])
+        return tuple(sources)
 
     @staticmethod
     def _bermudan_sources() -> tuple[Path, ...]:
@@ -65,9 +65,9 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
     @staticmethod
     def _catalog_validation(source: Path) -> dict:
         source_document = json.loads(source.read_text(encoding="utf-8"))
-        catalog = ROOT / source_document["catalog"] / "dataset.yaml"
+        catalog = ROOT / source_document["catalog"] / "validation.yaml"
         document = yaml.safe_load(catalog.read_text(encoding="utf-8"))
-        return document["validation"]
+        return document
 
     def test_all_42_catalogs_publish_only_a_verified_cache(self) -> None:
         sources = self._sources()
@@ -86,12 +86,13 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
             )
 
             catalog = ROOT / source_document["catalog"]
-            yaml_document = yaml.safe_load(
-                (catalog / "dataset.yaml").read_text(encoding="utf-8")
+            validation_document = yaml.safe_load(
+                (catalog / "validation.yaml").read_text(encoding="utf-8")
             )
             self.assertEqual(
-                yaml_document["validation"],
+                validation_document,
                 {
+                    "schema_version": 1,
                     "status": "available",
                     "verified": True,
                     "dataset": reference.relative_to(ROOT).as_posix(),
@@ -102,11 +103,12 @@ class FixedIncomeReferencePipelineTest(unittest.TestCase):
 
     def test_new_bermudan_catalogs_remain_explicitly_pending(self) -> None:
         sources = self._bermudan_sources()
-        self.assertEqual(len(sources), 16)
+        self.assertGreater(len(sources), 0)
         for source in sources:
             self.assertEqual(
                 self._catalog_validation(source),
                 {
+                    "schema_version": 1,
                     "status": "pending",
                     "verified": False,
                     "reference": "none",

@@ -9,38 +9,6 @@
 
 namespace ai_factory::workbench::datasets {
 namespace {
-void add_fixed_time_grid(
-    nlohmann::ordered_json& catalog,
-    const nlohmann::ordered_json& cuda_execution,
-    const nlohmann::ordered_json& product_document,
-    const std::string& delta_t = ""
-) {
-    if (!cuda_execution.contains("simulation_steps_per_day")) return;
-    const std::uint32_t simulation_steps_per_day =
-        cuda_execution.at("simulation_steps_per_day").get<std::uint32_t>();
-    if (simulation_steps_per_day == 0U) {
-        throw std::invalid_argument(
-            "simulation_steps_per_day must be positive."
-        );
-    }
-    const std::uint32_t days_per_year = product_document
-        .at("time_convention")
-        .at("days_per_year")
-        .get<std::uint32_t>();
-    const std::uint32_t steps_per_year =
-        simulation_steps_per_day * days_per_year;
-    catalog["time_grid"] = {
-        {"simulation_steps_per_day", simulation_steps_per_day},
-        {"steps_per_year", steps_per_year},
-        {
-            "delta_t",
-            delta_t.empty()
-                ? "1 / " + std::to_string(steps_per_year)
-                : delta_t
-        },
-    };
-}
-
 void write_analytical_price_dataset_impl(
     const std::filesystem::path& model_dataset_path,
     const std::filesystem::path& curve_dataset_path,
@@ -146,47 +114,11 @@ void write_analytical_price_dataset_impl(
             "An analytical CUDA result requires execution metadata."
         );
     }
-    nlohmann::ordered_json summary = {
-        {"pricing_method", "Closed-form"},
-        {"model", model_document.at("model_family")},
-        {"curve", curve_document.at("curve_family")},
-        {"numerical_method", numerical_method},
-        {"payoff", product_document.at("product_family")},
-        {"implementation", "CUDA"},
-        {"device", "gpu"},
-    };
-    for (const auto& [name, value] : cuda_execution.items()) {
-        if (name == "simulation_steps_per_day") continue;
-        summary[name] = value;
-    }
-    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
-    if (is_cartesian(construction)) {
-        price_construction = {
-            {"method", "Cartesian product"},
-            {"order", "model, curve, product"},
-        };
-    }
-    nlohmann::ordered_json catalog = {
-        {"title", database_id},
-        {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"summary", summary},
-        {"validation", price_validation_metadata(dataset_path)},
-        {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
-        {"model_dataset", dataset_reference(model_document)},
-        {"curve_dataset", dataset_reference(curve_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"price_construction", price_construction},
-        {"timing", {
-            {"wall_seconds", format_duration(wall_seconds)},
-            {"kernel_seconds", format_duration(kernel_seconds)},
-        }},
-    };
-    add_fixed_time_grid(catalog, cuda_execution, product_document);
-    write_catalog_yaml(catalog_path, catalog);
+    nlohmann::ordered_json receipt_execution = cuda_execution;
+    receipt_execution["paths_per_price"] = 0U;
+    write_generation_receipt(
+        catalog_path, row_count, receipt_execution, wall_seconds, kernel_seconds
+    );
 }
 
 void write_analytical_price_dataset_impl(
@@ -280,45 +212,11 @@ void write_analytical_price_dataset_impl(
             "An analytical CUDA result requires execution metadata."
         );
     }
-    nlohmann::ordered_json summary = {
-        {"pricing_method", "Closed-form"},
-        {"model", model_document.at("model_family")},
-        {"numerical_method", numerical_method},
-        {"payoff", product_document.at("product_family")},
-        {"implementation", "CUDA"},
-        {"device", "gpu"},
-    };
-    for (const auto& [name, value] : cuda_execution.items()) {
-        if (name == "simulation_steps_per_day") continue;
-        summary[name] = value;
-    }
-    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
-    if (is_cartesian(construction)) {
-        price_construction = {
-            {"method", "Cartesian product"},
-            {"order", "model, product"},
-        };
-    }
-    nlohmann::ordered_json catalog = {
-        {"title", database_id},
-        {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"summary", summary},
-        {"validation", price_validation_metadata(dataset_path)},
-        {"outputs", {{"price", {{"estimator", "closed-form price"}}}}},
-        {"model_dataset", dataset_reference(model_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"price_construction", price_construction},
-        {"timing", {
-            {"wall_seconds", format_duration(wall_seconds)},
-            {"kernel_seconds", format_duration(kernel_seconds)},
-        }},
-    };
-    add_fixed_time_grid(catalog, cuda_execution, product_document);
-    write_catalog_yaml(catalog_path, catalog);
+    nlohmann::ordered_json receipt_execution = cuda_execution;
+    receipt_execution["paths_per_price"] = 0U;
+    write_generation_receipt(
+        catalog_path, row_count, receipt_execution, wall_seconds, kernel_seconds
+    );
 }
 
 void write_monte_carlo_price_dataset_impl(
@@ -472,63 +370,11 @@ void write_monte_carlo_price_dataset_impl(
             "A Monte Carlo result requires CUDA execution metadata."
         );
     }
-    nlohmann::ordered_json summary = {
-        {"pricing_method", "Monte Carlo"},
-        {"monte_carlo_paths_per_price", monte_carlo_paths_per_price},
-        {"model", model_document.at("model_family")},
-        {"numerical_method", numerical_method},
-        {"payoff", product_document.at("product_family")},
-        {"implementation", "CUDA"},
-        {"device", "gpu"},
-    };
-    if (has_curve) summary["curve"] = curve_document.at("curve_family");
-    for (const auto& [name, value] : cuda_execution.items()) {
-        if (name == "simulation_steps_per_day") continue;
-        summary[name] = value;
-    }
-    summary["random_generator"] = random_generator;
-    const nlohmann::ordered_json yaml_timing = {
-        {"wall_seconds", format_duration(wall_seconds)},
-        {"kernel_seconds", format_duration(kernel_seconds)},
-    };
-    const nlohmann::ordered_json time_grid = {
-            {"rule", "nearest integer step count to target dt"},
-            {"target_dt", delta_t},
-            {"step_count", "round(maturity / target_dt)"},
-            {"effective_dt", "maturity / step_count"},
-        };
-    nlohmann::ordered_json catalog = {
-        {"title", database_id},
-        {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"summary", summary},
-        {"validation", price_validation_metadata(dataset_path)},
-        {"outputs", {
-            {"price", {{"estimator", "Monte Carlo discounted payoff mean"}}},
-            {
-                "standard_error",
-                {{"estimator", "Monte Carlo standard error of discounted payoff"}}
-            },
-        }},
-        {"model_dataset", dataset_reference(model_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"price_construction", price_construction},
-        {"timing", yaml_timing},
-    };
-    if (has_curve) {
-        catalog["curve_dataset"] = dataset_reference(curve_document);
-    }
-    if (!delta_t.empty()) catalog["time_grid"] = time_grid;
-    for (const auto& [name, value] : catalog_sections.items()) {
-        catalog[name] = value;
-    }
-    add_fixed_time_grid(
-        catalog, cuda_execution, product_document, delta_t
+    nlohmann::ordered_json receipt_execution = cuda_execution;
+    receipt_execution["paths_per_price"] = monte_carlo_paths_per_price;
+    write_generation_receipt(
+        catalog_path, row_count, receipt_execution, wall_seconds, kernel_seconds
     );
-    write_catalog_yaml(catalog_path, catalog);
 }
 }  // namespace
 

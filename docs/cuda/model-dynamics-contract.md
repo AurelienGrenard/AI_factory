@@ -387,6 +387,16 @@ Une loi exacte à consommation adaptative peut recevoir directement
 décentrée. La fonction utilise uniquement la suite continue du chemin courant ;
 elle ne construit ni clé, ni sous-suite.
 
+Quand une loi adaptative doit alimenter plusieurs scénarios couplés, le modèle
+peut exposer une factorisation canonique `draw_transition_innovations`. Merton
+renvoie ainsi le compte de Poisson, la normale de diffusion et la normale de la
+somme des sauts dans un objet `TransitionInnovations`; sa transition canonique
+réutilise elle-même ce helper. Un launcher de gradients effectue donc un seul
+tirage puis applique ces mêmes innovations à chaque scénario admissible, sans
+dupliquer ni tenter de resynchroniser des suites Philox. Cette factorisation
+n'est contractuelle que lorsque les paramètres qui gouvernent la consommation
+(ici l'intensité et l'horizon) sont identiques entre scénarios.
+
 ### `simulate_one_step`
 
 Attribut : `__device__ __forceinline__`, fonction privée au `.cu`.

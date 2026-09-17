@@ -155,8 +155,8 @@ unit-test counts do not change that requirement.
 contains generated `generator.cpp` and `recipe.yaml`. The latter describes
 planned inputs, method, full bump, CRN seed, fixed time grid when applicable
 and 2^20 paths (zero for closed form). It is not a claim that data were generated.
-Execution writes the mirrored JSON under `datasets/.../price_delta/` and an
-adjacent `dataset.yaml` describing the actual outputs and geometry.
+Execution writes the mirrored JSON under `datasets/.../price_delta/` and a
+standalone `generation.yaml` receipt describing actual execution and timing.
 Each source price recipe has distinct aligned and Cartesian price-delta targets.
 The writer records the construction and the controller derives the result count
 from the frozen input cardinalities.
@@ -164,8 +164,8 @@ from the frozen input cardinalities.
 Run these through `tools/datasets/generate_catalog.py --kind price_delta`.
 The controller freezes both recipe files and inputs, checks paired outputs
 against the declared sensitivity, grid, seed, preparation and geometry. It attaches the existing generation
-provenance before optional publication. Validation stays `pending`, `verified:
-false`; no fictitious validator or certificate is added. Changing the bump or
+provenance before optional publication. Validation stays independent in
+`validation.yaml`; no fictitious validator or certificate is added. Changing the bump or
 method changes the semantic specification used by the compatibility checker.
 Rough preparation settings also participate in that specification. N-factor
 recipes declare seven factors and a horizon equal to the maximum product
@@ -296,3 +296,20 @@ rough time-discretization error, factor-approximation error or bump bias.
 Long maturities, singular parameters and rare threshold crossings still need
 separate qualification. Measured resources and before/after evidence are in
 [the audit status](../audit/status.md).
+
+## Offline checkpoint boundary
+
+Campaign-controlled stochastic European price-delta generation checkpoints the
+four completed host outputs (price, price standard error, delta and delta
+standard error) after each existing native price batch. Resume starts at the
+first missing result index with the same global row index and Philox key, then
+restores the durable prefix before serialization. The checkpoint identity is
+owned by the frozen campaign and rejects a changed executable, input, recipe,
+seed, sensitivity, time grid or launch plan.
+
+This mechanism changes neither a pricing kernel nor the CRN construction. It
+adds a synchronization, four small output-slice copies and one durable file
+flush per checkpointed batch. Without the campaign checkpoint environment, the
+existing asynchronous progress path remains active. Frozen-exercise
+Longstaff--Schwartz price-delta generation is outside checkpoint schema version
+1 and restarts the current dataset after interruption.

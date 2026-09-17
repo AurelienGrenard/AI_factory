@@ -38,7 +38,7 @@ int main() {
         "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json";
     write_model_dataset(
         "quadratic_rough_heston_01", "quadratic rough Heston", dataset,
-        "catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01/dataset.yaml",
+        "catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json",
         {
             {"spot", "Initial spot; fixed to 1."},

@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/bates/parameters/bates_01/recipe.yaml
+  sha256: 779720f11b3daef1e39b83363273fad54bb8e0fd51faa40480a040532ae31fe2
+artifact:
+  row_count: 1000
+  sha256: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 83d1b05649948eee3078f8e5b690ba67834ed4f3b909da30f0491de088dd236f

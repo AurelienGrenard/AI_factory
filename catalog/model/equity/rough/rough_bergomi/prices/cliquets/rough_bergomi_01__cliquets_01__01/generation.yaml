@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_bergomi/prices/cliquets/rough_bergomi_01__cliquets_01__01/recipe.yaml
+  sha256: 7c4232fc414541cb2477ca1593b9fef0c21e8e2f566605cd38b4b9607ee7d565
+artifact:
+  row_count: 1000
+  sha256: 29cf266a687e3b276ffbe412ade3fa0bdaad252eec67e7c32828a98f63cdc5ef
+inputs:
+  models: c45ffaa0be1cdddabc9633e32a300378a6da7303cf70d29b6e89015190bcb7f0
+  products: 865f2498d688b56deb41a6ff4a20b84f723c2059195df01f8cf226cfc3840f6d
+execution:
+  binary_sha256: f1398ad672e43eb1ba1f30dab474affa2e90b0f5e500ea81609d11432c7c5493
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: cliquets
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: rough_bergomi
+    product: cliquet
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 784e3c7aa7c6fad1969147e6b1724aa2201c8e0fb09ad5e7eefeca767fb2ab80
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 370.483499513
+  kernel_seconds: 369.5290625
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789341555.7353826
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 104.38 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json: 3dfb98cb139a70ccc3f0058fa0f762ebb304a10a2d6e6270a671eb18be31df9a
+    datasets/product/cliquet/cliquets_01.json: 80af7142c863ef1100458e076be5999070bef44a7868208f3f93f7d7eba5b525
+  generator: catalog/model/equity/rough/rough_bergomi/prices/cliquets/rough_bergomi_01__cliquets_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 97a6198fdd7585b63d0ee2c4cc4a238e6f7cb623c061b81a39ec786ed539671b
+  record_sha256: 0cd7e3960d9ebe522ccc531e77dc43b073f6da0c0275cede9e021531b4e4ffe3
+record_sha256: 9b2f744b1739f3856b3b215ec9c510499e506e8134bfdf8692995ea520033dd6

@@ -138,6 +138,7 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     black_scholes/product/down_and_out_option_price_delta
     black_scholes/product/european_option
     black_scholes/product/european_option_price_delta
+    black_scholes/product/european_option_price_gradients
     black_scholes/product/forward_start_option
     black_scholes/product/forward_start_option_price_delta
     black_scholes/product/gap_option
@@ -181,6 +182,7 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     cev/product/down_and_out_option_price_delta
     cev/product/european_option
     cev/product/european_option_price_delta
+    cev/product/european_option_price_gradients
     cev/product/forward_start_option
     cev/product/forward_start_option_price_delta
     cev/product/gap_option
@@ -206,6 +208,7 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     cev/product/up_one_touch
     cev/product/up_one_touch_price_delta
     heston/product/american_option_price_delta
+    heston/product/american_option_price_gradients
     heston/product/asian_option
     heston/product/asian_option_price_delta
     heston/product/asset_or_nothing_option
@@ -224,6 +227,7 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     heston/product/down_and_out_option_price_delta
     heston/product/european_option
     heston/product/european_option_price_delta
+    heston/product/european_option_price_gradients
     heston/product/forward_start_option
     heston/product/forward_start_option_price_delta
     heston/product/gap_option
@@ -352,6 +356,7 @@ set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
     merton/product/down_and_out_option_price_delta
     merton/product/european_option
     merton/product/european_option_price_delta
+    merton/product/european_option_price_gradients
     merton/product/forward_start_option
     merton/product/forward_start_option_price_delta
     merton/product/gap_option
@@ -1171,6 +1176,10 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/black_scholes/price_delta/up_no_touches/black_scholes_01__up_no_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/markovian/black_scholes/price_delta/up_one_touches/black_scholes_01__up_one_touches_01__01_cartesian_price_delta/generator.cpp
     catalog/model/equity/markovian/black_scholes/price_delta/up_one_touches/black_scholes_01__up_one_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/markovian/black_scholes/price_gradients/european_calls/black_scholes_01__european_calls_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/black_scholes/price_gradients/european_calls/black_scholes_01__european_calls_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/black_scholes/price_gradients/european_puts/black_scholes_01__european_puts_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/black_scholes/price_gradients/european_puts/black_scholes_01__european_puts_01__01_price_gradients/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/asian_calls/black_scholes_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/asian_calls/black_scholes_01__asian_calls_01__01_cartesian/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01/generator.cpp
@@ -1291,6 +1300,10 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/cev/price_delta/up_no_touches/cev_01__up_no_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/markovian/cev/price_delta/up_one_touches/cev_01__up_one_touches_01__01_cartesian_price_delta/generator.cpp
     catalog/model/equity/markovian/cev/price_delta/up_one_touches/cev_01__up_one_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/cev/price_gradients/european_calls/cev_01__european_calls_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/cev/price_gradients/european_puts/cev_01__european_puts_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/cev/price_gradients/european_puts/cev_01__european_puts_01__01_price_gradients/generator.cpp
     catalog/model/equity/markovian/cev/prices/american_calls/cev_01__american_calls_01__01/generator.cpp
     catalog/model/equity/markovian/cev/prices/american_calls/cev_01__american_calls_01__01_cartesian/generator.cpp
     catalog/model/equity/markovian/cev/prices/american_puts/cev_01__american_puts_01__01/generator.cpp
@@ -1415,6 +1428,14 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/heston/price_delta/up_no_touches/heston_01__up_no_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_cartesian_price_delta/generator.cpp
     catalog/model/equity/markovian/heston/price_delta/up_one_touches/heston_01__up_one_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/american_calls/heston_01__american_calls_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/american_calls/heston_01__american_calls_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/american_puts/heston_01__american_puts_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/american_puts/heston_01__american_puts_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/european_puts/heston_01__european_puts_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/european_puts/heston_01__european_puts_01__01_price_gradients/generator.cpp
     catalog/model/equity/markovian/heston/prices/american_calls/heston_01__american_calls_01__01/generator.cpp
     catalog/model/equity/markovian/heston/prices/american_calls/heston_01__american_calls_01__01_cartesian/generator.cpp
     catalog/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp
@@ -1779,6 +1800,10 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_price_delta/generator.cpp
     catalog/model/equity/markovian/merton/price_delta/up_one_touches/merton_01__up_one_touches_01__01_cartesian_price_delta/generator.cpp
     catalog/model/equity/markovian/merton/price_delta/up_one_touches/merton_01__up_one_touches_01__01_price_delta/generator.cpp
+    catalog/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients/generator.cpp
+    catalog/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_cartesian_price_gradients/generator.cpp
+    catalog/model/equity/markovian/merton/price_gradients/european_puts/merton_01__european_puts_01__01_price_gradients/generator.cpp
     catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01/generator.cpp
     catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01_cartesian/generator.cpp
     catalog/model/equity/markovian/merton/prices/american_puts/merton_01__american_puts_01__01/generator.cpp

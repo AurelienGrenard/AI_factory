@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01/generator.cpp", "centered_closed_form", .01, 0U};
+        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/forward_start_puts/black_scholes_01__forward_start_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01/recipe.yaml", "centered_closed_form", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<false, false>(
         recipe, {offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "forward_start_option", ""},
         0ULL, model::equity::black_scholes::load_models, product::load_forward_start_options,

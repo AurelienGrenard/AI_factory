@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json",
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01_cartesian.json",
         "Lamperti SABR Euler",
         PriceConstruction::CartesianProduct,

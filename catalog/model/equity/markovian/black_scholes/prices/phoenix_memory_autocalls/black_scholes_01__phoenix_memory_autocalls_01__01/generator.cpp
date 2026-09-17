@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01.json",
-        "catalog/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01.json",
         "Exact Gaussian log-price transitions",
         PriceConstruction::Aligned,

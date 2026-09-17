@@ -45,10 +45,11 @@ Each generated `generator.cpp` performs this sequence:
 2. generate one maturity for each flattened sample;
 3. run the declared CUDA sampling engine;
 4. stream the flat JSON without a three-million-row DOM;
-5. write adjacent YAML describing the executed recipe.
+5. write the JSON and a minimal `generation.yaml` execution receipt.
 
-The generator is authoritative. YAML records seeds, bounds, shape, numerical
-method, observables, and output location; it never drives generation.
+The canonical `recipe.yaml` records seeds, bounds, shape, numerical method,
+observables and output location. The generator implements it; the recipe never
+drives generation. The receipt does not repeat those semantic fields.
 `parameter_sampling` records the ordered latent proposals, every conditional
 draw and deterministic reconstruction, constants absent from the proposals,
 and intermediate expressions used by acceptance. These are descriptions of

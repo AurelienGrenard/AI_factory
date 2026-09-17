@@ -40,7 +40,7 @@ int main() {
         "merton_01",
         "Merton jump diffusion",
         dataset,
-        "catalog/model/equity/markovian/merton/parameters/merton_01/dataset.yaml",
+        "catalog/model/equity/markovian/merton/parameters/merton_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/parameters/merton_01.json",
         {
             {"spot", "Initial spot."},

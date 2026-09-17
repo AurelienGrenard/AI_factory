@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian/generator.cpp", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "variance_gamma", "gap_option", ""},
         11668828176410214400ULL, model::equity::variance_gamma::load_models, [](const auto& path) { return product::load_gap_options(path, OptionSide::call); },

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "vasicek_01__european_payer_swaptions_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/vasicek/parameters/vasicek_01.json",
+    "product": "datasets/product/european_swaption/european_swaptions_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "fixed_income_closed_form",
+    "profile": "closed_form_price_profile"
+  },
+  "outputs": [
+    "price"
+  ],
+  "paths_per_price": 0
+}

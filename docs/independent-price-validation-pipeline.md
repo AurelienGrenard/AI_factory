@@ -58,22 +58,23 @@ Independent prices use the same relative hierarchy under:
 validation/datasets/price/<asset_class>/<model>/.../<database_id>.json
 ```
 
-The catalogue directory contains `dataset.yaml` and `generator.cpp`, but no
+The catalogue directory contains `recipe.yaml`, `generation.yaml`,
+`validation.yaml` and `generator.cpp`, but no
 `validation_report.json` and no `validation.ipynb` for a migrated dataset.
 
-The YAML validation block is deliberately compact:
+The standalone validation document is deliberately compact:
 
 ```yaml
-validation:
-  status: "available"
-  verified: true
-  dataset: "validation/datasets/price/<asset_class>/.../<database_id>.json"
+schema_version: 1
+status: available
+verified: true
+dataset: validation/datasets/price/<asset_class>/.../<database_id>.json
 ```
 
 Engine names, methods, versions, row provenance, tolerances, metrics, and bias
 rules belong in the reference JSON, not in YAML.
 
-Before certification, recipes using persistent references use the same three keys with
+Before certification, `validation.yaml` uses the same keys with
 `status: "pending"` and `verified: false`. The dataset path then identifies the
 intended reference cache, not evidence that it exists or certifies these prices.
 

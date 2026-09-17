@@ -37,7 +37,7 @@ int main() {
     write_model_dataset(
         "log_modulated_rough_bergomi_01", "log-modulated rough Bergomi",
         dataset,
-        "catalog/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01/dataset.yaml",
+        "catalog/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json",
         {
             {"spot", "Initial spot; fixed to 1."},

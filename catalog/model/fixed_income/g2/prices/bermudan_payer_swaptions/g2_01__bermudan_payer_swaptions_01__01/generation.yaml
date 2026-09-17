@@ -1,0 +1,85 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01/recipe.yaml
+  sha256: b0b762a9588183fe35ca7dea0f26aa845bd3f1e6426215a0f346b35980bb82fd
+artifact:
+  row_count: 1000
+  sha256: 4f2e935b2b43e5add417bec7b910e1bde4af62e9acecb5062122e954bb443040
+inputs:
+  models: 335a9cd3e7c01d3b6819e3f40b998a86e010913c478d6cb40c23c97408fce2d7
+  products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+execution:
+  binary_sha256: 7b19634d2455060ad85a8e1b613ba6ecab5863395a23cd160e5e9c74a2dc89e2
+  declared_method:
+    engine: fixed_income_lsm
+    profile: longstaff_schwartz_price_profile
+    variant: bermudan_payer_swaptions
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: gaussian_rate_lsm
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: g2
+    product: bermudan_swaption
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: native LSM VRAM planner; unresolved offline
+    work_distribution: multiple path blocks per price; native multi-phase LSM
+    blocks_per_price: 64
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: a7b30587301109936d5e579f653ced71e16408a1ee283b272dd2e3fc2ba89368
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 6
+  kernel_launch_count: 192
+  workspace_bytes: 14087262448
+  maximum_prices_per_batch: 178
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: fixed_income_early_exercise
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+  time_day_fraction: 1 / 252
+timing:
+  wall_seconds: 22.850405973
+  kernel_seconds: 24.14456958
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307228.395882
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 80, 78.02 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/fixed_income/g2/parameters/g2_01.json: 2ecf6e4b03ccbadb78130211f519d0ac115768ad2853f5c75bec7f8df9a59ee4
+    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
+  generator: catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 1568c47edcf965f26fa2aee6de372f50cec15af1ca1b5745473082bd3ac467f3
+  record_sha256: e6ef85b979e64cd3e3044d41edcfb9ba2871e403f0b7f32a49f703a0cef5ab36
+record_sha256: 016b13fc307eac850bf98d65a1bffdc7defe63b7d1db6b938a844f34e5156080

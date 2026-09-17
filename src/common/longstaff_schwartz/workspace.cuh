@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 namespace ai_factory::workbench::longstaff_schwartz {
@@ -25,6 +26,10 @@ struct WorkspaceDescriptor {
     std::vector<StateFieldDescriptor> state_fields;
     std::size_t basis_size;
     std::size_t regression_value_count;
+    // Number of double partials retained per (row, path block) after the
+    // central LSM solve. Price and price-delta need {sum, sumsq}; selected
+    // gradients reuse the same region for 2 * sensitivity_count values.
+    std::size_t moment_value_count = 2U;
     // Optional immutable coefficients, once per stored observation (not per path).
     std::vector<StateFieldDescriptor> observation_fields{};
     // Optional outputs retained once per path or row, independently of dates.
@@ -87,7 +92,9 @@ ExecutionPlan plan_batches(
     std::size_t paths_per_price,
     std::size_t blocks_per_price,
     std::size_t workspace_budget,
-    const char* product_name
+    const char* product_name,
+    std::size_t maximum_batch_size =
+        std::numeric_limits<std::size_t>::max()
 );
 
 template <typename Value>

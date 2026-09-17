@@ -1,7 +1,7 @@
 // Generate CIR rows by sampling ordinary rate parameters first, then sigma
 // from row-dependent bounds that control the Feller-ratio range.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "tools/datasets/cir_generation.hpp"
+#include "tools/sampling/parameters/cir_generation.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <cstdint>
@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/model/fixed_income/cir/parameters/cir_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/model/fixed_income/cir/parameters/cir_01/dataset.yaml";
+        "catalog/model/fixed_income/cir/parameters/cir_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/"
         "fixed_income/cir/parameters/cir_01.json";

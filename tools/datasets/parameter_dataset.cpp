@@ -49,19 +49,13 @@ void write_parameter_dataset(
     dataset[row_key] = database_rows(generated.rows);
     write_json_file(dataset_path, dataset);
 
-    nlohmann::ordered_json catalog = {
-        {"title", family + " parameter dataset " + database_id},
-        {"database_id", database_id},
-        {family_key, family},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", generated.rows.size()},
-    };
-    for (const auto& [key, value] : metadata.items()) catalog[key] = value;
-    catalog["parameters"] = parameter_descriptions;
-    catalog[definition_key] = definition;
-    catalog["construction"] = generated.construction;
-    write_catalog_yaml(catalog_path, catalog);
+    write_generation_receipt(
+        catalog_path,
+        generated.rows.size(),
+        {{"mode", "native_parameter_generator"}},
+        0.0,
+        0.0
+    );
 }
 
 }  // namespace

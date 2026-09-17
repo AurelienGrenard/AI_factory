@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/prices/american_calls/"
         "variance_gamma_01__american_calls_01__01.json",
         "catalog/model/equity/markovian/variance_gamma/prices/american_calls/"
-        "variance_gamma_01__american_calls_01__01/dataset.yaml",
+        "variance_gamma_01__american_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/"
         "american_calls/variance_gamma_01__american_calls_01__01.json",
         "Exact Gamma subordination + Longstaff-Schwartz",

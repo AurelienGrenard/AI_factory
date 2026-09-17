@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/phoenix_autocall/phoenix_autocalls_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01/generator.cpp", "centered_crn", .01, 0U};
+        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/phoenix_autocall/phoenix_autocalls_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "black_scholes", "phoenix_autocall", ""},
         11668826814905581568ULL, model::equity::black_scholes::load_models, product::load_phoenix_autocalls,

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
         "datasets/product/athena_autocall/athena_autocalls_01.json",
         "datasets/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01_cartesian.json",
         "full-truncation Euler 3/2 variance",
         PriceConstruction::CartesianProduct,

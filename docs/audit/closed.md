@@ -3,6 +3,126 @@
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
+## Inspection complète de tools — 2026-09-15
+
+### STRUCT-029 — Garder un seul contrôleur de campagnes de datasets
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité
+  moyenne, priorité haute, confiance prouvée. Propriétaire : outillage
+  datasets.
+- **Signature originale :** quatre contrôleurs recopiaient une partie de la
+  sélection, de la compilation ou de la reprise de `generate_catalog.py`.
+  Deux contrôleurs ne servaient qu'à une campagne cartésienne précise.
+- **Correction :** `generate_catalog.py` accepte les filtres par classe
+  d'actif, famille de modèle et construction. Il compile la sélection et peut
+  ignorer les paires déjà publiées. Les quatre façades et leur ancien test ont
+  été supprimés. Les guides n'exposent plus qu'un point d'entrée.
+- **Preuves :** 46 tests Python datasets passent. Les tests CTest
+  `catalog_generation`, `catalog_selection` et `generation_progress` passent.
+  Les cas couvrent les filtres, la compilation ciblée, la reprise, les paires
+  partielles et la progression. La génération codegen complète reste zéro-diff.
+- **Règle durable :** ajouter un filtre au contrôleur général pour une nouvelle
+  sélection. Ne pas ajouter un contrôleur propre à une campagne.
+- **Réouvrir seulement si :** une campagne réintroduit une façade, duplique la
+  sélection du manifeste ou contourne les contrôles de reprise et publication.
+
+### STRUCT-030 — Placer les tests de performance dans l'arbre des tests
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité basse,
+  priorité moyenne, confiance prouvée. Propriétaire : outillage de performance.
+- **Signature originale :** quatre modules `test_*.py` se trouvaient sous
+  `tools/performance`. Trois n'étaient pas enregistrés dans CTest.
+- **Correction :** les quatre modules sont sous `tests/performance`. Leurs
+  imports passent par le paquet `tools.performance`. CTest découvre les suites
+  spécialisées dans un test dédié.
+- **Preuves :** 66 tests Python performance passent, dont les quatre modules
+  déplacés et les références CIR. Le test CTest
+  `performance_specialized_tools` passe. Aucun `test_*.py` ne reste sous
+  `tools`.
+- **Réouvrir seulement si :** un test revient sous `tools`, un outil importe un
+  test ou une suite spécialisée disparaît de CTest.
+
+### STRUCT-031 — Sortir le test du manifeste de l'outil de codegen
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité basse,
+  priorité moyenne, confiance prouvée. Propriétaire : codegen.
+- **Signature originale :** le test de contrat du manifeste, long de 736
+  lignes, était rangé avec le générateur et ses sources.
+- **Correction :** le test est sous `tests/codegen`. Sa racine de dépôt, CTest
+  et le guide du codegen suivent ce chemin.
+- **Preuves :** 30 tests du manifeste passent. Le test CTest
+  `pricing_capability_manifest` passe. La génération des familles pricing et
+  sampling produit un diff nul contre le dépôt. Aucun `test_*.py` ne reste sous
+  `tools`.
+- **Réouvrir seulement si :** un test est replacé dans le paquet de génération,
+  si CTest cesse de l'exécuter ou si son déplacement réduit le contrat vérifié.
+
+### DOC-002 — Décrire la responsabilité du test de checkpoints
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité basse,
+  priorité moyenne, confiance prouvée. Propriétaire : tests datasets.
+- **Signature originale :** `generation_checkpoint_test.cpp` commençait par un
+  include. Le contrôle de lisibilité exige une phrase de responsabilité pour
+  chaque fichier manuscrit.
+- **Correction :** une phrase courte annonce la récupération durable, les
+  gardes d'identité et la restauration des préfixes.
+- **Preuves :** `check_model_layout.py` classe 1 670 fichiers générés et 767
+  fichiers manuscrits sans erreur. `test_generation_checkpoint` compile. Le
+  test CTest `generation_checkpoint` passe.
+- **Réouvrir seulement si :** la phrase disparaît, ne décrit plus le test ou le
+  contrôle d'architecture échoue sur ce fichier.
+
+### BOUNDARY-006 — Ranger la construction des paramètres sous sampling
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité basse,
+  priorité moyenne, confiance prouvée. Propriétaire : génération des
+  paramètres.
+- **Signature originale :** neuf paires `*_generation.cpp/.hpp` sous
+  `tools/datasets` construisaient les paramètres de modèles, courbes et
+  produits. Le dossier mélangeait construction et assemblage d'artefacts.
+- **Correction :** les neuf paires sont sous `tools/sampling/parameters`.
+  Chaque famille garde sa bibliothèque. Les recettes et CMake utilisent les
+  nouveaux chemins.
+- **Preuves :** les 126 étapes de la cible `parameter_generators` compilent.
+  `check_catalog_generators.py` valide 2 416 recettes, dont 2 362 générées.
+  `check_model_layout.py` et les trois tests CTest d'architecture passent.
+  Aucun helper de construction de paramètres ne reste sous `tools/datasets`.
+- **Réouvrir seulement si :** l'assemblage datasets reprend la construction de
+  paramètres, une recette contourne les bibliothèques ou les owners CMake
+  divergent des chemins.
+
+### BOUNDARY-007 — Ranger les références numériques CIR sous validation
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15; sévérité basse,
+  priorité moyenne, confiance prouvée. Propriétaire : validation CIR.
+- **Signature originale :** le diagnostic CIR++ était sous `tools/cuda` et la
+  référence PDE/moments/LSM CIR sous `tools/performance`. Ces fichiers ne
+  possédaient ni exécution CUDA ni mesure de performance.
+- **Correction :** la référence CIR et le diagnostic CIR++ sont sous
+  `validation/quantlib/model/fixed_income`. Les outils de campagne, tests et
+  guides importent ces owners.
+- **Preuves :** dix tests CPU CIR de référence et comparaison passent. Les
+  aides des trois commandes concernées s'ouvrent. Les contrôles de structure et
+  du catalogue passent. Les anciens chemins n'ont plus de référence active.
+- **Réouvrir seulement si :** une référence numérique revient sous CUDA ou
+  performance, ou si un outil de campagne recopie le solveur de validation.
+
+### DOC-003 — Conserver des identifiants d'audit uniques
+
+- **État / qualification :** ouvert puis fermé le 2026-09-15 pendant la
+  consolidation; sévérité basse, priorité haute, confiance prouvée.
+  Propriétaire : suivi d'audit.
+- **Signature originale :** le constat sur les paramètres avait reçu
+  `BOUNDARY-005`, déjà utilisé par un constat fermé. Le compteur annonçait 118
+  identifiants pour 117 valeurs uniques.
+- **Correction :** les deux nouveaux constats de frontière deviennent
+  `BOUNDARY-006` et `BOUNDARY-007`. Les compteurs reposent sur les identifiants
+  uniques des fichiers ouverts et fermés.
+- **Preuve :** les 119 titres de constats portent 119 identifiants distincts;
+  six sont ouverts et 113 sont fermés.
+- **Réouvrir seulement si :** deux constats partagent un identifiant ou si les
+  compteurs ne correspondent plus aux titres suivis.
+
 ## Provenance et conservation des datasets — 2026-09-10
 
 ### STRUCT-028 — Distinguer provenance de génération et compatibilité des bases

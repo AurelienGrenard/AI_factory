@@ -124,6 +124,20 @@ void validate_schedule_and_workspace_planning() {
         plan.maximum_workspace_bytes == first_two.total_bytes,
         "The workspace maximum does not match the limiting batch."
     );
+    const lsm::ExecutionPlan row_capped = lsm::plan_batches(
+        rows,
+        descriptor,
+        paths_per_price,
+        blocks_per_price,
+        first_two.total_bytes,
+        "planning-test",
+        1U
+    );
+    require(
+        row_capped.batches.size() == rows.size()
+            && row_capped.maximum_prices_per_batch == 1U,
+        "The workspace planner ignored its grid-derived row cap."
+    );
 
     bool insufficient_workspace_rejected = false;
     try {

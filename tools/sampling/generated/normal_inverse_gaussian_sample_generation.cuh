@@ -62,7 +62,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "Normal-Inverse-Gaussian",
         "datasets/model/equity/markovian/normal_inverse_gaussian/samples/" + id + ".json",
-        "catalog/model/equity/markovian/normal_inverse_gaussian/samples/" + id + "/dataset.yaml",
+        "catalog/model/equity/markovian/normal_inverse_gaussian/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

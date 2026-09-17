@@ -15,7 +15,7 @@ int main() {
         "zero_coupon_bond_options_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/zero_coupon_bond_option/"
-        "zero_coupon_bond_options_01/dataset.yaml";
+        "zero_coupon_bond_options_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/"
         "zero_coupon_bond_options/zero_coupon_bond_options_01.json";

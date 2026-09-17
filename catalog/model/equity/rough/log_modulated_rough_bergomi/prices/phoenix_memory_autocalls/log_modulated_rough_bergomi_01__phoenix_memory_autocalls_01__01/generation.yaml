@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01/recipe.yaml
+  sha256: bd589ceee271420e827129d64d9727d208f27ddf4e8dc307b168f2209d4432cb
+artifact:
+  row_count: 1000
+  sha256: 5ae418783b1c9c2e3bb2c7ccefeecf8188f9ec08ba873afa8f86b84d0502883d
+inputs:
+  models: 97c96e48c1495515aaab4f1ce093a41d39a7e506616ea1fec10656f871a550a2
+  products: 14b753ccf732d1b3d66a20ee30bb8ca746a1106fc211d5e659b0cf1fd8f5865d
+execution:
+  binary_sha256: fa1fc0f552abbc7d5f3b98e1e20d79b6a702699dad3db4c8fe4e1f960d50c018
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: phoenix_memory_autocalls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: log_modulated_rough_bergomi
+    product: phoenix_memory_autocall
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: c69a0abd9af49d0bd7c5ee8bcb96f1e23e2148f0d6bd8fde8fe437c53e0a9526
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 369.319908347
+  kernel_seconds: 356.85290625
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789357544.777088
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 105.62 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json: 45d792c8bca2500e1deff2e5efae119dcee10d683fcb8fd93c7554fc12a69086
+    datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: f138eca849694b8d0659390a1523828a16759c56f3c733823c908070d5a926a5
+  generator: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: f0ee2ea1ce28e0b9e650608420385ce15f82a6eeb9ccddbcb7621299308a254e
+  record_sha256: d34b3a33b8e8e009d11df0b870b0d4c1d84a47cfaa94e2cfdb804d1786ecca4d
+record_sha256: a1bf3aac469ff707e43a73c9728c6eb57cb3cb8efb29e5a488e4bf743ddc76f5

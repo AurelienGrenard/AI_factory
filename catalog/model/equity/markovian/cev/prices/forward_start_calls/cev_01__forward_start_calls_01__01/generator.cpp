@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/cev/parameters/cev_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01.json",
-        "catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01.json",
         "absorbed Milstein",
         PriceConstruction::Aligned,

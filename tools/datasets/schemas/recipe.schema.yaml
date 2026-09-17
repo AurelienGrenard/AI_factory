@@ -1,0 +1,36 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ai-factory.example/schemas/dataset-recipe-v1"
+title: AI Factory dataset recipe
+type: object
+required:
+  - schema_version
+  - kind
+  - dataset_id
+  - generator
+  - output
+  - generation_output
+properties:
+  schema_version:
+    const: 1
+  kind:
+    type: string
+    minLength: 1
+  dataset_id:
+    type: string
+    pattern: "^[a-z0-9]+(?:_[a-z0-9]+)*(?:__[a-z0-9]+(?:_[a-z0-9]+)*)*$"
+  generator:
+    const: generator.cpp
+  output:
+    type: object
+    required: [path, format]
+    properties:
+      path:
+        type: string
+        pattern: "^datasets/.+\\.json$"
+      format:
+        enum: [json, parquet]
+    additionalProperties: false
+  generation_output:
+    type: string
+    pattern: "^catalog/.+/generation\\.yaml$"
+additionalProperties: true

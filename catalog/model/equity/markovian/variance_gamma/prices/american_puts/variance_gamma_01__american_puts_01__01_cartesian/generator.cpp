@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/prices/american_puts/"
         "variance_gamma_01__american_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/variance_gamma/prices/american_puts/"
-        "variance_gamma_01__american_puts_01__01_cartesian/dataset.yaml",
+        "variance_gamma_01__american_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/"
         "american_puts/variance_gamma_01__american_puts_01__01_cartesian.json",
         "Exact Gamma subordination + Longstaff-Schwartz",

@@ -43,7 +43,7 @@ int main() {
         "catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/"
         "european_payer_swaptions/"
         "cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01/"
-        "dataset.yaml",
+        "generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/cir_plus_plus/"
         "prices/nelson_siegel/european_payer_swaptions/"
         "cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01.json",

@@ -1,0 +1,88 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/heston/price_delta/european_calls/heston_01__european_calls_01__01_cartesian_price_delta/recipe.yaml
+  sha256: 1fbb479a1b4248d62d1208229aa435c96d09d72dcd39c4871327ecb54742821b
+artifact:
+  row_count: 1000000
+  sha256: 8a54285e7561cf3e9364c0b75f8b43fbabbf77bcccbb6c915429bc1e108e478e
+inputs:
+  models: 6c7bf0f577f8feb33e7de8d828b5890dccce6376bcf22e168cdbf85c8d8fef48
+  products: d1e8abd86da1fd6cf0818a35f32ee757df320bfa72a95dcb804d53c77d68b80e
+execution:
+  binary_sha256: 7a7b02b3489468dc057c38b9b2e1bbd4df79f618bcc86991c3c147795f9bb55c
+  declared_method:
+    engine: equity_markovian
+    profile: price_delta_production_paths
+    variant: european_calls
+    construction: cartesian
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: heston
+    product: european_option
+    curve: ''
+    qualification: inherited candidate; MC capped at 256 threads; not delta-tuned
+    evidence: docs/cuda/equity-price-delta-contract.md
+    price_count: 1000000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 4096
+    price_launch_count: 245
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 4096
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  recipe_metadata_sha256: 9b687dfa9f5e16944b9a54e1f577b38f41c91504235fc4448bbff68806c5b13d
+  generator_sha256: 3465e8ca220b7cc7e05cba586234820484618b03c32caf36b77023e9b2dcbbfc
+  paths_per_price: 1048576
+  profile_id: sm89_reference_v1
+  family: equity_step_mc
+  selection: host launch plan; no runtime autotuning
+  measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+  portability: safe reference values; benchmark before replacing on another GPU
+  product: european_option
+  qualification: inherited candidate; MC capped at 256 threads; not delta-tuned
+  evidence: docs/cuda/equity-price-delta-contract.md
+  price_count: 1000000
+  threads_per_block: 256
+  prices_per_launch: 4096
+  price_launch_count: 245
+  memory_batching: price launch bound; engine workspace guards still apply
+  work_distribution: one price per block at a time
+  block_count: 4096
+  seed: 11668827051128782848
+timing:
+  wall_seconds: 58188.048869464
+  kernel_seconds: 59590.344000000005
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 80b3f90ff245423a2ab07a33284fcb00b607c9b308b2f80f09e728ed707a89ff
+  runtime_observation:
+    unix_time: 1789301253.5724623
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 57, 41.48 W, [N/A], 1950 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/heston/parameters/heston_01.json: 1fd686c8077f7f93b34381a242ad806c83adfbf82f4eddcb664d4a3db0477b33
+    datasets/product/european_option/european_options_01.json: e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6
+  recipe_metadata: catalog/model/equity/markovian/heston/price_delta/european_calls/heston_01__european_calls_01__01_cartesian_price_delta/recipe.yaml
+  generator: catalog/model/equity/markovian/heston/price_delta/european_calls/heston_01__european_calls_01__01_cartesian_price_delta/generator.cpp
+legacy_checksums:
+  contract_sha256: 58f588e035a614223745dde961d56dc4cf116116afe5ff98412c4f84aee24ec8
+  record_sha256: 3a698950fafff87a96c0ba0d2bbf5ca2a6349f1ad426e072e6e95cf739edfd7b
+record_sha256: 91bf1bf6248fb171d66ecbcf79412edfbc03718151d2fc7e80b75af8136d6f85

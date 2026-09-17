@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json", "datasets/product/digital_option/digital_options_01.json", "datasets/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/rough/quadratic_rough_heston/prices/digital_puts/quadratic_rough_heston_01__digital_puts_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json", "datasets/product/digital_option/digital_options_01.json", "datasets/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/price_delta/digital_puts/quadratic_rough_heston_01__digital_puts_01__01_price_delta.json", "catalog/model/equity/rough/quadratic_rough_heston/prices/digital_puts/quadratic_rough_heston_01__digital_puts_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_prepared_price_delta_dataset(
         recipe, {offline::cuda_tuning::PricingFamily::rough_n_factor, "quadratic_rough_heston", "digital_option", ""},
         11668828404043481088ULL, 7U, "7-factor Markovian lift", model::equity::quadratic_rough_heston::load_models, product::load_digital_options,
