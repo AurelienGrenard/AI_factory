@@ -75,6 +75,32 @@ class GenerationTests(unittest.TestCase):
                          if spec.dataset_kind in {"prices", "samples"}})
         self.assertEqual(len(jobs), len({job["target"] for job in jobs}))
 
+    def test_gradient_plan_uses_recipe_path_count(self):
+        inputs = self.root / "inputs"
+        inputs.mkdir()
+        for name, rows in (("models.json", 3), ("products.json", 5)):
+            (inputs / name).write_text(json.dumps({"row_count": rows}))
+        job = {
+            "kind": "price_gradients",
+            "target": "generate_gradient_test",
+            "inputs": ["models.json", "products.json"],
+            "identity": "heston/european_option",
+            "declared_method": {"construction": "cartesian"},
+            "sensitivity": {"parameters": [{"parameter": "model.kappa"}]},
+            "paths_per_price": 262144,
+        }
+        plan = {"paths_per_price": 262144}
+        with (patch.object(campaign.subprocess, "check_output", return_value=json.dumps(plan)) as inspect,
+              patch.object(campaign, "input_fingerprints", return_value={})):
+            description = campaign.describe_job(inputs, self.root / "bin", job)
+        self.assertEqual(description["rows"], 15)
+        self.assertEqual(description["launch_plan"], plan)
+        self.assertEqual(
+            inspect.call_args.args[0],
+            [str(self.root / "bin/inspect_pricing_launch_plan"),
+             "heston/european_option", "15", "262144", "--price-gradients", "1"],
+        )
+
     def test_runner_exposes_progress_sidecar_path(self):
         binary = self.root / "progress-generator"
         binary.write_text(

@@ -67,6 +67,11 @@ def specification(job: dict) -> dict:
         result.update(sensitivity=job["sensitivity"], time_grid=job["time_grid"])
         if job.get("preparation"):
             result["preparation"] = job["preparation"]
+    if job["kind"] == "price_gradients":
+        result.update(sensitivity=job["sensitivity"])
+        result[job["time_key"]] = job["time_configuration"]
+        if job.get("preparation"):
+            result["preparation"] = job["preparation"]
     return result
 
 

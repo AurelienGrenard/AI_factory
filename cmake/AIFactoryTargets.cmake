@@ -132,6 +132,7 @@ function(ai_factory_add_cuda_unit domain unit_path)
     set(dependencies ai_factory_runtime)
     if(product STREQUAL "american_option"
         OR product STREQUAL "american_option_price_delta"
+        OR product STREQUAL "american_option_price_gradients"
         OR product STREQUAL "bermudan_swaption")
         list(APPEND dependencies ai_factory_longstaff_schwartz)
     endif()

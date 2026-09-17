@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/equity/price_delta/spot_bump.cuh"
+#include "common/longstaff_schwartz/frozen_exercise_trace.cuh"
 #include "common/philox.cuh"
 #include <concepts>
 #include <cstddef>
@@ -9,12 +10,9 @@
 
 namespace ai_factory::workbench::equity::price_delta {
 
-struct FrozenExercise {
-    std::uint32_t observation;  // Zero-based exercise index; maturity is R.
-    float spot;
-};
-
-enum class InitialExerciseDecision : std::uint8_t { continuation, exercise, invalid };
+using FrozenExercise = longstaff_schwartz::FrozenExerciseTrace;
+using InitialExerciseDecision =
+    longstaff_schwartz::InitialExerciseDecision;
 
 struct BumpedSpots {
     float lower;

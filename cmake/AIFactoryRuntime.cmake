@@ -75,6 +75,7 @@ target_link_libraries(
 ai_factory_add_offline_library(
     ai_factory_sample_dataset tools/datasets/sample_dataset.cpp
 )
+include(cmake/price_gradients/Runtime.cmake)
 target_link_libraries(
     ai_factory_sample_dataset PUBLIC ai_factory_artifact_io
 )

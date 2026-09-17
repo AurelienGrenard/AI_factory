@@ -200,6 +200,12 @@ if(BUILD_TESTING)
         set_tests_properties(learning_terminal_samples PROPERTIES
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             LABELS "workbench;offline;learning" TIMEOUT 30)
+        add_test(NAME learning_deep_pricing
+            COMMAND ${Python3_EXECUTABLE} -m unittest discover
+                -s tests/learning -p test_deep_pricing.py)
+        set_tests_properties(learning_deep_pricing PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            LABELS "workbench;offline;learning" TIMEOUT 30)
         add_test(
             NAME performance_baseline_checker
             COMMAND
@@ -328,6 +334,8 @@ if(BUILD_TESTING)
             TIMEOUT ${timeout}
         )
     endfunction()
+
+    include(cmake/price_gradients/Tests.cmake)
 
     add_cuda_workbench_test(
         philox_cuda tests/numerical/philox_cuda_test.cu philox 30

@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "policy_id": "equity-european-price-gradient-bumps-v2",
+  "status": "candidate",
+  "scope": {
+    "product": "european_option",
+    "sides": ["call"],
+    "models": ["black_scholes", "heston", "cev"],
+    "methods": {
+      "black_scholes": ["closed_form", "exact_terminal_monte_carlo"],
+      "heston": ["qem_fixed_step_monte_carlo"],
+      "cev": ["absorbing_milstein_fixed_step_monte_carlo"]
+    },
+    "time_grids": {
+      "black_scholes": ["exact"],
+      "heston": [504, 1008],
+      "cev": [504, 1008]
+    },
+    "excluded": [
+      "put side",
+      "path-dependent products",
+      "early exercise",
+      "jump models",
+      "rough models",
+      "catalogue dataset certification"
+    ]
+  },
+  "execution": {
+    "native_schema_version": 2,
+    "paths_per_price": 262144,
+    "threads_per_block": 256,
+    "sensitivity_batch_size": 1,
+    "seeds": [719, 2719, 4719],
+    "bump_factors": [0.125, 0.5, 1.0, 2.0, 4.0, 5.0, 10.0],
+    "minimum_independent_seeds": 3,
+    "refinements": {
+      "black_scholes": [1],
+      "heston": [1, 2],
+      "cev": [1, 2]
+    }
+  },
+  "criteria": {
+    "reference_price_convergence_absolute": 2e-7,
+    "reference_gradient_convergence_absolute": 1e-3,
+    "reference_derivative_convergence_absolute": 2e-3,
+    "monte_carlo_standard_errors": 6.0,
+    "total_error_absolute": 2e-4,
+    "total_error_relative": 5e-3,
+    "stencil_bias_absolute": 2e-4,
+    "stencil_bias_relative": 5e-3,
+    "fp32_error_absolute": 2e-4,
+    "fp32_error_relative": 5e-3
+  },
+  "reference": {
+    "black_scholes": "host FP64 analytic price and derivatives",
+    "heston": "independent Riccati/Fourier solver with constant kernel; cutoff 320/640 and 3201/6401 nodes",
+    "cev": "continuous-time absorbed-CEV noncentral-chi-square formula at the exact fractional maturity; cross-checked against QuantLib AnalyticCEVEngine on representable business-day dates",
+    "regeneration": "References are generated only by the explicit opt-in qualification command and are cached with source and policy SHA-256 fingerprints. Routine tests use synthetic fixtures only."
+  },
+  "base_bumps": {
+    "black_scholes": {
+      "model.spot": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.risk_free_rate": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.dividend_yield": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.volatility": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "product.strike": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "product.maturity_years": {"displacement": 0.001984126984126984, "scale": "absolute", "reference_displacement": 1e-5}
+    },
+    "heston": {
+      "model.spot": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.risk_free_rate": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.dividend_yield": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.initial_variance": {"displacement": 0.001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.kappa": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.theta": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.gamma": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.rho": {"displacement": 0.002, "scale": "absolute", "reference_displacement": 1e-4},
+      "product.strike": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "product.maturity_years": {"displacement": 0.001984126984126984, "scale": "absolute", "reference_displacement": 1e-5}
+    },
+    "cev": {
+      "model.spot": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.risk_free_rate": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.dividend_yield": {"displacement": 0.0001, "scale": "absolute", "reference_displacement": 1e-5},
+      "model.sigma": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "model.beta": {"displacement": 0.002, "scale": "absolute", "reference_displacement": 1e-4},
+      "product.strike": {"displacement": 0.005, "scale": "relative", "reference_displacement": 1e-4},
+      "product.maturity_years": {"displacement": 0.001984126984126984, "scale": "absolute", "reference_displacement": 1e-5}
+    }
+  },
+  "cases": {
+    "black_scholes": [
+      {"id": "ordinary", "classes": ["ordinary"]},
+      {"id": "one_day", "classes": ["short_maturity", "boundary"]},
+      {"id": "low_volatility", "classes": ["stress", "boundary"]},
+      {"id": "negative_rate", "classes": ["stress"]},
+      {"id": "high_rate_long_maturity", "classes": ["stress", "maturity_scale"]},
+      {"id": "large_notional_scale", "classes": ["scale"]}
+    ],
+    "heston": [
+      {"id": "ordinary", "classes": ["ordinary"]},
+      {"id": "rho_lower_boundary", "classes": ["stress", "boundary"]},
+      {"id": "one_day", "classes": ["short_maturity", "boundary"]},
+      {"id": "negative_rate", "classes": ["stress"]},
+      {"id": "high_rate_long_maturity", "classes": ["stress", "maturity_scale"]},
+      {"id": "large_notional_scale", "classes": ["scale"]}
+    ],
+    "cev": [
+      {"id": "ordinary", "classes": ["ordinary"]},
+      {"id": "beta_lower_boundary", "classes": ["boundary"]},
+      {"id": "beta_upper_near_boundary", "classes": ["stress", "boundary"]},
+      {"id": "one_day", "classes": ["short_maturity", "boundary"]},
+      {"id": "low_sigma", "classes": ["stress", "boundary"]},
+      {"id": "negative_rate", "classes": ["stress"]},
+      {"id": "high_rate_long_maturity", "classes": ["stress", "maturity_scale"]},
+      {"id": "large_notional_scale", "classes": ["scale"]}
+    ]
+  },
+  "domain_policy": {
+    "required_case_classes": ["ordinary", "stress", "boundary", "short_maturity", "maturity_scale", "scale"],
+    "candidate_pass_requires": [
+      "independent reference convergence",
+      "Monte Carlo residual within both the six-standard-error and total-error budgets",
+      "stencil bias within the infinitesimal-reference budget",
+      "FP32 closed-form error within budget when that diagnostic exists",
+      "all retained cases and both fixed-step refinements pass"
+    ],
+    "new_dataset": "A dataset inside the qualified parameter, product, method and grid domain requires targeted replay of its core, stress and boundary rows.",
+    "new_domain": "A new model, product, side, grid, parameter range or estimator requires a versioned policy extension and fresh qualification evidence.",
+    "short_maturity_observation": {
+      "relative_error": 0.035,
+      "status": "documented_limit_of_the_previous_one-day_Black-Scholes_example_not_a_qualification_tolerance",
+      "decision": "The global 0.5 percent relative budget is unchanged; a short-maturity exception requires its own predeclared criterion and evidence."
+    }
+  }
+}

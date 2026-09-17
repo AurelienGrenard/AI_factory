@@ -272,7 +272,7 @@ keep those results separately under
 For sample jobs, the display uses sample counts during JSON writing as
 described above; CUDA preparation and simulation have no within-job ETA.
 The example
-[`notebooks/heston_rough_heston_price_delta_generation.ipynb`](../notebooks/heston_rough_heston_price_delta_generation.ipynb)
+[`notebook.ipynb`](../experiments/equity/cross_model/heston_rough_heston_price_delta_generation/notebook.ipynb)
 verifies/builds the Heston and rough Heston Cartesian price-delta targets in
 `build`, then launches their executables directly, one notebook cell per
 generator. It uses the same native progress reporter and captures stdout/stderr

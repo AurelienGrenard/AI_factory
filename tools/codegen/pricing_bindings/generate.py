@@ -45,6 +45,10 @@ from capability_manifest import (
     PRODUCT_SPECS,
     PRODUCT_BINDING_SPECS,
     PRICE_DELTA_BINDING_SPECS,
+    PRICE_GRADIENT_BINDING_SPECS,
+    GENERATED_PRICE_GRADIENT_BINDING_PATHS,
+    PRICE_GRADIENT_DATASET_SPECS,
+    PRICE_GRADIENT_SOURCE_BY_RECIPE,
     GENERATED_PRICE_DELTA_BINDING_PATHS,
     GENERATED_CLOSED_FORM_POLICY_PATHS,
     PriceDeltaBindingSpec,
@@ -55,6 +59,8 @@ from capability_manifest import (
     resolve_rng_domain,
 )
 from sample_manifest import SAMPLE_MODELS, SAMPLE_MODEL_BY_NAME, SampleModelSpec
+from price_gradients.render import render_bindings as render_price_gradient_bindings
+from price_gradients.render import render_recipes as render_price_gradient_recipes
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -1456,6 +1462,14 @@ def cmake_manifest_text(
         for spec in equity_binding_specs
         if spec.engine == "equity_volterra_fft"
     })
+    regular_units = sorted(set(regular_units) | {
+        f"{spec.pricing.model}/product/{spec.pricing.product}_price_gradients"
+        for spec in PRICE_GRADIENT_BINDING_SPECS
+        if spec.pricing in equity_binding_specs or (
+            spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}
+            and spec.pricing.model in equity_models
+        )
+    })
     volterra_units = sorted(set(volterra_units) | {
         f"{spec.pricing.model}/product/{spec.pricing.product}_price_delta"
         for spec in PRICE_DELTA_BINDING_SPECS
@@ -1467,7 +1481,7 @@ def cmake_manifest_text(
     )
     price_sources = sorted(
         dataset.recipe_path for dataset in dataset_specs
-        if dataset.dataset_kind in {"prices", "price_delta"}
+        if dataset.dataset_kind in {"prices", "price_delta", "price_gradients"}
     )
     sample_sources = sorted(
         dataset.recipe_path for dataset in dataset_specs
@@ -1559,6 +1573,7 @@ def codegen_source_fingerprint() -> str:
         SCRIPT_DIR / "capability_manifest.py",
         SCRIPT_DIR / "sample_manifest.py",
         SCRIPT_DIR / "generate.py",
+        *sorted((SCRIPT_DIR / "price_gradients").glob("*.py")),
         *sorted(TEMPLATE_DIR.rglob("*.tpl")),
     ]
     digest = hashlib.sha256()
@@ -1608,6 +1623,12 @@ def generate_provenance_manifest(
                              "qualification": "bounded_checks; bias_and_performance_not_certified"}
             for spec in PRICE_DELTA_BINDING_SPECS
         },
+        "price_gradient_bindings": {
+            spec.unit_path: {"identity": f"{spec.pricing.model}/{spec.pricing.product}",
+                "maximum_sensitivities": spec.maximum_sensitivities,
+                "qualification": "bounded_checks; bias_and_performance_not_certified"}
+            for spec in PRICE_GRADIENT_BINDING_SPECS
+        },
         "pricing_launch_families": {
             "/".join(filter(None, (binding.model, binding.curve, binding.product))):
                 pricing_launch_family(binding)
@@ -1631,6 +1652,7 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
         (
             "product binding",
             set(DECLARED_PRODUCT_BINDING_PATHS) | set(GENERATED_PRICE_DELTA_BINDING_PATHS)
+            | set(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
             | set(GENERATED_CLOSED_FORM_POLICY_PATHS),
             _relative_files(reference_root, "src/model/**/product/**/*.cu")
             | _relative_files(reference_root, "src/model/**/product/**/*.cuh"),
@@ -1679,9 +1701,12 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
 def _expected_generated_paths() -> set[str]:
     paths = set(GENERATED_PRODUCT_BINDING_PATHS)
     paths.update(GENERATED_PRICE_DELTA_BINDING_PATHS)
+    paths.update(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
     paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
     paths.update(str(Path(dataset.recipe_path).with_name("recipe.yaml"))
                  for dataset in PRICE_DELTA_DATASET_SPECS)
+    paths.update(str(Path(dataset.recipe_path).with_name("recipe.yaml"))
+                 for dataset in PRICE_GRADIENT_DATASET_SPECS)
     paths.update(
         dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
         if dataset.owner == "generated"
@@ -1772,12 +1797,16 @@ def main() -> int:
     if arguments.family in ("markovian", "prototype", "all"):
         generated.extend(generate_markovian(arguments.output))
         generated.extend(generate_price_delta_bindings(arguments.output))
+        generated.extend(render_price_gradient_bindings(arguments.output, PRICE_GRADIENT_BINDING_SPECS,
+            TEMPLATE_DIR, _write_generated))
     if arguments.family in ("rough", "all"):
         generated.extend(generate_rough(arguments.output))
     if arguments.family in ("fixed_income", "all"):
         generated.extend(generate_fixed_income_bindings(arguments.output))
     if arguments.family in ("catalog", "all"):
         generated.extend(generate_price_delta_recipes(arguments.output))
+        generated.extend(render_price_gradient_recipes(arguments.output, PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_SOURCE_BY_RECIPE, MODEL_BY_NAME, resolve_rng_domain, TEMPLATE_DIR, _write_generated))
         generated.extend(generate_catalog_recipes(arguments.output))
         generated.extend(generate_fixed_income_catalog_recipes(
             arguments.output

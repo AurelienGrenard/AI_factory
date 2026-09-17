@@ -18,6 +18,50 @@ from validation.quantlib.term_structure import (
 )
 
 
+def continuous_time_price(
+    model: Mapping[str, Any],
+    product: Mapping[str, Any],
+    option_type: int,
+) -> float:
+    """Analytic absorbed-CEV price at the exact fractional maturity.
+
+    Unlike QuantLib's date-based engine, this representation does not round the
+    maturity.  It is therefore suitable for maturity finite differences that
+    are finer than one business day.
+    """
+    from scipy.stats import ncx2
+
+    context = "CEV model"
+    spot = positive_number(model, "spot", context)
+    risk_free_rate = finite_number(model, "risk_free_rate", context)
+    dividend_yield = finite_number(model, "dividend_yield", context)
+    sigma = positive_number(model, "sigma", context)
+    beta = finite_number(model, "beta", context)
+    if not 0.5 <= beta < 1.0:
+        raise ValueError("CEV model: beta must lie in [0.5, 1).")
+    maturity = positive_number(product, "maturity", "European option")
+    strike = positive_number(product, "strike", "European option")
+    if option_type not in (ql.Option.Call, ql.Option.Put):
+        raise ValueError("CEV European option type must be call or put.")
+
+    carry = risk_free_rate - dividend_yield
+    exponent = 2.0 * (beta - 1.0) * carry
+    clock = maturity if abs(exponent) < 1.0e-14 else math.expm1(exponent * maturity) / exponent
+    transformed_strike = strike * math.exp(-carry * maturity)
+    gamma = 2.0 * (1.0 - beta)
+    scale = 2.0 / (sigma * sigma * gamma * gamma * clock)
+    x = scale * spot ** gamma
+    y = scale * transformed_strike ** gamma
+    call = math.exp(-dividend_yield * maturity) * (
+        spot * ncx2.sf(2.0 * y, 2.0 + 2.0 / gamma, 2.0 * x)
+        - transformed_strike * ncx2.cdf(2.0 * x, 2.0 / gamma, 2.0 * y)
+    )
+    if option_type == ql.Option.Call:
+        return float(call)
+    return float(call - spot * math.exp(-dividend_yield * maturity)
+                 + strike * math.exp(-risk_free_rate * maturity))
+
+
 def _price(
     model: Mapping[str, Any],
     product: Mapping[str, Any],

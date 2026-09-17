@@ -1,0 +1,139 @@
+title: "Stein-Stein model samples samples_01"
+database_id: "samples_01"
+catalog: "catalog/model/equity/markovian/stein_stein/samples/samples_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/samples/samples_01.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "Stein-Stein"
+  numerical_method: "fixed-step transition at dt=1/504"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 12000
+  paths_per_parameter: 250
+  row_order: "parameter-major, then path-major"
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+    - 256
+    - 1
+    - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent parameter-block"
+  block_dimensions_source: "runtime launch argument"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals; accepted rows retain proposal order"
+    proposal_draw_order:
+      - "spot"
+      - "risk_free_rate"
+      - "dividend_yield"
+      - "initial_volatility"
+      - "mean_reversion"
+      - "volatility_of_volatility"
+    latent_uniform_bounds:
+      spot:
+        - 1.0
+        - 1.0
+      risk_free_rate:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+      dividend_yield:
+        - 0.0
+        - 0.05999999865889549
+      initial_volatility:
+        - 0.10000000149011612
+        - 0.3499999940395355
+      mean_reversion:
+        - 0.5
+        - 8.0
+      volatility_of_volatility:
+        - 0.05000000074505806
+        - 0.5
+    acceptance: "true"
+    derived_parameters:
+      rho: "Constant 0; independent spot and volatility innovations; no parameter draw."
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668828090510868480
+  schedule: 11668828091584610304
+  dynamics: 11668828092658352128
+outputs:
+  spot:
+    description: "Terminal spot."
+    layout: "sample-major"
+  volatility:
+    description: "Terminal volatility."
+    layout: "sample-major"
+time_grid:
+  transition: "fixed-step"
+  delta_t: "1 / 504"
+  simulation_steps_per_day: 2
+timing:
+  wall_seconds: "0.26086057 s"
+  kernel_seconds: "0.041012222 s"
+generation:
+  schema_version: 1
+  dataset_sha256: bc9fe74ef2f7ada6a7da798f69ecfa43f6f0b24f2921e9f32adb1255bff97f88
+  contract_sha256: 69028c5033e358bf21db6b3ab451e42203f83315e902d83e7a29d596392805eb
+  specification:
+    kind: samples
+    identity: stein_stein
+    database_id: samples_01
+    rows: 3000000
+    sample_shape:
+    - 12000
+    - 250
+    rng_stream_seeds:
+      parameters: 11668828090510868480
+      schedule: 11668828091584610304
+      dynamics: 11668828092658352128
+    paths_per_price: null
+  inputs: {}
+  execution:
+    binary_sha256: 147bb3d633b125c52362e36f663194e4ca414bc098e42f825a6a0683ea184e2c
+    recipe_sha256: d3c5a0323c7cd3ddab86bb61293b687068ce2f8623ff4ec2c00ed072ad9365ad
+    declared_method:
+      engine: sample_markovian
+      profile: model_sample_profile
+      variant: null
+      construction: cartesian_parameter_paths
+      has_curve: false
+    launch_plan: null
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+    source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+    runtime_observation:
+      unix_time: 1789411155.359671
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 64, 47.51 W, [N/A], 2040 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/stein_stein/samples/samples_01/generator.cpp
+    input_files: {}
+  record_sha256: eb818ee2845088cde46c65d7372dcd034c553828123bb0b6dfc8ebf5187db084

@@ -65,6 +65,11 @@
 - `learning/`: Python/PyTorch training and evaluation for published datasets;
   `learning/common/` owns reusable data, network and training components.
   `src/` remains the C++/CUDA simulation and pricing runtime.
+- `tools/`: reusable offline commands and orchestration. Keep concrete model,
+  dataset, seed and campaign choices out of this tree.
+- `experiments/<asset_class>/<model>/<study>`: concrete dataset generation,
+  training campaigns, notebooks, analyses and reports. Experiment-specific
+  YAML files do not belong under `learning/`.
 - `catalog/model/<asset_class>/<model>`: model-owned `parameters`, `samples`,
   and `prices` recipes and generators.
 - `catalog/curve` and `catalog/product`: curve and product recipes.

@@ -182,7 +182,7 @@ comme `./build/generate_heston_european_calls_01_cartesian_price_delta`
 déclenche la simulation et écrit des données. Pour préparer, suivre, publier ou
 reprendre une campagne, voir le
 [workflow de génération](dataset-generation-workflow.md). Le notebook
-[Heston puis rough Heston](../notebooks/heston_rough_heston_price_delta_generation.ipynb)
+[Heston puis rough Heston](../experiments/equity/cross_model/heston_rough_heston_price_delta_generation/notebook.ipynb)
 construit chaque cible avant de lancer son exécutable.
 
 ## Après une modification du code

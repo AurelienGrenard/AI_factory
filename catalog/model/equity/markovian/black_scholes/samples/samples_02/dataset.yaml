@@ -1,0 +1,126 @@
+title: "Black-Scholes model samples samples_02"
+database_id: "samples_02"
+catalog: "catalog/model/equity/markovian/black_scholes/samples/samples_02"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/samples/samples_02.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "Black-Scholes"
+  numerical_method: "exact finite-horizon transition"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 3000000
+  paths_per_parameter: 1
+  row_order: "parameter-major, then path-major"
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+    - 256
+    - 1
+    - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent thread grid-stride"
+  block_dimensions_source: "runtime launch argument"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals; accepted rows retain proposal order"
+    proposal_draw_order:
+      - "spot"
+      - "risk_free_rate"
+      - "dividend_yield"
+      - "volatility"
+    latent_uniform_bounds:
+      spot:
+        - 1.0
+        - 1.0
+      risk_free_rate:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+      dividend_yield:
+        - 0.0
+        - 0.05999999865889549
+      volatility:
+        - 0.07999999821186066
+        - 0.44999998807907104
+    acceptance: "true"
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668826844970352640
+  schedule: 11668826846044094464
+  dynamics: 11668826847117836288
+outputs:
+  spot:
+    description: "Terminal spot."
+    layout: "sample-major"
+time_grid:
+  transition: "exact"
+  delta_t: "maturity_days / 252"
+  artificial_substeps: false
+timing:
+  wall_seconds: "0.420748108 s"
+  kernel_seconds: "0.000146432 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 71c06395554b42b89ba08d2fbb5a69a9b539869f59eca5d132a0fd4605d253dc
+  contract_sha256: 71122918d18c6150ae585c737586c605b525561c024f94b6784302f9bcbf1b00
+  specification:
+    kind: samples
+    identity: black_scholes
+    database_id: samples_02
+    rows: 3000000
+    sample_shape:
+    - 3000000
+    - 1
+    rng_stream_seeds:
+      parameters: 11668826844970352640
+      schedule: 11668826846044094464
+      dynamics: 11668826847117836288
+    paths_per_price: null
+  inputs: {}
+  execution:
+    binary_sha256: 0695c66ff4c1f58d59869812bb60a6a0d6aec762da1bee280ee4392b634e5d49
+    recipe_sha256: 257d31e88fdac61d0d6e944473b970a2f249d342c587ec71f58c5bf44614bcf1
+    declared_method:
+      engine: sample_markovian
+      profile: model_sample_profile
+      variant: null
+      construction: cartesian_parameter_paths
+      has_curve: false
+    launch_plan: null
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+    source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+    runtime_observation:
+      unix_time: 1789410589.0764825
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 65, 44.26 W, [N/A], 2040 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/black_scholes/samples/samples_02/generator.cpp
+    input_files: {}
+  record_sha256: 93835248841c3254dc1728308e2d67f7df3ddd004e1a8955d6fbe173385b1ce1

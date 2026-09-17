@@ -7,6 +7,7 @@
 #include "common/longstaff_schwartz/exercise_decision.cuh"
 #include "common/longstaff_schwartz/execution_plan.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
+#include "common/longstaff_schwartz/price_gradients/execution_plan.cuh"
 #include "common/reductions.cuh"
 #include "common/simulation/schedule.cuh"
 #include "tools/cuda/generation_progress.hpp"
@@ -514,6 +515,23 @@ LaunchResult launch_longstaff_schwartz_cuda(
     const std::size_t launched_blocks_per_price = std::min(
         blocks_per_price, path_block_capacity
     );
+    int device = 0;
+    check_cuda(cudaGetDevice(&device), "cudaGetDevice");
+    cudaDeviceProp properties{};
+    check_cuda(
+        cudaGetDeviceProperties(&properties, device),
+        "cudaGetDeviceProperties"
+    );
+    std::size_t maximum_batch_size = static_cast<std::size_t>(
+        properties.maxGridSize[1]
+    );
+    if constexpr (requires { device_inputs.sensitivity_count; }) {
+        maximum_batch_size = longstaff_schwartz::price_gradients::
+            maximum_batch_size(
+                device_inputs.sensitivity_count,
+                maximum_batch_size
+            );
+    }
     const WorkspaceBudget budget = query_workspace_budget(product_name);
     const ExecutionPlan plan =
         make_execution_plan<PricingPolicy, Regressor>(
@@ -523,21 +541,21 @@ LaunchResult launch_longstaff_schwartz_cuda(
             launched_blocks_per_price,
             budget.available_bytes,
             time_configuration,
-            product_name
+            product_name,
+            maximum_batch_size
         );
-
-    int device = 0;
-    check_cuda(cudaGetDevice(&device), "cudaGetDevice");
-    cudaDeviceProp properties{};
-    check_cuda(
-        cudaGetDeviceProperties(&properties, device),
-        "cudaGetDeviceProperties"
-    );
     if (plan.maximum_prices_per_batch
         > static_cast<std::size_t>(properties.maxGridSize[1])) {
         throw std::overflow_error(
             std::string(product_name)
             + " batch exceeds the current gridDim.y limit."
+        );
+    }
+    if constexpr (requires { device_inputs.sensitivity_count; }) {
+        longstaff_schwartz::price_gradients::validate_task_grid(
+            plan.maximum_prices_per_batch,
+            device_inputs.sensitivity_count,
+            static_cast<std::size_t>(properties.maxGridSize[1])
         );
     }
 

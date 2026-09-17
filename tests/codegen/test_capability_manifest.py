@@ -38,6 +38,8 @@ from capability_manifest import (  # noqa: E402
     PriceDeltaBindingSpec,
     PRICE_DELTA_DATASET_SPECS,
     PRICE_DELTA_SOURCE_BY_RECIPE,
+    PRICE_GRADIENT_DATASET_SPECS,
+    PRICE_GRADIENT_SOURCE_BY_RECIPE,
     pricing_launch_family,
     PRODUCT_SPECS,
     RNG_COMMON_RANDOM_NUMBER_ALLOWLIST,
@@ -160,7 +162,7 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertEqual(len(PRODUCT_SPECS), 26)
         self.assertEqual(
             len(AVAILABLE_DATASET_SPECS),
-            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_DELTA_DATASET_SPECS),
+            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_DELTA_DATASET_SPECS) + len(PRICE_GRADIENT_DATASET_SPECS),
         )
         self.assertEqual(len(CARTESIAN_PRICE_DATASET_SPECS), 618)
         self.assertEqual(len(DEFERRED_DATASET_SPECS), 0)
@@ -286,7 +288,7 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertLessEqual(first[1], second[0])
 
     def test_rng_v2_appends_g2_mc_without_rekeying_v1(self) -> None:
-        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE)
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE) | set(PRICE_GRADIENT_SOURCE_BY_RECIPE)
         legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
                   for d in RNG_DOMAIN_SPECS if d.ordinal < 588 and d.recipe_path not in aliases]
         self.assertEqual(len(legacy), 588)
@@ -300,7 +302,7 @@ class CapabilityManifestTest(unittest.TestCase):
                             for d in appended))
 
     def test_rng_v3_appends_cir_plus_plus_without_rekeying_v2(self) -> None:
-        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE)
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_RECIPE) | set(PRICE_DELTA_SOURCE_BY_RECIPE) | set(PRICE_GRADIENT_SOURCE_BY_RECIPE)
         legacy = [(d.recipe_path, d.ordinal, d.seed("dynamics"))
                   for d in RNG_DOMAIN_SPECS if d.ordinal < 594 and d.recipe_path not in aliases]
         self.assertEqual(len(legacy), 594)

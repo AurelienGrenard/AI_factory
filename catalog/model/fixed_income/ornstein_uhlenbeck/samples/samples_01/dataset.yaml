@@ -1,0 +1,124 @@
+title: "Ornstein-Uhlenbeck model samples samples_01"
+database_id: "samples_01"
+catalog: "catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_01"
+url: "https://datasets.ai-factory.example/v1/model/fixed_income/ornstein_uhlenbeck/samples/samples_01.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "Ornstein-Uhlenbeck"
+  numerical_method: "exact finite-horizon transition"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 12000
+  paths_per_parameter: 250
+  row_order: "parameter-major, then path-major"
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+    - 256
+    - 1
+    - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent parameter-block"
+  block_dimensions_source: "runtime launch argument"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals; accepted rows retain proposal order"
+    proposal_draw_order:
+      - "mean_reversion"
+      - "stationary_volatility"
+      - "initial_state"
+    latent_uniform_bounds:
+      mean_reversion:
+        - 0.029999999329447746
+        - 1.0
+      stationary_volatility:
+        - 0.0024999999441206455
+        - 0.02500000037252903
+      initial_state:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+    acceptance: "true"
+    derived_parameters:
+      volatility: "volatility = stationary_volatility * sqrt(2 * mean_reversion); deterministic instantaneous diffusion scale."
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668829134187921408
+  schedule: 11668829135261663232
+  dynamics: 11668829136335405056
+outputs:
+  state:
+    description: "Terminal state."
+    layout: "sample-major"
+time_grid:
+  transition: "exact"
+  delta_t: "maturity_days / 252"
+  artificial_substeps: false
+timing:
+  wall_seconds: "0.273511982 s"
+  kernel_seconds: "0.000082944 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 53a17bc3eb8e0514977b7e3b921d519eec88b69b78fceda856fcc45c2a058fec
+  contract_sha256: ea33ceeb7e20f2c23a9184251e9b98de27365c2882f4aaa8740d8f26cc17b7ac
+  specification:
+    kind: samples
+    identity: ornstein_uhlenbeck
+    database_id: samples_01
+    rows: 3000000
+    sample_shape:
+    - 12000
+    - 250
+    rng_stream_seeds:
+      parameters: 11668829134187921408
+      schedule: 11668829135261663232
+      dynamics: 11668829136335405056
+    paths_per_price: null
+  inputs: {}
+  execution:
+    binary_sha256: 872360b91f414153748cf80a9806721d7579f0aa3e33938339000cae12a1e9ab
+    recipe_sha256: 1e05960c28ff954530524dd2cd1431674d1d1108c156dd2fcc95d5ffcb8f8e26
+    declared_method:
+      engine: sample_fixed_income
+      profile: model_sample_profile
+      variant: null
+      construction: cartesian_parameter_paths
+      has_curve: false
+    launch_plan: null
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+    source_archive_sha256: bc45b665722e7bbed55a315e7ff6353b11c0e16d0583f9d6c94f17a2354679b9
+    runtime_observation:
+      unix_time: 1789414083.523105
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 68, 43.89 W, [N/A], 2040 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_01/generator.cpp
+    input_files: {}
+  record_sha256: a5d166396d03a61322dce56be189e46e0d368bf580031ba25429a182a9fbf5f6

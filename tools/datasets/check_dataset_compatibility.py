@@ -19,7 +19,7 @@ from tools.datasets.generate_catalog import describe_job, inventory, require_cur
 
 
 def candidate_descriptor(root: Path, build: Path, target: str) -> dict:
-    jobs = inventory(root, {"prices", "price_delta", "samples"}, set(), {target})
+    jobs = inventory(root, {"prices", "price_delta", "price_gradients", "samples"}, set(), {target})
     require_current_build(root, build, jobs)
     job = jobs[0]
     job.update(describe_job(root, build, job))

@@ -36,6 +36,7 @@ CUDA rebuilds.
 | Define canonical model and sample specifications | `sample_manifest.py` |
 | Define equity pricing products, variants, and bindings | `manifest.py` |
 | Compose models, curves, products, engines, recipes, and CMake targets | `capability_manifest.py` |
+| Define selected-gradient bindings and datasets | `price_gradients/manifest.py` |
 | Store complete C++ and recipe templates | `templates/` |
 | Record generated-file fingerprints | `PricingCapabilityManifest.json` |
 | Test manifest composition | [`tests/codegen/test_capability_manifest.py`](../../../tests/codegen/test_capability_manifest.py) |

@@ -1,0 +1,155 @@
+title: "Bates model samples samples_02"
+database_id: "samples_02"
+catalog: "catalog/model/equity/markovian/bates/samples/samples_02"
+url: "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/samples/samples_02.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "Bates"
+  numerical_method: "fixed-step transition at dt=1/504"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 3000000
+  paths_per_parameter: 1
+  row_order: "parameter-major, then path-major"
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+    - 256
+    - 1
+    - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent thread grid-stride"
+  block_dimensions_source: "runtime launch argument"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "markovian_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals; accepted rows retain proposal order"
+    proposal_draw_order:
+      - "spot"
+      - "risk_free_rate"
+      - "dividend_yield"
+      - "initial_variance"
+      - "kappa"
+      - "theta"
+      - "rho"
+      - "jump_intensity"
+      - "jump_log_mean"
+      - "jump_log_volatility"
+    latent_uniform_bounds:
+      spot:
+        - 1.0
+        - 1.0
+      risk_free_rate:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+      dividend_yield:
+        - 0.0
+        - 0.05999999865889549
+      initial_variance:
+        - 0.009999999776482582
+        - 0.11999999731779099
+      kappa:
+        - 0.5
+        - 4.0
+      theta:
+        - 0.009999999776482582
+        - 0.15000000596046448
+      rho:
+        - -0.949999988079071
+        - -0.25
+      jump_intensity:
+        - 0.019999999552965164
+        - 1.0
+      jump_log_mean:
+        - -0.25
+        - 0.05000000074505806
+      jump_log_volatility:
+        - 0.05000000074505806
+        - 0.3499999940395355
+    acceptance: "true"
+    derived_parameters:
+      gamma: "After all latent uniform draws, draw gamma uniformly on [max(sqrt(kappa * theta / 5), 0.1), min(sqrt(12 * kappa * theta), 0.8)] using the next Philox uniform."
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668826771955908608
+  schedule: 11668826773029650432
+  dynamics: 11668826774103392256
+outputs:
+  spot:
+    description: "Terminal spot."
+    layout: "sample-major"
+  variance:
+    description: "Terminal variance."
+    layout: "sample-major"
+time_grid:
+  transition: "fixed-step"
+  delta_t: "1 / 504"
+  simulation_steps_per_day: 2
+timing:
+  wall_seconds: "0.567036212 s"
+  kernel_seconds: "0.063249409 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 5193823d54da288b1752a74c87283814120f6884991b62234d647b0c2099894d
+  contract_sha256: d651130ab53df748db177d612fe8114ed74cc735092b8ba61c8f0c740aa1b705
+  specification:
+    kind: samples
+    identity: bates
+    database_id: samples_02
+    rows: 3000000
+    sample_shape:
+    - 3000000
+    - 1
+    rng_stream_seeds:
+      parameters: 11668826771955908608
+      schedule: 11668826773029650432
+      dynamics: 11668826774103392256
+    paths_per_price: null
+  inputs: {}
+  execution:
+    binary_sha256: 24c7c831482ded2305132105362b3bfdafc534da8ffdb77eff1793a1e07c9fb5
+    recipe_sha256: 6853e356b7c480b76ea016c545578c47a9d9d954047cd938f45831662ff45af0
+    declared_method:
+      engine: sample_markovian
+      profile: model_sample_profile
+      variant: null
+      construction: cartesian_parameter_paths
+      has_curve: false
+    launch_plan: null
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+    source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+    runtime_observation:
+      unix_time: 1789410518.125526
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 65, 44.91 W, [N/A], 1935 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/markovian/bates/samples/samples_02/generator.cpp
+    input_files: {}
+  record_sha256: eb8308ab5273258d963a7f7f0a4d23e3bb1742cb0a00130f4101da9cfb115f04

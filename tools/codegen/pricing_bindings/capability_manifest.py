@@ -156,7 +156,7 @@ class DatasetSpec:
 
     @property
     def cmake_target(self) -> str:
-        if self.dataset_kind in {"prices", "price_delta"}:
+        if self.dataset_kind in {"prices", "price_delta", "price_gradients"}:
             components = self.dataset_id.split("__")[:-1]
             names = [component.rsplit("_", 1)[0] for component in components]
             version = self.dataset_id.split("__")[-1]
@@ -1474,6 +1474,13 @@ GENERATED_CLOSED_FORM_POLICY_PATHS = tuple(
     f"{binding.unit_path}_impl.cuh" for binding in PRODUCT_BINDING_SPECS
     if binding.engine == "equity_closed_form" and binding.product != "european_option"
 )
+from price_gradients.manifest import compose_bindings as compose_price_gradient_bindings, compose_datasets as compose_price_gradient_datasets
+
+PRICE_GRADIENT_BINDING_SPECS = compose_price_gradient_bindings(PRODUCT_BINDING_SPECS)
+GENERATED_PRICE_GRADIENT_BINDING_PATHS = tuple(
+    path for binding in PRICE_GRADIENT_BINDING_SPECS for path in binding.paths
+)
+
 GENERATED_PRICE_DELTA_BINDING_PATHS = tuple(
     path for binding in PRICE_DELTA_BINDING_SPECS for path in binding.paths
 )
@@ -1587,6 +1594,16 @@ PRICE_DELTA_SOURCE_BY_RECIPE.update({
 })
 DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
+PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(PRICE_DELTA_DATASET_SPECS, PRICE_GRADIENT_BINDING_SPECS)
+PRICE_GRADIENT_SOURCE_BY_RECIPE = {
+    gradient.recipe_path: PRICE_DELTA_SOURCE_BY_RECIPE[next(
+        delta.recipe_path for delta in PRICE_DELTA_DATASET_SPECS
+        if (delta.model, delta.product, delta.variant, delta.construction)
+        == (gradient.model, gradient.product, gradient.variant, gradient.construction))]
+    for gradient in PRICE_GRADIENT_DATASET_SPECS
+}
+DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
+AVAILABLE_DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
 RNG_DOMAIN_SPECS += tuple(
     replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=delta.recipe_path)
     for delta in PRICE_DELTA_DATASET_SPECS
@@ -1598,6 +1615,18 @@ _RNG_ALIAS_ROOT_BY_RECIPE = {
     for dataset in ALIGNED_PRICE_DATASET_SPECS
     if dataset.recipe_path in RNG_DOMAIN_BY_RECIPE
 }
+RNG_DOMAIN_SPECS += tuple(
+    replace(RNG_DOMAIN_BY_RECIPE[source.recipe_path], recipe_path=gradient.recipe_path)
+    for gradient in PRICE_GRADIENT_DATASET_SPECS
+    if (source := PRICE_GRADIENT_SOURCE_BY_RECIPE[gradient.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+)
+RNG_DOMAIN_BY_RECIPE = {domain.recipe_path: domain for domain in RNG_DOMAIN_SPECS}
+_RNG_ALIAS_ROOT_BY_RECIPE.update({
+    gradient.recipe_path: (CARTESIAN_PRICE_SOURCE_BY_RECIPE[source.recipe_path].recipe_path
+        if source.recipe_path in CARTESIAN_PRICE_SOURCE_BY_RECIPE else source.recipe_path)
+    for gradient in PRICE_GRADIENT_DATASET_SPECS
+    if (source := PRICE_GRADIENT_SOURCE_BY_RECIPE[gradient.recipe_path]).recipe_path in RNG_DOMAIN_BY_RECIPE
+})
 _RNG_ALIAS_ROOT_BY_RECIPE.update({
     cartesian.recipe_path: source.recipe_path
     for cartesian in CARTESIAN_PRICE_DATASET_SPECS
@@ -1621,7 +1650,7 @@ RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
     if left < right and left_root == right_root
 )
 validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
-for _dataset in PRICE_DELTA_DATASET_SPECS:
+for _dataset in (*PRICE_DELTA_DATASET_SPECS, *PRICE_GRADIENT_DATASET_SPECS):
     validate_dataset_spec(_dataset)
 
 

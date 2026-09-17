@@ -1,0 +1,145 @@
+title: "Rough Stein-Stein model samples samples_01"
+database_id: "samples_01"
+catalog: "catalog/model/equity/rough/rough_stein_stein/samples/samples_01"
+url: "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/samples/samples_01.json"
+row_count: 3000000
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+summary:
+  dataset_kind: "model samples"
+  model: "Rough Stein-Stein"
+  numerical_method: "block-cooperative hybrid FFT at dt=1/504"
+  implementation: "CUDA"
+  device: "gpu"
+  random_generator: "Philox-4x32-10"
+  parameter_count: 12000
+  paths_per_parameter: 250
+  row_order: "parameter-major, then path-major"
+  launch_sample_count: 3000000
+  threads_per_block: 128
+  block_dimensions:
+    - 128
+    - 1
+    - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: "persistent parameter-block"
+  block_dimensions_source: "compiled cuFFTDx Forward::block_dim"
+  tuning_profile:
+    profile_id: "sm89_reference_v1"
+    family: "volterra_samples"
+    selection: "compile-time CMake profile"
+    measured_on: "NVIDIA GeForce RTX 4090 Laptop GPU / SM89"
+    portability: "safe reference values; benchmark before replacing on another GPU"
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+construction:
+  parameter_sampling:
+    regime: "plausible core only"
+    distribution: "independent Philox uniform proposals; accepted rows retain proposal order"
+    proposal_draw_order:
+      - "spot"
+      - "risk_free_rate"
+      - "dividend_yield"
+      - "volatility_level"
+      - "mean_reversion"
+      - "volatility_of_volatility"
+      - "hurst_exponent"
+      - "rho"
+    latent_uniform_bounds:
+      spot:
+        - 1.0
+        - 1.0
+      risk_free_rate:
+        - 0.0010000000474974513
+        - 0.07999999821186066
+      dividend_yield:
+        - 0.0
+        - 0.05999999865889549
+      volatility_level:
+        - 0.10000000149011612
+        - 0.3499999940395355
+      mean_reversion:
+        - 0.20000000298023224
+        - 4.0
+      volatility_of_volatility:
+        - 0.05000000074505806
+        - 0.5
+      hurst_exponent:
+        - 0.029999999329447746
+        - 0.25
+      rho:
+        - -0.8999999761581421
+        - 0.10000000149011612
+    acceptance: "true"
+  maturity_sampling:
+    distribution: "discrete uniform without modulo bias"
+    support: "integer business days"
+    minimum_days: 63
+    maximum_days: 504
+    year_fraction: "maturity_days / 252"
+seeds:
+  parameters: 11668829031108706304
+  schedule: 11668829032182448128
+  dynamics: 11668829033256189952
+outputs:
+  spot:
+    description: "Terminal spot."
+    layout: "sample-major"
+time_grid:
+  transition: "fixed-step"
+  delta_t: "1 / 504"
+  simulation_steps_per_day: 2
+timing:
+  wall_seconds: "4.136525063 s"
+  kernel_seconds: "4.263504883 s"
+generation:
+  schema_version: 1
+  dataset_sha256: 76ac1c518a94a777ae31eef5d20c1528ca19cf6389af2fba7f688a117c8c8d32
+  contract_sha256: 46d1b849cd7f8deddf0d773ee5d78d7e527b277ec6062369c2f4c3e44d4b0080
+  specification:
+    kind: samples
+    identity: rough_stein_stein
+    database_id: samples_01
+    rows: 3000000
+    sample_shape:
+    - 12000
+    - 250
+    rng_stream_seeds:
+      parameters: 11668829031108706304
+      schedule: 11668829032182448128
+      dynamics: 11668829033256189952
+    paths_per_price: null
+  inputs: {}
+  execution:
+    binary_sha256: 66b45633fc5cccf6ecad67b9d4896718357202b7afc38bfb687ec24ca49dc1bf
+    recipe_sha256: cc579f0d6243c86dd0e85b15baffd46bbe9ad3a6a8de90c80d942bd47d4bcb69
+    declared_method:
+      engine: sample_volterra_fft
+      profile: model_sample_profile
+      variant: null
+      construction: cartesian_parameter_paths
+      has_curve: false
+    launch_plan: null
+    build_hashes:
+      CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+      build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  provenance:
+    revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+    source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+    runtime_observation:
+      unix_time: 1789411529.241176
+      returncode: 0
+      stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+        [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+        0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+        596.08, P0, 64, 46.65 W, [N/A], 2040 MHz, 9001 MHz
+
+        '
+      stderr: ''
+    recipe: catalog/model/equity/rough/rough_stein_stein/samples/samples_01/generator.cpp
+    input_files: {}
+  record_sha256: e70c84c94b2869dd3b618db96d6e1cabf3a0f9b69c65f1fdec1e5f58e36090b5

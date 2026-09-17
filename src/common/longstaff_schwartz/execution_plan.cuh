@@ -5,6 +5,7 @@
 #include "common/longstaff_schwartz/workspace.cuh"
 
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 namespace ai_factory::workbench::longstaff_schwartz {
@@ -22,7 +23,9 @@ ExecutionPlan make_execution_plan(
     std::size_t workspace_budget,
     const typename PricingPolicy::Schedule::TimeConfiguration&
         time_configuration,
-    const char* product_name
+    const char* product_name,
+    std::size_t maximum_batch_size =
+        std::numeric_limits<std::size_t>::max()
 ) {
     inputs.validate(result_count);
 
@@ -33,6 +36,10 @@ ExecutionPlan make_execution_plan(
         Regressor::kBasisSize,
         Regressor::kRegressionValueCount,
     };
+    if constexpr (requires { PricingPolicy::moment_value_count(inputs); }) {
+        descriptor.moment_value_count =
+            PricingPolicy::moment_value_count(inputs);
+    }
     if constexpr (requires { PricingPolicy::observation_field_descriptors(); }) {
         descriptor.observation_fields = PricingPolicy::observation_field_descriptors();
     }
@@ -62,7 +69,8 @@ ExecutionPlan make_execution_plan(
         paths_per_price,
         blocks_per_price,
         workspace_budget,
-        product_name
+        product_name,
+        maximum_batch_size
     );
 }
 
