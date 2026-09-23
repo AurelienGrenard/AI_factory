@@ -6,6 +6,7 @@ output:
   path: datasets/product/double_knock_out_option/double_knock_out_options_01.json
   format: json
 generation_output: catalog/product/double_knock_out_option/double_knock_out_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/double_knock_out_option/double_knock_out_options_01.json
 product_family: Double-Knock-Out Calls
 row_count: 1000
 time_convention:

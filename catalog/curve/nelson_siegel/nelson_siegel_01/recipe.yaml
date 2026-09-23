@@ -6,6 +6,7 @@ output:
   path: datasets/curve/nelson_siegel/nelson_siegel_01.json
   format: json
 generation_output: catalog/curve/nelson_siegel/nelson_siegel_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/curve/nelson_siegel/nelson_siegel_01.json
 curve_family: Nelson-Siegel
 row_count: 1000
 parameters:

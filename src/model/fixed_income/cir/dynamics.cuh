@@ -1,7 +1,7 @@
 // Reusable CUDA interfaces for exact CIR state simulations.
 #pragma once
 
-#include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 #include "common/simulation/concepts.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 
@@ -48,8 +48,7 @@ __device__ __forceinline__ State initial_state(
 __device__ __forceinline__ void one_step_transition(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 );
 
@@ -58,7 +57,7 @@ struct DynamicsPolicy {
     using PreparedDynamics = cir::PreparedDynamics;
     using PreparedModel = cir::PreparedModel;
     using PreparedTransition = cir::PreparedTransition;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = cir::State;
 
     static constexpr bool kPartitionInvariantAdvance = true;
@@ -127,15 +126,14 @@ __device__ __forceinline__ State initial_state(
 __device__ __forceinline__ void one_step_transition(
     const cir::PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 );
 
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = joint::PreparedDynamics;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = joint::State;
 
     static constexpr bool kPartitionInvariantAdvance = true;

@@ -20,7 +20,7 @@ int main() {
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01_cartesian.json",
         "catalog/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01_cartesian.json",
         "Andersen QE-M with compound-Poisson lognormal jumps",
         PriceConstruction::CartesianProduct,
     };

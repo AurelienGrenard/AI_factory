@@ -11,6 +11,7 @@ import tarfile
 import yaml
 
 from tools.datasets.artifact_publication import contained_path, digest
+from tools.datasets.metadata_schemas import validate_document
 
 
 SCHEMA_VERSION = 1
@@ -102,6 +103,7 @@ def attach_generation(work: Path, job: dict, state: dict) -> None:
         },
     }
     record["record_sha256"] = fingerprint(record)
+    validate_document(record, "generation", path)
     path.write_text(yaml.safe_dump(record, sort_keys=False))
 
 

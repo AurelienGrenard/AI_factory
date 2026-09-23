@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "cir_01__european_receiver_swaptions_01__01_price_gradients",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/fixed_income/cir/parameters/cir_01.json",
+  "product_input": "datasets/product/european_swaption/european_swaptions_01.json",
+  "output": {
+    "path": "datasets/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradients.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradients/generation.yaml",
+  "construction": "aligned",
+  "url": "https://datasets.ai-factory.example/v1/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradients.json",
+  "paths_per_price": 0,
+  "dynamics_seed": 0,
+  "sensitivity": {
+    "method": "finite_difference",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.long_term_mean",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_state",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml"
+  },
+  "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

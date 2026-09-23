@@ -115,15 +115,21 @@ __global__ void exercise_levy_dynamics_kernel(LevyDynamicsResults* output) {
         >(vg, vg_exact, key, 23U).log_spot;
 
     auto vg_terminal_manual = ai_factory::workbench::model::equity::variance_gamma::initial_state(vg);
-    philox::UniformSequence vg_uniforms(key, 23ULL);
-    philox::NormalPairCache vg_cache;
+    philox::DomainRandomContext vg_random(key, 23ULL);
+    const auto vg_step = vg_random.next_step();
+    auto vg_gamma_uniforms = vg_random.source<1U>(vg_step);
+    philox::NormalPairCache vg_gamma_cache;
     const float vg_gamma = philox::marsaglia_tsang_gamma(
-        vg_uniforms,
-        vg_cache,
+        vg_gamma_uniforms,
+        vg_gamma_cache,
         vg_exact.gamma_shape,
         vg.nu
     );
-    const float vg_normal = philox::next_normal(vg_uniforms, vg_cache);
+    auto vg_brownian_uniforms = vg_random.source<2U>(vg_step);
+    philox::NormalPairCache vg_brownian_cache;
+    const float vg_normal = philox::next_normal(
+        vg_brownian_uniforms, vg_brownian_cache
+    );
     ai_factory::workbench::model::equity::variance_gamma::one_step_transition(
         vg,
         vg_exact,

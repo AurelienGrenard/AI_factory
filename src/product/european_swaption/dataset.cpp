@@ -1,5 +1,6 @@
 // Convert European-swaption JSON rows into compact CUDA parameters.
 #include "product/european_swaption/dataset.hpp"
+#include "product/european_swaption/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
@@ -21,30 +22,6 @@ nlohmann::json load_document(const std::filesystem::path& dataset_path) {
         datasets::ParameterDatasetFamily::Product,
         "European swaption"
     );
-}
-
-// Validate the contract scalars shared by regular and explicit rows.
-void validate_contract(
-    float notional,
-    float strike,
-    std::uint32_t exercise_time_days,
-    const std::string& prefix
-) {
-    if (!std::isfinite(notional) || !(notional > 0.0f)) {
-        throw std::invalid_argument(
-            prefix + "notional must be finite and positive."
-        );
-    }
-    if (!std::isfinite(strike) || strike < 0.0f) {
-        throw std::invalid_argument(
-            prefix + "strike must be finite and non-negative for Jamshidian."
-        );
-    }
-    if (exercise_time_days == 0U) {
-        throw std::invalid_argument(
-            prefix + "exercise_time must be a positive day count."
-        );
-    }
 }
 
 }  // namespace
@@ -75,38 +52,7 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
         product.payment_count =
             parameters.at("payment_count").get<std::uint32_t>();
 
-        validate_contract(
-            product.notional,
-            product.strike,
-            product.exercise_time_days,
-            prefix
-        );
-        if (!std::isfinite(product.accrual_fraction)
-            || !(product.accrual_fraction > 0.0f)) {
-            throw std::invalid_argument(
-                prefix + "accrual_fraction must be finite and positive."
-            );
-        }
-        if (product.payment_interval_days == 0U) {
-            throw std::invalid_argument(
-                prefix + "payment_interval must be a positive day count."
-            );
-        }
-        if (product.payment_count == 0U) {
-            throw std::invalid_argument(
-                prefix + "payment_count must be positive."
-            );
-        }
-        const std::uint64_t final_payment_time =
-            static_cast<std::uint64_t>(product.exercise_time_days)
-            + static_cast<std::uint64_t>(product.payment_count)
-                * product.payment_interval_days;
-        if (final_payment_time
-            > std::numeric_limits<std::uint32_t>::max()) {
-            throw std::invalid_argument(
-                prefix + "final payment time exceeds uint32_t."
-            );
-        }
+        european_swaption::validate_parameters(product, prefix);
         dataset.products.push_back(product);
         dataset.maximum_payment_count = std::max(
             dataset.maximum_payment_count,
@@ -164,7 +110,7 @@ ExplicitEuropeanSwaptionDataset load_explicit_european_swaptions(
         product.payment_count =
             static_cast<std::uint32_t>(payment_times_days.size());
         product.schedule_offset = dataset.products.size();
-        validate_contract(
+        european_swaption::validate_contract_parameters(
             product.notional,
             product.strike,
             product.exercise_time_days,

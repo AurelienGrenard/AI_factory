@@ -1,4 +1,4 @@
-// Generated merton European selected-gradient recipe using the shared native runner.
+// Generated merton european_option selected-gradient recipe.
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/european_option/dataset.hpp"
@@ -9,7 +9,7 @@ int main() {
     namespace pg = price_gradients;
     try {
         const datasets::price_gradients::Recipe recipe{
-            "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients/generation.yaml", "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/recipe.yaml",
+            "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients/generation.yaml", "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/price_gradients/european_calls/merton_01__european_calls_01__01_price_gradients.json", "catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
@@ -21,6 +21,8 @@ int main() {
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,
             {offline::cuda_tuning::PricingFamily::equity_exact_mc, "merton", "european_option", ""}, 11668827467740610560ULL,
             models, products, model::equity::merton::prepare_merton_european_option_price_gradients,
-            model::equity::merton::launch_merton_european_option_price_gradients_cuda<OptionSide::call>);
+            model::equity::merton::launch_merton_european_option_price_gradients_cuda<OptionSide::call>,
+            offline::cuda_tuning::kProductionPathsPerPrice,
+            model::equity::merton::prepare_european_option_price_gradient_stencils_cuda);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

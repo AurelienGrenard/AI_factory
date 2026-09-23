@@ -1,0 +1,215 @@
+// Generated Black-Scholes analytical and MC sensitivities with device-prepared rows.
+#include "model/equity/markovian/${model}/product/european_option_price_gradients.cuh"
+
+#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
+#include "model/equity/markovian/${model}/analytics_impl.cuh"
+#include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
+#include "product/european_option/price_gradients/closed_form_policy.cuh"
+#include "product/european_option/price_gradients/monte_carlo_policy.cuh"
+
+namespace ai_factory::workbench::model::equity::${model} {
+
+namespace mcpg = ::ai_factory::workbench::monte_carlo::price_gradients;
+
+void prepare_european_option_price_gradient_stencils_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
+) {
+    epg::prepare_terminal_first_sensitivity_stencils(
+        host,
+        device,
+        stencil_outputs,
+        result_offset,
+        result_count,
+        "${model}.european_option.price_gradients.stencil_preparation"
+    );
+}
+
+void prepare_european_option_diagonal_sensitivity_stencils_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
+) {
+    epg::prepare_terminal_sensitivity_stencils<
+        pg::SensitivityOrders::first_and_second
+    >(
+        host, device, stencil_outputs, result_offset, result_count,
+        "${model}.european_option.diagonal.stencil_preparation"
+    );
+}
+
+template<OptionSide Side>
+void launch_${model}_european_option_price_gradients_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::Outputs outputs
+) {
+    using AnalyticalPolicy =
+        product::european_option::price_gradients::ClosedFormPolicy<
+            ModelParameters,
+            Side
+        >;
+    if (configuration.method == pg::PricingMethod::closed_form) {
+        const pg::SensitivityOutputs analytical_outputs{
+            outputs.prices,
+            nullptr,
+            outputs.gradients,
+            nullptr,
+            nullptr,
+            nullptr,
+            outputs.price_capacity,
+            outputs.gradient_capacity,
+        };
+        closed_form::price_gradients::launch_device_prepared<
+            pg::SensitivityOrders::first,
+            AnalyticalPolicy
+        >(
+            host,
+            device,
+            stencil_outputs,
+            configuration,
+            analytical_outputs,
+            "${model}.european_option.price_gradients.closed_form",
+            Side == OptionSide::call ? "call/nodes=3" : "put/nodes=3"
+        );
+        return;
+    }
+    const auto launch_price_only = [&] {
+        mcpg::launch_device_prepared_terminal_prices<
+            mpg::CoupledDynamics,
+            product::EuropeanOptionGradientPathPolicy<Side>
+        >(
+            host,
+            device,
+            stencil_outputs,
+            configuration,
+            outputs,
+            "${model}.european_option.price_gradients.price_only",
+            Side == OptionSide::call ? "call/B=1" : "put/B=1"
+        );
+    };
+    epg::launch_terminal_first_sensitivities<
+        mpg::CoupledDynamics,
+        product::EuropeanOptionGradientPathPolicy<Side>
+    >(
+        host,
+        device,
+        stencil_outputs,
+        configuration,
+        outputs,
+        launch_price_only,
+        "${model}.european_option.price_gradients.monte_carlo",
+        Side == OptionSide::call ? "call/nodes=3/B=1" : "put/nodes=3/B=1"
+    );
+}
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+void launch_${model}_european_option_diagonal_sensitivities_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs
+) {
+    using AnalyticalPolicy =
+        product::european_option::price_gradients::ClosedFormPolicy<
+            ModelParameters,
+            Side
+        >;
+    if (configuration.method == pg::PricingMethod::closed_form) {
+        closed_form::price_gradients::launch_device_prepared<
+            Orders,
+            AnalyticalPolicy
+        >(
+            host,
+            device,
+            stencil_outputs,
+            configuration,
+            outputs,
+            "${model}.european_option.sensitivities.closed_form",
+            Orders == pg::SensitivityOrders::second
+                ? "diagonal_hessian/nodes=4"
+                : "gradient_and_diagonal_hessian/nodes=4"
+        );
+        return;
+    }
+    const auto launch_price_only = [&] {
+        const typename EuropeanOptionPriceGradientPlan::StencilOutputs
+            first_stencil_outputs{
+                nullptr,
+                0U,
+                stencil_outputs.error,
+            };
+        const pg::Outputs price_outputs{
+            outputs.prices,
+            outputs.price_standard_errors,
+            nullptr,
+            nullptr,
+            outputs.price_capacity,
+            0U,
+        };
+        mcpg::launch_device_prepared_terminal_prices<
+            mpg::CoupledDynamics,
+            product::EuropeanOptionGradientPathPolicy<Side>
+        >(
+            host,
+            device,
+            first_stencil_outputs,
+            configuration,
+            price_outputs,
+            "${model}.european_option.sensitivities.price_only",
+            Side == OptionSide::call ? "call/B=1" : "put/B=1"
+        );
+    };
+    epg::launch_terminal_diagonal_sensitivities<
+        Orders,
+        mpg::CoupledDynamics,
+        product::EuropeanOptionGradientPathPolicy<Side>
+    >(
+        host,
+        device,
+        stencil_outputs,
+        configuration,
+        outputs,
+        launch_price_only,
+        "${model}.european_option.sensitivities.monte_carlo",
+        Orders == pg::SensitivityOrders::second
+            ? "diagonal_hessian/nodes=4/B=1"
+            : "gradient_and_diagonal_hessian/nodes=4/B=1"
+    );
+}
+
+#define AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(SIDE) \
+    template void launch_${model}_european_option_price_gradients_cuda<SIDE>( \
+        const EuropeanOptionPriceGradientPlan&, \
+        EuropeanOptionPriceGradientPlan::DeviceInputs, \
+        EuropeanOptionPriceGradientPlan::StencilOutputs, \
+        const pg::LaunchConfiguration&, pg::Outputs); \
+    template void launch_${model}_european_option_diagonal_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::second>( \
+        const EuropeanOptionPriceGradientPlan&, \
+        EuropeanOptionPriceGradientPlan::DeviceInputs, \
+        EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
+    template void launch_${model}_european_option_diagonal_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::first_and_second>( \
+        const EuropeanOptionPriceGradientPlan&, \
+        EuropeanOptionPriceGradientPlan::DeviceInputs, \
+        EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+
+AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::call);
+AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::put);
+
+#undef AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES
+
+}  // namespace ai_factory::workbench::model::equity::${model}

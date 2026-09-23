@@ -1,5 +1,6 @@
 // Host implementation of the Svensson dataset loader.
 #include "curve/svensson/dataset.hpp"
+#include "curve/svensson/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
@@ -25,21 +26,7 @@ std::vector<SvenssonParameters> load_curves(
                 values.at("tau1").get<float>(),
                 values.at("tau2").get<float>(),
             };
-            if (!std::isfinite(parameters.beta0))
-                throw std::invalid_argument(prefix + "beta0 must be finite.");
-            if (!std::isfinite(parameters.beta1))
-                throw std::invalid_argument(prefix + "beta1 must be finite.");
-            if (!std::isfinite(parameters.beta2))
-                throw std::invalid_argument(prefix + "beta2 must be finite.");
-            if (!std::isfinite(parameters.beta3))
-                throw std::invalid_argument(prefix + "beta3 must be finite.");
-            if (!std::isfinite(parameters.tau1) || !(parameters.tau1 > 0.0f))
-                throw std::invalid_argument(prefix + "tau1 must be finite and positive.");
-            if (!std::isfinite(parameters.tau2) || !(parameters.tau2 > 0.0f))
-                throw std::invalid_argument(prefix + "tau2 must be finite and positive.");
-            if (!(parameters.tau2 > parameters.tau1)) {
-                throw std::invalid_argument(prefix + "tau2 must exceed tau1.");
-            }
+            validate_parameters(parameters, prefix);
             return parameters;
     });
 }

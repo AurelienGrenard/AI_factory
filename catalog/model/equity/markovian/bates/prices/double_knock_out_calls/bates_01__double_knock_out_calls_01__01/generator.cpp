@@ -20,7 +20,7 @@ int main() {
         "datasets/product/double_knock_out_option/double_knock_out_options_01.json",
         "datasets/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01.json",
         "catalog/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01.json",
         "Andersen QE-M with compound-Poisson lognormal jumps",
         PriceConstruction::Aligned,
     };

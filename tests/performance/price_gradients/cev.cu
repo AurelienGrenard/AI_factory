@@ -18,12 +18,12 @@ int main() {
         for (unsigned k : {1U,4U,7U}) {
             auto selection=full;selection.sensitivities.resize(k);
             auto plan=cev::prepare_cev_european_option_price_gradients(models,products,PriceConstruction::Aligned,{},selection);
-            if (k==1) measure("cev_legacy",plan,[&](const auto&,auto,const auto& config,auto out) {
+            if (k==1) measure("cev_legacy",plan,[&](const auto&,auto,const auto&,const auto& config,auto out) {
                 cev::launch_cev_european_option_price_delta_cuda<OptionSide::call>(models.data(),dm.data,64,
                     products.data(),dp.data,64,PriceConstruction::Aligned,64,0,64,config.paths_per_price,
                     1.f/504.f,2,256,64,config.base_seed,{.01f},out.prices,out.price_standard_errors,out.gradients,out.gradient_standard_errors);
-            },256,1);
-            measure("cev",plan,cev::launch_cev_european_option_price_gradients_cuda<OptionSide::call>,256,1);
+            },256);
+            measure("cev",plan,cev::launch_cev_european_option_price_gradients_cuda<OptionSide::call>,256);
         }
     } catch (const std::exception& e) {std::cerr<<e.what()<<'\n';return 1;}
 }

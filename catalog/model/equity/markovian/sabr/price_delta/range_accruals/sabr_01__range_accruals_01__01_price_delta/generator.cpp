@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/sabr/price_delta/range_accruals/sabr_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/sabr/price_delta/range_accruals/sabr_01__range_accruals_01__01_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/price_delta/range_accruals/sabr_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/recipe.yaml", "centered_crn", .01, 2U};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/sabr/price_delta/range_accruals/sabr_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "sabr", "range_accrual", ""},
         11668827789863157760ULL, model::equity::sabr::load_models, product::load_range_accruals,

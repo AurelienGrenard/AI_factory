@@ -20,7 +20,7 @@ int main() {
         "datasets/product/lookback_option/lookback_options_01.json",
         "datasets/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01.json",
         "catalog/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01.json",
         "Exact Kou increments",
         PriceConstruction::Aligned,
     };

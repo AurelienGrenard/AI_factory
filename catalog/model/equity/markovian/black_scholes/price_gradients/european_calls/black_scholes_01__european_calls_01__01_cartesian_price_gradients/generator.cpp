@@ -1,4 +1,4 @@
-// Generated black_scholes European selected-gradient recipe using the shared native runner.
+// Generated black_scholes european_option selected-gradient recipe.
 #include "model/equity/markovian/black_scholes/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "product/european_option/dataset.hpp"
@@ -20,6 +20,8 @@ int main() {
         return offline::pricing::price_gradients::execute_dataset<false>(recipe,
             {offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "european_option", ""}, 0ULL,
             models, products, model::equity::black_scholes::prepare_black_scholes_european_option_price_gradients,
-            model::equity::black_scholes::launch_black_scholes_european_option_price_gradients_cuda<OptionSide::call>);
+            model::equity::black_scholes::launch_black_scholes_european_option_price_gradients_cuda<OptionSide::call>,
+            offline::cuda_tuning::kProductionPathsPerPrice,
+            model::equity::black_scholes::prepare_european_option_price_gradient_stencils_cuda);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

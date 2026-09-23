@@ -20,6 +20,7 @@ class GenerationTests(unittest.TestCase):
         base = "catalog/model/equity/markovian/test/prices/calls/test"
         self.job = {"target": "generate_test", "kind": "prices", "rows": 2, "inputs": [],
                     "dataset": "datasets/model/equity/markovian/test/prices/calls/test.json",
+                    "url": "https://datasets.ai-factory.example/v1/model/equity/markovian/test/prices/calls/test.json",
                     "generator": f"{base}/generator.cpp",
                     "recipe": f"{base}/recipe.yaml",
                     "generation": f"{base}/generation.yaml",
@@ -28,12 +29,13 @@ class GenerationTests(unittest.TestCase):
         self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
                        "generator": "generator.cpp",
                        "output": {"path": self.job["dataset"], "format": "json"},
-                       "generation_output": self.job["generation"], "construction": "aligned"}
+                       "generation_output": self.job["generation"], "url": self.job["url"],
+                       "construction": "aligned"}
         self.receipt = {"schema_version": 1, "status": "complete",
                         "artifact": {"row_count": 2},
                         "execution": {"paths_per_price": 32},
                         "timing": {"wall_seconds": .1, "kernel_seconds": .05}}
-        self.document = {"database_id": "test", "row_count": 2, "results": [
+        self.document = {"database_id": "test", "url": self.job["url"], "row_count": 2, "results": [
             {"id": f"{i:06d}", "outputs": {"price": 0.1, "standard_error": 0.01}} for i in (1, 2)]}
         for key in ("dataset", "generation"):
             self.job["previous"][self.job[key]] = None
@@ -53,8 +55,9 @@ class GenerationTests(unittest.TestCase):
         recipe.write_text(yaml.safe_dump(self.recipe))
         self.job["recipe_sha256"] = digest(recipe)
         (self.run / "sources.tar.gz").write_text("frozen source archive")
-        self.state = {"version": 4, "root": str(self.root), "publish": False, "jobs": [self.job],
-                      "input_hashes": {}, "build_hashes": {}, "revision": "unit-test",
+        self.state = {"version": 4, "root": str(self.root), "build": str(self.root / "build"),
+                      "publish": False, "jobs": [self.job],
+                      "input_hashes": {}, "build_hashes": {}, "revision": "a" * 40,
                       "source_archive_sha256": digest(self.run / "sources.tar.gz")}
         telemetry = patch.object(campaign, "gpu_observation", return_value={"unavailable": "unit test"})
         telemetry.start()
@@ -192,6 +195,13 @@ class GenerationTests(unittest.TestCase):
         self.document["sensitivity"]["relative_full_width"] = .02
         self.generator(None, work, None)
         with self.assertRaisesRegex(ValueError, "sensitivity"):
+            campaign.check_outputs(work, self.job)
+
+    def test_publication_rejects_a_dataset_url_different_from_the_recipe(self):
+        work = self.root / "wrong-url"
+        self.document["url"] = "https://datasets.example/wrong.json"
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "Dataset URL"):
             campaign.check_outputs(work, self.job)
 
     def test_price_delta_preparation_and_fft_geometry_are_checked(self):

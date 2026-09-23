@@ -17,7 +17,7 @@ int main() {
         "datasets/product/gap_option/gap_call_options_01.json",
         "datasets/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01.json",
         "catalog/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot",
         PriceConstruction::Aligned,
     };

@@ -20,7 +20,7 @@ int main() {
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01_cartesian.json",
         "Andersen QE-M with compound-Poisson lognormal jumps",
         PriceConstruction::CartesianProduct,
     };

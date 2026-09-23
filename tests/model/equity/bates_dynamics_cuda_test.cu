@@ -92,7 +92,7 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         variance_uniform,
         stock_normal,
         3U,
-        -0.27f,
+        sqrtf(3.0f) * -0.27f,
         with_jumps
     );
 
@@ -109,10 +109,30 @@ __global__ void exercise_bates_dynamics_kernel(DynamicsResults* output) {
         simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::bates::DynamicsPolicy>(
             no_jump_prepared, step_count, key, 19U
         );
-    const ai_factory::workbench::model::equity::heston::State heston_terminal =
-        simulation::simulate_fixed_step_terminal<ai_factory::workbench::model::equity::heston::DynamicsPolicy>(
-            no_jump_prepared.heston, step_count, key, 19U
+    // Replay Bates' diffusion source into Heston's transition. Standalone
+    // Heston intentionally keeps its original single-stream Philox mapping.
+    ai_factory::workbench::model::equity::heston::State heston_terminal =
+        ai_factory::workbench::model::equity::heston::initial_state(
+            no_jump_prepared.heston
         );
+    philox::DomainRandomContext diffusion_random(key, 19U);
+    for (std::uint32_t step = 0U; step < step_count; ++step) {
+        auto diffusion_uniforms = diffusion_random.source<1U>(
+            diffusion_random.next_step()
+        );
+        philox::NormalPairCache normal_cache;
+        const float variance_normal = philox::next_normal(
+            diffusion_uniforms, normal_cache
+        );
+        const float stock_normal = philox::next_normal(
+            diffusion_uniforms, normal_cache
+        );
+        const float variance_uniform = diffusion_uniforms.next();
+        heston::one_step_transition(
+            no_jump_prepared.heston, variance_normal, variance_uniform,
+            stock_normal, heston_terminal
+        );
+    }
     const std::uint32_t poisson_zero = philox::poisson_from_uniform(
         0.5f, prepared.poisson_mean, prepared.zero_jump_probability
     );
@@ -259,9 +279,8 @@ __global__ void jump_interval_probe(float mean, std::uint32_t steps, float* coun
     };
     const auto prepared = bates::prepare_model(parameters, 1.0f / 252.0f);
     auto state = bates::initial_state(prepared);
-    philox::UniformSequence uniforms(philox::make_key(819273ULL), path);
-    philox::NormalPairCache cache;
-    bates::simulate_jump_interval(prepared, steps, uniforms, cache, state);
+    philox::DomainRandomContext random(philox::make_key(819273ULL), path);
+    bates::simulate_jump_interval(prepared, steps, random, 0U, state);
     counts[path] = (state.log_spot + prepared.jump_compensator * steps)
         / parameters.jump_log_mean;
 }
@@ -399,7 +418,7 @@ int main() {
         results.no_jump_terminal.log_spot == results.heston_terminal.log_spot
             && results.no_jump_terminal.variance
                 == results.heston_terminal.variance,
-        "Aggregated zero-intensity Bates terminal path differs from Heston"
+        "Zero-intensity Bates diffusion differs from replayed Heston"
     );
     require(results.poisson_zero == 0U
                 && results.poisson_one == 1U

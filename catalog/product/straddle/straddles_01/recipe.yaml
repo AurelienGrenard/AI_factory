@@ -6,6 +6,7 @@ output:
   path: datasets/product/straddle/straddles_01.json
   format: json
 generation_output: catalog/product/straddle/straddles_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/straddle/straddles_01.json
 product_family: Straddles
 row_count: 1000
 time_convention:

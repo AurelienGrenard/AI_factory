@@ -9,6 +9,7 @@ namespace ai_factory::workbench::product {
 template<typename BasePricingPolicy, typename BondAnalytics>
 struct TerminalForwardBermudanSwaptionPricingPolicy : BasePricingPolicy {
     using Base = BasePricingPolicy;
+    using NumeraireAnalytics = BondAnalytics;
     using typename Base::PreparedRow;
     using typename Base::Schedule;
     using typename Base::Dynamics;
@@ -28,8 +29,10 @@ struct TerminalForwardBermudanSwaptionPricingPolicy : BasePricingPolicy {
             longstaff_schwartz::workspace_pointer<Observation>(workspace, layout.observation_fields[0])};
     }
 
-    __device__ __forceinline__ static void prepare_observations(PreparedRow& row, StateView states) {
-        Observation* observations = states.observations + row.state_offset / row.paths_per_price;
+    __device__ __forceinline__ static void prepare_observation_table(
+        PreparedRow& row,
+        Observation* observations
+    ) {
         row.schedule.observations = observations;
         const auto count = row.product.exercise_count;
         const auto interval_days = row.product.payment_interval_days;
@@ -53,6 +56,17 @@ struct TerminalForwardBermudanSwaptionPricingPolicy : BasePricingPolicy {
                 BondAnalytics::B(row.analytics, exercise_time, terminal_time),
             };
         }
+    }
+
+    __device__ __forceinline__ static void prepare_observations(
+        PreparedRow& row,
+        StateView states
+    ) {
+        prepare_observation_table(
+            row,
+            states.observations
+                + row.state_offset / row.paths_per_price
+        );
     }
 
     __device__ __forceinline__ static float normalized_payoff(

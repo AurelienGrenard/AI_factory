@@ -34,6 +34,11 @@ struct PreparedDynamics {
     PreparedTransition transition;
 };
 
+struct TransitionInnovations {
+    float inverse_gaussian_increment;
+    float brownian_normal;
+};
+
 // ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -55,6 +60,12 @@ __device__ __forceinline__ void one_step_transition(
     float inverse_gaussian_increment,
     float brownian_normal,
     State& state
+);
+
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedTransition& prepared_transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache
 );
 
 struct DynamicsPolicy {

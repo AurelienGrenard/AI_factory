@@ -35,13 +35,11 @@ __device__ __forceinline__ State initial_state(
 __device__ __forceinline__ void one_step_transition(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
-    state = philox::scaled_noncentral_chi_square(
-        uniforms,
-        normal_cache,
+    state = philox::domain_scaled_noncentral_chi_square<1U, 2U>(
+        random,
         prepared_model.degrees_of_freedom,
         prepared_transition.state_decay * state / prepared_transition.scale,
         prepared_transition.scale
@@ -53,15 +51,13 @@ namespace {
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
     one_step_transition(
         prepared_model,
         prepared_transition,
-        uniforms,
-        normal_cache,
+        random,
         state
     );
 }
@@ -132,7 +128,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     State& state
 ) {
     cir::simulate_one_step(
-        prepared_model, prepared_transition, random.uniforms, random.normals, state
+        prepared_model, prepared_transition, random, state
     );
 }
 
@@ -157,16 +153,14 @@ __device__ __forceinline__ State initial_state(
 __device__ __forceinline__ void one_step_transition(
     const cir::PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
     const float previous_state = state.state;
     cir::one_step_transition(
         prepared_model,
         prepared_transition.state_transition,
-        uniforms,
-        normal_cache,
+        random,
         state.state
     );
     state.state_integral = fmaf(
@@ -181,15 +175,13 @@ namespace {
 __device__ __forceinline__ void simulate_one_step(
     const cir::PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
     one_step_transition(
         prepared_model,
         prepared_transition,
-        uniforms,
-        normal_cache,
+        random,
         state
     );
 }
@@ -219,8 +211,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     joint::simulate_one_step(
         dynamics.model,
         dynamics.transition,
-        random.uniforms,
-        random.normals,
+        random,
         state
     );
 }

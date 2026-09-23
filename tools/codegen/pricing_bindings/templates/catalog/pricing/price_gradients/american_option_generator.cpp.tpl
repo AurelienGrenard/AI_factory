@@ -15,9 +15,12 @@ int main() {
             }}, {1.0f/504.0f, 2U}, false};
         const auto models = model::equity::$model::load_models(recipe.model_input);
         const auto products = product::load_american_options(recipe.product_input);
-        return offline::pricing::price_gradients::execute_dataset<true>(recipe,
+        return offline::pricing::price_gradients::execute_dataset<
+            true, pg::SensitivityOrders::first>(recipe,
             {offline::cuda_tuning::PricingFamily::equity_lsm, "$model", "american_option", ""}, ${seed}ULL,
             models, products, model::equity::$model::prepare_${model}_american_option_price_gradients,
-            model::equity::$model::launch_${model}_american_option_price_gradients_cuda<OptionSide::$side>);
+            model::equity::$model::launch_${model}_american_option_price_gradients_cuda<OptionSide::$side>,
+            offline::cuda_tuning::kProductionPathsPerPrice,
+            model::equity::$model::prepare_american_option_price_gradient_stencils_cuda);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

@@ -17,7 +17,7 @@ namespace ai_factory::workbench::volterra::hybrid_fft {
 // Random access to the exact normal produced by UniformSequence and
 // NormalPairCache at one scalar index. Cooperative FFT lanes can therefore
 // generate Brownian cells independently while preserving the canonical
-// (key, path, local_group) Philox mapping.
+// (key, path, group, domain=0) Philox mapping.
 __device__ __forceinline__ float normal_at(
     philox::PhiloxKey key,
     std::uint64_t path,

@@ -31,3 +31,6 @@
 *.swo
 __pycache__/
 *.py[cod]
+
+# Local agent instructions are workstation-specific.
+/AGENTS.md

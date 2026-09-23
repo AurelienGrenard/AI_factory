@@ -11,10 +11,14 @@ catalogue, de publication et de validation indépendante restent dans
 |---|---|
 | Comprendre l'assemblage complet d'un prix ou d'un sample | [Composition des politiques de pricing](pricing-policy-composition.md) |
 | Ajouter ou modifier une dynamique | [Contrat des dynamiques](model-dynamics-contract.md) |
+| Préparer la migration de l'adressage Philox interne | [Plan des domaines Philox](philox-domain-migration-plan.md) |
+| Préparer les gradients des modèles à sauts | [Plan des gradients de saut](jump-price-gradient-migration-plan.md) |
+| Étendre les gradients à tous les moteurs puis retirer `price_delta` | [Plan de migration prix-gradients](price-gradients-migration-plan.md) |
 | Ajouter ou modifier une fonction analytique | [Contrat des analytics](model-analytics-contract.md) |
 | Ajouter un pricer fermé ou Monte Carlo | [Contrat closed form et Monte Carlo](closed-form-and-monte-carlo-pricing-contract.md) |
 | Calculer prix et delta equity par bump de S0 | [Contrat prix-delta et périmètre pilote](equity-price-delta-contract.md) |
-| Calculer prix et gradients sélectionnés | [Contrat prix-gradients](equity-price-gradients-contract.md) |
+| Calculer prix et gradients equity sélectionnés | [Contrat prix-gradients equity](equity-price-gradients-contract.md) |
+| Calculer prix et gradients fixed income sélectionnés | [Contrat prix-gradients fixed income](fixed-income-price-gradients-contract.md) |
 | Ajouter un produit américain ou bermudéen | [Contrat Longstaff--Schwartz](american-and-bermudan-pricing-contract.md) |
 | Planifier un pricing, valider un lancement ou inspecter ses ressources | [Validation et diagnostic des kernels](launch-validation-and-kernel-diagnostics.md) |
 | Mesurer une régression ou qualifier un GPU | [Protocole de performance](../performance-regression-protocol.md) |

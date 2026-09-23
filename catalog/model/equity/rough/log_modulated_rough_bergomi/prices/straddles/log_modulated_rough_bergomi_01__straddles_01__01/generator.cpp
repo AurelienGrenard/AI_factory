@@ -17,7 +17,7 @@ int main() {
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01.json",
         "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01.json",
         "log-modulated hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,
     };

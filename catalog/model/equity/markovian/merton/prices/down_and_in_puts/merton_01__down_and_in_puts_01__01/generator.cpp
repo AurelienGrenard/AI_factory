@@ -20,7 +20,7 @@ int main() {
         "datasets/product/down_and_in_option/down_and_in_options_01.json",
         "datasets/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01.json",
         "catalog/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01.json",
         "Exact Merton increments",
         PriceConstruction::Aligned,
     };

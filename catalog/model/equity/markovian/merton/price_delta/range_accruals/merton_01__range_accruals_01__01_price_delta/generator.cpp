@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/merton/price_delta/range_accruals/merton_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/range_accruals/merton_01__range_accruals_01__01_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/range_accruals/merton_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/recipe.yaml", "centered_crn", .01, 0U};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/price_delta/range_accruals/merton_01__range_accruals_01__01_price_delta.json", "catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "merton", "range_accrual", ""},
         11668827514985250816ULL, model::equity::merton::load_models, product::load_range_accruals,

@@ -12,6 +12,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01.json",
   "construction": "aligned",
   "numerical_method": {
     "engine": "equity_n_factor",
@@ -25,6 +26,7 @@
   "seeds": {
     "dynamics": 11668828734755962880
   },
+  "rng_mapping_version": "philox_source_step_v2",
   "time_grid": {
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,

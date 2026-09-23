@@ -1,6 +1,7 @@
 // Verify the common Philox counter layout and path-local sequence contract.
 #include "common/check_cuda.cuh"
 #include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 
 #include <cuda_runtime.h>
 
@@ -18,6 +19,7 @@ namespace philox = ai_factory::workbench::philox;
 struct PhiloxResults {
     PhiloxCounter addressed_bits;
     PhiloxCounter direct_bits;
+    PhiloxCounter mono_domain_bits;
     float sequence_values[8];
     float first_group_values[4];
     float second_group_values[4];
@@ -32,20 +34,34 @@ struct PhiloxResults {
     std::uint32_t large_mean_poisson_replay;
     float scaled_noncentral_chi_square;
     float scaled_noncentral_chi_square_composition;
+    PhiloxCounter domain_bits;
+    PhiloxCounter direct_domain_bits;
+    float domain_sequence_values[8];
+    float domain_first_group_values[4];
+    float domain_second_group_values[4];
+    float brownian_after_short_count;
+    float brownian_after_long_count;
+    float next_step_after_short_count;
+    float next_step_after_long_count;
+    float mark_after_short_count;
+    float mark_after_long_count;
 };
 
 __global__ void exercise_philox_kernel(PhiloxResults* output) {
     using namespace ai_factory::workbench;
 
     constexpr std::uint64_t path_index = 0x00000001'00000002ULL;
-    constexpr std::uint64_t local_group_index = 0x00000003'00000004ULL;
+    constexpr std::uint64_t local_group_index = 0x00000000'ffffffffULL;
     const philox::PhiloxKey key = philox::make_key(900000001ULL);
     const PhiloxCounter addressed_bits = philox::random_bits(
         key, path_index, local_group_index
     );
     const PhiloxCounter direct_bits = philox::philox4x32_10(
         key,
-        {0x00000002U, 0x00000001U, 0x00000004U, 0x00000003U}
+        {0x00000002U, 0x00000001U, 0xffffffffU, 0U}
+    );
+    const PhiloxCounter mono_domain_bits = philox::domain_random_bits(
+        key, path_index, 0xffffffffU, 0U
     );
 
     constexpr std::uint64_t sequence_path = 17ULL;
@@ -134,8 +150,67 @@ __global__ void exercise_philox_kernel(PhiloxResults* output) {
             2.0f * scale
         );
 
+    constexpr std::uint32_t domain_step = 0x00fffffeU;
+    const auto domain = philox::source_step_domain<255U>(domain_step);
+    const auto domain_bits = philox::domain_random_bits(
+        key, path_index, 0xffffffffU, domain
+    );
+    const auto direct_domain_bits = philox::philox4x32_10(
+        key, {2U, 1U, 0xffffffffU, 0xfffffffeU}
+    );
+    philox::DomainUniformSequence domain_sequence(
+        key, sequence_path, philox::source_step_domain<2U>(17U)
+    );
+    const auto domain_first_group = philox::domain_uniform_quad(
+        key, sequence_path, 0U, philox::source_step_domain<2U>(17U)
+    );
+    const auto domain_second_group = philox::domain_uniform_quad(
+        key, sequence_path, 1U, philox::source_step_domain<2U>(17U)
+    );
+    auto short_count = philox::DomainRandomContext(key, sequence_path);
+    auto long_count = philox::DomainRandomContext(key, sequence_path);
+    const auto first_step_short = short_count.next_step();
+    const auto first_step_long = long_count.next_step();
+    auto short_count_uniforms = short_count.source<2U>(first_step_short);
+    auto long_count_uniforms = long_count.source<2U>(first_step_long);
+    short_count_uniforms.next();
+    #pragma unroll
+    for (unsigned index = 0U; index < 19U; ++index) {
+        long_count_uniforms.next();
+    }
+    auto short_brownian = short_count.source<1U>(first_step_short);
+    auto long_brownian = long_count.source<1U>(first_step_long);
+    auto short_mark = short_count.source<3U>(first_step_short);
+    auto long_mark = long_count.source<3U>(first_step_long);
+    const auto next_short = short_count.next_step();
+    const auto next_long = long_count.next_step();
+    auto short_next_brownian = short_count.source<1U>(next_short);
+    auto long_next_brownian = long_count.source<1U>(next_long);
+
+    output->domain_bits = domain_bits;
+    output->direct_domain_bits = direct_domain_bits;
+    #pragma unroll
+    for (unsigned index = 0U; index < 8U; ++index) {
+        output->domain_sequence_values[index] = domain_sequence.next();
+    }
+    output->domain_first_group_values[0] = domain_first_group.first;
+    output->domain_first_group_values[1] = domain_first_group.second;
+    output->domain_first_group_values[2] = domain_first_group.third;
+    output->domain_first_group_values[3] = domain_first_group.fourth;
+    output->domain_second_group_values[0] = domain_second_group.first;
+    output->domain_second_group_values[1] = domain_second_group.second;
+    output->domain_second_group_values[2] = domain_second_group.third;
+    output->domain_second_group_values[3] = domain_second_group.fourth;
+    output->brownian_after_short_count = short_brownian.next();
+    output->brownian_after_long_count = long_brownian.next();
+    output->next_step_after_short_count = short_next_brownian.next();
+    output->next_step_after_long_count = long_next_brownian.next();
+    output->mark_after_short_count = short_mark.next();
+    output->mark_after_long_count = long_mark.next();
+
     output->addressed_bits = addressed_bits;
     output->direct_bits = direct_bits;
+    output->mono_domain_bits = mono_domain_bits;
     #pragma unroll
     for (std::uint32_t index = 0U; index < 8U; ++index) {
         output->sequence_values[index] = sequence_values[index];
@@ -258,7 +333,11 @@ int main() {
 
     require(
         equal_counter(results.addressed_bits, results.direct_bits),
-        "Philox path/local-group counter layout is incorrect"
+        "Philox mono-stream V2 counter layout is incorrect"
+    );
+    require(
+        equal_counter(results.addressed_bits, results.mono_domain_bits),
+        "Philox mono-stream and domain-zero layouts differ"
     );
     for (std::uint32_t index = 0U; index < 4U; ++index) {
         require(
@@ -308,6 +387,29 @@ int main() {
             && results.scaled_noncentral_chi_square
                 == results.scaled_noncentral_chi_square_composition,
         "Philox scaled non-central chi-square mixture is incorrect"
+    );
+    require(
+        equal_counter(results.domain_bits, results.direct_domain_bits),
+        "Philox domain counter layout is incorrect"
+    );
+    for (std::uint32_t index = 0U; index < 4U; ++index) {
+        require(
+            results.domain_sequence_values[index]
+                == results.domain_first_group_values[index],
+            "Philox domain sequence does not start at group zero"
+        );
+        require(
+            results.domain_sequence_values[index + 4U]
+                == results.domain_second_group_values[index],
+            "Philox domain sequence does not advance by group"
+        );
+    }
+    require(
+        results.brownian_after_short_count == results.brownian_after_long_count
+            && results.next_step_after_short_count
+                == results.next_step_after_long_count
+            && results.mark_after_short_count == results.mark_after_long_count,
+        "Variable Poisson consumption shifted another source or step"
     );
 
     constexpr std::size_t sample_count = 1U << 18U;

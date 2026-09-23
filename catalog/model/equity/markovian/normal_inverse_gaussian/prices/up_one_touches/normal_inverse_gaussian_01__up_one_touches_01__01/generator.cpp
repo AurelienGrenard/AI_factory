@@ -20,7 +20,7 @@ int main() {
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01.json",
         "catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01.json",
         "Exact inverse-Gaussian subordination",
         PriceConstruction::Aligned,
     };

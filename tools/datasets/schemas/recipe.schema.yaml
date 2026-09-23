@@ -9,6 +9,7 @@ required:
   - generator
   - output
   - generation_output
+  - url
 properties:
   schema_version:
     const: 1
@@ -20,6 +21,8 @@ properties:
     pattern: "^[a-z0-9]+(?:_[a-z0-9]+)*(?:__[a-z0-9]+(?:_[a-z0-9]+)*)*$"
   generator:
     const: generator.cpp
+  rng_mapping_version:
+    enum: [philox_path_group_v1, philox_source_step_v2]
   output:
     type: object
     required: [path, format]
@@ -33,4 +36,7 @@ properties:
   generation_output:
     type: string
     pattern: "^catalog/.+/generation\\.yaml$"
+  url:
+    type: string
+    pattern: "^https://[^\\s]+\\.json$"
 additionalProperties: true

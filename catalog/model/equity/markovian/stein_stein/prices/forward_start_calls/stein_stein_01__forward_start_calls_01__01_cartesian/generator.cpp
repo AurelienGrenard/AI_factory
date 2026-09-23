@@ -20,7 +20,7 @@ int main() {
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01_cartesian.json",
         "exact OU volatility with log-spot Euler",
         PriceConstruction::CartesianProduct,
     };

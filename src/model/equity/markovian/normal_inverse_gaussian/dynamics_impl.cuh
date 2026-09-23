@@ -68,14 +68,10 @@ __device__ __forceinline__ void one_step_transition(
 
 // ==================== Model-specific implementation =======================
 
-namespace {
-
-__device__ __forceinline__ void simulate_one_step(
-    const PreparedModel& prepared_model,
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
     const PreparedTransition& prepared_transition,
     philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
-    State& state
+    philox::NormalPairCache& normal_cache
 ) {
     const float inverse_gaussian_increment =
         philox::michael_schucany_haas_inverse_gaussian(
@@ -85,11 +81,26 @@ __device__ __forceinline__ void simulate_one_step(
             prepared_transition.inverse_gaussian_shape
         );
     const float brownian_normal = philox::next_normal(uniforms, normal_cache);
+    return {inverse_gaussian_increment, brownian_normal};
+}
+
+namespace {
+
+__device__ __forceinline__ void simulate_one_step(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::UniformSequence& uniforms,
+    philox::NormalPairCache& normal_cache,
+    State& state
+) {
+    const auto innovations = draw_transition_innovations(
+        prepared_transition, uniforms, normal_cache
+    );
     one_step_transition(
         prepared_model,
         prepared_transition,
-        inverse_gaussian_increment,
-        brownian_normal,
+        innovations.inverse_gaussian_increment,
+        innovations.brownian_normal,
         state
     );
 }

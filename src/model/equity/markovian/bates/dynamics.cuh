@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 #include "model/equity/markovian/bates/parameters.hpp"
 #include "model/equity/markovian/heston/dynamics.cuh"
 
@@ -48,14 +48,23 @@ __device__ __forceinline__ void one_step_transition(
     float variance_uniform,
     float stock_normal,
     std::uint32_t jump_count,
-    float jump_normal,
+    float jump_standard_normal_sum,
+    State& state
+);
+
+// Apply one compound-Poisson increment aggregated over equal numerical steps.
+__device__ __forceinline__ void apply_jump_interval(
+    const PreparedModel& prepared_model,
+    std::uint32_t step_count,
+    std::uint32_t jump_count,
+    float jump_standard_normal_sum,
     State& state
 );
 
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = bates::PreparedDynamics;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = bates::State;
 
     static constexpr bool kNativeLogSpot = true;

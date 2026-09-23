@@ -72,7 +72,9 @@ function(add_parameter_generator target source)
         ${dependencies}
     )
     target_compile_features(${target} PRIVATE cxx_std_23)
-    add_dependencies(parameter_generators ${target})
+    if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
+        add_dependencies(parameter_generators ${target})
+    endif()
 endfunction()
 
 # Register one CUDA price generator with shared build settings.
@@ -102,11 +104,17 @@ function(add_price_generator target source)
     )
     if(source MATCHES "/price_gradients/")
         target_link_libraries(${target} PRIVATE ai_factory_price_gradient_dataset)
-        add_dependencies(price_gradient_generators ${target})
+        if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
+            add_dependencies(price_gradient_generators ${target})
+        endif()
     elseif(source MATCHES "/price_delta/")
-        add_dependencies(price_delta_generators ${target})
+        if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
+            add_dependencies(price_delta_generators ${target})
+        endif()
     else()
-        add_dependencies(price_generators ${target})
+        if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
+            add_dependencies(price_generators ${target})
+        endif()
     endif()
 endfunction()
 
@@ -133,7 +141,9 @@ function(add_sample_generator target source)
         CUDA_STANDARD 23
         CUDA_STANDARD_REQUIRED YES
     )
-    add_dependencies(sample_generators ${target})
+    if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
+        add_dependencies(sample_generators ${target})
+    endif()
 endfunction()
 
 # Derive a stable executable name from the versioned catalog recipe id. For

@@ -6,6 +6,7 @@ output:
   path: datasets/product/phoenix_autocall/phoenix_autocalls_01.json
   format: json
 generation_output: catalog/product/phoenix_autocall/phoenix_autocalls_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/phoenix_autocall/phoenix_autocalls_01.json
 product_family: Phoenix Autocalls
 row_count: 1000
 time_convention:

@@ -12,6 +12,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01.json",
   "construction": "aligned",
   "numerical_method": {
     "engine": "equity_markovian",
@@ -24,5 +25,6 @@
   "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668827338891591680
-  }
+  },
+  "rng_mapping_version": "philox_source_step_v2"
 }

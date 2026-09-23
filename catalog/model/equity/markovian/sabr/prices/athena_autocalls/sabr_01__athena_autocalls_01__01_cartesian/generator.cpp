@@ -20,7 +20,7 @@ int main() {
         "datasets/product/athena_autocall/athena_autocalls_01.json",
         "datasets/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01_cartesian.json",
         "catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01_cartesian.json",
         "Lamperti SABR Euler",
         PriceConstruction::CartesianProduct,
     };

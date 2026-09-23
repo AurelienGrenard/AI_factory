@@ -17,7 +17,7 @@ int main() {
         "datasets/product/up_no_touch/up_no_touches_01.json",
         "datasets/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01.json",
         "catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01.json",
         "fractional-resolvent hybrid FFT",
         PriceConstruction::Aligned,
     };

@@ -6,6 +6,7 @@ output:
   path: datasets/product/asian_option/asian_options_01.json
   format: json
 generation_output: catalog/product/asian_option/asian_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/asian_option/asian_options_01.json
 product_family: Asian Options
 row_count: 1000
 time_convention:

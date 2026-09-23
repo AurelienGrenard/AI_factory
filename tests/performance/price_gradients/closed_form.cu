@@ -3,13 +3,21 @@
 #include "tests/price_gradients/cuda_test_support.cuh"
 #include "tests/performance/benchmark_support.cuh"
 
+#include <cstdlib>
+
 using namespace price_gradient_test;
 namespace bs = model::equity::black_scholes;
 int main(int argc,char** argv) {
     try {
         const unsigned threads=argc>1 ? std::stoul(argv[1]) : 256U;
         if (argc>2) throw std::invalid_argument("Usage: benchmark THREADS");
-        for (std::size_t rows : {1U,1000U,65536U}) {
+        const bool profile_probe = std::getenv(
+            "AI_FACTORY_PERFORMANCE_PROFILE_PROBE"
+        ) != nullptr;
+        const std::vector<std::size_t> row_counts = profile_probe
+            ? std::vector<std::size_t>{65536U}
+            : std::vector<std::size_t>{1U, 1000U, 65536U};
+        for (std::size_t rows : row_counts) {
             std::vector<bs::ModelParameters> models;
             std::vector<product::EuropeanOptionParameters> products;
             for (std::size_t i=0;i<rows;++i) {
@@ -21,16 +29,39 @@ int main(int argc,char** argv) {
                 {"model.risk_free_rate",{.0001,pg::BumpScale::absolute}},
                 {"model.dividend_yield",{.0001,pg::BumpScale::absolute}},
                 {"product.maturity_years",{1.f/504.f,pg::BumpScale::absolute}}}};
-            for (std::size_t k=0;k<=6;++k) {
+            const std::size_t first_k = profile_probe ? 6U : 0U;
+            for (std::size_t k=first_k;k<=6;++k) {
                 auto selected=full; selected.sensitivities.resize(k);
                 auto plan=bs::prepare_black_scholes_european_option_price_gradients(models,products,PriceConstruction::Aligned,{},selected);
-                DeviceArray<bs::EuropeanOptionPriceGradientPlan::ScenarioType> inputs(plan.scenarios);
-                DeviceArray<pg::Stencil> stencils(plan.stencils);
+                DeviceArray<bs::ModelParameters> device_models(plan.models);
+                DeviceArray<product::EuropeanOptionParameters> device_products(
+                    plan.products
+                );
+                DeviceArray<bs::EuropeanOptionPriceGradientPlan::SensitivitySpec>
+                    sensitivities(plan.sensitivities);
+                DeviceArray<pg::SensitivityStencil<3U>> stencils(rows*k);
+                DeviceArray<
+                    equity::price_gradients::device_preparation::Error
+                > preparation_error(1U);
                 DeviceArray<float> output(rows*(1+k));
-                pg::DeviceInputs<bs::EuropeanOptionPriceGradientPlan::ScenarioType> device{inputs.data,inputs.count,stencils.data,stencils.count};
+                const bs::EuropeanOptionPriceGradientPlan::DeviceInputs device{
+                    device_models.data, device_models.count,
+                    device_products.data, device_products.count,
+                    sensitivities.data, sensitivities.count,
+                };
+                const bs::EuropeanOptionPriceGradientPlan::StencilOutputs
+                    stencil_outputs{
+                        stencils.data,
+                        stencils.count,
+                        preparation_error.data,
+                    };
                 pg::Outputs values{output.data,nullptr,k ? output.data+rows : nullptr,nullptr,rows,rows*k};
                 pg::LaunchConfiguration config{pg::PricingMethod::closed_form,0,rows,0,threads,(rows+threads-1)/threads,0};
-                auto launch=[&] {bs::launch_black_scholes_european_option_price_gradients_cuda<OptionSide::call>(plan,device,config,values);};
+                auto launch=[&] {
+                    bs::launch_black_scholes_european_option_price_gradients_cuda<
+                        OptionSide::call
+                    >(plan,device,stencil_outputs,config,values);
+                };
                 auto timing=performance::measure_cuda(launch,5,21,64);
                 auto host=output.read();
                 std::uint64_t hash=14695981039346656037ULL;

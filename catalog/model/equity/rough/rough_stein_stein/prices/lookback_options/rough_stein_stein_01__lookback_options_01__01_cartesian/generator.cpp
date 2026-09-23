@@ -17,7 +17,7 @@ int main() {
         "datasets/product/lookback_option/lookback_options_01.json",
         "datasets/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01_cartesian.json",
         "catalog/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01_cartesian.json",
         "fractional-resolvent hybrid FFT",
         PriceConstruction::CartesianProduct,
     };

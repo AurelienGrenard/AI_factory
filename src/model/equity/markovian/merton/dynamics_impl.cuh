@@ -2,6 +2,7 @@
 #pragma once
 
 #include "model/equity/markovian/merton/dynamics.cuh"
+#include "common/compound_poisson.cuh"
 
 #include <cmath>
 #include <cstdint>
@@ -57,12 +58,12 @@ __device__ __forceinline__ void one_step_transition(
     const PreparedTransition& prepared_transition,
     std::uint32_t jump_count,
     float diffusion_normal,
-    float jump_normal,
+    float jump_standard_normal_sum,
     State& state
 ) {
     const float count = static_cast<float>(jump_count);
     const float jump_log_sum = count * prepared_model.jump_log_mean
-        + prepared_model.jump_log_volatility * sqrtf(count) * jump_normal;
+        + prepared_model.jump_log_volatility * jump_standard_normal_sum;
     state.log_spot += prepared_transition.drift
         + prepared_transition.diffusion_standard_deviation * diffusion_normal
         + jump_log_sum;
@@ -72,25 +73,37 @@ __device__ __forceinline__ void one_step_transition(
 
 __device__ __forceinline__ TransitionInnovations draw_transition_innovations(
     const PreparedTransition& prepared_transition,
-    philox::NormalRandomContext& random
+    philox::DomainRandomContext& random
 ) {
-    constexpr float kPoissonInversionThreshold = 10.0f;
-    const std::uint32_t jump_count =
-        prepared_transition.poisson_mean < kPoissonInversionThreshold
-        ? philox::poisson_from_uniform(
-            random.uniforms.next(),
-            prepared_transition.poisson_mean,
-            prepared_transition.zero_jump_probability
-        )
-        : philox::poisson_from_uniform_sequence(
-            random.uniforms,
-            prepared_transition.poisson_mean
+    const auto step = random.next_step();
+    auto count_uniforms = random.source<
+        compound_poisson::kCountSource
+    >(step);
+    const std::uint32_t jump_count = compound_poisson::draw_count(
+        count_uniforms,
+        prepared_transition.poisson_mean,
+        prepared_transition.zero_jump_probability
+    );
+    auto diffusion_uniforms = random.source<
+        compound_poisson::kContinuousSource
+    >(step);
+    philox::NormalPairCache diffusion_cache;
+    const float diffusion_normal = philox::next_normal(
+        diffusion_uniforms, diffusion_cache
+    );
+    auto mark_uniforms = random.source<
+        compound_poisson::kMarkSource
+    >(step);
+    philox::NormalPairCache mark_cache;
+    float jump_standard_normal_sum = 0.0f;
+    for (std::uint32_t event = 0U; event < jump_count; ++event) {
+        jump_standard_normal_sum += philox::next_normal(
+            mark_uniforms, mark_cache
         );
-    const float diffusion_normal = philox::next_normal(random.uniforms, random.normals);
-    const float jump_normal = jump_count == 0U
-        ? 0.0f
-        : philox::next_normal(random.uniforms, random.normals);
-    return {jump_count, diffusion_normal, jump_normal};
+    }
+    return {
+        jump_count, diffusion_normal, jump_standard_normal_sum
+    };
 }
 
 namespace {
@@ -98,7 +111,7 @@ namespace {
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::NormalRandomContext& random,
+    philox::DomainRandomContext& random,
     State& state
 ) {
     const auto innovations = draw_transition_innovations(prepared_transition, random);
@@ -107,7 +120,7 @@ __device__ __forceinline__ void simulate_one_step(
         prepared_transition,
         innovations.jump_count,
         innovations.diffusion_normal,
-        innovations.jump_normal,
+        innovations.jump_standard_normal_sum,
         state
     );
 }

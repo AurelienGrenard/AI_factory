@@ -17,7 +17,7 @@ int main() {
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01.json",
         "catalog/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,
     };

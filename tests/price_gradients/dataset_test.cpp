@@ -32,6 +32,49 @@ int main() {
         require(valid["results"][0]["stencils"]["model.rho"]["kind"]=="backward");
         require(valid["validation"]["verified"]==false);
         require(valid["sensitivity"]["parameters"][0]["displacement"]==.125);
+        require(valid["sensitivity"]["method"]
+            == "finite_difference_shared_innovations");
+        recipe.orders = pg::SensitivityOrders::first_and_second;
+        pg::SensitivityStencil<4U> diagonal{};
+        diagonal.kind = pg::StencilKind::backward;
+        diagonal.parameter_values[0U] = 1.0f;
+        diagonal.parameter_values[1U] = .875f;
+        diagonal.parameter_values[2U] = .75f;
+        diagonal.parameter_values[3U] = .625f;
+        diagonal.displacement = .125f;
+        diagonal.represented_width = -.125f;
+        diagonal.first_endpoint_weights[0U] = -16.0f;
+        diagonal.first_endpoint_weights[1U] = 4.0f;
+        diagonal.second_weights[0U] = 128.0f;
+        diagonal.second_weights[1U] = -320.0f;
+        diagonal.second_weights[2U] = 256.0f;
+        diagonal.second_weights[3U] = -64.0f;
+        diagonal.node_count = 4U;
+        result.diagonal_stencils = {diagonal};
+        result.diagonal_hessians = {.3f};
+        result.diagonal_hessian_errors = {.03f};
+        result.execution["scenario_count"] = nullptr;
+        result.execution["materialized_scenario_count"] = 0U;
+        data::write_dataset(recipe,result);
+        const auto diagonal_document = datasets::read_json_file(recipe.dataset);
+        require(diagonal_document["results"][0]["stencils"]["model.rho"]["node_count"] == 4);
+        require(diagonal_document["results"][0]["stencils"]["model.rho"]["third"] == .625);
+        require(diagonal_document["results"][0]["outputs"]["diagonal_hessians"]["model.rho"] == .3f);
+        require(diagonal_document["sensitivity"]["orders"] ==
+            nlohmann::ordered_json::array({"first", "diagonal_second"}));
+        result.diagonal_stencils[0].second_weights[2U] =
+            std::numeric_limits<float>::quiet_NaN();
+        bool diagonal_rejected = false;
+        try { data::write_dataset(recipe,result); }
+        catch (const std::invalid_argument&) { diagonal_rejected = true; }
+        require(diagonal_rejected && datasets::read_json_file(recipe.dataset) == diagonal_document);
+        recipe.orders = pg::SensitivityOrders::first;
+        result.diagonal_stencils.clear();
+        result.diagonal_hessians.clear();
+        result.diagonal_hessian_errors.clear();
+        result.execution["scenario_count"] = 3U;
+        result.execution.erase("materialized_scenario_count");
+        data::write_dataset(recipe,result);
         result.gradients[0] = std::numeric_limits<float>::quiet_NaN();
         bool rejected = false;
         try { data::write_dataset(recipe,result); } catch (const std::invalid_argument&) { rejected = true; }
@@ -40,7 +83,43 @@ int main() {
         result.execution["paths_per_price"] = 0;
         result.price_errors.clear(); result.gradient_errors.clear();
         data::write_dataset(recipe,result);
-        require(!datasets::read_json_file(recipe.dataset)["results"][0]["outputs"].contains("gradient_standard_errors"));
+        const auto deterministic = datasets::read_json_file(recipe.dataset);
+        require(!deterministic["results"][0]["outputs"].contains("gradient_standard_errors"));
+        require(deterministic["sensitivity"]["method"]
+            == "finite_difference");
+
+        models["models"].push_back({{"id", "000002"}});
+        products["products"].push_back({{"id", "000002"}});
+        nlohmann::ordered_json curves{
+            {"database_id", "curves"},
+            {"catalog", "catalog/test"},
+            {"url", "https://datasets.ai-factory.example/curves.json"},
+            {"curves", {{{"id", "000001"}}, {{"id", "000002"}}}},
+        };
+        datasets::write_json_file(directory/"models.json", models);
+        datasets::write_json_file(directory/"products.json", products);
+        datasets::write_json_file(directory/"curves.json", curves);
+        recipe.curve_input = directory/"curves.json";
+        recipe.dataset = directory/"curve_gradients.json";
+        recipe.construction = PriceConstruction::Cartesian;
+        result.prices.assign(8U, .1f);
+        result.gradients.assign(8U, .2f);
+        result.stencils.assign(8U, result.stencils.front());
+        data::write_dataset(recipe, result);
+        const auto curve_document = datasets::read_json_file(recipe.dataset);
+        require(curve_document["row_count"] == 8U);
+        require(curve_document["price_construction"]["order"]
+            == "model, curve, product");
+        require(curve_document["curve_dataset"]["id"] == "curves");
+        require(curve_document["results"][0]["model_id"] == "000001"
+            && curve_document["results"][0]["curve_id"] == "000001"
+            && curve_document["results"][0]["product_id"] == "000001");
+        require(curve_document["results"][3]["model_id"] == "000001"
+            && curve_document["results"][3]["curve_id"] == "000002"
+            && curve_document["results"][3]["product_id"] == "000002");
+        require(curve_document["results"][4]["model_id"] == "000002"
+            && curve_document["results"][4]["curve_id"] == "000001"
+            && curve_document["results"][4]["product_id"] == "000001");
         std::filesystem::remove_all(directory);
         return 0;
     } catch (const std::exception& error) {

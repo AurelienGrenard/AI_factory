@@ -19,7 +19,7 @@ int main() {
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01.json",
         "catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01.json",
         "Exact Merton increments",
         PriceConstruction::Aligned,
     };

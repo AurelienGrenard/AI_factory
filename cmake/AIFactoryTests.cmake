@@ -186,7 +186,9 @@ if(BUILD_TESTING)
                 catalog_generation
                 catalog_selection
                 dataset_provenance
-                generation_progress)
+                generation_progress
+                metadata_schemas
+                repository_layout)
             add_test(NAME ${stage}
                 COMMAND ${Python3_EXECUTABLE} -m unittest discover
                     -s tests/datasets -p test_${stage}.py)

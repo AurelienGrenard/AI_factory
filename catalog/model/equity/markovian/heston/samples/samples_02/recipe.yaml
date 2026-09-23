@@ -9,6 +9,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/heston/samples/samples_02/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/heston/samples/samples_02.json",
   "shape": {
     "parameter_count": 3000000,
     "paths_per_parameter": 1,
@@ -74,6 +75,7 @@
     "schedule": 11668827129511936000,
     "dynamics": 11668827130585677824
   },
+  "rng_mapping_version": "philox_source_step_v2",
   "numerical_method": {
     "engine": "sample_markovian",
     "profile": "model_sample_profile",

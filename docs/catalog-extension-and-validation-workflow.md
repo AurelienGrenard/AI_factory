@@ -143,6 +143,11 @@ La recette définit les distributions, grilles et contraintes. Le générateur
 avec la provenance, puis le publie en dernier. Le générateur recharge l'artefact
 avec le loader de production avant de réussir.
 
+La recette déclare aussi l'URL canonique du dataset avant sa génération. Pour
+les feuilles décrites par le manifeste typé, cette URL est construite par
+`DatasetSpec.url`; le contrôleur refuse une recette ou un artefact dont l'URL
+diverge du manifeste gelé dans la campagne.
+
 Les datasets modèle et produit suivent l'ordre contractuel de 900 lignes core
 puis 100 lignes stress. Utiliser le
 [contrat de génération des paramètres](model-and-product-parameter-dataset-generation.md)

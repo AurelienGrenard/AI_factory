@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 import tempfile
 
+from tools.datasets.metadata_schemas import validate_path
+
 
 def digest(path: Path) -> str | None:
     if not path.exists():
@@ -99,6 +101,12 @@ def publish_pair(root: Path, work: Path, journal: Path, artifacts: list[dict]) -
             )
         if not (resuming and current == item["sha256"]) and digest(source) != item["sha256"]:
             raise ValueError(f"Staged artifact missing or changed: {source}")
+
+    # The marker makes the pair visible to consumers, so reject malformed
+    # metadata before the first rename. On resume it may already be published.
+    marker_destination = contained_path(root, artifacts[1]["path"])
+    marker_source = contained_path(work, artifacts[1]["path"])
+    validate_path(marker_source if marker_source.exists() else marker_destination, "generation")
 
     if not resuming:
         save_json(journal, {"state": "publishing", "artifacts": artifacts})

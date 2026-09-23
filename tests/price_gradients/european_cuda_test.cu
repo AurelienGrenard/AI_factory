@@ -4,7 +4,9 @@
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_delta.cuh"
 #include "cuda_test_support.cuh"
+#include "diagonal_cuda_test_support.cuh"
 #include <bit>
+#include <cstring>
 #include <iostream>
 #include <vector>
 
@@ -16,6 +18,20 @@ namespace hs = model::equity::heston;
 std::size_t bs_paths = 1U << 17U;
 std::size_t heston_paths = 4097U;
 using namespace price_gradient_test;
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+DiagonalResults execute_heston_diagonal(
+    const hs::EuropeanOptionPriceGradientPlan& plan,
+    pg::LaunchConfiguration launch
+) {
+    return execute_diagonal<Orders>(
+        plan,
+        launch,
+        hs::launch_heston_european_option_diagonal_sensitivities_cuda<
+            Side, Orders
+        >
+    );
+}
 
 template<OptionSide Side> void black_scholes() {
     const std::vector<bs::ModelParameters> models{{.75f,.03f,.01f,.2f},{1.2f,0.f,0.f,.3f},{1.4f,.04f,.02f,.25f}};
@@ -63,7 +79,7 @@ template<OptionSide Side> void black_scholes() {
     }
     launch.method = pg::PricingMethod::monte_carlo;
     const auto mc = execute(prepare(full), launch, launcher, true);
-    batching(full,mc,launch,prepare,launcher);
+    selected_prefixes(full,mc,launch,prepare,launcher);
     const auto mc_solo = execute(prepare({{spot}}), launch, launcher);
     for (unsigned int row = 0; row < 3; ++row) {
         same(mc.price[row], mc_solo.price[row], "Adding gradients changed MC price");
@@ -89,6 +105,76 @@ template<OptionSide Side> void black_scholes() {
     const auto empty = execute(prepare({}), launch, launcher);
     for (unsigned int row = 0; row < 3; ++row) same(empty.price[row], mc_solo.price[row], "Empty selection changed price");
     std::cout << "Black-Scholes " << option_side_name(Side) << ": CF parity, six analytical/MC gradients and selection invariance passed\n";
+}
+
+template<OptionSide Side> void black_scholes_diagonal() {
+    const std::vector<bs::ModelParameters> models{
+        {.75f,.03f,.01f,.2f}, {1.2f,0.f,0.f,.3f}, {1.4f,.04f,.02f,.25f}
+    };
+    const std::vector<product::EuropeanOptionParameters> products{
+        {1.f,252U}, {1.2f,126U}, {1.1f,63U}
+    };
+    const pg::PriceGradientConfiguration selection{{
+        {"model.spot", {.005f}},
+        {"model.volatility", {.002f}},
+        {"product.strike", {.002f}},
+    }};
+    const auto prepare = [&](pg::SensitivityOrders orders) {
+        return bs::prepare_black_scholes_european_option_sensitivities(
+            models, products, PriceConstruction::Aligned, {}, selection,
+            {orders}
+        );
+    };
+    pg::LaunchConfiguration launch{
+        pg::PricingMethod::closed_form, 0U, models.size(), 0U,
+        128U, 1U, 0U, 1U
+    };
+    const auto combined = execute_diagonal<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(pg::SensitivityOrders::first_and_second), launch,
+        bs::launch_black_scholes_european_option_diagonal_sensitivities_cuda<
+            Side, pg::SensitivityOrders::first_and_second
+        >
+    );
+    const auto second = execute_diagonal<pg::SensitivityOrders::second>(
+        prepare(pg::SensitivityOrders::second), launch,
+        bs::launch_black_scholes_european_option_diagonal_sensitivities_cuda<
+            Side, pg::SensitivityOrders::second
+        >
+    );
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        same(combined.price[row], second.price[row],
+             "Black-Scholes sensitivity order changed price");
+        const double maturity = products[row].maturity_days / 252.0;
+        const auto& model = models[row];
+        const double d1 = (
+            std::log(model.spot/products[row].strike)
+            + (model.risk_free_rate-model.dividend_yield
+               + .5*model.volatility*model.volatility)*maturity
+        ) / (model.volatility*std::sqrt(maturity));
+        const double density = std::exp(-.5*d1*d1)
+            / std::sqrt(2.0*std::acos(-1.0));
+        const double gamma = std::exp(-model.dividend_yield*maturity)*density
+            / (model.spot*model.volatility*std::sqrt(maturity));
+        if (std::abs(combined.diagonal_hessian[row*3U]-gamma) >= 5e-3) {
+            std::cerr << "Black-Scholes represented gamma row=" << row
+                      << " estimate=" << combined.diagonal_hessian[row*3U]
+                      << " analytic=" << gamma << '\n';
+            throw std::runtime_error(
+                "Black-Scholes represented spot gamma mismatch."
+            );
+        }
+        for (std::size_t i = 0U; i < 3U; ++i) {
+            const auto index = row*3U+i;
+            same(combined.diagonal_hessian[index],
+                 second.diagonal_hessian[index],
+                 "Black-Scholes order changed diagonal Hessian");
+            require(std::isfinite(combined.gradient[index])
+                    && std::isfinite(combined.diagonal_hessian[index]),
+                    "Black-Scholes diagonal sensitivity is non-finite.");
+        }
+    }
 }
 
 template<OptionSide Side> void heston() {
@@ -137,7 +223,7 @@ template<OptionSide Side> void heston() {
             same(all.gradient[row*10U],solo.gradient[row],"Heston full-selection delta parity");
             same(all.gradient_error[row*10U],solo.gradient_error[row],"Heston full-selection delta error parity");
         }
-        batching(full,all,launch,prepare,launcher);
+        selected_prefixes(full,all,launch,prepare,launcher);
         if (threads == 128U) {
             for (unsigned int i = 1; i < 10; ++i) {
                 const auto single = execute(prepare({{full.sensitivities[i]}}),launch,launcher);
@@ -149,6 +235,231 @@ template<OptionSide Side> void heston() {
         }
     }
     std::cout << "Heston " << option_side_name(Side) << ": historical four-output parity, ten coordinates, reordered subsets, boundaries and grid maturities passed\n";
+}
+
+template<OptionSide Side> void heston_diagonal() {
+    const std::vector<hs::ModelParameters> models{
+        {.75f,.0f,.0f,.0f,1.5f,.04f,.3f,-.7f},
+        {1.2f,.0f,.0f,.06f,.8f,.04f,.4f,-.3f},
+        {1.4f,.0f,.0f,.04f,1.f,.04f,.3f,1.f},
+    };
+    const std::vector<product::EuropeanOptionParameters> products{
+        {.8f,16U}, {1.2f,12U}, {1.1f,8U}
+    };
+    const pg::PriceGradientConfiguration selection{{
+        {"model.spot", {.005f}},
+        {"model.initial_variance", {.001f, pg::BumpScale::absolute}},
+        {"model.kappa", {.005f}},
+        {"model.theta", {.005f}},
+        {"model.gamma", {.005f}},
+        {"model.rho", {.002f, pg::BumpScale::absolute}},
+        {"product.strike", {.002f}},
+    }};
+    const auto prepare = [&](
+        const pg::PriceGradientConfiguration& selected,
+        pg::SensitivityOrders orders
+    ) {
+        return hs::prepare_heston_european_option_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            {},
+            selected,
+            {orders}
+        );
+    };
+    pg::LaunchConfiguration launch{
+        pg::PricingMethod::monte_carlo,
+        0U,
+        models.size(),
+        heston_paths,
+        128U,
+        1U,
+        1709U,
+        1U,
+    };
+    const auto combined = execute_heston_diagonal<
+        Side,
+        pg::SensitivityOrders::first_and_second
+    >(prepare(selection, pg::SensitivityOrders::first_and_second), launch);
+    const auto second_only = execute_heston_diagonal<
+        Side,
+        pg::SensitivityOrders::second
+    >(prepare(selection, pg::SensitivityOrders::second), launch);
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        same(
+            combined.price[row],
+            second_only.price[row],
+            "Sensitivity order changed Heston price"
+        );
+        same(
+            combined.price_error[row],
+            second_only.price_error[row],
+            "Sensitivity order changed Heston price error"
+        );
+        for (std::size_t sensitivity = 0U;
+             sensitivity < selection.sensitivities.size();
+             ++sensitivity) {
+            const auto index = row*selection.sensitivities.size()+sensitivity;
+            same(
+                combined.diagonal_hessian[index],
+                second_only.diagonal_hessian[index],
+                "Second-order request changed diagonal Hessian"
+            );
+            same(
+                combined.diagonal_hessian_error[index],
+                second_only.diagonal_hessian_error[index],
+                "Second-order request changed diagonal-Hessian error"
+            );
+            require(
+                std::isfinite(combined.gradient[index]),
+                "Non-finite Heston gradient."
+            );
+            require(
+                std::isfinite(combined.diagonal_hessian[index]),
+                "Non-finite Heston diagonal Hessian."
+            );
+        }
+    }
+    for (std::size_t sensitivity = 0U;
+         sensitivity < selection.sensitivities.size();
+         ++sensitivity) {
+        const pg::PriceGradientConfiguration single{{
+            selection.sensitivities[sensitivity]
+        }};
+        const auto result = execute_heston_diagonal<
+            Side,
+            pg::SensitivityOrders::first_and_second
+        >(
+            prepare(single, pg::SensitivityOrders::first_and_second), launch
+        );
+        for (std::size_t row = 0U; row < models.size(); ++row) {
+            const auto index = row*selection.sensitivities.size()+sensitivity;
+            same(
+                combined.gradient[index],
+                result.gradient[row],
+                "Selection changed Heston gradient"
+            );
+            same(
+                combined.gradient_error[index],
+                result.gradient_error[row],
+                "Selection changed Heston gradient error"
+            );
+            same(
+                combined.diagonal_hessian[index],
+                result.diagonal_hessian[row],
+                "Selection changed Heston diagonal Hessian"
+            );
+            same(
+                combined.diagonal_hessian_error[index],
+                result.diagonal_hessian_error[row],
+                "Selection changed Heston diagonal-Hessian error"
+            );
+        }
+    }
+    const pg::PriceGradientConfiguration maturity{{{
+        "product.maturity_years",
+        {1.f/504.f, pg::BumpScale::absolute}
+    }}};
+    const auto maturity_result = execute_heston_diagonal<
+        Side, pg::SensitivityOrders::first_and_second
+    >(
+        prepare(maturity, pg::SensitivityOrders::first_and_second), launch
+    );
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        same(maturity_result.price[row], combined.price[row],
+             "Heston maturity diagonal changed central price");
+        require(std::isfinite(maturity_result.gradient[row])
+                && std::isfinite(maturity_result.diagonal_hessian[row]),
+                "Heston maturity diagonal is non-finite.");
+    }
+    std::cout << "Heston " << option_side_name(Side)
+              << ": seven gradients and diagonal Hessians, boundaries and selection invariance passed\n";
+}
+
+void heston_stencil_preparation() {
+    const std::vector<hs::ModelParameters> models{
+        {1.f,0.f,0.f,0.f,1.5f,.04f,.3f,-.7f},
+        {1.2f,0.f,0.f,.06f,.8f,.04f,.4f,1.f},
+    };
+    const std::vector<product::EuropeanOptionParameters> products{
+        {1.f,16U}, {1.1f,12U}
+    };
+    const pg::PriceGradientConfiguration selection{{
+        {"model.initial_variance", {.001f, pg::BumpScale::absolute}},
+        {"model.rho", {.002f, pg::BumpScale::absolute}},
+        {"product.strike", {.005f}},
+    }};
+    const auto plan = hs::prepare_heston_european_option_price_gradients(
+        models, products, PriceConstruction::Aligned, {}, selection
+    );
+    DeviceArray<hs::ModelParameters> device_models(plan.models);
+    DeviceArray<product::EuropeanOptionParameters> device_products(
+        plan.products
+    );
+    DeviceArray<hs::EuropeanOptionPriceGradientPlan::SensitivitySpec>
+        device_sensitivities(plan.sensitivities);
+    DeviceArray<pg::SensitivityStencil<3U>> device_stencils(
+        plan.result_count*plan.sensitivity_count()
+    );
+    DeviceArray<equity::price_gradients::device_preparation::Error> error(1U);
+    const hs::EuropeanOptionPriceGradientPlan::DeviceInputs inputs{
+        device_models.data,
+        device_models.count,
+        device_products.data,
+        device_products.count,
+        device_sensitivities.data,
+        device_sensitivities.count,
+    };
+    const hs::EuropeanOptionPriceGradientPlan::StencilOutputs outputs{
+        device_stencils.data, device_stencils.count, error.data
+    };
+    hs::prepare_european_option_price_gradient_stencils_cuda(
+        plan, inputs, outputs, 0U, plan.result_count
+    );
+    check_cuda(cudaDeviceSynchronize(), "Heston stencil-only preparation");
+    require(error.read()[0U].code == 0, "Stencil-only preparation failed.");
+    const auto actual = device_stencils.read();
+    for (std::size_t row = 0U; row < plan.result_count; ++row) {
+        hs::EuropeanOptionPriceGradientPlan::Preparation::Scenario central{};
+        require(
+            hs::EuropeanOptionPriceGradientPlan::Preparation::make_central(
+                plan.models[row], plan.products[row], plan.time, central
+            ),
+            "Host stencil oracle central preparation failed."
+        );
+        for (std::size_t sensitivity = 0U;
+             sensitivity < plan.sensitivity_count();
+             ++sensitivity) {
+            pg::SensitivityTask<
+                hs::EuropeanOptionPriceGradientPlan::Preparation::Scenario,
+                3U
+            > task{};
+            int preparation_error =
+                equity::price_gradients::device_preparation::valid;
+            require(
+                equity::price_gradients::device_preparation::
+                    build_sensitivity_task<
+                        pg::SensitivityOrders::first,
+                        hs::EuropeanOptionPriceGradientPlan::Preparation
+                    >(
+                        central,
+                        plan.sensitivities[sensitivity],
+                        plan.time,
+                        task,
+                        preparation_error
+                    ),
+                "Host stencil oracle failed."
+            );
+            const auto& observed =
+                actual[row*plan.sensitivity_count()+sensitivity];
+            require(
+                std::memcmp(&observed, &task.stencil, sizeof(observed)) == 0,
+                "Stencil-only device preparation differs from its host mirror."
+            );
+        }
+    }
+    std::cout << "Heston checkpoint stencil reconstruction passed\n";
 }
 }  // namespace
 
@@ -164,7 +475,12 @@ int main(int argc, char** argv) {
         int devices = 0;
         if (cudaGetDeviceCount(&devices) != cudaSuccess || devices == 0) return 77;
         black_scholes<OptionSide::call>(); black_scholes<OptionSide::put>();
+        black_scholes_diagonal<OptionSide::call>();
+        black_scholes_diagonal<OptionSide::put>();
         heston<OptionSide::call>(); heston<OptionSide::put>();
+        heston_diagonal<OptionSide::call>();
+        heston_diagonal<OptionSide::put>();
+        heston_stencil_preparation();
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

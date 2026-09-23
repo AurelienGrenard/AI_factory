@@ -1,5 +1,6 @@
 // Host implementation of the Ornstein-Uhlenbeck dataset loader.
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
+#include "model/fixed_income/ornstein_uhlenbeck/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
@@ -25,20 +26,7 @@ std::vector<ModelParameters> load_models(
                 },
                 parameters.at("initial_state").get<float>(),
             };
-            if (!std::isfinite(model.process.mean_reversion)
-                || !(model.process.mean_reversion > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "mean_reversion must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.process.volatility)
-                || !(model.process.volatility >= 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "volatility must be finite and non-negative."
-                );
-            }
-            if (!std::isfinite(model.initial_state))
-                throw std::invalid_argument(prefix + "initial_state must be finite.");
+            validate_parameters(model, prefix);
             return model;
     });
 }

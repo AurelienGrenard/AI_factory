@@ -1,5 +1,6 @@
 // JSON loading and validation for SABR parameter datasets.
 #include "model/equity/markovian/sabr/dataset.hpp"
+#include "model/equity/markovian/sabr/parameter_domain.hpp"
 
 #include "common/dataset_validation.hpp"
 
@@ -27,18 +28,7 @@ std::vector<ModelParameters> load_models(
                 row.at("rho").get<float>(),
                 row.at("beta").get<float>(),
             };
-            const auto finite = [](float value) { return std::isfinite(value); };
-            if (!finite(model.spot) || model.spot <= 0.0f
-                || !finite(model.initial_volatility)
-                || model.initial_volatility <= 0.0f
-                || !finite(model.volatility_of_volatility)
-                || model.volatility_of_volatility < 0.0f
-                || !finite(model.rho) || model.rho < -1.0f || model.rho > 1.0f
-                || !finite(model.beta) || model.beta < 0.0f || model.beta > 1.0f
-                || !finite(model.risk_free_rate)
-                || !finite(model.dividend_yield)) {
-                throw std::invalid_argument(prefix + "invalid model parameters.");
-            }
+            validate_parameters(model, prefix);
             return model;
         }
     );

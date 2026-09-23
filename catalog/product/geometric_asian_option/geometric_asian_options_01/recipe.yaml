@@ -6,6 +6,7 @@ output:
   path: datasets/product/geometric_asian_option/geometric_asian_options_01.json
   format: json
 generation_output: catalog/product/geometric_asian_option/geometric_asian_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/geometric_asian_option/geometric_asian_options_01.json
 product_family: Geometric Asian Options
 row_count: 1000
 time_convention:

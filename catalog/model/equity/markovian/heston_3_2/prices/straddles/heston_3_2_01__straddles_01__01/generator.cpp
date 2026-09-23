@@ -20,7 +20,7 @@ int main() {
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01.json",
         "catalog/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01.json",
         "full-truncation Euler 3/2 variance",
         PriceConstruction::Aligned,
     };

@@ -10,7 +10,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/rough/rough_heston/price_delta/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/price_delta/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/price_delta/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_heston/price_delta/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_heston/prices/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_prepared_price_delta_dataset(
         recipe, {offline::cuda_tuning::PricingFamily::rough_n_factor, "rough_heston", "forward_start_option", ""},
         11668828700396224512ULL, 7U, "7-factor Markovian lift", model::equity::rough_heston::load_models, product::load_forward_start_options,

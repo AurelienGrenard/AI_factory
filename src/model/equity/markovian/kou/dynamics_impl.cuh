@@ -2,6 +2,7 @@
 #pragma once
 
 #include "model/equity/markovian/kou/dynamics.cuh"
+#include "common/compound_poisson.cuh"
 
 #include <cmath>
 #include <cstdint>
@@ -64,41 +65,59 @@ __device__ __forceinline__ void one_step_transition(
 
 // ==================== Model-specific implementation =======================
 
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::DomainRandomContext& random
+) {
+    const auto step = random.next_step();
+    auto count_uniforms = random.source<
+        compound_poisson::kCountSource
+    >(step);
+    const std::uint32_t jump_count = compound_poisson::draw_count(
+        count_uniforms,
+        prepared_transition.poisson_mean,
+        prepared_transition.zero_jump_probability
+    );
+    auto mark_uniforms = random.source<
+        compound_poisson::kMarkSource
+    >(step);
+    float jump_log_sum = 0.0f;
+    for (std::uint32_t jump_index = 0U;
+         jump_index < jump_count;
+         ++jump_index) {
+        const bool upward = mark_uniforms.next() < prepared_model.up_probability;
+        const float magnitude = -logf(mark_uniforms.next());
+        jump_log_sum += upward
+            ? magnitude * prepared_model.inverse_positive_jump_rate
+            : -magnitude * prepared_model.inverse_negative_jump_rate;
+    }
+    auto diffusion_uniforms = random.source<
+        compound_poisson::kContinuousSource
+    >(step);
+    philox::NormalPairCache diffusion_cache;
+    return {
+        jump_count,
+        philox::next_normal(diffusion_uniforms, diffusion_cache),
+        jump_log_sum,
+    };
+}
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
-    constexpr float kPoissonInversionThreshold = 10.0f;
-    const std::uint32_t jump_count =
-        prepared_transition.poisson_mean < kPoissonInversionThreshold
-        ? philox::poisson_from_uniform(
-            uniforms.next(),
-            prepared_transition.poisson_mean,
-            prepared_transition.zero_jump_probability
-        )
-        : philox::poisson_from_uniform_sequence(
-            uniforms,
-            prepared_transition.poisson_mean
-        );
-    float jump_log_sum = 0.0f;
-    for (std::uint32_t jump_index = 0U;
-         jump_index < jump_count;
-         ++jump_index) {
-        const bool upward = uniforms.next() < prepared_model.up_probability;
-        const float magnitude = -logf(uniforms.next());
-        jump_log_sum += upward
-            ? magnitude * prepared_model.inverse_positive_jump_rate
-            : -magnitude * prepared_model.inverse_negative_jump_rate;
-    }
+    const auto innovations = draw_transition_innovations(
+        prepared_model, prepared_transition, random
+    );
     one_step_transition(
         prepared_transition,
-        philox::next_normal(uniforms, normal_cache),
-        jump_log_sum,
+        innovations.diffusion_normal,
+        innovations.jump_log_sum,
         state
     );
 }
@@ -171,7 +190,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     State& state
 ) {
     kou::simulate_one_step(
-        prepared_model, prepared_transition, random.uniforms, random.normals, state
+        prepared_model, prepared_transition, random, state
     );
 }
 

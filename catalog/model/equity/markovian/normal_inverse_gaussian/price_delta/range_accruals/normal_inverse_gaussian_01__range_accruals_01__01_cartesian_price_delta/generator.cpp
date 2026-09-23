@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/normal_inverse_gaussian/price_delta/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "normal_inverse_gaussian", "range_accrual", ""},
         11668827656719171584ULL, model::equity::normal_inverse_gaussian::load_models, product::load_range_accruals,

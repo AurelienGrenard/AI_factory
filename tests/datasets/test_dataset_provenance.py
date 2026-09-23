@@ -24,7 +24,8 @@ class ProvenanceTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.dataset = self.root / "prices.json"
         self.dataset.write_text('{"results": [{"price": 1.25}]}')
-        self.recipe_path = self.root / "recipe.yaml"
+        self.recipe_path = self.root / "catalog/example/recipe.yaml"
+        self.recipe_path.parent.mkdir(parents=True)
         self.recipe = {
             "schema_version": 1,
             "kind": "prices",
@@ -32,6 +33,7 @@ class ProvenanceTests(unittest.TestCase):
             "generator": "generator.cpp",
             "output": {"path": "prices.json", "format": "json"},
             "generation_output": "generation.yaml",
+            "url": "https://datasets.ai-factory.example/v1/prices.json",
             "paths_per_price": 1_048_576,
             "seeds": {"dynamics": 123},
         }
@@ -55,7 +57,7 @@ class ProvenanceTests(unittest.TestCase):
         (self.root / "parameters.json").write_text(json.dumps(self.parameters))
         self.job = {
             "dataset": "prices.json", "generation": "generation.yaml",
-            "recipe": "recipe.yaml", "generator": "generator.cpp",
+            "recipe": "catalog/example/recipe.yaml", "generator": "generator.cpp",
             "inputs": ["parameters.json"],
             "binary_sha256": "b" * 64,
             "generator_sha256": "c" * 64,

@@ -1,5 +1,6 @@
 // Host implementation of the G2 dataset loader.
 #include "model/fixed_income/g2/dataset.hpp"
+#include "model/fixed_income/g2/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
@@ -31,43 +32,7 @@ std::vector<ModelParameters> load_models(
                     values.at("initial_state_y").get<float>(),
                 },
             };
-            if (!std::isfinite(model.process.mean_reversion_x)
-                || !(model.process.mean_reversion_x > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "mean_reversion_x must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.process.mean_reversion_y)
-                || !(model.process.mean_reversion_y > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "mean_reversion_y must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.process.volatility_x)
-                || !(model.process.volatility_x >= 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "volatility_x must be finite and non-negative."
-                );
-            }
-            if (!std::isfinite(model.process.volatility_y)
-                || !(model.process.volatility_y >= 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "volatility_y must be finite and non-negative."
-                );
-            }
-            if (!std::isfinite(model.process.correlation)
-                || model.process.correlation < -1.0f
-                || model.process.correlation > 1.0f) {
-                throw std::invalid_argument(
-                    prefix + "correlation must be finite and lie in [-1, 1]."
-                );
-            }
-            if (!std::isfinite(model.initial_state.state_x)
-                || !std::isfinite(model.initial_state.state_y)) {
-                throw std::invalid_argument(
-                    prefix + "initial states must be finite."
-                );
-            }
+            validate_parameters(model, prefix);
             return model;
     });
 }

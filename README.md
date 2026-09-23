@@ -53,6 +53,7 @@ Documentation does not duplicate that evolving matrix.
 - GCC 14 or another CUDA-compatible C++23 compiler;
 - CUDA Toolkit 13.3 or newer;
 - `nlohmann-json3-dev`;
+- Python 3 with PyYAML and `jsonschema` for catalogue workflows and their tests;
 - an NVIDIA GPU for CUDA runtime tests.
 
 cuFFTDx is optional. It is required only for mathDx-backed Volterra FFT

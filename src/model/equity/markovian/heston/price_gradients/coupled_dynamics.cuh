@@ -10,6 +10,7 @@ struct CoupledDynamics {
     using RandomContext = DynamicsPolicy::RandomContext;
     struct Innovations { float variance_normal, variance_uniform, stock_normal; };
     static constexpr bool kExactTerminal = false;
+    static constexpr bool kDrawRequiresCentralPrepared = false;
     __device__ static Prepared prepare(const ModelParameters&, float);
     __device__ static State initial(const Prepared&);
     __device__ static Innovations draw(RandomContext&);

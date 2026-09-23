@@ -13,6 +13,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v1/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian.json",
   "construction": "cartesian",
   "numerical_method": {
     "engine": "fixed_income_closed_form",

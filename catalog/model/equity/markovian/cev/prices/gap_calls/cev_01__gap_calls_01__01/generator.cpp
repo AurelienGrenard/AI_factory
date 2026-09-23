@@ -20,7 +20,7 @@ int main() {
         "datasets/product/gap_option/gap_call_options_01.json",
         "datasets/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01.json",
         "catalog/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01.json",
         "absorbed Milstein",
         PriceConstruction::Aligned,
     };

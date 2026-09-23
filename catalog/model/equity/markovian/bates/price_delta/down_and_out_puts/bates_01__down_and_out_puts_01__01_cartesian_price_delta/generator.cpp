@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/bates/parameters/bates_01.json", "datasets/product/down_and_out_option/down_and_out_options_01.json", "datasets/model/equity/markovian/bates/price_delta/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/price_delta/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/price_delta/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/price_delta/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "bates", "down_and_out_option", ""},
         11668826690351529984ULL, model::equity::bates::load_models, product::load_down_and_out_options,

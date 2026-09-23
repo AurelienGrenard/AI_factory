@@ -32,7 +32,8 @@ and project records.
 
 ## Architecture contracts
 
-- [Selected equity price gradients](cuda/equity-price-gradients-contract.md) — selectable parameters, CRN scenarios and initial European scope.
+- [Selected equity price gradients](cuda/equity-price-gradients-contract.md) — selectable parameters, CRN scenarios and European/American scope.
+- [Selected fixed-income price gradients](cuda/fixed-income-price-gradients-contract.md) — compact CIR/Jamshidian preparation, scalar/cooperative execution and diagonal Hessians.
 - [Equity price and spot delta](cuda/equity-price-delta-contract.md) — separate
   launchers, shared/coupled paths, bumping and bounded frozen-date LSM pilots.
 
@@ -42,6 +43,13 @@ and project records.
   schedule, product, pricing, sampling, and kernel policies compose.
 - [Model dynamics contract](cuda/model-dynamics-contract.md) — state,
   transition, Philox, time-grid, and simulation interfaces.
+- [Philox domain migration plan](cuda/philox-domain-migration-plan.md) — deferred
+  internal source addressing, staged tests, and dataset-versioning gates.
+- [Jump price-gradient migration plan](cuda/jump-price-gradient-migration-plan.md)
+  — eventwise central marks, coupled jumps, and staged model qualification.
+- [Price-gradient migration plan](cuda/price-gradients-migration-plan.md) —
+  Markovian equity and fixed-income coverage, rough N-factor/FFT gradients,
+  and the eventual removal of active `price_delta` paths.
 - [Model analytics contract](cuda/model-analytics-contract.md) — canonical
   analytical APIs and providers.
 - [Closed-form and Monte Carlo pricing contract](cuda/closed-form-and-monte-carlo-pricing-contract.md)
@@ -75,6 +83,15 @@ and project records.
 - [Jamshidian scalar/cooperative strategy](performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md)
   — all one-factor rates models, 100 to 2²⁰ prices, launch geometry and
   calendar sensitivity; numerical and timing qualification limits.
+- [Price-gradient CUDA strategies](performance-reports/price-gradients-strategies-sm89-2026-09-19.md)
+  — terminal MC, closed form, frozen-exercise LSM and Jamshidian phase
+  coverage, resources, Nsight profiles and bounded SM89 timings.
+- [SABR terminal gradients](performance-reports/price-gradients-sabr-terminal-sm89-2026-09-22.md)
+  — first/diagonal-second launch timings and register pressure on SM89.
+- [Heston diagonal dataset](performance-reports/price-gradients-heston-diagonal-dataset-sm89-2026-09-22.md)
+  — end-to-end artifact/checkpoint proof plus bounded diagonal resources and timings.
+- [Heston American and CIR/Jamshidian sensitivities](performance-reports/price-gradients-heston-american-cir-jamshidian-sm89-2026-09-22.md)
+  — compact preparation, first/diagonal costs, resources and numerical limits.
 - [Pricing workload scaling — ongoing](performance-reports/pricing-workload-scaling-sm89-2026-09-07.md)
   — 100/1,000/10,000 prices, per-price path counts and workload-specific geometry.
 - [Dataset pricing runtime notebook](performance-reports/pricing-dataset-runtime-sm89.ipynb)

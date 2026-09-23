@@ -1,135 +1,170 @@
-// Heston composition over central LSM and coupled frozen-exercise replay.
-#include "model/equity/markovian/heston/product/american_option_price_gradients.cuh"
+// Generated ${model} composition over central LSM and frozen-exercise replay.
+#include "model/equity/markovian/${model}/product/american_option_price_gradients.cuh"
 
+#include "common/equity/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "common/longstaff_schwartz/price_gradients/${lsm_replay_header}"
+#include "common/longstaff_schwartz/price_gradients/device_prepared_launcher.cuh"
 #include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "model/equity/markovian/heston/dynamics_impl.cuh"
-#include "model/equity/markovian/heston/price_gradients/coupled_dynamics_impl.cuh"
-#include "model/equity/markovian/heston/price_gradients/frozen_exercise_replay.cuh"
+#include "model/equity/markovian/${model}/dynamics_impl.cuh"
+#include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
-#include "product/american_option/price_gradients/pricing_policy.cuh"
+#include "product/american_option/price_gradients/device_prepared_pricing_policy.cuh"
 
-#include <stdexcept>
-
-namespace ai_factory::workbench::model::equity::heston {
+namespace ai_factory::workbench::model::equity::${model} {
 namespace {
 
-using Schedule = simulation::FixedStepMaturityAlignedExerciseSchedule<
-    heston::DynamicsPolicy
+using Schedule = simulation::${lsm_schedule}<
+    ${model}::DynamicsPolicy
 >;
-using Continuation = product::SpotAndScaledStateContinuationState<
-    heston::DynamicsPolicy,
-    &heston::State::variance,
-    &heston::ModelParameters::theta
+using Continuation = ${lsm_continuation};
+template<OptionSide Side, pg::SensitivityOrders Orders>
+using Replay = lspg::${lsm_replay}<
+    mpg::CoupledDynamics,
+    pg::SensitivityTraits<Orders>::node_capacity
 >;
-template<OptionSide Side>
-using Policy = product::AmericanOptionPriceGradientPolicy<
+template<OptionSide Side, pg::SensitivityOrders Orders>
+using Policy = product::AmericanOptionDevicePreparedSensitivityPolicy<
     Schedule,
     Side,
     Continuation,
-    price_gradients::FrozenExerciseReplay
+    Replay<Side, Orders>,
+    typename AmericanOptionPriceGradientPlan::Preparation,
+    Orders
 >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
     longstaff_schwartz::basis::LaguerrePolynomialTwoFactorBasis,
-    longstaff_schwartz::RegressionRefinement::none
+    longstaff_schwartz::RegressionRefinement::${lsm_refinement}
 >;
 
 }  // namespace
 
-template<OptionSide Side>
-longstaff_schwartz::LaunchResult
-launch_heston_american_option_price_gradients_cuda(
+void prepare_american_option_price_gradient_stencils_cuda(
     const AmericanOptionPriceGradientPlan& host,
-    ::ai_factory::workbench::price_gradients::DeviceInputs<
-        AmericanOptionPriceGradientPlan::ScenarioType
-    > device,
-    const ::ai_factory::workbench::price_gradients::LaunchConfiguration& launch,
-    ::ai_factory::workbench::price_gradients::Outputs outputs
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
 ) {
-    namespace pg = ::ai_factory::workbench::price_gradients;
-    pg::validate_plan_buffers(host, device, launch, outputs);
-    if (launch.method != pg::PricingMethod::monte_carlo) {
-        throw std::invalid_argument(
-            "Heston American gradients require Monte Carlo."
-        );
-    }
-    if (launch.sensitivity_batch_size != 1U) {
-        throw std::invalid_argument(
-            "Heston American frozen gradients currently require B=1."
-        );
-    }
-
-    using GradientPolicy = Policy<Side>;
-    const std::size_t sensitivity_count = host.sensitivity_count();
-    const std::size_t scenarios_per_row = 1U + 2U * sensitivity_count;
-    const std::size_t result_offset = launch.result_offset;
-    const std::size_t result_count = launch.result_count;
-    validate_row_seed_range(host.result_count, launch.base_seed);
-    const typename GradientPolicy::HostInputs host_inputs{
-        host.scenarios.data() + result_offset * scenarios_per_row,
-        result_count * scenarios_per_row,
-        sensitivity_count == 0U
-            ? nullptr
-            : host.stencils.data() + result_offset * sensitivity_count,
-        result_count * sensitivity_count,
-        sensitivity_count,
-    };
-    const pg::DeviceInputs<AmericanOptionPriceGradientPlan::ScenarioType>
-        batch_device{
-            device.scenarios + result_offset * scenarios_per_row,
-            device.scenario_capacity - result_offset * scenarios_per_row,
-            sensitivity_count == 0U
-                ? nullptr
-                : device.stencils + result_offset * sensitivity_count,
-            device.stencil_capacity - result_offset * sensitivity_count,
-        };
-    const typename GradientPolicy::DeviceInputs device_inputs{
-        batch_device,
-        sensitivity_count,
-        result_offset,
-        outputs.gradients,
-        outputs.gradient_standard_errors,
-    };
-    return longstaff_schwartz::launch_longstaff_schwartz_cuda<
-        GradientPolicy, Regressor
+    ::ai_factory::workbench::equity::price_gradients::
+        prepare_device_sensitivity_stencils<
+        pg::SensitivityOrders::first
     >(
-        device_inputs,
-        host_inputs,
+        host,
+        device,
+        stencil_outputs,
+        result_offset,
         result_count,
-        launch.paths_per_price,
-        simulation::FixedStepTimeConfiguration{
-            host.time.dt,
-            host.time.simulation_steps_per_day,
-        },
-        launch.threads_per_block,
-        launch.block_count,
-        launch.base_seed + result_offset,
-        outputs.prices,
-        outputs.price_standard_errors,
-        "heston.american_option_price_gradients",
-        option_side_name(Side),
-        "Heston American price-gradients"
+        "${model}.american_option.price_gradients.stencil_preparation"
     );
 }
 
-template longstaff_schwartz::LaunchResult
-launch_heston_american_option_price_gradients_cuda<OptionSide::call>(
-    const AmericanOptionPriceGradientPlan&,
-    ::ai_factory::workbench::price_gradients::DeviceInputs<
-        AmericanOptionPriceGradientPlan::ScenarioType
-    >,
-    const ::ai_factory::workbench::price_gradients::LaunchConfiguration&,
-    ::ai_factory::workbench::price_gradients::Outputs
-);
-template longstaff_schwartz::LaunchResult
-launch_heston_american_option_price_gradients_cuda<OptionSide::put>(
-    const AmericanOptionPriceGradientPlan&,
-    ::ai_factory::workbench::price_gradients::DeviceInputs<
-        AmericanOptionPriceGradientPlan::ScenarioType
-    >,
-    const ::ai_factory::workbench::price_gradients::LaunchConfiguration&,
-    ::ai_factory::workbench::price_gradients::Outputs
-);
+void prepare_american_option_diagonal_sensitivity_stencils_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
+) {
+    ::ai_factory::workbench::equity::price_gradients::
+        prepare_device_sensitivity_stencils<
+        pg::SensitivityOrders::first_and_second
+    >(
+        host,
+        device,
+        stencil_outputs,
+        result_offset,
+        result_count,
+        "${model}.american_option.diagonal.stencil_preparation"
+    );
+}
 
-}  // namespace ai_factory::workbench::model::equity::heston
+template<OptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${model}_american_option_price_gradients_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::Outputs outputs
+) {
+    const pg::SensitivityOutputs sensitivity_outputs{
+        outputs.prices,
+        outputs.price_standard_errors,
+        outputs.gradients,
+        outputs.gradient_standard_errors,
+        nullptr,
+        nullptr,
+        outputs.price_capacity,
+        outputs.gradient_capacity,
+    };
+    return lspg::launch_device_prepared_sensitivities<
+        pg::SensitivityOrders::first,
+        Policy<Side, pg::SensitivityOrders::first>,
+        Regressor
+    >(
+        host,
+        device,
+        stencil_outputs,
+        launch,
+        sensitivity_outputs,
+        "${model}.american_option.sensitivities",
+        Side == OptionSide::call ? "call/nodes=3/B=1" : "put/nodes=3/B=1",
+        "${model} American sensitivities"
+    );
+}
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_${model}_american_option_diagonal_sensitivities_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs
+) {
+    static_assert(pg::requests_second_v<Orders>);
+    return lspg::launch_device_prepared_sensitivities<
+        Orders,
+        Policy<Side, Orders>,
+        Regressor
+    >(
+        host,
+        device,
+        stencil_outputs,
+        launch,
+        outputs,
+        "${model}.american_option.sensitivities",
+        Side == OptionSide::call ? "call/nodes=4/B=1" : "put/nodes=4/B=1",
+        "${model} American sensitivities"
+    );
+}
+
+#define AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(SIDE) \
+    template longstaff_schwartz::LaunchResult \
+    launch_${model}_american_option_price_gradients_cuda<SIDE>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::StencilOutputs, \
+        const pg::LaunchConfiguration&, pg::Outputs); \
+    template longstaff_schwartz::LaunchResult \
+    launch_${model}_american_option_diagonal_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
+    template longstaff_schwartz::LaunchResult \
+    launch_${model}_american_option_diagonal_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::first_and_second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+
+AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::call);
+AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::put);
+
+#undef AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES
+
+}  // namespace ai_factory::workbench::model::equity::${model}
