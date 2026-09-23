@@ -1,7 +1,7 @@
-// Generated ${model} European selected-gradient recipe using the shared native runner.
-#include "model/equity/markovian/${model}/product/european_option_price_gradients.cuh"
+// Generated ${model} ${product} selected-gradient recipe.
+#include "model/equity/markovian/${model}/product/${product}_price_gradients.cuh"
 #include "model/equity/markovian/${model}/dataset.hpp"
-#include "product/european_option/dataset.hpp"
+#include "product/${product}/dataset.hpp"
 #include "tools/pricing/price_gradients/generation.cuh"
 
 int main() {
@@ -14,10 +14,12 @@ int main() {
         $selections
             }}, {1.0f/504.0f, 2U}, $exact_transition};
         const auto models = model::equity::$model::load_models(recipe.model_input);
-        const auto products = product::load_european_options(recipe.product_input);
+        const auto products = $product_loader_expression;
         return offline::pricing::price_gradients::execute_dataset<$stochastic>(recipe,
-            {offline::cuda_tuning::PricingFamily::$family, "$model", "european_option", ""}, ${seed}ULL,
-            models, products, model::equity::$model::prepare_${model}_european_option_price_gradients,
-            model::equity::$model::launch_${model}_european_option_price_gradients_cuda<OptionSide::$side>);
+            {offline::cuda_tuning::PricingFamily::$family, "$model", "$product", ""}, ${seed}ULL,
+            models, products, model::equity::$model::prepare_${model}_${product}_price_gradients,
+            model::equity::$model::launch_${model}_${product}_price_gradients_cuda<OptionSide::$side>,
+            offline::cuda_tuning::kProductionPathsPerPrice,
+            model::equity::$model::prepare_${product}_price_gradient_stencils_cuda);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

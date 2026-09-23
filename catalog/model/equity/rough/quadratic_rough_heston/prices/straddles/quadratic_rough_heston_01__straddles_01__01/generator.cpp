@@ -23,7 +23,7 @@ int main() {
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01.json",
         "catalog/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,
     };

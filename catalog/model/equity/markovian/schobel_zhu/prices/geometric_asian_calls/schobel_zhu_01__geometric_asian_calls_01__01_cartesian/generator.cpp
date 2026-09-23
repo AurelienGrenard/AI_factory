@@ -20,7 +20,7 @@ int main() {
         "datasets/product/geometric_asian_option/geometric_asian_options_01.json",
         "datasets/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01_cartesian.json",
         "exact OU factor with log-spot Euler",
         PriceConstruction::CartesianProduct,
     };

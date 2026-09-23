@@ -20,7 +20,7 @@ int main() {
         "datasets/product/up_and_in_option/up_and_in_options_01.json",
         "datasets/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01.json",
         "catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01.json",
         "exact OU volatility with log-spot Euler",
         PriceConstruction::Aligned,
     };

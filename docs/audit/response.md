@@ -3,21 +3,132 @@
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
-## État courant — prix rough, prix-delta et produits de taux — 2026-09-14
+## État courant — structure, sauts, prix rough, prix-delta et produits de taux — 2026-09-23
 
-**Six constats ouverts, 113 fermés, 119 identifiants.** Le lot 1 puis
+**Huit constats ouverts, 119 fermés, 127 identifiants.** Le lot 1 puis
 STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
-[closed.md](closed.md). Restent PERF-016, DELTA-001, PRODUCT-001 et les trois
-constats de qualité des prix rough NUM-028/029/030. Aucune clôture de performance
-globale ou de validation indépendante n'est revendiquée.
+[closed.md](closed.md). Restent PERF-016, DELTA-001, PRODUCT-001, les trois
+constats de qualité des prix rough NUM-028/029/030. Les cinq constats du
+passage `price_gradients` sont corrigés et transférés dans
+[closed.md](closed.md). NUM-031 suit le mapping Philox interne et NUM-032 les
+sensibilités de saut événementielles. Aucune clôture de performance globale,
+de migration rough ou de validation indépendante n'est revendiquée.
 
 Le passage indépendant portait sur le worktree réel de main, HEAD
 `872a986b1f0947a1a832af0615ffc6d80dbedb81`, query v9, pas sur le seul commit.
 Son snapshot et sa couverture partielle restent historiques dans
 [status.md](status.md), qui décrit séparément la remédiation actuelle.
 Aucune conformité globale ni certification des datasets n'est déduite des
-tests de non-régression. Les anciennes campagnes PERF-017/019 restent fusionnées
-dans PERF-016; aucune campagne longue n'est lancée dans ce lot.
+tests de non-régression. Le passage structurel du 2026-09-18 porte sur la
+révision propre `50d9ad8`; sa couverture et ses exclusions sont consignées
+dans [status.md](status.md#audit-ciblé-de-larborescence-complète--2026-09-18).
+Les anciennes campagnes PERF-017/019 restent fusionnées dans PERF-016; aucune
+campagne longue n'est lancée dans ce lot.
+
+## Adressage des innovations Monte Carlo
+
+### NUM-031 — Réserver les domaines Philox aux sources qui exigent une isolation
+
+- **État / date / propriétaire :** ouvert le 2026-09-22 à la demande de
+  l'utilisateur ; compteur V2 commun intégré dans `src/common/philox.cuh`,
+  sélection multi-flux dans `src/common/philox_domains.cuh` et les adaptateurs
+  de dynamique MC ; qualification en cours.
+  Aucun prix historique n'est déclaré incorrect par ce constat.
+- **Sévérité / priorité / confiance :** moyenne / active / élevée pour le
+  contrat du compteur et la sélection des flux ; qualification de performance
+  complète encore ouverte.
+- **Signature et preuve :** le [contrat actif](../cuda/model-dynamics-contract.md#suite-aléatoire-philox)
+  fixe une clé `base_seed + row` et un compteur V2
+  `(path_bas, path_haut, groupe, domaine)` ; `NormalRandomContext` porte une seule
+  `UniformSequence`. Dans
+  [Merton](../../src/model/equity/markovian/merton/dynamics_impl.cuh), le
+  compte Poisson, la normale de diffusion et celle des sauts consommaient cette
+  même séquence ; le chemin PTRS peut consommer un nombre variable d'uniformes.
+  Dans [Heston QE](../../src/model/equity/markovian/heston/dynamics_impl.cuh),
+  deux normales et un uniforme auxiliaire sont tirés dans un ordre fixe.
+- **Conséquence / portée :** une consommation variable d'une source peut
+  déplacer les tirages suivants d'une autre source ou d'un autre pas. Le
+  couplage historique reste contractuel pour les coordonnées déjà exposées :
+  l'intensité des sauts est exclue et le tirage Heston fixe partage les mêmes
+  innovations entre scénarios. Le constat vise l'extension sûre aux sauts,
+  facteurs browniens multiples et futurs multi-sous-jacents. Il est distinct
+  de NUM-008, clos pour l'allocation des **seeds entre recettes**. Maintenir
+  un contexte par domaine ferait croître groupes mis en cache, curseurs et
+  caches normaux vivants ; ce coût doit être mesuré, pas présumé acceptable.
+- **Correction proposée :** suivre le
+  [plan de migration](../cuda/philox-domain-migration-plan.md) : une seule
+  primitive Philox et une clé par ligne, avec **flux unique prioritaire** quand
+  la consommation fixe suffit au CRN ; n'isoler par domaine que les sources
+  dont la consommation variable ou conditionnelle le demande. Adresser pas
+  et groupes sans garder automatiquement un contexte par domaine. Inventorier
+  d'abord les consommateurs, garder Heston QE et Vasicek comme témoins
+  mono-flux, piloter Merton, puis étendre sélectivement après qualification.
+  Versionner le mapping interne indépendamment des réservations de seeds et
+  conserver les empreintes des générations historiques. Les nouvelles recettes
+  stochastiques déclarent toutes `philox_source_step_v2` et une URL `/v2/` ;
+  les bases existantes sous `/v1/` ne sont pas bit à bit égales au résultat du
+  nouveau code.
+  NUM-032 possède la migration des modèles et des lois de sauts.
+- **Clôture vérifiable :** encodage injectif et borné, versions et provenance
+  complètes, archives historiques reproductibles avec leurs sources gelées,
+  prix et gradients de
+  la nouvelle voie partageant exactement les innovations attendues sous
+  variations de batch et de géométrie ; rejets/sauts incapables de décaler
+  d'autres sources ou pas ; innovations adressées/rejouées sans collision,
+  justification du maintien mono-flux pour les consommateurs à tirage fixe ;
+  registres et temps de bout en bout qualifiés selon le plan. Les modèles à
+  sauts non migrés restent suivis par NUM-032.
+
+## Gradients des modèles à sauts
+
+### NUM-032 — Ouvrir les sensibilités de saut avec des marques centrales rejouables
+
+- **État / date / propriétaire :** ouvert le 2026-09-22 à la demande de
+  l'utilisateur ; tranche terminale Merton/Kou/Bates/VG/NIG intégrée le
+  2026-09-23, qualification et consommateurs de chemin encore ouverts.
+  Propriétaires : dynamiques et adapters `price_gradients` de chaque modèle à
+  sauts, puis moteur MC commun pour le contrat d'innovations par nœud. Aucun
+  prix historique n'est déclaré incorrect.
+- **Sévérité / priorité / confiance :** moyenne / différée / élevée pour la
+  limite d'interface et l'absence des coordonnées, à mesurer pour performance
+  et bruit MC.
+- **Signature et preuve :** le moteur commun accepte maintenant des
+  innovations propres à chaque nœud sans dupliquer payoff ni réduction.
+  [Merton](../../src/model/equity/markovian/merton/price_gradients/coupled_dynamics_impl.cuh),
+  [Kou](../../src/model/equity/markovian/kou/price_gradients/coupled_dynamics_impl.cuh)
+  et [Bates](../../src/model/equity/markovian/bates/price_gradients/coupled_dynamics_impl.cuh)
+  utilisent le replay événementiel commun. VG redémarre une source Gamma par
+  nœud et NIG rejoue les primitives fixes de Michael--Schucany--Haas. Les
+  tests CUDA couvrent central bit à bit, projectivité trois/quatre nœuds,
+  références de fonctions caractéristiques, sélections, ordre deux diagonal
+  et parité `{spot}` avec `price_delta`. Voir le
+  [contrat courant](../cuda/equity-price-gradients-contract.md).
+- **Conséquence / portée :** la voie terminale existe, mais l'intensité et les
+  paramètres de marques ne sont pas encore qualifiés sur plusieurs seeds et
+  bumps, et les produits de chemin/LSM ne consomment pas encore tous ce
+  couplage. Le coût des boucles événementielles à forte intensité reste à
+  mesurer avant publication.
+- **Étapes de correction :** suivre le
+  [plan détaillé](../cuda/jump-price-gradient-migration-plan.md) : (1)
+  inventorier consommations, produits et baselines ; (2) piloter le central
+  événementiel Merton et son replay sans tableau de marques ; (3) étendre à la
+  compilation le moteur commun aux innovations couplées **par nœud**, sans
+  recopier payoff ni réduction ; (4) qualifier les comptes conditionnels,
+  marques et compensateurs pour intensité, paramètres de saut et `T` européen ;
+  (5) étendre à Bates puis Kou, aux produits de chemin compatibles et à
+  l'exercice gelé selon leur contrat ; (6) versionner codegen, recettes et
+  datasets avant publication. L'adapter de chaque modèle possède sa loi ;
+  NUM-031 possède l'adressage Philox partagé.
+- **Clôture vérifiable :** pour les modèles à sauts finis qualifiés, toutes
+  les coordonnées déclarées disposent de domaines/stencils valides, prix
+  central identique bit à bit entre prix seuls et gradients **dans la nouvelle
+  version**, événements et innovations de marques communs rejouables,
+  marges et compensateurs indépendamment vérifiés, erreurs de différences
+  finies séparant biais/bruit/FP32 sur plusieurs seeds, codegen et reprise
+  reproductibles, CUDA/sanitizers et temps complets mesurés jusqu'aux fortes
+  intensités. Les recettes historiques restent intactes. Une intensité
+  dépendante de l'état ou une activité infinie exige son propre couplage
+  déclaré ; la présence de l'interface commune ne la certifie pas.
 
 ## Extension prix et delta equity
 
@@ -50,7 +161,8 @@ dans PERF-016; aucune campagne longue n'est lancée dans ce lot.
   ce diagnostic ne qualifie pas le biais global de l'estimateur gelé.
 - **Acquis markoviens / recettes :** 261 bindings compilés (244 MC, huit
   formules fermées, neuf LSM) et 364 recettes du catalogue existant générées,
-  avec recipe.yaml prévisionnel, publication JSON/dataset.yaml et provenance.
+  avec `recipe.yaml` prévisionnel, publication JSON/`generation.yaml` et
+  provenance selon la taxonomie actuelle.
   Aliases CRN explicites, 2^20 chemins MC/LSM; profils prix seuls inchangés,
   candidats MC delta bornés à 256 threads pour les états de payoff riches.
   34 cas publics : prix/erreur centraux bitwise, dont BS/Heston/CEV LSM à

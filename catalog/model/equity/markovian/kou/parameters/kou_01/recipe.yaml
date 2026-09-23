@@ -6,6 +6,7 @@ output:
   path: datasets/model/equity/markovian/kou/parameters/kou_01.json
   format: json
 generation_output: catalog/model/equity/markovian/kou/parameters/kou_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/model/equity/markovian/kou/parameters/kou_01.json
 model_family: Kou double-exponential jump diffusion
 row_count: 1000
 parameters:

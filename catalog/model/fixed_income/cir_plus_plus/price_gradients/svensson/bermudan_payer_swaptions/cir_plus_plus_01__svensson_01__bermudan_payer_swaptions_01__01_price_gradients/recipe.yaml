@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradients",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json",
+  "product_input": "datasets/product/bermudan_swaption/bermudan_swaptions_01.json",
+  "output": {
+    "path": "datasets/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradients.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradients/generation.yaml",
+  "construction": "aligned",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradients.json",
+  "paths_per_price": 1048576,
+  "dynamics_seed": 11668829194317463552,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.long_term_mean",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_state",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta0",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta1",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta2",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta3",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.tau1",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.tau2",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.notional",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.accrual_fraction",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/recipe.yaml"
+  },
+  "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
+  "curve_input": "datasets/curve/svensson/svensson_01.json",
+  "rng_mapping_version": "philox_source_step_v2",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

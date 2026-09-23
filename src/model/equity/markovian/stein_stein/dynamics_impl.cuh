@@ -44,20 +44,13 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
     return {dynamics.initial_log_spot, dynamics.initial_volatility};
 }
 
-__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
-    const PreparedDynamics& dynamics,
-    RandomContext& random,
+__device__ __forceinline__ void one_step_transition(
+    const PreparedModel& dynamics,
+    float endpoint_normal,
+    float increment_residual,
+    float asset_residual,
     State& state
 ) {
-    const float endpoint_normal = philox::next_normal(
-        random.uniforms, random.normals
-    );
-    const float increment_residual = philox::next_normal(
-        random.uniforms, random.normals
-    );
-    const float asset_residual = philox::next_normal(
-        random.uniforms, random.normals
-    );
     const float volatility_increment_normal = fmaf(
         dynamics.endpoint_increment_correlation,
         endpoint_normal,
@@ -75,6 +68,29 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
         + volatility * dynamics.sqrt_dt * asset_normal;
     state.volatility = volatility * dynamics.volatility_decay
         + dynamics.volatility_standard_deviation * endpoint_normal;
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    const float endpoint_normal = philox::next_normal(
+        random.uniforms, random.normals
+    );
+    const float increment_residual = philox::next_normal(
+        random.uniforms, random.normals
+    );
+    const float asset_residual = philox::next_normal(
+        random.uniforms, random.normals
+    );
+    one_step_transition(
+        dynamics,
+        endpoint_normal,
+        increment_residual,
+        asset_residual,
+        state
+    );
 }
 
 __device__ __forceinline__ void DynamicsPolicy::advance(

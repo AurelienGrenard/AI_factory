@@ -19,7 +19,7 @@ int main() {
         "datasets/product/european_option/european_options_01.json",
         "datasets/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01.json",
         "catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01.json",
         "Exact Merton increments",
         PriceConstruction::Aligned,
     };

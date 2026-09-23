@@ -6,6 +6,7 @@ output:
   path: datasets/product/bermudan_swaption/bermudan_swaptions_01.json
   format: json
 generation_output: catalog/product/bermudan_swaption/bermudan_swaptions_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/bermudan_swaption/bermudan_swaptions_01.json
 product_family: Bermudan Swaptions
 row_count: 1000
 time_convention:

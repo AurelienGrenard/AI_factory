@@ -176,6 +176,11 @@ public:
     }
 
     template<std::size_t Index>
+    auto* input() noexcept {
+        return std::get<Index>(inputs_).data();
+    }
+
+    template<std::size_t Index>
     const auto* input() const noexcept {
         return std::get<Index>(inputs_).data();
     }

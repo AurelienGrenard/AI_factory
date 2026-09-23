@@ -17,7 +17,7 @@ int main() {
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01_cartesian.json",
         "catalog/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01_cartesian.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot",
         PriceConstruction::CartesianProduct,
     };

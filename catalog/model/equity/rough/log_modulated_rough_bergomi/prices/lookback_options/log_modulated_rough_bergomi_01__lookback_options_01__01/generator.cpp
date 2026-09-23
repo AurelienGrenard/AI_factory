@@ -17,7 +17,7 @@ int main() {
         "datasets/product/lookback_option/lookback_options_01.json",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01.json",
         "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01.json",
         "log-modulated hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,
     };

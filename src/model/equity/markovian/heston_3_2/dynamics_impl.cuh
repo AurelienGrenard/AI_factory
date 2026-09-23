@@ -33,17 +33,12 @@ DynamicsPolicy::initial_state(const PreparedDynamics& dynamics) {
     return {dynamics.initial_log_spot, dynamics.initial_reciprocal_variance};
 }
 
-__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
-    const PreparedDynamics& dynamics,
-    RandomContext& random,
+__device__ __forceinline__ void one_step_transition(
+    const PreparedModel& dynamics,
+    float variance_normal,
+    float residual_normal,
     State& state
 ) {
-    const float variance_normal = philox::next_normal(
-        random.uniforms, random.normals
-    );
-    const float residual_normal = philox::next_normal(
-        random.uniforms, random.normals
-    );
     const float stock_normal = fmaf(
         dynamics.rho,
         variance_normal,
@@ -68,6 +63,20 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
                 * (reciprocal_normal * reciprocal_normal - 1.0f),
         1.0e-10f
     );
+}
+
+__device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
+    const PreparedDynamics& dynamics,
+    RandomContext& random,
+    State& state
+) {
+    const float variance_normal = philox::next_normal(
+        random.uniforms, random.normals
+    );
+    const float residual_normal = philox::next_normal(
+        random.uniforms, random.normals
+    );
+    one_step_transition(dynamics, variance_normal, residual_normal, state);
 }
 
 __device__ __forceinline__ void DynamicsPolicy::advance(

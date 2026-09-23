@@ -1,11 +1,9 @@
 // Host implementation of the Kou dataset loader.
 #include "model/equity/markovian/kou/dataset.hpp"
 #include "common/dataset_validation.hpp"
+#include "model/equity/markovian/kou/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>
-
-#include <cmath>
-#include <stdexcept>
 
 namespace ai_factory::workbench::model::equity::kou {
 
@@ -28,55 +26,7 @@ std::vector<ModelParameters> load_models(
                 parameters.at("positive_jump_rate").get<float>(),
                 parameters.at("negative_jump_rate").get<float>(),
             };
-            if (!std::isfinite(model.spot) || !(model.spot > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "spot must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.risk_free_rate)) {
-                throw std::invalid_argument(
-                    prefix + "risk_free_rate must be finite."
-                );
-            }
-            if (!std::isfinite(model.dividend_yield)) {
-                throw std::invalid_argument(
-                    prefix + "dividend_yield must be finite."
-                );
-            }
-            if (!std::isfinite(model.volatility)
-                || !(model.volatility > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "volatility must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.jump_intensity)
-                || model.jump_intensity < 0.0f) {
-                throw std::invalid_argument(
-                    prefix + "jump_intensity must be finite and non-negative."
-                );
-            }
-            if (!std::isfinite(model.up_probability)
-                || !(model.up_probability > 0.0f
-                     && model.up_probability < 1.0f)) {
-                throw std::invalid_argument(
-                    prefix
-                    + "up_probability must lie strictly between zero and one."
-                );
-            }
-            if (!std::isfinite(model.positive_jump_rate)
-                || !(model.positive_jump_rate > 2.0f)) {
-                throw std::invalid_argument(
-                    prefix
-                    + "positive_jump_rate must exceed two for finite Monte Carlo "
-                      "payoff variance."
-                );
-            }
-            if (!std::isfinite(model.negative_jump_rate)
-                || !(model.negative_jump_rate > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "negative_jump_rate must be finite and positive."
-                );
-            }
+            validate_parameters(model, prefix);
             return model;
     });
 }

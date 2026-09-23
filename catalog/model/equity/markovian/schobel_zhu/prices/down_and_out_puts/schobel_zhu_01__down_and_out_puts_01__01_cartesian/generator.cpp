@@ -20,7 +20,7 @@ int main() {
         "datasets/product/down_and_out_option/down_and_out_options_01.json",
         "datasets/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01_cartesian.json",
         "exact OU factor with log-spot Euler",
         PriceConstruction::CartesianProduct,
     };

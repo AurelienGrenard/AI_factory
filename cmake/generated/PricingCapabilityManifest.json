@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "source_sha256": "2bb161a69061bb5d5edeb767b28a19eecd7860cfe77b80ed8fee1e7d98490ef5",
+  "source_sha256": "3997ee404155eb1241ac2142d558cb762650e8ecf7825f72daf02e37e18c7279",
   "counts": {
     "engines": 13,
     "models": 25,
     "products": 26,
-    "available_datasets": 2436,
+    "available_datasets": 2840,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 6451
+    "generated_outputs": 7357
   },
-  "outputs_sha256": "b41bede748fc22d2efc605c61fd23dfc2903a02281b092147c88007d6c603a42",
+  "outputs_sha256": "a44cf0e69fdc6c8928c72dde00dfb22e8084e476367342fa5c130d8a458421dc",
   "price_delta_bindings": {
     "src/model/equity/markovian/bates/product/asian_option_price_delta": {
       "pricing": "src/model/equity/markovian/bates/product/asian_option",
@@ -2336,29 +2336,544 @@
     }
   },
   "price_gradient_bindings": {
+    "src/model/equity/markovian/bates/product/asset_or_nothing_option_price_gradients": {
+      "identity": "bates/asset_or_nothing_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/digital_option_price_gradients": {
+      "identity": "bates/digital_option",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/european_option_price_gradients": {
+      "identity": "bates/european_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/asset_or_nothing_option_price_gradients": {
+      "identity": "cev/asset_or_nothing_option",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/digital_option_price_gradients": {
+      "identity": "cev/digital_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
     "src/model/equity/markovian/cev/product/european_option_price_gradients": {
       "identity": "cev/european_option",
       "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/asset_or_nothing_option_price_gradients": {
+      "identity": "heston/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/digital_option_price_gradients": {
+      "identity": "heston/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     },
     "src/model/equity/markovian/heston/product/european_option_price_gradients": {
       "identity": "heston/european_option",
       "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/asset_or_nothing_option_price_gradients": {
+      "identity": "heston_3_2/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/digital_option_price_gradients": {
+      "identity": "heston_3_2/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston_3_2/product/european_option_price_gradients": {
+      "identity": "heston_3_2/european_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/asset_or_nothing_option_price_gradients": {
+      "identity": "kou/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/digital_option_price_gradients": {
+      "identity": "kou/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/european_option_price_gradients": {
+      "identity": "kou/european_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/asset_or_nothing_option_price_gradients": {
+      "identity": "merton/asset_or_nothing_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/digital_option_price_gradients": {
+      "identity": "merton/digital_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     },
     "src/model/equity/markovian/merton/product/european_option_price_gradients": {
       "identity": "merton/european_option",
-      "maximum_sensitivities": 7,
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/asset_or_nothing_option_price_gradients": {
+      "identity": "normal_inverse_gaussian/asset_or_nothing_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/digital_option_price_gradients": {
+      "identity": "normal_inverse_gaussian/digital_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/european_option_price_gradients": {
+      "identity": "normal_inverse_gaussian/european_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/asset_or_nothing_option_price_gradients": {
+      "identity": "sabr/asset_or_nothing_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/digital_option_price_gradients": {
+      "identity": "sabr/digital_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/sabr/product/european_option_price_gradients": {
+      "identity": "sabr/european_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/asset_or_nothing_option_price_gradients": {
+      "identity": "schobel_zhu/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/digital_option_price_gradients": {
+      "identity": "schobel_zhu/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/european_option_price_gradients": {
+      "identity": "schobel_zhu/european_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/asset_or_nothing_option_price_gradients": {
+      "identity": "stein_stein/asset_or_nothing_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/digital_option_price_gradients": {
+      "identity": "stein_stein/digital_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/stein_stein/product/european_option_price_gradients": {
+      "identity": "stein_stein/european_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_step_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/asset_or_nothing_option_price_gradients": {
+      "identity": "variance_gamma/asset_or_nothing_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/digital_option_price_gradients": {
+      "identity": "variance_gamma/digital_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/european_option_price_gradients": {
+      "identity": "variance_gamma/european_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_exact_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     },
     "src/model/equity/markovian/black_scholes/product/european_option_price_gradients": {
       "identity": "black_scholes/european_option",
       "maximum_sensitivities": 6,
+      "preparation_strategy": "device_prepared_closed_form_terminal",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/bates/product/american_option_price_gradients": {
+      "identity": "bates/american_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/american_option_price_gradients": {
+      "identity": "black_scholes/american_option",
+      "maximum_sensitivities": 5,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/cev/product/american_option_price_gradients": {
+      "identity": "cev/american_option",
+      "maximum_sensitivities": 6,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     },
     "src/model/equity/markovian/heston/product/american_option_price_gradients": {
       "identity": "heston/american_option",
       "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/kou/product/american_option_price_gradients": {
+      "identity": "kou/american_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/american_option_price_gradients": {
+      "identity": "merton/american_option",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/normal_inverse_gaussian/product/american_option_price_gradients": {
+      "identity": "normal_inverse_gaussian/american_option",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/schobel_zhu/product/american_option_price_gradients": {
+      "identity": "schobel_zhu/american_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/variance_gamma/product/american_option_price_gradients": {
+      "identity": "variance_gamma/american_option",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir/product/european_swaption_price_gradients": {
+      "identity": "cir/european_swaption",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_cooperative_closed_form",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir/product/bermudan_swaption_price_gradients": {
+      "identity": "cir/bermudan_swaption",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients": {
+      "identity": "cir_plus_plus/bermudan_swaption",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir_plus_plus/product/svensson/bermudan_swaption_price_gradients": {
+      "identity": "cir_plus_plus/bermudan_swaption",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2/product/bermudan_swaption_price_gradients": {
+      "identity": "g2/bermudan_swaption",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients": {
+      "identity": "g2_plus_plus/bermudan_swaption",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2_plus_plus/product/svensson/bermudan_swaption_price_gradients": {
+      "identity": "g2_plus_plus/bermudan_swaption",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/hull_white/product/nelson_siegel/bermudan_swaption_price_gradients": {
+      "identity": "hull_white/bermudan_swaption",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/hull_white/product/svensson/bermudan_swaption_price_gradients": {
+      "identity": "hull_white/bermudan_swaption",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/ornstein_uhlenbeck/product/bermudan_swaption_price_gradients": {
+      "identity": "ornstein_uhlenbeck/bermudan_swaption",
+      "maximum_sensitivities": 6,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/vasicek/product/bermudan_swaption_price_gradients": {
+      "identity": "vasicek/bermudan_swaption",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_fixed_income_lsm",
+      "supported_orders": [
+        "first",
+        "diagonal_second"
+      ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     }
   },

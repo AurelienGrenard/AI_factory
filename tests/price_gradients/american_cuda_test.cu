@@ -27,6 +27,9 @@ struct GradientRun {
     std::vector<float> price_errors;
     std::vector<float> gradients;
     std::vector<float> gradient_errors;
+    std::vector<float> diagonal_hessians;
+    std::vector<float> diagonal_hessian_errors;
+    std::vector<pg::SensitivityStencil<4U>> diagonal_stencils;
     longstaff_schwartz::LaunchResult launch;
 };
 
@@ -44,7 +47,7 @@ void close_relative(
     }
 }
 
-template<OptionSide Side>
+template<pg::SensitivityOrders Orders, OptionSide Side>
 GradientRun execute(
     const heston::AmericanOptionPriceGradientPlan& plan,
     std::size_t paths,
@@ -53,25 +56,56 @@ GradientRun execute(
     std::uint64_t seed,
     bool split = false
 ) {
+    constexpr std::size_t node_capacity =
+        pg::SensitivityTraits<Orders>::node_capacity;
     const std::size_t rows = plan.result_count;
     const std::size_t sensitivities = plan.sensitivity_count();
-    DeviceArray<heston::AmericanOptionPriceGradientPlan::ScenarioType>
-        scenarios(plan.scenarios);
-    DeviceArray<pg::Stencil> stencils(plan.stencils);
-    DeviceArray<float> storage(2U * rows + 2U * rows * sensitivities);
-    const pg::DeviceInputs<
-        heston::AmericanOptionPriceGradientPlan::ScenarioType
-    > inputs{
-        scenarios.data,
-        scenarios.count,
+    DeviceArray<heston::AmericanOptionPriceGradientPlan::Model>
+        models(plan.models);
+    DeviceArray<heston::AmericanOptionPriceGradientPlan::Product>
+        products(plan.products);
+    DeviceArray<heston::AmericanOptionPriceGradientPlan::SensitivitySpec>
+        sensitivity_specs(plan.sensitivities);
+    DeviceArray<pg::SensitivityStencil<node_capacity>> stencils(
+        rows * sensitivities
+    );
+    DeviceArray<equity::price_gradients::device_preparation::Error> error(1U);
+    DeviceArray<float> prices(rows);
+    DeviceArray<float> price_errors(rows);
+    DeviceArray<float> gradients(
+        pg::requests_first_v<Orders> ? rows * sensitivities : 0U
+    );
+    DeviceArray<float> gradient_errors(
+        pg::requests_first_v<Orders> ? rows * sensitivities : 0U
+    );
+    DeviceArray<float> hessians(
+        pg::requests_second_v<Orders> ? rows * sensitivities : 0U
+    );
+    DeviceArray<float> hessian_errors(
+        pg::requests_second_v<Orders> ? rows * sensitivities : 0U
+    );
+    const heston::AmericanOptionPriceGradientPlan::DeviceInputs inputs{
+        models.data,
+        models.count,
+        products.data,
+        products.count,
+        sensitivity_specs.data,
+        sensitivity_specs.count,
+    };
+    const monte_carlo::price_gradients::DevicePreparedStencilOutputs<
+        node_capacity
+    > stencil_outputs{
         stencils.data,
         stencils.count,
+        error.data,
     };
-    const pg::Outputs outputs{
-        storage.data,
-        storage.data + rows,
-        storage.data + 2U * rows,
-        storage.data + 2U * rows + rows * sensitivities,
+    const pg::SensitivityOutputs outputs{
+        prices.data,
+        price_errors.data,
+        gradients.data,
+        gradient_errors.data,
+        hessians.data,
+        hessian_errors.data,
         rows,
         rows * sensitivities,
     };
@@ -85,32 +119,67 @@ GradientRun execute(
         seed,
         1U,
     };
+    const auto invoke = [&](const auto& configuration) {
+        if constexpr (Orders == pg::SensitivityOrders::first) {
+            return heston::launch_heston_american_option_price_gradients_cuda<
+                Side
+            >(
+                plan,
+                inputs,
+                stencil_outputs,
+                configuration,
+                {
+                    outputs.prices,
+                    outputs.price_standard_errors,
+                    outputs.gradients,
+                    outputs.gradient_standard_errors,
+                    outputs.price_capacity,
+                    outputs.sensitivity_capacity,
+                }
+            );
+        } else {
+            return heston::
+                launch_heston_american_option_diagonal_sensitivities_cuda<
+                    Side,
+                    Orders
+                >(
+                    plan,
+                    inputs,
+                    stencil_outputs,
+                    configuration,
+                    outputs
+                );
+        }
+    };
     longstaff_schwartz::LaunchResult result;
     if (split) {
         launch.result_count = rows - 1U;
-        result = heston::launch_heston_american_option_price_gradients_cuda<Side>(
-            plan, inputs, launch, outputs
-        );
+        result = invoke(launch);
         launch.result_offset = rows - 1U;
         launch.result_count = 1U;
-        result = heston::launch_heston_american_option_price_gradients_cuda<Side>(
-            plan, inputs, launch, outputs
-        );
+        result = invoke(launch);
     } else {
-        result = heston::launch_heston_american_option_price_gradients_cuda<Side>(
-            plan, inputs, launch, outputs
-        );
+        result = invoke(launch);
     }
     longstaff_schwartz::validate_regression_diagnostics(
         result, "Heston American price-gradients test"
     );
-    const auto host = storage.read();
+    require(
+        error.read()[0U].code == 0,
+        "American device sensitivity preparation failed."
+    );
+    std::vector<pg::SensitivityStencil<4U>> diagonal_stencils;
+    if constexpr (node_capacity == 4U) {
+        diagonal_stencils = stencils.read();
+    }
     return {
-        {host.begin(), host.begin() + rows},
-        {host.begin() + rows, host.begin() + 2U * rows},
-        {host.begin() + 2U * rows,
-         host.begin() + 2U * rows + rows * sensitivities},
-        {host.begin() + 2U * rows + rows * sensitivities, host.end()},
+        prices.read(),
+        price_errors.read(),
+        gradients.read(),
+        gradient_errors.read(),
+        hessians.read(),
+        hessian_errors.read(),
+        std::move(diagonal_stencils),
         result,
     };
 }
@@ -131,7 +200,7 @@ void run() {
         {1.00f, 21U, 7U},
         {1.10f, 20U, 7U},
     };
-    const auto time = equity::price_gradients::TimeConfiguration{
+    const auto time = pg::TimeConfiguration{
         1.0f / 504.0f, 2U
     };
     const pg::Sensitivity spot{"model.spot", {.005}};
@@ -151,10 +220,10 @@ void run() {
 
     for (unsigned int threads : {128U, 256U}) {
         const auto spot_plan = prepare({{spot}});
-        const auto selected_spot = execute<Side>(
+        const auto selected_spot = execute<pg::SensitivityOrders::first, Side>(
             spot_plan, paths, threads, blocks, seed
         );
-        const auto price_only = execute<Side>(
+        const auto price_only = execute<pg::SensitivityOrders::first, Side>(
             prepare({}), paths, threads, blocks, seed
         );
         const auto delta_launch =
@@ -228,7 +297,7 @@ void run() {
             {"model.rho", {.002, pg::BumpScale::absolute}},
             {"product.strike", {.005}},
         }};
-        const auto extended = execute<Side>(
+        const auto extended = execute<pg::SensitivityOrders::first, Side>(
             prepare(full), paths, threads, blocks, seed
         );
         for (std::size_t row = 0U; row < rows; ++row) {
@@ -252,14 +321,14 @@ void run() {
                     "American frozen gradient error is invalid.");
         }
 
-        const auto rho_only = execute<Side>(
+        const auto rho_only = execute<pg::SensitivityOrders::first, Side>(
             prepare({{full.sensitivities[7]}}),
             paths,
             threads,
             blocks,
             seed
         );
-        const auto split = execute<Side>(
+        const auto split = execute<pg::SensitivityOrders::first, Side>(
             prepare(full), paths, threads, blocks, seed, true
         );
         require(split.prices == extended.prices
@@ -277,6 +346,53 @@ void run() {
                  ],
                  "American sensitivity selection changed rho error");
         }
+
+        const auto diagonal_plan =
+            heston::prepare_heston_american_option_sensitivities(
+                models,
+                products,
+                PriceConstruction::Aligned,
+                time,
+                full,
+                {pg::SensitivityOrders::first_and_second}
+            );
+        const auto diagonal = execute<
+            pg::SensitivityOrders::first_and_second,
+            Side
+        >(diagonal_plan, paths, threads, blocks, seed);
+        require(
+            diagonal.prices == extended.prices
+                && diagonal.price_errors == extended.price_errors,
+            "Adding American diagonal Hessians changed the central price."
+        );
+        for (std::size_t value = 0U;
+             value < diagonal.gradients.size();
+             ++value) {
+            same(
+                diagonal.gradients[value],
+                extended.gradients[value],
+                "Adding American diagonal Hessians changed a gradient"
+            );
+            same(
+                diagonal.gradient_errors[value],
+                extended.gradient_errors[value],
+                "Adding American diagonal Hessians changed a gradient error"
+            );
+        }
+        for (float value : diagonal.diagonal_hessians) {
+            require(std::isfinite(value),
+                    "American diagonal Hessian is not finite.");
+        }
+        for (float value : diagonal.diagonal_hessian_errors) {
+            require(std::isfinite(value) && value >= 0.0f,
+                    "American diagonal Hessian error is invalid.");
+        }
+        require(
+            diagonal.diagonal_stencils[
+                2U * full.sensitivities.size() + 1U
+            ].node_count == 4U,
+            "The variance boundary did not use four one-sided nodes."
+        );
 
         if constexpr (Side == OptionSide::put) {
             require(selected_spot.prices[1] == 1.0f - models[1].spot,

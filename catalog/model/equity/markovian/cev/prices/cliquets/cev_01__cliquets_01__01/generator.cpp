@@ -20,7 +20,7 @@ int main() {
         "datasets/product/cliquet/cliquets_01.json",
         "datasets/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01.json",
         "catalog/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01.json",
         "absorbed Milstein",
         PriceConstruction::Aligned,
     };

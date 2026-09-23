@@ -45,8 +45,8 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     const PreparedModel& model, const PreparedTransition& transition,
     RandomContext& random, State& state
 ) {
-    state = philox::scaled_noncentral_chi_square(
-        random.uniforms, random.normals, model.degrees_of_freedom,
+    state = philox::domain_scaled_noncentral_chi_square<1U, 2U>(
+        random, model.degrees_of_freedom,
         transition.state_loading * state / transition.scale, transition.scale
     );
 }

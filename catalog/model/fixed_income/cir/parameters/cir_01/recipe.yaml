@@ -6,6 +6,7 @@ output:
   path: datasets/model/fixed_income/cir/parameters/cir_01.json
   format: json
 generation_output: catalog/model/fixed_income/cir/parameters/cir_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/model/fixed_income/cir/parameters/cir_01.json
 model_family: CIR short rate
 row_count: 1000
 parameters:

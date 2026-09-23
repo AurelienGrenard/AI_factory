@@ -1,5 +1,6 @@
-// Frozen catalogue rows sensitive to LSM Gram rounding; CPU binary128 regression reference.
-// Seeds preserve each original row offset. This is a regression fixture, not price certification.
+// Regression fixture of frozen Kou rows sensitive to LSM Gram rounding.
+// CPU binary128 references use the historical Philox path/group mapping.
+// Seeds preserve each original row offset; these are not certified prices.
 #pragma once
 
 #include "model/equity/markovian/kou/parameters.hpp"

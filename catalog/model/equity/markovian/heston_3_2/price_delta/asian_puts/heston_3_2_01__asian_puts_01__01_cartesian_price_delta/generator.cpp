@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json", "datasets/product/asian_option/asian_options_01.json", "datasets/model/equity/markovian/heston_3_2/price_delta/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/price_delta/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/price_delta/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/prices/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/heston_3_2/price_delta/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/prices/asian_puts/heston_3_2_01__asian_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "heston_3_2", "asian_option", ""},
         11668827137028128768ULL, model::equity::heston_3_2::load_models, product::load_asian_options,

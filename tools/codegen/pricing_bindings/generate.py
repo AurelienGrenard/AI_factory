@@ -58,6 +58,7 @@ from capability_manifest import (
     SCHEMA_VERSION,
     pricing_launch_family,
     resolve_rng_domain,
+    rng_mapping_version,
 )
 from sample_manifest import SAMPLE_MODELS, SAMPLE_MODEL_BY_NAME, SampleModelSpec
 from price_gradients.render import render_bindings as render_price_gradient_bindings
@@ -412,6 +413,7 @@ def _sample_recipe_metadata(
             "format": "json",
         },
         "generation_output": dataset.generation_yaml_path,
+        "url": dataset.url,
         "shape": {
             "parameter_count": parameter_count,
             "paths_per_parameter": paths_per_parameter,
@@ -442,6 +444,7 @@ def _sample_recipe_metadata(
         "seeds": {
             name: domain.seed(name) for name in domain.streams
         },
+        "rng_mapping_version": rng_mapping_version(model.name),
         "numerical_method": {
             "engine": dataset.engine,
             "profile": dataset.numerical_profile,
@@ -905,12 +908,15 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "product_input": values["product_input"],
             "output": {"path": dataset.dataset_path, "format": "json"},
             "generation_output": dataset.generation_yaml_path,
+            "url": dataset.url,
             "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
             "sensitivity": {"parameter": "spot", "method": values["method"],
                             "relative_full_width": .01, "source_price_recipe": source.recipe_yaml_path},
             "dynamics_seed": int(values["seed"]),
+            **({"rng_mapping_version": rng_mapping_version(dataset.model)}
+               if stochastic else {}),
             "time_grid": {"steps_per_year": 504, "simulation_steps_per_day": 2, "delta_t": "1 / 504"} if fixed else None,
         }
         recipe_path = destination.with_name("recipe.yaml")
@@ -1245,6 +1251,7 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
     datasets = (
         dataset for dataset in AVAILABLE_DATASET_SPECS
         if dataset.engine in {"fixed_income_closed_form", "fixed_income_monte_carlo", "fixed_income_lsm"}
+        and dataset.dataset_kind == "prices"
         and dataset.owner == "generated"
     )
     for dataset in datasets:
@@ -1556,6 +1563,7 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "inputs": roles,
         "output": {"path": dataset.dataset_path, "format": "json"},
         "generation_output": dataset.generation_yaml_path,
+        "url": dataset.url,
         "construction": dataset.construction,
         "numerical_method": {
             "engine": dataset.engine,
@@ -1571,6 +1579,7 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         metadata["seeds"] = {
             name: domain.seed(name) for name in domain.streams
         }
+        metadata["rng_mapping_version"] = rng_mapping_version(dataset.model)
     denominators = [
         int(value) for value in re.findall(r"1\.0f\s*/\s*(\d+)\.0f", source)
     ]
@@ -1667,6 +1676,13 @@ def cmake_manifest_text(
         for spec in PRICE_DELTA_BINDING_SPECS
         if spec.pricing in equity_binding_specs and spec.pricing.engine == "equity_volterra_fft"
     })
+    fixed_income_units = sorted(set(FIXED_INCOME_UNITS) | {
+        f"{spec.pricing.model}/product/"
+        + (f"{spec.pricing.curve}/" if spec.pricing.curve else "")
+        + f"{spec.pricing.product}_price_gradients"
+        for spec in PRICE_GRADIENT_BINDING_SPECS
+        if spec.pricing.asset_class == "fixed_income"
+    })
     parameter_sources = sorted(
         dataset.generator_path for dataset in dataset_specs
         if dataset.dataset_kind.endswith("_parameters")
@@ -1727,7 +1743,7 @@ def cmake_manifest_text(
         + "\n"
         + cmake_list(
             "AI_FACTORY_GENERATED_FIXED_INCOME_UNITS",
-            list(FIXED_INCOME_UNITS),
+            fixed_income_units,
         )
         + "\n"
         + cmake_list(
@@ -1818,6 +1834,8 @@ def generate_provenance_manifest(
         "price_gradient_bindings": {
             spec.unit_path: {"identity": f"{spec.pricing.model}/{spec.pricing.product}",
                 "maximum_sensitivities": spec.maximum_sensitivities,
+                "preparation_strategy": spec.preparation_strategy,
+                "supported_orders": list(spec.supported_orders),
                 "qualification": "bounded_checks; bias_and_performance_not_certified"}
             for spec in PRICE_GRADIENT_BINDING_SPECS
         },
@@ -2000,7 +2018,9 @@ def main() -> int:
     if arguments.family in ("catalog", "all"):
         generated.extend(generate_price_delta_recipes(arguments.output))
         generated.extend(render_price_gradient_recipes(arguments.output, PRICE_GRADIENT_DATASET_SPECS,
-            PRICE_GRADIENT_SOURCE_BY_GENERATOR, MODEL_BY_NAME, resolve_rng_domain, TEMPLATE_DIR, _write_generated))
+            PRICE_GRADIENT_SOURCE_BY_GENERATOR, MODEL_BY_NAME,
+            resolve_rng_domain, rng_mapping_version, TEMPLATE_DIR,
+            _write_generated))
         generated.extend(generate_catalog_recipes(arguments.output))
         generated.extend(generate_fixed_income_catalog_recipes(
             arguments.output

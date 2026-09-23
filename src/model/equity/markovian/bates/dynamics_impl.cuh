@@ -3,6 +3,7 @@
 
 #include "model/equity/markovian/bates/dynamics.cuh"
 
+#include "common/compound_poisson.cuh"
 #include "common/philox.cuh"
 
 // Bates composes the existing QE-M variance/spot transition without changing
@@ -61,39 +62,33 @@ __device__ __forceinline__ State initial_state(
 
 // ==================== Model-specific implementation =======================
 
-namespace {
-
-// Add one already-sampled compound-Poisson increment to the log spot.
-__device__ __forceinline__ void apply_jump_transition(
+__device__ __forceinline__ void apply_jump_interval(
     const PreparedModel& prepared_model,
-    float jump_compensator,
+    std::uint32_t step_count,
     std::uint32_t jump_count,
-    float jump_normal,
+    float jump_standard_normal_sum,
     State& state
 ) {
-    float jump_increment = -jump_compensator;
+    float jump_increment = -prepared_model.jump_compensator
+        * static_cast<float>(step_count);
     if (jump_count != 0U) {
         const float count = static_cast<float>(jump_count);
         jump_increment = fmaf(count, prepared_model.jump_log_mean, jump_increment);
         jump_increment = fmaf(
-            prepared_model.jump_log_volatility * sqrtf(count),
-            jump_normal,
+            prepared_model.jump_log_volatility,
+            jump_standard_normal_sum,
             jump_increment
         );
     }
     state.log_spot += jump_increment;
 }
 
-}  // namespace
-
 // ======================== Common equity dynamics =========================
 
 // Apply one variance and log-spot update with the QE-M martingale correction.
-// Conditional on jump_count = n, the sum of n independent log jump sizes
-// N(nu, delta^2) is represented exactly in law by
-// n * nu + delta * sqrt(n) * jump_normal.  We therefore need neither the n
-// individual sizes nor their event times to reproduce the process at grid
-// dates.  This equivalence does not reconstruct the path inside the time step;
+// Conditional on jump_count = n, individual standard-normal marks are reduced
+// to their running sum. This retains replayable event primitives without a
+// mark array. Event times inside the interval are still not reconstructed;
 // continuously monitored or jump-time-dependent products need extra handling.
 __device__ __forceinline__ void one_step_transition(
     const PreparedModel& prepared_model,
@@ -101,7 +96,7 @@ __device__ __forceinline__ void one_step_transition(
     float variance_uniform,
     float stock_normal,
     std::uint32_t jump_count,
-    float jump_normal,
+    float jump_standard_normal_sum,
     State& state
 ) {
     heston::one_step_transition(
@@ -111,8 +106,8 @@ __device__ __forceinline__ void one_step_transition(
         stock_normal,
         state
     );
-    apply_jump_transition(
-        prepared_model, prepared_model.jump_compensator, jump_count, jump_normal, state
+    apply_jump_interval(
+        prepared_model, 1U, jump_count, jump_standard_normal_sum, state
     );
 }
 
@@ -123,10 +118,12 @@ namespace {
 // Advance only the Heston component by one QE-M numerical step.
 __device__ __forceinline__ void simulate_heston_one_step(
     const PreparedModel& prepared_model,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
+    const auto step = random.next_step();
+    auto uniforms = random.source<compound_poisson::kContinuousSource>(step);
+    philox::NormalPairCache normal_cache;
     const float variance_normal = philox::next_normal(
         uniforms, normal_cache
     );
@@ -150,31 +147,37 @@ __device__ __forceinline__ void simulate_heston_one_step(
 __device__ __forceinline__ void simulate_jump_interval(
     const PreparedModel& prepared_model,
     std::uint32_t step_count,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
+    std::uint32_t interval_start_step,
     State& state
 ) {
+    auto count_uniforms = random.source<
+        compound_poisson::kCountSource
+    >(interval_start_step);
     const float count = static_cast<float>(step_count);
     const float poisson_mean = prepared_model.poisson_mean * count;
     const float zero_jump_probability = step_count == 1U
         ? prepared_model.zero_jump_probability
         : expf(-poisson_mean);
-    const float jump_compensator = prepared_model.jump_compensator * count;
-
-    // Match Merton/Kou: retain small-mean draws, use PTRS before exp(-mean)
-    // underflows on an aggregated interval. Rejections stay path-local.
-    constexpr float kPoissonInversionThreshold = 10.0f;
-    const std::uint32_t jump_count = poisson_mean < kPoissonInversionThreshold
-        ? philox::poisson_from_uniform(
-            uniforms.next(), poisson_mean, zero_jump_probability
-        )
-        : philox::poisson_from_uniform_sequence(uniforms, poisson_mean);
-    float jump_normal = 0.0f;
-    if (jump_count != 0U) {
-        jump_normal = philox::next_normal(uniforms, normal_cache);
+    const std::uint32_t jump_count = compound_poisson::draw_count(
+        count_uniforms, poisson_mean, zero_jump_probability
+    );
+    auto mark_uniforms = random.source<
+        compound_poisson::kMarkSource
+    >(interval_start_step);
+    philox::NormalPairCache mark_cache;
+    float jump_standard_normal_sum = 0.0f;
+    for (std::uint32_t event = 0U; event < jump_count; ++event) {
+        jump_standard_normal_sum += philox::next_normal(
+            mark_uniforms, mark_cache
+        );
     }
-    apply_jump_transition(
-        prepared_model, jump_compensator, jump_count, jump_normal, state
+    apply_jump_interval(
+        prepared_model,
+        step_count,
+        jump_count,
+        jump_standard_normal_sum,
+        state
     );
 }
 
@@ -182,29 +185,28 @@ __device__ __forceinline__ void simulate_jump_interval(
 __device__ __forceinline__ void simulate_interval(
     const PreparedModel& prepared_model,
     std::uint32_t step_count,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
     if (step_count == 0U) return;
+    const auto interval_start_step = random.step_index;
     for (std::uint32_t step = 0U; step < step_count; ++step) {
-        simulate_heston_one_step(prepared_model, uniforms, normal_cache, state);
+        simulate_heston_one_step(prepared_model, random, state);
     }
     simulate_jump_interval(
-        prepared_model, step_count, uniforms, normal_cache, state
+        prepared_model, step_count, random, interval_start_step, state
     );
 }
 
-// Draw one Bates transition from the continuous path-local uniform sequence.
-// Conditional jump draws advance the same scalar stream without reservations.
+// Use the same step address for Heston and the independent jump sources.
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
-    simulate_heston_one_step(prepared_model, uniforms, normal_cache, state);
-    simulate_jump_interval(prepared_model, 1U, uniforms, normal_cache, state);
+    const auto step = random.step_index;
+    simulate_heston_one_step(prepared_model, random, state);
+    simulate_jump_interval(prepared_model, 1U, random, step, state);
 }
 
 }  // namespace
@@ -232,8 +234,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
 ) {
     bates::simulate_one_step(
         dynamics,
-        random.uniforms,
-        random.normals,
+        random,
         state
     );
 }
@@ -247,8 +248,7 @@ __device__ __forceinline__ void DynamicsPolicy::advance(
     bates::simulate_interval(
         dynamics,
         step_count,
-        random.uniforms,
-        random.normals,
+        random,
         state
     );
 }

@@ -1,14 +1,204 @@
-// Fixed-horizon Merton CRN coupling and legacy spot-delta compatibility.
+// Fixed-horizon Merton CRN coupling and spot-delta compatibility within the current RNG mapping.
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/european_option_price_delta.cuh"
 #include "model/equity/markovian/merton/dynamics_impl.cuh"
+#include "model/equity/markovian/merton/price_gradients/coupled_dynamics_impl.cuh"
 #include "cuda_test_support.cuh"
+#include "diagonal_cuda_test_support.cuh"
 #include <algorithm>
 #include <cmath>
 
 using namespace price_gradient_test;
 namespace merton = model::equity::merton;
 namespace philox = ai_factory::workbench::philox;
+
+namespace {
+
+using MertonCoupling = merton::price_gradients::CoupledDynamics;
+
+__device__ bool same_bits(float first, float second) {
+    return __float_as_uint(first) == __float_as_uint(second);
+}
+
+template<std::size_t NodeCapacity>
+__device__ void record_event_coupling_violations(
+    const MertonCoupling::Prepared (&prepared)[NodeCapacity],
+    std::uint8_t node_count,
+    std::uint64_t seed,
+    std::uint64_t path,
+    int* violations
+) {
+    philox::DomainRandomContext standalone_random(
+        philox::make_key(seed), path
+    );
+    const auto standalone = MertonCoupling::draw(
+        standalone_random, prepared[0U]
+    );
+    philox::DomainRandomContext coupled_random(philox::make_key(seed), path);
+    MertonCoupling::Innovations coupled[NodeCapacity]{};
+    MertonCoupling::draw_coupled(
+        coupled_random, prepared, node_count, coupled
+    );
+
+    bool invalid = standalone.jump_count != coupled[0U].jump_count
+        || !same_bits(
+            standalone.diffusion_normal,
+            coupled[0U].diffusion_normal
+        )
+        || !same_bits(
+            standalone.jump_standard_normal_sum,
+            coupled[0U].jump_standard_normal_sum
+        );
+    for (std::uint8_t node = 1U; node < node_count; ++node) {
+        invalid = invalid
+            || coupled[node - 1U].jump_count > coupled[node].jump_count;
+    }
+    if (invalid) atomicAdd(violations, 1);
+}
+
+__global__ void event_coupling_contract_kernel(
+    merton::ModelParameters base,
+    std::uint64_t seed,
+    std::size_t path_count,
+    int* violations
+) {
+    for (std::size_t path = std::size_t(blockIdx.x) * blockDim.x
+             + threadIdx.x;
+         path < path_count;
+         path += std::size_t(gridDim.x) * blockDim.x) {
+        merton::ModelParameters lower_intensity = base;
+        merton::ModelParameters upper_intensity = base;
+        lower_intensity.jump_intensity *= 0.75f;
+        upper_intensity.jump_intensity *= 1.25f;
+        const MertonCoupling::Prepared intensity_nodes[3]{
+            MertonCoupling::prepare(base, 0.5f),
+            MertonCoupling::prepare(lower_intensity, 0.5f),
+            MertonCoupling::prepare(upper_intensity, 0.5f),
+        };
+        philox::DomainRandomContext intensity_random(
+            philox::make_key(seed), path
+        );
+        MertonCoupling::Innovations intensity_innovations[3]{};
+        MertonCoupling::draw_coupled(
+            intensity_random, intensity_nodes, 3U, intensity_innovations
+        );
+        bool invalid = intensity_innovations[1U].jump_count
+                > intensity_innovations[0U].jump_count
+            || intensity_innovations[0U].jump_count
+                > intensity_innovations[2U].jump_count;
+        philox::DomainRandomContext standalone_intensity_random(
+            philox::make_key(seed), path
+        );
+        const auto standalone_intensity = MertonCoupling::draw(
+            standalone_intensity_random, intensity_nodes[0U]
+        );
+        invalid = invalid
+            || standalone_intensity.jump_count
+                != intensity_innovations[0U].jump_count
+            || !same_bits(
+                standalone_intensity.diffusion_normal,
+                intensity_innovations[0U].diffusion_normal
+            )
+            || !same_bits(
+                standalone_intensity.jump_standard_normal_sum,
+                intensity_innovations[0U].jump_standard_normal_sum
+            );
+        if (invalid) atomicAdd(violations, 1);
+
+        const MertonCoupling::Prepared maturity_nodes[3]{
+            MertonCoupling::prepare(base, 0.5f),
+            MertonCoupling::prepare(base, 0.25f),
+            MertonCoupling::prepare(base, 0.75f),
+        };
+        philox::DomainRandomContext maturity_random(
+            philox::make_key(seed + 1U), path
+        );
+        MertonCoupling::Innovations maturity_innovations[3]{};
+        MertonCoupling::draw_coupled(
+            maturity_random, maturity_nodes, 3U, maturity_innovations
+        );
+        if (maturity_innovations[1U].jump_count
+                > maturity_innovations[0U].jump_count
+            || maturity_innovations[0U].jump_count
+                > maturity_innovations[2U].jump_count) {
+            atomicAdd(violations, 1);
+        }
+
+        merton::ModelParameters zero_intensity = base;
+        zero_intensity.jump_intensity = 0.0f;
+        merton::ModelParameters first_positive = base;
+        merton::ModelParameters second_positive = base;
+        merton::ModelParameters third_positive = base;
+        first_positive.jump_intensity = 0.1f;
+        second_positive.jump_intensity = 0.2f;
+        third_positive.jump_intensity = 0.3f;
+        const MertonCoupling::Prepared boundary_nodes[4]{
+            MertonCoupling::prepare(zero_intensity, 0.5f),
+            MertonCoupling::prepare(first_positive, 0.5f),
+            MertonCoupling::prepare(second_positive, 0.5f),
+            MertonCoupling::prepare(third_positive, 0.5f),
+        };
+        const MertonCoupling::Prepared boundary_prefix[3]{
+            boundary_nodes[0U], boundary_nodes[1U], boundary_nodes[2U]
+        };
+        philox::DomainRandomContext boundary_prefix_random(
+            philox::make_key(seed + 2U), path
+        );
+        philox::DomainRandomContext boundary_full_random(
+            philox::make_key(seed + 2U), path
+        );
+        MertonCoupling::Innovations boundary_prefix_innovations[3]{};
+        MertonCoupling::Innovations boundary_full_innovations[4]{};
+        MertonCoupling::draw_coupled(
+            boundary_prefix_random, boundary_prefix, 3U,
+            boundary_prefix_innovations
+        );
+        MertonCoupling::draw_coupled(
+            boundary_full_random, boundary_nodes, 4U,
+            boundary_full_innovations
+        );
+        for (std::uint8_t node = 0U; node < 3U; ++node) {
+            if (boundary_prefix_innovations[node].jump_count
+                    != boundary_full_innovations[node].jump_count
+                || !same_bits(
+                    boundary_prefix_innovations[node].diffusion_normal,
+                    boundary_full_innovations[node].diffusion_normal
+                )
+                || !same_bits(
+                    boundary_prefix_innovations[node]
+                        .jump_standard_normal_sum,
+                    boundary_full_innovations[node]
+                        .jump_standard_normal_sum
+                )) {
+                atomicAdd(violations, 1);
+            }
+        }
+        record_event_coupling_violations(
+            boundary_nodes, 4U, seed + 2U, path, violations
+        );
+    }
+}
+
+void event_coupling_contract() {
+    constexpr std::size_t path_count = 1U << 14U;
+    constexpr unsigned threads = 256U;
+    const unsigned blocks = static_cast<unsigned>(
+        (path_count + threads - 1U) / threads
+    );
+    DeviceArray<int> violations(1U);
+    event_coupling_contract_kernel<<<blocks, threads>>>(
+        {1.05f, 0.03f, 0.01f, 0.2f, 2.0f, -0.1f, 0.25f},
+        1987U, path_count, violations.data
+    );
+    check_cuda(cudaDeviceSynchronize(), "Merton event coupling contract");
+    if (violations.read()[0U] != 0) {
+        throw std::runtime_error(
+            "Merton event coupling violated nesting or central replay."
+        );
+    }
+}
+
+}  // namespace
 
 __global__ void legacy_factorization_kernel(merton::ModelParameters parameters,float maturity,
                                              std::uint64_t seed,float* output,std::size_t paths) {
@@ -25,7 +215,10 @@ __global__ void legacy_factorization_kernel(merton::ModelParameters parameters,f
             : philox::poisson_from_uniform_sequence(random.uniforms,prepared_transition.poisson_mean);
         const float diffusion=philox::next_normal(random.uniforms,random.normals);
         const float jump=count==0U ? 0.f : philox::next_normal(random.uniforms,random.normals);
-        merton::one_step_transition(prepared_model,prepared_transition,count,diffusion,jump,state);
+        merton::one_step_transition(
+            prepared_model, prepared_transition, count, diffusion,
+            sqrtf(static_cast<float>(count)) * jump, state
+        );
         output[path]=state.log_spot;
     }
 }
@@ -37,10 +230,13 @@ __global__ void canonical_factorization_kernel(merton::ModelParameters parameter
         const auto prepared_model=merton::prepare_model(parameters);
         const auto prepared_transition=merton::prepare_transition(prepared_model,maturity);
         auto state=merton::initial_state(prepared_model);
-        philox::NormalRandomContext random(philox::make_key(seed),path);
+        philox::DomainRandomContext random(philox::make_key(seed),path);
         const auto innovations=merton::draw_transition_innovations(prepared_transition,random);
-        merton::one_step_transition(prepared_model,prepared_transition,innovations.jump_count,
-                                    innovations.diffusion_normal,innovations.jump_normal,state);
+        merton::one_step_transition(
+            prepared_model, prepared_transition, innovations.jump_count,
+            innovations.diffusion_normal,
+            innovations.jump_standard_normal_sum, state
+        );
         output[path]=state.log_spot;
     }
 }
@@ -55,7 +251,21 @@ void factorization_benchmark() {
     canonical_factorization_kernel<<<blocks,threads>>>(parameters,2.f,719U,canonical.data,paths);
     check_cuda(cudaDeviceSynchronize(),"Merton factorization warmup");
     const auto before=legacy.read(),after=canonical.read();
-    for (std::size_t i=0;i<paths;++i) same(before[i],after[i],"Merton canonical draw changed a terminal bit");
+    double old_sum=0.,new_sum=0.,old_square=0.,new_square=0.;
+    for (std::size_t i=0;i<paths;++i) {
+        old_sum+=before[i];new_sum+=after[i];
+        old_square+=double(before[i])*before[i];
+        new_square+=double(after[i])*after[i];
+    }
+    const double old_mean=old_sum/paths,new_mean=new_sum/paths;
+    const double old_variance=old_square/paths-old_mean*old_mean;
+    const double new_variance=new_square/paths-new_mean*new_mean;
+    const double mean_budget=6.*std::sqrt((old_variance+new_variance)/paths);
+    const double variance_budget=9.*std::sqrt(2./paths)*std::max(old_variance,new_variance);
+    if (!(std::abs(old_mean-new_mean)<mean_budget
+          && std::abs(old_variance-new_variance)<variance_budget)) {
+        throw std::runtime_error("Merton domain mapping changed the terminal law");
+    }
     cudaEvent_t start{},stop{};check_cuda(cudaEventCreate(&start),"factorization event");
     check_cuda(cudaEventCreate(&stop),"factorization event");
     auto elapsed=[&](bool use_legacy) {
@@ -85,7 +295,9 @@ void factorization_benchmark() {
               << ",\"canonical_registers\":" << canonical_attributes.numRegs
               << ",\"legacy_local_bytes\":" << legacy_attributes.localSizeBytes
               << ",\"canonical_local_bytes\":" << canonical_attributes.localSizeBytes
-              << ",\"bitwise_equal\":true}\n";
+              << ",\"old_mean\":" << old_mean << ",\"new_mean\":" << new_mean
+              << ",\"old_variance\":" << old_variance
+              << ",\"new_variance\":" << new_variance << "}\n";
 }
 
 double normal_cdf(double value) { return .5 * std::erfc(-value/std::sqrt(2.)); }
@@ -122,17 +334,22 @@ double independent_price(const Scenario& scenario) {
 
 template<OptionSide Side,typename Plan>
 std::pair<double,double> independent_gradients(const Plan& plan,const Results& result) {
-    const auto k=plan.sensitivity_count(), n=1U+2U*k;
+    const auto k=plan.sensitivity_count();
     double maximum_absolute=0.,maximum_budget_fraction=0.;
     for (std::size_t row=0;row<plan.result_count;++row) {
-        const double central=independent_price<Side>(plan.scenarios[row*n]);
+        const auto central_scenario_value = central_scenario(plan, row);
+        const double central=independent_price<Side>(central_scenario_value);
         for (std::size_t i=0;i<k;++i) {
-            const double first=independent_price<Side>(plan.scenarios[row*n+2*i+1]);
-            const double second=independent_price<Side>(plan.scenarios[row*n+2*i+2]);
-            const auto& stencil=plan.stencils[row*k+i];
+            const auto task = sensitivity_task<pg::SensitivityOrders::first>(
+                plan, row, i
+            );
+            const double first=independent_price<Side>(task.nodes[1U]);
+            const double second=independent_price<Side>(task.nodes[2U]);
+            const auto& stencil=task.stencil;
             const double reference=stencil.kind==pg::StencilKind::centered
                 ? (second-first)/stencil.represented_width
-                : stencil.first_weight*(first-central)+stencil.second_weight*(second-central);
+                : stencil.first_endpoint_weights[0U]*(first-central)
+                    + stencil.first_endpoint_weights[1U]*(second-central);
             const double estimate=result.gradient[row*k+i], se=result.gradient_error[row*k+i];
             const double numerical=5e-4+5e-3*std::abs(reference);
             const double error=std::abs(estimate-reference),budget=6.*se+numerical;
@@ -143,9 +360,12 @@ std::pair<double,double> independent_gradients(const Plan& plan,const Results& r
                           << " estimate=" << estimate << " reference=" << reference << " se=" << se << '\n';
                 throw std::runtime_error("Merton independent represented-stencil comparison failed");
             }
-            if (model::equity::merton::price_gradients::ParameterPolicy::fields.size()>i
-                && model::equity::merton::price_gradients::ParameterPolicy::fields[i].name.starts_with("model.jump_")
-                && plan.scenarios[row*n].model.jump_intensity==0.f) {
+            if (plan.configuration.sensitivities[i].parameter.starts_with(
+                    "model.jump_"
+                )
+                && plan.configuration.sensitivities[i].parameter
+                    != "model.jump_intensity"
+                && central_scenario_value.model.jump_intensity==0.f) {
                 if (!(std::abs(estimate)<1e-5 && std::abs(reference)<1e-9)) {
                     std::cerr << "Zero-intensity jump gradient estimate=" << estimate
                               << " reference=" << reference << " coordinate=" << i << '\n';
@@ -167,8 +387,10 @@ template<OptionSide Side> void check(std::size_t paths) {
     const pg::PriceGradientConfiguration full{{spot,
         {"model.risk_free_rate",{.0005,pg::BumpScale::absolute}},
         {"model.dividend_yield",{.0005,pg::BumpScale::absolute}}, {"model.volatility",{.005}},
+        {"model.jump_intensity",{.05f,pg::BumpScale::absolute}},
         {"model.jump_log_mean",{.002,pg::BumpScale::absolute}},
-        {"model.jump_log_volatility",{.005}}, {"product.strike",{.005}}}};
+        {"model.jump_log_volatility",{.005}}, {"product.strike",{.005}},
+        {"product.maturity_years",{1.f/504.f,pg::BumpScale::absolute}}}};
     auto prepare=[&](const pg::PriceGradientConfiguration& selection) {
         return merton::prepare_merton_european_option_price_gradients(
             models,products,PriceConstruction::Aligned,{},selection);
@@ -181,12 +403,17 @@ template<OptionSide Side> void check(std::size_t paths) {
     for (unsigned threads : {128U,256U}) {
         pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,3U,paths,threads,3U,719U};
         const auto solo=execute(prepare({{spot}}),launch,launcher);
+        const auto price_only=execute(prepare({}),launch,launcher);
         DeviceArray<float> old(12);
         merton::launch_merton_european_option_price_delta_cuda<Side>(models.data(),dm.data,3U,
             products.data(),dp.data,3U,PriceConstruction::Aligned,3U,0U,3U,paths,
             1.f/252.f,threads,3U,719U,{.01f},old.data,old.data+3,old.data+6,old.data+9);
         const auto reference=old.read();
         for (unsigned row=0;row<3;++row) {
+            same(price_only.price[row],solo.price[row],
+                "Merton price-only price");
+            same(price_only.price_error[row],solo.price_error[row],
+                "Merton price-only price SE");
             same(solo.price[row],reference[row],"Merton legacy price");
             same(solo.price_error[row],reference[3+row],"Merton legacy price SE");
             same(solo.gradient[row],reference[6+row],"Merton legacy delta");
@@ -196,7 +423,7 @@ template<OptionSide Side> void check(std::size_t paths) {
         const auto independent=independent_gradients<Side>(plan,all);
         maximum_independent_error=std::max(maximum_independent_error,independent.first);
         maximum_independent_budget_fraction=std::max(maximum_independent_budget_fraction,independent.second);
-        batching(full,all,launch,prepare,launcher);
+        selected_prefixes(full,all,launch,prepare,launcher);
         for (std::size_t i=0;i<full.sensitivities.size();++i) {
             const auto one=execute(prepare({{full.sensitivities[i]}}),launch,launcher);
             for (std::size_t row=0;row<3;++row) {
@@ -207,8 +434,63 @@ template<OptionSide Side> void check(std::size_t paths) {
             }
         }
     }
+    const auto diagonal_plan =
+        merton::prepare_merton_european_option_sensitivities(
+            models, products, PriceConstruction::Aligned, {}, full,
+            {pg::SensitivityOrders::first_and_second}
+        );
+    const pg::LaunchConfiguration diagonal_launch{
+        pg::PricingMethod::monte_carlo, 0U, models.size(), paths,
+        256U, models.size()*full.sensitivities.size(), 719U, 1U
+    };
+    const auto diagonal = execute_diagonal<
+        pg::SensitivityOrders::first_and_second
+    >(
+        diagonal_plan, diagonal_launch,
+        merton::launch_merton_european_option_diagonal_sensitivities_cuda<
+            Side, pg::SensitivityOrders::first_and_second
+        >
+    );
+    const auto first = execute(prepare(full), diagonal_launch, launcher);
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        same(diagonal.price[row], first.price[row],
+             "Merton diagonal changed central price");
+        same(diagonal.price_error[row], first.price_error[row],
+             "Merton diagonal changed central price error");
+        for (std::size_t i = 0U; i < full.sensitivities.size(); ++i) {
+            const auto index = row*full.sensitivities.size()+i;
+            same_or_one_ulp(
+                diagonal.gradient[index], first.gradient[index],
+                "Merton derivative order changed gradient"
+            );
+            same_or_one_ulp(
+                diagonal.gradient_error[index], first.gradient_error[index],
+                "Merton derivative order changed gradient error"
+            );
+            require(std::isfinite(diagonal.diagonal_hessian[index])
+                    && std::isfinite(
+                        diagonal.diagonal_hessian_error[index]
+                    ),
+                    "Merton diagonal Hessian is non-finite.");
+            if (models[row].jump_intensity == 0.0f
+                && full.sensitivities[i].parameter.starts_with(
+                    "model.jump_"
+                )
+                && full.sensitivities[i].parameter
+                    != "model.jump_intensity") {
+                if (std::abs(diagonal.diagonal_hessian[index]) >= 1e-5f) {
+                    std::cerr << "Zero-intensity Merton jump Hessian row="
+                              << row << " coordinate=" << i << " estimate="
+                              << diagonal.diagonal_hessian[index] << '\n';
+                    throw std::runtime_error(
+                        "Zero-intensity Merton jump Hessian is not zero."
+                    );
+                }
+            }
+        }
+    }
     std::cout << "Merton " << option_side_name(Side)
-              << ": seven independent represented-stencil gradients passed; max_abs_error="
+              << ": nine gradients and diagonal Hessians passed; max_abs_error="
               << maximum_independent_error << ", max_budget_fraction="
               << maximum_independent_budget_fraction
               << "; variable-consumption parity and batches passed\n";
@@ -224,6 +506,7 @@ int main(int argc,char** argv) {
         else if (argc!=1) throw std::invalid_argument("Usage: test [--sanitizer]");
         int devices=0;
         if (cudaGetDeviceCount(&devices)!=cudaSuccess || devices==0) return 77;
+        event_coupling_contract();
         check<OptionSide::call>(paths);
         check<OptionSide::put>(paths);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

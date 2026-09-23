@@ -31,6 +31,16 @@ struct PreparedModel {
 
 using PreparedDynamics = PreparedModel;
 
+// Deterministic transition used by both the scalar path and coupled
+// sensitivity paths after their common innovations have been drawn.
+__device__ __forceinline__ void one_step_transition(
+    const PreparedModel& prepared_model,
+    float endpoint_normal,
+    float increment_residual_normal,
+    float asset_residual_normal,
+    State& state
+);
+
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = stein_stein::PreparedDynamics;

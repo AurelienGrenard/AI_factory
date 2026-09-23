@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json", "datasets/model/equity/markovian/schobel_zhu/price_delta/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/price_delta/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/price_delta/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01/recipe.yaml", "centered_crn", .01, 2U};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/price_delta/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "schobel_zhu", "phoenix_memory_autocall", ""},
         11668827927302111232ULL, model::equity::schobel_zhu::load_models, product::load_phoenix_memory_autocalls,

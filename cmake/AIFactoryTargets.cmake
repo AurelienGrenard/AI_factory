@@ -133,8 +133,22 @@ function(ai_factory_add_cuda_unit domain unit_path)
     if(product STREQUAL "american_option"
         OR product STREQUAL "american_option_price_delta"
         OR product STREQUAL "american_option_price_gradients"
-        OR product STREQUAL "bermudan_swaption")
+        OR product STREQUAL "bermudan_swaption"
+        OR product STREQUAL "bermudan_swaption_price_gradients")
         list(APPEND dependencies ai_factory_longstaff_schwartz)
+    endif()
+    # A gradient unit delegates an empty sensitivity selection to the
+    # canonical price launcher for the same model/product.  Keep that edge on
+    # the library itself so every test and dataset generator links correctly
+    # without restating implementation dependencies.
+    if(product MATCHES "^(.+)_price_gradients$")
+        string(REGEX REPLACE "_price_gradients$" ""
+            price_logical_unit_path "${logical_unit_path}")
+        string(REPLACE "/" "_" price_unit_id "${price_logical_unit_path}")
+        set(price_target ai_factory_${domain}_${price_unit_id})
+        if(TARGET ${price_target})
+            list(APPEND dependencies ${price_target})
+        endif()
     endif()
     # A launcher consumes parameter-row declarations only. Dataset loaders are
     # implementation dependencies of generators/tests that include their

@@ -1,6 +1,7 @@
 // Host implementation of the Normal-Inverse-Gaussian dataset loader.
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "common/dataset_validation.hpp"
+#include "model/equity/markovian/normal_inverse_gaussian/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -25,23 +26,7 @@ std::vector<ModelParameters> load_models(
                 parameters.at("beta").get<float>(),
                 parameters.at("delta").get<float>(),
             };
-            if (!std::isfinite(model.spot) || !(model.spot > 0.0f))
-                throw std::invalid_argument(prefix + "spot must be finite and positive.");
-            if (!std::isfinite(model.risk_free_rate))
-                throw std::invalid_argument(prefix + "risk_free_rate must be finite.");
-            if (!std::isfinite(model.dividend_yield))
-                throw std::invalid_argument(prefix + "dividend_yield must be finite.");
-            if (!std::isfinite(model.alpha) || !(model.alpha > 0.0f))
-                throw std::invalid_argument(prefix + "alpha must be finite and positive.");
-            if (!std::isfinite(model.beta))
-                throw std::invalid_argument(prefix + "beta must be finite.");
-            if (!std::isfinite(model.delta) || !(model.delta > 0.0f))
-                throw std::invalid_argument(prefix + "delta must be finite and positive.");
-            if (!(model.alpha > std::fabs(model.beta + 1.0f))) {
-                throw std::invalid_argument(
-                    prefix + "alpha must exceed abs(beta + 1) for the martingale moment."
-                );
-            }
+            validate_parameters(model, prefix);
             return model;
     });
 }

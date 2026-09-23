@@ -20,7 +20,7 @@ int main() {
         "datasets/product/geometric_asian_option/geometric_asian_options_01.json",
         "datasets/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01_cartesian.json",
         "Exact Kou increments",
         PriceConstruction::CartesianProduct,
     };

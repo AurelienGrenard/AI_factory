@@ -20,7 +20,7 @@ int main() {
         "datasets/product/up_no_touch/up_no_touches_01.json",
         "datasets/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01_cartesian.json",
         "catalog/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01_cartesian.json",
         "absorbed Milstein",
         PriceConstruction::CartesianProduct,
     };

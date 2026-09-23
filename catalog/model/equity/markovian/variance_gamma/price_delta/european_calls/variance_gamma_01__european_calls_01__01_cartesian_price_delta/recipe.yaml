@@ -10,6 +10,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/variance_gamma/price_delta/european_calls/variance_gamma_01__european_calls_01__01_cartesian_price_delta/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/price_delta/european_calls/variance_gamma_01__european_calls_01__01_cartesian_price_delta.json",
   "construction": "cartesian",
   "paths_per_price": 1048576,
   "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
@@ -20,5 +21,6 @@
     "source_price_recipe": "catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01_cartesian/recipe.yaml"
   },
   "dynamics_seed": 11668828159230345216,
+  "rng_mapping_version": "philox_source_step_v2",
   "time_grid": null
 }

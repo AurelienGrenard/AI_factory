@@ -12,6 +12,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/merton/prices/american_puts/merton_01__american_puts_01__01_cartesian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/prices/american_puts/merton_01__american_puts_01__01_cartesian.json",
   "construction": "cartesian",
   "numerical_method": {
     "engine": "equity_lsm_exact",
@@ -24,5 +25,6 @@
   "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668827411906035712
-  }
+  },
+  "rng_mapping_version": "philox_source_step_v2"
 }

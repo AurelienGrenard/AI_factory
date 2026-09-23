@@ -2,10 +2,12 @@
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/cuda/price_gradients/launch_plan.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace tuning = ai_factory::workbench::offline::cuda_tuning;
 
@@ -19,26 +21,21 @@ std::size_t positive_count(std::string_view text) {
 
 int main(int argc, char** argv) {
     try {
-        unsigned int batch_size = tuning::pg::kDefaultSensitivityBatchSize;
-        const bool explicit_batch = argc > 2 && std::string_view(argv[argc-2]) == "--sensitivity-batch-size";
-        if (explicit_batch) {
-            const auto parsed = positive_count(argv[argc-1]);
-            if (parsed != 1U && parsed != 2U && parsed != 4U)
-                throw std::invalid_argument("Sensitivity batch size must be 1, 2 or 4.");
-            batch_size = static_cast<unsigned int>(parsed);
-            argc -= 2;
-        }
+        const bool diagonal = argc > 1
+            && std::string_view(argv[argc-1]) == "--diagonal";
+        if (diagonal) --argc;
         const bool price_gradients = argc > 2 && std::string_view(argv[argc-2]) == "--price-gradients";
+        if (diagonal && !price_gradients)
+            throw std::invalid_argument("Diagonal order requires --price-gradients K.");
         const std::size_t sensitivity_count = price_gradients
             ? (std::string_view(argv[argc-1]) == "0" ? 0U : positive_count(argv[argc-1])) : 0U;
-        if (explicit_batch && !price_gradients) throw std::invalid_argument("Batch size requires --price-gradients K.");
         if (price_gradients) argc -= 2;
         const bool price_delta = argc > 1 && std::string_view(argv[argc - 1]) == "--price-delta";
         if (price_gradients && price_delta) throw std::invalid_argument("Choose one sensitivity interface.");
         if (price_delta) --argc;
         if (argc < 3 || argc > 5) {
             std::cerr << "Usage: inspect_pricing_launch_plan MODEL/[CURVE/]PRODUCT PRICES"
-                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--sensitivity-batch-size B]]\n"
+                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--diagonal]]\n"
                          "Run from the repository root; no CUDA calls are made.\n";
             return 2;
         }
@@ -80,8 +77,49 @@ int main(int argc, char** argv) {
         }
         nlohmann::ordered_json metadata;
         if (price_gradients) {
-            const auto plan = tuning::make_price_gradient_launch_plan(identity,positive_count(argv[2]),sensitivity_count,paths,limits,batch_size);
-            metadata = tuning::price_gradient_launch_metadata(plan,sensitivity_count);
+            bool device_prepared = false;
+            bool gradient_available = false;
+            for (auto it = inventory.at("price_gradient_bindings").begin();
+                 it != inventory.at("price_gradient_bindings").end(); ++it) {
+                if (it.value().at("identity").get<std::string>() == key) {
+                    gradient_available = true;
+                    device_prepared = it.value().at("preparation_strategy")
+                        .get<std::string>().starts_with("device_prepared_");
+                    const auto orders = it.value().at("supported_orders")
+                        .get<std::vector<std::string>>();
+                    if (diagonal && std::find(
+                            orders.begin(), orders.end(), "diagonal_second"
+                        ) == orders.end())
+                        throw std::invalid_argument(
+                            "The selected gradient binding does not expose diagonal order."
+                        );
+                }
+            }
+            if (!gradient_available)
+                throw std::invalid_argument(
+                    "No generated price-gradient binding for " + key
+                );
+            if (diagonal && !device_prepared)
+                throw std::invalid_argument(
+                    "The selected gradient binding has no diagonal dataset plan."
+                );
+            const auto plan = tuning::make_price_gradient_launch_plan(
+                identity,
+                positive_count(argv[2]),
+                sensitivity_count,
+                paths,
+                limits
+            );
+            metadata = device_prepared
+                ? tuning::device_prepared_price_gradient_launch_metadata(plan,sensitivity_count)
+                : tuning::price_gradient_launch_metadata(plan,sensitivity_count);
+            if (diagonal) {
+                metadata["maximum_live_scenarios"] =
+                    sensitivity_count == 0U ? 1U : 4U;
+                metadata["represented_nodes_per_sensitivity"] =
+                    sensitivity_count == 0U ? 0U : 4U;
+                metadata["requested_orders"] = {"first", "diagonal_second"};
+            }
         } else {
             const auto plan = price_delta
                 ? tuning::make_equity_price_delta_launch_plan(identity,positive_count(argv[2]),paths,limits)

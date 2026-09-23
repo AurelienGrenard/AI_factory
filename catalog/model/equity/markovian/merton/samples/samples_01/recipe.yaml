@@ -9,6 +9,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/merton/samples/samples_01/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/samples/samples_01.json",
   "shape": {
     "parameter_count": 12000,
     "paths_per_parameter": 250,
@@ -72,6 +73,7 @@
     "schedule": 11668827541828796416,
     "dynamics": 11668827542902538240
   },
+  "rng_mapping_version": "philox_source_step_v2",
   "numerical_method": {
     "engine": "sample_markovian",
     "profile": "model_sample_profile",

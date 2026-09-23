@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/kou/parameters/kou_01.json", "datasets/product/straddle/straddles_01.json", "datasets/model/equity/markovian/kou/price_delta/straddles/kou_01__straddles_01__01_price_delta.json", "catalog/model/equity/markovian/kou/price_delta/straddles/kou_01__straddles_01__01_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/price_delta/straddles/kou_01__straddles_01__01_price_delta.json", "catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/recipe.yaml", "centered_crn", .01, 0U};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/price_delta/straddles/kou_01__straddles_01__01_price_delta.json", "catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "kou", "straddle", ""},
         11668827377546297344ULL, model::equity::kou::load_models, product::load_straddles,

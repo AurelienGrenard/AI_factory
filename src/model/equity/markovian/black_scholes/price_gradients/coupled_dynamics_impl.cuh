@@ -17,10 +17,22 @@ __device__ __forceinline__ CoupledDynamics::Innovations CoupledDynamics::draw(Ra
     const float second = philox::next_normal(random.uniforms, random.normals);
     return {{central, first, second}};
 }
+__device__ __forceinline__ CoupledDynamics::Innovations
+CoupledDynamics::draw_equal_horizon(RandomContext& random) {
+    return {{
+        philox::next_normal(random.uniforms, random.normals), 0.0f, 0.0f
+    }};
+}
 __device__ __forceinline__ void CoupledDynamics::transition(
     const Prepared& p, const Innovations& z, const float* weights, State& state
 ) {
-    const float normal = fmaf(weights[2], z.normals[2], fmaf(weights[1], z.normals[1], weights[0] * z.normals[0]));
+    const float normal = weights == nullptr
+        ? z.normals[0]
+        : fmaf(
+            weights[2],
+            z.normals[2],
+            fmaf(weights[1], z.normals[1], weights[0] * z.normals[0])
+        );
     black_scholes::one_step_transition(p.transition, normal, state);
 }
 __device__ __forceinline__ float CoupledDynamics::spot(const State& state) { return DynamicsPolicy::spot(state); }

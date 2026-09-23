@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 #include "model/equity/markovian/merton/parameters.hpp"
 
 #include <cuda_runtime.h>
@@ -42,7 +42,7 @@ struct PreparedDynamics {
 struct TransitionInnovations {
     std::uint32_t jump_count;
     float diffusion_normal;
-    float jump_normal;
+    float jump_standard_normal_sum;
 };
 
 // ======================== Common equity dynamics =========================
@@ -65,7 +65,7 @@ __device__ __forceinline__ void one_step_transition(
     const PreparedTransition& prepared_transition,
     std::uint32_t jump_count,
     float diffusion_normal,
-    float jump_normal,
+    float jump_standard_normal_sum,
     State& state
 );
 
@@ -73,7 +73,7 @@ __device__ __forceinline__ void one_step_transition(
 // estimators may reuse it only while intensity and interval remain unchanged.
 __device__ __forceinline__ TransitionInnovations draw_transition_innovations(
     const PreparedTransition& prepared_transition,
-    philox::NormalRandomContext& random
+    philox::DomainRandomContext& random
 );
 
 struct DynamicsPolicy {
@@ -81,7 +81,7 @@ struct DynamicsPolicy {
     using PreparedDynamics = merton::PreparedDynamics;
     using PreparedModel = merton::PreparedModel;
     using PreparedTransition = merton::PreparedTransition;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = merton::State;
 
     static constexpr bool kNativeLogSpot = true;

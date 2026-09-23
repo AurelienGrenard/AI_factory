@@ -34,6 +34,15 @@ RNG_DOMAIN_STRIDE = 1 << 32
 RNG_STREAM_CAPACITY = 1 << 30
 RNG_COMMON_RANDOM_NUMBER_ALLOWLIST: frozenset[tuple[str, str]] = frozenset()
 
+# Every stochastic model uses the same counter layout. Models select one
+# continuous domain or multiple source/step domains in their RandomContext;
+# rng_domain_epoch separately reserves seeds between recipes.
+RNG_MAPPING_VERSION = "philox_source_step_v2"
+
+
+def rng_mapping_version(_model: str) -> str:
+    return RNG_MAPPING_VERSION
+
 
 @dataclass(frozen=True)
 class SourceSymbol:
@@ -134,6 +143,7 @@ class DatasetSpec:
     construction: str = ""
     numerical_profile: str = ""
     layout: str = ""
+    sensitivity_orders: tuple[str, ...] = ()
 
     @property
     def recipe_yaml_path(self) -> str:
@@ -156,7 +166,13 @@ class DatasetSpec:
     @property
     def url(self) -> str:
         relative = PurePosixPath(self.dataset_path).relative_to("datasets")
-        return f"https://datasets.ai-factory.example/v1/{relative}"
+        stochastic = (
+            self.dataset_kind == "samples"
+            or self.dataset_kind in {"prices", "price_delta", "price_gradients"}
+            and self.engine not in {"equity_closed_form", "fixed_income_closed_form"}
+        )
+        url_version = "v2" if stochastic else "v1"
+        return f"https://datasets.ai-factory.example/{url_version}/{relative}"
 
     @property
     def cmake_target(self) -> str:
@@ -1133,6 +1149,18 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
         raise ValueError(
             f"dataset lacks numerical profile or layout: {dataset.generator_path}"
         )
+    if dataset.dataset_kind == "price_gradients":
+        if dataset.sensitivity_orders not in {
+            ("first",), ("first", "diagonal_second")
+        }:
+            raise ValueError(
+                f"invalid price-gradient orders: {dataset.generator_path}"
+            )
+    elif dataset.sensitivity_orders:
+        raise ValueError(
+            f"non-gradient dataset declares sensitivity orders: "
+            f"{dataset.generator_path}"
+        )
 
 
 for _dataset in DATASET_SPECS:
@@ -1598,12 +1626,20 @@ PRICE_DELTA_SOURCE_BY_GENERATOR.update({
 })
 DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
-PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(PRICE_DELTA_DATASET_SPECS, PRICE_GRADIENT_BINDING_SPECS)
+PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(
+    PRICE_DELTA_DATASET_SPECS,
+    AVAILABLE_DATASET_SPECS,
+    PRICE_GRADIENT_BINDING_SPECS,
+)
 PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
-    gradient.generator_path: PRICE_DELTA_SOURCE_BY_GENERATOR[next(
-        delta.generator_path for delta in PRICE_DELTA_DATASET_SPECS
-        if (delta.model, delta.product, delta.variant, delta.construction)
-        == (gradient.model, gradient.product, gradient.variant, gradient.construction))]
+    gradient.generator_path: next(
+        source for source in AVAILABLE_DATASET_SPECS
+        if source.dataset_kind == "prices"
+        and (source.model, source.curve, source.product, source.variant,
+             source.construction, source.engine)
+        == (gradient.model, gradient.curve, gradient.product,
+            gradient.variant, gradient.construction, gradient.engine)
+    )
     for gradient in PRICE_GRADIENT_DATASET_SPECS
 }
 DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS

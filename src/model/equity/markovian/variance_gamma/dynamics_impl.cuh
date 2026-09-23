@@ -65,24 +65,47 @@ __device__ __forceinline__ void one_step_transition(
 
 // ==================== Model-specific implementation =======================
 
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::DomainRandomContext& random
+) {
+    const auto step = random.next_step();
+    auto gamma_uniforms = random.source<random_source::kGammaClock>(step);
+    philox::NormalPairCache gamma_cache;
+    const float gamma_increment = philox::marsaglia_tsang_gamma(
+        gamma_uniforms,
+        gamma_cache,
+        prepared_transition.gamma_shape,
+        prepared_model.nu
+    );
+    auto brownian_uniforms = random.source<
+        random_source::kSubordinatedBrownian
+    >(step);
+    philox::NormalPairCache brownian_cache;
+    const float brownian_normal = philox::next_normal(
+        brownian_uniforms, brownian_cache
+    );
+    return {gamma_increment, brownian_normal};
+}
+
 namespace {
 
 __device__ __forceinline__ void simulate_one_step(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
-    philox::NormalPairCache& normal_cache,
+    philox::DomainRandomContext& random,
     State& state
 ) {
-    const float gamma_increment = philox::marsaglia_tsang_gamma(
-        uniforms,
-        normal_cache,
-        prepared_transition.gamma_shape,
-        prepared_model.nu
+    const auto innovations = draw_transition_innovations(
+        prepared_model, prepared_transition, random
     );
-    const float brownian_normal = philox::next_normal(uniforms, normal_cache);
     one_step_transition(
-        prepared_model, prepared_transition, gamma_increment, brownian_normal, state
+        prepared_model,
+        prepared_transition,
+        innovations.gamma_increment,
+        innovations.brownian_normal,
+        state
     );
 }
 
@@ -159,8 +182,7 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     variance_gamma::simulate_one_step(
         prepared_model,
         prepared_transition,
-        random.uniforms,
-        random.normals,
+        random,
         state
     );
 }

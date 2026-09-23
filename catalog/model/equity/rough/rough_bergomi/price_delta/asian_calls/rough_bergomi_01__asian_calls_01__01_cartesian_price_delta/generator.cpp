@@ -10,7 +10,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/asian_option/asian_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_bergomi/price_delta/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_volterra_price_delta_dataset<volterra::DenseHybridSchedule, product::AsianOptionPathPolicy<OptionSide::call>>(
         recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_bergomi", "asian_option", ""},
         11668828507122696192ULL, "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)", model::equity::rough_bergomi::load_models, product::load_asian_options,

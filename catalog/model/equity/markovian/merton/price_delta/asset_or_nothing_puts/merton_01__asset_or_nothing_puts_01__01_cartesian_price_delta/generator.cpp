@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json", "datasets/model/equity/markovian/merton/price_delta/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/price_delta/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "merton", "asset_or_nothing_option", ""},
         11668827429085904896ULL, model::equity::merton::load_models, product::load_asset_or_nothing_options,

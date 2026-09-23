@@ -42,6 +42,13 @@ locations. A nested generation action may create or refer to a campaign under
 Performance evidence remains under `artifacts/performance/`, and independent
 price validation remains under `validation/`.
 
+The main CMake graph never discovers local experiments implicitly. A study
+that needs native targets may declare them in `work/experiments/CMakeLists.txt`
+and opt in during configuration with
+`-DAI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON`. These targets are deliberately
+excluded from every permanent catalogue aggregate, so deleting `work/` leaves
+the versioned build unchanged.
+
 ## Publication boundary
 
 `datasets/` contains datasets only. Experiment inputs, campaign manifests,

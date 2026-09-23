@@ -23,7 +23,7 @@ int main() {
         "datasets/product/double_knock_out_option/double_knock_out_options_01.json",
         "datasets/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01.json",
         "catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,
     };

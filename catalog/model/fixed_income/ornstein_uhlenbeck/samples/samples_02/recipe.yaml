@@ -9,6 +9,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_02/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/ornstein_uhlenbeck/samples/samples_02.json",
   "shape": {
     "parameter_count": 3000000,
     "paths_per_parameter": 1,
@@ -54,6 +55,7 @@
     "schedule": 11668829139556630528,
     "dynamics": 11668829140630372352
   },
+  "rng_mapping_version": "philox_source_step_v2",
   "numerical_method": {
     "engine": "sample_fixed_income",
     "profile": "model_sample_profile",

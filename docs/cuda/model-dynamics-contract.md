@@ -381,11 +381,11 @@ seed, ni l'indice du chemin. Son arité est volontairement propre au modèle : u
 normale sous Black-Scholes, une normale et une somme de sauts sous Kou, deux
 innovations corrélées sous G2, etc.
 
-Une loi exacte à consommation adaptative peut recevoir directement
-`philox::UniformSequence&` et `philox::NormalPairCache&`. C'est le cas de CIR :
-`one_step_transition` effectue le mélange Poisson-Gamma de la chi-deux
-décentrée. La fonction utilise uniquement la suite continue du chemin courant ;
-elle ne construit ni clé, ni sous-suite.
+Une loi exacte à consommation adaptative reçoit le contexte déclaré par son
+`DynamicsPolicy`. CIR utilise `DomainRandomContext` : sa transition tire le
+compte de Poisson et la Gamma dans deux sources séparées au même pas. Les
+autres modèles peuvent conserver `UniformSequence` et `NormalPairCache` quand
+un flux unique suffit.
 
 Quand une loi adaptative doit alimenter plusieurs scénarios couplés, le modèle
 peut exposer une factorisation canonique `draw_transition_innovations`. Merton
@@ -397,6 +397,20 @@ dupliquer ni tenter de resynchroniser des suites Philox. Cette factorisation
 n'est contractuelle que lorsque les paramètres qui gouvernent la consommation
 (ici l'intensité et l'horizon) sont identiques entre scénarios.
 
+La voie `price_gradients` étend ce contrat par
+`CoupledDynamics::draw_coupled` lorsque les paramètres gouvernant la loi
+changent. Pour Merton, Kou et Bates, le moteur commun construit une famille
+d'événements Poisson emboîtée et le modèle transforme chaque marque primitive.
+Pour Variance-Gamma, chaque nœud redémarre la source Gamma à la même adresse ;
+une différence de rejets ne décale donc ni les autres nœuds ni la normale du
+brownien subordonné. Pour NIG, la construction Michael--Schucany--Haas est
+séparée en une transformation pure de son normal et de son uniforme de
+sélection ; les nœuds rejouent ces deux primitives et la même normale
+brownienne. Une horloge VG inchangée réutilise directement l'incrément central ;
+NIG retrouve le même bit pattern depuis ses primitives fixes. Le moteur
+terminal ne connaît aucune de ces lois : il
+distribue les nœuds puis appelle le hook compilé du modèle.
+
 ### `simulate_one_step`
 
 Attribut : `__device__ __forceinline__`, fonction privée au `.cu`.
@@ -405,7 +419,7 @@ Attribut : `__device__ __forceinline__`, fonction privée au `.cu`.
 void simulate_one_step(
     const PreparedModel& prepared_model,
     const PreparedTransition& prepared_transition,
-    philox::UniformSequence& uniforms,
+    typename DynamicsPolicy::RandomContext& random,
     /* caches aléatoires optionnels */,
     State& state
 );
@@ -413,7 +427,7 @@ void simulate_one_step(
 
 Cette fonction privée est la frontière commune entre les simulateurs de chemin
 et la consommation propre au modèle. Sa signature ne contient que le modèle,
-la transition, la suite Philox, les éventuels caches et l'état. Elle consomme
+la transition, le contexte Philox, les éventuels caches et l'état. Elle consomme
 les uniformes dans un ordre explicite, construit les variates nécessaires, puis
 appelle `one_step_transition`. Un argument `PreparedModel` peut être inutilisé
 pour une loi simple ; il est conservé ici parce que d'autres lois, comme VG,
@@ -493,9 +507,27 @@ la forme `stubbed` reçoit `initial_transition` et `regular_transition`. Un
 intervalle d'observation consomme un seul incrément exact, quelle que soit sa
 longueur.
 
+Le replay des sensibilités Longstaff--Schwartz suit la même séparation. Les
+modèles à schéma utilisent
+`DevicePreparedFixedStepFrozenExerciseReplay` avec les nombres de transitions
+du stub et de l'intervalle régulier. Les modèles exacts utilisent
+`DevicePreparedExactTransitionFrozenExerciseReplay` avec deux préparations de
+loi. Dans les deux cas, la dynamique couplée du modèle reçoit le central et les
+nœuds actifs ; la politique LSM ne connaît ni Poisson, ni subordinateur, ni
+équation de diffusion.
+
+Tous les nœuds d'un replay exact avancent sur le même intervalle. Un adaptateur
+terminal qui consomme normalement des innovations supplémentaires pour
+coupler plusieurs maturités peut exposer `draw_equal_horizon`. Le helper commun
+`simulate_coupled_equal_horizon_nodes` utilise alors ce tirage réduit. C'est le
+cas de Black--Scholes : le replay consomme une normale par intervalle, comme le
+chemin central, tandis que le pricer terminal conserve ses trois normales pour
+le pont brownien. Cette distinction fait partie du mapping Philox et évite de
+décaler le deuxième intervalle du replay par rapport au central.
+
 La fonction :
 
-1. construit une seule suite aléatoire pour le chemin ;
+1. construit un seul contexte aléatoire pour le chemin ;
 2. simule le premier intervalle, distinct seulement dans la forme `stubbed` ;
 3. notifie le handler à chaque date contractuelle ;
 4. retourne directement l'état terminal.
@@ -521,7 +553,7 @@ simulate_exact_transition_regular_schedule<Dynamics>(...);
 simulate_exact_transition_calendar<Dynamics>(...);
 ```
 
-Ils conservent une unique suite Philox par chemin et notifient un
+Ils conservent un unique contexte Philox par chemin et notifient un
 `ObservationHandlerFor<Dynamics>` à chaque date contractuelle. Le handler
 accumule uniquement les quantités requises par le payoff. Un calendrier de deux
 observations couvre naturellement les produits à deux dates.
@@ -638,11 +670,11 @@ terminal-forward CIR est également réutilisée pour les Bermudans fitted.
 ## Suite aléatoire Philox
 
 Une ligne de résultat utilise la clé
-`make_key(base_seed + result_index)`. Sous cette clé, chaque chemin possède le
-sous-espace de compteur :
+`make_key(base_seed + result_index)`. Tous les consommateurs Philox utilisent
+le même compteur V2 :
 
 ```text
-(path_index: uint64, local_group_index: uint64)
+(path_bas: uint32, path_haut: uint32, groupe: uint32, domaine: uint32)
 ```
 
 Les `base_seed` des recettes de production proviennent exclusivement des
@@ -651,7 +683,30 @@ domaines versionnés décrits dans
 dynamique définit le mapping à l'intérieur d'un dataset, pas l'allocation entre
 datasets.
 
-Le code de simulation construit `UniformSequence(key, path)` une seule fois.
+Les modèles à consommation fixe construisent `UniformSequence(key, path)` une
+seule fois dans le domaine zéro. Heston QE et Vasicek conservent ainsi un seul
+flux et ne portent aucun état par source supplémentaire. Les modèles dont une
+source consomme un nombre variable de tirages choisissent
+`DomainRandomContext` dans leur `DynamicsPolicy` : ce contexte ne garde que la
+clé, le chemin et l'indice de pas ; les sources sont ouvertes à la demande.
+Merton, Kou, Bates, Variance-Gamma et CIR/CIR++ utilisent deux ou trois
+sources isolées.
+
+Les domaines isolés sont `(source_id << 24) | step`, avec `source_id` dans
+`1..255`, `step` dans `0..2^24-1` et `groupe` dans `0..2^32-1` ; le domaine
+zéro est réservé au flux unique. Un dépassement provoque une erreur CUDA
+explicite. Toutes les recettes stochastiques déclarent
+`rng_mapping_version: philox_source_step_v2` et utilisent l'URL `/v2/`,
+indépendamment de leur nombre de flux. Les bases historiques `/v1/` gardent
+leur empreinte. Pour un seul flux et moins de `2^32` groupes, les quatre mots
+du compteur restent identiques à la V1 ; les modèles multi-flux changent de
+tirages. Aucune égalité bit à bit globale entre versions n'est garantie. Une même clé
+de ligne et un même indice de chemin redonnent les mêmes innovations dans les
+scénarios de prix et de sensibilité ; changer la géométrie CUDA ou le lot ne
+change pas leur adresse.
+
+Dans le domaine zéro, les simulateurs séquentiels construisent
+`UniformSequence(key, path)` une seule fois.
 Chaque uniforme scalaire est obtenu par `uniforms.next()`, y compris les
 uniformes transformés ensuite en normales ou en comptes de Poisson. La suite
 cache les groupes de quatre produits par Philox et masque entièrement
@@ -676,9 +731,9 @@ dépendre du compilateur.
 ### Transformations de lois réutilisables
 
 Les transformations indépendantes d'un modèle restent dans
-`src/common/philox.cuh` et consomment la `UniformSequence` reçue par référence.
-Elles ne créent ni clé ni sous-suite : une méthode de rejet continue donc le
-flux du chemin courant.
+`src/common/philox.cuh` et consomment une source d'uniformes reçue par
+référence (`UniformSequence` ou `DomainUniformSequence`). Elles ne créent ni
+clé ni sous-suite : une méthode de rejet continue donc la source courante.
 
 ```cpp
 float marsaglia_tsang_gamma(
@@ -723,8 +778,9 @@ locale du chemin comme pour les autres transformations.
 `scaled_noncentral_chi_square` compose cette loi de Poisson avec
 `marsaglia_tsang_gamma` selon la représentation exacte de la loi du chi-deux
 non centrée. Le facteur d'échelle est transmis à Gamma, sans allocation ni
-multiplication séparée après le tirage. CIR utilise cette primitive avec une
-suite uniforme et un cache de normales conservés pendant tout le chemin.
+multiplication séparée après le tirage. CIR utilise
+`domain_scaled_noncentral_chi_square` pour isoler le compte et la Gamma sans
+conserver deux suites uniformes pendant tout le chemin.
 
 `michael_schucany_haas_inverse_gaussian` génère une inverse gaussienne
 paramétrée par moyenne et forme. Son calcul du petit candidat utilise la forme
@@ -739,9 +795,11 @@ validées avant l'entrée dans les kernels.
 - Préparer les coefficients hors de la boucle de pas.
 - Garder `one_step_transition` déterministe et indépendant de Philox pour les
   schémas à consommation fixe ; une loi exacte adaptative consomme directement
-  la suite du chemin sans créer de clé ou de sous-suite.
-- Construire une seule suite aléatoire continue par chemin.
-- Conserver le mapping `(key, path_index, local_group_index)`.
+  le contexte du chemin sans créer de clé ou de sous-suite.
+- Construire un seul contexte aléatoire par chemin. Garder une suite continue
+  pour les modèles mono-flux et isoler seulement les sources qui le demandent.
+- Conserver le mapping V2 déclaré par la recette : `(key, path_index, group,
+  domain)`, avec `domain=0` pour le flux unique.
 - Ne pas réserver un nombre fixe de groupes par chemin.
 - Ne pas introduire de paramètres produit dans la dynamique.
 - Conserver les sorties multi-dates en SoA date-major.

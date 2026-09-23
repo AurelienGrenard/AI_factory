@@ -1,11 +1,9 @@
 // Host implementation of the Black-Scholes dataset loader.
 #include "model/equity/markovian/black_scholes/dataset.hpp"
+#include "model/equity/markovian/black_scholes/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
-
-#include <cmath>
-#include <stdexcept>
 
 namespace ai_factory::workbench::model::equity::black_scholes {
 
@@ -24,14 +22,7 @@ std::vector<ModelParameters> load_models(
                 parameters.at("dividend_yield").get<float>(),
                 parameters.at("volatility").get<float>(),
             };
-            if (!std::isfinite(model.spot) || !(model.spot > 0.0f))
-                throw std::invalid_argument(prefix + "spot must be finite and positive.");
-            if (!std::isfinite(model.risk_free_rate))
-                throw std::invalid_argument(prefix + "risk_free_rate must be finite.");
-            if (!std::isfinite(model.dividend_yield))
-                throw std::invalid_argument(prefix + "dividend_yield must be finite.");
-            if (!std::isfinite(model.volatility) || !(model.volatility > 0.0f))
-                throw std::invalid_argument(prefix + "volatility must be finite and positive.");
+            validate_parameters(model, prefix);
             return model;
     });
 }

@@ -6,6 +6,7 @@ output:
   path: datasets/curve/svensson/svensson_01.json
   format: json
 generation_output: catalog/curve/svensson/svensson_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/curve/svensson/svensson_01.json
 curve_family: Svensson
 row_count: 1000
 parameters:

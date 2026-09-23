@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "finding": "PERF-023",
+  "protocol": {
+    "warmups": 5,
+    "repetitions": 21,
+    "diagnostics_environment": "AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1",
+    "profile_scope": "every active pricing phase and exact launched symbol"
+  },
+  "cases": [
+    {
+      "id": "terminal_mc_exact_and_step_b1_256",
+      "binary": "benchmark_price_gradients_terminal",
+      "arguments": ["256", "64"],
+      "required_kernels": [
+        "black_scholes.european_option.price_gradients.monte_carlo",
+        "heston.european_option.price_gradients.device_prepared",
+        "heston.european_option.sensitivities.device_prepared",
+        "merton.european_option.price_gradients.monte_carlo"
+      ]
+    },
+    {
+      "id": "closed_form_thread_256",
+      "binary": "benchmark_price_gradients_closed_form",
+      "arguments": ["256"],
+      "required_kernels": [
+        "black_scholes.european_option.price_gradients.closed_form"
+      ]
+    },
+    {
+      "id": "heston_american_frozen_first_lsm_b1_256",
+      "binary": "benchmark_price_gradients_american",
+      "arguments": ["262144", "4", "256", "128", "first"],
+      "required_kernels": [
+        "heston.american_option.sensitivities.prepare_rows",
+        "heston.american_option.sensitivities.simulate_paths",
+        "heston.american_option.sensitivities.regression_partials",
+        "heston.american_option.sensitivities.solve_regressions",
+        "heston.american_option.sensitivities.update_cashflows",
+        "heston.american_option.sensitivities.moment_partials",
+        "heston.american_option.sensitivities.finalize_prices",
+        "heston.american_option.sensitivities.frozen_sensitivity_moments",
+        "heston.american_option.sensitivities.finalize_frozen_sensitivities"
+      ]
+    },
+    {
+      "id": "heston_american_frozen_diagonal_lsm_b1_256",
+      "binary": "benchmark_price_gradients_american",
+      "arguments": ["262144", "4", "256", "128", "diagonal"],
+      "required_kernels": [
+        "heston.american_option.sensitivities.prepare_rows",
+        "heston.american_option.sensitivities.simulate_paths",
+        "heston.american_option.sensitivities.regression_partials",
+        "heston.american_option.sensitivities.solve_regressions",
+        "heston.american_option.sensitivities.update_cashflows",
+        "heston.american_option.sensitivities.moment_partials",
+        "heston.american_option.sensitivities.finalize_prices",
+        "heston.american_option.sensitivities.frozen_sensitivity_moments",
+        "heston.american_option.sensitivities.finalize_frozen_sensitivities"
+      ]
+    },
+    {
+      "id": "cir_jamshidian_first_scalar_and_cooperative",
+      "binary": "benchmark_price_gradients_jamshidian",
+      "arguments": ["1000", "256", "128", "first"],
+      "required_kernels": [
+        "cir.european_swaption.sensitivities.scalar",
+        "cir.european_swaption.sensitivities.cooperative"
+      ]
+    },
+    {
+      "id": "cir_jamshidian_diagonal_scalar_and_cooperative",
+      "binary": "benchmark_price_gradients_jamshidian",
+      "arguments": ["1000", "256", "128", "diagonal"],
+      "required_kernels": [
+        "cir.european_swaption.sensitivities.scalar",
+        "cir.european_swaption.sensitivities.cooperative"
+      ]
+    }
+  ]
+}

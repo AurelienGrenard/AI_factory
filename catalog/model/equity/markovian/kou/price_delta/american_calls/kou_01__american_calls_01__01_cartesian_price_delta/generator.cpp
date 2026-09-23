@@ -9,7 +9,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/markovian/kou/parameters/kou_01.json", "datasets/product/american_option/american_options_01.json", "datasets/model/equity/markovian/kou/price_delta/american_calls/kou_01__american_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/kou/price_delta/american_calls/kou_01__american_calls_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/price_delta/american_calls/kou_01__american_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01_cartesian/recipe.yaml", "frozen_central_exercise_dates_crn", .01, 0U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/price_delta/american_calls/kou_01__american_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01_cartesian/recipe.yaml", "frozen_central_exercise_dates_crn", .01, 0U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, true>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_lsm, "kou", "american_option", ""},
         11668827265877147648ULL, model::equity::kou::load_models, product::load_american_options,

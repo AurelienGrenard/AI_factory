@@ -16,4 +16,15 @@ inline std::size_t moment_value_count(std::size_t sensitivity_count) {
     );
 }
 
+inline std::size_t moment_value_count(
+    std::size_t sensitivity_count,
+    std::size_t moments_per_sensitivity
+) {
+    return checked_workspace_product(
+        moments_per_sensitivity,
+        std::max<std::size_t>(sensitivity_count, 1U),
+        "LSM sensitivity moment count exceeds size_t."
+    );
+}
+
 }  // namespace ai_factory::workbench::longstaff_schwartz::price_gradients

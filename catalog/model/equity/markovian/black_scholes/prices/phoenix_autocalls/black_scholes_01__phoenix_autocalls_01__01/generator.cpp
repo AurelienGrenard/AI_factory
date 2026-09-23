@@ -19,7 +19,7 @@ int main() {
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01.json",
         "catalog/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01.json",
         "Exact Gaussian log-price transitions",
         PriceConstruction::Aligned,
     };

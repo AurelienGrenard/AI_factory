@@ -79,20 +79,35 @@ __device__ __forceinline__ PhiloxCounter philox4x32_10(
     return counter;
 }
 
-// Address one random group by an independent path and its local group index.
-__device__ __forceinline__ PhiloxCounter random_bits(
+// All stochastic engines use counter=(path_lo,path_hi,group,domain).
+// Domain zero is the single continuous stream; source/step domains are
+// selected only by models that need independent variable-consumption streams.
+__device__ __forceinline__ PhiloxCounter addressed_random_bits(
     PhiloxKey key,
     std::uint64_t path_index,
-    std::uint64_t local_group_index
+    std::uint32_t group_index,
+    std::uint32_t domain
 ) {
     return philox4x32_10(
         key,
         {
             static_cast<std::uint32_t>(path_index),
             static_cast<std::uint32_t>(path_index >> 32U),
-            static_cast<std::uint32_t>(local_group_index),
-            static_cast<std::uint32_t>(local_group_index >> 32U),
+            group_index,
+            domain,
         }
+    );
+}
+
+// Preserve the compact single-stream API while enforcing the V2 group bound.
+__device__ __forceinline__ PhiloxCounter random_bits(
+    PhiloxKey key,
+    std::uint64_t path_index,
+    std::uint64_t local_group_index
+) {
+    if (local_group_index > 0xffffffffULL) asm volatile("trap;");
+    return addressed_random_bits(
+        key, path_index, static_cast<std::uint32_t>(local_group_index), 0U
     );
 }
 
@@ -229,8 +244,9 @@ __device__ __forceinline__ std::uint32_t poisson_from_uniform(
 // Inversion is efficient for small means; Hoermann's PTRS transformed
 // rejection avoids both linear work and exp(-mean) underflow for large means.
 // A finite non-negative mean with a uint32-representable tail is a precondition.
+template<typename UniformSource>
 __device__ __forceinline__ std::uint32_t poisson_from_uniform_sequence(
-    UniformSequence& uniforms,
+    UniformSource& uniforms,
     float poisson_mean
 ) {
     constexpr float inversion_threshold = 10.0f;
@@ -313,8 +329,9 @@ struct NormalPairCache {
 };
 
 // Consume scalar uniforms in order and return one cached standard normal.
+template<typename UniformSource>
 __device__ __forceinline__ float next_normal(
-    UniformSequence& uniforms,
+    UniformSource& uniforms,
     NormalPairCache& cache
 ) {
     if (cache.has_second) {
@@ -343,8 +360,9 @@ struct NormalRandomContext {
 namespace detail {
 
 // Marsaglia-Tsang core for a unit-scale Gamma shape greater than or equal to 1.
+template<typename UniformSource>
 __device__ __forceinline__ float marsaglia_tsang_gamma_shape_at_least_one(
-    UniformSequence& uniforms,
+    UniformSource& uniforms,
     NormalPairCache& normal_cache,
     float shape
 ) {
@@ -375,8 +393,9 @@ __device__ __forceinline__ float marsaglia_tsang_gamma_shape_at_least_one(
 
 // Draw Gamma(shape, scale) with the Marsaglia-Tsang rejection method.
 // Positive shape and scale are preconditions validated by the caller.
+template<typename UniformSource>
 __device__ __forceinline__ float marsaglia_tsang_gamma(
-    UniformSequence& uniforms,
+    UniformSource& uniforms,
     NormalPairCache& normal_cache,
     float shape,
     float scale
@@ -403,8 +422,9 @@ __device__ __forceinline__ float marsaglia_tsang_gamma(
 //   scale * X ~ Gamma(degrees_of_freedom / 2 + N, 2 * scale).
 // Positive degrees_of_freedom and scale, and finite non-negative
 // noncentrality, are preconditions validated by the caller.
+template<typename UniformSource>
 __device__ __forceinline__ float scaled_noncentral_chi_square(
-    UniformSequence& uniforms,
+    UniformSource& uniforms,
     NormalPairCache& normal_cache,
     float degrees_of_freedom,
     float noncentrality,
@@ -422,16 +442,16 @@ __device__ __forceinline__ float scaled_noncentral_chi_square(
     );
 }
 
-// Draw IG(mean, shape) with the Michael-Schucany-Haas exact construction.
-// The reciprocal-root form avoids cancellation in the smaller candidate.
-__device__ __forceinline__ float michael_schucany_haas_inverse_gaussian(
-    UniformSequence& uniforms,
-    NormalPairCache& normal_cache,
+// Transform the two Michael-Schucany-Haas primitives into IG(mean, shape).
+// Keeping this pure transformation public lets coupled simulations replay the
+// same fixed-cost primitives under several valid parameter sets.
+__device__ __forceinline__ float
+michael_schucany_haas_inverse_gaussian_from_variates(
+    float normal,
+    float selection_uniform,
     float mean,
     float shape
 ) {
-    const float normal = next_normal(uniforms, normal_cache);
-    const float selection_uniform = uniforms.next();
     const float squared_normal = normal * normal;
     const float w = mean * squared_normal / (2.0f * shape);
     const float root = sqrtf(w * (2.0f + w));
@@ -441,6 +461,22 @@ __device__ __forceinline__ float michael_schucany_haas_inverse_gaussian(
     return selection_uniform <= lower_probability
         ? lower_candidate
         : mean * ratio;
+}
+
+// Draw IG(mean, shape) with the Michael-Schucany-Haas exact construction.
+// The reciprocal-root form avoids cancellation in the smaller candidate.
+template<typename UniformSource>
+__device__ __forceinline__ float michael_schucany_haas_inverse_gaussian(
+    UniformSource& uniforms,
+    NormalPairCache& normal_cache,
+    float mean,
+    float shape
+) {
+    const float normal = next_normal(uniforms, normal_cache);
+    const float selection_uniform = uniforms.next();
+    return michael_schucany_haas_inverse_gaussian_from_variates(
+        normal, selection_uniform, mean, shape
+    );
 }
 
 }  // namespace ai_factory::workbench::philox

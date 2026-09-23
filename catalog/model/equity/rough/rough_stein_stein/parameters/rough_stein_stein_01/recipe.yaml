@@ -6,6 +6,7 @@ output:
   path: datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json
   format: json
 generation_output: catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json
 model_family: rough Stein-Stein
 row_count: 1000
 parameters:

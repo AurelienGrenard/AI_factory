@@ -13,6 +13,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian.json",
   "construction": "cartesian",
   "numerical_method": {
     "engine": "fixed_income_monte_carlo",
@@ -25,5 +26,6 @@
   "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668829177137594368
-  }
+  },
+  "rng_mapping_version": "philox_source_step_v2"
 }

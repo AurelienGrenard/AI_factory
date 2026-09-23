@@ -1,11 +1,9 @@
 // Host implementation of the Merton dataset loader.
 #include "model/equity/markovian/merton/dataset.hpp"
+#include "model/equity/markovian/merton/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
-
-#include <cmath>
-#include <stdexcept>
 
 namespace ai_factory::workbench::model::equity::merton {
 
@@ -27,45 +25,7 @@ std::vector<ModelParameters> load_models(
                 parameters.at("jump_log_mean").get<float>(),
                 parameters.at("jump_log_volatility").get<float>(),
             };
-            if (!std::isfinite(model.spot) || !(model.spot > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "spot must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.risk_free_rate)) {
-                throw std::invalid_argument(
-                    prefix + "risk_free_rate must be finite."
-                );
-            }
-            if (!std::isfinite(model.dividend_yield)) {
-                throw std::invalid_argument(
-                    prefix + "dividend_yield must be finite."
-                );
-            }
-            if (!std::isfinite(model.volatility)
-                || !(model.volatility > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "volatility must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.jump_intensity)
-                || model.jump_intensity < 0.0f) {
-                throw std::invalid_argument(
-                    prefix + "jump_intensity must be finite and non-negative."
-                );
-            }
-            if (!std::isfinite(model.jump_log_mean)) {
-                throw std::invalid_argument(
-                    prefix + "jump_log_mean must be finite."
-                );
-            }
-            if (!std::isfinite(model.jump_log_volatility)
-                || model.jump_log_volatility < 0.0f) {
-                throw std::invalid_argument(
-                    prefix
-                    + "jump_log_volatility must be finite and non-negative."
-                );
-            }
+            validate_parameters(model, prefix);
             return model;
     });
 }

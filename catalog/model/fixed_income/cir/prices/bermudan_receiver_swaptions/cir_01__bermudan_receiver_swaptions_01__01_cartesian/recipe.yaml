@@ -12,6 +12,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_cartesian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_cartesian.json",
   "construction": "cartesian",
   "numerical_method": {
     "engine": "fixed_income_lsm",
@@ -24,5 +25,6 @@
   "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668829043993608192
-  }
+  },
+  "rng_mapping_version": "philox_source_step_v2"
 }

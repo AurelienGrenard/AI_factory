@@ -2,26 +2,45 @@
 
 ## Périmètre de la première intégration
 
-Les launchers `european_option_price_gradients` couvrent les calls et puts
-Black–Scholes (formule fermée et Monte Carlo terminal exact), Heston
-(Monte Carlo QE-M à pas fixe), CEV (Milstein absorbant à pas fixe) et Merton
-(Monte Carlo terminal exact à horizon fixe). Les paramètres supportés sont déclarés dans
-`price_gradients/parameter_policy.cuh` de chaque modèle et produit.
+Les launchers terminaux sélectionnés couvrent les bindings européens générés
+pour Black–Scholes, CEV, Heston, Heston 3/2, SABR, Schöbel--Zhu, Stein--Stein,
+Merton, Kou, Bates, Variance-Gamma et NIG. Ils composent selon le modèle une
+formule fermée, une transition terminale exacte ou un schéma à pas fixe.
+Les paramètres supportés sont déclarés dans
+`price_gradients/device_preparation.cuh` de chaque modèle et produit. Leur
+domaine admissible est défini une seule fois dans le `parameter_domain.hpp`
+du propriétaire modèle ou produit ; loaders et préparation des nœuds
+bumpés appellent ce même prédicat.
 
-Pour Merton, l'intensité de saut est exclue et la maturité européenne reste une
-fonctionnalité explicitement ouverte, non une exclusion définitive :
-le premier lot partage le compte de Poisson et les normales canoniques à
-horizon et intensité inchangés. La maturité sera ajoutée seulement avec un
-couplage exact des comptes et marques entre horizons. Cette intégration ne
-migre pas encore les autres modèles et produits. Les intensités de saut sont
-exclues du chantier.
+SABR utilise la même transition canonique pour le prix et les nœuds de
+sensibilité : ses deux normales par pas sont rejouées dans le même ordre.
+Un bump du spot reconstruit la préparation du modèle, car l'alpha
+dimensionnel dépend du spot initial ; la simple multiplication d'une
+trajectoire centrale ne convient pas. Les européennes terminales exposent
+également l'ordre deux diagonal dans leur launcher public. Les recettes
+permanentes conservent l'ordre un par défaut. Black--Scholes, CEV, Heston,
+Merton et SABR européens possèdent en plus des recettes explicites
+`*_price_gradients_diagonal` (calls/puts, alignées/cartésiennes) qui publient
+ensemble gradient et diagonale de Hessienne. Le test bout en bout Heston
+vérifie la sérialisation des stencils à trois ou quatre nœuds et la reprise de
+tous les canaux par checkpoint ; les tests CUDA propres à chaque modèle
+contrôlent leur spécialisation numérique.
 
-Les calls et puts américains Heston disposent d'un premier moteur sélectionné.
-Il résout une seule stratégie Longstaff--Schwartz centrale, enregistre sa date
-et son spot d'exercice par chemin, puis rejoue chaque paire bumpée avec cette
-stratégie gelée. Il couvre spot, taux, dividende, variance initiale, `kappa`,
-`theta`, `gamma`, `rho` et strike. La maturité et l'intervalle d'exercice ne
-sont pas admissibles. Les moteurs `price_delta` restent les
+Les modèles à sauts et à subordination utilisent leurs tirages couplés propres
+pour les paramètres de diffusion, d'intensité, de marques ou de subordinateur
+admissibles. Les sensibilités de maturité terminale s'appuient sur les
+extrémités browniennes et les comptes ou incréments emboîtés définis par ces
+adaptateurs. Leur présence dans un launcher ne remplace pas la qualification
+numérique du bump, suivie par le
+[plan des gradients de modèles à sauts](jump-price-gradient-migration-plan.md).
+
+Les calls et puts américains Black--Scholes, CEV, Heston, Schöbel--Zhu,
+Merton, Kou, Bates, Variance-Gamma et NIG disposent du moteur sélectionné. Il
+résout une seule stratégie Longstaff--Schwartz centrale, enregistre sa date et
+son spot d'exercice par chemin, puis rejoue les nœuds bumpés avec cette
+stratégie gelée. Les coordonnées continues déclarées par le modèle et le
+strike sont admissibles aux ordres un et deux diagonal. La maturité et
+l'intervalle d'exercice ne le sont pas. Les moteurs `price_delta` restent les
 références de compatibilité pendant cette migration ; leur suppression exige
 la couverture et la validation de tous leurs consommateurs.
 
@@ -58,20 +77,25 @@ Les paramètres positifs comme spot, strike ou volatilité peuvent utiliser une
 recette configurables, pas des tailles optimales garanties par le type du
 paramètre. Les limites du domaine restent contrôlées dans les deux modes.
 
-La préparation hôte résout les noms, valide le domaine complet de chaque
-scénario et construit `1 + 2*K` scénarios par ligne. Les entrées sont rangées
-par ligne, puis scénario central, première et seconde extrémités de chaque
-coordonnée dans l'ordre demandé. Les sorties gradients et erreurs standards
-sont rangées par ligne puis coordonnée. Les noms ne sont pas interprétés dans
-les boucles CUDA. Le dispatch MC compile des largeurs de lots bornées, sans
-instancier toutes les cardinalités ou combinaisons de paramètres. La formule
-fermée conserve son dispatch par cardinalité et évalue les scénarios successivement.
+Tous les moteurs européens terminaux conservent seulement les modèles, les
+produits et les `K` spécifications de sensibilité. L'hôte résout chaque nom une
+fois vers un identifiant typé ; aucun nom n'est interprété dans une boucle
+CUDA. Il ne matérialise plus `N*(1+2*K)` scénarios.
 
-Le plan et ses buffers CUDA sont des miroirs appartenant à l'appelant : après
-préparation, ne pas modifier les scénarios ou stencils et téléverser exactement
-ce plan. Le launcher vérifie dimensions, capacités, plages, géométrie et
-absence de recouvrement entre entrées et sorties. Il ne relit pas les buffers
-GPU pour prouver leur égalité au miroir hôte.
+Pour un moteur MC, le bloc `(row, sensitivity)` charge le modèle et le
+produit centraux, puis le thread 0 applique la `SensitivitySpec` de sa colonne.
+Il construit dans la mémoire partagée le `SensitivityTask` de cette ligne :
+les nœuds centraux/perturbés, le stencil réellement représenté et le besoin du
+central. La mémoire d'entrée passe ainsi de `O(N*K)` scénarios à
+`O(nombre de modèles + nombre de produits + K)`. Les `N*K` stencils de sortie
+restent conservés parce qu'ils décrivent exactement les points utilisés par le
+dataset.
+
+Le launcher vérifie dimensions, capacités, plages, géométrie et absence de
+recouvrement entre entrées et sorties. Les sorties gradients et erreurs
+standards sont rangées par ligne puis coordonnée. La formule fermée affecte
+une ligne à chaque thread et évalue ses sensibilités successivement à partir
+du même plan compact.
 
 ## Frontières et calendriers
 
@@ -94,12 +118,17 @@ nombre entier de pas `dt`. Le minimum est donc un pas, par défaut `1/504` an.
 Les scénarios portent leurs dates numériques en nombres entiers de pas ; on
 ne tronque pas une demi-journée dans un champ entier de jours. Cette convention
 est actuellement réservée au produit européen terminal.
+Pour les dynamiques à pas fixe CEV, Heston et SABR, les mêmes innovations de
+chaque pas alimentent aussi le stencil de maturité d'ordre deux diagonal ;
+un stencil unilatéral peut activer quatre dates. L'écart d'un seul pas est une
+capacité de calcul, pas une qualification du biais ou de la variance de la
+dérivée temporelle seconde.
 
 ## CRN et responsabilité des dynamiques
 
 Chaque ligne conserve la clé Philox `base_seed + global_row`, avec compteurs
-`(path_index, local_group_index)`. La sélection, la largeur `B`, le numéro du lot de sensibilités et le découpage
-des lignes ne changent pas cette adresse. L'ordre des tirages Heston est celui du
+`(path_index, local_group_index)`. La sélection, l'indice de sensibilité et le
+découpage des lignes ne changent pas cette adresse. L'ordre des tirages Heston est celui du
 moteur existant. Les `coupled_dynamics` adaptent les transitions canoniques ;
 elles ne recopient ni équations du modèle ni préparation de ses coefficients.
 
@@ -122,6 +151,12 @@ Poisson, la normale de diffusion et la normale de somme des sauts entre les
 scénarios admissibles. La factorisation est valide parce que l'intensité et
 l'horizon restent fixes ; elle ne synchronise jamais plusieurs suites Philox
 indépendantes.
+Chaque `CoupledDynamics` déclare aussi
+`kDrawRequiresCentralPrepared`. Il vaut `true` pour Merton : même lorsqu'un
+bloc de sensibilité n'évalue pas le payoff central, le sampler de Poisson doit
+lire la transition centrale afin de conserver le compte commun. Il vaut
+`false` pour les dynamiques dont le tirage ne dépend d'aucun coefficient
+préparé.
 Les sept gradients calls/puts sont comparés au même stencil évalué par une
 formule Merton indépendante en double, somme de Poisson de prix lognormaux.
 Le cas d'intensité nulle vérifie séparément les sensibilités de sauts nulles à
@@ -151,12 +186,16 @@ prix, du delta et de leurs erreurs standards pour les cas couverts.
 | Responsabilité | Emplacement |
 |---|---|
 | Sélection, stencils, buffers et dispatch | `src/common/price_gradients/` |
-| Préparation des scénarios et couplage terminal | `src/common/equity/price_gradients/` |
-| Kernels MC et formule fermée | `src/common/{monte_carlo,closed_form}/price_gradients/` |
-| Paramètres et adaptation des transitions | `src/model/equity/markovian/<model>/price_gradients/` |
+| Préparation compacte modèle/produit/spécification | `src/common/equity/price_gradients/device_preparation.cuh` |
+| Composition d'un scénario terminal | `src/common/equity/price_gradients/terminal_device_preparation.cuh` |
+| Kernels terminaux à préparation device | `src/common/monte_carlo/price_gradients/device_prepared_terminal_{kernel,diagonal_kernel}.cuh` |
+| Plan compact et composition des launchers terminaux | `src/common/equity/price_gradients/terminal_device_prepared_{plan.hpp,launcher.cuh}` |
+| Kernel MC opaque et kernels formule fermée | `src/common/{monte_carlo,closed_form}/price_gradients/` |
+| Domaines admissibles des paramètres | `src/model/**/parameter_domain.hpp`, `src/product/**/parameter_domain.hpp` |
+| Accès aux paramètres et adaptation des transitions | `src/model/equity/markovian/<model>/price_gradients/{device_preparation,coupled_dynamics_impl}.cuh` |
 | Adaptateurs du produit européen | `src/product/european_option/price_gradients/` |
 | Trace d'exercice gelée | `src/common/longstaff_schwartz/frozen_exercise_trace.cuh` |
-| Workspace, planner et kernels LSM gradients | `src/common/longstaff_schwartz/price_gradients/` |
+| Replay couplé, workspace, planner et kernels LSM gradients | `src/common/longstaff_schwartz/price_gradients/` |
 | Règles du produit américain | `src/product/american_option/price_gradients/` |
 | Launchers générés | `src/model/equity/markovian/<model>/product/` |
 | Manifeste et rendu dédiés | `tools/codegen/pricing_bindings/price_gradients/` |
@@ -172,124 +211,140 @@ et réutilise la provenance, les checkpoints et la progression existants.
 Aucun dataset n'est certifié du seul fait de sa génération : la validation
 indépendante reste explicitement en attente.
 
-Heston américain génère quatre recettes permanentes : calls/puts, construction
-alignée/cartésienne. Le runner découpe la campagne en tranches durables de 16
-lignes ; chaque appel est ensuite replanifié par le LSM selon la VRAM libre.
-`result_offset` décale ensemble les scénarios, stencils, clés Philox et indices
+Les kernels communs MC reçoivent la dynamique, la policy produit et
+l'adaptateur de préparation comme paramètres de composition. Ils ne
+dépendent d'aucun modèle concret. Le launcher terminal assemble ces briques
+au dernier niveau avant le kernel. De même, le planner hôte des gradients ne
+connaît aucun nom de modèle, de produit ou de coordonnée : le plan préparé
+valide la sélection, puis le planner calcule seulement le nombre de tâches
+et le cap de grille.
+
+Chaque modèle américain disposant de datasets source génère ses recettes
+permanentes calls/puts, alignées/cartésiennes, à l'ordre un et à l'ordre deux
+diagonal. Black--Scholes expose le binding mais ne publie pas de recette sans
+dataset américain source. Le runner découpe une campagne en tranches durables ;
+chaque appel est ensuite replanifié par le LSM selon la VRAM libre.
+`result_offset` décale ensemble les lignes centrales, stencils, clés Philox et indices
 de sortie. Un checkpoint n'est validé qu'après la copie des prix, erreurs et
 colonnes gradients de toute la tranche. Une interruption reprend donc au
 dernier multiple de 16 confirmé, ou à la dernière tranche plus courte.
 
+Le replay de l'exercice gelé est composé à partir d'une dynamique couplée et de
+l'une des deux politiques communes
+`DevicePreparedFixedStepFrozenExerciseReplay` ou
+`DevicePreparedExactTransitionFrozenExerciseReplay`. La première rejoue le
+stub initial et les intervalles réguliers avec le nombre canonique de pas. La
+seconde prépare une loi exacte pour le stub et une pour l'intervalle régulier,
+puis consomme un incrément par date contractuelle. Chaque modèle fournit sous
+`price_gradients/` son adaptation des transitions et reste propriétaire du
+couplage de ses événements.
+
 ## Géométrie et qualification
 
-Un bloc MC traite **un couple (prix, lot de sensibilités)**. Chaque thread
-simule ses indices de trajectoire habituels, avec au plus `1+2*B` états et
-`B+1` canaux de moments FP64. `K` est le nombre total de coordonnées choisies ;
-`LaunchConfiguration::sensitivity_batch_size` est une limite indépendante,
-valant **1 par défaut**, avec les choix explicites **1, 2 ou 4**.
-Chaque tâche de bloc traite donc par défaut une seule coordonnée d'un prix.
+### Européennes terminales préparées sur le device
 
-Les lots complets sont aplatis dans une grille `(ligne, lot)` et parcourus
-par pas de `gridDim.x`. Un éventuel reste est soumis dans une seconde grille,
-spécialisée à sa taille exacte (1, 2 ou 3). Cela évite le remplissage artificiel
-et les masques dans la boucle des trajectoires. Si `K<B`, seule cette petite
-grille est lancée. Si `K=0`, une grille prix seul est lancée. Le plafond
-`block_count` s'applique à chaque grille, limité à ses tâches réelles ; il peut
-maintenant dépasser le nombre de lignes. Il ne peut dépasser le nombre total
-de couples `(ligne, lot)` de la soumission.
+Black--Scholes, CEV, Heston et Merton utilisent le même contrat compact :
+`TerminalDevicePreparedPlan<ModelPreparation, ProductPreparation>`. Le plan
+contient les tableaux centraux de modèles et produits, les `K`
+`SensitivitySpec`, la construction alignée ou cartésienne et la configuration
+temporelle. Il ne contient aucun scénario bumpé par ligne.
 
-Les scénarios hôtes restent stockés en `1+2*K` : chaque lot utilise une vue
-sur le central et ses paires. Il rejoue le même flux Philox ; son horizon peut
-être plus court, mais son préfixe d'innovations est identique. Seul le lot
-commençant à la coordonnée zéro écrit le prix et son erreur standard. Chaque
-lot écrit ses colonnes dans l'ordre de la sélection. Les réductions conservent
-l'ordre des chemins et l'accumulation FP64 du moteur précédent.
+Pour une sélection MC non vide, la grille est bidimensionnelle :
+`blockIdx.x` parcourt les lignes et `blockIdx.y` désigne l'une des `K`
+sensibilités. La colonne `y=0` calcule le prix central et sa sensibilité ; les
+autres colonnes ne calculent que leur sensibilité. Le prix moyen et son erreur
+standard sont donc écrits une seule fois par ligne. Chaque colonne réemploie
+la clé Philox `base_seed + row` et rejoue les mêmes innovations. `B=1` est la
+géométrie de cette famille ; `sensitivity_batch_size` doit valoir un.
 
-La préparation hôte classe chaque paire dans `CentralRequirement` :
+Le thread 0 construit le `SensitivityTask` de son couple ligne/sensibilité et
+le place dans la mémoire partagée. Le reste du bloc ne reçoit que les nœuds
+préparés, le stencil et le besoin du central. Cette préparation appelle les
+adaptateurs permanents du modèle et du produit ; elle ne contient aucune
+branche fondée sur le nom du modèle.
 
-- `none` : stencil centré et aucune trajectoire mutualisée ;
-- `state` : trajectoire centrale réutilisée, sans besoin de son payoff ;
-- `payoff` : stencil unilatéral nécessitant aussi le payoff central par chemin.
+Les briques permanentes ont les responsabilités suivantes :
 
-Ce classement réutilise le stencil et les indicateurs `reuse_central` déjà
-calculés. Le bloc prend le besoin maximal de ses coordonnées ; le premier lot
-prend toujours `payoff` pour produire le prix. Une branche uniforme, **avant**
-la boucle des chemins, sélectionne une spécialisation compilée. Elle conserve
-le flux Philox, sans ajouter de branche de sélection dans cette boucle.
+| Type | Contenu |
+|---|---|
+| `SensitivitySpec` | paramètre résolu et politique de bump |
+| `SensitivityRequest` | ordre un, ordre deux diagonal, ou les deux |
+| `SensitivityStencil<C>` | points représentés et coefficients, sans logique de reconstruction |
+| `SensitivityNodes<Node,C>` | jeux de paramètres centraux et perturbés propres à la ligne |
+| `SensitivityTask<Node,C>` | nœuds, stencil et `CentralRequirement` |
+| `SensitivityValues<C>` | payoffs pathwise aux nœuds |
+| `SensitivityResult` | dérivées reconstruites |
 
-**Le prix moyen et son erreur standard sont calculés et écrits une seule fois
-par ligne**, dans le premier lot. Les autres lots ont uniquement `B` canaux de
-moments FP64. Leur travail central dépend du besoin préparé :
+L'ordre un est spécialisé à capacité trois. Une Hessienne diagonale emploie
+une capacité quatre : trois nœuds pour un stencil centré, quatre pour le repli
+unilatéral d'ordre deux. Le nombre actif est stocké dans le stencil ; il ne
+provoque aucune allocation dynamique. `reconstruct_sensitivity` transforme
+les payoffs pathwise et le stencil en dérivées d'ordre un et/ou deux. Les
+dérivées mixtes restent hors de cette pipeline et auront un kernel séparé.
 
-| Lot | États logiques | Payoff central | Moments du prix |
-|---|---:|---|---|
-| Premier lot | `1+2*B` | Oui | Oui |
-| Autre lot, `none` | `2*B` | Non | Non |
-| Autre lot, `state` | `1+2*B` | Non | Non |
-| Autre lot, `payoff` | `1+2*B` | Oui, pour le gradient | Non |
+Une sélection MC vide délègue au moteur prix canonique quand celui-ci expose
+un launcher terminal compatible. Le launcher Black--Scholes MC emploie le
+kernel prix terminal générique sur la même représentation compacte. Dans les
+deux cas, aucune paire bumpée n'est créée. La maturité est admise à l'ordre un
+pour Black--Scholes, CEV, Heston et SABR, et à l'ordre deux diagonal pour
+CEV, Heston et SABR. Elle reste refusée pour Merton ; l'ordre deux de la
+transition terminale exacte Black--Scholes attend un pont brownien à quatre
+dates.
 
-Les trajectoires mutualisées peuvent réduire encore le nombre de transitions
-réellement effectuées. Le payoff central par chemin reste nécessaire aux
-stencils unilatéraux et à leur erreur standard couplée : le prix moyen produit
-par le premier lot ne le remplace pas. Ce rejeu local exceptionnel évite un
-cache global de taille `nombre de prix × nombre de trajectoires` et une
-synchronisation supplémentaire entre blocs.
+Le contrat d'artefact d'ordre deux écrit `sensitivity.orders =
+["first", "diagonal_second"]`, `outputs.diagonal_hessians` et, en Monte
+Carlo, `outputs.diagonal_hessian_standard_errors`. Le stencil conserve
+`node_count`, le quatrième point unilatéral éventuel et tous les poids de
+reconstruction d'ordre deux. Ces canaux font partie du checkpoint : une
+reprise ne peut valider un préfixe qui ne contiendrait que le prix ou le
+gradient.
 
-Pour `B=1`, un gradient centré ordinaire hors premier lot simule donc exactement
-ses deux extrémités. En l'absence de dépendances au central et de mutualisation,
-`K=10, B=1` demande 21 évaluations logiques, contre 30 avec un central
-systématique dans chacun des dix lots. Le modèle n'est jamais recopié dans le
-moteur générique : ses transitions canoniques restent appelées.
+La formule fermée Black--Scholes emploie la même préparation compacte et un
+thread par ligne. Ce thread construit puis évalue successivement les nœuds des
+`K` sensibilités. Il n'y a ni état stochastique ni flux Philox. Le nombre de
+threads par bloc reste un paramètre de lancement, avec 256 par défaut.
 
-Chaque lot régénère son flux d'innovations. Augmenter `B` amortit ce travail,
-mais augmente les états/moments vivants et peut réduire l'occupation. Les
-spécialisations de travail partagent actuellement un même kernel par largeur :
-son allocation de registres reste déterminée par sa branche la plus exigeante.
-Il faut donc mesurer le couple `(B, threads_per_block)` avec la charge visée.
-La formule fermée conserve un thread par prix et gradients, avec des blocs de
-256 threads par défaut (profil analytique configurable). Ce thread évalue le
-central une seule fois, puis les deux extrémités de chaque coordonnée
-séquentiellement et écrit leur différence finie. La sélection de `K`
-coordonnées demande donc `1+2*K` évaluations de formule, sans trajectoire ni
-flux aléatoire à conserver. Le découpage MC en lots ne s'applique pas.
-La boucle étant déroulée par le compilateur, l'allocation effective de
-registres doit néanmoins être mesurée pour chaque spécialisation.
+Le manifeste déclare la stratégie de préparation de chaque binding :
+`device_prepared_closed_form_terminal`, `device_prepared_step_terminal` ou
+`device_prepared_exact_terminal`. Le renderer sélectionne son template à
+partir de ce champ et échoue pour toute stratégie inconnue. Ajouter un modèle
+terminal demande donc son `device_preparation.cuh`, sa dynamique couplée, puis
+une entrée explicite dans ce manifeste ; les templates et launchers communs ne
+changent pas.
 
-Le planificateur dédié calcule la grille en fonction des lignes **et** du
-nombre de lots. Il expose `sensitivity_batch_size`,
-`sensitivity_batches_per_price`, `maximum_live_scenarios`,
-`kernel_launches_per_price_batch`, ainsi que les grilles complète et résiduelle.
-Les champs `price_moment_batches_per_price=1` et `central_work_policy` décrivent
-également l'unicité du calcul du prix et la classification du central. Ces champs
-entrent dans la provenance d'exécution et l'identité du checkpoint.
-Pour la formule fermée, les deux champs de lots valent zéro. Le défaut MC est
-`(B=1, threads_per_block=256)` ; il reste un **candidat non qualifié en performance**
-sur l'ensemble des modèles, produits et GPU.
+La reprise de génération ne rejoue pas les chemins déjà confirmés. Le runner
+appelle le callback de préparation de stencils du binding pour reconstruire
+seulement le préfixe déjà validé, puis reprend la simulation à la première
+ligne absente du checkpoint. Les prix, erreurs et gradients du préfixe sont
+restaurés depuis les canaux durables.
+
+Le benchmark ciblé `tests/performance/price_gradients/terminal.cu` conserve
+les sorties binaires, médiane, p95 et CV pour Black--Scholes, Heston ordre un,
+Heston ordre un plus Hessienne diagonale et Merton. Il utilise cinq
+préchauffages et 21 répétitions. Une qualification doit suivre le
+[protocole de performance](../performance-regression-protocol.md), avec le
+même binaire, le même GPU, les mêmes données et les mêmes opérations regroupées.
 
 ```bash
-./build/inspect_pricing_launch_plan heston/european_option 1000 --price-gradients 10 --sensitivity-batch-size 2
-cmake --build build --target benchmark_price_gradients_batching -j2
-AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 ./build/benchmark_price_gradients_batching 1 256 64
+cmake --build build --target price_gradients_performance_benchmarks -j2
+python3 tools/performance/run_price_gradient_strategies.py \
+  --build-dir build \
+  --output-dir artifacts/audit/price-gradients-strategies-sm89-<run> \
+  --profile
 ```
 
-Le benchmark ciblé `tests/performance/price_gradients/batching.cu` conserve
-les sorties binaires, médiane, p95 et CV pour Black–Scholes et Heston ; il
-utilise les cinq préchauffages et 21 répétitions du support de performance
-commun. Les intervalles BS regroupent 64 appels identiques par répétition,
-avec des temps normalisés par appel ; Heston utilise un appel. Le même
-regroupement doit être utilisé pour la référence et le candidat. Les diagnostics exposent les ressources du kernel réellement
-spécialisé. Une qualification doit suivre le
-[protocole de performance](../performance-regression-protocol.md), avec trois
-campagnes, comparaison sur le même matériel et mesure indépendante du binaire
-compilé. Les résultats d'un point de mesure ne qualifient pas toute l'enveloppe
-des maturités, nombres de prix et trajectoires.
+La campagne Heston de migration a mesuré le temps mur complet, incluant
+préparation hôte, allocations, transferts, kernels et copies de sortie. Sur
+100 000 lignes, deux chemins et sept gradients, la préparation device termine
+en 955,621 ms contre 1 052,274 ms pour la matérialisation hôte, soit `-9,19 %`,
+avec sorties bitwise identiques. Ces mesures qualifient cette charge Heston sur
+le SM89 utilisé ; elles ne prédisent pas le résultat d'un autre modèle, GPU,
+nombre de chemins ou nombre de sensibilités.
 
-Les tests CUDA ordinaires conservent leur volume numérique complet. Pour les
-outils de concurrence/synchronisation, le même exécutable accepte
-`--sanitizer` : 1 025 trajectoires BS et 513 Heston, avec la même matrice de
-sélections, lots, frontières et blocs, plusieurs itérations de chemins et une
-dernière itération partielle. Ce mode réduit le coût d'instrumentation ; il
-complète les tests numériques complets et ne les remplace pas.
+Le manifeste permanent couvre aussi les neuf phases Heston American et les
+deux stratégies Jamshidian CIR. Le
+[rapport SM89 du 19 septembre 2026](../performance-reports/price-gradients-strategies-sm89-2026-09-19.md)
+conserve leurs temps agrégés, ressources, accès mémoire, branches et limites.
 
 ### Pipeline américaine gelée
 
@@ -299,35 +354,44 @@ politique ajoute une trace compacte `(observation, spot)` par chemin et une
 décision initiale par ligne. Après la finalisation du prix, exactement deux
 kernels supplémentaires sont lancés si `K>0` :
 
-1. `frozen_gradient_moments`, sur une grille `(Bp, N*K)`, rejoue les deux
-   scénarios d'une sensibilité avec les innovations Philox de la ligne et du
-   chemin central, puis écrit somme et somme des carrés en FP64 ;
-2. `finalize_frozen_gradients`, sur `N*K` blocs, réduit ces moments et écrit les
-   sorties rangées `[ligne*K + sensibilité]`.
+1. `frozen_sensitivity_moments`, sur une grille `(Bp, N*K)`, construit la
+   tâche de sensibilité dans le bloc, rejoue jusqu'à quatre nœuds avec les
+   innovations Philox de la ligne et du chemin central, reconstruit la ou les
+   dérivées pathwise, puis écrit leurs sommes et carrés en FP64 ;
+2. `finalize_frozen_sensitivities`, sur `N*K` blocs, réduit ces moments et
+   écrit les sorties rangées `[ligne*K + sensibilité]`.
 
 `B=1` est contractuel pour cette première intégration : une tâche de bloc porte
 une sensibilité. `Bp=LaunchConfiguration::block_count` reste le nombre de
 shards de chemins par prix, comme dans le LSM existant. Le workspace commun
-réserve `2*K*Bp` doubles de moments par ligne, réutilisés après la finalisation
-du prix. Le planner central continue de déterminer les lots de lignes selon la
-VRAM disponible et les plafonne aussi à `maxGridSize[1]/K`, afin que la grille
-aplatie `N*K` reste représentable. Les buffers de scénarios, stencils et sorties appartiennent
-à l'appelant et sont déjà visibles dans la mémoire libre interrogée.
+réserve deux doubles par ordre demandé, sensibilité, shard et ligne, réutilisés
+après la finalisation du prix. Le planner central continue de déterminer les
+lots de lignes selon la VRAM disponible et les plafonne aussi à
+`maxGridSize[1]/K`, afin que la grille aplatie `N*K` reste représentable. Les
+buffers compacts de modèles, produits et spécifications, ainsi que les stencils
+et sorties, appartiennent à l'appelant et sont déjà visibles dans la mémoire
+libre interrogée.
 
 Une sensibilité spot ou strike homogène réutilise le spot central enregistré.
-Les paramètres de dynamique Heston rejouent deux états QE-M : un seul triplet
-d'innovations est tiré par pas puis appliqué aux deux transitions. Un bump de
-taux modifie aussi les facteurs d'actualisation du payoff gelé. À l'exercice
-initial, le stencil est évalué directement sur le payoff à `t=0`, avec une
-erreur standard nulle.
+Les paramètres de dynamique rejouent les nœuds actifs avec les innovations ou
+événements couplés du modèle. Les transitions exactes conservent la granularité
+du calendrier LSM : elles ne décomposent pas artificiellement un intervalle en
+pas numériques. Black--Scholes possède un tirage commun à horizon égal qui
+consomme une seule normale par intervalle ; son tirage terminal à trois
+normales reste réservé au pont de maturité. Un bump de taux modifie aussi les
+facteurs d'actualisation du payoff gelé. À l'exercice initial, le stencil est
+évalué directement sur le payoff à `t=0`, avec une erreur standard nulle.
 
-Sur SM89, le kernel de replay Heston compilé en 128 comme en 256 threads utilise
-128 registres par thread, 32 octets locaux et 384 octets partagés statiques.
-La mémoire partagée dynamique vaut respectivement 64 et 128 octets ;
-l'occupation théorique est 33,3 % dans les deux cas. Ce diagnostic
-ne qualifie pas encore les performances. Memcheck, racecheck, initcheck et
-synccheck passent sur la matrice calls/puts réduite. Les prix et erreurs du
-central sont bitwise identiques à `price_delta`. Sur la fixture publique, le
+Sur SM89 et 256 threads, le kernel de moments d'ordre un utilise 72 registres
+par thread et 32 octets de frame local ; sa variante ordre un plus diagonale
+utilise 120 registres et 528 octets de frame local. L'occupation théorique
+passe de 50 % à 33,3 %. Cette pression est acceptée ici parce que la mesure du
+mur complet reste favorable ; elle doit être réévaluée pour chaque nouveau
+couple modèle/produit. La pipeline complète à 4 prix, 9 sensibilités et
+262 144 chemins mesure 65,91 ms de médiane API à l'ordre un, puis 74,43 ms
+avec la diagonale, soit `+12,9 %`. Le CV vaut respectivement 2,10 % et 4,75 %.
+Memcheck, racecheck, initcheck et synccheck passent sur les deux spécialisations.
+Les prix et erreurs du central sont bitwise identiques à `price_delta`. Sur la fixture publique, le
 delta spot diffère d'au plus `5e-6` relatif et son erreur standard de `5e-5`
 relatif entre les deux politiques compilées séparément ; cette borne remplace
 une affirmation de parité bitwise non observée.
@@ -335,12 +399,11 @@ une affirmation de parité bitwise non observée.
 
 ## Suite de la migration
 
-Après stabilisation de ce périmètre : mesurer et mutualiser les scénarios
-identiques ; ajouter les adaptateurs des autres dynamiques et produits ;
-traiter les calendriers d'observation et les modèles rough ; qualifier les
-profils américains suivant `Bp`, `K`, la taille des états et le GPU ; puis remplacer
-les consommateurs `price_delta` et supprimer leurs adaptateurs devenus inutiles.
-Chaque étape exige ses propres tests numériques et de non-régression.
+Le [plan de migration prix-gradients](price-gradients-migration-plan.md)
+ordonne l'extension à tout le markovien equity et fixed income, les
+sensibilités de sauts et de temps admissibles, les modèles rough N-facteurs
+et FFT, puis le retrait des consommateurs `price_delta`. Le présent contrat
+décrit uniquement les capacités et invariants déjà actifs.
 
 Le test `price_gradients_central_work_cuda` instrumente une dynamique et un payoff
 synthétiques composés avec le vrai moteur terminal : il compte les transitions

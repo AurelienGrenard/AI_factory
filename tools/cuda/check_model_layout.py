@@ -44,6 +44,7 @@ CANONICAL_INFRASTRUCTURE_FILENAMES = {
     "fitted_analytics_impl.cuh",
     "forward_measure.cuh",
     "forward_measure_impl.cuh",
+    "frozen_exercise_replay.cuh",
     "markovian_n_factor_preparation.hpp",
     "markovian_n_factor_pricing.cuh",
     "parameters.hpp",
@@ -51,6 +52,8 @@ CANONICAL_INFRASTRUCTURE_FILENAMES = {
     "price_delta_dynamics_impl.cuh",
     "coupled_dynamics.cuh",
     "coupled_dynamics_impl.cuh",
+    "device_preparation.cuh",
+    "parameter_domain.hpp",
     "parameter_policy.cuh",
     "parameter_row.hpp",
     "sample.cu",
@@ -367,8 +370,16 @@ def validate_model_path(path: Path, under_product: bool) -> list[str]:
                 and tail[0] in CURVE_NAMES
                 and tail[1] in {"analytics.cuh", "analytics_impl.cuh"}
             )
-            is_gradient_adapter = (len(tail) == 2 and tail[0] == "price_gradients"
-                and tail[1] in {"coupled_dynamics.cuh", "coupled_dynamics_impl.cuh", "parameter_policy.cuh"})
+            is_gradient_adapter = (
+                len(tail) == 2
+                and tail[0] == "price_gradients"
+                and tail[1] in {
+                    "coupled_dynamics.cuh",
+                    "coupled_dynamics_impl.cuh",
+                    "device_preparation.cuh",
+                    "parameter_policy.cuh",
+                }
+            )
             if not is_curve_analytics and not is_gradient_adapter:
                 failures.append(
                     f"unexpected model-infrastructure nesting: {relative(path)}"

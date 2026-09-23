@@ -104,6 +104,19 @@ with generated `generator.cpp` and planned `recipe.yaml`; execution alone writes
 uses 2^20 paths. The qualification remains bounded checks, not certified bias
 or delta-specific tuning. See the
 [implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
+`PRICE_GRADIENT_BINDING_SPECS` also declares its preparation strategy. Equity
+European terminal bindings select one of the compact device-prepared closed
+form, fixed-step MC, or exact-terminal MC templates. Heston American and CIR
+Jamshidian retain their explicit host-prepared strategies. The renderer rejects
+an undeclared strategy instead of falling back to a model-specific template.
+The binding manifest records the public derivative orders separately from the
+dataset recipes. First-order recipes keep their existing identifiers; terminal
+bindings that expose diagonal order also generate distinct
+`*_price_gradients_diagonal` recipes. Run
+`python3 tools/codegen/pricing_bindings/price_gradients/coverage.py` to inspect
+every Markovian pricing binding and the gradient orders currently exposed by
+its launcher. Coordinate-level exclusions remain in the model and product
+adapters; this is a coverage inventory, not numerical certification.
 Every price recipe has an aligned target and a distinct Cartesian target. Every
 equity price-delta source has the same pair. Cartesian rows use
 model-major/product-fastest order, or model-major/curve/product order for fitted

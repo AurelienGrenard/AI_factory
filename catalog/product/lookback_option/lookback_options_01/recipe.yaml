@@ -6,6 +6,7 @@ output:
   path: datasets/product/lookback_option/lookback_options_01.json
   format: json
 generation_output: catalog/product/lookback_option/lookback_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/lookback_option/lookback_options_01.json
 product_family: Fixed-Strike Lookback Calls
 row_count: 1000
 time_convention:

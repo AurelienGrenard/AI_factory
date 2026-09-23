@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 #include "model/equity/markovian/variance_gamma/parameters.hpp"
 
 #include <cuda_runtime.h>
@@ -10,6 +10,11 @@
 #include <cstdint>
 
 namespace ai_factory::workbench::model::equity::variance_gamma {
+
+namespace random_source {
+inline constexpr std::uint32_t kGammaClock = 1U;
+inline constexpr std::uint32_t kSubordinatedBrownian = 2U;
+}  // namespace random_source
 
 struct State {
     float log_spot;
@@ -32,6 +37,11 @@ struct PreparedTransition {
 struct PreparedDynamics {
     PreparedModel model;
     PreparedTransition transition;
+};
+
+struct TransitionInnovations {
+    float gamma_increment;
+    float brownian_normal;
 };
 
 // ======================== Common equity dynamics =========================
@@ -57,12 +67,18 @@ __device__ __forceinline__ void one_step_transition(
     State& state
 );
 
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::DomainRandomContext& random
+);
+
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = variance_gamma::PreparedDynamics;
     using PreparedModel = variance_gamma::PreparedModel;
     using PreparedTransition = variance_gamma::PreparedTransition;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = variance_gamma::State;
 
     static constexpr bool kNativeLogSpot = true;

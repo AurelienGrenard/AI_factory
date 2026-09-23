@@ -2,6 +2,7 @@
 #include "model/equity/markovian/cev/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/product/european_option_price_delta.cuh"
 #include "cuda_test_support.cuh"
+#include "diagonal_cuda_test_support.cuh"
 
 using namespace price_gradient_test;
 namespace cev = model::equity::cev;
@@ -21,29 +22,67 @@ template<OptionSide Side> void check(std::size_t paths) {
     };
     auto launcher=cev::launch_cev_european_option_price_gradients_cuda<Side>;
     auto plan=prepare(full);
-    require(!plan.scenarios[1].reuse_central && plan.scenarios[1].spot_scale==1.f
-        && plan.scenarios[1].simulation_spot==plan.scenarios[1].model.spot,
+    const auto spot_task = sensitivity_task<pg::SensitivityOrders::first>(
+        plan, 0U, 0U
+    );
+    require(!spot_task.nodes[1U].reuse_central
+        && spot_task.nodes[1U].spot_scale==1.f
+        && spot_task.nodes[1U].simulation_spot==spot_task.nodes[1U].model.spot,
         "CEV spot bump incorrectly uses multiplicative reuse.");
-    require(plan.stencils[7+4].kind==pg::StencilKind::backward
-        && plan.stencils[14+4].kind==pg::StencilKind::forward,"CEV beta boundaries not resolved.");
+    const auto upper_beta = sensitivity_task<pg::SensitivityOrders::first>(
+        plan, 1U, 4U
+    );
+    const auto lower_beta = sensitivity_task<pg::SensitivityOrders::first>(
+        plan, 2U, 4U
+    );
+    require(upper_beta.stencil.kind==pg::StencilKind::backward
+        && lower_beta.stencil.kind==pg::StencilKind::forward,
+        "CEV beta boundaries not resolved.");
+    const pg::PriceGradientConfiguration maturity{{
+        {"product.maturity_years", {1.f/504.f, pg::BumpScale::absolute}}
+    }};
+    const auto maturity_plan = cev::prepare_cev_european_option_sensitivities(
+        models, products, PriceConstruction::Aligned, {}, maturity,
+        {pg::SensitivityOrders::first_and_second}
+    );
+    const pg::LaunchConfiguration maturity_launch{
+        pg::PricingMethod::monte_carlo, 0U, 3U, paths, 128U, 3U, 719U, 1U
+    };
+    const auto maturity_result = execute_diagonal<
+        pg::SensitivityOrders::first_and_second
+    >(
+        maturity_plan, maturity_launch,
+        cev::launch_cev_european_option_diagonal_sensitivities_cuda<
+            Side, pg::SensitivityOrders::first_and_second
+        >
+    );
+    for (std::size_t row = 0U; row < 3U; ++row) {
+        require(std::isfinite(maturity_result.gradient[row])
+            && std::isfinite(maturity_result.diagonal_hessian[row]),
+            "CEV maturity diagonal is non-finite.");
+    }
     DeviceArray<cev::ModelParameters> dm(models);
     DeviceArray<product::EuropeanOptionParameters> dp(products);
     for (unsigned threads : {64U,128U,256U}) {
         pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,3U,paths,threads,3U,719U};
         const auto solo=execute(prepare({{spot}}),launch,launcher);
+        const auto price_only=execute(prepare({}),launch,launcher);
         DeviceArray<float> old(12);
         cev::launch_cev_european_option_price_delta_cuda<Side>(models.data(),dm.data,3U,
             products.data(),dp.data,3U,PriceConstruction::Aligned,3U,0U,3U,paths,
             1.f/504.f,2U,threads,3U,719U,{.01f},old.data,old.data+3,old.data+6,old.data+9);
         auto reference=old.read();
         for (unsigned row=0;row<3;++row) {
+            same(price_only.price[row],solo.price[row],"CEV price-only price");
+            same(price_only.price_error[row],solo.price_error[row],
+                "CEV price-only price SE");
             same(solo.price[row],reference[row],"CEV legacy price");
             same(solo.price_error[row],reference[3+row],"CEV legacy price SE");
             same(solo.gradient[row],reference[6+row],"CEV legacy delta");
             same(solo.gradient_error[row],reference[9+row],"CEV legacy delta SE");
         }
         const auto all=execute(plan,launch,launcher);
-        batching(full,all,launch,prepare,launcher);
+        selected_prefixes(full,all,launch,prepare,launcher);
         for (std::size_t i=0;i<7;++i) {
             auto one=execute(prepare({{full.sensitivities[i]}}),launch,launcher);
             for (std::size_t row=0;row<3;++row) {

@@ -1,6 +1,7 @@
 // Convert asset-or-nothing JSON rows into compact CUDA parameters.
 #include "product/asset_or_nothing_option/dataset.hpp"
 #include "common/dataset_validation.hpp"
+#include "product/asset_or_nothing_option/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -22,10 +23,7 @@ std::vector<AssetOrNothingOptionParameters> load_asset_or_nothing_options(
                 parameters.at("strike").get<float>(),
                 parameters.at("maturity").get<std::uint32_t>(),
             };
-            if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
-                throw std::invalid_argument(prefix + "strike must be finite and positive.");
-            if (product.maturity_days == 0U)
-                throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
+            asset_or_nothing_option::validate_parameters(product, prefix);
             return product;
     });
 }

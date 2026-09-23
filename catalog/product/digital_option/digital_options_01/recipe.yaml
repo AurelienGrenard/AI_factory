@@ -6,6 +6,7 @@ output:
   path: datasets/product/digital_option/digital_options_01.json
   format: json
 generation_output: catalog/product/digital_option/digital_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/digital_option/digital_options_01.json
 product_family: Digital Options
 row_count: 1000
 time_convention:

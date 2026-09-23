@@ -12,6 +12,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01_cartesian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01_cartesian.json",
   "construction": "cartesian",
   "numerical_method": {
     "engine": "equity_markovian",
@@ -24,5 +25,6 @@
   "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668828129165574144
-  }
+  },
+  "rng_mapping_version": "philox_source_step_v2"
 }

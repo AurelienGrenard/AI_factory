@@ -17,7 +17,7 @@ int main() {
         "datasets/product/asian_option/asian_options_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01.json",
         "catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,
     };

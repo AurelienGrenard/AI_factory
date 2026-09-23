@@ -17,7 +17,7 @@ int main() {
         "datasets/product/down_and_in_option/down_and_in_options_01.json",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian.json",
         "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian.json",
         "log-modulated hybrid FFT (kappa=1)",
         PriceConstruction::CartesianProduct,
     };

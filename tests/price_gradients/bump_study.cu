@@ -2,6 +2,7 @@
 #include "model/equity/markovian/black_scholes/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
+#include "common/price_gradients/row_mapping.cuh"
 #include "cuda_test_support.cuh"
 #include <nlohmann/json.hpp>
 using namespace price_gradient_test;
@@ -10,17 +11,69 @@ namespace cv=model::equity::cev;
 namespace hs=model::equity::heston;
 using Json=nlohmann::ordered_json;
 
-template<typename ModelPolicy,typename Plan>
+template<typename ModelPreparation,typename Plan>
 Json scenario_json(const Plan& plan) {
+    static_assert(Plan::kDevicePreparedSensitivities);
     Json result=Json::array();
-    for (auto& s:plan.scenarios) {
+    const auto append = [&](const auto& s) {
         Json m;
-        for (auto& f:ModelPolicy::fields) m[std::string(f.name)]=s.model.*f.member;
+        for (std::size_t index = 0U;
+             index < ModelPreparation::parameter_names.size();
+             ++index) {
+            m[std::string(ModelPreparation::parameter_names[index])] =
+                ModelPreparation::read(
+                    static_cast<std::uint8_t>(index), s.model
+                );
+        }
         result.push_back({{"model",m},{"strike",s.product.strike},{"maturity",s.maturity_years},{"steps",s.step_count}});
+    };
+    for (std::size_t row=0;row<plan.result_count;++row) {
+        const auto indices=pg::price_row_indices(row,plan.construction,plan.products.size());
+        typename Plan::Preparation::Scenario central{};
+        if (!Plan::Preparation::make_central(plan.models[indices.model],plan.products[indices.product],plan.time,central))
+            throw std::runtime_error("device-prepared diagnostic central row failed");
+        append(central);
+        for (const auto& sensitivity:plan.sensitivities) {
+            pg::SensitivityTask<typename Plan::Preparation::Scenario,3U> task{};
+            int error=equity::price_gradients::device_preparation::valid;
+            if (!equity::price_gradients::device_preparation::build_sensitivity_task<
+                    pg::SensitivityOrders::first,
+                    typename Plan::Preparation
+                >(central,sensitivity,plan.time,task,error))
+                throw std::runtime_error("device-prepared diagnostic sensitivity row failed");
+            append(task.nodes[1U]);append(task.nodes[2U]);
+        }
     }
     return result;
 }
-template<typename ModelPolicy,typename Prepare,typename Launcher>
+template<typename Plan>
+Json stencil_json(const Plan& plan) {
+    static_assert(Plan::kDevicePreparedSensitivities);
+    Json result=Json::array();
+    const auto append=[&](const auto& represented) {
+        const auto s=pg::legacy_stencil(represented);
+        result.push_back({{"central",s.central},{"first",s.first},{"second",s.second},
+            {"width",s.represented_width},{"w1",s.first_weight},{"w2",s.second_weight},{"kind",int(s.kind)}});
+    };
+    for (std::size_t row=0;row<plan.result_count;++row) {
+        const auto indices=pg::price_row_indices(row,plan.construction,plan.products.size());
+        typename Plan::Preparation::Scenario central{};
+        if (!Plan::Preparation::make_central(plan.models[indices.model],plan.products[indices.product],plan.time,central))
+            throw std::runtime_error("device-prepared diagnostic central row failed");
+        for (const auto& sensitivity:plan.sensitivities) {
+            pg::SensitivityTask<typename Plan::Preparation::Scenario,3U> task{};
+            int error=equity::price_gradients::device_preparation::valid;
+            if (!equity::price_gradients::device_preparation::build_sensitivity_task<
+                    pg::SensitivityOrders::first,
+                    typename Plan::Preparation
+                >(central,sensitivity,plan.time,task,error))
+                throw std::runtime_error("device-prepared diagnostic stencil failed");
+            append(task.stencil);
+        }
+    }
+    return result;
+}
+template<typename ModelPreparation,typename Prepare,typename Launcher>
 void study(const char* model,const pg::PriceGradientConfiguration& full,Prepare prepare,Launcher launcher,std::size_t paths,
            bool rates_only,const std::vector<std::string>& case_ids,
            const std::vector<std::vector<std::string>>& case_classes) {
@@ -39,9 +92,7 @@ void study(const char* model,const pg::PriceGradientConfiguration& full,Prepare 
             auto plan=prepare(selection,refinement);
             if (plan.result_count!=case_ids.size() || case_ids.size()!=case_classes.size())
                 throw std::runtime_error("qualification case metadata does not match prepared rows");
-            Json stencils=Json::array();
-            for (auto& s:plan.stencils) stencils.push_back({{"central",s.central},{"first",s.first},{"second",s.second},
-                {"width",s.represented_width},{"w1",s.first_weight},{"w2",s.second_weight},{"kind",int(s.kind)}});
+            const Json stencils=stencil_json(plan);
             for (unsigned seed : {719U,2719U,4719U}) {
                 pg::LaunchConfiguration config{pg::PricingMethod::monte_carlo,0,plan.result_count,paths,256,plan.result_count,seed};
                 auto result=execute(plan,config,launcher);
@@ -49,7 +100,7 @@ void study(const char* model,const pg::PriceGradientConfiguration& full,Prepare 
                     {"schema_version",2},{"threads_per_block",config.threads_per_block},
                     {"sensitivity_batch_size",config.sensitivity_batch_size},
                     {"dt",plan.time.dt},{"rows",plan.result_count},{"k",plan.sensitivity_count()},
-                    {"scenarios",scenario_json<ModelPolicy>(plan)},{"stencils",stencils},
+                    {"scenarios",scenario_json<ModelPreparation>(plan)},{"stencils",stencils},
                     {"price",result.price},{"price_se",result.price_error},{"gradient",result.gradient},{"gradient_se",result.gradient_error}};
                 report["study"]=rates_only ? "rate_basis_points" : "all_coordinates";
                 report["policy_id"]="equity-european-price-gradient-bumps-v2";
@@ -85,7 +136,7 @@ int main(int argc,char** argv) {
             "negative_rate","high_rate_long_maturity","large_notional_scale"};
         const std::vector<std::vector<std::string>> bs_classes{{"ordinary"},{"short_maturity","boundary"},
             {"stress","boundary"},{"stress"},{"stress","maturity_scale"},{"scale"}};
-        study<bs::price_gradients::ParameterPolicy>("black_scholes",bc,[&](auto& c,unsigned){
+        study<bs::price_gradients::DevicePreparation>("black_scholes",bc,[&](auto& c,unsigned){
             return bs::prepare_black_scholes_european_option_price_gradients(bm,bp,PriceConstruction::Aligned,{},c);
         },bs::launch_black_scholes_european_option_price_gradients_cuda<OptionSide::call>,paths,rates_only,
             bs_ids,bs_classes);
@@ -104,7 +155,7 @@ int main(int argc,char** argv) {
             "high_rate_long_maturity","large_notional_scale"};
         const std::vector<std::vector<std::string>> heston_classes{{"ordinary"},{"stress","boundary"},
             {"short_maturity","boundary"},{"stress"},{"stress","maturity_scale"},{"scale"}};
-        study<hs::price_gradients::ParameterPolicy>("heston",hc,[&](auto& c,unsigned refinement){
+        study<hs::price_gradients::DevicePreparation>("heston",hc,[&](auto& c,unsigned refinement){
             return hs::prepare_heston_european_option_price_gradients(hm,hp,PriceConstruction::Aligned,
                 {1.f/(504.f*refinement),2U*refinement},c);
         },hs::launch_heston_european_option_price_gradients_cuda<OptionSide::call>,paths,rates_only,
@@ -127,7 +178,7 @@ int main(int argc,char** argv) {
             const std::vector<std::vector<std::string>> cev_classes{{"ordinary"},{"boundary"},
                 {"stress","boundary"},{"short_maturity","boundary"},{"stress","boundary"},
                 {"stress"},{"stress","maturity_scale"},{"scale"}};
-            study<cv::price_gradients::ParameterPolicy>("cev",cc,[&](auto& c,unsigned refinement){
+            study<cv::price_gradients::DevicePreparation>("cev",cc,[&](auto& c,unsigned refinement){
                 return cv::prepare_cev_european_option_price_gradients(cm,cp,PriceConstruction::Aligned,
                     {1.f/(504.f*refinement),2U*refinement},c);
             },cv::launch_cev_european_option_price_gradients_cuda<OptionSide::call>,paths,false,

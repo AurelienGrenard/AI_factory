@@ -31,6 +31,16 @@ struct PreparedModel {
 
 using PreparedDynamics = PreparedModel;
 
+// Apply one transition from caller-owned innovations.  Keeping the random
+// draw outside this function lets price-gradient nodes share exactly the same
+// primitive normals without duplicating the model equation.
+__device__ __forceinline__ void one_step_transition(
+    const PreparedModel& prepared_model,
+    float variance_normal,
+    float residual_normal,
+    State& state
+);
+
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = heston_3_2::PreparedDynamics;

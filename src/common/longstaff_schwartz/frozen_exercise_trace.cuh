@@ -11,6 +11,13 @@ struct FrozenExerciseTrace {
     float spot;
 };
 
+// Product-independent stopping time retained by a central LSM solve. A replay
+// reconstructs every bumped state from its Philox address, so fixed-income
+// products only need the selected contractual observation.
+struct FrozenExerciseIndex {
+    std::uint32_t observation;
+};
+
 enum class InitialExerciseDecision : std::uint8_t {
     continuation,
     exercise,

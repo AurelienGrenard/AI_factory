@@ -21,7 +21,7 @@ struct DynamicsPolicy {
     using PreparedModel = cir::PreparedModel;
     using PreparedTransition = terminal_forward::PreparedTransition;
     using State = float;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
 
     __device__ __forceinline__ static PreparedModel prepare_model(const Parameters&);
     __device__ __forceinline__ static State initial_state(const PreparedModel&);

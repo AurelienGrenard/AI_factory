@@ -3,6 +3,357 @@
 Les anciens chemins locaux `build-*` et `build-dev` sont conservés avec leur
 correspondance dans le [plan des artefacts locaux](../local-artifacts.md).
 
+## Extension Bermudan fixed income de `price_gradients` — 2026-09-23
+
+- **Périmètre :** sensibilités sélectionnées d'ordre un et diagonale de
+  Hessienne pour les swaptions bermudéennes payer/receiver sur les dix
+  compositions de prix existantes : CIR, CIR++ Nelson--Siegel/Svensson, G2,
+  G2++ Nelson--Siegel/Svensson, Hull--White Nelson--Siegel/Svensson,
+  Ornstein--Uhlenbeck et Vasicek. Les dates et cardinalités contractuelles
+  discrètes restent exclues.
+- **Architecture :** la pipeline Longstaff--Schwartz centrale calcule une
+  seule fois le prix, son erreur et la politique d'exercice. Un kernel commun
+  rejoue ensuite les nœuds bumpés avec CRN et politique centrale gelée sur une
+  grille `(path shard, row*sensitivity)` ; un second kernel réduit les moments
+  FP64 et reconstruit les dérivées. Les entrées restent compactes en
+  `O(M+C+P+K)` et les scénarios bumpés ne sont pas matérialisés sur l'hôte.
+  Les domaines sont possédés par modèle, courbe ou produit et partagés entre
+  loaders et préparation device.
+- **Codegen et génération :** 80 recettes permanentes, 20 wrappers et deux
+  manifestes, soit 182 fichiers comparés octet par octet à une régénération
+  propre sans divergence. Les recettes ont une URL `/v2/`, le mapping
+  `philox_source_step_v2`, les datasets modèle/courbe/produit et des
+  checkpoints durables tous les 16 prix.
+- **Preuves :** les dix bibliothèques de binding compilent. Sept CTests ciblés
+  passent, dont le test CUDA CIR, CIR++/Nelson--Siegel, G2 et Vasicek qui
+  contrôle la parité bitwise prix/erreur centrale, la finitude des ordres un et
+  deux, la sélection, le réordonnancement et les propriétaires de paramètres.
+  Les tests Python manifeste/codegen/schémas passent : 40 tests et 16
+  sous-tests. Compute Sanitizer `memcheck`, `racecheck`, `initcheck` et
+  `synccheck` rapporte zéro erreur, warning ou hazard sur le test Bermudan.
+- **Ressources et limites :** sur SM89, le kernel G2 de moments utilise 168
+  registres/thread à l'ordre un, puis 242 registres/thread et 464 octets de
+  stack à l'ordre deux diagonal ou combiné ; `LOCAL` reste nul dans
+  `cuobjdump`. Aucun timing de performance n'est retenu pendant le travail sur
+  batterie. La performance de bout en bout, les bumps, la convergence LSM et
+  le biais de la politique gelée restent à qualifier avant publication d'une
+  base de Hessiennes Bermudan.
+
+## Cadrage des sensibilités de saut événementielles — 2026-09-22
+
+- **Mandat :** définir les étapes ouvrant intensité, paramètres de marque et
+  maturité européenne aux gradients des modèles à sauts, avec un central qui
+  tire toutes ses marques ; ouvrir un constat distinct de l'adressage RNG.
+- **Snapshot :** branche `refactor/tools-ownership-and-campaigns`, HEAD
+  `50d9ad8` ; worktree préexistant très modifié, dont les registres d'audit.
+  Seuls le plan, les liens documentaires et les registres sont édités ici.
+- **Couverture / preuve :** revue statique du kernel gradients à innovation
+  unique, des adapters Merton, des dynamiques Merton/Bates/Kou, des exclusions
+  du contrat gradients, du contrat Philox et de NUM-031/NUM-008. Le
+  [plan](../cuda/jump-price-gradient-migration-plan.md) répartit moteur,
+  modèles, RNG, produits, codegen et tests. Le [constat NUM-032](response.md#num-032--ouvrir-les-sensibilités-de-saut-avec-des-marques-centrales-rejouables)
+  suit la capacité absente sans attribuer de défaut aux prix présents.
+- **Exclusions / verdict :** conception ciblée, sans changement de code,
+  benchmark GPU, validation indépendante ni campagne de datasets. La portée
+  générique démontrable est l'activité finie avec politique de couplage
+  déclarée ; état-dépendance et activité infinie ne sont pas qualifiés par
+  simple composition. Registre : **8 ouverts, 119 fermés, 127 identifiants
+  uniques** ; aucune clôture.
+- **Vérification documentaire :** liens locaux et titres de constats contrôlés,
+  `git diff --check` réussi ; aucun test CUDA pertinent avant implémentation.
+
+## Cadrage des domaines Philox internes sélectifs — 2026-09-22
+
+- **Mandat :** rédiger un plan de migration sélective : conserver le flux
+  Philox unique dès que son ordre fixe suffit au CRN, isoler seulement les
+  sources dont la consommation peut déplacer d'autres tirages, puis ouvrir un
+  constat de suivi. Aucun changement de runtime ni lancement de campagne.
+- **Snapshot :** branche `refactor/tools-ownership-and-campaigns`, HEAD
+  `50d9ad8` ; worktree déjà largement modifié, y compris les trois registres
+  d'audit. Le présent passage n'édite que la documentation du plan et du
+  registre ; il préserve les changements antérieurs.
+- **Couverture / preuve :** lecture de `AGENTS.md`, `query.md`, NUM-008 clos,
+  des contrats Philox et gradients, de `src/common/philox.cuh`, des tirages
+  Heston QE, Merton et Vasicek, ainsi que du protocole de performance. Le
+  constat [NUM-031](response.md#num-031--réserver-les-domaines-philox-aux-sources-qui-exigent-une-isolation)
+  décrit un risque d'extension prouvé par la séquence unique et le rejet
+  Poisson, sans attribuer de défaut aux prix publiés. Le
+  [plan](../cuda/philox-domain-migration-plan.md) définit étapes et preuves,
+  avec Heston QE et Vasicek comme témoins mono-flux et mesure explicite de la
+  pression registre des variantes à domaines. La décision ultérieure de tirer
+  les marques individuellement dans le central des nouveaux moteurs à sauts
+  relève désormais du [plan dédié](../cuda/jump-price-gradient-migration-plan.md)
+  et de NUM-032, avec Merton/Bates à migrer et Kou comme précédent.
+- **Exclusions / verdict :** revue ciblée de conception, pas audit complet ni
+  qualification numérique ou GPU ; rough/FFT, CIR, LSM et multi-sous-jacents
+  sont à inventorier pendant le chantier. Le choix du rangement final et son
+  coût restent à mesurer. Registre : **7 ouverts, 119 fermés, 126 identifiants
+  uniques** ; aucune clôture.
+- **Vérification documentaire :** `git diff --check` sans erreur ; comptage des
+  titres de constats `response.md`/`closed.md` : 7/119, tous uniques ; liens
+  locaux du plan résolus. Aucun build ni test CUDA requis pour ce changement
+  documentaire.
+
+## Remédiation des cinq constats `price_gradients` — 2026-09-19
+
+- **Périmètre :** `NAME-011`, `STRUCT-034`, `STRUCT-035`, `FACTOR-002` et
+  `PERF-023`. Les six constats antérieurs `PERF-016`, `DELTA-001`,
+  `PRODUCT-001`, `NUM-028`, `NUM-029` et `NUM-030` restent ouverts et
+  inchangés.
+- **Snapshot :** branche `refactor/tools-ownership-and-campaigns`, HEAD
+  `50d9ad8e75ebdbb8c6950db3fc4b4e05ddc362b1`, worktree de chantier déjà
+  modifié. Les corrections ont été appliquées sans supprimer les changements
+  non liés présents dans ce worktree.
+- **Comptabilité :** les cinq constats sont transférés dans
+  [closed.md](closed.md). Le registre contient **6 ouverts, 119 fermés et 125
+  identifiants uniques**.
+
+### Architecture et factorisation obtenues
+
+| Axe | Résultat | Preuve structurelle |
+|---|---|---|
+| Nommage CIR | conforme | rôle de `parameter_policy.cuh` explicite et checker de layout passant |
+| Moteur MC commun | conforme | policy et contexte opaques; construction terminale dans le launcher equity |
+| Planner gradients | conforme | aucune liste de modèles, produits ou cardinalités; géométrie seule |
+| Domaines de paramètres | conforme | huit prédicats possédés par modèles/produits et partagés par loader/policy |
+| Couverture CUDA permanente | conforme sur le périmètre actif | manifeste de quinze symboles, quatre exécutables et runner SASS/Nsight |
+
+Le kernel MC commun reste responsable de la simulation, des moments et de la
+réduction. Il ne construit plus de policy terminale. L'adaptateur equity
+assemble au dernier moment sa `TerminalPolicy` et sa configuration temporelle.
+Le planificateur reçoit ensuite une exécution déjà déclarée valide par la
+composition et calcule uniquement lots, grilles et travail central.
+
+Les domaines admissibles sont placés auprès des paramètres de Black--Scholes,
+Heston, CEV, Merton, CIR, option européenne, option américaine et swaption
+européenne. Les loaders conservent leurs messages détaillés et les policies
+leurs règles de sélection/stencil, mais leur décision de validité repose sur
+le même prédicat.
+
+### Qualification CUDA SM89
+
+Trois campagnes finales homogènes couvrent les représentants MC terminal,
+closed form par ligne, Heston American gelé et Jamshidian CIR. Le premier
+passage profile chaque phase en kernel-replay ; les deux suivants répètent les
+temps. Les hashes des summaries sont :
+
+- `87a44dc06d69654134dc2ad64f1d3d7de1abda6e1f44d5060720878afcc36e8d` ;
+- `9a2417bf20be6944b9408e19eecfb85b789481fbb733d9914b6fca3bed4b9740` ;
+- `556cf1ab89717d014efde8412c79c6295b2d8414f7ac9a028df08e9b1113e588`.
+
+L'agrégat local a le SHA-256
+`2f126a35e39173bd28e86cbe9a1363fa2e78dd7755fd597ffbb2b20f800a4b67`.
+Sur les charges lourdes sélectionnées, les CV kernel agrégés vont de 0,57 % à
+3,43 % et chaque ligne possède au moins deux campagnes sous le budget de 5 %.
+La pipeline américaine complète atteint 91,33 ms de médiane, 91,75 ms de p95
+maximal et 1,89 % de CV agrégé. Ses quatre pipelines par échantillon et vingt
+warmups sont déclarés dans le résultat.
+
+Les quinze profils Nsight signalent zéro spill compilateur local/partagé et
+zéro wavefront shared excessif. Les maxima de ressources sont 124 registres et
+56 octets locaux par thread pour le MC terminal, 38/0 pour le closed form,
+128/32 pour l'américain et 63/0 pour Jamshidian. Les faibles octets par secteur
+des lectures terminales correspondent à la diffusion warp d'un même scénario;
+les tableaux de chemins américains atteignent 13 à 31 octets par secteur.
+Le rapport durable est
+[price-gradients-strategies-sm89-2026-09-19.md](../performance-reports/price-gradients-strategies-sm89-2026-09-19.md).
+
+### Vérifications de remédiation
+
+- build réussi de `ai_factory_host_tests`, des six exécutables CUDA gradients
+  et de l'agrégat `price_gradients_performance_benchmarks` ;
+- 9/9 CTests hôte/codegen/datasets/performance ciblés et 6/6 CTests CUDA
+  gradients réussis ;
+- régénération complète de 6 461 sorties puis comparaison depuis un répertoire
+  vierge : zéro divergence ;
+- checker de layout : 1 640 fichiers modèle-produit isolés, 236 fichiers
+  d'infrastructure résumés, 123 templates nommés, 1 682 fichiers générés et
+  870 handwritten classés ;
+- Compute Sanitizer `memcheck`, `racecheck`, `initcheck` et `synccheck` sur les
+  fixtures européenne et américaine, plus `memcheck` Jamshidian : zéro erreur,
+  zéro warning et zéro hazard ;
+- registre recompté mécaniquement : 6 titres ouverts, 119 fermés, 125 uniques,
+  sans doublon ; `git diff --check` réussi.
+
+### Portée de la clôture
+
+`B=1, 256 threads` est conservé pour les représentants MC et le replay Heston
+sur le GPU SM89 mesuré. Cette qualification ne s'étend pas aux futurs gradients
+rough, FFT ou N-facteurs, aux GPU non mesurés, à toute taille de production ou
+à la certification numérique d'un dataset. La migration puis la suppression
+de `price_delta` restent liées à la couverture rough demandée ultérieurement.
+
+## Audit architecture, factorisation et performance de `price_gradients` — 2026-09-18
+
+- **Mandat :** examiner l'arborescence et l'ownership des briques de gradients,
+  leur composition entre MC, closed form, LSM, equity et fixed income, puis la
+  stratégie CUDA, la mémoire et les preuves de performance disponibles. Les
+  moteurs FFT/N-facteurs existants ont été rapprochés de la pyramide commune;
+  leur extension à `price_gradients` n'existe pas encore et n'est donc pas
+  évaluée comme une capacité livrée.
+- **Snapshot :** branche `refactor/tools-ownership-and-campaigns`, HEAD
+  `50d9ad8e75ebdbb8c6950db3fc4b4e05ddc362b1`, worktree déjà modifié. Empreinte
+  de `git status --porcelain` :
+  `b13a3d74d2850b0b55dac8a0e4378b408ec147522a30c5c63c4946620c4fa90f`;
+  diff hors registres d'audit :
+  `464c9a2e65c84e21a94adc17cf23561adfe784417dbdbd25009201463b834659`;
+  liste non suivie :
+  `93db0a645465dfe7ce8521b8ee5be1b64222d9eee0bc68370be79071425e80fa`;
+  index vide. Les registres sont les seuls fichiers modifiés par cet audit.
+- **Environnement :** inspection statique et tests Python hôte. NVCC 13.3.73
+  est présent; `nvidia-smi` échoue avec `GPU access blocked by the operating
+  system`. Aucun build partagé, dataset, recette, baseline, campagne ou profil
+  matériel n'a été modifié.
+
+### Couverture et verdict
+
+| Axe | Couverture | Verdict | Preuve ou limite |
+|---|---|---|---|
+| Arborescence, noms et ownership `price_gradients` | complète sur les fichiers actifs inventoriés | non conforme localement | Les owners modèle, produit, closed form et LSM sont cohérents; le moteur MC dit commun dépend d'equity et le checker de layout refuse la nouvelle policy CIR. |
+| Factorisation des scénarios et kernels gradients | partielle | non conforme localement | Les scénarios `1+2K`, stencils `NK`, CRN, résultats et kernels par stratégie sont bien séparés. Le planner recopie la matrice de capacités et huit policies recopient le domaine de leurs loaders. L'équivalence mathématique exhaustive n'a pas été réauditée. |
+| Stratégies CUDA, registres et mémoire | partielle | indéterminé globalement | Revue du mapping thread/bloc, des réductions FP64, de la shared, du workspace LSM et des accès. Aucun GPU disponible et aucune preuve courante par phase pour LSM gradients et Jamshidian gradients. PERF-023 suit cette obligation. |
+| FFT et N-facteurs | partielle sur leur architecture prix/prix-delta | conforme à la pyramide existante; non applicable aux gradients actuels | Policies de noyau/chemin, workspace FFT et préparation N-facteurs restent distincts. Aucun moteur `price_gradients` FFT/N-facteurs n'est présent à auditer. |
+
+### Décisions positives à conserver
+
+- Les noms et owners principaux rendent le parcours naturel : configuration,
+  scénarios, stencils et résultats sont cross-asset; les builders de scénarios
+  sont séparés equity/fixed income; les dynamiques couplées appartiennent au
+  modèle; les règles produit appartiennent au produit; les bindings
+  modèle-produit restent minces.
+- Le kernel MC calcule le prix dans le premier lot seulement, partage la clé
+  Philox entre central et bumps, et sort les branches de sélection de la boucle
+  de trajectoires. `B=1` limite les canaux FP64 vivants; les largeurs 2/4 et la
+  tail sont des spécialisations bornées, pas un tableau dynamique par thread.
+- Les trois kernels closed form ne sont pas une sur-factorisation : un thread
+  par ligne pour cardinalité compile-time, un thread avec cardinalité runtime
+  pour les évaluateurs lourds, et un bloc coopératif pour Jamshidian répondent
+  à trois unités de travail distinctes tout en partageant les scénarios et les
+  stencils.
+- La voie américaine réemploie le workspace et le solveur LSM centraux, puis
+  ajoute deux phases de replay gelé. Les états de chemin sont rangés par lignes
+  de trajectoires; les threads adjacents parcourent des indices adjacents. Les
+  sorties gradient sont row-major et les écritures finales, peu volumineuses,
+  ont un owner unique.
+
+### Constats et preuves
+
+- NAME-011 est rouvert pour la phrase de rôle CIR. STRUCT-034 suit le couplage
+  equity du moteur MC commun; STRUCT-035 la liste parallèle de capacités;
+  FACTOR-002 les domaines admissibles dupliqués; PERF-023 la qualification
+  incomplète des phases CUDA. Ils sont détaillés dans [response.md](response.md).
+- `python3 tools/cuda/check_model_layout.py` : code 1, un diagnostic CIR.
+- 40/40 tests Python ciblés `repository_layout`, `capability_manifest` et
+  contrat d'artefact gradients passent. `git diff --check` passe.
+- Empreintes des représentants inspectés : kernel MC
+  `92872658...b3b9e4`, planner `4a20c84e...12ac60`, policy CIR
+  `3e175c0a...65f0d`, loader CIR `1dcb1edb...9660fea`, fragment CMake
+  `5249c4e7...d8bc0b3` et query v9.2 `b4dac9ee...7777e95`.
+- Les diagnostics SM89 historiques restent des indices, pas une qualification
+  du snapshot sale courant. Ils confirment que la largeur des lots change
+  sensiblement registres, mémoire locale et occupation, ce qui justifie le
+  maintien de `B=1` comme candidat prudent jusqu'à PERF-023.
+
+### Exclusions
+
+Pas de revue financière indépendante, preuve de convergence des bumps,
+compute-sanitizer, compilation native fraîche, SASS/Nsight courant, mesure GPU,
+retuning, génération de dataset ou entraînement Sobolev. Les contrôles positifs
+de structure et de parité historiques ne ferment pas ces exclusions.
+
+## Remédiation des constats structurels — 2026-09-18
+
+- **Périmètre :** correction de `NAME-011`, `STRUCT-014`, `STRUCT-032` et
+  `STRUCT-033` issus du passage ciblé ci-dessous. Le chantier de validation
+  indépendante reste séparé et n'est ni modifié ni évalué par cette
+  remédiation.
+- **Nommage et documentation :** le replay d'exercice gelé devient un template
+  commun paramétré par la dynamique couplée; Heston ne conserve que sa
+  composition. Les helpers Merton portent des résumés de rôle explicites. Les
+  deux références vers `artifacts/` sont devenues des chemins locaux non
+  cliquables et explicitement non distribués.
+- **Métadonnées :** un validateur partagé charge les cinq schémas, contrôle les
+  3 775 documents catalogue suivis et accepte les campagnes/expériences locales
+  fournies explicitement. Recettes, reçus enrichis, sauvegardes/reprises de
+  campagnes et publication utilisent ce même owner. Le contrôleur fige aussi
+  le validateur et les schémas datasets dans chaque campagne.
+- **CMake :** `work/experiments` n'est plus découvert par défaut. L'option
+  explicite `AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON` expose six cibles locales,
+  toutes absentes des agrégats permanents. La configuration finale du build
+  local a été restaurée avec l'option `OFF`.
+- **Tests :** 47/47 tests datasets et 30/30 tests codegen passent. Les sept
+  CTests ciblés `metadata_schemas`, `artifact_publication`,
+  `catalog_generation`, `dataset_provenance`, `repository_layout`,
+  `model_source_layout` et `catalog_generator_boundaries` passent. Le checker
+  catalogue couvre 2 436 recettes, le checker de layout passe et le codegen
+  complet reste zéro-diff. La bibliothèque CUDA des gradients américains
+  Heston compile avec le replay commun; les deux tests hôte associés passent.
+  Le test CUDA ciblé est enregistré mais ignoré faute de GPU disponible.
+  `git diff --check` passe.
+- **Comptabilité :** les quatre constats sont déplacés vers `closed.md` : six
+  ouverts, 115 fermés et 121 identifiants uniques.
+
+## Audit ciblé de l'arborescence complète — 2026-09-18
+
+- **Mandat :** contrôler les racines, owners, noms, métadonnées catalogue,
+  espaces locaux et parcours documentaires après la migration
+  `recipe.yaml`/`generation.yaml` et `work/`. Ce passage ne réaudite ni les
+  calculs financiers, ni les performances, ni la certification indépendante.
+- **Snapshot :** branche `refactor/tools-ownership-and-campaigns`, révision
+  `50d9ad8e75ebdbb8c6950db3fc4b4e05ddc362b1`. Le worktree et l'index étaient
+  propres au début. À la fin de ce passage, seul le registre d'audit principal
+  est modifié.
+- **Environnement :** inspection hôte uniquement. Aucun GPU, moteur externe,
+  dataset, cache, campagne, build ou publication n'a été modifié.
+
+### Couverture et verdict
+
+| Axe | Couverture | Verdict | Preuve ou limite |
+|---|---|---|---|
+| Racines, ownership et noms maintenus | partielle | non conforme | Inventaire des fichiers suivis et des chemins locaux; le contrôle `model_source_layout` produit huit diagnostics. La sémantique interne de chaque fichier n'a pas été relue. |
+| `catalog` / `datasets` | complète sur la structure et les métadonnées | conforme sur la migration générale | 2 436 couples `generator.cpp`/`recipe.yaml`, 720 `generation.yaml`, 619 `validation.yaml`, aucun `dataset.yaml`/`datasets.yaml`; `datasets/` contient exactement 720 JSON et aucun état de campagne. |
+| Schémas recipe/generation/validation/experiment | complète sur les instances présentes | non conforme sur l'intégration | Les 3 775 documents catalogue et cinq manifestes d'expérience passent JSON Schema, mais aucun validateur de schéma n'est appelé par la production ou CTest. |
+| Codegen et manifeste | complète sur le drift | conforme | 30 tests du manifeste, `check_catalog_generators.py` sur 2 436 recettes et génération `--family all --compare-root .` sans diff. |
+| Workspaces locaux et CMake | complète sur l'inclusion actuelle | non conforme | `work/` est bien ignoré et séparé de `datasets/`, mais le CMake racine charge automatiquement `work/experiments/CMakeLists.txt`; ses targets entrent dans les agrégats permanents. |
+
+### Résultats et décisions
+
+- La séparation `recipe.yaml` (intention), `generation.yaml` (matérialisation)
+  et `validation.yaml` (certification) est cohérente et non redondante sur les
+  instances examinées. Les noms canoniques sous `src`, `tools`, `tests`,
+  `learning`, `catalog` et `cmake` sont homogènes hors exceptions générées ou
+  tierces.
+- `work/generation/` contient les campagnes reprenables et
+  `work/experiments/` les études jetables; aucun `generation-runs` ni workspace
+  n'est présent sous `datasets/`.
+- `NAME-011` et `STRUCT-014` sont rouverts avec leur identité historique.
+  `STRUCT-032` suit l'absence d'application des schémas et `STRUCT-033`
+  l'influence implicite de l'arbre ignoré sur le build principal.
+- La différence `price_delta` / `price_gradients` est volontaire : le premier
+  contrat porte le delta spot seul, le second plusieurs sensibilités. Elle ne
+  constitue pas une anomalie de nommage.
+
+### Commandes et preuves bornées
+
+- `python3 -m unittest discover -s tests/datasets -v` : 42/42.
+- `python3 -m unittest discover -s tests/codegen -v` : 30/30.
+- `python3 tools/cuda/check_catalog_generators.py` : 2 436 recettes, dont
+  2 382 générées, sans échappatoire CUDA brute.
+- `python3 tools/cuda/check_model_layout.py` : échec avec huit diagnostics,
+  répartis entre `NAME-011` et `STRUCT-014`.
+- Validation JSON Schema ponctuelle : 3 775 documents catalogue et cinq
+  manifestes locaux, zéro erreur. Cette commande d'audit ne remplace pas le
+  gate manquant suivi par `STRUCT-032`.
+- Codegen complet dans un dossier temporaire isolé : zéro diff contre le dépôt.
+
+### Exclusions
+
+Pas de configuration CMake fraîche, compilation native, CTest CUDA, mesure de
+performance, génération de dataset, validation indépendante ou revue mathématique.
+Les arbres ignorés `AI_factory_website/` et `Articles/` sont des projets ou
+références locaux explicitement hors du dépôt publié; leur présence physique
+n'est pas un défaut de la taxonomie suivie.
+
 ## Inspection complète de tools — 2026-09-15
 
 - **Mandat :** inspecter chaque fichier de `tools/`. Vérifier son utilité, son

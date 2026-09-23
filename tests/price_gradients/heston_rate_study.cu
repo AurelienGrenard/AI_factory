@@ -2,11 +2,13 @@
 // Canonical central paths and Philox are unchanged; this is not a production pricer.
 #include "model/equity/markovian/heston/dynamics_impl.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
+#include "common/equity/price_gradients/terminal_scenario.cuh"
 #include "cuda_test_support.cuh"
 #include <nlohmann/json.hpp>
 using namespace price_gradient_test;
 namespace hs=model::equity::heston;
-using Scenario=hs::EuropeanOptionPriceGradientPlan::ScenarioType;
+namespace epg=equity::price_gradients;
+using Scenario=epg::Scenario<hs::ModelParameters,product::EuropeanOptionParameters>;
 __global__ void rate_oracle(const Scenario* scenarios,double* gradients,std::size_t paths,float dt,
                             std::uint64_t seed) {
     const auto path=std::size_t(blockIdx.x)*blockDim.x+threadIdx.x;
@@ -36,10 +38,23 @@ int main() {
             {1.f,0.f,0.f,.04f,1.f,.06f,.4f,-1.f}};
         const std::vector<product::EuropeanOptionParameters> products(2,{1.f,126U});
         for (unsigned refinement:{1U,2U}) for (double factor:{.125,.5,1.,2.,4.}) {
-            auto plan=hs::prepare_heston_european_option_price_gradients(models,products,PriceConstruction::Aligned,
+            auto plan=hs::prepare_heston_european_option_price_gradients(
+                models,products,PriceConstruction::Aligned,
                 {1.f/(504.f*refinement),2*refinement},{{{"model.risk_free_rate",{factor*.0001,pg::BumpScale::absolute}},
                 {"model.dividend_yield",{factor*.0001,pg::BumpScale::absolute}}}});
-            DeviceArray<Scenario> scenarios(plan.scenarios);DeviceArray<double> output(4*paths);
+            std::vector<Scenario> represented;
+            represented.reserve(plan.result_count*5U);
+            for (std::size_t row=0;row<plan.result_count;++row) {
+                represented.push_back(central_scenario(plan,row));
+                for (std::size_t sensitivity=0U;sensitivity<2U;++sensitivity) {
+                    const auto task=sensitivity_task<
+                        pg::SensitivityOrders::first
+                    >(plan,row,sensitivity);
+                    represented.push_back(task.nodes[1U]);
+                    represented.push_back(task.nodes[2U]);
+                }
+            }
+            DeviceArray<Scenario> scenarios(represented);DeviceArray<double> output(4*paths);
             for (unsigned seed:{719U,2719U,4719U}) {
                 rate_oracle<<<dim3((paths+255)/256,2),256>>>(scenarios.data,output.data,paths,plan.time.dt,seed);
                 check_cuda(cudaGetLastError(),"Heston carry oracle");auto values=output.read();

@@ -23,7 +23,7 @@ int main() {
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
         "datasets/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01_cartesian.json",
         "catalog/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01_cartesian.json",
         "7-factor Markovian lift",
         PriceConstruction::CartesianProduct,
     };

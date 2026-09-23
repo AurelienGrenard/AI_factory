@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import yaml
+
 from tools.datasets import artifact_publication as publication
 
 
@@ -20,7 +22,21 @@ class PublicationTests(unittest.TestCase):
         for relative in ("datasets/example.json", "catalog/example/generation.yaml"):
             source = self.work / relative
             source.parent.mkdir(parents=True, exist_ok=True)
-            source.write_text("new " + relative)
+            if relative.endswith("generation.yaml"):
+                source.write_text(yaml.safe_dump({
+                    "schema_version": 1,
+                    "status": "complete",
+                    "recipe": {
+                        "path": "catalog/example/recipe.yaml",
+                        "sha256": "a" * 64,
+                    },
+                    "artifact": {"row_count": 1, "sha256": "b" * 64},
+                    "execution": {},
+                    "timing": {"wall_seconds": 1.0, "kernel_seconds": 0.5},
+                    "record_sha256": "c" * 64,
+                }))
+            else:
+                source.write_text("new " + relative)
             self.items.append({"path": relative, "sha256": publication.digest(source),
                                "previous_sha256": None})
 
@@ -61,6 +77,17 @@ class PublicationTests(unittest.TestCase):
         (self.work / self.items[1]["path"]).write_text("partial output")
         with self.assertRaisesRegex(ValueError, "missing or changed"):
             self.publish()
+        self.assertFalse(self.journal.exists())
+
+    def test_invalid_generation_marker_blocks_before_dataset_rename(self):
+        marker = self.work / self.items[1]["path"]
+        document = yaml.safe_load(marker.read_text())
+        document["status"] = "running"
+        marker.write_text(yaml.safe_dump(document))
+        self.items[1]["sha256"] = publication.digest(marker)
+        with self.assertRaisesRegex(ValueError, "invalid generation metadata"):
+            self.publish()
+        self.assertFalse((self.root / self.items[0]["path"]).exists())
         self.assertFalse(self.journal.exists())
 
     def test_external_edit_between_renames_is_preserved(self):

@@ -1,11 +1,9 @@
 // Convert American-option JSON rows into compact CUDA parameters.
 #include "product/american_option/dataset.hpp"
+#include "product/american_option/parameter_domain.hpp"
 #include "common/dataset_validation.hpp"
 
 #include <nlohmann/json.hpp>
-
-#include <cmath>
-#include <stdexcept>
 
 namespace ai_factory::workbench::product {
 
@@ -23,17 +21,7 @@ std::vector<AmericanOptionParameters> load_american_options(
                 parameters.at("maturity").get<std::uint32_t>(),
                 parameters.at("exercise_interval").get<std::uint32_t>(),
             };
-            if (!std::isfinite(product.strike) || !(product.strike > 0.0f))
-                throw std::invalid_argument(prefix + "strike must be finite and positive.");
-            if (product.maturity_days == 0U)
-                throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");
-            if (product.exercise_interval_days == 0U
-                || !(product.exercise_interval_days < product.maturity_days)) {
-                throw std::invalid_argument(
-                    prefix
-                    + "exercise_interval must be positive and below maturity."
-                );
-            }
+            american_option::validate_parameters(product, prefix);
             return product;
     });
 }

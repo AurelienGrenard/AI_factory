@@ -9,6 +9,7 @@ import json
 import sys
 from tempfile import TemporaryDirectory
 import unittest
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +40,7 @@ from capability_manifest import (  # noqa: E402
     PRICE_DELTA_DATASET_SPECS,
     PRICE_DELTA_SOURCE_BY_GENERATOR,
     PRICE_GRADIENT_DATASET_SPECS,
+    PRICE_GRADIENT_BINDING_SPECS,
     PRICE_GRADIENT_SOURCE_BY_GENERATOR,
     pricing_launch_family,
     PRODUCT_SPECS,
@@ -48,6 +50,7 @@ from capability_manifest import (  # noqa: E402
     classify_price_capability,
     derive_equity_product_specs,
     resolve_rng_domain,
+    rng_mapping_version,
     resolve_complete_price_capability,
     resolve_price_capability,
     validate_dataset_spec,
@@ -72,6 +75,26 @@ from generate import (  # noqa: E402
 )
 
 class CapabilityManifestTest(unittest.TestCase):
+    def test_internal_rng_mapping_is_versioned_independently_of_seed_domain(self):
+        for model in ("merton", "kou", "bates", "variance_gamma",
+                      "cir", "cir_plus_plus", "black_scholes", "heston",
+                      "vasicek", "g2", "normal_inverse_gaussian"):
+            self.assertEqual(rng_mapping_version(model), "philox_source_step_v2")
+        for spec in AVAILABLE_DATASET_SPECS:
+            if spec.dataset_kind not in {"prices", "price_delta", "price_gradients", "samples"}:
+                continue
+            recipe = ROOT / spec.recipe_yaml_path
+            if not recipe.is_file():
+                continue
+            metadata = yaml.safe_load(recipe.read_text())
+            if (spec.dataset_kind == "samples" or
+                    spec.engine not in {"equity_closed_form", "fixed_income_closed_form"}):
+                self.assertEqual(metadata.get("rng_mapping_version"),
+                                 "philox_source_step_v2", spec.recipe_yaml_path)
+            else:
+                self.assertNotIn("rng_mapping_version", metadata,
+                                 spec.recipe_yaml_path)
+
     def test_unchanged_generated_output_preserves_timestamp(self):
         from generate import _write_generated
         with TemporaryDirectory() as temporary:
@@ -115,6 +138,69 @@ class CapabilityManifestTest(unittest.TestCase):
             cartesian = next(dataset for dataset in variants if dataset.construction == "cartesian")
             self.assertTrue(cartesian.dataset_id.endswith("_cartesian_price_delta"))
             self.assertEqual(cartesian.layout, "model_major_product_fastest_price_delta_rows")
+
+    def test_price_gradient_preparation_strategies_are_explicit(self):
+        strategies = {
+            (spec.pricing.model, spec.pricing.curve, spec.pricing.product):
+                spec.preparation_strategy
+            for spec in PRICE_GRADIENT_BINDING_SPECS
+        }
+        terminal_products = {
+            "european_option",
+            "asset_or_nothing_option",
+            "digital_option",
+        }
+        step_models = {
+            "bates", "cev", "heston", "heston_3_2", "sabr", "schobel_zhu",
+            "stein_stein",
+        }
+        expected = {
+            (model, None, product): "device_prepared_step_terminal"
+            for model in step_models
+            for product in terminal_products
+        }
+        expected.update({
+            (model, None, product): "device_prepared_exact_terminal"
+            for model in {
+                "kou", "merton", "normal_inverse_gaussian",
+                "variance_gamma",
+            }
+            for product in terminal_products
+        })
+        expected.update({
+            ("black_scholes", None, "european_option"):
+                "device_prepared_closed_form_terminal",
+            ("cir", None, "european_swaption"):
+                "device_prepared_cooperative_closed_form",
+        })
+        expected.update({
+            (model, None, "american_option"): "device_prepared_lsm"
+            for model in {
+                "bates", "black_scholes", "cev", "heston", "kou",
+                "merton", "normal_inverse_gaussian", "schobel_zhu",
+                "variance_gamma",
+            }
+        })
+        expected.update({
+            (model, curve, "bermudan_swaption"):
+                "device_prepared_fixed_income_lsm"
+            for model, curve in {
+                ("cir", None),
+                ("cir_plus_plus", "nelson_siegel"),
+                ("cir_plus_plus", "svensson"),
+                ("g2", None),
+                ("g2_plus_plus", "nelson_siegel"),
+                ("g2_plus_plus", "svensson"),
+                ("hull_white", "nelson_siegel"),
+                ("hull_white", "svensson"),
+                ("ornstein_uhlenbeck", None),
+                ("vasicek", None),
+            }
+        })
+        self.assertEqual(strategies, expected)
+        for spec in PRICE_GRADIENT_BINDING_SPECS:
+            for path in spec.paths:
+                self.assertTrue((ROOT / path).is_file(), path)
 
     def test_sample_parameter_laws_cover_factories_and_public_fields(self) -> None:
         from generate import _render_sample_generation_header
@@ -202,11 +288,24 @@ class CapabilityManifestTest(unittest.TestCase):
                 ),
                 dataset.dataset_path,
             )
+            stochastic = (
+                dataset.dataset_kind == "samples"
+                or dataset.dataset_kind in {"prices", "price_delta", "price_gradients"}
+                and dataset.engine not in {"equity_closed_form", "fixed_income_closed_form"}
+            )
+            version = "v2" if stochastic else "v1"
             self.assertEqual(
                 dataset.url,
-                "https://datasets.ai-factory.example/v1/"
+                f"https://datasets.ai-factory.example/{version}/"
                 + dataset.dataset_path.removeprefix("datasets/"),
             )
+
+    def test_every_available_recipe_declares_its_manifest_url(self) -> None:
+        for dataset in AVAILABLE_DATASET_SPECS:
+            recipe = yaml.safe_load(
+                (ROOT / dataset.recipe_yaml_path).read_text(encoding="utf-8")
+            )
+            self.assertEqual(recipe.get("url"), dataset.url, dataset.recipe_yaml_path)
 
     def test_owners_renderers_contracts_and_targets_are_complete(self) -> None:
         self.assertEqual(

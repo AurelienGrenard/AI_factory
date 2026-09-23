@@ -6,6 +6,7 @@ output:
   path: datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json
   format: json
 generation_output: catalog/product/asset_or_nothing_option/asset_or_nothing_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/asset_or_nothing_option/asset_or_nothing_options_01.json
 product_family: Asset-or-Nothing Options
 row_count: 1000
 time_convention:

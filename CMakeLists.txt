@@ -36,6 +36,12 @@ if(AI_FACTORY_USE_CCACHE)
     endif()
 endif()
 
+option(
+    AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS
+    "Include disposable targets declared by work/experiments/CMakeLists.txt"
+    OFF
+)
+
 # cuFFTDx is optional because mathDx is distributed separately from the CUDA
 # toolkit. The fused rough-Bergomi pricer is enabled explicitly with the root
 # of an extracted mathDx package.
@@ -155,8 +161,16 @@ endforeach()
 ai_factory_include_owned_module(cmake/AIFactoryRuntime.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryTargets.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryCatalog.cmake)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/work/experiments/CMakeLists.txt")
+if(AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/work/experiments/CMakeLists.txt")
+        message(FATAL_ERROR
+            "AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS requires "
+            "work/experiments/CMakeLists.txt"
+        )
+    endif()
+    set(AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS ON)
     ai_factory_include_owned_module(work/experiments/CMakeLists.txt)
+    unset(AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
 endif()
 ai_factory_include_owned_module(cmake/AIFactoryPerformance.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryTests.cmake)

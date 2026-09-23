@@ -1,6 +1,7 @@
 // Host implementation of the Schobel-Zhu dataset loader.
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
 #include "common/dataset_validation.hpp"
+#include "model/equity/markovian/schobel_zhu/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -28,52 +29,7 @@ std::vector<ModelParameters> load_models(
                 parameters.at("volatility_of_volatility").get<float>(),
                 parameters.at("correlation").get<float>(),
             };
-            if (!std::isfinite(model.spot) || !(model.spot > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "spot must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.risk_free_rate)) {
-                throw std::invalid_argument(
-                    prefix + "risk_free_rate must be finite."
-                );
-            }
-            if (!std::isfinite(model.dividend_yield)) {
-                throw std::invalid_argument(
-                    prefix + "dividend_yield must be finite."
-                );
-            }
-            if (!std::isfinite(model.initial_volatility)) {
-                throw std::invalid_argument(
-                    prefix + "initial_volatility must be finite."
-                );
-            }
-            if (!std::isfinite(model.mean_reversion)
-                || !(model.mean_reversion > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix + "mean_reversion must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.long_run_volatility)) {
-                throw std::invalid_argument(
-                    prefix + "long_run_volatility must be finite."
-                );
-            }
-            if (!std::isfinite(model.volatility_of_volatility)
-                || !(model.volatility_of_volatility > 0.0f)) {
-                throw std::invalid_argument(
-                    prefix
-                    + "volatility_of_volatility must be finite and positive."
-                );
-            }
-            if (!std::isfinite(model.correlation)
-                || !(model.correlation > -1.0f
-                     && model.correlation < 1.0f)) {
-                throw std::invalid_argument(
-                    prefix
-                    + "correlation must lie strictly between -1 and 1."
-                );
-            }
+            validate_parameters(model, prefix);
             return model;
     });
 }

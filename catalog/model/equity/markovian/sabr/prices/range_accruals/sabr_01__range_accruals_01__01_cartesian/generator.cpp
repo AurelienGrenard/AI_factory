@@ -20,7 +20,7 @@ int main() {
         "datasets/product/range_accrual/range_accruals_01.json",
         "datasets/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01_cartesian.json",
         "catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01_cartesian.json",
         "Lamperti SABR Euler",
         PriceConstruction::CartesianProduct,
     };

@@ -10,7 +10,7 @@ int main() {
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian_price_delta/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_bergomi/price_delta/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian_price_delta.json", "catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_volterra_price_delta_dataset<volterra::TerminalHybridSchedule, product::GapOptionPathPolicy<OptionSide::call>>(
         recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_bergomi", "gap_option", ""},
         11668828575842172928ULL, "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)", model::equity::rough_bergomi::load_models, [](const auto& path) { return product::load_gap_options(path, OptionSide::call); },

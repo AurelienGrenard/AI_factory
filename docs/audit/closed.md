@@ -3,6 +3,186 @@
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
+## Remédiation de l'architecture `price_gradients` — 2026-09-19
+
+### NAME-011 — Rendre le rôle des fichiers d'infrastructure modèle immédiatement lisible
+
+- **État / qualification :** rouvert le 2026-09-18 puis refermé le 2026-09-19;
+  sévérité faible, priorité haute, confiance prouvée. Propriétaire : paramètres
+  CIR des gradients de prix.
+- **Signature :** l'en-tête de
+  `src/model/fixed_income/cir/price_gradients/parameter_policy.cuh` décrivait
+  des coordonnées sans nommer le rôle du fichier. Le checker de layout ne
+  pouvait pas le classer.
+- **Correction :** la phrase de rôle identifie explicitement la policy CIR qui
+  sélectionne les coordonnées scalaires et valide les scénarios bumpés. Le
+  vocabulaire du checker reconnaît aussi le rôle canonique des nouveaux
+  `parameter_domain.hpp`, sans exception propre à CIR.
+- **Preuve :** `python3 tools/cuda/check_model_layout.py` classe tous les
+  fichiers modèle-produit et sort sans diagnostic.
+- **Réouvrir seulement si :** un helper modèle ou produit ne peut plus être
+  classé par son en-tête, ou si une exception de chemin remplace de nouveau un
+  rôle explicite.
+
+### STRUCT-034 — Séparer le moteur MC commun de son adaptateur terminal equity
+
+- **État / qualification :** ouvert le 2026-09-18 et fermé le 2026-09-19;
+  sévérité moyenne, priorité haute, confiance prouvée. Propriétaire : moteur
+  Monte Carlo des gradients.
+- **Signature :** `common/monte_carlo/price_gradients/kernel.cuh` incluait une
+  policy equity, recevait sa configuration temporelle et construisait
+  l'adaptateur terminal dans sa frontière publique.
+- **Correction :** le kernel commun est paramétré par une policy et un contexte
+  de préparation opaques. La construction de `TerminalPolicy`, la
+  configuration temporelle et le dispatch terminal appartiennent désormais à
+  `common/equity/price_gradients/terminal_monte_carlo_launcher.cuh`. Les
+  bindings générés appellent cet adaptateur au dernier niveau.
+- **Preuves :** le moteur commun n'inclut plus aucun type equity ou fixed
+  income. Les tests CUDA Black--Scholes, CEV, Heston, Merton et de travail
+  central passent; les trois symboles MC finaux sont couverts par le manifeste
+  de performance et le profil SM89.
+- **Réouvrir seulement si :** un type de classe d'actifs revient dans le
+  moteur MC commun, une composition recopie sa réduction, ou la séparation
+  change le prix central, le CRN ou le rangement des sorties.
+
+### STRUCT-035 — Éliminer la liste parallèle de capacités dans le planner gradients
+
+- **État / qualification :** ouvert le 2026-09-18 et fermé le 2026-09-19;
+  sévérité moyenne, priorité haute, confiance prouvée. Propriétaire :
+  planification hôte des gradients.
+- **Signature :** le planner énumérait les noms Black--Scholes, Heston, CEV,
+  Merton et CIR, leurs couples produit/méthode et leurs cardinalités maximales,
+  en parallèle du manifeste et des policies composées.
+- **Correction :** `make_price_gradient_launch_plan` ne connaît plus que les
+  familles d'exécution et l'arithmétique de grille. La composition préparée
+  possède la capacité, la sélection et sa cardinalité avant l'appel du
+  planner. Aucun nom de modèle, produit ou coordonnée ne gouverne la géométrie.
+- **Preuves :** les tests du launch plan couvrent les géométries terminale,
+  closed form et LSM ainsi qu'un modèle futur au nom inconnu. Ajouter ce nom ne
+  demande aucune condition centrale.
+- **Réouvrir seulement si :** un planner réintroduit une table de modèles,
+  produits ou coordonnées, ou accepte une cardinalité qu'il prétend valider à
+  la place de la composition.
+
+### FACTOR-002 — Partager le domaine admissible entre loaders et scénarios bumpés
+
+- **État / qualification :** ouvert le 2026-09-18 et fermé le 2026-09-19;
+  sévérité moyenne, priorité haute, confiance prouvée. Propriétaires : modèles
+  et produits concernés.
+- **Signature :** huit policies de gradients recopiaient champ par champ le
+  domaine déjà vérifié par leurs loaders. Une évolution de frontière pouvait
+  faire diverger chargement et bumping.
+- **Correction :** Black--Scholes, Heston, CEV, Merton, CIR, option européenne,
+  option américaine et swaption européenne possèdent chacun un
+  `parameter_domain.hpp` près de leurs paramètres. Loader et
+  `ParameterPolicy::valid` appellent le même prédicat pur. Les diagnostics de
+  parsing et les règles de choix du stencil restent chez leurs propriétaires.
+- **Preuves :** `parameter_domain_test` mute les frontières, NaN, infinis,
+  signes et bornes propres à chaque type et vérifie l'accord loader/policy. Les
+  tests datasets et gradients passent.
+- **Réouvrir seulement si :** un loader ou une policy réécrit le domaine, si
+  leurs décisions divergent à une frontière, ou si le partage efface un
+  diagnostic de parsing utile.
+
+### PERF-023 — Qualifier toutes les phases CUDA des stratégies `price_gradients`
+
+- **État / qualification :** ouvert le 2026-09-18 et fermé le 2026-09-19;
+  sévérité moyenne, priorité haute, confiance prouvée sur le périmètre SM89
+  représenté. Propriétaire : performance CUDA des gradients de prix.
+- **Signature :** les benchmarks permanents ne couvraient ni les neuf phases
+  Heston American, ni Jamshidian CIR scalaire/coopératif, et les preuves du
+  snapshot courant ne liaient pas ressources, SASS, accès et temps à chaque
+  symbole réellement lancé.
+- **Correction :** le manifeste permanent inventorie quinze symboles : trois
+  MC terminaux, un closed form par ligne, neuf phases LSM/replay et deux
+  stratégies Jamshidian. Le runner contrôle la présence de chaque phase,
+  attache les hashes des binaires, filtre le SASS aux symboles lancés, choisit
+  le représentant le plus lourd de chaque phase et exporte les métriques
+  kernel-replay Nsight. Les microkernels et la pipeline LSM utilisent des
+  fenêtres de mesure déclarées pour que le CV représente le calcul.
+- **Preuves :** trois campagnes homogènes passent les budgets de bruit sur les
+  charges lourdes représentées. Les quinze profils rapportent zéro requête de
+  spill compilateur local/partagé et zéro wavefront shared excessif. Les
+  maxima sont 124 registres/56 octets locaux pour le MC terminal, 38/0 pour le
+  closed form, 128/32 pour l'américain et 63/0 pour Jamshidian. Le rapport
+  versionné
+  [price-gradients-strategies-sm89-2026-09-19.md](../performance-reports/price-gradients-strategies-sm89-2026-09-19.md)
+  conserve les temps, accès, branches, mémoire, hashes et commandes.
+- **Décision :** conserver `B=1, 256 threads` pour les représentants MC et le
+  replay Heston SM89. Conserver Jamshidian coopératif à 128 threads par prix;
+  il est 4,37 fois plus rapide que la voie scalaire sur 1 000 lignes et
+  `K=7`. Les allocations locales SASS observées ne sont pas qualifiées de
+  spills puisque les compteurs dédiés restent nuls.
+- **Portée :** la clôture garantit une infrastructure permanente et le profil
+  des stratégies actuellement actives. Elle ne qualifie pas les futurs
+  gradients rough/FFT/N-facteurs, un autre GPU, tout le domaine des charges,
+  PERF-016 ou une certification de dataset.
+- **Réouvrir seulement si :** une phase active n'est plus exigée par le
+  manifeste, un symbole ne possède plus son diagnostic, un budget numérique ou
+  de bruit échoue, des spills apparaissent, ou une stratégie nouvelle est
+  présentée comme qualifiée sans campagne propre.
+
+## Remédiation de l'arborescence complète — 2026-09-18
+
+### STRUCT-014 — Ne pas publier un lien interne vers un arbre ignoré
+
+- **État / qualification :** rouvert puis refermé le 2026-09-18; sévérité
+  moyenne, priorité haute, confiance prouvée. Propriétaire : documentation
+  prix-gradients.
+- **Signature :** la politique de qualification liait deux rapports sous
+  `artifacts/`, donc absents d'un clone propre.
+- **Correction :** les preuves locales restent citées comme chemins locaux en
+  code inline, avec mention explicite de leur caractère ignoré et non
+  distribué; elles ne sont plus exposées comme liens documentaires.
+- **Preuve :** `check_model_layout.py`, qui contrôle aussi les liens maintenus
+  vers des cibles ignorées, passe sans diagnostic.
+- **Réouvrir seulement si :** un document suivi crée de nouveau un lien vers
+  une cible absente ou ignorée, même si elle existe dans le workspace local.
+
+### STRUCT-032 — Appliquer réellement les schémas de métadonnées
+
+- **État / qualification :** ouvert puis fermé le 2026-09-18; sévérité
+  moyenne, priorité haute, confiance prouvée. Propriétaire : outillage
+  datasets et expériences.
+- **Signature :** les schémas recipe, generation, validation, campaign et
+  experiment existaient, mais aucun owner de production ou CTest ne les
+  exécutait.
+- **Correction :** `tools/datasets/metadata_schemas.py` fournit l'unique
+  chargeur/validateur Draft 2020-12. Le contrôleur valide les recettes, les
+  campagnes sauvegardées et reprises, et fige le validateur avec les quatre
+  schémas datasets. La provenance valide le reçu enrichi avant écriture et la
+  publication le revérifie avant le premier renommage. Les manifestes locaux
+  d'expérience disposent du même point d'entrée explicite.
+- **Preuves :** les 2 436 recettes, 720 reçus et 619 validations suivis passent;
+  les mutations négatives des cinq familles sont rejetées. Les 47 tests
+  datasets passent et CTest `metadata_schemas`, `artifact_publication`,
+  `catalog_generation` et `dataset_provenance` passent.
+- **Réouvrir seulement si :** un schéma redevient purement déclaratif, une
+  frontière de publication accepte un reçu invalide, ou CTest cesse de couvrir
+  les instances positives et les mutations de chaque famille.
+
+### STRUCT-033 — Garder le build principal indépendant des expériences ignorées
+
+- **État / qualification :** ouvert puis fermé le 2026-09-18; sévérité
+  moyenne, priorité haute, confiance prouvée. Propriétaire : CMake et
+  workspaces d'expériences.
+- **Signature :** la présence de `work/experiments/CMakeLists.txt` modifiait
+  implicitement le graphe principal et ajoutait ses cibles jetables aux
+  agrégats permanents de génération.
+- **Correction :** les expériences sont absentes par défaut et requièrent
+  `AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON`. Dans ce mode, leurs cibles restent
+  exclues de tous les agrégats catalogue; l'option échoue clairement si le
+  fichier local demandé n'existe pas. Les guides CMake et workspaces publient
+  ce contrat.
+- **Preuve :** deux configurations successives OFF/ON montrent zéro cible
+  Sobolev locale en mode normal, six cibles locales en mode opt-in, et zéro
+  dépendance locale dans `parameter_generators` ou
+  `price_gradient_generators` dans les deux modes. Le cache final est restauré
+  avec l'option OFF; les sept CTests ciblés passent.
+- **Réouvrir seulement si :** un arbre ignoré influence de nouveau la
+  configuration par défaut, si une cible locale entre dans un agrégat
+  permanent, ou si supprimer `work/` casse un build maintenu.
+
 ## Inspection complète de tools — 2026-09-15
 
 ### STRUCT-029 — Garder un seul contrôleur de campagnes de datasets
@@ -1316,29 +1496,6 @@ historique de cloture.
   modele, une infrastructure entre sous `product/`, un niveau non semantique
   apparait ou un target public derive a cause du chemin physique.
 
-### NAME-011 — Rendre le role des fichiers d'infrastructure modele immediatement lisible
-
-- **Nature :** corrige et verifie le 2026-08-28.
-- **Signature originale :** des helpers comme `hybrid_pricing.cuh`,
-  `pricing_workspace.cuh`, `markovian_pricing.cuh` et `numerics.hpp` ne
-  nommaient pas leur engine; plusieurs fichiers canoniques hors produits,
-  notamment des couples `dynamics.cuh`/`dynamics_impl.cuh`, n'expliquaient pas
-  immediatement la difference entre contrat, preparation host et definitions
-  device.
-- **Cloture :** les helpers portent les qualificatifs
-  `volterra_fft_*`/`markovian_n_factor_*`. Les 199 fichiers C++/CUDA
-  d'infrastructure hors `product/` commencent par une phrase courte de contenu
-  et d'utilite; les headers publics et leurs `*_impl.cuh` ont des roles
-  explicitement distincts. Le checker refuse nom non revu, nom ambigu,
-  en-tete generique, profondeur inattendue et paire publique/impl mal decrite.
-- **Preuve :** inventaire exhaustif des 199 fichiers, zero ancien basename ou
-  reference, checker `model_source_layout`, regeneration et builds
-  representatifs passes; preuve E26.
-- **Reouvrir seulement si :** le role d'un fichier ne peut plus etre deduit de
-  son chemin et de son nom, si son en-tete n'en precise pas contenu et utilite,
-  si deux engines partagent un helper non qualifie ou si le checker est
-  contourne par une nouvelle exception non documentee.
-
 ## Remediation locale du 2026-08-30
 
 ### NAME-012 — Ajouter un en-tete de responsabilite aux fichiers handwritten restants
@@ -2038,24 +2195,6 @@ historique de cloture.
   mesuré, ou une architecture réutilise les seuils observés d'un autre GPU.
 
 ## Remédiation du passage indépendant version 8 — 2026-09-04
-
-### STRUCT-014 — Ne pas publier un lien interne vers un arbre ignoré
-
-- **Nature :** réouverture corrigée; sévérité originale moyenne, priorité
-  haute, confiance prouvée.
-- **Signature originale :** `docs/README.md` publiait un lien local vers
-  `AI_factory_website/README.md`, présent dans le checkout mais ignoré par Git;
-  le checker validait seulement son existence physique.
-- **Clôture :** les index suivis pointent vers la frontière suivie
-  `docs/proposed-protected-dataset-download-design.md` et présentent le site
-  comme un projet séparé. Le checker inventorie les documents maintenus depuis
-  Git, rejette les cibles absentes, ignorées ou hors dépôt et possède une
-  fixture négative visant l'ancien chemin ignoré.
-- **Preuve :** `model_source_layout` passe sur 832 unités modèle-produit, 199
-  fichiers d'infrastructure et 81 templates; tous les liens locaux maintenus
-  sont contrôlés dans le snapshot versionné.
-- **Réouvrir seulement si :** un document suivi dépend de nouveau d'une cible
-  locale absente ou ignorée, ou si le contrôle Git des liens est retiré.
 
 ### DOC-001 — Aligner la carte d'ownership CMake sur les modules réels
 

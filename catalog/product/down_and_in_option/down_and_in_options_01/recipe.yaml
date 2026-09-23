@@ -6,6 +6,7 @@ output:
   path: datasets/product/down_and_in_option/down_and_in_options_01.json
   format: json
 generation_output: catalog/product/down_and_in_option/down_and_in_options_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/down_and_in_option/down_and_in_options_01.json
 product_family: Down-and-In Options
 row_count: 1000
 time_convention:

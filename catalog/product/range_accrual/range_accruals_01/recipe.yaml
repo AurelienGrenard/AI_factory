@@ -6,6 +6,7 @@ output:
   path: datasets/product/range_accrual/range_accruals_01.json
   format: json
 generation_output: catalog/product/range_accrual/range_accruals_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/range_accrual/range_accruals_01.json
 product_family: Range Accruals
 row_count: 1000
 time_convention:

@@ -20,7 +20,7 @@ int main() {
         "datasets/product/gap_option/gap_put_options_01.json",
         "datasets/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01_cartesian.json",
         "absorbed Milstein",
         PriceConstruction::CartesianProduct,
     };

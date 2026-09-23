@@ -91,8 +91,9 @@ maturité Heston ; taux, dividende, beta et maturité CEV. Les échecs sont domi
 selon les cas par le bruit MC, l'erreur totale ou le biais du stencil ; quatre
 cas de maturité Heston échouent aussi la convergence de référence. Aucun bump
 par défaut n'est modifié par ce constat. Le détail de chaque vérification et la
-chaîne SHA-256 sont conservés dans
-[`artifacts/price_gradients/2026-09-16-bump-qualification-merton/`](../../artifacts/price_gradients/2026-09-16-bump-qualification-merton/README.md).
+chaîne SHA-256 sont conservés localement sous
+`artifacts/price_gradients/2026-09-16-bump-qualification-merton/`. Ce chemin
+ignoré n'est pas distribué avec un clone.
 
 Son verdict CEV maturité est invalide : l'adaptateur QuantLib arrondissait les
 petites perturbations à une même date. La v1 reste une preuve historique et
@@ -113,8 +114,9 @@ Le diagnostic apparié des deux grilles trouve 122 déplacements coarse/fine
 significatifs sous une borne prudente de six SE ; la grille fine se rapproche
 de la dérivée indépendante dans 25 cas. Ce signal distingue un biais temporel
 possible du seul bruit MC, sans prétendre l'identifier causalement dans tous
-les cas. Les preuves, échecs et empreintes sont dans
-[`artifacts/price_gradients/2026-09-16-bump-qualification-v2/`](../../artifacts/price_gradients/2026-09-16-bump-qualification-v2/README.md).
+les cas. Les preuves, échecs et empreintes sont conservés localement sous
+`artifacts/price_gradients/2026-09-16-bump-qualification-v2/`; cette archive
+ignorée n'est pas distribuée avec un clone.
 
 ## Reproduction
 

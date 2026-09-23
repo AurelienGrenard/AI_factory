@@ -34,6 +34,13 @@ Generated CMake files are updated through the
 The [catalogue extension workflow](../docs/catalog-extension-and-validation-workflow.md)
 identifies which module and aggregate targets an extension must update.
 
+Disposable targets under ignored `work/experiments/` are absent from the
+normal build graph. Configure explicitly with
+`-DAI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON` to include their local
+`CMakeLists.txt`. Even in that mode, those targets remain outside the permanent
+`parameter_generators`, `price_generators`, `price_delta_generators`,
+`price_gradient_generators`, and `sample_generators` aggregates.
+
 Sources read at configuration time to infer link dependencies or test labels
 must be registered in `CMAKE_CONFIGURE_DEPENDS`. Editing their includes must
 update the graph on the next build, without a manual CMake reconfiguration.

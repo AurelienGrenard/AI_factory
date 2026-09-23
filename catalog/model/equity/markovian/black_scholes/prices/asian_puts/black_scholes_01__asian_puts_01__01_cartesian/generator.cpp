@@ -20,7 +20,7 @@ int main() {
         "datasets/product/asian_option/asian_options_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01_cartesian.json",
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01_cartesian.json",
         "Exact Gaussian log-price transitions",
         PriceConstruction::CartesianProduct,
     };

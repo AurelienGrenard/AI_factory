@@ -31,6 +31,13 @@ from tools.datasets.dataset_provenance import (
     input_fingerprints,
     snapshot_sources,
 )
+from tools.datasets.metadata_schemas import validate_document
+
+
+def save_campaign(path: Path, state: dict) -> None:
+    """Persist only campaign states accepted by the shared machine contract."""
+    validate_document(state, "campaign", path)
+    save_json(path, state)
 
 
 def source_family(spec) -> str | None:
@@ -128,12 +135,25 @@ def inventory(
         recipe = yaml.safe_load(contained_path(root, recipe_path).read_text())
         if not isinstance(recipe, dict):
             raise ValueError(f"Invalid recipe document: {recipe_path}")
+        validate_document(recipe, "recipe", recipe_path)
         if recipe.get("dataset_id") != spec.dataset_id:
             raise ValueError(f"Recipe identity contradicts manifest: {recipe_path}")
         if recipe.get("output") != {"path": spec.dataset_path, "format": "json"}:
             raise ValueError(f"Recipe output contradicts manifest: {recipe_path}")
         if recipe.get("generation_output") != spec.generation_yaml_path:
             raise ValueError(f"Generation output contradicts manifest: {recipe_path}")
+        if recipe.get("url") != spec.url:
+            raise ValueError(f"Recipe URL contradicts manifest: {recipe_path}")
+        if spec.dataset_kind in {"price_delta", "price_gradients"}:
+            source_path = recipe["sensitivity"]["source_price_recipe"]
+            source_recipe = yaml.safe_load(
+                contained_path(root, source_path).read_text()
+            )
+            if (recipe.get("rng_mapping_version", "philox_path_group_v1")
+                    != source_recipe.get("rng_mapping_version", "philox_path_group_v1")):
+                raise ValueError(
+                    f"Sensitivity and price RNG mappings differ: {recipe_path}"
+                )
         # Join adjacent C++ literals, including split output paths. No evaluation.
         strings = ["".join(json.loads(token) for token in re.findall(r'"(?:[^"\\]|\\.)*"', group))
                    for group in re.findall(r'"(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*', source)]
@@ -158,6 +178,7 @@ def inventory(
                      "recipe": recipe_path, "generation": spec.generation_yaml_path,
                      "validation": str(Path(spec.generation_yaml_path).with_name("validation.yaml")),
                      "dataset": spec.dataset_path,
+                     "url": spec.url,
                      "inputs": inputs, "sample_shape": shape,
                      "rng_stream_seeds": {name: domain.seed(name) for name in domain.streams} if domain else {},
                      "declared_method": {"engine": spec.engine, "profile": spec.numerical_profile,
@@ -229,9 +250,11 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
     generation = yaml.safe_load(contained_path(work, job["generation"]).read_text())
     if not isinstance(recipe, dict) or not isinstance(generation, dict):
         raise ValueError("Recipe and generation receipt must be mappings")
+    validate_document(recipe, "recipe", job["recipe"])
     if (recipe.get("dataset_id") != Path(job["dataset"]).stem
-            or recipe.get("output") != {"path": job["dataset"], "format": "json"}):
-        raise ValueError("Recipe identity/output contradicts the frozen selection")
+            or recipe.get("output") != {"path": job["dataset"], "format": "json"}
+            or recipe.get("url") != job["url"]):
+        raise ValueError("Recipe identity/output/URL contradicts the frozen selection")
     if (generation.get("schema_version") != 1
             or generation.get("status") != "complete"
             or generation.get("artifact", {}).get("row_count") != job["rows"]
@@ -252,6 +275,8 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             raise ValueError("Published MC path count contradicts the compiled production plan")
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
+        if document.get("url") != job["url"]:
+            raise ValueError("Dataset URL contradicts the frozen recipe")
         expected_construction = (
             {
                 "method": "Cartesian product",
@@ -307,6 +332,14 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             if type(error) not in (int, float) or error < 0:
                 raise ValueError(f"Missing or invalid standard error at row {index}")
     else:
+        document_url = None
+        with contained_path(work, job["dataset"]).open() as stream:
+            for line in stream:
+                if '"url"' in line:
+                    document_url = json.loads("{" + line.strip().rstrip(",") + "}")["url"]
+                    break
+        if document_url != job["url"]:
+            raise ValueError("Dataset URL contradicts the frozen recipe")
         check_samples(contained_path(work, job["dataset"]), job, recipe)
     return [{"path": path, "sha256": digest(contained_path(work, path)),
              "previous_sha256": job["previous"][path]}
@@ -379,6 +412,8 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
         inspector += (["--price-delta"] if job["kind"] == "price_delta" else
                       ["--price-gradients", str(len(job["sensitivity"]["parameters"]))]
                       if job["kind"] == "price_gradients" else [])
+        if job["kind"] == "price_gradients" and "diagonal_second" in job["sensitivity"].get("orders", []):
+            inspector.append("--diagonal")
         plan = json.loads(subprocess.check_output(inspector, cwd=inputs, text=True))
         description = {"rows": rows, "launch_plan": plan}
     else:
@@ -409,7 +444,12 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
     state["controller_hashes"] = {
         name: copy_frozen(contained_path(root, name), contained_path(run / "sources", name))
         for name in ("tools/datasets/generate_catalog.py", "tools/datasets/artifact_publication.py",
-                     "tools/datasets/dataset_provenance.py")}
+                     "tools/datasets/dataset_provenance.py",
+                     "tools/datasets/metadata_schemas.py",
+                     "tools/datasets/schemas/campaign.schema.yaml",
+                     "tools/datasets/schemas/generation.schema.yaml",
+                     "tools/datasets/schemas/recipe.schema.yaml",
+                     "tools/datasets/schemas/validation.schema.yaml")}
     state["source_archive_sha256"] = snapshot_sources(root, run / "sources.tar.gz")
     if any(job["kind"] in {"prices", "price_delta", "price_gradients"} for job in jobs):
         state["inspector_sha256"] = copy_frozen(build / "inspect_pricing_launch_plan",
@@ -453,7 +493,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
             job["checkpoint_id"] = fingerprint(checkpoint_contract)
         job["state"] = "pending"
     require_current_build(root, build, jobs)
-    save_json(run / "campaign.json", state)
+    save_campaign(run / "campaign.json", state)
     return state
 
 
@@ -577,7 +617,7 @@ def execute(run: Path, state: dict) -> None:
                     progress_journal=str(attempt_journal.relative_to(run)),
                     state="running",
                 )
-                save_json(run / "campaign.json", state)
+                save_campaign(run / "campaign.json", state)
                 old_bytes = sum((root / path).stat().st_size for path, value in job["previous"].items() if value)
                 # Conservative planning estimate, not a promise of final JSON size.
                 required = job["rows"] * 2048 + old_bytes + 1024**3
@@ -590,7 +630,7 @@ def execute(run: Path, state: dict) -> None:
                     contained_path(work, job["recipe"]),
                 )
                 job["gpu_before"] = gpu_observation()
-                save_json(run / "campaign.json", state)
+                save_campaign(run / "campaign.json", state)
                 try:
                     job["generation_wall_seconds"] = run_generator(
                         binary,
@@ -613,13 +653,13 @@ def execute(run: Path, state: dict) -> None:
                 job["artifacts"][1]["sha256"] = digest(contained_path(work, job["generation"]))
                 job["artifact_check_seconds"] = time.perf_counter() - started
                 job["state"] = "staged"
-                save_json(run / "campaign.json", state)
+                save_campaign(run / "campaign.json", state)
             elif job.get("progress_journal"):
                 attempt_journal = contained_path(run, job["progress_journal"])
             if checkpoint is not None and checkpoint.exists():
                 shutil.rmtree(checkpoint)
                 job["checkpoint_cleared"] = True
-                save_json(run / "campaign.json", state)
+                save_campaign(run / "campaign.json", state)
                 if attempt_journal is not None:
                     append_journal(attempt_journal, "checkpoint_cleared")
             if state["publish"]:
@@ -630,7 +670,7 @@ def execute(run: Path, state: dict) -> None:
                     job["publication_seconds"] = job.get("publication_seconds", 0) + time.perf_counter() - started
             job["state"] = "complete"
             job.pop("last_error", None)
-            save_json(run / "campaign.json", state)
+            save_campaign(run / "campaign.json", state)
             if attempt_journal is not None:
                 append_journal(attempt_journal, "job_complete", published=state["publish"])
         except BaseException as error:
@@ -638,7 +678,7 @@ def execute(run: Path, state: dict) -> None:
             # A staged job retains its publication journal; do not regenerate it.
             if job["state"] != "staged":
                 job["state"] = "interrupted" if isinstance(error, KeyboardInterrupt) else "failed"
-            save_json(run / "campaign.json", state)
+            save_campaign(run / "campaign.json", state)
             if attempt_journal is not None:
                 try:
                     append_journal(attempt_journal, "job_interrupted" if isinstance(error, KeyboardInterrupt)
@@ -684,6 +724,7 @@ def main() -> int:
         parser.error("--compile-jobs requires --compile")
     if arguments.resume:
         state = json.loads((arguments.run_dir / "campaign.json").read_text())
+        validate_document(state, "campaign", arguments.run_dir / "campaign.json")
         if state["version"] != 4 or state["root"] != str(ROOT):
             raise ValueError("Unsupported campaign version or repository; retain its original controller")
         for name, expected in state["controller_hashes"].items():

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "common/philox_domains.cuh"
 #include "model/equity/markovian/kou/parameters.hpp"
 
 #include <cuda_runtime.h>
@@ -40,6 +40,12 @@ struct PreparedDynamics {
     PreparedTransition transition;
 };
 
+struct TransitionInnovations {
+    std::uint32_t jump_count;
+    float diffusion_normal;
+    float jump_log_sum;
+};
+
 // ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -62,12 +68,18 @@ __device__ __forceinline__ void one_step_transition(
     State& state
 );
 
+__device__ __forceinline__ TransitionInnovations draw_transition_innovations(
+    const PreparedModel& prepared_model,
+    const PreparedTransition& prepared_transition,
+    philox::DomainRandomContext& random
+);
+
 struct DynamicsPolicy {
     using Parameters = ModelParameters;
     using PreparedDynamics = kou::PreparedDynamics;
     using PreparedModel = kou::PreparedModel;
     using PreparedTransition = kou::PreparedTransition;
-    using RandomContext = philox::NormalRandomContext;
+    using RandomContext = philox::DomainRandomContext;
     using State = kou::State;
 
     static constexpr bool kNativeLogSpot = true;

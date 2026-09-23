@@ -9,6 +9,7 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/g2/samples/samples_01/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/g2/samples/samples_01.json",
   "shape": {
     "parameter_count": 12000,
     "paths_per_parameter": 250,
@@ -72,6 +73,7 @@
     "schedule": 11668829066542186496,
     "dynamics": 11668829067615928320
   },
+  "rng_mapping_version": "philox_source_step_v2",
   "numerical_method": {
     "engine": "sample_fixed_income",
     "profile": "model_sample_profile",
