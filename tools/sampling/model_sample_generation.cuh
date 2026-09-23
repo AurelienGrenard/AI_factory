@@ -89,7 +89,7 @@ inline datasets::ModelSampleRecipe smoke_sample_recipe(
         std::filesystem::path("/tmp/ai_factory_sample_smoke")
         / model / recipe.database_id;
     recipe.dataset_path = directory / (recipe.database_id + ".json");
-    recipe.catalog_path = directory / "dataset.yaml";
+    recipe.catalog_path = directory / "generation.yaml";
     return recipe;
 }
 

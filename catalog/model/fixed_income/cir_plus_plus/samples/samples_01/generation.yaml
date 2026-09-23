@@ -1,0 +1,32 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/samples/samples_01/recipe.yaml
+  sha256: 8022920b0fdb19c40ed0f369549271bafe7745d9258e700dca910fde2ec4db47
+artifact:
+  row_count: 3000000
+  sha256: 5a83909f77e2e6608cbc145ebb157ec6dffddb1d8a29de58def8f9e36c63e664
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+  implementation: CUDA
+  device: gpu
+  random_generator: Philox-4x32-10
+  threads_per_block: 256
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent parameter-block
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 1.977415463
+  kernel_seconds: 0.000328704
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: legacy metadata preserves geometry and timing but not revision or binary
+    hashes
+record_sha256: eeee3292e053b293b6cf9394c7513fec8ec00520e15facc39d1da52940414133

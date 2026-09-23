@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/kou/prices/american_puts/"
         "kou_01__american_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/kou/prices/american_puts/"
-        "kou_01__american_puts_01__01_cartesian/dataset.yaml",
+        "kou_01__american_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/"
         "american_puts/kou_01__american_puts_01__01_cartesian.json",
         "Exact Kou increments + Longstaff-Schwartz",

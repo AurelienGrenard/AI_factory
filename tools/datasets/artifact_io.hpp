@@ -9,9 +9,17 @@
 
 namespace ai_factory::workbench::datasets {
 
-void write_catalog_yaml(
+void write_yaml_document(
     const std::filesystem::path& path,
     const nlohmann::ordered_json& document
+);
+
+void write_generation_receipt(
+    const std::filesystem::path& path,
+    std::size_t row_count,
+    const nlohmann::ordered_json& execution,
+    double wall_seconds,
+    double kernel_seconds
 );
 
 // Shared artifact primitives. They contain no pricing or sampling policy and

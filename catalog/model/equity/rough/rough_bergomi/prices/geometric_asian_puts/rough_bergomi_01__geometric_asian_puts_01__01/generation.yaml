@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01/recipe.yaml
+  sha256: 61eb1860b5d6ea510a6a687aa868fc52b8bd62e9463cca7b85e45935072cf67e
+artifact:
+  row_count: 1000
+  sha256: 960c6d619f49ecb4f4ad1b6d8589e8e9a4f1fbe5cdbfd3d17a205abee3ee63ca
+inputs:
+  models: c45ffaa0be1cdddabc9633e32a300378a6da7303cf70d29b6e89015190bcb7f0
+  products: 30c26bded600da737a9f8cc2b25e2b3b990609d873f0884cf9487a825971fd84
+execution:
+  binary_sha256: 6911001436e5a85569e2d2619ec5d68b5441cd90a6ef96c92dec13e7aef14071
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: geometric_asian_puts
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: rough_bergomi
+    product: geometric_asian_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 85cf40e60900a73f7ed318c6cf26d46ff1bb797432616633aa144d5a7acd5eeb
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 194.638794241
+  kernel_seconds: 191.145796875
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789344388.8543713
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 86, 106.73 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json: 3dfb98cb139a70ccc3f0058fa0f762ebb304a10a2d6e6270a671eb18be31df9a
+    datasets/product/geometric_asian_option/geometric_asian_options_01.json: 0b673c004701e90de8ba0b870e4d132ef17e074209b1f046c5be1a0711183df4
+  generator: catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 361b6e99b9da103e80d033a480667a5fe649d096c2313e0af36628a1cc2c2a82
+  record_sha256: ec6c5d14ec4d1e376063a5e941e55750aaa4e7e1f06389333fe552de96d24623
+record_sha256: a0b739f752ae79258b135b7647259742addb2d1bad5e48f77044d5cf38110351

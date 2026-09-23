@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json",
         "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json",
         "datasets/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01.json",
-        "catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot",
         PriceConstruction::Aligned,

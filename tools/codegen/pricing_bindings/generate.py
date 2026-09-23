@@ -8,6 +8,7 @@ import difflib
 import hashlib
 import json
 from pathlib import Path
+import re
 from string import Template
 
 from manifest import (
@@ -45,16 +46,22 @@ from capability_manifest import (
     PRODUCT_SPECS,
     PRODUCT_BINDING_SPECS,
     PRICE_DELTA_BINDING_SPECS,
+    PRICE_GRADIENT_BINDING_SPECS,
+    GENERATED_PRICE_GRADIENT_BINDING_PATHS,
+    PRICE_GRADIENT_DATASET_SPECS,
+    PRICE_GRADIENT_SOURCE_BY_GENERATOR,
     GENERATED_PRICE_DELTA_BINDING_PATHS,
     GENERATED_CLOSED_FORM_POLICY_PATHS,
     PriceDeltaBindingSpec,
     PRICE_DELTA_DATASET_SPECS,
-    PRICE_DELTA_SOURCE_BY_RECIPE,
+    PRICE_DELTA_SOURCE_BY_GENERATOR,
     SCHEMA_VERSION,
     pricing_launch_family,
     resolve_rng_domain,
 )
 from sample_manifest import SAMPLE_MODELS, SAMPLE_MODEL_BY_NAME, SampleModelSpec
+from price_gradients.render import render_bindings as render_price_gradient_bindings
+from price_gradients.render import render_recipes as render_price_gradient_recipes
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -384,6 +391,85 @@ def _render_sample_recipe_source(
     )
 
 
+def _sample_recipe_metadata(
+    model: SampleModelSpec,
+    recipe_index: int,
+    dataset,
+) -> dict:
+    parameter_count, paths_per_parameter = (
+        (12_000, 250) if recipe_index == 1 else (3_000_000, 1)
+    )
+    domain = resolve_rng_domain(dataset)
+    descriptions = dict(model.observable_descriptions)
+    return {
+        "schema_version": 1,
+        "kind": "samples",
+        "dataset_id": dataset.dataset_id,
+        "generator": "generator.cpp",
+        "model": model.name,
+        "output": {
+            "path": dataset.dataset_path,
+            "format": "json",
+        },
+        "generation_output": dataset.generation_yaml_path,
+        "shape": {
+            "parameter_count": parameter_count,
+            "paths_per_parameter": paths_per_parameter,
+            "row_count": parameter_count * paths_per_parameter,
+            "row_order": "parameter-major, then path-major",
+        },
+        "parameter_sampling": {
+            "regime": "plausible core only",
+            "distribution": (
+                "independent Philox uniform proposals; accepted rows retain "
+                "proposal order"
+            ),
+            "proposal_draw_order": [name for name, _, _ in model.uniforms],
+            "latent_uniform_bounds": {
+                name: [minimum, maximum]
+                for name, minimum, maximum in model.uniforms
+            },
+            "acceptance": model.acceptance,
+            "derived_parameters": dict(model.derived_parameter_laws),
+        },
+        "maturity_sampling": {
+            "distribution": "discrete uniform without modulo bias",
+            "support": "integer business days",
+            "minimum_days": 63,
+            "maximum_days": 504,
+            "year_fraction": "maturity_days / 252",
+        },
+        "seeds": {
+            name: domain.seed(name) for name in domain.streams
+        },
+        "numerical_method": {
+            "engine": dataset.engine,
+            "profile": dataset.numerical_profile,
+            "description": model.pricing_numerical_method,
+        },
+        "outputs": {
+            name: {
+                "description": descriptions.get(name, f"Terminal {name}."),
+                "layout": "sample-major",
+            }
+            for name in model.outputs
+        },
+        "time_grid": (
+            {
+                "transition": "exact",
+                "delta_t": "maturity_days / 252",
+                "artificial_substeps": False,
+            }
+            if model.time_kind == "exact"
+            else {
+                "transition": "fixed-step",
+                "delta_t": "1 / 504",
+                "simulation_steps_per_day": 2,
+            }
+        ),
+    }
+
+
 def generate_samples(output_root: Path) -> list[Path]:
     generated: list[Path] = []
     for model in SAMPLE_MODELS:
@@ -411,6 +497,21 @@ def generate_samples(output_root: Path) -> list[Path]:
             recipe.parent.mkdir(parents=True, exist_ok=True)
             _write_generated(recipe, _render_sample_recipe_source(model, recipe_index))
             generated.append(recipe)
+            dataset = next(
+                item for item in AVAILABLE_DATASET_SPECS
+                if item.dataset_kind == "samples"
+                and item.model == model.name
+                and item.dataset_id == f"samples_{recipe_index:02d}"
+            )
+            metadata_path = recipe.with_name("recipe.yaml")
+            _write_generated(
+                metadata_path,
+                json.dumps(
+                    _sample_recipe_metadata(model, recipe_index, dataset),
+                    indent=2,
+                ) + "\n",
+            )
+            generated.append(metadata_path)
     return generated
 
 
@@ -719,7 +820,7 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
     generated = []
     variants = {variant.name: variant for variant in PRICE_VARIANTS}
     for dataset in PRICE_DELTA_DATASET_SPECS:
-        source = PRICE_DELTA_SOURCE_BY_RECIPE[dataset.recipe_path]
+        source = PRICE_DELTA_SOURCE_BY_GENERATOR[dataset.generator_path]
         spec = next(s for s in PRICE_DELTA_BINDING_SPECS
                     if (s.pricing.model, s.pricing.product) == (dataset.model, dataset.product))
         model = MODEL_BY_NAME[dataset.model]
@@ -763,8 +864,8 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "model": dataset.model, "product": dataset.product,
             "model_input": f"datasets/{model.source_prefix}/parameters/{model.parameter_dataset_id}.json",
             "product_input": f"datasets/product/{dataset.product}/{product_id}.json",
-            "dataset": dataset.dataset_path, "catalog": dataset.catalog_yaml_path,
-            "url": dataset.url, "source_recipe": source.recipe_path,
+            "dataset": dataset.dataset_path, "catalog": dataset.generation_yaml_path,
+            "url": dataset.url, "source_recipe": source.recipe_yaml_path,
             "method": "frozen_central_exercise_dates_crn" if lsm else "centered_crn" if stochastic else "centered_closed_form",
             "stochastic": str(stochastic).lower(), "lsm": str(lsm).lower(),
             "steps_per_day": "2U" if fixed else "0U",
@@ -785,7 +886,7 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
                 if dataset.construction == "cartesian" else ""
             ),
         }
-        destination = output_root / dataset.recipe_path
+        destination = output_root / dataset.generator_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         template = dataset.template
         if fft:
@@ -799,18 +900,18 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
         _write_generated(destination, _render_dollar_template(template, values))
         generated.append(destination)
         recipe = {
-            "schema_version": 1, "kind": "price_delta", "database_id": dataset.dataset_id,
+            "schema_version": 1, "kind": "price_delta", "dataset_id": dataset.dataset_id,
             "generator": "generator.cpp", "model_input": values["model_input"],
-            "product_input": values["product_input"], "dataset": dataset.dataset_path,
-            "catalog_output": dataset.catalog_yaml_path,
+            "product_input": values["product_input"],
+            "output": {"path": dataset.dataset_path, "format": "json"},
+            "generation_output": dataset.generation_yaml_path,
             "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
             "sensitivity": {"parameter": "spot", "method": values["method"],
-                            "relative_full_width": .01, "source_price_recipe": source.recipe_path},
+                            "relative_full_width": .01, "source_price_recipe": source.recipe_yaml_path},
             "dynamics_seed": int(values["seed"]),
             "time_grid": {"steps_per_year": 504, "simulation_steps_per_day": 2, "delta_t": "1 / 504"} if fixed else None,
-            "validation": {"status": "pending", "verified": False},
         }
         recipe_path = destination.with_name("recipe.yaml")
         if prepared:
@@ -1058,7 +1159,7 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
     values.update({
         "database_id": dataset.dataset_id,
         "price_dataset_path": dataset.dataset_path,
-        "catalog_path": dataset.catalog_yaml_path,
+        "catalog_path": dataset.generation_yaml_path,
         "url": dataset.url,
         "construction": (
             "CartesianProduct"
@@ -1150,9 +1251,9 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
         if dataset.template is None:
             raise ValueError(
                 f"Generated fixed-income dataset lacks a template: "
-                f"{dataset.recipe_path}"
+                f"{dataset.generator_path}"
             )
-        destination = output_root / dataset.recipe_path
+        destination = output_root / dataset.generator_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         rendered = _render_dollar_template(
             dataset.template,
@@ -1254,7 +1355,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
         variant = variants[dataset.variant or ""]
         database_id = dataset.dataset_id
         backend = template_keys[dataset.engine or ""]
-        destination = output_root / dataset.recipe_path
+        destination = output_root / dataset.generator_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         side_template = (
             f"<OptionSide::{variant.side}>" if variant.side else ""
@@ -1288,7 +1389,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
                 f"{variant.product_dataset_id}.json"
             ),
             "price_dataset_path": dataset.dataset_path,
-            "catalog_path": dataset.catalog_yaml_path,
+            "catalog_path": dataset.generation_yaml_path,
             "url": dataset.url,
             "numerical_method": model.numerical_method,
             "monte_carlo_paths": MONTE_CARLO_PATHS_PER_PRICE,
@@ -1343,7 +1444,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
         model = american_models[dataset.model or ""]
         side = "call" if dataset.variant == "american_calls" else "put"
         database_id = dataset.dataset_id
-        destination = output_root / dataset.recipe_path
+        destination = output_root / dataset.generator_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         if model.time_kind == "fixed":
             time_values = {
@@ -1405,6 +1506,103 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
     return generated
 
 
+def _cpp_string_literals(source: str) -> list[str]:
+    groups = re.findall(
+        r'"(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*',
+        source,
+    )
+    return [
+        "".join(
+            json.loads(token)
+            for token in re.findall(r'"(?:[^"\\]|\\.)*"', group)
+        )
+        for group in groups
+    ]
+
+
+def _price_recipe_metadata(dataset, source: str) -> dict:
+    inputs = [
+        value for value in _cpp_string_literals(source)
+        if value.startswith("datasets/")
+        and value.endswith(".json")
+        and value != dataset.dataset_path
+    ]
+    roles: dict[str, str] = {}
+    for value in inputs:
+        if value.startswith("datasets/product/"):
+            role = "product"
+        elif value.startswith("datasets/curve/"):
+            role = "curve"
+        elif value.startswith("datasets/model/"):
+            role = "model"
+        else:
+            raise ValueError(f"Unknown dataset input role: {value}")
+        if role in roles:
+            raise ValueError(f"Duplicate dataset input role: {dataset.generator_path}")
+        roles[role] = value
+    expected_roles = {"model", "product"} | ({"curve"} if dataset.curve else set())
+    if roles.keys() != expected_roles:
+        raise ValueError(
+            f"Incomplete inputs for {dataset.generator_path}: {sorted(roles)}"
+        )
+    stochastic = dataset.engine not in {
+        "equity_closed_form", "fixed_income_closed_form",
+    }
+    metadata: dict = {
+        "schema_version": 1,
+        "kind": "prices",
+        "dataset_id": dataset.dataset_id,
+        "generator": "generator.cpp",
+        "inputs": roles,
+        "output": {"path": dataset.dataset_path, "format": "json"},
+        "generation_output": dataset.generation_yaml_path,
+        "construction": dataset.construction,
+        "numerical_method": {
+            "engine": dataset.engine,
+            "profile": dataset.numerical_profile,
+        },
+        "outputs": (
+            ["price", "standard_error"] if stochastic else ["price"]
+        ),
+        "paths_per_price": 1_048_576 if stochastic else 0,
+    }
+    domain = resolve_rng_domain(dataset) if stochastic else None
+    if domain is not None:
+        metadata["seeds"] = {
+            name: domain.seed(name) for name in domain.streams
+        }
+    denominators = [
+        int(value) for value in re.findall(r"1\.0f\s*/\s*(\d+)\.0f", source)
+    ]
+    fixed_steps = [value for value in denominators if value > 252]
+    if fixed_steps:
+        steps_per_year = fixed_steps[0]
+        metadata["time_grid"] = {
+            "steps_per_year": steps_per_year,
+            "simulation_steps_per_day": steps_per_year // 252,
+            "delta_t": f"1 / {steps_per_year}",
+        }
+    return metadata
+
+
+def generate_price_recipe_metadata(output_root: Path) -> list[Path]:
+    generated: list[Path] = []
+    for dataset in AVAILABLE_DATASET_SPECS:
+        if dataset.dataset_kind != "prices" or dataset.owner != "generated":
+            continue
+        generator = output_root / dataset.generator_path
+        metadata_path = output_root / dataset.recipe_yaml_path
+        _write_generated(
+            metadata_path,
+            json.dumps(
+                _price_recipe_metadata(dataset, generator.read_text()),
+                indent=2,
+            ) + "\n",
+        )
+        generated.append(metadata_path)
+    return generated
+
+
 def cmake_list(name: str, values: list[str]) -> str:
     body = "\n".join(f"    {value}" for value in values)
     return f"set({name}\n{body}\n)\n"
@@ -1456,25 +1654,33 @@ def cmake_manifest_text(
         for spec in equity_binding_specs
         if spec.engine == "equity_volterra_fft"
     })
+    regular_units = sorted(set(regular_units) | {
+        f"{spec.pricing.model}/product/{spec.pricing.product}_price_gradients"
+        for spec in PRICE_GRADIENT_BINDING_SPECS
+        if spec.pricing in equity_binding_specs or (
+            spec.pricing.engine in {"equity_lsm_exact", "equity_lsm_fixed"}
+            and spec.pricing.model in equity_models
+        )
+    })
     volterra_units = sorted(set(volterra_units) | {
         f"{spec.pricing.model}/product/{spec.pricing.product}_price_delta"
         for spec in PRICE_DELTA_BINDING_SPECS
         if spec.pricing in equity_binding_specs and spec.pricing.engine == "equity_volterra_fft"
     })
     parameter_sources = sorted(
-        dataset.recipe_path for dataset in dataset_specs
+        dataset.generator_path for dataset in dataset_specs
         if dataset.dataset_kind.endswith("_parameters")
     )
     price_sources = sorted(
-        dataset.recipe_path for dataset in dataset_specs
-        if dataset.dataset_kind in {"prices", "price_delta"}
+        dataset.generator_path for dataset in dataset_specs
+        if dataset.dataset_kind in {"prices", "price_delta", "price_gradients"}
     )
     sample_sources = sorted(
-        dataset.recipe_path for dataset in dataset_specs
+        dataset.generator_path for dataset in dataset_specs
         if dataset.dataset_kind == "samples"
     )
     mathdx_sources = sorted(
-        dataset.recipe_path for dataset in dataset_specs
+        dataset.generator_path for dataset in dataset_specs
         if dataset.condition == "AI_FACTORY_MATHDX_ROOT"
     )
     return (
@@ -1559,6 +1765,7 @@ def codegen_source_fingerprint() -> str:
         SCRIPT_DIR / "capability_manifest.py",
         SCRIPT_DIR / "sample_manifest.py",
         SCRIPT_DIR / "generate.py",
+        *sorted((SCRIPT_DIR / "price_gradients").glob("*.py")),
         *sorted(TEMPLATE_DIR.rglob("*.tpl")),
     ]
     digest = hashlib.sha256()
@@ -1608,6 +1815,12 @@ def generate_provenance_manifest(
                              "qualification": "bounded_checks; bias_and_performance_not_certified"}
             for spec in PRICE_DELTA_BINDING_SPECS
         },
+        "price_gradient_bindings": {
+            spec.unit_path: {"identity": f"{spec.pricing.model}/{spec.pricing.product}",
+                "maximum_sensitivities": spec.maximum_sensitivities,
+                "qualification": "bounded_checks; bias_and_performance_not_certified"}
+            for spec in PRICE_GRADIENT_BINDING_SPECS
+        },
         "pricing_launch_families": {
             "/".join(filter(None, (binding.model, binding.curve, binding.product))):
                 pricing_launch_family(binding)
@@ -1631,13 +1844,14 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
         (
             "product binding",
             set(DECLARED_PRODUCT_BINDING_PATHS) | set(GENERATED_PRICE_DELTA_BINDING_PATHS)
+            | set(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
             | set(GENERATED_CLOSED_FORM_POLICY_PATHS),
             _relative_files(reference_root, "src/model/**/product/**/*.cu")
             | _relative_files(reference_root, "src/model/**/product/**/*.cuh"),
         ),
         (
             "catalog recipe",
-            {dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS},
+            {dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS},
             _relative_files(reference_root, "catalog/**/generator.cpp"),
         ),
         (
@@ -1679,11 +1893,16 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
 def _expected_generated_paths() -> set[str]:
     paths = set(GENERATED_PRODUCT_BINDING_PATHS)
     paths.update(GENERATED_PRICE_DELTA_BINDING_PATHS)
+    paths.update(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
     paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
-    paths.update(str(Path(dataset.recipe_path).with_name("recipe.yaml"))
+    paths.update(str(Path(dataset.generator_path).with_name("recipe.yaml"))
                  for dataset in PRICE_DELTA_DATASET_SPECS)
+    paths.update(str(Path(dataset.generator_path).with_name("recipe.yaml"))
+                 for dataset in PRICE_GRADIENT_DATASET_SPECS)
+    paths.update(dataset.recipe_yaml_path for dataset in AVAILABLE_DATASET_SPECS
+                 if dataset.dataset_kind in {"prices", "samples"})
     paths.update(
-        dataset.recipe_path for dataset in AVAILABLE_DATASET_SPECS
+        dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
         if dataset.owner == "generated"
     )
     for model in MODEL_SPECS:
@@ -1772,16 +1991,21 @@ def main() -> int:
     if arguments.family in ("markovian", "prototype", "all"):
         generated.extend(generate_markovian(arguments.output))
         generated.extend(generate_price_delta_bindings(arguments.output))
+        generated.extend(render_price_gradient_bindings(arguments.output, PRICE_GRADIENT_BINDING_SPECS,
+            TEMPLATE_DIR, _write_generated))
     if arguments.family in ("rough", "all"):
         generated.extend(generate_rough(arguments.output))
     if arguments.family in ("fixed_income", "all"):
         generated.extend(generate_fixed_income_bindings(arguments.output))
     if arguments.family in ("catalog", "all"):
         generated.extend(generate_price_delta_recipes(arguments.output))
+        generated.extend(render_price_gradient_recipes(arguments.output, PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_SOURCE_BY_GENERATOR, MODEL_BY_NAME, resolve_rng_domain, TEMPLATE_DIR, _write_generated))
         generated.extend(generate_catalog_recipes(arguments.output))
         generated.extend(generate_fixed_income_catalog_recipes(
             arguments.output
         ))
+        generated.extend(generate_price_recipe_metadata(arguments.output))
     if arguments.family in ("samples", "all"):
         generated.extend(generate_samples(arguments.output))
     if arguments.family == "all":

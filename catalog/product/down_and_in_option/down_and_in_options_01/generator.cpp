@@ -13,7 +13,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/down_and_in_option/down_and_in_options_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/down_and_in_option/down_and_in_options_01/dataset.yaml";
+        "catalog/product/down_and_in_option/down_and_in_options_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/down_and_in_options/"
         "down_and_in_options_01.json";

@@ -1,0 +1,76 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/recipe.yaml
+  sha256: 89519b3b017c615ded6f6cc15b98a966ba9c9f2bc5cbca9c328223a4b7252d08
+artifact:
+  row_count: 1000
+  sha256: 334dd866f4773456f0b0407e662177c114179ef5ffe56ea6cdd625ea52d92dcb
+inputs:
+  models: 359e723991c28fb574048f7a53b5874f216a7c717fe53afa8b9f456fac744f5f
+  products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+execution:
+  binary_sha256: 9b1fe7365635e6e591f88e40a140e20655d0d306af20fa0a496438399af152c8
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: european_payer_swaptions
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: jamshidian
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: vasicek
+    product: european_swaption
+    curve: ''
+    qualification: native_geometry_pending_confirmation
+    evidence: docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: f7e5e479e583619679fafdc8e123a5f448198640dde0efa1c43984a823ec2bb0
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  block_count: 4
+  threads_per_block: 256
+  kernel_launch_count: 1
+  requested_work_distribution: one price per thread
+timing:
+  wall_seconds: 0.136373321
+  kernel_seconds: 0.019649536
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307884.6363678
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 108.08 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479
+    datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
+  generator: catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 1fe29bcae2a6b02601c2694c2b37d6fdfbff21003ddd78b85e64bc1c0ee15f15
+  record_sha256: e526ef647f8950336324615509374b33a130162d7dbccd8473ca3cdbd43eba84
+record_sha256: 1c4045ea5ca5a7848e21c84fd03bc9dfc149956d472bcbce3cc021d55e7d5c6a

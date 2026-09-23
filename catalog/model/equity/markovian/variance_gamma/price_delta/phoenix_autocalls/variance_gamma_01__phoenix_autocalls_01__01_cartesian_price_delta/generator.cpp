@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/phoenix_autocall/phoenix_autocalls_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian/generator.cpp", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/phoenix_autocall/phoenix_autocalls_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01_cartesian/recipe.yaml", "centered_crn", .01, 0U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "variance_gamma", "phoenix_autocall", ""},
         11668828197885050880ULL, model::equity::variance_gamma::load_models, product::load_phoenix_autocalls,

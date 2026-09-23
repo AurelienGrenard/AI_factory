@@ -1,0 +1,87 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/recipe.yaml
+  sha256: a2bdc093e67859265aaf35611111ef43f0efa7e990989cdbce3e6f0067225faf
+artifact:
+  row_count: 1000
+  sha256: ea630ba23a0feefc3d58fcd8521443d8969b72bb0b7627f416d2d241dbd27163
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
+  products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+execution:
+  binary_sha256: c5eba15d4e23d42168e371091cc5bb26510cc4ed8bdee0e555328e0ac776a4ed
+  declared_method:
+    engine: fixed_income_lsm
+    profile: longstaff_schwartz_price_profile
+    variant: bermudan_payer_swaptions
+    construction: aligned
+    has_curve: true
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: terminal_forward_lsm
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: cir_plus_plus
+    product: bermudan_swaption
+    curve: svensson
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/cir-forward-measure-comparison-sm89-2026-09-08.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 128
+    prices_per_launch: null
+    price_launch_count: null
+    memory_batching: native LSM VRAM planner; unresolved offline
+    work_distribution: multiple path blocks per price; native multi-phase LSM
+    blocks_per_price: 64
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: b6bc7b999d8c8d0eb13c17f372a7d1b5830a82b5acdd3b2ed033be03cfa6f68c
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 3
+  kernel_launch_count: 105
+  workspace_bytes: 14160249360
+  maximum_prices_per_batch: 495
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: fixed_income_early_exercise
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+  time_day_fraction: 1 / 252
+timing:
+  wall_seconds: 28.105173775
+  kernel_seconds: 29.678322754
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307150.4401996
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 87, 108.09 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
+    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
+  generator: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 66234b49ac526d2ba9fd63ab80da37964363c427652a3d9afb852c8879fd999e
+  record_sha256: ac6bb6326a80c3df6f925f77552720d102a4eee32e7a4d678b40df6f59e1044e
+record_sha256: a1997edf6d84c5503e47ff085fcf093c3d6f746c083074b1bc49282bc32095dd

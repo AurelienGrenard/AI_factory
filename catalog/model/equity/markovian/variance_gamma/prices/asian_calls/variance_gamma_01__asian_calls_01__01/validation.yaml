@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/markovian/variance_gamma/asian_calls/variance_gamma_01__asian_calls_01__01.json

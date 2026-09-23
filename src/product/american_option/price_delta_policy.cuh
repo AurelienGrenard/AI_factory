@@ -3,6 +3,7 @@
 
 #include "common/equity/price_delta/frozen_exercise_paths.cuh"
 #include "common/longstaff_schwartz/frozen_date_delta_kernels.cuh"
+#include "product/american_option/frozen_exercise_value.cuh"
 #include "product/american_option/pricing_policy.cuh"
 
 namespace ai_factory::workbench::product {
@@ -95,17 +96,28 @@ struct AmericanOptionPriceDeltaPolicy
     }
     __device__ __forceinline__ static float simulate_path(const PreparedRow& row, std::size_t path,
                                           std::size_t paths, const StateView& states) {
-        auto writer = Continuation::make_writer(states, row.state_offset + path,
-                                                paths, row.regression_count);
-        const auto terminal = Schedule::simulate(row.schedule, row.key, path, writer);
-        const float spot = Dynamics::spot(terminal);
-        row.exercises[path] = {row.regression_count, spot};
-        return payoff::vanilla_option_payoff<Side>(spot, row.strike);
+        return simulate_frozen_exercise_path<Schedule, Side, Continuation>(
+            row.schedule,
+            row.key,
+            row.state_offset,
+            row.regression_count,
+            row.strike,
+            row.exercises,
+            path,
+            paths,
+            states
+        );
     }
     __device__ __forceinline__ static void record_exercise(const PreparedRow& row, const StateView& states,
         std::size_t observation, std::size_t path, std::uint32_t backward_level) {
-        row.exercises[path] = {row.regression_count - 1U - backward_level,
-                              Continuation::spot(states, observation)};
+        record_frozen_exercise<Continuation>(
+            row.exercises,
+            states,
+            observation,
+            path,
+            row.regression_count,
+            backward_level
+        );
     }
     __device__ __forceinline__ static void record_initial_exercise(const PreparedRow& row, bool exercise, bool valid) {
         *row.initial_exercise = !valid ? InitialDecision::invalid
@@ -118,16 +130,15 @@ struct AmericanOptionPriceDeltaPolicy
     __device__ __forceinline__ static float path_delta(const PreparedRow& row, std::size_t path) {
         const Exercise exercise = row.exercises[path];
         const auto spots = FrozenPathPolicy::evaluate(row.frozen_path, exercise, row.key, path);
-        float lower = payoff::vanilla_option_payoff<Side>(spots.lower, row.strike);
-        float upper = payoff::vanilla_option_payoff<Side>(spots.upper, row.strike);
-        // Match the central backward FP32 discount order, including the stub.
-        for (std::uint32_t date = 0; date < exercise.observation; ++date) {
-            lower = row.exercise_discount * lower;
-            upper = row.exercise_discount * upper;
-        }
-        lower = row.initial_discount * lower;
-        upper = row.initial_discount * upper;
-        return (upper - lower) / row.bump.width;
+        return centered_frozen_exercise_gradient<Side>(
+            exercise,
+            spots.lower,
+            spots.upper,
+            row.strike,
+            row.initial_discount,
+            row.exercise_discount,
+            row.bump.width
+        );
     }
     static std::size_t finish_batch(const DeviceInputs& inputs, const PreparedRow* rows,
         dim3 grid, unsigned threads, std::size_t paths, std::size_t blocks,

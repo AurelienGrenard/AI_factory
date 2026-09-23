@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/cev/prices/asian_puts/cev_01__asian_puts_01__01/recipe.yaml
+  sha256: 5346d3f8967c9d6268d24f0e936c66f0890568cf38d7af55b266af4fea817ca7
+artifact:
+  row_count: 1000
+  sha256: 56e0c6456c912cd512303975e9019e93d307d3b726005ae6ca27519507cec65f
+inputs:
+  models: 376887d6eac22ed958967a1ee94d460d57ca4c2f365f0e07b012e82ee4154c0a
+  products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+execution:
+  binary_sha256: ad38dd268a4c11a6f0acca30769e676eb89437b031f76e8cf04226b4fe349a0a
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: asian_puts
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: cev
+    product: asian_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 741a00dc6bc466f814d2ee5a5208f5c96be5140780cede2bcafb4ee42001742d
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 43.092164899
+  kernel_seconds: 46.655425781
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789316099.41791
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 82, 86.75 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/cev/parameters/cev_01.json: 9263907ec998c2ce5ec4ac04ff300fe35ab146dd84b2b62147e7eacb1dff7945
+    datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
+  generator: catalog/model/equity/markovian/cev/prices/asian_puts/cev_01__asian_puts_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 8f3294b48aec569caf493f9e2dbefde252c990aef138dbeb6ae640b331282f3a
+  record_sha256: 26494e13180945f1f2ea956c8d022cb6671fa9cc064bd7c46c80a083931064f1
+record_sha256: 8ea6340d48ca3ff79afabc61f2e41826555ffe301788c22bf516544c7ec73de6

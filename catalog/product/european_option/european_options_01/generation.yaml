@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/european_option/european_options_01/recipe.yaml
+  sha256: d89a2f884a689a4d0dc31fe8d43213ab62bce0ed2240f6bdd2c07b6686dd4f49
+artifact:
+  row_count: 1000
+  sha256: e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: e2a26358a5f839b5d8dad3c7ba6ed19cbd0fefb15f0f29f01529fb57b3cf23f7

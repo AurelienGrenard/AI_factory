@@ -36,7 +36,7 @@ int main() {
         "datasets/model/fixed_income/cir/prices/european_payer_swaptions/"
         "cir_01__european_payer_swaptions_01__01.json",
         "catalog/model/fixed_income/cir/prices/european_payer_swaptions/"
-        "cir_01__european_payer_swaptions_01__01/dataset.yaml",
+        "cir_01__european_payer_swaptions_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/cir/prices/"
         "european_payer_swaptions/"
         "cir_01__european_payer_swaptions_01__01.json",

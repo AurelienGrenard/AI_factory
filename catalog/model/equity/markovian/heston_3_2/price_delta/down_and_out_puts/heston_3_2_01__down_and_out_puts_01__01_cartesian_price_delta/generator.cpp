@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json", "datasets/product/down_and_out_option/down_and_out_options_01.json", "datasets/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json", "datasets/product/down_and_out_option/down_and_out_options_01.json", "datasets/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/price_delta/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "heston_3_2", "down_and_out_option", ""},
         11668827179977801728ULL, model::equity::heston_3_2::load_models, product::load_down_and_out_options,

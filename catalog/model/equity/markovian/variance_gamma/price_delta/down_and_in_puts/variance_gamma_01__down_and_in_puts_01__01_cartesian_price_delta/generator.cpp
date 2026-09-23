@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/down_and_in_option/down_and_in_options_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json", "datasets/product/down_and_in_option/down_and_in_options_01.json", "datasets/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/price_delta/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "variance_gamma", "down_and_in_option", ""},
         11668828150640410624ULL, model::equity::variance_gamma::load_models, product::load_down_and_in_options,

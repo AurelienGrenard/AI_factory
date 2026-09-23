@@ -9,8 +9,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_stein_stein/prices/gap_calls/rough_stein_stein_01__gap_calls_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/price_delta/gap_calls/rough_stein_stein_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/rough/rough_stein_stein/prices/gap_calls/rough_stein_stein_01__gap_calls_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_volterra_price_delta_dataset<volterra::TerminalHybridSchedule, product::GapOptionPathPolicy<OptionSide::call>>(
         recipe, {offline::cuda_tuning::PricingFamily::rough_fft, "rough_stein_stein", "gap_option", ""},
         11668828975274131456ULL, "fractional-resolvent hybrid FFT", model::equity::rough_stein_stein::load_models, [](const auto& path) { return product::load_gap_options(path, OptionSide::call); },

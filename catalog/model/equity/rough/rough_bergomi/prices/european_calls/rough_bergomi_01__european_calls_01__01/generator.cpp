@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
         "datasets/product/european_option/european_options_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01.json",
-        "catalog/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::Aligned,

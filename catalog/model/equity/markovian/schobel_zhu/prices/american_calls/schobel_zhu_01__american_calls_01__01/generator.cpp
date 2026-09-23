@@ -21,7 +21,7 @@ int main() {
         "datasets/model/equity/markovian/schobel_zhu/prices/american_calls/"
         "schobel_zhu_01__american_calls_01__01.json",
         "catalog/model/equity/markovian/schobel_zhu/prices/american_calls/"
-        "schobel_zhu_01__american_calls_01__01/dataset.yaml",
+        "schobel_zhu_01__american_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/"
         "american_calls/schobel_zhu_01__american_calls_01__01.json",
         "exact OU factor with log-spot Euler + Longstaff-Schwartz",

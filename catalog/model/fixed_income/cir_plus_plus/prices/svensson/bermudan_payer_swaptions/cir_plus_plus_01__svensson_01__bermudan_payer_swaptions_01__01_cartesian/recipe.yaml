@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json",
+    "curve": "datasets/curve/svensson/svensson_01.json",
+    "product": "datasets/product/bermudan_swaption/bermudan_swaptions_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "fixed_income_lsm",
+    "profile": "longstaff_schwartz_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668829194317463552
+  }
+}

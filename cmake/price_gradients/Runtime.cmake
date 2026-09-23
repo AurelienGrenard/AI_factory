@@ -1,0 +1,3 @@
+# Offline gradient artifact assembly reuses the established I/O and dataset validation stages.
+ai_factory_add_offline_library(ai_factory_price_gradient_dataset tools/datasets/price_gradients/dataset.cpp)
+target_link_libraries(ai_factory_price_gradient_dataset PUBLIC ai_factory_artifact_io ai_factory_dataset_validation)

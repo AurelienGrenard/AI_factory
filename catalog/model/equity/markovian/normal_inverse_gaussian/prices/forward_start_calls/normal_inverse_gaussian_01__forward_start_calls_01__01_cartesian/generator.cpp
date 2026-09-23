@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01_cartesian.json",
-        "catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01_cartesian.json",
         "Exact inverse-Gaussian subordination",
         PriceConstruction::CartesianProduct,

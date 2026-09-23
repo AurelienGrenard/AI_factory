@@ -117,10 +117,11 @@ class CirRateValidationTest(unittest.TestCase):
                 / folder
                 / stem
             )
-            document = yaml.safe_load((catalog / "dataset.yaml").read_text())
+            document = yaml.safe_load((catalog / "validation.yaml").read_text())
             self.assertEqual(
-                document["validation"],
+                document,
                 {
+                    "schema_version": 1,
                     "status": "available",
                     "verified": True,
                     "dataset": f"validation/datasets/price/fixed_income/cir/"

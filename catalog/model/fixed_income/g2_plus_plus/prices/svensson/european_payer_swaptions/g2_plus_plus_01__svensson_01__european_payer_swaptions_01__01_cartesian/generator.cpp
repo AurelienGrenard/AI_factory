@@ -13,7 +13,7 @@ int main() {
         "datasets/curve/svensson/svensson_01.json",
         "datasets/product/european_swaption/european_swaptions_01.json",
         "datasets/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian.json",
-        "catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian/dataset.yaml",
+        "catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian.json",
         11668829177137594368ULL,
         ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::fixed_income_mc, "g2_plus_plus", "european_swaption", "svensson"},

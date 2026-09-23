@@ -43,7 +43,7 @@ int main() {
         "catalog/model/fixed_income/hull_white/prices/svensson/"
         "european_payer_swaptions/"
         "hull_white_01__svensson_01__european_payer_swaptions_01__01_cartesian/"
-        "dataset.yaml",
+        "generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/hull_white/"
         "prices/svensson/european_payer_swaptions/"
         "hull_white_01__svensson_01__european_payer_swaptions_01__01_cartesian.json",

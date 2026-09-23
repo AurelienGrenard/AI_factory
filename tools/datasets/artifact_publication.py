@@ -1,7 +1,7 @@
-"""Recoverable JSON/YAML publication with content checks and retained backups.
+"""Recoverable immutable publication with a generation marker written last.
 
-Each rename is atomic, not the pair. The journal completes an interrupted pair
-on explicit resume; readers should wait for the campaign's completed state.
+The data rename and marker rename are individually atomic. Consumers only
+consider a dataset published when its matching ``generation.yaml`` exists.
 """
 
 from __future__ import annotations
@@ -10,7 +10,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import tempfile
 
 
@@ -63,7 +62,7 @@ def save_json(path: Path, document: dict) -> None:
 
 
 def publish_pair(root: Path, work: Path, journal: Path, artifacts: list[dict]) -> None:
-    """Publish only verified outputs; preserve the old pair and reject edits.
+    """Publish a new immutable dataset, writing ``generation.yaml`` last.
 
     An artifact contains path, sha256 and previous_sha256. Work and repository
     must share a filesystem so publication moves, rather than copies, big JSONs.
@@ -71,6 +70,9 @@ def publish_pair(root: Path, work: Path, journal: Path, artifacts: list[dict]) -
     """
     if len(artifacts) != 2 or len({item["path"] for item in artifacts}) != 2:
         raise ValueError("Publication requires exactly two distinct artifacts")
+    if (not artifacts[0]["path"].endswith(".json")
+            or not artifacts[1]["path"].endswith("/generation.yaml")):
+        raise ValueError("Publication order must be dataset JSON then generation marker")
     for item in artifacts:
         checksum = item["sha256"]
         if not isinstance(checksum, str) or len(checksum) != 64 or any(c not in "0123456789abcdef" for c in checksum):
@@ -87,27 +89,18 @@ def publish_pair(root: Path, work: Path, journal: Path, artifacts: list[dict]) -
         destination = contained_path(root, item["path"])
         source = contained_path(work, item["path"])
         current = digest(destination)
-        allowed = {item["previous_sha256"]}
-        if resuming:
-            allowed.add(item["sha256"])
-        if current not in allowed:
-            raise ValueError(f"Published artifact changed outside this campaign: {destination}")
+        if current not in {None, item["sha256"]}:
+            raise ValueError(
+                f"Published datasets are immutable; choose a new dataset id: {destination}"
+            )
+        if item["previous_sha256"] not in {None, item["sha256"]}:
+            raise ValueError(
+                f"Campaign was frozen over a different published artifact: {destination}"
+            )
         if not (resuming and current == item["sha256"]) and digest(source) != item["sha256"]:
             raise ValueError(f"Staged artifact missing or changed: {source}")
 
     if not resuming:
-        for index, item in enumerate(artifacts):
-            if item["previous_sha256"] is None:
-                continue
-            backup = journal.parent / "backup" / str(index)
-            backup.parent.mkdir(parents=True, exist_ok=True)
-            if not backup.exists():
-                shutil.copyfile(contained_path(root, item["path"]), backup)
-                with backup.open("rb") as stream:
-                    os.fsync(stream.fileno())
-                sync_directory(backup.parent)
-            if digest(backup) != item["previous_sha256"]:
-                raise ValueError(f"Backup does not match the original artifact: {backup}")
         save_json(journal, {"state": "publishing", "artifacts": artifacts})
 
     for item in artifacts:
@@ -115,7 +108,7 @@ def publish_pair(root: Path, work: Path, journal: Path, artifacts: list[dict]) -
         current = digest(destination)
         if current == item["sha256"]:
             continue
-        if current != item["previous_sha256"]:
+        if current is not None:
             raise ValueError(f"Published artifact changed during publication: {destination}")
         source = contained_path(work, item["path"])
         destination.parent.mkdir(parents=True, exist_ok=True)

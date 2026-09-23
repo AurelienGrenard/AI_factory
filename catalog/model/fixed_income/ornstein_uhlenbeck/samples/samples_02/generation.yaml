@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_02/recipe.yaml
+  sha256: ed0ad4c729ec41fe665407cc0904dce9e6ffe3f4c255a1c5bd60b367995cf5ac
+artifact:
+  row_count: 3000000
+  sha256: f2706a056696e7d34e17648363d63a5a87052e8dbfae0ae89430ef7e161e9e6f
+inputs: {}
+execution:
+  binary_sha256: bd81ea9c1211102a260c19f2e609822d7eb72e6417b6e8b31898ee690e2076a6
+  declared_method:
+    engine: sample_fixed_income
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: b9ca1d0ada3ca85351e53718d51330d245cb529c950542f3c2da55a7be520873
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent thread grid-stride
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.399240995
+  kernel_seconds: 7.5776e-05
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: bc45b665722e7bbed55a315e7ff6353b11c0e16d0583f9d6c94f17a2354679b9
+  runtime_observation:
+    unix_time: 1789414122.977968
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 69, 44.00 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_02/generator.cpp
+legacy_checksums:
+  contract_sha256: b6781ba911c0254104be5bca6597c0d8851b6acf0ae05711a3df02d14e8a17df
+  record_sha256: 8caf55d1bef5e9f2bbca354fd9d7d1599f4ae40a3c01f26af212dd72078d31f1
+record_sha256: 5c3e10639e4bfa7cc84f3b4e17cb211c6578aa467be6c363b9351cbdda340df9

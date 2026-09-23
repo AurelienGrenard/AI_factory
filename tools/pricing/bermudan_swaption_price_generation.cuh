@@ -70,7 +70,7 @@ make_bermudan_swaption_generation_configuration(
         delta_t,
         std::move(time_discretization),
         "datasets/" + relative + ".json",
-        "catalog/" + relative + "/dataset.yaml",
+        "catalog/" + relative + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/" + relative + ".json",
         model + " Bermudan " + side + " swaption",
         {model == "cir" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm
@@ -111,7 +111,7 @@ make_fitted_bermudan_swaption_generation_configuration(
         "",
         {{"time_day_fraction", "1 / 252"}},
         "datasets/" + relative + ".json",
-        "catalog/" + relative + "/dataset.yaml",
+        "catalog/" + relative + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/" + relative + ".json",
         model + " " + curve + " Bermudan " + side + " swaption",
         {model == "cir_plus_plus" ? offline::cuda_tuning::PricingFamily::terminal_forward_lsm

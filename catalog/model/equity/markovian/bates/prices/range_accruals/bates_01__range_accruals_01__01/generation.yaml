@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/bates/prices/range_accruals/bates_01__range_accruals_01__01/recipe.yaml
+  sha256: 7889e4e8eaa5c85a5586ce8296481222f84c4fef2348ab78026224a766a70d3d
+artifact:
+  row_count: 1000
+  sha256: da863aad068e990a961461eda0dff07f82042b3db75ee1b678151ae740be5d37
+inputs:
+  models: 8390ab62f307a3a26783911fbf252e49322e63232dd319d1e142b108a1f4d977
+  products: 5fc389f3d841c2e437fa921de65731fcf84ca0c33ab6ccd163867067499345bc
+execution:
+  binary_sha256: c3d7d8e35d94d22d6a1fd5b4ab619cd0be67ff331091128cbd980292aa7add10
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: range_accruals
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: bates
+    product: range_accrual
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: f73914e309a47b23e4d27ba93125e5ef7b98e77b3520342e5ed212cb21d814a7
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 271.072678717
+  kernel_seconds: 257.463140625
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789314676.4136808
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 81, 94.56 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/bates/parameters/bates_01.json: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
+    datasets/product/range_accrual/range_accruals_01.json: c1bcb72ef067cf934d59f5ee745dff4b6edd8533ce5e7c5d38ce7bcfcf7d4e40
+  generator: catalog/model/equity/markovian/bates/prices/range_accruals/bates_01__range_accruals_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 0bf4e2af1d0d2976a8b9a2443e0b294a472a1953e1fa46c43a6f70c8021565cc
+  record_sha256: e70e07df67ea9d5fd524a35160d41ae7e682e8fbde62407250ceccd45c8a5256
+record_sha256: 04192712ecdee964c40f3aec70b7293b882553fd6c7047b5f23921178c87b810

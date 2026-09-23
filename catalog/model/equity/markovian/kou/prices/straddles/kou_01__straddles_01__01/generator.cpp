@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/kou/parameters/kou_01.json",
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01.json",
-        "catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01.json",
         "Exact Kou increments",
         PriceConstruction::Aligned,

@@ -5,7 +5,7 @@ Les anciens chemins de preuves `build-*` se retrouvent via le
 
 ## État courant — prix rough, prix-delta et produits de taux — 2026-09-14
 
-**Six constats ouverts, 106 fermés, 112 identifiants.** Le lot 1 puis
+**Six constats ouverts, 113 fermés, 119 identifiants.** Le lot 1 puis
 STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
 [closed.md](closed.md). Restent PERF-016, DELTA-001, PRODUCT-001 et les trois
 constats de qualité des prix rough NUM-028/029/030. Aucune clôture de performance

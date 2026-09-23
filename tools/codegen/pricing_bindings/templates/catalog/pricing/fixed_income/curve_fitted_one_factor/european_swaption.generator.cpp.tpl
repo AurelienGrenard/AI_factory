@@ -43,7 +43,7 @@ int main() {
         "catalog/model/fixed_income/${model}/prices/${curve}/"
         "${variant}/"
         "${model}_01__${curve}_01__${variant}_01__01/"
-        "dataset.yaml",
+        "generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/${model}/"
         "prices/${curve}/${variant}/"
         "${model}_01__${curve}_01__${variant}_01__01.json",

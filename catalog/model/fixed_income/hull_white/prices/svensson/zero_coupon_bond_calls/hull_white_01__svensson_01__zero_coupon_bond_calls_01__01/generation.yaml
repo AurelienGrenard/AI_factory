@@ -1,0 +1,78 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/recipe.yaml
+  sha256: f2a9e9e8e7fa7f5ca4a0efcf7da59fff5a177b393a9ec8ccad0890e62da719d6
+artifact:
+  row_count: 1000
+  sha256: a1a682178e808109c79edb866c1e13ebf2bef3f576f3744fd7ebd7c9ccb13025
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: c6b0a68b1a5adb1fedd64d16d087ea9b68c14527296f06b31b61bdde3f48d62c
+  products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+execution:
+  binary_sha256: 441c4bcb80d32d0029cc2cc90dec5c2db8ef41a66920042229b41077a74c0256
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: zero_coupon_bond_calls
+    construction: aligned
+    has_curve: true
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: closed_form
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: hull_white
+    product: zero_coupon_bond_option
+    curve: svensson
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: a0ecc2e07b19e8bd237baf69824c471de3483aae26815db4b34b484351d7b05d
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  block_count: 4
+  threads_per_block: 256
+  kernel_launch_count: 1
+  work_distribution: one price per thread
+timing:
+  wall_seconds: 0.127625195
+  kernel_seconds: 8.192e-06
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  runtime_observation:
+    unix_time: 1789307800.8892405
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 84, 100.05 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+    datasets/model/fixed_income/hull_white/parameters/hull_white_01.json: 13fcf2d23d843352b95166e0e8533519c208d22d9da62f765b9cc9b38a653247
+    datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
+  generator: catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: c1e98bdfa777bcf890ad3606c026c8038f8e63a462e7300994d122ed08c102ce
+  record_sha256: 9df9cedcb7b880403a7580929253debfcbb295addcc6f39f122cf0e4be212d01
+record_sha256: aeb148f7ce8824c0f7daa6f127bd6413b72dd04285dc0650a36c27f90c76c63b

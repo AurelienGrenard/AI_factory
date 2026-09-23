@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/recipe.yaml
+  sha256: 3f51bef0e69a4cfebdd029e46f5ef7b855c3700893e33c5604e5693d3b5b6f6e
+artifact:
+  row_count: 1000
+  sha256: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: ed55f1f0fb65af6048575c04d9c35a7473fbac97a7537ae23f54dc1e6accaf06

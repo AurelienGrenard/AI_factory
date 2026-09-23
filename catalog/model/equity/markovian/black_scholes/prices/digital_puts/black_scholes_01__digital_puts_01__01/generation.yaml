@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01/recipe.yaml
+  sha256: 0a8890f491f7f50a05021de4dd1b767dc6b24687f680382f56aaac069ccc51fc
+artifact:
+  row_count: 1000
+  sha256: 39be993fcd825029392703566a5ba76bc16b1a6f4422c30170a9d0a949d7d151
+inputs:
+  models: fad0cbd6b190c6a021e39f47c710281c9225e4ed7e7672e04a5fd523cd23e1b8
+  products: cbdcb0cc45fd8eedb79c69c01484d7694f356c8d0f70b48a69a9ed29f22c0e02
+execution:
+  binary_sha256: 30985b00086220eecb5442d55b85cb95ce38357a7d0c6b2c9e6b0b03b68036f4
+  declared_method:
+    engine: equity_closed_form
+    profile: catalog_price_profile
+    variant: digital_puts
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: closed_form
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: black_scholes
+    product: digital_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 6e2e732444a1dc1adebd6b8b2475e93cf3b452fb6a28a54c8f9c7d0318347548
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  block_count: 4
+  threads_per_block: 256
+  kernel_launch_count: 1
+  work_distribution: one price per thread
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: analytical_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.143894979
+  kernel_seconds: 6.144e-06
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789315819.389869
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 83, 96.26 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json: b09041ab189b6532fd353046d6a270882cd6279a85f5e918ccc478dc66c8ef34
+    datasets/product/digital_option/digital_options_01.json: 94f11e19391f8b06ae835fbfc61363687aeb3ce52645ef89d75271eb444dc746
+  generator: catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 4e966be897495f163d44fe15f0ac3fce7f845b3d873d2af956d6541f67326ab8
+  record_sha256: 8b09aae21a213caa3efaec162708891f9e256c5d30dd5943f4cf7bc204b8366a
+record_sha256: 36d925a1f30eb2bc9d28ab9e5480f70b259560b2ddd74b0dcbfe36b0dbc5698d

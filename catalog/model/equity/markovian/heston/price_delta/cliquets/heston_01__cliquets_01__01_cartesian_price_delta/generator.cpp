@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/cliquets/heston_01__cliquets_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/cliquets/heston_01__cliquets_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/cliquets/heston_01__cliquets_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "heston", "cliquet", ""},
         11668827021064011776ULL, model::equity::heston::load_models, product::load_cliquets,

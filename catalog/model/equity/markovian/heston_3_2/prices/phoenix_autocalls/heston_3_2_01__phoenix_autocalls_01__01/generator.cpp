@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
         "datasets/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01.json",
-        "catalog/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01.json",
         "full-truncation Euler 3/2 variance",
         PriceConstruction::Aligned,

@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/recipe.yaml
+  sha256: d2b25cb15d61dee78110854f0b4c866ef2034e906851210b125389810358eeba
+artifact:
+  row_count: 1000
+  sha256: bd013ce620a1045fbaaa440124c91ff65feafbd9021b6c50cb03b3cceee6c596
+inputs:
+  models: 376887d6eac22ed958967a1ee94d460d57ca4c2f365f0e07b012e82ee4154c0a
+  products: a04a2cde120aaecfdb0c9b3091a436c10bc7028092bd15f58928d8799ca6e491
+execution:
+  binary_sha256: 01e1d13a02bc392b65e2ed19b7c2fd6603f1a7477a1ca280d6ce10238044fdf8
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: straddles
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: cev
+    product: straddle
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: d70f6029d6011e4fd02a42c1c9070b49bc786672f0c5481e01a497da7ded8eb8
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 42.472700082
+  kernel_seconds: 43.971410156
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789317344.2432363
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 82, 83.38 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/cev/parameters/cev_01.json: 9263907ec998c2ce5ec4ac04ff300fe35ab146dd84b2b62147e7eacb1dff7945
+    datasets/product/straddle/straddles_01.json: 40f69879f5647cd09bd4a12406cd9f0ed11385698c54a309bcfe626dec8c9d2d
+  generator: catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 6323772311bfddd55dce715ac45f54a4937984892cebe14942cbc0eb19782842
+  record_sha256: 283cacc9f4bbe9424d2abf0dc4c2af372da21b254dbfea37252db12c32a6954b
+record_sha256: 44ca14c9e2dbc46053f3c6636efd97ad6f4f2563a2c1e3b5cf326cd52880b0f5

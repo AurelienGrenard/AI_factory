@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "heston_01__american_puts_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/heston/parameters/heston_01.json",
+    "product": "datasets/product/american_option/american_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_lsm_fixed",
+    "profile": "longstaff_schwartz_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668826995294208000
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

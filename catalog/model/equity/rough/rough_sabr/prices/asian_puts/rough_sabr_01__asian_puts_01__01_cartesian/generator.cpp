@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json",
         "datasets/product/asian_option/asian_options_01.json",
         "datasets/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01_cartesian.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT with Lamperti spot",
         PriceConstruction::CartesianProduct,

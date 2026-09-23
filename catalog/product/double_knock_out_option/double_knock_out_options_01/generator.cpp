@@ -13,7 +13,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/double_knock_out_option/double_knock_out_options_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/double_knock_out_option/double_knock_out_options_01/dataset.yaml";
+        "catalog/product/double_knock_out_option/double_knock_out_options_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/double_knock_out_options/"
         "double_knock_out_options_01.json";

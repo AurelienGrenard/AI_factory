@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "cev_01__phoenix_autocalls_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/cev/parameters/cev_01.json",
+    "product": "datasets/product/phoenix_autocall/phoenix_autocalls_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/cev/prices/phoenix_autocalls/cev_01__phoenix_autocalls_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/cev/prices/phoenix_autocalls/cev_01__phoenix_autocalls_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_markovian",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668826948049567744
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

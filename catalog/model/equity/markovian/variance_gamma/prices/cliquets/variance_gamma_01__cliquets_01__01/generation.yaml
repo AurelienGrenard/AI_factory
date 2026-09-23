@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01/recipe.yaml
+  sha256: 64cdc3dba64997660991a75a4608e883cedbf890d6716a505546401deda40799
+artifact:
+  row_count: 1000
+  sha256: a5c06f466b8d915ba9bdeeea2e37677546ef1d434797745ba4b3cb3687eea3c0
+inputs:
+  models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
+  products: 865f2498d688b56deb41a6ff4a20b84f723c2059195df01f8cf226cfc3840f6d
+execution:
+  binary_sha256: f1e12eec650adadecc05cc31fe63df8a3895f5b33c252253b0cef2080acc890d
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: cliquets
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_exact_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: variance_gamma
+    product: cliquet
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 6a7577610d84a433771433ac49399b2708fae227c428e7ec2d8af7a22bcc5e08
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 256
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 16.42797382
+  kernel_seconds: 15.202348633
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789331744.2695909
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 94.37 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+    datasets/product/cliquet/cliquets_01.json: 80af7142c863ef1100458e076be5999070bef44a7868208f3f93f7d7eba5b525
+  generator: catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 1de1623664f74e1bb3e97c56829c645728a12e9b3cab0b46884f25d4110dfd50
+  record_sha256: 1620d839c62927cf0712ff3a1303e0f2110c79def73f9bcd32186abf781fcdc1
+record_sha256: 8bff3098ee899771644dc220852e450b3d071cf2df8c26286d9950a66e67d16f

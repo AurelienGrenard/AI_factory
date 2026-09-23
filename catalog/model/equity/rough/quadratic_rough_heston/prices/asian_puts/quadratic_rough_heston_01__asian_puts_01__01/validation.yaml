@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/quadratic_rough_heston/asian_puts/quadratic_rough_heston_01__asian_puts_01__01.json

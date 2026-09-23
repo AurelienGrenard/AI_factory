@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/log_modulated_rough_bergomi/cliquets/log_modulated_rough_bergomi_01__cliquets_01__01.json

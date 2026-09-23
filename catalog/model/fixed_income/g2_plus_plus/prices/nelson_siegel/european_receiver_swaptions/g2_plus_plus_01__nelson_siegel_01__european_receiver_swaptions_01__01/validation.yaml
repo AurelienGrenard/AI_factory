@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/fixed_income/g2_plus_plus/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01.json

@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/rough_heston/athena_autocalls/rough_heston_01__athena_autocalls_01__01.json

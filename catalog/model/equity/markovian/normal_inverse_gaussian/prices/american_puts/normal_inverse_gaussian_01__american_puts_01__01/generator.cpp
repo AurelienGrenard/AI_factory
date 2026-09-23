@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/"
         "normal_inverse_gaussian_01__american_puts_01__01.json",
         "catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/"
-        "normal_inverse_gaussian_01__american_puts_01__01/dataset.yaml",
+        "normal_inverse_gaussian_01__american_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/prices/"
         "american_puts/normal_inverse_gaussian_01__american_puts_01__01.json",
         "Exact inverse-Gaussian subordination + Longstaff-Schwartz",

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "vasicek",
+  "output": {
+    "path": "datasets/model/fixed_income/vasicek/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/vasicek/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "mean_reversion",
+      "long_term_mean",
+      "stationary_volatility",
+      "initial_state"
+    ],
+    "latent_uniform_bounds": {
+      "mean_reversion": [
+        0.03,
+        1.0
+      ],
+      "long_term_mean": [
+        0.001,
+        0.08
+      ],
+      "stationary_volatility": [
+        0.0025,
+        0.025
+      ],
+      "initial_state": [
+        0.001,
+        0.08
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {
+      "volatility": "volatility = stationary_volatility * sqrt(2 * mean_reversion); deterministic instantaneous diffusion scale."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668829155662757888,
+    "schedule": 11668829156736499712,
+    "dynamics": 11668829157810241536
+  },
+  "numerical_method": {
+    "engine": "sample_fixed_income",
+    "profile": "model_sample_profile",
+    "description": "exact Gaussian mean-reverting transition"
+  },
+  "outputs": {
+    "state": {
+      "description": "Terminal state.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "exact",
+    "delta_t": "maturity_days / 252",
+    "artificial_substeps": false
+  }
+}

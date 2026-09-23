@@ -17,15 +17,12 @@ class PublicationTests(unittest.TestCase):
         self.work = self.root / "run/work"
         self.journal = self.root / "run/publication.json"
         self.items = []
-        for relative in ("datasets/example.json", "catalog/example/dataset.yaml"):
-            destination = self.root / relative
+        for relative in ("datasets/example.json", "catalog/example/generation.yaml"):
             source = self.work / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
             source.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text("old " + relative)
             source.write_text("new " + relative)
             self.items.append({"path": relative, "sha256": publication.digest(source),
-                               "previous_sha256": publication.digest(destination)})
+                               "previous_sha256": None})
 
     def publish(self):
         publication.publish_pair(self.root, self.work, self.journal, self.items)
@@ -34,10 +31,8 @@ class PublicationTests(unittest.TestCase):
         self.publish()
         self.publish()
         self.assertEqual(json.loads(self.journal.read_text())["state"], "complete")
-        for index, item in enumerate(self.items):
+        for item in self.items:
             self.assertEqual(publication.digest(self.root / item["path"]), item["sha256"])
-            self.assertEqual(publication.digest(self.journal.parent / "backup" / str(index)),
-                             item["previous_sha256"])
 
     def test_resume_interrupted_pair(self):
         original_replace = publication.os.replace
@@ -55,11 +50,12 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual(json.loads(self.journal.read_text())["state"], "complete")
 
     def test_external_edit_blocks_before_either_rename(self):
-        (self.root / self.items[1]["path"]).write_text("user edit")
-        with self.assertRaisesRegex(ValueError, "outside this campaign"):
+        path = self.root / self.items[1]["path"]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("user edit")
+        with self.assertRaisesRegex(ValueError, "immutable"):
             self.publish()
-        self.assertEqual(publication.digest(self.root / self.items[0]["path"]),
-                         self.items[0]["previous_sha256"])
+        self.assertFalse((self.root / self.items[0]["path"]).exists())
 
     def test_changed_staged_file_blocks_pair(self):
         (self.work / self.items[1]["path"]).write_text("partial output")
@@ -74,6 +70,7 @@ class PublicationTests(unittest.TestCase):
         def edit_after_first_rename(source, destination):
             original_replace(source, destination)
             if Path(destination) == self.root / self.items[0]["path"]:
+                changed.parent.mkdir(parents=True, exist_ok=True)
                 changed.write_text("new user edit")
 
         with patch.object(publication.os, "replace", side_effect=edit_after_first_rename):
@@ -88,13 +85,16 @@ class PublicationTests(unittest.TestCase):
             self.publish()
         self.assertFalse(self.journal.exists())
 
-    def test_new_artifacts_need_no_previous_backup(self):
-        for item in self.items:
-            (self.root / item["path"]).unlink()
-            item["previous_sha256"] = None
+    def test_published_artifacts_are_immutable(self):
         self.publish()
-        self.assertFalse((self.journal.parent / "backup").exists())
         self.publish()
+        self.journal.unlink()
+        source = self.work / self.items[0]["path"]
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("different bytes")
+        self.items[0]["sha256"] = publication.digest(source)
+        with self.assertRaisesRegex(ValueError, "immutable"):
+            self.publish()
 
     def test_paths_cannot_escape_or_follow_symlinks(self):
         for relative in ("../outside", "/tmp/outside", ""):

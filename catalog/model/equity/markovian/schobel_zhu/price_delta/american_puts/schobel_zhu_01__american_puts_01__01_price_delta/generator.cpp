@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/american_option/american_options_01.json", "datasets/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/american_puts/schobel_zhu_01__american_puts_01__01/generator.cpp", "frozen_central_exercise_dates_crn", .01, 2U};
+        "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/american_option/american_options_01.json", "datasets/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/price_delta/american_puts/schobel_zhu_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/schobel_zhu/prices/american_puts/schobel_zhu_01__american_puts_01__01/recipe.yaml", "frozen_central_exercise_dates_crn", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<true, true>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_lsm, "schobel_zhu", "american_option", ""},
         11668827828517863424ULL, model::equity::schobel_zhu::load_models, product::load_american_options,

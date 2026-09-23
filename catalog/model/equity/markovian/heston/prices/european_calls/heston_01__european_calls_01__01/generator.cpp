@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/heston/parameters/heston_01.json",
         "datasets/product/european_option/european_options_01.json",
         "datasets/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01.json",
-        "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01.json",
         "Andersen QE-M",
         PriceConstruction::Aligned,

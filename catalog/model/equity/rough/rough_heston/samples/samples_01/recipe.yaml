@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_01",
+  "generator": "generator.cpp",
+  "model": "rough_heston",
+  "output": {
+    "path": "datasets/model/equity/rough/rough_heston/samples/samples_01.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/rough/rough_heston/samples/samples_01/generation.yaml",
+  "shape": {
+    "parameter_count": 12000,
+    "paths_per_parameter": 250,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "spot",
+      "risk_free_rate",
+      "dividend_yield",
+      "initial_variance",
+      "mean_reversion",
+      "long_run_variance",
+      "hurst_exponent",
+      "rho"
+    ],
+    "latent_uniform_bounds": {
+      "spot": [
+        1.0,
+        1.0
+      ],
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "initial_variance": [
+        0.01,
+        0.12
+      ],
+      "mean_reversion": [
+        0.5,
+        4.0
+      ],
+      "long_run_variance": [
+        0.01,
+        0.15
+      ],
+      "hurst_exponent": [
+        0.03,
+        0.25
+      ],
+      "rho": [
+        -0.95,
+        -0.25
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {
+      "variance_drift": "variance_drift = mean_reversion * long_run_variance.",
+      "volatility_of_variance": "After all latent uniform draws, draw volatility_of_variance uniformly on [max(sqrt(variance_drift / 5), 0.08), min(sqrt(12 * variance_drift), 0.8)] using the next Philox uniform."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668828764820733952,
+    "schedule": 11668828765894475776,
+    "dynamics": 11668828766968217600
+  },
+  "numerical_method": {
+    "engine": "sample_n_factor",
+    "profile": "model_sample_profile",
+    "description": "7-factor Markovian lift"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "fixed-step",
+    "delta_t": "1 / 504",
+    "simulation_steps_per_day": 2
+  }
+}

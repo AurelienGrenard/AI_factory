@@ -21,7 +21,7 @@ int main() {
         "datasets/model/equity/markovian/heston/prices/american_puts/"
         "heston_01__american_puts_01__01_cartesian.json",
         "catalog/model/equity/markovian/heston/prices/american_puts/"
-        "heston_01__american_puts_01__01_cartesian/dataset.yaml",
+        "heston_01__american_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/prices/"
         "american_puts/heston_01__american_puts_01__01_cartesian.json",
         "Andersen QE-M + Longstaff-Schwartz",

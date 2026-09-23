@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
         "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json",
         "datasets/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian.json",
         "Exact Gamma subordination",
         PriceConstruction::CartesianProduct,

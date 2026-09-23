@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
         "datasets/product/up_no_touch/up_no_touches_01.json",
         "datasets/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01.json",
-        "catalog/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01.json",
         "Exact Gamma subordination",
         PriceConstruction::Aligned,

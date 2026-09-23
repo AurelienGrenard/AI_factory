@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/recipe.yaml
+  sha256: a2ed3665a66a0964b0aff562ee35dfba0719db0bf6c772e55b7151a27f588790
+artifact:
+  row_count: 1000
+  sha256: ea2ed5f1d98b3350774148b8d59250e6c24ae646fa37eb6a02d3b6e083645a7c
+inputs:
+  models: 97c96e48c1495515aaab4f1ce093a41d39a7e506616ea1fec10656f871a550a2
+  products: 37bed9acd9705fa4e81b25f8b6b72c0060c827cb989ac72dd3b86574205aa807
+execution:
+  binary_sha256: 89d904c846cd4beb935b96a8c7c96e47ca5b401a0c2906ec1c0855d67fe9da8d
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: up_one_touches
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: log_modulated_rough_bergomi
+    product: up_one_touch
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 2503487b4b3a7981cc79f73f23aab0b7637078a20e4377c3265145e63356d715
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 191.750916123
+  kernel_seconds: 185.122640625
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789359026.1688297
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 84, 106.17 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json: 45d792c8bca2500e1deff2e5efae119dcee10d683fcb8fd93c7554fc12a69086
+    datasets/product/up_one_touch/up_one_touches_01.json: 95e86dcbe4a7a77bc62bb47df636ae0e861ae08be40bb522d9fab36124a232d1
+  generator: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 9c71a09f480da0bd394d3cd4ca9782b157191c85285939ee5254063501f37e6d
+  record_sha256: 1db624cf5baa5135346ed37a992b3d4e5603cc5606df3ff5180af8e0f37c40f5
+record_sha256: b3e4b27d4b21b996e398b2451a6c4e21d500c2b13dd72b36e9cb341010eadea1

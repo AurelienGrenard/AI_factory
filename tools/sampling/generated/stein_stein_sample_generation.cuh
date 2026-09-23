@@ -63,7 +63,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "Stein-Stein",
         "datasets/model/equity/markovian/stein_stein/samples/" + id + ".json",
-        "catalog/model/equity/markovian/stein_stein/samples/" + id + "/dataset.yaml",
+        "catalog/model/equity/markovian/stein_stein/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

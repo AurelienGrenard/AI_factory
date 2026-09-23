@@ -77,11 +77,12 @@ class BlackScholesReferencePipelineTest(unittest.TestCase):
                 (900, 100),
             )
             document = yaml.safe_load(
-                (catalog / "dataset.yaml").read_text(encoding="utf-8")
+                (catalog / "validation.yaml").read_text(encoding="utf-8")
             )
             self.assertEqual(
-                document["validation"],
+                document,
                 {
+                    "schema_version": 1,
                     "status": "available",
                     "verified": True,
                     "dataset": reference.relative_to(ROOT).as_posix(),

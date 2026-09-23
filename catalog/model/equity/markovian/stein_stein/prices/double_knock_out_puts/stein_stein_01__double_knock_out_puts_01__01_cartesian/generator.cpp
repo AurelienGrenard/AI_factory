@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
         "datasets/product/double_knock_out_option/double_knock_out_options_01.json",
         "datasets/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01_cartesian.json",
         "exact OU volatility with log-spot Euler",
         PriceConstruction::CartesianProduct,

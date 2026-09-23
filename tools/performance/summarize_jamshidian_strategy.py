@@ -13,7 +13,10 @@ import json
 from pathlib import Path
 import statistics
 
-from run_jamshidian_strategy import load_results, save, sha256
+try:
+    from .run_jamshidian_strategy import load_results, save, sha256
+except ImportError:
+    from run_jamshidian_strategy import load_results, save, sha256
 
 KEYS = ("model", "curve", "profile", "side", "stage")
 GEOMETRY = ("rows", "strategy", "threads", "blocks", "grid_policy")

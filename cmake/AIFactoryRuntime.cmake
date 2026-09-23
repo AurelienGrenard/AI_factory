@@ -75,6 +75,7 @@ target_link_libraries(
 ai_factory_add_offline_library(
     ai_factory_sample_dataset tools/datasets/sample_dataset.cpp
 )
+include(cmake/price_gradients/Runtime.cmake)
 target_link_libraries(
     ai_factory_sample_dataset PUBLIC ai_factory_artifact_io
 )
@@ -104,7 +105,8 @@ set(_ai_factory_generation_targets)
 foreach(helper IN LISTS _ai_factory_generation_helpers)
     set(target ai_factory_${helper})
     add_library(
-        ${target} STATIC EXCLUDE_FROM_ALL tools/datasets/${helper}.cpp
+        ${target} STATIC EXCLUDE_FROM_ALL
+        tools/sampling/parameters/${helper}.cpp
     )
     target_include_directories(${target} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}

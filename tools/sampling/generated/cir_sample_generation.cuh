@@ -58,7 +58,7 @@ inline datasets::ModelSampleRecipe recipe(
         id,
         "CIR",
         "datasets/model/fixed_income/cir/samples/" + id + ".json",
-        "catalog/model/fixed_income/cir/samples/" + id + "/dataset.yaml",
+        "catalog/model/fixed_income/cir/samples/" + id + "/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/cir/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,

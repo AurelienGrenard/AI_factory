@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/stein_stein/prices/phoenix_memory_autocalls/stein_stein_01__phoenix_memory_autocalls_01__01/recipe.yaml
+  sha256: 76878602600dc1e20dbc22643fa8a582b70dd084d4a946d20f5b0cba7cf6cccc
+artifact:
+  row_count: 1000
+  sha256: 2ccaa05fe5ab67a93144c35bae68d6a81eedaf6277191e6f28968975d48bc18e
+inputs:
+  models: 29eb6dd66bb9284bcba495eb21db0310c5c4adef80990256afd148fd5e01c341
+  products: 14b753ccf732d1b3d66a20ee30bb8ca746a1106fc211d5e659b0cf1fd8f5865d
+execution:
+  binary_sha256: df27a74d61b4bae0033943b1d7df50f281825f11a04dccf9a71e760ba91ccc22
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: phoenix_memory_autocalls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: stein_stein
+    product: phoenix_memory_autocall
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 01394bc16c8fe0a6a3d1b8dc1e4a8dd518a70dadd91c121f0fa790094a30896c
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 100.937833767
+  kernel_seconds: 90.606578125
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789330621.959378
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 83.71 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json: 7fcec0892f82d5b1153394c505e8579acae7ce5df1a688094780308e8632c36a
+    datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: f138eca849694b8d0659390a1523828a16759c56f3c733823c908070d5a926a5
+  generator: catalog/model/equity/markovian/stein_stein/prices/phoenix_memory_autocalls/stein_stein_01__phoenix_memory_autocalls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 0997154ca3568770680866e2091133863bd13a8c71e13301b909edf1cc5e1ed3
+  record_sha256: 97f774de6a385fd05a7c80fae5e05505c0d56d731e79e61dd713fb945e10c4df
+record_sha256: 076876e2beb9a057548e91a80a96474efbb1f3fcc4e50c334cd688de83c4506f

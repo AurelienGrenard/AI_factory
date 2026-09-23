@@ -42,7 +42,7 @@ int main() {
         "schobel_zhu_01",
         "Schobel-Zhu",
         dataset,
-        "catalog/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01/dataset.yaml",
+        "catalog/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json",
         {
             {"spot", "Initial spot."},

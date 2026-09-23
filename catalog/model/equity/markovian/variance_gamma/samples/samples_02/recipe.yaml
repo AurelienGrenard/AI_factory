@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "variance_gamma",
+  "output": {
+    "path": "datasets/model/equity/markovian/variance_gamma/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/variance_gamma/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "spot",
+      "risk_free_rate",
+      "dividend_yield",
+      "sigma",
+      "nu",
+      "theta"
+    ],
+    "latent_uniform_bounds": {
+      "spot": [
+        1.0,
+        1.0
+      ],
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "sigma": [
+        0.08,
+        0.45
+      ],
+      "nu": [
+        0.03,
+        0.5
+      ],
+      "theta": [
+        -0.35,
+        0.15
+      ]
+    },
+    "acceptance": "first_moment > 0.05f && second_moment > 0.05f",
+    "derived_parameters": {
+      "first_moment": "first_moment = 1 - theta * nu - 0.5 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter.",
+      "second_moment": "second_moment = 1 - 2 * theta * nu - 2 * sigma^2 * nu; acceptance margin, not the moment itself or a published parameter."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668828236539756544,
+    "schedule": 11668828237613498368,
+    "dynamics": 11668828238687240192
+  },
+  "numerical_method": {
+    "engine": "sample_markovian",
+    "profile": "model_sample_profile",
+    "description": "Exact Gamma subordination"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "exact",
+    "delta_t": "maturity_days / 252",
+    "artificial_substeps": false
+  }
+}

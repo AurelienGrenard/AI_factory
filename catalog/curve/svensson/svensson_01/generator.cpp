@@ -1,7 +1,7 @@
 // Generate Svensson curves from interpretable forward-rate levels.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
-#include "tools/datasets/svensson_generation.hpp"
+#include "tools/sampling/parameters/svensson_generation.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -32,7 +32,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/curve/svensson/svensson_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/curve/svensson/svensson_01/dataset.yaml";
+        "catalog/curve/svensson/svensson_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/curve/"
         "svensson/svensson_01.json";

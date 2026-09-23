@@ -1,0 +1,89 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01/recipe.yaml
+  sha256: 2c4dd6892a18468e7b81eb5d833bde3ee7eafb309e196488d683d478f10f6de6
+artifact:
+  row_count: 1000
+  sha256: ab7254f46ee0ffb431d3218b04a82cea8cf932bbcf59750f7ff529b095c82a86
+inputs:
+  models: 97c96e48c1495515aaab4f1ce093a41d39a7e506616ea1fec10656f871a550a2
+  products: 125400160da1582ddf2624afa808b9ce5e0606990174b78adf0b7d58a470fb4e
+execution:
+  binary_sha256: 90e127388eeb456fccebe3c6c2849fd923f27d59d40053de9c1aa2bfb738f76f
+  declared_method:
+    engine: equity_volterra_fft
+    profile: catalog_price_profile
+    variant: up_and_in_calls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: rough_fft
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: log_modulated_rough_bergomi
+    product: up_and_in_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    prices_per_launch: 1
+    price_launch_count: 1000
+    memory_batching: price launch bound; engine workspace guards still apply
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    fft_geometry_owner: src/common/volterra/hybrid_fft_tuning.cuh
+    work_distribution: compiled FFT specialization; sequential price submissions
+    path_chunk_size: 65536
+    chunks_per_price: 16
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 5c4f6fe5181c5e00702d3f269a4fe8031fb8bac3484b4593bf7f779862c2ed59
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  path_chunk_size: 65536
+  chunks_per_price: 16
+  maximum_step_count: 3528
+  workspace_bytes: 924992512
+  price_submission_count: 1000
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: volterra_fft_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    pricing_path_threads: 256
+    pricing_finalization_threads: 256
+    pricing_path_chunk_size: 65536
+timing:
+  wall_seconds: 199.142724211
+  kernel_seconds: 192.10496875
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: 6591e391021ccb972a8b68187b17724c2320f628497eb8eca5c00959c780df92
+  runtime_observation:
+    unix_time: 1789358467.5324547
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 85, 101.69 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json: 45d792c8bca2500e1deff2e5efae119dcee10d683fcb8fd93c7554fc12a69086
+    datasets/product/up_and_in_option/up_and_in_options_01.json: 1793c98d347f39c932fc10a0532bb0df16e8050c9b094f2de3eede11e29a4898
+  generator: catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: b45faf7d656ae113833d530658830e475490820bbeff107cc13da7a0b71e7732
+  record_sha256: 834aa0f6cc398bb673638ddf2b23535877af76617abbe94195aeb82700f761e1
+record_sha256: fea692c679e46fbd4e337d4992e85a64c31e6449ab95b08ccafd59b952d3328b

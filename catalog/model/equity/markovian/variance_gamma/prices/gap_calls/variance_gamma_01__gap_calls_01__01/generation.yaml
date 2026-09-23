@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01/recipe.yaml
+  sha256: 15fac522dd16f0ddcf8729df89c20071675426fe9bdb56686dc103e59a874077
+artifact:
+  row_count: 1000
+  sha256: 54797b88a05e66394c0b231086ec0ec162d31517c7e0975cc06d9c929cf76fa8
+inputs:
+  models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
+  products: a89e8d375c02a28b7d4cf17dcd62be6a7251f0d9a87fd28e1dd3da025e466514
+execution:
+  binary_sha256: 938cbe6b85a3bd4fb1ce29a243d81f38387ed25d20038468982818abd21d04b6
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: gap_calls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_exact_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: variance_gamma
+    product: gap_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 1c1dcce16135d2868543a8b8861ade2f6930d9467a5959fff1f37a5d1440fabe
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.217968762
+  kernel_seconds: 0.099885056
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789332752.4569066
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 81, 95.17 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+    datasets/product/gap_option/gap_call_options_01.json: 77f2f1439d7784cd5ea3bccae19d69f0895d9596c6dcd99984da477edc9d367a
+  generator: catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 625cbfc28164c8181c9c636029e3d9d972926867eaf32d1fa5af22830fb45a14
+  record_sha256: c7106ec5676a5fdc0015a43097282638f8581d394ace6e8373503b7bdb031dea
+record_sha256: e76601a85dca1449eaaca764e83a36d65dc48826ded4748f00d30d8e952a5820

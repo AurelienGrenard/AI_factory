@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json",
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01.json",
-        "catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01.json",
         "Exact inverse-Gaussian subordination",
         PriceConstruction::Aligned,

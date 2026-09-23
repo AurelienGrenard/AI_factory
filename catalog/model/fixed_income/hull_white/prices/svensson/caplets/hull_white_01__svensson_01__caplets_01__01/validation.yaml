@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/fixed_income/hull_white/svensson/caplets/hull_white_01__svensson_01__caplets_01__01.json

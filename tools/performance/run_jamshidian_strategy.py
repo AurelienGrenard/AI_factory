@@ -17,9 +17,14 @@ import random
 import subprocess
 import sys
 
-from run_baseline import collect_preflight, _attach_compiled_resources
-from run_fixed_income_lsm_probe import bounded
-from experiment_environment import power_comparability_issue
+try:
+    from .experiment_environment import power_comparability_issue
+    from .run_baseline import _attach_compiled_resources, collect_preflight
+    from .run_fixed_income_lsm_probe import bounded
+except ImportError:
+    from experiment_environment import power_comparability_issue
+    from run_baseline import _attach_compiled_resources, collect_preflight
+    from run_fixed_income_lsm_probe import bounded
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/codegen/pricing_bindings"))

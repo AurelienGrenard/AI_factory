@@ -37,7 +37,7 @@ const std::filesystem::path dataset_path =
     "hull_white_01__svensson_01__floorlets_01__01.json";
 const std::filesystem::path catalog_path =
     "catalog/model/fixed_income/hull_white/prices/svensson/floorlets/"
-    "hull_white_01__svensson_01__floorlets_01__01/dataset.yaml";
+    "hull_white_01__svensson_01__floorlets_01__01/generation.yaml";
 const std::string url =
     "https://datasets.ai-factory.example/v1/model/fixed_income/hull_white/prices/"
     "svensson/floorlets/"

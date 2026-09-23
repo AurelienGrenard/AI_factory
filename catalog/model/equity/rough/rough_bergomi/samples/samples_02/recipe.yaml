@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "rough_bergomi",
+  "output": {
+    "path": "datasets/model/equity/rough/rough_bergomi/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/rough/rough_bergomi/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "spot",
+      "risk_free_rate",
+      "dividend_yield",
+      "xi_0",
+      "eta",
+      "hurst_exponent",
+      "rho"
+    ],
+    "latent_uniform_bounds": {
+      "spot": [
+        1.0,
+        1.0
+      ],
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "xi_0": [
+        0.04,
+        0.04
+      ],
+      "eta": [
+        0.5,
+        3.0
+      ],
+      "hurst_exponent": [
+        0.03,
+        0.25
+      ],
+      "rho": [
+        -0.95,
+        -0.3
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {}
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668828635971715072,
+    "schedule": 11668828637045456896,
+    "dynamics": 11668828638119198720
+  },
+  "numerical_method": {
+    "engine": "sample_volterra_fft",
+    "profile": "model_sample_profile",
+    "description": "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "fixed-step",
+    "delta_t": "1 / 504",
+    "simulation_steps_per_day": 2
+  }
+}

@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian.json",
-        "catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian.json",
         "Exact Gamma subordination",
         PriceConstruction::CartesianProduct,

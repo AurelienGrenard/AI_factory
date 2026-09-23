@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/double_knock_out_option/double_knock_out_options_01.json",
         "datasets/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian.json",
         "7-factor Markovian lift",
         PriceConstruction::CartesianProduct,

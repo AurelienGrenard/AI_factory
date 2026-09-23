@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/markovian/cev/up_one_touches/cev_01__up_one_touches_01__01.json

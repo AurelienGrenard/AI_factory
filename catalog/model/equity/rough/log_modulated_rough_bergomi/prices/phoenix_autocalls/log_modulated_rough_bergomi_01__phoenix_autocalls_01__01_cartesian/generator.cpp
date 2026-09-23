@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json",
         "datasets/product/phoenix_autocall/phoenix_autocalls_01.json",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_cartesian.json",
-        "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_cartesian.json",
         "log-modulated hybrid FFT (kappa=1)",
         PriceConstruction::CartesianProduct,

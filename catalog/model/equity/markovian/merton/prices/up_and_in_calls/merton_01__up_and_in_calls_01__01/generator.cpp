@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/merton/parameters/merton_01.json",
         "datasets/product/up_and_in_option/up_and_in_options_01.json",
         "datasets/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01.json",
-        "catalog/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01.json",
         "Exact Merton increments",
         PriceConstruction::Aligned,

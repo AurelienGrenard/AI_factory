@@ -10,10 +10,12 @@ Keep build products separate from records that must survive a rebuild:
 | `artifacts/performance/legacy-build-dev/` | Historical measurement campaigns, raw results, diagnostics and source/binary snapshots that used to sit inside `build-dev/`. |
 | `artifacts/validation/` | Historical validation reports. |
 | `artifacts/tooling/premia/` | Reusable local Premia runner and Wine prefix; the validation bridge uses this location. |
-| `datasets/generation-runs/<campaign>/` | Current generation campaigns: frozen inputs, progress journals, logs and publication records. |
+| `work/generation/<campaign>/` | Resumable dataset-generation campaigns: frozen inputs, progress journals, logs and publication records. |
+| `work/experiments/<asset-class>/<model>/<study>/` | Disposable studies, one-off generators, training runs, notebooks and reports. |
+| `datasets/` | Published dataset artifacts only; never campaign state or experiment scratch data. |
 
 Only `build/` and optional `builds/<name>/` are CMake build locations.
-`artifacts/` and `datasets/` are ignored by Git and are not distributed by a
+`artifacts/`, `work/` and `datasets/` are ignored by Git and are not distributed by a
 clone. `build/` is the sole persistent main build; a named alternate build is
 reserved for a different configuration or isolated experiment. To rebuild the
 active targets, use `cmake --preset dev` followed by

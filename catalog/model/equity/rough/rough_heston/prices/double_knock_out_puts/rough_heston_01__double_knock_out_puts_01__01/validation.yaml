@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/rough_heston/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01.json

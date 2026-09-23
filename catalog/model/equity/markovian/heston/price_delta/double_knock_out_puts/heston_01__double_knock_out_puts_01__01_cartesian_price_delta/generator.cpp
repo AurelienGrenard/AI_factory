@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/double_knock_out_option/double_knock_out_options_01.json", "datasets/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/double_knock_out_option/double_knock_out_options_01.json", "datasets/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/price_delta/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "heston", "double_knock_out_option", ""},
         11668827038243880960ULL, model::equity::heston::load_models, product::load_double_knock_out_options,

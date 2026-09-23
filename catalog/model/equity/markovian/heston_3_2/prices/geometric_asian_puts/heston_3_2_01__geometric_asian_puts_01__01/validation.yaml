@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/markovian/heston_3_2/geometric_asian_puts/heston_3_2_01__geometric_asian_puts_01__01.json

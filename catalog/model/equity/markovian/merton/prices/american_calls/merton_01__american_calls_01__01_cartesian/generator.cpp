@@ -20,7 +20,7 @@ int main() {
         "datasets/model/equity/markovian/merton/prices/american_calls/"
         "merton_01__american_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/merton/prices/american_calls/"
-        "merton_01__american_calls_01__01_cartesian/dataset.yaml",
+        "merton_01__american_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/"
         "american_calls/merton_01__american_calls_01__01_cartesian.json",
         "Exact Merton increments + Longstaff-Schwartz",

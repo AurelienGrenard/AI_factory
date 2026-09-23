@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_01",
+  "generator": "generator.cpp",
+  "model": "cir_plus_plus",
+  "output": {
+    "path": "datasets/model/fixed_income/cir_plus_plus/samples/samples_01.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/cir_plus_plus/samples/samples_01/generation.yaml",
+  "shape": {
+    "parameter_count": 12000,
+    "paths_per_parameter": 250,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "mean_reversion",
+      "long_term_mean",
+      "initial_state"
+    ],
+    "latent_uniform_bounds": {
+      "mean_reversion": [
+        0.03,
+        1.0
+      ],
+      "long_term_mean": [
+        0.001,
+        0.08
+      ],
+      "initial_state": [
+        0.001,
+        0.08
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {
+      "volatility": "After mean_reversion, long_term_mean and initial_state, draw the next Philox uniform: sigma ~ uniform(max(sqrt(mean_reversion * long_term_mean / 5), 0.005), min(sqrt(12 * mean_reversion * long_term_mean), 0.30)). Feller ratio 2 * mean_reversion * long_term_mean / sigma^2 lies in [1/6, 10]."
+    }
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668829202907398144,
+    "schedule": 11668829203981139968,
+    "dynamics": 11668829205054881792
+  },
+  "numerical_method": {
+    "engine": "sample_fixed_income",
+    "profile": "model_sample_profile",
+    "description": "exact noncentral-chi-square transition"
+  },
+  "outputs": {
+    "state": {
+      "description": "Terminal nonnegative CIR factor y; not the curve-shifted short rate.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "exact",
+    "delta_t": "maturity_days / 252",
+    "artificial_substeps": false
+  }
+}

@@ -25,53 +25,151 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.datasets.artifact_publication import contained_path, digest, publish_pair, save_json
-from tools.datasets.dataset_provenance import attach_generation, input_fingerprints, snapshot_sources
+from tools.datasets.dataset_provenance import (
+    attach_generation,
+    fingerprint,
+    input_fingerprints,
+    snapshot_sources,
+)
 
 
-def inventory(root: Path, kinds: set[str], models: set[str], targets: set[str]) -> list[dict]:
-    sys.path.insert(0, str(root / "tools/codegen/pricing_bindings"))
-    from capability_manifest import AVAILABLE_DATASET_SPECS, RNG_DOMAIN_BY_RECIPE
+def source_family(spec) -> str | None:
+    """Return the equity source family declared by a model dataset spec."""
+    parts = Path(spec.source_prefix).parts
+    if len(parts) >= 4 and parts[:2] == ("model", "equity"):
+        return parts[2]
+    return None
 
-    jobs = []
-    for spec in AVAILABLE_DATASET_SPECS:
-        if spec.dataset_kind not in kinds or (models and spec.model not in models):
+
+def select_specs(
+    root: Path,
+    specs,
+    kinds: set[str],
+    models: set[str],
+    targets: set[str],
+    *,
+    asset_classes: set[str] | None = None,
+    model_families: set[str] | None = None,
+    constructions: set[str] | None = None,
+    skip_published: bool = False,
+) -> list:
+    """Filter manifest specs and optionally exclude complete published pairs."""
+    asset_classes = asset_classes or set()
+    model_families = model_families or set()
+    constructions = constructions or set()
+    selected = []
+    matched_targets = set()
+    skipped_published = 0
+    for spec in specs:
+        if spec.dataset_kind not in kinds:
+            continue
+        if models and spec.model not in models:
             continue
         if targets and spec.cmake_target not in targets:
             continue
-        source = contained_path(root, spec.recipe_path).read_text()
+        if asset_classes and spec.asset_class not in asset_classes:
+            continue
+        if model_families and source_family(spec) not in model_families:
+            continue
+        if constructions and spec.construction not in constructions:
+            continue
+        matched_targets.add(spec.cmake_target)
+        if skip_published:
+            dataset_exists = contained_path(root, spec.dataset_path).exists()
+            generation_exists = contained_path(root, spec.generation_yaml_path).exists()
+            if dataset_exists != generation_exists:
+                raise ValueError(
+                    f"Partial published pair for {spec.cmake_target}: "
+                    f"{spec.dataset_path}, {spec.generation_yaml_path}"
+                )
+            if dataset_exists:
+                skipped_published += 1
+                continue
+        selected.append(spec)
+    unknown_targets = targets - matched_targets
+    if unknown_targets:
+        raise ValueError(
+            "Targets outside the selection: " + ", ".join(sorted(unknown_targets))
+        )
+    if not selected and not (skip_published and skipped_published):
+        raise ValueError("Empty dataset generator selection")
+    return selected
+
+
+def inventory(
+    root: Path,
+    kinds: set[str],
+    models: set[str],
+    targets: set[str],
+    *,
+    asset_classes: set[str] | None = None,
+    model_families: set[str] | None = None,
+    constructions: set[str] | None = None,
+    skip_published: bool = False,
+) -> list[dict]:
+    sys.path.insert(0, str(root / "tools/codegen/pricing_bindings"))
+    from capability_manifest import AVAILABLE_DATASET_SPECS, RNG_DOMAIN_BY_GENERATOR
+
+    jobs = []
+    selected = select_specs(
+        root,
+        AVAILABLE_DATASET_SPECS,
+        kinds,
+        models,
+        targets,
+        asset_classes=asset_classes,
+        model_families=model_families,
+        constructions=constructions,
+        skip_published=skip_published,
+    )
+    for spec in selected:
+        source = contained_path(root, spec.generator_path).read_text()
+        recipe_path = spec.recipe_yaml_path
+        recipe = yaml.safe_load(contained_path(root, recipe_path).read_text())
+        if not isinstance(recipe, dict):
+            raise ValueError(f"Invalid recipe document: {recipe_path}")
+        if recipe.get("dataset_id") != spec.dataset_id:
+            raise ValueError(f"Recipe identity contradicts manifest: {recipe_path}")
+        if recipe.get("output") != {"path": spec.dataset_path, "format": "json"}:
+            raise ValueError(f"Recipe output contradicts manifest: {recipe_path}")
+        if recipe.get("generation_output") != spec.generation_yaml_path:
+            raise ValueError(f"Generation output contradicts manifest: {recipe_path}")
         # Join adjacent C++ literals, including split output paths. No evaluation.
         strings = ["".join(json.loads(token) for token in re.findall(r'"(?:[^"\\]|\\.)*"', group))
                    for group in re.findall(r'"(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*', source)]
         inputs = sorted({item for item in strings if item.startswith("datasets/")
                          and item.endswith(".json") and item != spec.dataset_path})
-        if spec.dataset_kind in {"prices", "price_delta"}:
+        if spec.dataset_kind in {"prices", "price_delta", "price_gradients"}:
             if (len(inputs) != (3 if spec.curve else 2)
                     or spec.construction not in {"aligned", "cartesian"}):
-                raise ValueError(f"Unrecognized price input contract: {spec.recipe_path}")
+                raise ValueError(f"Unrecognized price input contract: {spec.generator_path}")
             shape = None
         else:
-            match = re.search(r'"samples_\d+",\s*([\d\']+)U,\s*([\d\']+)U', source)
-            if not match or inputs:
-                raise ValueError(f"Unrecognized autonomous sample recipe: {spec.recipe_path}")
-            shape = [int(value.replace("'", "")) for value in match.groups()]
-        domain = RNG_DOMAIN_BY_RECIPE.get(spec.recipe_path)
+            shape_metadata = recipe.get("shape", {})
+            shape = [
+                shape_metadata.get("parameter_count"),
+                shape_metadata.get("paths_per_parameter"),
+            ]
+            if any(type(value) is not int or value <= 0 for value in shape) or inputs:
+                raise ValueError(f"Unrecognized autonomous sample recipe: {spec.generator_path}")
+        domain = RNG_DOMAIN_BY_GENERATOR.get(spec.generator_path)
         jobs.append({"target": spec.cmake_target, "kind": spec.dataset_kind,
-                     "model": spec.model, "recipe": spec.recipe_path,
-                     "dataset": spec.dataset_path, "catalog": spec.catalog_yaml_path,
+                     "model": spec.model, "generator": spec.generator_path,
+                     "recipe": recipe_path, "generation": spec.generation_yaml_path,
+                     "validation": str(Path(spec.generation_yaml_path).with_name("validation.yaml")),
+                     "dataset": spec.dataset_path,
                      "inputs": inputs, "sample_shape": shape,
                      "rng_stream_seeds": {name: domain.seed(name) for name in domain.streams} if domain else {},
                      "declared_method": {"engine": spec.engine, "profile": spec.numerical_profile,
                                          "variant": spec.variant, "construction": spec.construction,
                                          "has_curve": spec.curve is not None},
                      "identity": "/".join(value for value in (spec.model, spec.curve, spec.product) if value)})
-        if spec.dataset_kind == "price_delta":
-            recipe_metadata = str(Path(spec.recipe_path).with_name("recipe.yaml"))
-            metadata = yaml.safe_load(contained_path(root, recipe_metadata).read_text())
-            jobs[-1].update(recipe_metadata=recipe_metadata,
-                            sensitivity=metadata["sensitivity"], time_grid=metadata["time_grid"],
-                            preparation=metadata.get("preparation", {}))
-    if not jobs or (targets and targets != {job["target"] for job in jobs}):
-        raise ValueError("Empty selection or unknown/excluded generator target")
+        if spec.dataset_kind in {"price_delta", "price_gradients"}:
+            time_key = "time_representation" if "time_representation" in recipe else "time_grid"
+            jobs[-1].update(sensitivity=recipe["sensitivity"], time_key=time_key,
+                            time_configuration=recipe[time_key],
+                            preparation=recipe.get("preparation", {}),
+                            paths_per_price=recipe.get("paths_per_price"))
     return jobs
 
 
@@ -86,7 +184,7 @@ def finite_values(value):
             finite_values(child)
 
 
-def check_samples(path: Path, job: dict, catalog: dict) -> None:
+def check_samples(path: Path, job: dict, recipe: dict) -> None:
     """Verify the native line-streamed sample format without a multi-million-row DOM."""
     with path.open() as stream:
         prefix = []
@@ -103,7 +201,7 @@ def check_samples(path: Path, job: dict, catalog: dict) -> None:
         construction = envelope["construction"]
         if [construction["parameter_count"], construction["paths_per_parameter"]] != job["sample_shape"]:
             raise ValueError("Sample shape contradicts its recipe")
-        bounds = catalog["construction"]["maturity_sampling"]
+        bounds = recipe["maturity_sampling"]
         count = 0
         for line in stream:
             if line.strip() == "]":
@@ -127,21 +225,30 @@ def check_samples(path: Path, job: dict, catalog: dict) -> None:
 
 
 def check_outputs(work: Path, job: dict) -> list[dict]:
-    catalog = yaml.safe_load(contained_path(work, job["catalog"]).read_text())
-    if catalog["database_id"] != Path(job["dataset"]).stem or catalog["row_count"] != job["rows"]:
-        raise ValueError("Catalogue identity/row count contradicts the frozen recipe")
-    finite_values(catalog)
-    if job["kind"] in {"prices", "price_delta"}:
-        validation = catalog["validation"]
-        relative = Path(job["dataset"]).relative_to("datasets/model")
-        reference = Path("validation/datasets/price").joinpath(*(part for part in relative.parts if part != "prices"))
-        expected_validation = {"status": "pending", "verified": False}
-        if job["kind"] == "prices":
-            expected_validation["dataset"] = reference.as_posix()
-        if validation != expected_validation:
-            raise ValueError("Generation must not claim independent certification")
+    recipe = yaml.safe_load(contained_path(work, job["recipe"]).read_text())
+    generation = yaml.safe_load(contained_path(work, job["generation"]).read_text())
+    if not isinstance(recipe, dict) or not isinstance(generation, dict):
+        raise ValueError("Recipe and generation receipt must be mappings")
+    if (recipe.get("dataset_id") != Path(job["dataset"]).stem
+            or recipe.get("output") != {"path": job["dataset"], "format": "json"}):
+        raise ValueError("Recipe identity/output contradicts the frozen selection")
+    if (generation.get("schema_version") != 1
+            or generation.get("status") != "complete"
+            or generation.get("artifact", {}).get("row_count") != job["rows"]
+            or not isinstance(generation.get("execution"), dict)
+            or not isinstance(generation.get("timing"), dict)):
+        raise ValueError("Invalid native generation receipt")
+    forbidden = {
+        "database_id", "dataset_id", "model_dataset", "curve_dataset",
+        "product_dataset", "price_construction", "validation", "outputs",
+        "seeds", "sensitivity", "time_grid", "time_representation",
+    }
+    if forbidden & generation.keys():
+        raise ValueError("Generation receipt repeats recipe or validation fields")
+    finite_values(generation)
+    if job["kind"] in {"prices", "price_delta", "price_gradients"}:
         expected_paths = job["launch_plan"]["paths_per_price"]
-        if catalog["summary"].get("monte_carlo_paths_per_price", 0) != expected_paths:
+        if generation["execution"].get("paths_per_price", 0) != expected_paths:
             raise ValueError("Published MC path count contradicts the compiled production plan")
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
@@ -157,11 +264,11 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             if job["declared_method"]["construction"] == "cartesian"
             else {"method": "Aligned"}
         )
-        if catalog.get("price_construction") != expected_construction:
+        if document.get("price_construction", expected_construction) != expected_construction:
             raise ValueError("Price construction contradicts the frozen recipe")
         if job["kind"] == "price_delta":
-            for artifact in (catalog, document):
-                if artifact.get("summary", {}).get("monte_carlo_paths_per_price") != expected_paths:
+            for artifact in (document,):
+                if artifact.get("summary", {}).get("paths_per_price") != expected_paths:
                     raise ValueError("Price-delta path count contradicts the frozen plan")
                 for key in ("threads_per_block", "blocks_per_price", "pricing_path_threads",
                             "pricing_finalization_threads", "path_chunk_size", "chunks_per_price"):
@@ -177,8 +284,11 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
                     raise ValueError("Price-delta time grid contradicts the frozen recipe")
                 if expected_paths and artifact.get("summary", {}).get("seed") != job["rng_stream_seeds"]["dynamics"]:
                     raise ValueError("Price-delta CRN seed contradicts the price recipe")
+        if job["kind"] == "price_gradients":
+            from tools.datasets.price_gradients.contract import check_outputs as check_gradients
+            check_gradients(job, document, document)
         if (document["row_count"] != job["rows"] or len(document["results"]) != job["rows"]
-                or document["database_id"] != catalog["database_id"]):
+                or document["database_id"] != recipe["dataset_id"]):
             raise ValueError("Price artifact identity/row count mismatch")
         for index, row in enumerate(document["results"], 1):
             if row["id"] != f"{index:06d}" or type(row["outputs"]["price"]) not in (int, float):
@@ -197,9 +307,10 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             if type(error) not in (int, float) or error < 0:
                 raise ValueError(f"Missing or invalid standard error at row {index}")
     else:
-        check_samples(contained_path(work, job["dataset"]), job, catalog)
+        check_samples(contained_path(work, job["dataset"]), job, recipe)
     return [{"path": path, "sha256": digest(contained_path(work, path)),
-             "previous_sha256": job["previous"][path]} for path in (job["dataset"], job["catalog"])]
+             "previous_sha256": job["previous"][path]}
+            for path in (job["dataset"], job["generation"])]
 
 
 def copy_frozen(source: Path, destination: Path) -> str:
@@ -216,7 +327,7 @@ def copy_frozen(source: Path, destination: Path) -> str:
 def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
     """Use the native build graph to reject missing or stale generation prerequisites."""
     targets = [job["target"] for job in jobs]
-    if any(job["kind"] in {"prices", "price_delta"} for job in jobs):
+    if any(job["kind"] in {"prices", "price_delta", "price_gradients"} for job in jobs):
         targets.append("inspect_pricing_launch_plan")
     for path in [build / target for target in targets] + [root / item for job in jobs for item in job["inputs"]]:
         if not path.is_file():
@@ -228,9 +339,31 @@ def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
         raise ValueError("Generators need rebuilding; run the CMake aggregate build first")
 
 
+def compile_selected(root: Path, build: Path, jobs: list[dict], parallel_jobs: int) -> None:
+    """Compile only the selected generators and their shared launch inspector."""
+    if parallel_jobs <= 0:
+        raise ValueError("Compile jobs must be positive")
+    targets = {job["target"] for job in jobs}
+    if any(job["kind"] in {"prices", "price_delta", "price_gradients"} for job in jobs):
+        targets.add("inspect_pricing_launch_plan")
+    subprocess.run(
+        [
+            "cmake",
+            "--build",
+            str(build),
+            "--target",
+            *sorted(targets),
+            f"-j{parallel_jobs}",
+        ],
+        cwd=root,
+        env={**os.environ, "CCACHE_DISABLE": "1"},
+        check=True,
+    )
+
+
 def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
     """Resolve shape, parameter identity and the compiled plan without CUDA execution."""
-    if job["kind"] in {"prices", "price_delta"}:
+    if job["kind"] in {"prices", "price_delta", "price_gradients"}:
         input_counts = [json.loads(contained_path(inputs, name).read_text())["row_count"]
                         for name in job["inputs"]]
         counts = set(input_counts)
@@ -240,9 +373,13 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
         rows = (math.prod(input_counts)
                 if construction == "cartesian"
                 else input_counts[0])
-        plan = json.loads(subprocess.check_output([
-            str(binaries / "inspect_pricing_launch_plan"), job["identity"], str(rows)
-        ] + (["--price-delta"] if job["kind"] == "price_delta" else []), cwd=inputs, text=True))
+        inspector = [str(binaries / "inspect_pricing_launch_plan"), job["identity"], str(rows)]
+        if job.get("paths_per_price"):
+            inspector.append(str(job["paths_per_price"]))
+        inspector += (["--price-delta"] if job["kind"] == "price_delta" else
+                      ["--price-gradients", str(len(job["sensitivity"]["parameters"]))]
+                      if job["kind"] == "price_gradients" else [])
+        plan = json.loads(subprocess.check_output(inspector, cwd=inputs, text=True))
         description = {"rows": rows, "launch_plan": plan}
     else:
         description = {"rows": math.prod(job["sample_shape"])}
@@ -251,10 +388,19 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
 
 def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) -> dict:
     require_current_build(root, build, jobs)
+    revision = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True
+    ).strip()
+    worktree = subprocess.check_output(
+        ["git", "status", "--porcelain"], cwd=root, text=True
+    )
+    if publish and worktree:
+        raise ValueError(
+            "Publishing requires a clean Git worktree; commit the exact sources first"
+        )
     run.mkdir(parents=True, exist_ok=False)
-    state = {"version": 2, "root": str(root), "build": str(build), "publish": publish,
-             "revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
-             "worktree": subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True),
+    state = {"version": 4, "root": str(root), "build": str(build), "publish": publish,
+             "revision": revision, "worktree": worktree,
              "input_hashes": {}, "jobs": jobs}
     # Retain the build configuration and exact controller independently of the
     # mutable checkout. Binary hashes do not prove source-level reproducibility.
@@ -265,7 +411,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
         for name in ("tools/datasets/generate_catalog.py", "tools/datasets/artifact_publication.py",
                      "tools/datasets/dataset_provenance.py")}
     state["source_archive_sha256"] = snapshot_sources(root, run / "sources.tar.gz")
-    if any(job["kind"] in {"prices", "price_delta"} for job in jobs):
+    if any(job["kind"] in {"prices", "price_delta", "price_gradients"} for job in jobs):
         state["inspector_sha256"] = copy_frozen(build / "inspect_pricing_launch_plan",
                                                 run / "bin" / "inspect_pricing_launch_plan")
         launch_manifest = "cmake/generated/PricingCapabilityManifest.json"
@@ -278,12 +424,33 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
                                                       contained_path(run / "inputs", relative))
     for job in jobs:
         job["binary_sha256"] = copy_frozen(build / job["target"], run / "bin" / job["target"])
-        job["recipe_sha256"] = copy_frozen(root / job["recipe"], contained_path(run / "sources", job["recipe"]))
-        if job.get("recipe_metadata"):
-            job["recipe_metadata_sha256"] = copy_frozen(root / job["recipe_metadata"],
-                contained_path(run / "sources", job["recipe_metadata"]))
-        job["previous"] = {path: digest(contained_path(root, path)) for path in (job["dataset"], job["catalog"])}
+        job["generator_sha256"] = copy_frozen(
+            root / job["generator"], contained_path(run / "sources", job["generator"])
+        )
+        job["recipe_sha256"] = copy_frozen(
+            root / job["recipe"], contained_path(run / "sources", job["recipe"])
+        )
+        job["previous"] = {path: digest(contained_path(root, path))
+                           for path in (job["dataset"], job["generation"])}
         job.update(describe_job(run / "inputs", run / "bin", job))
+        if job["kind"] in {"prices", "price_delta", "price_gradients"} and job["launch_plan"]["paths_per_price"]:
+            checkpoint_contract = {
+                "schema_version": 1,
+                "kind": job["kind"],
+                "target": job["target"],
+                "rows": job["rows"],
+                "binary_sha256": job["binary_sha256"],
+                "generator_sha256": job["generator_sha256"],
+                "recipe_sha256": job["recipe_sha256"],
+                "input_hashes": {name: state["input_hashes"][name] for name in job["inputs"]},
+                "launch_plan": job["launch_plan"],
+                "rng_stream_seeds": job["rng_stream_seeds"],
+                "sensitivity": job.get("sensitivity"),
+                "time_grid": job.get("time_grid"),
+                "preparation": job.get("preparation"),
+            }
+            job["checkpoint"] = f"jobs/{job['target']}/checkpoint"
+            job["checkpoint_id"] = fingerprint(checkpoint_contract)
         job["state"] = "pending"
     require_current_build(root, build, jobs)
     save_json(run / "campaign.json", state)
@@ -297,11 +464,32 @@ def append_journal(path: Path, event: str, **details: object) -> None:
 
 
 def run_generator(
-    binary: Path, work: Path, logs: Path, progress: Path
+    binary: Path,
+    work: Path,
+    logs: Path,
+    progress: Path,
+    checkpoint: Path | None = None,
+    checkpoint_id: str | None = None,
 ) -> float:
     started = time.perf_counter()
     journal = logs / "progress.jsonl"
-    append_journal(journal, "generator_started")
+    if (checkpoint is None) != (checkpoint_id is None):
+        raise ValueError("A checkpoint directory and identity must be provided together")
+    environment = {
+        **os.environ,
+        "AI_FACTORY_GENERATION_PROGRESS": str(progress.resolve()),
+        "AI_FACTORY_GENERATION_PROGRESS_LOG": str(journal.resolve()),
+    }
+    if checkpoint is not None:
+        environment.update(
+            AI_FACTORY_GENERATION_CHECKPOINT_DIR=str(checkpoint.resolve()),
+            AI_FACTORY_GENERATION_CHECKPOINT_ID=checkpoint_id,
+        )
+    append_journal(
+        journal,
+        "generator_started",
+        checkpoint=str(checkpoint) if checkpoint is not None else None,
+    )
     with (logs / "stdout.log").open("w") as out, (logs / "stderr.log").open("w") as err:
         process = subprocess.Popen(
             [str(binary)],
@@ -309,11 +497,7 @@ def run_generator(
             stdout=out,
             stderr=err,
             start_new_session=True,
-            env={
-                **os.environ,
-                "AI_FACTORY_GENERATION_PROGRESS": str(progress.resolve()),
-                "AI_FACTORY_GENERATION_PROGRESS_LOG": str(journal.resolve()),
-            },
+            env=environment,
         )
         try:
             returncode = process.wait()
@@ -361,10 +545,10 @@ def execute(run: Path, state: dict) -> None:
         binary = contained_path(run / "bin", job["target"])
         if digest(binary) != job["binary_sha256"]:
             raise ValueError(f"Frozen executable changed: {binary}")
+        if digest(contained_path(run / "sources", job["generator"])) != job["generator_sha256"]:
+            raise ValueError("Frozen generator changed")
         if digest(contained_path(run / "sources", job["recipe"])) != job["recipe_sha256"]:
             raise ValueError("Frozen recipe changed")
-        if job.get("recipe_metadata") and digest(contained_path(run / "sources", job["recipe_metadata"])) != job["recipe_metadata_sha256"]:
-            raise ValueError("Frozen recipe metadata changed")
         for item in job["inputs"]:
             if digest(contained_path(run / "inputs", item)) != state["input_hashes"][item]:
                 raise ValueError(f"Frozen input changed: {item}")
@@ -375,6 +559,7 @@ def execute(run: Path, state: dict) -> None:
             continue
         print(f"[{index}/{len(state['jobs'])}] {job['target']} ({job['state']})", flush=True)
         attempt_journal = None
+        checkpoint = contained_path(run, job["checkpoint"]) if job.get("checkpoint") else None
         try:
             if job["state"] != "staged":
                 # An explicit resume starts a fresh attempt for an unfinished dataset.
@@ -400,11 +585,20 @@ def execute(run: Path, state: dict) -> None:
                     raise RuntimeError(f"Insufficient disk margin: need about {required} bytes for this job")
                 for item in job["inputs"]:
                     copy_frozen(contained_path(run / "inputs", item), contained_path(work, item))
+                copy_frozen(
+                    contained_path(run / "sources", job["recipe"]),
+                    contained_path(work, job["recipe"]),
+                )
                 job["gpu_before"] = gpu_observation()
                 save_json(run / "campaign.json", state)
                 try:
                     job["generation_wall_seconds"] = run_generator(
-                        binary, work, logs, progress
+                        binary,
+                        work,
+                        logs,
+                        progress,
+                        checkpoint,
+                        job.get("checkpoint_id"),
                     )
                 finally:
                     job["gpu_after"] = gpu_observation()
@@ -416,12 +610,18 @@ def execute(run: Path, state: dict) -> None:
                 attach_generation(work, job, state)
                 # The publication journal must cover the enriched YAML, not
                 # the native intermediate. JSON bytes remain untouched.
-                job["artifacts"][1]["sha256"] = digest(contained_path(work, job["catalog"]))
+                job["artifacts"][1]["sha256"] = digest(contained_path(work, job["generation"]))
                 job["artifact_check_seconds"] = time.perf_counter() - started
                 job["state"] = "staged"
                 save_json(run / "campaign.json", state)
             elif job.get("progress_journal"):
                 attempt_journal = contained_path(run, job["progress_journal"])
+            if checkpoint is not None and checkpoint.exists():
+                shutil.rmtree(checkpoint)
+                job["checkpoint_cleared"] = True
+                save_json(run / "campaign.json", state)
+                if attempt_journal is not None:
+                    append_journal(attempt_journal, "checkpoint_cleared")
             if state["publish"]:
                 started = time.perf_counter()
                 try:
@@ -455,39 +655,72 @@ def interrupt_campaign(*_arguments) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", type=Path, default=ROOT / "build")
-    parser.add_argument("--kind", choices=("prices", "price_delta", "samples", "all"), default="prices")
+    parser.add_argument("--kind", choices=("prices", "price_delta", "price_gradients", "samples", "all"), default="prices")
+    parser.add_argument("--asset-class", action="append", choices=("equity", "fixed_income"), default=[])
+    parser.add_argument("--model-family", action="append", choices=("markovian", "rough"), default=[])
+    parser.add_argument("--construction", action="append", choices=("aligned", "cartesian"), default=[])
     parser.add_argument("--model", action="append", default=[])
     parser.add_argument("--target", action="append", default=[])
+    parser.add_argument("--skip-published", action="store_true",
+                        help="exclude complete JSON/receipt pairs and reject partial pairs")
+    parser.add_argument("--compile", action="store_true", help="build only the selected generators")
+    parser.add_argument("--compile-jobs", type=int, default=1)
     parser.add_argument("--run-dir", type=Path)
     parser.add_argument("--execute", action="store_true", help="otherwise only inspect the selection")
-    parser.add_argument("--publish", action="store_true", help="replace verified staged outputs, retaining backups")
+    parser.add_argument(
+        "--publish",
+        action="store_true",
+        help="publish immutable staged outputs; differing existing bytes are rejected",
+    )
     parser.add_argument("--resume", action="store_true", help="explicitly resume the frozen campaign")
     arguments = parser.parse_args()
     if arguments.resume and (not arguments.execute or not arguments.run_dir):
         parser.error("--resume requires --execute and --run-dir")
     if arguments.publish and not arguments.execute:
         parser.error("--publish requires --execute")
+    if arguments.compile_jobs <= 0:
+        parser.error("--compile-jobs must be positive")
+    if arguments.compile_jobs != 1 and not arguments.compile:
+        parser.error("--compile-jobs requires --compile")
     if arguments.resume:
         state = json.loads((arguments.run_dir / "campaign.json").read_text())
-        if state["version"] != 2 or state["root"] != str(ROOT):
+        if state["version"] != 4 or state["root"] != str(ROOT):
             raise ValueError("Unsupported campaign version or repository; retain its original controller")
         for name, expected in state["controller_hashes"].items():
             if digest(contained_path(ROOT, name)) != expected:
                 raise ValueError(f"Controller changed since this campaign was frozen: {name}")
-        if arguments.model or arguments.target or arguments.kind != "prices" or (arguments.publish and not state["publish"]):
+        if (arguments.model or arguments.target or arguments.asset_class
+                or arguments.model_family or arguments.construction
+                or arguments.skip_published or arguments.compile
+                or arguments.kind != "prices"
+                or (arguments.publish and not state["publish"])):
             raise ValueError("Resume uses the frozen selection and publication policy; do not override them")
         jobs = state["jobs"]
     else:
-        kinds = {"prices", "price_delta", "samples"} if arguments.kind == "all" else {arguments.kind}
-        jobs = inventory(ROOT, kinds, set(arguments.model), set(arguments.target))
+        kinds = {"prices", "price_delta", "price_gradients", "samples"} if arguments.kind == "all" else {arguments.kind}
+        jobs = inventory(
+            ROOT,
+            kinds,
+            set(arguments.model),
+            set(arguments.target),
+            asset_classes=set(arguments.asset_class),
+            model_families=set(arguments.model_family),
+            constructions=set(arguments.construction),
+            skip_published=arguments.skip_published,
+        )
+    build = Path(state["build"]) if arguments.resume else arguments.build.resolve()
+    if not jobs:
+        print(json.dumps({"job_count": 0, "jobs": []}, indent=2))
+        return 0
+    if arguments.compile:
+        compile_selected(ROOT, build, jobs, arguments.compile_jobs)
     if not arguments.execute:
         print(json.dumps({"job_count": len(jobs), "jobs": jobs}, indent=2))
         return 0
     if arguments.run_dir is None:
         parser.error("--execute requires a new --run-dir (or --resume)")
-    build = Path(state["build"]) if arguments.resume else arguments.build.resolve()
     # One lock for the repository, including controllers using different builds.
-    lock_path = ROOT / "datasets" / ".generation-campaign.lock"
+    lock_path = ROOT / "work" / "generation" / ".campaign.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

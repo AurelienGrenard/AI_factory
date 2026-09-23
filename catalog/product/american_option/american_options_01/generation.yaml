@@ -1,0 +1,18 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/product/american_option/american_options_01/recipe.yaml
+  sha256: 6221da4e0fa9a64b502e7b28abd563975cf2a7f0491839230956bf057c2bb7c0
+artifact:
+  row_count: 1000
+  sha256: 72f198165f40b132a40b66a8b74eed87d50840ba2c568068a3688aed85332793
+execution:
+  mode: legacy_materialization
+  evidence: limited to fields preserved by the legacy combined metadata
+timing:
+  wall_seconds: null
+  kernel_seconds: null
+provenance:
+  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
+  limitation: original execution and timing evidence unavailable
+record_sha256: 3d46f5de7ec588299e624aa832e06805deb445b3c618973c00da9f2576e22e6e

@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/cev/parameters/cev_01.json", "datasets/product/geometric_asian_option/geometric_asian_options_01.json", "datasets/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/cev/prices/geometric_asian_calls/cev_01__geometric_asian_calls_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/markovian/cev/parameters/cev_01.json", "datasets/product/geometric_asian_option/geometric_asian_options_01.json", "datasets/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/price_delta/geometric_asian_calls/cev_01__geometric_asian_calls_01__01_price_delta.json", "catalog/model/equity/markovian/cev/prices/geometric_asian_calls/cev_01__geometric_asian_calls_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "cev", "geometric_asian_option", ""},
         11668826935164665856ULL, model::equity::cev::load_models, product::load_geometric_asian_options,

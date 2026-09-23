@@ -1,0 +1,15 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ai-factory.example/schemas/dataset-validation-v1"
+title: AI Factory independent dataset validation
+type: object
+required: [schema_version, status, verified]
+properties:
+  schema_version:
+    const: 1
+  status:
+    enum: [pending, available, passed, failed, not_available]
+  verified:
+    type: boolean
+  dataset:
+    type: string
+additionalProperties: true

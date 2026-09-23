@@ -33,7 +33,7 @@ int main() {
         "datasets/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/"
         "ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian.json",
         "catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/"
-        "ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian/dataset.yaml",
+        "ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/ornstein_uhlenbeck/"
         "prices/european_receiver_swaptions/"
         "ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian.json",

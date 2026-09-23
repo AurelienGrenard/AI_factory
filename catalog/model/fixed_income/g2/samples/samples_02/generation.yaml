@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/fixed_income/g2/samples/samples_02/recipe.yaml
+  sha256: 821c592fd2e98d8ef3223ed667edbdfbfc3f3e916654f55478ca8be749fa01a0
+artifact:
+  row_count: 3000000
+  sha256: e16822206911467eebc3325563b39a49e79e55310287b807827648c3ab650c34
+inputs: {}
+execution:
+  binary_sha256: 1084bb4014f2712df217d422d5e31f0c43c28bf5a36928c05a65c45bc5e6cab3
+  declared_method:
+    engine: sample_fixed_income
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: d4677a6041b4509025bd77f8464b4de11f84c43803d772cddbeb79bcd83972b6
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent thread grid-stride
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.56810349
+  kernel_seconds: 0.000196608
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: bc45b665722e7bbed55a315e7ff6353b11c0e16d0583f9d6c94f17a2354679b9
+  runtime_observation:
+    unix_time: 1789413867.3978624
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 67, 43.45 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/fixed_income/g2/samples/samples_02/generator.cpp
+legacy_checksums:
+  contract_sha256: 17d1dfab49f794d03b73b170714101f98a5fdf22afb9eebebd1e31534eaef9b2
+  record_sha256: 9a6b89dfa22315adb98f405db29156b58c074edc710af6077f1132939b32d9ab
+record_sha256: 920303a385566178cbaa795c2b5d20412b16759e8f672b7c138448aef6f17684

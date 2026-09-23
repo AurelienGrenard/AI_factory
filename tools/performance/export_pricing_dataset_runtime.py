@@ -69,7 +69,7 @@ def case_result(directory: Path, case: dict, job: dict) -> dict:
     outcome = (json.loads(outcome_path.read_text()) if outcome_path.exists()
                else journal[-1] if journal else {})
     result = {"case": name, "model": case["model"], "product": case["product"],
-              "side": case["side"], "family": case["family"], "recipe": case["recipe"],
+              "side": case["side"], "family": case["family"], "generator": case["generator"],
               "engine": case["engine"], "factor_count": case.get("factor_count"),
               "curve": case.get("curve"),
               "rows": PRICE_COUNT, "paths_per_price": 0 if closed else PATH_COUNT,

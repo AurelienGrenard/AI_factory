@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/rough_bergomi/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01.json

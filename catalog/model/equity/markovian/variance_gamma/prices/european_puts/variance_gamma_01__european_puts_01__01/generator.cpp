@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
         "datasets/product/european_option/european_options_01.json",
         "datasets/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01.json",
-        "catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01.json",
         "Exact Gamma subordination",
         PriceConstruction::Aligned,

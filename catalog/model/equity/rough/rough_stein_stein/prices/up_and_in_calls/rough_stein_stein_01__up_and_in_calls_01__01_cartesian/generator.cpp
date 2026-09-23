@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json",
         "datasets/product/up_and_in_option/up_and_in_options_01.json",
         "datasets/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01_cartesian.json",
         "fractional-resolvent hybrid FFT",
         PriceConstruction::CartesianProduct,

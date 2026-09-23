@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/cliquet/cliquets_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01_cartesian.json",
-        "catalog/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01_cartesian.json",
         "Exact Gaussian log-price transitions",
         PriceConstruction::CartesianProduct,

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "variance_gamma_01__up_one_touches_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
+    "product": "datasets/product/up_one_touch/up_one_touches_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_markovian",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price",
+    "standard_error"
+  ],
+  "paths_per_price": 1048576,
+  "seeds": {
+    "dynamics": 11668828227949821952
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

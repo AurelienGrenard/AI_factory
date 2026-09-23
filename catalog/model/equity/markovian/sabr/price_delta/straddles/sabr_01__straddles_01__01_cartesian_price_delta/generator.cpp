@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/sabr/parameters/sabr_01.json", "datasets/product/straddle/straddles_01.json", "datasets/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/sabr/prices/straddles/sabr_01__straddles_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/sabr/parameters/sabr_01.json", "datasets/product/straddle/straddles_01.json", "datasets/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/price_delta/straddles/sabr_01__straddles_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/sabr/prices/straddles/sabr_01__straddles_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "sabr", "straddle", ""},
         11668827794158125056ULL, model::equity::sabr::load_models, product::load_straddles,

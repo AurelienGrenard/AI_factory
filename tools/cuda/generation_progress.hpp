@@ -23,8 +23,11 @@ namespace ai_factory::workbench::offline::cuda {
 
 class GenerationProgress {
 public:
-    explicit GenerationProgress(std::size_t total_prices) noexcept
+    explicit GenerationProgress(
+        std::size_t total_prices, std::size_t initial_completed_prices = 0U
+    ) noexcept
         : total_prices_(total_prices),
+          initial_completed_prices_(std::min(initial_completed_prices, total_prices)),
           started_(std::chrono::steady_clock::now()) {
         try {
             const char* configured = std::getenv(
@@ -42,7 +45,8 @@ public:
                 journal_path_ = journal;
             }
             enabled_ = true;
-            write_sidecar("running", 0U);
+            completed_prices_.store(initial_completed_prices_);
+            write_sidecar("running", initial_completed_prices_);
             worker_ = std::thread([this] { monitor(); });
         } catch (...) {
             enabled_ = false;
@@ -176,8 +180,11 @@ private:
             const double elapsed = std::chrono::duration<double>(
                 std::chrono::steady_clock::now() - started_
             ).count();
+            const std::size_t attempt_prices = completed_prices
+                > initial_completed_prices_
+                ? completed_prices - initial_completed_prices_ : 0U;
             const double rate = elapsed > 0.0
-                ? static_cast<double>(completed_prices) / elapsed : 0.0;
+                ? static_cast<double>(attempt_prices) / elapsed : 0.0;
             const double percent = total_prices_ == 0U ? 100.0
                 : 100.0 * static_cast<double>(completed_prices)
                     / static_cast<double>(total_prices_);
@@ -238,6 +245,7 @@ private:
     }
 
     std::size_t total_prices_ = 0U;
+    std::size_t initial_completed_prices_ = 0U;
     std::size_t next_marker_ = 1U;
     std::filesystem::path path_;
     std::filesystem::path journal_path_;

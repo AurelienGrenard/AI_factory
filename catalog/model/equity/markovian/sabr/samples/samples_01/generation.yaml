@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/sabr/samples/samples_01/recipe.yaml
+  sha256: fa654ad630716c777ee7146b65ad74556423822dcb852af96401eef40223bbb0
+artifact:
+  row_count: 3000000
+  sha256: fcf7999fd42f8ce6089f14ea550d728f3397911e4c86f8631f214cff97ce3c6e
+inputs: {}
+execution:
+  binary_sha256: 35b7f85c506d7bfe406cb792faaa7b971fa7ad6d0a9310e858a6b89963b84d89
+  declared_method:
+    engine: sample_markovian
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 13b7769b8b19efd5133fc7c401dc076a9d3691ed6aad12c565d44c56d8b7cf77
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent parameter-block
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.22318569
+  kernel_seconds: 0.055639042
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789411010.4356916
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 64, 43.76 W, [N/A], 1935 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/markovian/sabr/samples/samples_01/generator.cpp
+legacy_checksums:
+  contract_sha256: ad906080539dd0514f575e4842e66a95b7f142f01bb74695e8ac2033aff65e5c
+  record_sha256: c385e765e333a3d6c021b54909a419683ffdd7b27c83a45532e0d1e2d6793545
+record_sha256: 78ee26b7fcedf77c9bf066d0ab88880934b1ed9942db2ed40189d0edf7a5ab00

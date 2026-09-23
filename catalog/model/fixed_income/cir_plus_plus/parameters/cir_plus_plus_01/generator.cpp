@@ -1,6 +1,6 @@
 // Generate CIR++ factor rows with the shared CIR core/stress law and metadata.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "tools/datasets/cir_generation.hpp"
+#include "tools/sampling/parameters/cir_generation.hpp"
 #include "common/dataset_validation.hpp"
 #include "model/fixed_income/cir_plus_plus/dataset.hpp"
 
@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01/dataset.yaml";
+        "catalog/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/"
         "fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json";

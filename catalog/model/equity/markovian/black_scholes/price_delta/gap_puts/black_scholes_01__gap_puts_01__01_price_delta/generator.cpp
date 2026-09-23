@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/gap_option/gap_put_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/generator.cpp", "centered_closed_form", .01, 0U};
+        "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/gap_option/gap_put_options_01.json", "datasets/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_delta/gap_puts/black_scholes_01__gap_puts_01__01_price_delta.json", "catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/recipe.yaml", "centered_closed_form", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<false, false>(
         recipe, {offline::cuda_tuning::PricingFamily::closed_form, "black_scholes", "gap_option", ""},
         0ULL, model::equity::black_scholes::load_models, [](const auto& path) { return product::load_gap_options(path, OptionSide::put); },

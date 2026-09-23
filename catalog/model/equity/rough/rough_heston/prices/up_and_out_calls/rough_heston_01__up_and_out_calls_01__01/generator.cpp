@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/up_and_out_option/up_and_out_options_01.json",
         "datasets/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01.json",
-        "catalog/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,

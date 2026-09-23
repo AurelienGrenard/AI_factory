@@ -33,7 +33,7 @@ int main() {
         "datasets/model/fixed_income/vasicek/prices/european_receiver_swaptions/"
         "vasicek_01__european_receiver_swaptions_01__01.json",
         "catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/"
-        "vasicek_01__european_receiver_swaptions_01__01/dataset.yaml",
+        "vasicek_01__european_receiver_swaptions_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/"
         "prices/european_receiver_swaptions/"
         "vasicek_01__european_receiver_swaptions_01__01.json",

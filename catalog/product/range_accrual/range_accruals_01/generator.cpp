@@ -1,5 +1,5 @@
 // Generate issuance terms for equity Range Accrual notes.
-#include "tools/datasets/range_accrual_generation.hpp"
+#include "tools/sampling/parameters/range_accrual_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
 #include "common/dataset_validation.hpp"
 
@@ -15,7 +15,7 @@ int main() {
     const std::filesystem::path dataset_path =
         "datasets/product/range_accrual/range_accruals_01.json";
     const std::filesystem::path catalog_path =
-        "catalog/product/range_accrual/range_accruals_01/dataset.yaml";
+        "catalog/product/range_accrual/range_accruals_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/range_accruals/"
         "range_accruals_01.json";

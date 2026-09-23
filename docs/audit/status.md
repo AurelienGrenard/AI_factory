@@ -3,6 +3,58 @@
 Les anciens chemins locaux `build-*` et `build-dev` sont conservés avec leur
 correspondance dans le [plan des artefacts locaux](../local-artifacts.md).
 
+## Inspection complète de tools — 2026-09-15
+
+- **Mandat :** inspecter chaque fichier de `tools/`. Vérifier son utilité, son
+  owner, son nom et les fusions possibles. Supprimer les contrôleurs propres à
+  une campagne. Corriger et suivre chaque défaut confirmé.
+- **Snapshot :** branche `main`, base HEAD `8163c77`, worktree modifié. Le
+  passage part de 230 fichiers suivis sous `tools`. L'arbre corrigé contient
+  219 fichiers : 118 codegen, neuf CUDA, 17 datasets, 20 performance, huit
+  pricing, 46 sampling et le guide racine.
+- **Méthode :** lecture de tous les fichiers principaux. Les 113 templates
+  codegen ont été rapprochés du manifeste et du checker de structure. Les 25
+  compositions samples générées ont été rapprochées de leurs recettes et de
+  leurs consommateurs. Les headers pricing, CUDA et sampling ont été suivis
+  jusqu'à leurs appels. Les commandes performance ont été rapprochées de leurs
+  tests, guides et rapports.
+
+- **`codegen` :** les manifestes séparent pricing, samples et graphe composé.
+  Les 113 templates ont un owner déclaré. Le test du manifeste va sous
+  `tests/codegen`.
+- **`cuda` :** les neuf fichiers restants portent l'exécution offline, les
+  checkpoints, la progression, le plan ou les contrôles d'architecture. Le
+  diagnostic CIR++ va sous `validation`.
+- **`datasets` :** les 17 fichiers restants portent le contrôleur, le suivi, la
+  provenance, la compatibilité, les artefacts et l'échantillonnage. Quatre
+  contrôleurs de campagne sont supprimés.
+- **`performance` :** les 20 fichiers restants séparent exécution, synthèse,
+  comparaison et environnement d'expérience. Chaque phase a ses consommateurs.
+  Quatre tests vont sous `tests/performance`. La référence CIR va sous
+  `validation`.
+- **`pricing` :** les huit headers restent séparés par moteur ou contrat
+  produit. Ils ont des consommateurs actifs. Aucune fusion ne simplifie leurs
+  interfaces.
+- **`sampling` :** les helpers communs, les 25 compositions générées et les
+  neuf familles de paramètres ont des owners distincts. Les helpers de
+  paramètres arrivent depuis `datasets`.
+
+- **Constats :** STRUCT-029/030/031, DOC-002, BOUNDARY-006/007 et DOC-003
+  sont ouverts, corrigés puis fermés dans [closed.md](closed.md). Aucun défaut
+  confirmé de nom, owner ou duplication ne reste dans le périmètre inspecté.
+- **Preuves :** 46 tests Python datasets, 30 codegen et 66 performance passent.
+  Les 126 étapes de `parameter_generators` compilent. Neuf CTests ciblés
+  passent. `check_model_layout.py` classe 2 437 fichiers. Le checker du
+  catalogue valide 2 416 recettes. La génération codegen complète reste
+  zéro-diff. `git diff --check` passe.
+- **Règles durables :** les nouveaux filtres de campagne vont dans
+  `generate_catalog.py`. Les tests vont sous `tests`. Les références
+  indépendantes vont sous `validation`. Les paramètres sont construits sous
+  `sampling/parameters`.
+- **Exclusions :** aucun dataset n'a été généré, modifié ou publié. Aucun test
+  GPU long ni mesure de performance n'a été lancé. Les YAML non suivis et le
+  chantier parallèle sous `learning` restent hors de ce lot.
+
 ## Qualité ciblée des prix rough alignés — 2026-09-14
 
 - **Mandat :** à la demande de l'utilisateur, contrôler les datasets rough

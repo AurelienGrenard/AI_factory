@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json",
         "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json",
         "datasets/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01.json",
-        "catalog/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01.json",
         "Lamperti SABR Euler",
         PriceConstruction::Aligned,

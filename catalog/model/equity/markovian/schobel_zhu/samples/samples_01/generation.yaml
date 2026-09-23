@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/schobel_zhu/samples/samples_01/recipe.yaml
+  sha256: 55f819cd2e0e5614feeb1dc3f00583459e88c4c73ffc92a1b5b172412f1a19cc
+artifact:
+  row_count: 3000000
+  sha256: 9b714d3aec9ceb18b5b49247bff3fc3f93d642ea3d997aa84882a058ac924360
+inputs: {}
+execution:
+  binary_sha256: 4839e61886f3bc1adb96c2c958d0699476b89da79728fb8305c7d176a8808671
+  declared_method:
+    engine: sample_markovian
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 8d62e63aed5ea79b8e5a7ed1e2d1747f0cb6d0b55841565e5eef146e50cc1d42
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent parameter-block
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.187706487
+  kernel_seconds: 0.040866562
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789411080.406933
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 64, 43.48 W, [N/A], 1935 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/markovian/schobel_zhu/samples/samples_01/generator.cpp
+legacy_checksums:
+  contract_sha256: 7ab7bd6d1dae722426ab959fe6f31dd1efc46e041b09d79bbb5a9c197726f42c
+  record_sha256: b12f72f56f8d2733b90b597f4f3beebe1d0285a817066f571bf969975fe49d9f
+record_sha256: 19355d9b3f3a4fa183cbfb2925bb49b6c99bbc7961e52beb588883a35525e739

@@ -21,7 +21,7 @@ int main() {
         "datasets/model/equity/markovian/bates/prices/american_calls/"
         "bates_01__american_calls_01__01.json",
         "catalog/model/equity/markovian/bates/prices/american_calls/"
-        "bates_01__american_calls_01__01/dataset.yaml",
+        "bates_01__american_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/"
         "american_calls/bates_01__american_calls_01__01.json",
         "Andersen QE-M with compound-Poisson lognormal jumps + Longstaff-Schwartz",

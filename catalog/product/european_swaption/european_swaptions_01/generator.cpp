@@ -76,7 +76,7 @@ int main() {
         "european_swaptions_01.json";
     const std::filesystem::path catalog_path =
         "catalog/product/european_swaption/"
-        "european_swaptions_01/dataset.yaml";
+        "european_swaptions_01/generation.yaml";
     const std::string url =
         "https://datasets.ai-factory.example/v1/product/"
         "european_swaptions/european_swaptions_01.json";

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "black_scholes_01__geometric_asian_calls_01__01_cartesian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
+    "product": "datasets/product/geometric_asian_option/geometric_asian_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_cartesian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_cartesian/generation.yaml",
+  "construction": "cartesian",
+  "numerical_method": {
+    "engine": "equity_closed_form",
+    "profile": "catalog_price_profile"
+  },
+  "outputs": [
+    "price"
+  ],
+  "paths_per_price": 0,
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

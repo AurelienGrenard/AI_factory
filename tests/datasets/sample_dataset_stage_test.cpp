@@ -31,7 +31,7 @@ int main() {
         "samples_01",
         "Test model",
         directory / "samples_01.json",
-        directory / "dataset.yaml",
+        directory / "generation.yaml",
         "https://datasets.ai-factory.example/test/samples_01.json",
         2U,
         2U,
@@ -97,10 +97,11 @@ int main() {
         std::istreambuf_iterator<char>(yaml),
         std::istreambuf_iterator<char>()
     };
-    if (yaml_text.find("row_count: 4") == std::string::npos
-        || yaml_text.find("days_per_year: 252") == std::string::npos
+    if (yaml_text.find("schema_version: 1") == std::string::npos
+        || yaml_text.find("status: \"complete\"") == std::string::npos
+        || yaml_text.find("row_count: 4") == std::string::npos
         || yaml_text.find("paths_per_parameter: 2") == std::string::npos) {
-        throw std::runtime_error("sample catalog assembly failed");
+        throw std::runtime_error("sample generation receipt assembly failed");
     }
     std::filesystem::remove_all(directory);
     unsetenv("AI_FACTORY_GENERATION_PROGRESS");

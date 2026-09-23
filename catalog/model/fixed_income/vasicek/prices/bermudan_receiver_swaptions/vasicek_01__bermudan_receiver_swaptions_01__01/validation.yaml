@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/fixed_income/vasicek/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01.json

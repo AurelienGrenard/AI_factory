@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/straddle/straddles_01.json",
         "datasets/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01.json",
-        "catalog/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,

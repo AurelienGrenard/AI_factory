@@ -14,6 +14,7 @@ catalogue, de publication et de validation indépendante restent dans
 | Ajouter ou modifier une fonction analytique | [Contrat des analytics](model-analytics-contract.md) |
 | Ajouter un pricer fermé ou Monte Carlo | [Contrat closed form et Monte Carlo](closed-form-and-monte-carlo-pricing-contract.md) |
 | Calculer prix et delta equity par bump de S0 | [Contrat prix-delta et périmètre pilote](equity-price-delta-contract.md) |
+| Calculer prix et gradients sélectionnés | [Contrat prix-gradients](equity-price-gradients-contract.md) |
 | Ajouter un produit américain ou bermudéen | [Contrat Longstaff--Schwartz](american-and-bermudan-pricing-contract.md) |
 | Planifier un pricing, valider un lancement ou inspecter ses ressources | [Validation et diagnostic des kernels](launch-validation-and-kernel-diagnostics.md) |
 | Mesurer une régression ou qualifier un GPU | [Protocole de performance](../performance-regression-protocol.md) |

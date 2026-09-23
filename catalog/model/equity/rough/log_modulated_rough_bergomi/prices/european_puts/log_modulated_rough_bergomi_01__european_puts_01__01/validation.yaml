@@ -1,0 +1,4 @@
+schema_version: 1
+status: pending
+verified: false
+dataset: validation/datasets/price/equity/rough/log_modulated_rough_bergomi/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01.json

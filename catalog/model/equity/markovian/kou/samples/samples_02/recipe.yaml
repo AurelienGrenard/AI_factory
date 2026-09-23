@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "samples",
+  "dataset_id": "samples_02",
+  "generator": "generator.cpp",
+  "model": "kou",
+  "output": {
+    "path": "datasets/model/equity/markovian/kou/samples/samples_02.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/kou/samples/samples_02/generation.yaml",
+  "shape": {
+    "parameter_count": 3000000,
+    "paths_per_parameter": 1,
+    "row_count": 3000000,
+    "row_order": "parameter-major, then path-major"
+  },
+  "parameter_sampling": {
+    "regime": "plausible core only",
+    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "proposal_draw_order": [
+      "spot",
+      "risk_free_rate",
+      "dividend_yield",
+      "volatility",
+      "jump_intensity",
+      "up_probability",
+      "positive_jump_rate",
+      "negative_jump_rate"
+    ],
+    "latent_uniform_bounds": {
+      "spot": [
+        1.0,
+        1.0
+      ],
+      "risk_free_rate": [
+        0.001,
+        0.08
+      ],
+      "dividend_yield": [
+        0.0,
+        0.06
+      ],
+      "volatility": [
+        0.08,
+        0.45
+      ],
+      "jump_intensity": [
+        0.02,
+        1.0
+      ],
+      "up_probability": [
+        0.2,
+        0.7
+      ],
+      "positive_jump_rate": [
+        3.0,
+        20.0
+      ],
+      "negative_jump_rate": [
+        2.0,
+        20.0
+      ]
+    },
+    "acceptance": "true",
+    "derived_parameters": {}
+  },
+  "maturity_sampling": {
+    "distribution": "discrete uniform without modulo bias",
+    "support": "integer business days",
+    "minimum_days": 63,
+    "maximum_days": 504,
+    "year_fraction": "maturity_days / 252"
+  },
+  "seeds": {
+    "parameters": 11668827403316101120,
+    "schedule": 11668827404389842944,
+    "dynamics": 11668827405463584768
+  },
+  "numerical_method": {
+    "engine": "sample_markovian",
+    "profile": "model_sample_profile",
+    "description": "Exact Kou increments"
+  },
+  "outputs": {
+    "spot": {
+      "description": "Terminal spot.",
+      "layout": "sample-major"
+    }
+  },
+  "time_grid": {
+    "transition": "exact",
+    "delta_t": "maturity_days / 252",
+    "artificial_substeps": false
+  }
+}

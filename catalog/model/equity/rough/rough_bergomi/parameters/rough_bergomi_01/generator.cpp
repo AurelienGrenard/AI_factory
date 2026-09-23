@@ -57,7 +57,7 @@ int main() {
         "rough_bergomi_01",
         "rough Bergomi",
         dataset,
-        "catalog/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01/dataset.yaml",
+        "catalog/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/"
         "rough_bergomi/parameters/rough_bergomi_01.json",
         {

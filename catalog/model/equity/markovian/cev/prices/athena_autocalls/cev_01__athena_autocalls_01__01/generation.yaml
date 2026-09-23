@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/cev/prices/athena_autocalls/cev_01__athena_autocalls_01__01/recipe.yaml
+  sha256: fbec65a7d543db65d04fa8a79f107812072d74a1da0226756a08d50c9ef1149c
+artifact:
+  row_count: 1000
+  sha256: 6a7b528b0aa5c4b01d8ab1423b48e1978b453852f5e4437a5cb023a6fa6273d9
+inputs:
+  models: 376887d6eac22ed958967a1ee94d460d57ca4c2f365f0e07b012e82ee4154c0a
+  products: 45c32854f3449624fe6b4a246015fb30efd3780d4d3d4a1f0c3086d7bdda99fc
+execution:
+  binary_sha256: 1cfc1aee541f26c555dc063df1fd08a4b2796cd3331ced03a2f053387b8df235
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: athena_autocalls
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: cev
+    product: athena_autocall
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: d3324d927aa218b65a2fe786c8567bb66e9355fc3d29a9eef53d7e86278e5dee
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 73.507641126
+  kernel_seconds: 72.080109375
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789316241.9484084
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 80.85 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/cev/parameters/cev_01.json: 9263907ec998c2ce5ec4ac04ff300fe35ab146dd84b2b62147e7eacb1dff7945
+    datasets/product/athena_autocall/athena_autocalls_01.json: c65089f2861f61287d8649d4a706c5dc14817bd9c0462dd92e500480653e6613
+  generator: catalog/model/equity/markovian/cev/prices/athena_autocalls/cev_01__athena_autocalls_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: 0859a2eae23cc21a076180a664df5639dcf5ec5cf2edc7dff809f676e0ee56a8
+  record_sha256: 0b02677abe704b6c78fc74b10b1da753ddbe017d2025ab82cd399a6e183ab50a
+record_sha256: 214546c9ba640712cb53b8081cc667fc90d3eba045f9718a1d7b1ee5eeec82ee

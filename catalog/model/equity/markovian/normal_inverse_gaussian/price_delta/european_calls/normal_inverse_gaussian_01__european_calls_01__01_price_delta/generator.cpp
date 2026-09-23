@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01/generator.cpp", "centered_crn", .01, 0U};
+        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/european_option/european_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/european_calls/normal_inverse_gaussian_01__european_calls_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "normal_inverse_gaussian", "european_option", ""},
         11668827609474531328ULL, model::equity::normal_inverse_gaussian::load_models, product::load_european_options,

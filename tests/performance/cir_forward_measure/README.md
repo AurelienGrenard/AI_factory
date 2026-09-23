@@ -24,7 +24,7 @@ workspace; it has no fixed 32-exercise limit.
 - `transition_probe.cu`: sampler moments and discounted bond/option payoffs.
 - `discount_chain_probe.cu`: old Q chains without LSM, comparing rate moments
   and paired FP32/FP64 discount accumulation; diagnostic only.
-- `tools/performance/cir_forward_reference.py`: independent CPU drift moments,
+- `validation/quantlib/model/fixed_income/cir/forward_reference.py`: independent CPU drift moments,
   risk-neutral PDE and disjoint train/test LSM checks.
 
 ## Reproduce

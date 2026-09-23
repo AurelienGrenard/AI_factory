@@ -6,7 +6,9 @@ from scipy.integrate import solve_ivp
 import QuantLib as ql
 from validation.quantlib.model.fixed_income.cir.reference import quantlib_model
 
-from tools.performance.cir_forward_reference import bond, bond_coefficients, forward_transition, pde_price
+from validation.quantlib.model.fixed_income.cir.forward_reference import (
+    bond, bond_coefficients, forward_transition, pde_price,
+)
 
 
 class CirForwardReferenceTest(unittest.TestCase):

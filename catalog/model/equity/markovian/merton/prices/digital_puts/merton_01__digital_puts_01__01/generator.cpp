@@ -18,7 +18,7 @@ int main() {
         "datasets/model/equity/markovian/merton/parameters/merton_01.json",
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01.json",
-        "catalog/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01.json",
         "Exact Merton increments",
         PriceConstruction::Aligned,

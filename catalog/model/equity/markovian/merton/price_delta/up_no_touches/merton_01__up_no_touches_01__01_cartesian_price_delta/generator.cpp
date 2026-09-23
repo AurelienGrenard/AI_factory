@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/up_no_touch/up_no_touches_01.json", "datasets/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/up_no_touches/merton_01__up_no_touches_01__01_cartesian/generator.cpp", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
+        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/up_no_touch/up_no_touches_01.json", "datasets/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/up_no_touches/merton_01__up_no_touches_01__01_cartesian_price_delta.json", "catalog/model/equity/markovian/merton/prices/up_no_touches/merton_01__up_no_touches_01__01_cartesian/recipe.yaml", "centered_crn", .01, 2U, PriceConstruction::CartesianProduct};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "merton", "up_no_touch", ""},
         11668827532165120000ULL, model::equity::merton::load_models, product::load_up_no_touches,

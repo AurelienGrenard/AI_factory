@@ -3,6 +3,7 @@
 #include "tools/datasets/parameter_dataset.hpp"
 
 #include <filesystem>
+#include <fstream>
 #include <stdexcept>
 
 int main() {
@@ -15,7 +16,7 @@ int main() {
         "test_model_01",
         "Test model",
         directory / "model.json",
-        directory / "dataset.yaml",
+        directory / "generation.yaml",
         "https://datasets.ai-factory.example/test/model.json",
         {{"sigma", "volatility"}},
         {{"equation", "dS = sigma S dW"}},
@@ -25,6 +26,12 @@ int main() {
     if (document.at("row_count") != 1U
         || document.at("models").at(0).at("id") != "000001") {
         throw std::runtime_error("parameter artifact assembly failed");
+    }
+    std::ifstream yaml(directory / "generation.yaml");
+    const std::string receipt{std::istreambuf_iterator<char>(yaml), {}};
+    if (receipt.find("status: \"complete\"") == std::string::npos
+        || receipt.find("row_count: 1") == std::string::npos) {
+        throw std::runtime_error("parameter generation receipt assembly failed");
     }
     std::filesystem::remove_all(directory);
 }

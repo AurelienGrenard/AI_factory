@@ -1,0 +1,82 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01/recipe.yaml
+  sha256: 42b526187343caae5cec7372b84f6a4b9d03481417dc1f718fc76d467f2e5f95
+artifact:
+  row_count: 1000
+  sha256: a12c1957f7876196744c2b9b11293fbb6f6505a08044f1b6ed0ba1fc8317f437
+inputs:
+  models: a86b0eea5fb8591fe9a56e3a1cf62869c90db8c2642db4af175525ec35610082
+  products: d1e8abd86da1fd6cf0818a35f32ee757df320bfa72a95dcb804d53c77d68b80e
+execution:
+  binary_sha256: acd455137e2cff85acbe286f0776f6b3b843a9b124dfde6602b40400adc958fa
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: european_puts
+    construction: aligned
+    has_curve: false
+  launch_plan:
+    profile_id: sm89_reference_v1
+    family: equity_step_mc
+    selection: host launch plan; no runtime autotuning
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+    model: schobel_zhu
+    product: european_option
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
+    price_count: 1000
+    paths_per_price: 1048576
+    threads_per_block: 512
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per block at a time
+    block_count: 1000
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  build_hashes:
+    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
+    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
+  generator_sha256: 0f7c5496bc1319788738712934d2ddab1c1ebec3a8f24647b7b6ceff79ab7e8f
+  paths_per_price: 1048576
+  implementation: CUDA
+  device: gpu
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_pricing
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 59.63704264
+  kernel_seconds: 63.169023438
+provenance:
+  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
+  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  runtime_observation:
+    unix_time: 1789328121.3466973
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 79, 85.72 W, [N/A], 1590 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files:
+    datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json: ced5967808def3ae1910749c9d3c8c4447fb02cfe98664ab9a72ec745ad1c8c0
+    datasets/product/european_option/european_options_01.json: e6ebbda26a636526337929dd21cac1ce2a35be77ab1a2aa478d2c2511c6eb9b6
+  generator: catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01/generator.cpp
+legacy_checksums:
+  contract_sha256: b5df419c7e0f863d1e1938465b145e9ed62180c485d81f1cb5d11fbbf11442f4
+  record_sha256: 02ce750230061256b61246eb39b9c4d0e7b21224dd2cdaf3ee15a7c6b6ae2834
+record_sha256: 522368b1022004a0299aa226409f5ecaf4fe8754aa21f6b17e4611f62e5c281a

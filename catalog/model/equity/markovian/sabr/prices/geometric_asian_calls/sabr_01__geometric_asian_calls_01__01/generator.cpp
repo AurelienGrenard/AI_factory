@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/sabr/parameters/sabr_01.json",
         "datasets/product/geometric_asian_option/geometric_asian_options_01.json",
         "datasets/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01.json",
-        "catalog/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01.json",
         "Lamperti SABR Euler",
         PriceConstruction::Aligned,

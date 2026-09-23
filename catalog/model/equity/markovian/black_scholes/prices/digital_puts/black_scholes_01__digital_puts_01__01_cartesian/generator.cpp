@@ -15,7 +15,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/digital_option/digital_options_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01_cartesian.json",
         "Black-Scholes closed-form digital-puts",
         PriceConstruction::CartesianProduct,

@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json",
         "datasets/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01.json",
-        "catalog/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,

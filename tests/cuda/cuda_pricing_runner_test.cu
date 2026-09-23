@@ -2,9 +2,11 @@
 #include "common/check_cuda.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/generation_progress.hpp"
+#include "tools/cuda/monte_carlo_generation_checkpoint.cuh"
 
 #include <cuda_runtime.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -37,6 +39,20 @@ __global__ void monte_carlo_kernel(
 ) {
     const std::size_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= count) return;
+    prices[index] = 3.0f * inputs[index];
+    standard_errors[index] = 0.125f;
+}
+
+__global__ void monte_carlo_batch_kernel(
+    const float* inputs,
+    float* prices,
+    float* standard_errors,
+    std::size_t offset,
+    std::size_t count
+) {
+    const std::size_t local_index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (local_index >= count) return;
+    const std::size_t index = offset + local_index;
     prices[index] = 3.0f * inputs[index];
     standard_errors[index] = 0.125f;
 }
@@ -173,6 +189,73 @@ int main() {
         require_close(monte_carlo.prices[index], 3.0f * inputs[index]);
         require_close(monte_carlo.standard_errors[index], 0.125f);
     }
+
+    const std::filesystem::path checkpoint_directory =
+        std::filesystem::temp_directory_path()
+        / "ai_factory_cuda_generation_checkpoint_test";
+    std::filesystem::remove_all(checkpoint_directory);
+    setenv(
+        "AI_FACTORY_GENERATION_CHECKPOINT_DIR",
+        checkpoint_directory.c_str(),
+        1
+    );
+    const std::string checkpoint_identity(64U, 'c');
+    setenv(
+        "AI_FACTORY_GENERATION_CHECKPOINT_ID",
+        checkpoint_identity.c_str(),
+        1
+    );
+    auto checkpoint_attempt = [&](std::size_t stop_after,
+                                  std::size_t expected_resume,
+                                  std::size_t& launch_count) {
+        offline_cuda::MonteCarloGenerationCheckpoint checkpoint(inputs.size());
+        if (checkpoint.completed_prices() != expected_resume) {
+            throw std::runtime_error("CUDA checkpoint resumed at the wrong row");
+        }
+        auto result = offline_cuda::run_monte_carlo(
+            host_inputs,
+            inputs.size(),
+            [](auto&) {},
+            [&](auto& execution) {
+                for (std::size_t offset = checkpoint.completed_prices();
+                     offset < stop_after;) {
+                    const std::size_t count = std::min<std::size_t>(
+                        2U, stop_after - offset
+                    );
+                    checkpoint.start_batch();
+                    monte_carlo_batch_kernel<<<1U, threads>>>(
+                        execution.template input<0>(),
+                        execution.prices(),
+                        execution.standard_errors(),
+                        offset,
+                        count
+                    );
+                    ++launch_count;
+                    checkpoint.commit(execution, offset, count);
+                    offset += count;
+                }
+            }
+        );
+        checkpoint.restore(result);
+        checkpoint.restore_kernel_seconds(result);
+        return result;
+    };
+    std::size_t first_launch_count = 0U;
+    (void) checkpoint_attempt(2U, 0U, first_launch_count);
+    std::size_t resumed_launch_count = 0U;
+    const auto resumed = checkpoint_attempt(
+        inputs.size(), 2U, resumed_launch_count
+    );
+    if (first_launch_count != 1U || resumed_launch_count != 1U) {
+        throw std::runtime_error("CUDA checkpoint recalculated a completed batch");
+    }
+    for (std::size_t index = 0U; index < inputs.size(); ++index) {
+        require_close(resumed.prices[index], 3.0f * inputs[index]);
+        require_close(resumed.standard_errors[index], 0.125f);
+    }
+    unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
+    unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
+    std::filesystem::remove_all(checkpoint_directory);
 
     const auto workspace_launch = [](auto& execution) {
         if (execution.workspace_bytes() != 4U * sizeof(float)) {

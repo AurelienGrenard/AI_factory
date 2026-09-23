@@ -6,6 +6,7 @@
 #include "common/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
+#include "tools/cuda/monte_carlo_generation_checkpoint.cuh"
 #include "tools/cuda/generation_progress.hpp"
 #include "tools/datasets/price_dataset.hpp"
 
@@ -107,6 +108,18 @@ struct AnalyticalExecution {
     nlohmann::ordered_json execution_metadata;
 };
 
+inline void attach_checkpoint_metadata(
+    nlohmann::ordered_json& metadata,
+    const cuda::MonteCarloGenerationCheckpoint& checkpoint
+) {
+    if (!checkpoint.enabled()) return;
+    metadata["checkpoint"] = {
+        {"schema_version", 1},
+        {"resumed_prices", checkpoint.resumed_prices()},
+        {"timing_scope", "current process attempt"},
+    };
+}
+
 inline std::size_t warmup_row_count(
     std::size_t model_count,
     std::size_t product_count
@@ -179,7 +192,10 @@ MonteCarloExecution execute_batched_monte_carlo(
     const std::size_t warmup_count = std::min(
         warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
-    cuda::GenerationProgress progress(result_count);
+    cuda::MonteCarloGenerationCheckpoint checkpoint(result_count);
+    cuda::GenerationProgress progress(
+        result_count, checkpoint.completed_prices()
+    );
 
     auto run = cuda::run_monte_carlo(
         cuda::inputs(models, products),
@@ -207,7 +223,7 @@ MonteCarloExecution execute_batched_monte_carlo(
             );
         },
         [&](auto& execution) {
-            for (std::size_t offset = 0U;
+            for (std::size_t offset = checkpoint.completed_prices();
                  offset < result_count;
                  /* Advance by the actual final batch size, without overflow. */) {
                 const std::size_t count = plan.price_count_at(offset);
@@ -220,6 +236,7 @@ MonteCarloExecution execute_batched_monte_carlo(
                     plan.blocks_for(count),
                     profile.seed,
                 };
+                checkpoint.start_batch();
                 std::invoke(
                     launcher,
                     execution.template input<0U>(),
@@ -231,11 +248,18 @@ MonteCarloExecution execute_batched_monte_carlo(
                     execution.prices(),
                     execution.standard_errors()
                 );
+                if (checkpoint.enabled()) {
+                    checkpoint.commit(execution, offset, count);
+                    progress.record_host_progress(offset + count);
+                } else {
+                    progress.record_cuda_progress(offset + count);
+                }
                 offset += count;
-                progress.record_cuda_progress(offset);
             }
         }
     );
+    checkpoint.restore(run);
+    checkpoint.restore_kernel_seconds(run);
     progress.complete();
 
     nlohmann::ordered_json metadata = profile.execution_metadata;
@@ -251,6 +275,7 @@ MonteCarloExecution execute_batched_monte_carlo(
             ? "rough_n_factor_pricing"
             : "markovian_pricing"
     );
+    attach_checkpoint_metadata(metadata, checkpoint);
     return {std::move(run), std::move(metadata)};
 }
 
@@ -272,7 +297,10 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     const std::size_t warmup_count = std::min(
         warmup_row_count(models.size(), products.size()), plan.prices_per_launch
     );
-    cuda::GenerationProgress progress(result_count);
+    cuda::MonteCarloGenerationCheckpoint checkpoint(result_count);
+    cuda::GenerationProgress progress(
+        result_count, checkpoint.completed_prices()
+    );
 
     auto run = cuda::run_monte_carlo(
         cuda::inputs(models, prepared, products),
@@ -302,7 +330,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
             );
         },
         [&](auto& execution) {
-            for (std::size_t offset = 0U;
+            for (std::size_t offset = checkpoint.completed_prices();
                  offset < result_count;
                  /* Advance by the actual final batch size, without overflow. */) {
                 const std::size_t count = plan.price_count_at(offset);
@@ -315,6 +343,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
                     plan.blocks_for(count),
                     profile.seed,
                 };
+                checkpoint.start_batch();
                 std::invoke(
                     launcher,
                     execution.template input<0U>(),
@@ -328,11 +357,18 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
                     execution.prices(),
                     execution.standard_errors()
                 );
+                if (checkpoint.enabled()) {
+                    checkpoint.commit(execution, offset, count);
+                    progress.record_host_progress(offset + count);
+                } else {
+                    progress.record_cuda_progress(offset + count);
+                }
                 offset += count;
-                progress.record_cuda_progress(offset);
             }
         }
     );
+    checkpoint.restore(run);
+    checkpoint.restore_kernel_seconds(run);
     progress.complete();
 
     nlohmann::ordered_json metadata = profile.execution_metadata;
@@ -346,6 +382,7 @@ MonteCarloExecution execute_prepared_batched_monte_carlo(
     metadata["tuning_profile"] = cuda_tuning::metadata(
         "rough_n_factor_pricing"
     );
+    attach_checkpoint_metadata(metadata, checkpoint);
     return {std::move(run), std::move(metadata)};
 }
 
@@ -383,7 +420,10 @@ MonteCarloExecution execute_volterra_monte_carlo(
         profile.paths_per_price,
         profile.path_chunk_size
     );
-    cuda::GenerationProgress progress(result_count);
+    cuda::MonteCarloGenerationCheckpoint checkpoint(result_count);
+    cuda::GenerationProgress progress(
+        result_count, checkpoint.completed_prices()
+    );
 
     auto invoke_row = [&](auto& execution, std::size_t result_index) {
         const ModelProductIndices indices = decode_model_product_result_index(
@@ -426,17 +466,24 @@ MonteCarloExecution execute_volterra_monte_carlo(
         workspace.workspace_bytes,
         [&](auto& execution) { invoke_row(execution, 0U); },
         [&](auto& execution) {
-            for (std::size_t index = 0U; index < result_count; ++index) {
+            for (std::size_t index = checkpoint.completed_prices();
+                 index < result_count; ++index) {
+                checkpoint.start_batch();
                 invoke_row(execution, index);
-                progress.record_cuda_progress(index + 1U);
+                if (checkpoint.enabled()) {
+                    checkpoint.commit(execution, index, 1U);
+                    progress.record_host_progress(index + 1U);
+                } else {
+                    progress.record_cuda_progress(index + 1U);
+                }
             }
         }
     );
+    checkpoint.restore(run);
+    checkpoint.restore_kernel_seconds(run);
     progress.complete();
 
-    return {
-        std::move(run),
-        nlohmann::ordered_json{
+    nlohmann::ordered_json metadata{
             {"path_chunk_size", profile.path_chunk_size},
             {
                 "chunks_per_price",
@@ -447,8 +494,9 @@ MonteCarloExecution execute_volterra_monte_carlo(
             {"price_submission_count", result_count},
             {"launch_plan", cuda_tuning::pricing_launch_metadata(plan)},
             {"tuning_profile", cuda_tuning::metadata("volterra_fft_pricing")},
-        }
     };
+    attach_checkpoint_metadata(metadata, checkpoint);
+    return {std::move(run), std::move(metadata)};
 }
 
 template<class Models, class Products, class Launcher>

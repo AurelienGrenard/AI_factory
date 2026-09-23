@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/merton/parameters/merton_01.json",
         "datasets/product/up_one_touch/up_one_touches_01.json",
         "datasets/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01_cartesian.json",
-        "catalog/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01_cartesian.json",
         "Exact Merton increments",
         PriceConstruction::CartesianProduct,

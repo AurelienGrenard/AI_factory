@@ -1,12 +1,15 @@
 {
   "schema_version": 1,
   "kind": "price_delta",
-  "database_id": "rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta",
+  "dataset_id": "rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta",
   "generator": "generator.cpp",
   "model_input": "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
   "product_input": "datasets/product/up_one_touch/up_one_touches_01.json",
-  "dataset": "datasets/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta.json",
-  "catalog_output": "catalog/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta/dataset.yaml",
+  "output": {
+    "path": "datasets/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/rough/rough_bergomi/price_delta/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian_price_delta/generation.yaml",
   "construction": "cartesian",
   "paths_per_price": 1048576,
   "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
@@ -14,17 +17,13 @@
     "parameter": "spot",
     "method": "centered_crn",
     "relative_full_width": 0.01,
-    "source_price_recipe": "catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian/generator.cpp"
+    "source_price_recipe": "catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian/recipe.yaml"
   },
   "dynamics_seed": 11668828627381780480,
   "time_grid": {
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,
     "delta_t": "1 / 504"
-  },
-  "validation": {
-    "status": "pending",
-    "verified": false
   },
   "preparation": {
     "method": "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",

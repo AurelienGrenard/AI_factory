@@ -16,7 +16,7 @@ int main() {
         "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json",
         "datasets/product/up_no_touch/up_no_touches_01.json",
         "datasets/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01_cartesian.json",
-        "catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01_cartesian.json",
         "Bennedsen-Lunde-Pakkanen hybrid FFT (kappa=1)",
         PriceConstruction::CartesianProduct,

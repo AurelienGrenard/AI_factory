@@ -7,6 +7,9 @@
 # Local audit evidence, performance runs and validation tool caches.
 /artifacts/
 
+# Local disposable generation campaigns and experiments.
+/work/
+
 # Full generated datasets live locally or on external storage.
 /datasets/
 

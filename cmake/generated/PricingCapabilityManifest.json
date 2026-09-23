@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "source_sha256": "f6729b95b409c48486cc5c9d5faae99cfa4b35d1f13369919b0ac7a1757e0c77",
+  "source_sha256": "2bb161a69061bb5d5edeb767b28a19eecd7860cfe77b80ed8fee1e7d98490ef5",
   "counts": {
     "engines": 13,
     "models": 25,
     "products": 26,
-    "available_datasets": 2416,
+    "available_datasets": 2436,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 5115
+    "generated_outputs": 6451
   },
-  "outputs_sha256": "8f22a45caea26bccf6b9056bbd11ec0c26edf59c771aa8c8f838fe1a920504bf",
+  "outputs_sha256": "b41bede748fc22d2efc605c61fd23dfc2903a02281b092147c88007d6c603a42",
   "price_delta_bindings": {
     "src/model/equity/markovian/bates/product/asian_option_price_delta": {
       "pricing": "src/model/equity/markovian/bates/product/asian_option",
@@ -2332,6 +2332,33 @@
       "pricing": "src/model/equity/markovian/variance_gamma/product/american_option",
       "identity": "variance_gamma/american_option",
       "path_strategy": "multiplicative",
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    }
+  },
+  "price_gradient_bindings": {
+    "src/model/equity/markovian/cev/product/european_option_price_gradients": {
+      "identity": "cev/european_option",
+      "maximum_sensitivities": 7,
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/european_option_price_gradients": {
+      "identity": "heston/european_option",
+      "maximum_sensitivities": 10,
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/merton/product/european_option_price_gradients": {
+      "identity": "merton/european_option",
+      "maximum_sensitivities": 7,
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/black_scholes/product/european_option_price_gradients": {
+      "identity": "black_scholes/european_option",
+      "maximum_sensitivities": 6,
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/markovian/heston/product/american_option_price_gradients": {
+      "identity": "heston/american_option",
+      "maximum_sensitivities": 9,
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     }
   },

@@ -22,7 +22,7 @@ int main() {
         "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01.json",
-        "catalog/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01/dataset.yaml",
+        "catalog/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01.json",
         "7-factor Markovian lift",
         PriceConstruction::Aligned,

@@ -310,65 +310,17 @@ void write_model_sample_dataset(
         progress
     );
 
-    const std::size_t production_row_count = checked_sample_count(
-        recipe.production_parameter_count,
-        recipe.production_paths_per_parameter
+    nlohmann::ordered_json receipt_execution = execution.cuda_execution;
+    receipt_execution["parameter_count"] = execution.parameter_count;
+    receipt_execution["paths_per_parameter"] = execution.paths_per_parameter;
+    receipt_execution["smoke_test"] = execution.smoke_test;
+    write_generation_receipt(
+        recipe.catalog_path,
+        row_count,
+        receipt_execution,
+        execution.wall_seconds,
+        execution.kernel_seconds
     );
-    nlohmann::ordered_json summary = {
-        {"dataset_kind", "model samples"},
-        {"model", recipe.model_family},
-        {"numerical_method", recipe.numerical_method},
-        {"implementation", "CUDA"},
-        {"device", "gpu"},
-        {"random_generator", "Philox-4x32-10"},
-        {"parameter_count", recipe.production_parameter_count},
-        {"paths_per_parameter", recipe.production_paths_per_parameter},
-        {"row_order", "parameter-major, then path-major"},
-    };
-    for (const auto& [name, value] : execution.cuda_execution.items()) {
-        summary[name] = value;
-    }
-    nlohmann::ordered_json catalog = {
-        {"title", recipe.model_family + " model samples " + recipe.database_id},
-        {"database_id", recipe.database_id},
-        {"catalog", recipe.catalog_path.parent_path().generic_string()},
-        {"url", recipe.url},
-        {"row_count", production_row_count},
-        {"time_convention", {
-            {"unit", "business_day"},
-            {"days_per_year", kBusinessDaysPerYear},
-        }},
-        {"summary", std::move(summary)},
-        {"construction", {
-            {"parameter_sampling", recipe.parameter_sampling},
-            {"maturity_sampling", {
-                {"distribution", "discrete uniform without modulo bias"},
-                {"support", "integer business days"},
-                {"minimum_days", recipe.minimum_maturity_days},
-                {"maximum_days", recipe.maximum_maturity_days},
-                {"year_fraction", "maturity_days / 252"},
-            }},
-        }},
-        {"seeds", {
-            {"parameters", recipe.seeds.parameters},
-            {"schedule", recipe.seeds.schedule},
-            {"dynamics", recipe.seeds.dynamics},
-        }},
-        {"outputs", recipe.output_descriptions},
-        {"time_grid", recipe.time_grid},
-        {"timing", {
-            {"wall_seconds", format_duration(execution.wall_seconds)},
-            {"kernel_seconds", format_duration(execution.kernel_seconds)},
-        }},
-    };
-    if (execution.smoke_test) {
-        catalog["smoke_test"] = {
-            {"enabled", true},
-            {"executed_row_count", row_count},
-            {"production_row_count", production_row_count},
-        };
-    }
-    write_catalog_yaml(recipe.catalog_path, catalog);
     progress.complete();
 }
 

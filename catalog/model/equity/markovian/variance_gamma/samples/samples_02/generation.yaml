@@ -1,0 +1,64 @@
+schema_version: 1
+status: complete
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/samples/samples_02/recipe.yaml
+  sha256: fca99fc80f05eea12f07f4e3d2f1e4d4cb40377c76bb650a44c460d881053450
+artifact:
+  row_count: 3000000
+  sha256: 16da36419f329de52fd1dff968287af5e6a22d4c2558c309165849815b054bf9
+inputs: {}
+execution:
+  binary_sha256: a5650090aa986b1e88a87fe1b4454425c4070ee91ec170ae504fb16356edb6fe
+  declared_method:
+    engine: sample_markovian
+    profile: model_sample_profile
+    variant: null
+    construction: cartesian_parameter_paths
+    has_curve: false
+  launch_plan: null
+  build_hashes:
+    CMakeCache.txt: 66e4d72bb2498c9b8778dd6fa131141598c1cf92dd8b04b7ee1bed911685a6ef
+    build.ninja: 777c633dac30065f72db2b67e28d0a5a9778966c30e7675dd1d0af3512f68026
+  generator_sha256: 26afc5d3811a910bd72202d454a7ff6e5b2253b702565fd5aada16bfae84d117
+  paths_per_price: 0
+  implementation: CUDA
+  device: gpu
+  launch_sample_count: 3000000
+  threads_per_block: 256
+  block_dimensions:
+  - 256
+  - 1
+  - 1
+  block_count: 4096
+  kernel_launch_count: 1
+  execution_strategy: persistent thread grid-stride
+  block_dimensions_source: runtime launch argument
+  tuning_profile:
+    profile_id: sm89_reference_v1
+    family: markovian_samples
+    selection: compile-time CMake profile
+    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
+    portability: safe reference values; benchmark before replacing on another GPU
+timing:
+  wall_seconds: 0.436134968
+  kernel_seconds: 0.000203712
+provenance:
+  revision: 8804309b3addbbbe89979180b5b4878e1f10920a
+  source_archive_sha256: d578c686b90f2e3407f1560fe3fc13c61f989e6d67fc53949228d1ec62970664
+  runtime_observation:
+    unix_time: 1789411252.5602446
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      596.08, P0, 64, 42.46 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  input_files: {}
+  generator: catalog/model/equity/markovian/variance_gamma/samples/samples_02/generator.cpp
+legacy_checksums:
+  contract_sha256: 27cb29e12a0f4cc5d77121ca6ae9dbaf289b614f4b40c16ed02ea89a2f6262e4
+  record_sha256: fb06e10f968ed4665b3623a6e60a67534b17672be73b3a4c25c5ff7727caed91
+record_sha256: 96f393bdae5993f1c7c5095c5f48850880fe8d2fbea3807605fed96d3d2afe30

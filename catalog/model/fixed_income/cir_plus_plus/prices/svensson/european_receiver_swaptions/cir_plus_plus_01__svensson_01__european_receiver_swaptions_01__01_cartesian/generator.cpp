@@ -43,7 +43,7 @@ int main() {
         "catalog/model/fixed_income/cir_plus_plus/prices/svensson/"
         "european_receiver_swaptions/"
         "cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian/"
-        "dataset.yaml",
+        "generation.yaml",
         "https://datasets.ai-factory.example/v1/model/fixed_income/cir_plus_plus/"
         "prices/svensson/european_receiver_swaptions/"
         "cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian.json",

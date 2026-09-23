@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/american_option/american_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/normal_inverse_gaussian_01__american_puts_01__01/generator.cpp", "frozen_central_exercise_dates_crn", .01, 0U};
+        "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json", "datasets/product/american_option/american_options_01.json", "datasets/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/normal_inverse_gaussian/price_delta/american_puts/normal_inverse_gaussian_01__american_puts_01__01_price_delta.json", "catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/normal_inverse_gaussian_01__american_puts_01__01/recipe.yaml", "frozen_central_exercise_dates_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, true>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_lsm, "normal_inverse_gaussian", "american_option", ""},
         11668827553639956480ULL, model::equity::normal_inverse_gaussian::load_models, product::load_american_options,

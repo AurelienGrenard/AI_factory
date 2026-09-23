@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "prices",
+  "dataset_id": "g2_plus_plus_01__nelson_siegel_01__floorlets_01__01",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json",
+    "curve": "datasets/curve/nelson_siegel/nelson_siegel_01.json",
+    "product": "datasets/product/rate_option/rate_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generation.yaml",
+  "construction": "aligned",
+  "numerical_method": {
+    "engine": "fixed_income_closed_form",
+    "profile": "closed_form_price_profile"
+  },
+  "outputs": [
+    "price"
+  ],
+  "paths_per_price": 0
+}

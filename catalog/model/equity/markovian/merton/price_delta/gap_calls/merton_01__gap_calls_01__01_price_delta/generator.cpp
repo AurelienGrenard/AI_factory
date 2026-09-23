@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/markovian/merton/prices/gap_calls/merton_01__gap_calls_01__01/generator.cpp", "centered_crn", .01, 0U};
+        "datasets/model/equity/markovian/merton/parameters/merton_01.json", "datasets/product/gap_option/gap_call_options_01.json", "datasets/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/price_delta/gap_calls/merton_01__gap_calls_01__01_price_delta.json", "catalog/model/equity/markovian/merton/prices/gap_calls/merton_01__gap_calls_01__01/recipe.yaml", "centered_crn", .01, 0U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_exact_mc, "merton", "gap_option", ""},
         11668827484920479744ULL, model::equity::merton::load_models, [](const auto& path) { return product::load_gap_options(path, OptionSide::call); },

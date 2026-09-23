@@ -8,8 +8,8 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pricing = offline::pricing;
     const datasets::PriceDeltaRecipe recipe{
-        "datasets/model/equity/markovian/bates/parameters/bates_01.json", "datasets/product/athena_autocall/athena_autocalls_01.json", "datasets/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta/dataset.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp", "centered_crn", .01, 2U};
+        "datasets/model/equity/markovian/bates/parameters/bates_01.json", "datasets/product/athena_autocall/athena_autocalls_01.json", "datasets/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta/generation.yaml",
+        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/price_delta/athena_autocalls/bates_01__athena_autocalls_01__01_price_delta.json", "catalog/model/equity/markovian/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/recipe.yaml", "centered_crn", .01, 2U};
     return pricing::generate_equity_price_delta_dataset<true, false>(
         recipe, {offline::cuda_tuning::PricingFamily::equity_step_mc, "bates", "athena_autocall", ""},
         11668826660286758912ULL, model::equity::bates::load_models, product::load_athena_autocalls,

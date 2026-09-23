@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
         "datasets/product/down_and_in_option/down_and_in_options_01.json",
         "datasets/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01_cartesian.json",
-        "catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01_cartesian/dataset.yaml",
+        "catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01_cartesian/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01_cartesian.json",
         "Exact Gaussian log-price transitions",
         PriceConstruction::CartesianProduct,

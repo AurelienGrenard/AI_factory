@@ -19,7 +19,7 @@ int main() {
         "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
         "datasets/product/forward_start_option/forward_start_options_01.json",
         "datasets/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01.json",
-        "catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01/dataset.yaml",
+        "catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01/generation.yaml",
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01.json",
         "full-truncation Euler 3/2 variance",
         PriceConstruction::Aligned,
