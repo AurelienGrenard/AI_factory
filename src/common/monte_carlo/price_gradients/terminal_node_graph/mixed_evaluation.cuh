@@ -1,10 +1,9 @@
-// Device preparation and cooperative evaluation of terminal graph nodes.
+// Device preparation and cooperative evaluation of mixed terminal graph nodes.
 #pragma once
 
-#include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/dynamics_traits.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_row_preparation.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/terminal_node_evaluation.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/row_preparation.cuh"
+#include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
 
@@ -12,59 +11,58 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::monte_carlo::price_gradients {
-
-namespace pg = ::ai_factory::workbench::price_gradients;
-namespace preparation =
-    ::ai_factory::workbench::price_gradients::device_preparation;
 
 namespace node_graph_detail {
 
 template<
-    pg::SensitivityOrders Orders,
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
     std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
     typename Tuning,
     typename Inputs>
-__device__ __forceinline__ void evaluate_nodes_body(
+__device__ __forceinline__ void evaluate_mixed_nodes_body(
     Inputs inputs,
     DevicePreparedPlan plan,
+    pg::DeviceSensitivityGraph graph,
     std::size_t first_row,
     std::size_t row_count,
     std::size_t first_path,
     std::size_t path_count,
     std::size_t path_capacity,
-    TerminalNodeGraphWorkspace<
+    MixedTerminalNodeGraphWorkspace<
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
+    DevicePreparedMixedStencilOutputs mixed_stencil_outputs,
     std::uint64_t base_seed
 ) {
-    static_assert(pg::requests_second_v<Orders>);
     static_assert(tuning::valid_profile_v<Tuning>);
     static_assert(Tuning::kThreadsPerBlock % GroupSize == 0U);
-    constexpr std::size_t node_capacity =
-        terminal_node_graph_node_capacity<MaximumSensitivities>();
+    constexpr std::size_t node_capacity = mixed_node_graph_node_capacity<
+        MaximumSensitivities, MaximumMixedSensitivities
+    >();
     static_assert(GroupSize * NodesPerWorker >= node_capacity);
 
     using NodePolicy =
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>;
     using Scenario = typename Preparation::Scenario;
-    using Innovations = typename Dynamics::Innovations;
-    using InnovationsArray = Innovations[node_capacity];
 
     __shared__ Scenario scenarios[node_capacity];
     __shared__ typename Dynamics::Prepared dynamics[node_capacity];
     __shared__ pg::SensitivityStencil<4U>
         stencils[MaximumSensitivities];
     __shared__ SensitivityNodeIndices<4U>
-        node_indices[MaximumSensitivities];
+        axis_node_indices[MaximumSensitivities];
+    __shared__ pg::MixedSensitivityStencil
+        mixed_stencils[MaximumMixedSensitivities];
+    __shared__ MixedSensitivityNodeIndices
+        mixed_node_indices[MaximumMixedSensitivities];
     __shared__ std::uint16_t node_count;
     __shared__ std::uint32_t maximum_steps;
     __shared__ bool valid_row;
@@ -78,26 +76,26 @@ __device__ __forceinline__ void evaluate_nodes_body(
     if (threadIdx.x == 0U) {
         int error = preparation::valid;
         std::size_t error_sensitivity = 0U;
-        valid_row = plan.sensitivity_count > 0U
-            && plan.sensitivity_count <= MaximumSensitivities;
-        if (valid_row) {
-            valid_row = prepare_sensitivity_row<
-                Orders, decltype(inputs), Preparation, MaximumSensitivities
-            >(
-                inputs,
-                plan,
-                row,
-                scenarios,
-                stencils,
-                node_indices,
-                node_count,
-                maximum_steps,
-                error,
-                error_sensitivity
-            );
-        } else {
-            error = preparation::unsupported_order;
-        }
+        valid_row = prepare_mixed_sensitivity_row<
+            Inputs,
+            Preparation,
+            MaximumSensitivities,
+            MaximumMixedSensitivities
+        >(
+            inputs,
+            plan,
+            graph,
+            row,
+            scenarios,
+            stencils,
+            axis_node_indices,
+            mixed_stencils,
+            mixed_node_indices,
+            node_count,
+            maximum_steps,
+            error,
+            error_sensitivity
+        );
         if (valid_row) {
             key = philox::make_key(base_seed + row);
         } else {
@@ -118,9 +116,19 @@ __device__ __forceinline__ void evaluate_nodes_body(
                     stencil_outputs.stencils[
                         row * plan.sensitivity_count + sensitivity
                     ] = stencils[sensitivity];
-                    workspace.node_indices[
+                    workspace.axis_node_indices[
                         local_row * plan.sensitivity_count + sensitivity
-                    ] = node_indices[sensitivity];
+                    ] = axis_node_indices[sensitivity];
+                }
+                for (std::size_t pair = 0U;
+                     pair < graph.mixed_second_count;
+                     ++pair) {
+                    mixed_stencil_outputs.stencils[
+                        row * graph.mixed_second_count + pair
+                    ] = mixed_stencils[pair];
+                    workspace.mixed_node_indices[
+                        local_row * graph.mixed_second_count + pair
+                    ] = mixed_node_indices[pair];
                 }
             }
         }
@@ -136,7 +144,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
         );
         if (blockIdx.y == 0U) {
             workspace.node_metadata[
-                local_row * node_capacity + node
+                local_row * graph.node_capacity + node
             ] = NodePolicy::prepare_metadata(scenarios[node], plan.time);
         }
     }
@@ -158,7 +166,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
         first_path,
         path_count,
         path_capacity,
-        node_capacity,
+        graph.node_capacity,
         local_row,
         workspace,
         dynamic_shared
@@ -166,42 +174,44 @@ __device__ __forceinline__ void evaluate_nodes_body(
 }
 
 template<
-    pg::SensitivityOrders Orders,
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
     std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
     typename Tuning,
     typename Inputs>
-__global__ void evaluate_nodes_kernel(
+__global__ void evaluate_mixed_nodes_kernel(
     Inputs inputs,
     DevicePreparedPlan plan,
+    pg::DeviceSensitivityGraph graph,
     std::size_t first_row,
     std::size_t row_count,
     std::size_t first_path,
     std::size_t path_count,
     std::size_t path_capacity,
-    TerminalNodeGraphWorkspace<
+    MixedTerminalNodeGraphWorkspace<
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
+    DevicePreparedMixedStencilOutputs mixed_stencil_outputs,
     std::uint64_t base_seed
 ) {
-    evaluate_nodes_body<
-        Orders,
+    evaluate_mixed_nodes_body<
         Dynamics,
         ProductPolicy,
         Preparation,
         MaximumSensitivities,
+        MaximumMixedSensitivities,
         GroupSize,
         NodesPerWorker,
-        Tuning,
-        Inputs
+        Tuning
     >(
         inputs,
         plan,
+        graph,
         first_row,
         row_count,
         first_path,
@@ -209,57 +219,7 @@ __global__ void evaluate_nodes_kernel(
         path_capacity,
         workspace,
         stencil_outputs,
-        base_seed
-    );
-}
-
-template<
-    pg::SensitivityOrders Orders,
-    typename Dynamics,
-    typename ProductPolicy,
-    typename Preparation,
-    std::size_t MaximumSensitivities,
-    unsigned int GroupSize,
-    unsigned int NodesPerWorker,
-    typename Tuning,
-    typename Inputs>
-__global__ __launch_bounds__(
-    Tuning::kThreadsPerBlock,
-    Tuning::kMinimumBlocksPerMultiprocessor
-) void bounded_evaluate_nodes_kernel(
-    Inputs inputs,
-    DevicePreparedPlan plan,
-    std::size_t first_row,
-    std::size_t row_count,
-    std::size_t first_path,
-    std::size_t path_count,
-    std::size_t path_capacity,
-    TerminalNodeGraphWorkspace<
-        SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
-    > workspace,
-    DevicePreparedStencilOutputs<4U> stencil_outputs,
-    std::uint64_t base_seed
-) {
-    evaluate_nodes_body<
-        Orders,
-        Dynamics,
-        ProductPolicy,
-        Preparation,
-        MaximumSensitivities,
-        GroupSize,
-        NodesPerWorker,
-        Tuning,
-        Inputs
-    >(
-        inputs,
-        plan,
-        first_row,
-        row_count,
-        first_path,
-        path_count,
-        path_capacity,
-        workspace,
-        stencil_outputs,
+        mixed_stencil_outputs,
         base_seed
     );
 }

@@ -147,6 +147,15 @@ struct ScenarioDevicePreparation {
         }
     }
 
+    __host__ __device__ static bool finalize_scenario(
+        Scenario& row,
+        bool model_changed
+    ) {
+        row.reuse_central = !model_changed;
+        return ModelPreparation::valid(row.model)
+            && ProductPreparation::valid(row.product);
+    }
+
     __host__ __device__ static bool change_scenario(
         const Scenario& central,
         Parameter parameter,
@@ -156,11 +165,41 @@ struct ScenarioDevicePreparation {
     ) {
         row = central;
         write_parameter(parameter, row, endpoint);
-        row.reuse_central = parameter_owner(parameter)
-            != pg::SensitivityParameterOwner::model;
-        return ModelPreparation::valid(row.model)
-            && ProductPreparation::valid(row.product);
+        return finalize_scenario(
+            row,
+            parameter_owner(parameter)
+                == pg::SensitivityParameterOwner::model
+        );
     }
+
+    __host__ __device__ static bool change_scenario_pair(
+        const Scenario& central,
+        Parameter first_parameter,
+        float first_endpoint,
+        Parameter second_parameter,
+        float second_endpoint,
+        pg::TimeConfiguration,
+        Scenario& row
+    ) {
+        row = central;
+        write_parameter(first_parameter, row, first_endpoint);
+        write_parameter(second_parameter, row, second_endpoint);
+        return finalize_scenario(
+            row,
+            parameter_owner(first_parameter)
+                    == pg::SensitivityParameterOwner::model
+                || parameter_owner(second_parameter)
+                    == pg::SensitivityParameterOwner::model
+        );
+    }
+
+    __host__ __device__ static void finalize_mixed_scenario(
+        Parameter,
+        const Scenario&,
+        Parameter,
+        const Scenario&,
+        Scenario&
+    ) {}
 
     template<pg::SensitivityOrders Orders>
     __host__ __device__ static void finalize_task(
@@ -333,6 +372,16 @@ struct CurveScenarioDevicePreparation {
         }
     }
 
+    __host__ __device__ static bool finalize_scenario(
+        Scenario& row,
+        bool model_changed
+    ) {
+        row.reuse_central = !model_changed;
+        return ModelPreparation::valid(row.model)
+            && CurvePreparation::valid(row.curve)
+            && ProductPreparation::valid(row.product);
+    }
+
     __host__ __device__ static bool change_scenario(
         const Scenario& central,
         Parameter parameter,
@@ -342,12 +391,41 @@ struct CurveScenarioDevicePreparation {
     ) {
         row = central;
         write_parameter(parameter, row, endpoint);
-        row.reuse_central = parameter_owner(parameter)
-            != pg::SensitivityParameterOwner::model;
-        return ModelPreparation::valid(row.model)
-            && CurvePreparation::valid(row.curve)
-            && ProductPreparation::valid(row.product);
+        return finalize_scenario(
+            row,
+            parameter_owner(parameter)
+                == pg::SensitivityParameterOwner::model
+        );
     }
+
+    __host__ __device__ static bool change_scenario_pair(
+        const Scenario& central,
+        Parameter first_parameter,
+        float first_endpoint,
+        Parameter second_parameter,
+        float second_endpoint,
+        pg::TimeConfiguration,
+        Scenario& row
+    ) {
+        row = central;
+        write_parameter(first_parameter, row, first_endpoint);
+        write_parameter(second_parameter, row, second_endpoint);
+        return finalize_scenario(
+            row,
+            parameter_owner(first_parameter)
+                    == pg::SensitivityParameterOwner::model
+                || parameter_owner(second_parameter)
+                    == pg::SensitivityParameterOwner::model
+        );
+    }
+
+    __host__ __device__ static void finalize_mixed_scenario(
+        Parameter,
+        const Scenario&,
+        Parameter,
+        const Scenario&,
+        Scenario&
+    ) {}
 
     template<pg::SensitivityOrders Orders>
     __host__ __device__ static void finalize_task(

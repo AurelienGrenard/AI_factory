@@ -247,32 +247,34 @@ struct ScenarioDevicePreparation {
         }
     }
 
-    __host__ __device__ static bool change_scenario(
-        const Scenario& central,
+    __host__ __device__ static bool apply_parameter(
         Parameter parameter,
         float endpoint,
         pg::TimeConfiguration time,
         Scenario& row
     ) {
-        row = central;
         if (!is_maturity(parameter)) {
             write_parameter(parameter, row, endpoint);
-        } else {
-            const double step_value = static_cast<double>(endpoint)
-                / static_cast<double>(time.dt);
-            if (!preparation::finite(step_value) || step_value < 1.0
-                || step_value > static_cast<double>(0xffffffffU)) {
-                row.step_count = 0U;
-            } else {
-                row.step_count = static_cast<std::uint32_t>(
-                    ::llround(step_value)
-                );
-                if (static_cast<float>(row.step_count) * time.dt != endpoint) {
-                    row.step_count = 0U;
-                }
-            }
-            row.maturity_years = endpoint;
+            return true;
         }
+        const double step_value = static_cast<double>(endpoint)
+            / static_cast<double>(time.dt);
+        if (!preparation::finite(step_value) || step_value < 1.0
+            || step_value > static_cast<double>(0xffffffffU)) {
+            return false;
+        }
+        row.step_count = static_cast<std::uint32_t>(::llround(step_value));
+        if (static_cast<float>(row.step_count) * time.dt != endpoint) {
+            return false;
+        }
+        row.maturity_years = endpoint;
+        return true;
+    }
+
+    __host__ __device__ static bool finalize_scenario(
+        const Scenario& central,
+        Scenario& row
+    ) {
         if constexpr (ModelPreparation::kMultiplicativeSpot) {
             row.simulation_spot = central.model.spot;
             row.spot_scale = row.model.spot / central.model.spot;
@@ -287,6 +289,58 @@ struct ScenarioDevicePreparation {
         return ModelPreparation::valid(row.model)
             && ProductPreparation::valid(row.product)
             && row.step_count > 0U;
+    }
+
+    __host__ __device__ static bool change_scenario(
+        const Scenario& central,
+        Parameter parameter,
+        float endpoint,
+        pg::TimeConfiguration time,
+        Scenario& row
+    ) {
+        row = central;
+        return apply_parameter(parameter, endpoint, time, row)
+            && finalize_scenario(central, row);
+    }
+
+    __host__ __device__ static bool change_scenario_pair(
+        const Scenario& central,
+        Parameter first_parameter,
+        float first_endpoint,
+        Parameter second_parameter,
+        float second_endpoint,
+        pg::TimeConfiguration time,
+        Scenario& row
+    ) {
+        row = central;
+        return apply_parameter(first_parameter, first_endpoint, time, row)
+            && apply_parameter(
+                second_parameter, second_endpoint, time, row
+            )
+            && finalize_scenario(central, row);
+    }
+
+    __host__ __device__ static void finalize_mixed_scenario(
+        Parameter first_parameter,
+        const Scenario& first_row,
+        Parameter second_parameter,
+        const Scenario& second_row,
+        Scenario& mixed_row
+    ) {
+        if constexpr (EnableMaturitySensitivity) {
+            const Scenario* maturity_row = nullptr;
+            if (is_maturity(first_parameter)) {
+                maturity_row = &first_row;
+            } else if (is_maturity(second_parameter)) {
+                maturity_row = &second_row;
+            }
+            if (maturity_row != nullptr) {
+                for (std::size_t normal = 0U; normal < 3U; ++normal) {
+                    mixed_row.normal_weights[normal] =
+                        maturity_row->normal_weights[normal];
+                }
+            }
+        }
     }
 
     template<pg::SensitivityOrders Orders>

@@ -3,6 +3,7 @@
 
 #include "common/price_construction.cuh"
 #include "common/price_gradients/device_prepared_launch.cuh"
+#include "common/price_gradients/sensitivity_graph_plan.hpp"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 
 #include <span>
@@ -40,6 +41,7 @@ struct DevicePreparedSensitivityPlan {
     std::vector<Product> products;
     std::vector<SensitivitySpec> sensitivities;
     std::size_t result_count;
+    SensitivityGraphPlan sensitivity_graph;
 
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
@@ -72,6 +74,7 @@ struct CurveDevicePreparedSensitivityPlan {
     std::vector<Product> products;
     std::vector<SensitivitySpec> sensitivities;
     std::size_t result_count;
+    SensitivityGraphPlan sensitivity_graph;
 
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
@@ -103,17 +106,25 @@ Plan prepare_device_sensitivities(
     std::vector<typename Plan::SensitivitySpec> sensitivities;
     sensitivities.reserve(configuration.sensitivities.size());
     for (const auto& sensitivity : configuration.sensitivities) {
-        const auto parameter = Preparation::resolve_parameter(
-            sensitivity.parameter
-        );
-        if (request.orders != SensitivityOrders::first
-            && Preparation::is_maturity(parameter)
+        sensitivities.push_back({
+            Preparation::resolve_parameter(sensitivity.parameter),
+            sensitivity.bump,
+        });
+    }
+    auto sensitivity_graph = make_sensitivity_graph_plan(
+        request, sensitivities.size()
+    );
+    for (std::size_t index = 0U; index < sensitivities.size(); ++index) {
+        if (has_coordinate_use(
+                sensitivity_graph.coordinate_uses[index],
+                SensitivityCoordinateUse::diagonal_second
+            )
+            && Preparation::is_maturity(sensitivities[index].parameter)
             && !Preparation::ModelAdapter::kSupportsMaturityDiagonal) {
             throw std::invalid_argument(
                 "Maturity diagonal sensitivity is not supported."
             );
         }
-        sensitivities.push_back({parameter, sensitivity.bump});
     }
     for (std::size_t row = 0U; row < rows; ++row) {
         const auto model_index = construction == PriceConstruction::Aligned
@@ -140,6 +151,7 @@ Plan prepare_device_sensitivities(
         {products.begin(), products.end()},
         std::move(sensitivities),
         rows,
+        std::move(sensitivity_graph),
     };
 }
 
@@ -169,17 +181,25 @@ Plan prepare_curve_device_sensitivities(
     std::vector<typename Plan::SensitivitySpec> sensitivities;
     sensitivities.reserve(configuration.sensitivities.size());
     for (const auto& sensitivity : configuration.sensitivities) {
-        const auto parameter = Preparation::resolve_parameter(
-            sensitivity.parameter
-        );
-        if (request.orders != SensitivityOrders::first
-            && Preparation::is_maturity(parameter)
+        sensitivities.push_back({
+            Preparation::resolve_parameter(sensitivity.parameter),
+            sensitivity.bump,
+        });
+    }
+    auto sensitivity_graph = make_sensitivity_graph_plan(
+        request, sensitivities.size()
+    );
+    for (std::size_t index = 0U; index < sensitivities.size(); ++index) {
+        if (has_coordinate_use(
+                sensitivity_graph.coordinate_uses[index],
+                SensitivityCoordinateUse::diagonal_second
+            )
+            && Preparation::is_maturity(sensitivities[index].parameter)
             && !Preparation::ModelAdapter::kSupportsMaturityDiagonal) {
             throw std::invalid_argument(
                 "Maturity diagonal sensitivity is not supported."
             );
         }
-        sensitivities.push_back({parameter, sensitivity.bump});
     }
     for (std::size_t row = 0U; row < rows; ++row) {
         const auto indices = decode_model_curve_product_result_index(
@@ -208,6 +228,7 @@ Plan prepare_curve_device_sensitivities(
         {products.begin(), products.end()},
         std::move(sensitivities),
         rows,
+        std::move(sensitivity_graph),
     };
 }
 

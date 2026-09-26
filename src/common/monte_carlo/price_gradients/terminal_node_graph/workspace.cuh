@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/check_cuda.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/price_gradients/sensitivity_request.hpp"
 #include "common/reductions.cuh"
 
@@ -16,21 +17,6 @@
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
-
-template<std::size_t NodeCapacity>
-struct SensitivityNodeIndices {
-    std::uint16_t values[NodeCapacity]{};
-
-    __host__ __device__ std::uint16_t& operator[](std::size_t index) {
-        return values[index];
-    }
-
-    __host__ __device__ std::uint16_t operator[](
-        std::size_t index
-    ) const {
-        return values[index];
-    }
-};
 
 struct TerminalNodeGraphConfiguration {
     std::size_t row_chunk_size = 1U;
@@ -326,7 +312,6 @@ void validate_terminal_node_graph_workspace(
     );
 }
 
-static_assert(std::is_trivially_copyable_v<SensitivityNodeIndices<4U>>);
 static_assert(std::is_trivially_copyable_v<TerminalNodeGraphConfiguration>);
 
 }  // namespace ai_factory::workbench::monte_carlo::price_gradients
