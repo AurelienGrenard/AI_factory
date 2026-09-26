@@ -22,7 +22,7 @@ int main() {
         "schobel_zhu_01__american_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/schobel_zhu/prices/american_calls/"
         "schobel_zhu_01__american_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/schobel_zhu/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/prices/"
         "american_calls/schobel_zhu_01__american_calls_01__01_cartesian.json",
         "exact OU factor with log-spot Euler + Longstaff-Schwartz",
         PriceConstruction::CartesianProduct,

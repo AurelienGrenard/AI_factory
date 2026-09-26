@@ -234,6 +234,7 @@ template<
     typename Prepare,
     typename FirstLauncher,
     typename DiagonalLauncher,
+    typename NodeGraphLauncher,
     typename LegacyLauncher
 >
 void verify_model(
@@ -249,6 +250,7 @@ void verify_model(
     Prepare&& prepare,
     FirstLauncher&& first_launcher,
     DiagonalLauncher&& diagonal_launcher,
+    NodeGraphLauncher&& node_graph_launcher,
     LegacyLauncher&& legacy_launcher
 ) {
     constexpr unsigned int threads = 128U;
@@ -392,6 +394,52 @@ void verify_model(
         "American diagonal request changed price or gradient outputs."
     );
     require_finite(diagonal, model_name);
+
+    const auto node_graph = execute<
+        pg::SensitivityOrders::first_and_second
+    >(
+        diagonal_plan,
+        paths,
+        threads,
+        blocks,
+        seed,
+        node_graph_launcher
+    );
+    const auto require_same_values = [](
+        const std::vector<float>& actual,
+        const std::vector<float>& expected,
+        const char* message
+    ) {
+        require(actual.size() == expected.size(), message);
+        for (std::size_t index = 0U; index < actual.size(); ++index) {
+            same(actual[index], expected[index], message);
+        }
+    };
+    require_same_values(
+        node_graph.prices, diagonal.prices,
+        "American mono/node_graph prices differ."
+    );
+    require_same_values(
+        node_graph.price_errors, diagonal.price_errors,
+        "American mono/node_graph price errors differ."
+    );
+    require_same_values(
+        node_graph.gradients, diagonal.gradients,
+        "American mono/node_graph gradients differ."
+    );
+    require_same_values(
+        node_graph.gradient_errors, diagonal.gradient_errors,
+        "American mono/node_graph gradient errors differ."
+    );
+    require_same_values(
+        node_graph.diagonal_hessians, diagonal.diagonal_hessians,
+        "American mono/node_graph diagonal Hessians differ."
+    );
+    require_same_values(
+        node_graph.diagonal_hessian_errors,
+        diagonal.diagonal_hessian_errors,
+        "American mono/node_graph diagonal Hessian errors differ."
+    );
 }
 
 }  // namespace price_gradient_test::american

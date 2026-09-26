@@ -16,6 +16,18 @@ struct DevicePreparedFixedStepFrozenExerciseReplay {
     static constexpr std::size_t kEndpointCapacity = NodeCapacity - 1U;
     using Dynamics = CoupledDynamics;
     using Metadata = FrozenExerciseNodeMetadata<NodeCapacity>;
+    using GraphPrepared = typename Dynamics::Prepared;
+    static constexpr bool kExactTransitionReplay = false;
+
+    template<typename Scenario>
+    __device__ __forceinline__ static GraphPrepared prepare_graph_node(
+        const Scenario& scenario,
+        FrozenExerciseReplayTime time
+    ) {
+        auto model = scenario.model;
+        model.spot = scenario.simulation_spot;
+        return Dynamics::prepare(model, time.numerical_step);
+    }
 
     struct Prepared {
         // The central dynamics anchors parameter-dependent random variables

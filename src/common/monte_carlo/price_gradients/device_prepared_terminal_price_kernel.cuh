@@ -3,6 +3,8 @@
 
 #include "common/cuda_kernel_diagnostics.cuh"
 #include "common/philox.cuh"
+#include "common/monte_carlo/price_gradients/coupled_terminal_simulation.cuh"
+#include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/price_gradients/device_prepared_validation.hpp"
 #include "common/price_gradients/row_mapping.cuh"
 #include "common/reductions.cuh"
@@ -26,43 +28,23 @@ namespace detail {
 template<typename Dynamics, typename ProductPolicy, typename Preparation>
 struct CentralTerminalPolicy {
     using Scenario = typename Preparation::Scenario;
+    using NodePolicy = SelectedTerminalNodePolicy<
+        Dynamics, ProductPolicy, Preparation
+    >;
 
     struct PreparedRow {
         typename Dynamics::Prepared dynamics;
-        typename ProductPolicy::PreparedProduct product;
+        typename NodePolicy::Metadata metadata;
         Scenario input;
-    };
-
-    struct Observation {
-        struct State {
-            float unscaled_spot;
-            float scale;
-        };
-
-        __device__ __forceinline__ static float spot(const State& state) {
-            return state.unscaled_spot * state.scale;
-        }
     };
 
     __device__ __forceinline__ static PreparedRow prepare(
         const Scenario& input,
         pg::TimeConfiguration time
     ) {
-        auto model = input.model;
-        model.spot = input.simulation_spot;
-        const float horizon = Dynamics::kExactTerminal
-            ? input.maturity_years
-            : time.dt;
         return {
-            Dynamics::prepare(model, horizon),
-            ProductPolicy::prepare_product(
-                input.model,
-                input.product,
-                {
-                    static_cast<float>(time.simulation_steps_per_day) * time.dt,
-                    input.maturity_years,
-                }
-            ),
+            NodePolicy::prepare_dynamics(input, time),
+            NodePolicy::prepare_metadata(input, time),
             input,
         };
     }
@@ -72,48 +54,32 @@ struct CentralTerminalPolicy {
         philox::PhiloxKey key,
         std::size_t path
     ) {
-        auto state = Dynamics::initial(row.dynamics);
-        typename Dynamics::RandomContext random(key, path);
-        if constexpr (Dynamics::kExactTerminal) {
-            const auto innovations = [&] {
-                if constexpr (requires {
-                                  Dynamics::draw(random, row.dynamics);
-                              }) {
-                    return Dynamics::draw(random, row.dynamics);
-                } else {
-                    return Dynamics::draw(random);
-                }
-            }();
-            Dynamics::transition(
-                row.dynamics,
-                innovations,
-                row.input.normal_weights,
-                state
-            );
-        } else {
-            for (std::uint32_t step = 0U;
-                 step < row.input.step_count;
-                 ++step) {
-                const auto innovations = Dynamics::draw(random);
-                Dynamics::transition(
-                    row.dynamics, innovations, nullptr, state
-                );
-            }
-        }
-        const auto handler = ProductPolicy::make_handler(row.product);
-        const typename Observation::State terminal{
-            Dynamics::spot(state),
-            row.input.spot_scale,
+        typename Dynamics::Prepared prepared[1U]{row.dynamics};
+        typename Dynamics::State states[1U]{
+            Dynamics::initial(row.dynamics)
         };
-        return ProductPolicy::template finalize<Observation>(
-            row.product, terminal, handler
+        typename Dynamics::RandomContext random(key, path);
+        simulate_coupled_terminal_nodes<1U, Dynamics>(
+            random,
+            prepared,
+            1U,
+            row.input.step_count,
+            [](unsigned int) { return true; },
+            [&](unsigned int) { return row.input.step_count; },
+            [&](unsigned int) { return row.input.normal_weights; },
+            [&](unsigned int node) -> typename Dynamics::State& {
+                return states[node];
+            }
+        );
+        return NodePolicy::payoff(
+            row.metadata, NodePolicy::observe(states[0U])
         );
     }
 };
 
-template<typename Dynamics, typename ProductPolicy, typename Preparation>
+template<typename Dynamics, typename ProductPolicy, typename Preparation, typename Inputs>
 __global__ void terminal_price_kernel(
-    DevicePreparedInputs<Preparation> inputs,
+    Inputs inputs,
     DevicePreparedPlan plan,
     pg::LaunchConfiguration launch,
     pg::Outputs outputs,
@@ -131,16 +97,8 @@ __global__ void terminal_price_kernel(
          local_row += gridDim.x) {
         const std::size_t row = launch.result_offset + local_row;
         if (threadIdx.x == 0U) {
-            const auto indices = pg::price_row_indices(
-                row, plan.construction, plan.product_count
-            );
             typename Preparation::Scenario central{};
-            valid_row = Preparation::make_central(
-                inputs.models[indices.model],
-                inputs.products[indices.product],
-                plan.time,
-                central
-            );
+            valid_row = inputs.make_central(row, plan, central);
             if (valid_row) {
                 prepared = Policy::prepare(central, plan.time);
                 key = philox::make_key(base_seed + row);
@@ -221,7 +179,8 @@ void launch_device_prepared_terminal_prices(
     const auto function = detail::terminal_price_kernel<
         Dynamics,
         ProductPolicy,
-        typename HostPlan::Preparation
+        typename HostPlan::Preparation,
+        typename HostPlan::DeviceInputs
     >;
     const std::size_t shared = 2U
         * (configuration.threads_per_block / 32U) * sizeof(double);

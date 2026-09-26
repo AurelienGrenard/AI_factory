@@ -22,7 +22,7 @@ int main() {
         "heston_01__american_puts_01__01.json",
         "catalog/model/equity/markovian/heston/prices/american_puts/"
         "heston_01__american_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/heston/prices/"
         "american_puts/heston_01__american_puts_01__01.json",
         "Andersen QE-M + Longstaff-Schwartz",
         PriceConstruction::Aligned,

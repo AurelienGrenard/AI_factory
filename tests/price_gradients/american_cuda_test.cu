@@ -54,7 +54,8 @@ GradientRun execute(
     unsigned int threads,
     std::size_t blocks,
     std::uint64_t seed,
-    bool split = false
+    bool split = false,
+    bool node_graph = false
 ) {
     constexpr std::size_t node_capacity =
         pg::SensitivityTraits<Orders>::node_capacity;
@@ -119,6 +120,18 @@ GradientRun execute(
         seed,
         1U,
     };
+    std::size_t node_graph_workspace_bytes = 0U;
+    if constexpr (pg::requests_second_v<Orders>) {
+        if (node_graph) {
+            node_graph_workspace_bytes =
+                heston::heston_american_option_node_graph_workspace_bytes<
+                    Side, Orders
+                >(plan, launch);
+        }
+    }
+    DeviceArray<std::uint8_t> node_graph_workspace(
+        node_graph_workspace_bytes
+    );
     const auto invoke = [&](const auto& configuration) {
         if constexpr (Orders == pg::SensitivityOrders::first) {
             return heston::launch_heston_american_option_price_gradients_cuda<
@@ -138,6 +151,21 @@ GradientRun execute(
                 }
             );
         } else {
+            if (node_graph) {
+                return heston::
+                    launch_heston_american_option_node_graph_sensitivities_cuda<
+                        Side,
+                        Orders
+                    >(
+                        plan,
+                        inputs,
+                        stencil_outputs,
+                        configuration,
+                        outputs,
+                        node_graph_workspace.data,
+                        node_graph_workspace.count
+                    );
+            }
             return heston::
                 launch_heston_american_option_diagonal_sensitivities_cuda<
                     Side,
@@ -360,6 +388,22 @@ void run() {
             pg::SensitivityOrders::first_and_second,
             Side
         >(diagonal_plan, paths, threads, blocks, seed);
+        const auto node_graph_diagonal = execute<
+            pg::SensitivityOrders::first_and_second,
+            Side
+        >(diagonal_plan, paths, threads, blocks, seed, false, true);
+        require(
+            node_graph_diagonal.prices == diagonal.prices
+                && node_graph_diagonal.price_errors == diagonal.price_errors
+                && node_graph_diagonal.gradients == diagonal.gradients
+                && node_graph_diagonal.gradient_errors
+                    == diagonal.gradient_errors
+                && node_graph_diagonal.diagonal_hessians
+                    == diagonal.diagonal_hessians
+                && node_graph_diagonal.diagonal_hessian_errors
+                    == diagonal.diagonal_hessian_errors,
+            "American mono and node_graph sensitivities differ."
+        );
         require(
             diagonal.prices == extended.prices
                 && diagonal.price_errors == extended.price_errors,

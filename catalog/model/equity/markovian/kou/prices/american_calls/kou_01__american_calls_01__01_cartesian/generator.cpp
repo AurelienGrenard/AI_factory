@@ -21,7 +21,7 @@ int main() {
         "kou_01__american_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/kou/prices/american_calls/"
         "kou_01__american_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/kou/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/kou/prices/"
         "american_calls/kou_01__american_calls_01__01_cartesian.json",
         "Exact Kou increments + Longstaff-Schwartz",
         PriceConstruction::CartesianProduct,

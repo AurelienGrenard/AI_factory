@@ -8,6 +8,7 @@
 #include "model/equity/markovian/bates/price_gradients/device_preparation.cuh"
 #include "product/european_option/price_gradients/device_preparation.cuh"
 
+#include <cstddef>
 #include <span>
 
 namespace ai_factory::workbench::model::equity::bates {
@@ -96,5 +97,24 @@ void launch_bates_european_option_diagonal_sensitivities_cuda(
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
 );
+
+// Public workspace and launch surface for terminal node-graph sensitivities.
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t bates_european_option_node_graph_workspace_bytes(
+    const EuropeanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+void launch_bates_european_option_node_graph_sensitivities_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
 
 }  // namespace ai_factory::workbench::model::equity::bates

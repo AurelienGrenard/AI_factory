@@ -26,10 +26,11 @@ namespace preparation =
 template<
     pg::SensitivityOrders Orders,
     typename Policy,
-    typename Preparation
+    typename Preparation,
+    typename Inputs
 >
 __global__ void device_prepared_cooperative_kernel(
-    mcpg::DevicePreparedInputs<Preparation> inputs,
+    Inputs inputs,
     mcpg::DevicePreparedPlan plan,
     pg::LaunchConfiguration launch,
     pg::SensitivityOutputs outputs,
@@ -60,15 +61,7 @@ __global__ void device_prepared_cooperative_kernel(
          launch_index += gridDim.x) {
         const std::size_t row = launch.result_offset + launch_index;
         if (threadIdx.x == 0U) {
-            const auto indices = pg::price_row_indices(
-                row, plan.construction, plan.product_count
-            );
-            valid = Preparation::make_central(
-                inputs.models[indices.model],
-                inputs.products[indices.product],
-                plan.time,
-                central
-            );
+            valid = inputs.make_central(row, plan, central);
             if (valid) {
                 prepared = Policy::prepare(central);
             } else {
@@ -235,7 +228,8 @@ bool launch_device_prepared_cooperative(
     const auto function = device_prepared_cooperative_kernel<
         Orders,
         Policy,
-        typename HostPlan::Preparation
+        typename HostPlan::Preparation,
+        typename HostPlan::DeviceInputs
     >;
     const std::size_t shared =
         Policy::required_shared_memory_bytes(workspace_capacity);

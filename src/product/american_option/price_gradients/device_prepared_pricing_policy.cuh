@@ -37,12 +37,15 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
     static_assert(Orders != pg::SensitivityOrders::none);
     static constexpr std::size_t kNodeCapacity =
         pg::SensitivityTraits<Orders>::node_capacity;
+    static constexpr pg::SensitivityOrders request_orders = Orders;
     static constexpr bool kCanExerciseAtInitialTime = true;
     using Base = AmericanOptionPricingPolicy<
         SchedulePolicy, Side, Continuation
     >;
     using Schedule = SchedulePolicy;
     using Preparation = PreparationPolicy;
+    using Replay = ReplayPolicy;
+    static constexpr OptionSide kSide = Side;
     using ModelParameters = typename Base::ModelParameters;
     using ProductParameters = typename Base::ProductParameters;
     using TimeConfiguration = typename Base::TimeConfiguration;

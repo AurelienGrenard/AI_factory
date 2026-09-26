@@ -4,7 +4,7 @@
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/pricing/price_gradients/generation.cuh"
 
-int main() {
+int main(int argc, char** argv) {
     using namespace ai_factory::workbench;
     namespace pg = price_gradients;
     namespace model_namespace = model::fixed_income::g2;
@@ -26,6 +26,9 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true,
             pg::SensitivityOrders::first_and_second
         };
+        recipe.sensitivity_strategy =
+            offline::pricing::price_gradients::
+                sensitivity_strategy_from_arguments(argc, argv);
         const auto models =
             model::fixed_income::g2::load_models(recipe.model_input);
         const auto products =
@@ -44,21 +47,8 @@ int main() {
                     {pg::SensitivityOrders::first_and_second}
                 );
         };
-        const auto launch = [](
-            const auto& plan,
-            auto inputs,
-            auto stencils,
-            const auto& configuration,
-            auto outputs
-        ) {
-            return model_namespace::
-                launch_g2_bermudan_swaption_diagonal_sensitivities_cuda<
-                    SwaptionSide::payer,
-                    pg::SensitivityOrders::first_and_second
-                >(plan, inputs, stencils, configuration, outputs);
-        };
-        return offline::pricing::price_gradients::execute_dataset<
-            true,
+        return offline::pricing::price_gradients::
+            execute_node_graph_dataset<
             pg::SensitivityOrders::first_and_second
         >(
             recipe,
@@ -72,7 +62,21 @@ int main() {
             models,
             products,
             prepare,
-            launch,
+            model_namespace::
+                launch_g2_bermudan_swaption_diagonal_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >,
+            model_namespace::
+                g2_bermudan_swaption_node_graph_workspace_bytes<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >,
+            model_namespace::
+                launch_g2_bermudan_swaption_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >,
             offline::cuda_tuning::kProductionPathsPerPrice,
             model_namespace::
                 prepare_bermudan_swaption_diagonal_sensitivity_stencils_cuda

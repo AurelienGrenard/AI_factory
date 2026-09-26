@@ -149,6 +149,8 @@ class CapabilityManifestTest(unittest.TestCase):
             "european_option",
             "asset_or_nothing_option",
             "digital_option",
+            "gap_option",
+            "straddle",
         }
         step_models = {
             "bates", "cev", "heston", "heston_3_2", "sabr", "schobel_zhu",
@@ -167,11 +169,60 @@ class CapabilityManifestTest(unittest.TestCase):
             }
             for product in terminal_products
         })
+        path_products = {
+            "asian_option", "athena_autocall", "cliquet",
+            "double_knock_out_option", "down_and_in_option",
+            "down_and_out_option", "forward_start_option",
+            "geometric_asian_option", "lookback_option",
+            "phoenix_autocall", "phoenix_memory_autocall", "range_accrual",
+            "up_and_in_option", "up_and_out_option", "up_no_touch",
+            "up_one_touch",
+        }
         expected.update({
-            ("black_scholes", None, "european_option"):
-                "device_prepared_closed_form_terminal",
-            ("cir", None, "european_swaption"):
-                "device_prepared_cooperative_closed_form",
+            (binding.model, None, binding.product): "device_prepared_path"
+            for binding in PRODUCT_BINDING_SPECS
+            if binding.asset_class == "equity"
+            and binding.engine == "equity_markovian"
+            and binding.product in path_products
+        })
+        expected.update({
+            ("black_scholes", None, product):
+                "device_prepared_closed_form_terminal"
+            for product in terminal_products
+        })
+        expected.update({
+            ("black_scholes", None, product):
+                "device_prepared_closed_form_path"
+            for product in {
+                "forward_start_option", "geometric_asian_option",
+                "range_accrual",
+            }
+        })
+        expected.update({
+            (binding.model, binding.curve, "european_swaption"):
+                "device_prepared_cooperative_closed_form"
+            for binding in PRODUCT_BINDING_SPECS
+            if binding.asset_class == "fixed_income"
+            and binding.engine == "fixed_income_closed_form"
+            and binding.product == "european_swaption"
+        })
+        expected.update({
+            (binding.model, binding.curve, binding.product):
+                "device_prepared_scalar_closed_form"
+            for binding in PRODUCT_BINDING_SPECS
+            if binding.asset_class == "fixed_income"
+            and binding.engine == "fixed_income_closed_form"
+            and binding.product in {
+                "rate_option", "zero_coupon_bond_option",
+            }
+        })
+        expected.update({
+            (binding.model, binding.curve, "european_swaption"):
+                "device_prepared_fixed_income_monte_carlo"
+            for binding in PRODUCT_BINDING_SPECS
+            if binding.asset_class == "fixed_income"
+            and binding.engine == "fixed_income_monte_carlo"
+            and binding.product == "european_swaption"
         })
         expected.update({
             (model, None, "american_option"): "device_prepared_lsm"

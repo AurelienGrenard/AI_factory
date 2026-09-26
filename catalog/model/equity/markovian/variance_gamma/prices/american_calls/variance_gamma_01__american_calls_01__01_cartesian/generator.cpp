@@ -21,7 +21,7 @@ int main() {
         "variance_gamma_01__american_calls_01__01_cartesian.json",
         "catalog/model/equity/markovian/variance_gamma/prices/american_calls/"
         "variance_gamma_01__american_calls_01__01_cartesian/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/variance_gamma/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/prices/"
         "american_calls/variance_gamma_01__american_calls_01__01_cartesian.json",
         "Exact Gamma subordination + Longstaff-Schwartz",
         PriceConstruction::CartesianProduct,

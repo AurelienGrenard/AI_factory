@@ -9,10 +9,13 @@
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
 #include "model/equity/markovian/black_scholes/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
+#include "product/american_option/price_gradients/device_prepared_frozen_exercise_node_graph.cuh"
 #include "product/american_option/price_gradients/device_prepared_pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {
 namespace {
+
+namespace mcpg = ::ai_factory::workbench::monte_carlo::price_gradients;
 
 using Schedule = simulation::ExactTransitionMaturityAlignedExerciseSchedule<
     black_scholes::DynamicsPolicy
@@ -31,6 +34,18 @@ using Policy = product::AmericanOptionDevicePreparedSensitivityPolicy<
     Replay<Side, Orders>,
     typename AmericanOptionPriceGradientPlan::Preparation,
     Orders
+>;
+constexpr std::size_t kNodeGraphMaximumSensitivities = 5U;
+constexpr unsigned int kNodeGraphGroupSize = 8U;
+constexpr unsigned int kNodeGraphNodesPerWorker = 2U;
+using NodeGraphTuning = mcpg::tuning::DefaultTerminalNodeTuning;
+template<OptionSide Side, pg::SensitivityOrders Orders>
+using NodeGraphPolicy = american_option_pg::FrozenExerciseNodeGraphPolicy<
+    Policy<Side, Orders>,
+    kNodeGraphMaximumSensitivities,
+    kNodeGraphGroupSize,
+    kNodeGraphNodesPerWorker,
+    NodeGraphTuning
 >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
     longstaff_schwartz::basis::LaguerrePolynomialTwoFactorBasis,
@@ -140,6 +155,56 @@ launch_black_scholes_american_option_diagonal_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t black_scholes_american_option_node_graph_workspace_bytes(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    static_assert(pg::requests_second_v<Orders>);
+    return lspg::frozen_exercise_node_graph_workspace_bytes<
+        Orders,
+        kNodeGraphMaximumSensitivities,
+        kNodeGraphGroupSize,
+        kNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(host, configuration);
+}
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_node_graph_sensitivities_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    static_assert(pg::requests_second_v<Orders>);
+    return lspg::launch_device_prepared_node_graph_sensitivities<
+        Orders,
+        NodeGraphPolicy<Side, Orders>,
+        Regressor,
+        kNodeGraphMaximumSensitivities,
+        kNodeGraphGroupSize,
+        kNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(
+        host,
+        device,
+        stencil_outputs,
+        launch,
+        outputs,
+        workspace,
+        workspace_bytes,
+        "black_scholes.american_option.sensitivities",
+        Side == OptionSide::call
+            ? "call/nodes=graph" : "put/nodes=graph",
+        "black_scholes American node-graph sensitivities"
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(SIDE) \
     template longstaff_schwartz::LaunchResult \
     launch_black_scholes_american_option_price_gradients_cuda<SIDE>( \
@@ -160,7 +225,33 @@ launch_black_scholes_american_option_diagonal_sensitivities_cuda(
         const AmericanOptionPriceGradientPlan&, \
         AmericanOptionPriceGradientPlan::DeviceInputs, \
         AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
+    template std::size_t \
+    black_scholes_american_option_node_graph_workspace_bytes< \
+        SIDE, pg::SensitivityOrders::second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        const pg::LaunchConfiguration&); \
+    template std::size_t \
+    black_scholes_american_option_node_graph_workspace_bytes< \
+        SIDE, pg::SensitivityOrders::first_and_second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        const pg::LaunchConfiguration&); \
+    template longstaff_schwartz::LaunchResult \
+    launch_black_scholes_american_option_node_graph_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs, \
+        void*, std::size_t); \
+    template longstaff_schwartz::LaunchResult \
+    launch_black_scholes_american_option_node_graph_sensitivities_cuda< \
+        SIDE, pg::SensitivityOrders::first_and_second>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs, \
+        void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::call);
 AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::put);

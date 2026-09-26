@@ -564,6 +564,44 @@ void check_g2() {
                 >(p, inputs, stencils, launch, outputs);
         }
     );
+    const Results node_graph = execute_standalone<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(pg::SensitivityOrders::first_and_second),
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            const auto bytes =
+                g2::g2_bermudan_swaption_node_graph_workspace_bytes<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(p, launch);
+            DeviceArray<std::uint8_t> workspace(bytes);
+            return g2::
+                launch_g2_bermudan_swaption_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p,
+                    inputs,
+                    stencils,
+                    launch,
+                    outputs,
+                    workspace.data,
+                    workspace.count
+                );
+        }
+    );
+    require_same_first_order(
+        diagonal,
+        node_graph,
+        "G2 Bermudan mono and node_graph first-order outputs differ."
+    );
+    require(
+        diagonal.hessians == node_graph.hessians
+            && diagonal.hessian_errors == node_graph.hessian_errors,
+        "G2 Bermudan mono and node_graph diagonal Hessians differ."
+    );
+
     const Results central = execute_central_standalone(
         models,
         [&](auto device_models, auto device_products,
@@ -644,6 +682,39 @@ void check_cir_plus_plus_nelson_siegel() {
                 >(p, inputs, stencils, launch, outputs);
         }
     );
+    const Results node_graph = execute_curve<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(pg::SensitivityOrders::first_and_second),
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            const auto bytes = fitted::
+                cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_workspace_bytes<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(p, launch);
+            DeviceArray<std::uint8_t> workspace(bytes);
+            return fitted::
+                launch_cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        }
+    );
+    require_same_first_order(
+        diagonal,
+        node_graph,
+        "CIR++/Nelson-Siegel Bermudan mono and node_graph first-order outputs differ."
+    );
+    require(
+        diagonal.hessians == node_graph.hessians
+            && diagonal.hessian_errors == node_graph.hessian_errors,
+        "CIR++/Nelson-Siegel Bermudan mono and node_graph diagonal Hessians differ."
+    );
+
     const Results central = execute_central_curve(
         models,
         curves,

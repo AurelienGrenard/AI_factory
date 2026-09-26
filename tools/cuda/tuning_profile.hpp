@@ -50,6 +50,33 @@
 #ifndef AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS
 #define AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS 256
 #endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS 0
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_THREADS_PER_BLOCK
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_THREADS_PER_BLOCK 128
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_MIN_BLOCKS_PER_SM
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_MIN_BLOCKS_PER_SM 6
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_THREADS_PER_BLOCK
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_THREADS_PER_BLOCK 128
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_MIN_BLOCKS_PER_SM
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_MIN_BLOCKS_PER_SM 6
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_ROW_CHUNK_SIZE
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_ROW_CHUNK_SIZE 16
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_PATH_CHUNK_SIZE
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_PATH_CHUNK_SIZE 65536
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_WORKSPACE_MIB
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_WORKSPACE_MIB 512
+#endif
+#ifndef AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_RESIDENT_WAVES
+#define AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_RESIDENT_WAVES 4
+#endif
 
 namespace ai_factory::workbench::offline::cuda_tuning {
 
@@ -79,6 +106,26 @@ inline constexpr unsigned int kVolterraPricingPathThreads =
     AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS;
 inline constexpr unsigned int kVolterraPricingFinalizationThreads =
     AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS;
+inline constexpr bool kPriceGradientLaunchBounds =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS != 0;
+inline constexpr unsigned int kPriceGradientMonoThreadsPerBlock =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_THREADS_PER_BLOCK;
+inline constexpr unsigned int kPriceGradientMonoMinBlocksPerSm =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_MIN_BLOCKS_PER_SM;
+inline constexpr unsigned int kPriceGradientNodeThreadsPerBlock =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_THREADS_PER_BLOCK;
+inline constexpr unsigned int kPriceGradientNodeMinBlocksPerSm =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_MIN_BLOCKS_PER_SM;
+inline constexpr std::size_t kPriceGradientNodeRowChunkSize =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_ROW_CHUNK_SIZE;
+inline constexpr std::size_t kPriceGradientNodePathChunkSize =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_PATH_CHUNK_SIZE;
+inline constexpr std::size_t kPriceGradientNodeWorkspaceBytes =
+    static_cast<std::size_t>(
+        AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_WORKSPACE_MIB
+    ) * 1024U * 1024U;
+inline constexpr unsigned int kPriceGradientNodeResidentWaves =
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_RESIDENT_WAVES;
 
 // Production pricing precision is independent of geometry and FFT chunk size.
 // Smoke tests, warmups and reference experiments supply their own path counts.
@@ -212,6 +259,24 @@ inline PricingProfile pricing_profile(PricingIdentity identity, std::size_t pric
     return profile;
 }
 
+inline nlohmann::ordered_json price_gradient_launch_bounds_metadata() {
+    return {
+        {"enabled", kPriceGradientLaunchBounds},
+        {"mono", {
+            {"threads_per_block", kPriceGradientMonoThreadsPerBlock},
+            {"minimum_blocks_per_sm", kPriceGradientMonoMinBlocksPerSm},
+        }},
+        {"node_evaluation", {
+            {"threads_per_block", kPriceGradientNodeThreadsPerBlock},
+            {"minimum_blocks_per_sm", kPriceGradientNodeMinBlocksPerSm},
+            {"maximum_row_chunk_size", kPriceGradientNodeRowChunkSize},
+            {"path_chunk_size", kPriceGradientNodePathChunkSize},
+            {"workspace_bytes", kPriceGradientNodeWorkspaceBytes},
+            {"resident_waves", kPriceGradientNodeResidentWaves},
+        }},
+    };
+}
+
 inline nlohmann::ordered_json metadata(std::string_view family) {
     nlohmann::ordered_json result{
         {"profile_id", kProfileId},
@@ -232,6 +297,10 @@ inline nlohmann::ordered_json metadata(std::string_view family) {
         result["pricing_finalization_threads"] =
             kVolterraPricingFinalizationThreads;
         result["pricing_path_chunk_size"] = kVolterraPathChunkSize;
+    }
+    if (family.find("price_gradient") != std::string_view::npos) {
+        result["launch_bounds"] =
+            price_gradient_launch_bounds_metadata();
     }
     return result;
 }

@@ -129,6 +129,17 @@ inline nlohmann::ordered_json device_prepared_price_gradient_launch_metadata(
         plan.identity.family == PricingFamily::jamshidian;
     const bool lsm = is_lsm_family(plan.identity.family);
     const bool analytical = closed_form || cooperative;
+    if (!analytical && !lsm) {
+        result["sensitivity_strategy"] = "mono";
+        result["sensitivity_launch_bounds"] =
+            price_gradient_launch_bounds_metadata();
+        result["sensitivity_kernel_variant"] =
+            kPriceGradientLaunchBounds
+                && plan.profile.threads_per_block
+                    == kPriceGradientMonoThreadsPerBlock
+            ? "bounded"
+            : "unbounded";
+    }
     if (lsm) {
         result["central_work_policy"] =
             "one central LSM policy plus frozen exercise replay";
@@ -169,7 +180,7 @@ inline nlohmann::ordered_json device_prepared_price_gradient_launch_metadata(
         : has_sensitivities
             ? "grid (row, sensitivity); block y=0 owns the central price"
             : "price-only kernel";
-    result["profile_id"] = "price_gradients_device_prepared_v1";
+    result["profile_id"] = "price_gradients_device_prepared_v2";
     result["represented_nodes_per_sensitivity"] =
         has_sensitivities ? 3U : 0U;
     return result;

@@ -1,0 +1,112 @@
+// ${model_display}${curve_display_suffix} European-swaption MC sensitivities.
+#pragma once
+
+#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "common/fixed_income/swaption_side.cuh"
+#include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "model/fixed_income/${model}/price_gradients/device_preparation.cuh"
+#include "product/european_swaption/price_gradients/device_preparation.cuh"
+${curve_header_include}
+#include <span>
+
+namespace ai_factory::workbench::model::fixed_income::${binding_namespace} {
+
+namespace pg = ::ai_factory::workbench::price_gradients;
+namespace fipg = ::ai_factory::workbench::fixed_income::price_gradients;
+namespace model_pg =
+    ::ai_factory::workbench::model::fixed_income::${model}::price_gradients;
+namespace european_swaption_pg =
+    ::ai_factory::workbench::product::european_swaption::price_gradients;
+${curve_namespace_alias}${curve_type_alias}
+using EuropeanSwaptionPriceGradientPlan = ${plan_type};
+
+void prepare_european_swaption_price_gradient_stencils_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
+);
+
+void prepare_european_swaption_diagonal_sensitivity_stencils_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    std::size_t result_offset,
+    std::size_t result_count
+);
+
+inline EuropeanSwaptionPriceGradientPlan
+prepare_${function_prefix}_european_swaption_sensitivities(
+    std::span<const ModelParameters> models,
+${curve_span_argument}    std::span<const product::RegularEuropeanSwaptionParameters> products,
+    PriceConstruction construction,
+    pg::TimeConfiguration time,
+    const pg::PriceGradientConfiguration& configuration,
+    pg::SensitivityRequest request
+) {
+    return ${prepare_function}<EuropeanSwaptionPriceGradientPlan>(
+        models,
+${curve_prepare_argument}        products,
+        construction,
+        time,
+        configuration,
+        request
+    );
+}
+
+inline EuropeanSwaptionPriceGradientPlan
+prepare_${function_prefix}_european_swaption_price_gradients(
+    std::span<const ModelParameters> models,
+${curve_span_argument}    std::span<const product::RegularEuropeanSwaptionParameters> products,
+    PriceConstruction construction,
+    pg::TimeConfiguration time,
+    const pg::PriceGradientConfiguration& configuration
+) {
+    return prepare_${function_prefix}_european_swaption_sensitivities(
+        models,
+${curve_prepare_argument}        products,
+        construction,
+        time,
+        configuration,
+        {pg::SensitivityOrders::first}
+    );
+}
+
+template<SwaptionSide Side>
+void launch_${function_prefix}_european_swaption_price_gradients_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::Outputs outputs
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+void launch_${function_prefix}_european_swaption_diagonal_sensitivities_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+std::size_t ${function_prefix}_european_swaption_node_graph_workspace_bytes(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+void launch_${function_prefix}_european_swaption_node_graph_sensitivities_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+}  // namespace ai_factory::workbench::model::fixed_income::${binding_namespace}

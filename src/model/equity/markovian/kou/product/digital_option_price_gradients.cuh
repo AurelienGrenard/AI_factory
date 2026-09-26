@@ -8,6 +8,7 @@
 #include "model/equity/markovian/kou/price_gradients/device_preparation.cuh"
 #include "product/digital_option/price_gradients/device_preparation.cuh"
 
+#include <cstddef>
 #include <span>
 
 namespace ai_factory::workbench::model::equity::kou {
@@ -96,5 +97,24 @@ void launch_kou_digital_option_diagonal_sensitivities_cuda(
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
 );
+
+// Public workspace and launch surface for terminal node-graph sensitivities.
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t kou_digital_option_node_graph_workspace_bytes(
+    const DigitalOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+void launch_kou_digital_option_node_graph_sensitivities_cuda(
+    const DigitalOptionPriceGradientPlan& host,
+    DigitalOptionPriceGradientPlan::DeviceInputs device,
+    DigitalOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
 
 }  // namespace ai_factory::workbench::model::equity::kou

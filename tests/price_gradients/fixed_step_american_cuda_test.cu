@@ -87,6 +87,28 @@ struct CevContract {
         >;
     }
 
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                cev::cev_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return cev::
+                launch_cev_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
+
     static auto legacy_launcher() {
         return american_test::fixed_step_legacy_reference<
             cev::launch_cev_american_option_price_delta_cuda<
@@ -170,6 +192,26 @@ struct SchobelZhuContract {
             >;
     }
 
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                sz::schobel_zhu_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return sz::
+                launch_schobel_zhu_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::fixed_step_legacy_reference<
             sz::launch_schobel_zhu_american_option_price_delta_cuda<
@@ -203,6 +245,7 @@ void verify() {
         prepare,
         Contract::first_launcher(),
         Contract::diagonal_launcher(),
+        Contract::node_graph_launcher(),
         Contract::legacy_launcher()
     );
 }

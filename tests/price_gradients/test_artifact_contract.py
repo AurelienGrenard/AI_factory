@@ -96,7 +96,12 @@ class ArtifactContractTests(unittest.TestCase):
     def test_manifest_aliases_and_selection_inventory(self):
         root = Path(__file__).resolve().parents[2]
         sys.path.insert(0,str(root/"tools/codegen/pricing_bindings"))
-        from capability_manifest import PRICE_GRADIENT_DATASET_SPECS, PRICE_GRADIENT_SOURCE_BY_GENERATOR, resolve_rng_domain
+        from capability_manifest import (
+            PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_SOURCE_BY_GENERATOR,
+            PRICE_VARIANTS,
+            resolve_rng_domain,
+        )
         from tools.datasets.generate_catalog import inventory
         jobs = inventory(root,{"price_gradients"},set(),set())
         self.assertEqual(len(jobs),len(PRICE_GRADIENT_DATASET_SPECS))
@@ -121,12 +126,12 @@ class ArtifactContractTests(unittest.TestCase):
              "cir_plus_plus", "g2", "g2_plus_plus", "hull_white",
              "ornstein_uhlenbeck", "vasicek"},
         )
+        equity_products = {variant.product for variant in PRICE_VARIANTS}
         self.assertTrue(all(
             spec.sensitivity_orders == ("first", "diagonal_second")
-            and spec.product in {
-                "european_option", "asset_or_nothing_option",
-                "digital_option", "american_option", "european_swaption",
-                "bermudan_swaption"
+            and spec.product in equity_products | {
+                "american_option", "european_swaption", "bermudan_swaption",
+                "rate_option", "zero_coupon_bond_option",
             }
             for spec in diagonal
         ))
@@ -136,7 +141,7 @@ class ArtifactContractTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(spec.product == "european_swaption" for spec in diagonal),
-            4,
+            40,
         )
         self.assertEqual(
             sum(spec.product == "bermudan_swaption" for spec in diagonal),
@@ -145,15 +150,22 @@ class ArtifactContractTests(unittest.TestCase):
         import json
         for spec in PRICE_GRADIENT_DATASET_SPECS:
             recipe = json.loads((root/spec.generator_path).with_name("recipe.yaml").read_text())
-            product_dataset = {
-                "european_option": "european_options_01.json",
-                "asset_or_nothing_option":
-                    "asset_or_nothing_options_01.json",
-                "digital_option": "digital_options_01.json",
-                "american_option": "american_options_01.json",
-                "european_swaption": "european_swaptions_01.json",
-                "bermudan_swaption": "bermudan_swaptions_01.json",
-            }[spec.product]
+            if spec.product == "american_option":
+                product_dataset = "american_options_01.json"
+            elif spec.product == "european_swaption":
+                product_dataset = "european_swaptions_01.json"
+            elif spec.product == "bermudan_swaption":
+                product_dataset = "bermudan_swaptions_01.json"
+            elif spec.product == "rate_option":
+                product_dataset = "rate_options_01.json"
+            elif spec.product == "zero_coupon_bond_option":
+                product_dataset = "zero_coupon_bond_options_01.json"
+            else:
+                product_dataset = next(
+                    variant.product_dataset_id + ".json"
+                    for variant in PRICE_VARIANTS
+                    if variant.name == spec.variant
+                )
             expected_product = (
                 f"datasets/product/{spec.product}/{product_dataset}"
             )

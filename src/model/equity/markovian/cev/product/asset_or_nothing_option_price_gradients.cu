@@ -2,6 +2,7 @@
 #include "model/equity/markovian/cev/product/asset_or_nothing_option_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/cev/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/cev/product/asset_or_nothing_option.cuh"
@@ -134,28 +135,145 @@ void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda(
     );
 }
 
-#define AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(SIDE) \
-    template void launch_cev_asset_or_nothing_option_price_gradients_cuda<SIDE>( \
-        const AssetOrNothingOptionPriceGradientPlan&, \
-        AssetOrNothingOptionPriceGradientPlan::DeviceInputs, \
-        AssetOrNothingOptionPriceGradientPlan::StencilOutputs, \
-        const pg::LaunchConfiguration&, pg::Outputs); \
-    template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda< \
-        SIDE, pg::SensitivityOrders::second>( \
-        const AssetOrNothingOptionPriceGradientPlan&, \
-        AssetOrNothingOptionPriceGradientPlan::DeviceInputs, \
-        AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
-    template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda< \
-        SIDE, pg::SensitivityOrders::first_and_second>( \
-        const AssetOrNothingOptionPriceGradientPlan&, \
-        AssetOrNothingOptionPriceGradientPlan::DeviceInputs, \
-        AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t cev_asset_or_nothing_option_node_graph_workspace_bytes(
+    const AssetOrNothingOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::terminal_node_graph_workspace_bytes<
+        Orders,
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
+        7U,
+        16U,
+        2U
+    >(host, configuration);
+}
 
-AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::call);
-AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::put);
+template<OptionSide Side, pg::SensitivityOrders Orders>
+void launch_cev_asset_or_nothing_option_node_graph_sensitivities_cuda(
+    const AssetOrNothingOptionPriceGradientPlan& host,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs device,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    const auto launch_price_only = [&] {
+        launch_cev_asset_or_nothing_option_cuda<Side>(
+            device.models,
+            host.models.size(),
+            host.products.data(),
+            device.products,
+            host.products.size(),
+            host.construction,
+            host.result_count,
+            configuration.result_offset,
+            configuration.result_count,
+            configuration.paths_per_price,
+            host.time.dt,
+            host.time.simulation_steps_per_day,
+            configuration.threads_per_block,
+            std::min(configuration.result_count, configuration.block_count),
+            configuration.base_seed,
+            outputs.prices,
+            outputs.price_standard_errors
+        );
+    };
+    epg::launch_terminal_node_graph_sensitivities<
+        Orders,
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
+        7U,
+        16U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        configuration,
+        outputs,
+        workspace,
+        workspace_bytes,
+        launch_price_only,
+        "cev.asset_or_nothing_option.sensitivities.node_graph",
+        Orders == pg::SensitivityOrders::second
+            ? "diagonal_hessian/nodes=graph"
+            : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
 
-#undef AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES
+template void launch_cev_asset_or_nothing_option_price_gradients_cuda<OptionSide::call>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::StencilOutputs,
+    const pg::LaunchConfiguration&, pg::Outputs);
+template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda<OptionSide::call, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+cev_asset_or_nothing_option_node_graph_workspace_bytes<OptionSide::call, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_cev_asset_or_nothing_option_node_graph_sensitivities_cuda<OptionSide::call, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda<OptionSide::call, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+cev_asset_or_nothing_option_node_graph_workspace_bytes<OptionSide::call, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_cev_asset_or_nothing_option_node_graph_sensitivities_cuda<OptionSide::call, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+
+template void launch_cev_asset_or_nothing_option_price_gradients_cuda<OptionSide::put>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::StencilOutputs,
+    const pg::LaunchConfiguration&, pg::Outputs);
+template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda<OptionSide::put, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+cev_asset_or_nothing_option_node_graph_workspace_bytes<OptionSide::put, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_cev_asset_or_nothing_option_node_graph_sensitivities_cuda<OptionSide::put, pg::SensitivityOrders::second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template void launch_cev_asset_or_nothing_option_diagonal_sensitivities_cuda<OptionSide::put, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+cev_asset_or_nothing_option_node_graph_workspace_bytes<OptionSide::put, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_cev_asset_or_nothing_option_node_graph_sensitivities_cuda<OptionSide::put, pg::SensitivityOrders::first_and_second>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::cev

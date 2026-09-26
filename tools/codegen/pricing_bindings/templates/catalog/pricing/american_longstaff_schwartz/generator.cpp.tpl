@@ -20,7 +20,7 @@ int main() {{
         "{database_id}.json",
         "catalog/model/equity/markovian/{model}/prices/american_{side}s/"
         "{database_id}/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/{model}/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/{model}/prices/"
         "american_{side}s/{database_id}.json",
         "{numerical_method} + Longstaff-Schwartz",
         PriceConstruction::{construction},

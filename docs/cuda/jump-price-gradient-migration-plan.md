@@ -3,11 +3,13 @@
 **État au 23 septembre 2026 :** première tranche terminale intégrée, qualification
 globale encore ouverte dans [NUM-032](../audit/response.md#num-032--ouvrir-les-sensibilités-de-saut-avec-des-marques-centrales-rejouables).
 Merton, Kou et Bates disposent du central événementiel, des sensibilités de
-marque, d'intensité et de maturité européenne aux ordres un et deux diagonal.
+marque, d’intensité et de maturité européenne aux ordres un et deux diagonal.
 Variance-Gamma et NIG utilisent une reparamétrisation couplée propre à leur
-subordonnateur d'activité infinie. Produits de chemin, exercice gelé, campagne
-de bumps, sanitizers et qualification de performance restent ouverts. Ce plan
-complète le [plan d'adressage Philox](philox-domain-migration-plan.md).
+subordonnateur d’activité infinie. Les produits de chemin et l’exercice gelé
+réutilisent maintenant ces adapters ; les sanitizers passent sur les
+représentants Bates américain et Bermudan. Les campagnes multi-seeds de bumps,
+les fortes intensités et la qualification de performance restent ouvertes. Ce
+plan complète le [plan d’adressage Philox](philox-domain-migration-plan.md).
 
 Le [plan global prix-gradients](price-gradients-migration-plan.md) place cette
 extension avant la porte de qualification markovienne ; le présent document
@@ -214,3 +216,8 @@ critères de clôture.
   construction Michael--Schucany--Haas. Ces couplages donnent les lois
   marginales exactes et un CRN projectif ; ils ne sont pas présentés comme un
   pont de sous-ordonnateur entre horizons.
+
+- Les bindings de chemin et américains ne possèdent aucun tirage de saut
+  parallèle : ils composent les mêmes `coupled_dynamics` que les terminaux.
+  Le moteur mono et le graphe de nœuds produisent les mêmes sorties bit à bit
+  sur les fixtures communes. La maturité d’exercice anticipé reste exclue.

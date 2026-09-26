@@ -1,48 +1,44 @@
 # Prix et gradients equity sélectionnés
 
-## Périmètre de la première intégration
+## Périmètre actif
 
-Les launchers terminaux sélectionnés couvrent les bindings européens générés
-pour Black–Scholes, CEV, Heston, Heston 3/2, SABR, Schöbel--Zhu, Stein--Stein,
-Merton, Kou, Bates, Variance-Gamma et NIG. Ils composent selon le modèle une
-formule fermée, une transition terminale exacte ou un schéma à pas fixe.
-Les paramètres supportés sont déclarés dans
-`price_gradients/device_preparation.cuh` de chaque modèle et produit. Leur
-domaine admissible est défini une seule fois dans le `parameter_domain.hpp`
-du propriétaire modèle ou produit ; loaders et préparation des nœuds
-bumpés appellent ce même prédicat.
+Le manifeste contient 261 bindings equity markoviens `price_gradients` :
 
-SABR utilise la même transition canonique pour le prix et les nœuds de
-sensibilité : ses deux normales par pas sont rejouées dans le même ordre.
-Un bump du spot reconstruit la préparation du modèle, car l'alpha
-dimensionnel dépend du spot initial ; la simple multiplication d'une
-trajectoire centrale ne convient pas. Les européennes terminales exposent
-également l'ordre deux diagonal dans leur launcher public. Les recettes
-permanentes conservent l'ordre un par défaut. Black--Scholes, CEV, Heston,
-Merton et SABR européens possèdent en plus des recettes explicites
-`*_price_gradients_diagonal` (calls/puts, alignées/cartésiennes) qui publient
-ensemble gradient et diagonale de Hessienne. Le test bout en bout Heston
-vérifie la sérialisation des stencils à trois ou quatre nœuds et la reprise de
-tous les canaux par checkpoint ; les tests CUDA propres à chaque modèle
-contrôlent leur spécialisation numérique.
+- 55 bindings Monte Carlo terminaux, soit cinq produits
+  (`european_option`, `asset_or_nothing_option`, `digital_option`,
+  `gap_option`, `straddle`) sur onze modèles ;
+- 189 bindings Monte Carlo de chemin, selon les couples déjà exposés par le
+  catalogue de prix ;
+- huit bindings Black--Scholes en formule fermée, dont cinq terminaux et trois
+  produits de chemin analytiques ;
+- neuf bindings américains Longstaff--Schwartz à exercice central gelé.
 
-Les modèles à sauts et à subordination utilisent leurs tirages couplés propres
-pour les paramètres de diffusion, d'intensité, de marques ou de subordinateur
-admissibles. Les sensibilités de maturité terminale s'appuient sur les
-extrémités browniennes et les comptes ou incréments emboîtés définis par ces
-adaptateurs. Leur présence dans un launcher ne remplace pas la qualification
-numérique du bump, suivie par le
-[plan des gradients de modèles à sauts](jump-price-gradient-migration-plan.md).
+Tous publient les dérivées premières sélectionnées et, sur demande, la
+diagonale de Hessienne. Les dérivées mixtes restent hors de ce contrat. Les
+moteurs Monte Carlo proposent `mono` et `node_graph` avec les mêmes
+`SensitivitySpec`, tâches, stencils, nœuds et sorties. La formule fermée garde
+un thread par ligne ; elle ne passe pas par le graphe Monte Carlo.
+
+Les paramètres supportés sont déclarés dans les propriétaires modèle et
+produit. Leur domaine admissible est défini une seule fois dans le
+`parameter_domain.hpp` correspondant ; loaders et préparation des nœuds
+appellent le même prédicat. SABR reconstruit notamment sa préparation quand le
+spot change, car son alpha dimensionnel en dépend. Les modèles à sauts et à
+subordination emploient leurs domaines Philox et leurs événements couplés ;
+leur intégration ne vaut pas qualification numérique automatique du bump.
 
 Les calls et puts américains Black--Scholes, CEV, Heston, Schöbel--Zhu,
-Merton, Kou, Bates, Variance-Gamma et NIG disposent du moteur sélectionné. Il
-résout une seule stratégie Longstaff--Schwartz centrale, enregistre sa date et
-son spot d'exercice par chemin, puis rejoue les nœuds bumpés avec cette
-stratégie gelée. Les coordonnées continues déclarées par le modèle et le
-strike sont admissibles aux ordres un et deux diagonal. La maturité et
-l'intervalle d'exercice ne le sont pas. Les moteurs `price_delta` restent les
-références de compatibilité pendant cette migration ; leur suppression exige
-la couverture et la validation de tous leurs consommateurs.
+Merton, Kou, Bates, Variance-Gamma et NIG calculent une seule stratégie LSM
+centrale, puis rejouent les nœuds sous cette stratégie gelée. Les coordonnées
+continues déclarées par le modèle et le strike sont disponibles aux ordres un
+et deux diagonal. La maturité, les dates et l’intervalle d’exercice restent
+exclus. Les moteurs `price_delta` restent les références de migration jusqu’à
+la couverture rough et au retrait de leurs derniers consommateurs.
+
+Le catalogue equity contient 1 456 recettes permanentes issues des recettes
+de prix existantes, avec ordre un ou ordre un plus Hessienne diagonale. Cette
+couverture de génération ne certifie ni la taille des bumps, ni le biais de
+discrétisation ou de politique gelée.
 
 ## Sélection et préparation
 
@@ -126,11 +122,14 @@ dérivée temporelle seconde.
 
 ## CRN et responsabilité des dynamiques
 
-Chaque ligne conserve la clé Philox `base_seed + global_row`, avec compteurs
-`(path_index, local_group_index)`. La sélection, l'indice de sensibilité et le
-découpage des lignes ne changent pas cette adresse. L'ordre des tirages Heston est celui du
-moteur existant. Les `coupled_dynamics` adaptent les transitions canoniques ;
-elles ne recopient ni équations du modèle ni préparation de ses coefficients.
+Chaque ligne conserve la clé Philox `base_seed + global_row`. Le mapping V2
+adresse le compteur par `(path_bas, path_haut, groupe, domaine)`. Le domaine
+zéro porte le flux unique des modèles à consommation fixe ; Merton, Kou,
+Bates, Variance-Gamma et les autres consommateurs variables isolent seulement
+les sources qui pourraient déplacer un autre tirage. La sélection, l’indice
+de sensibilité et le découpage des lignes ne changent jamais l’adresse d’une
+innovation. Les `coupled_dynamics` adaptent les transitions canoniques ; elles
+ne recopient ni équations du modèle ni préparation de ses coefficients.
 
 Pour un horizon fixe, les scénarios consomment les mêmes innovations. Heston
 évolue dans chaque lot sur la grille commune jusqu'à sa plus grande maturité et fige chaque
@@ -243,19 +242,20 @@ couplage de ses événements.
 
 ### Européennes terminales préparées sur le device
 
-Black--Scholes, CEV, Heston et Merton utilisent le même contrat compact :
+Les 55 bindings Monte Carlo terminaux utilisent le même contrat compact :
 `TerminalDevicePreparedPlan<ModelPreparation, ProductPreparation>`. Le plan
 contient les tableaux centraux de modèles et produits, les `K`
 `SensitivitySpec`, la construction alignée ou cartésienne et la configuration
 temporelle. Il ne contient aucun scénario bumpé par ligne.
 
-Pour une sélection MC non vide, la grille est bidimensionnelle :
-`blockIdx.x` parcourt les lignes et `blockIdx.y` désigne l'une des `K`
-sensibilités. La colonne `y=0` calcule le prix central et sa sensibilité ; les
-autres colonnes ne calculent que leur sensibilité. Le prix moyen et son erreur
-standard sont donc écrits une seule fois par ligne. Chaque colonne réemploie
-la clé Philox `base_seed + row` et rejoue les mêmes innovations. `B=1` est la
-géométrie de cette famille ; `sensitivity_batch_size` doit valoir un.
+Le moteur terminal propose deux ordonnancements du même contrat compact. Le
+moteur **mono** utilise une grille bidimensionnelle : `blockIdx.x` parcourt les
+lignes et `blockIdx.y` désigne l'une des `K` sensibilités. La colonne `y=0`
+calcule le prix central et sa sensibilité ; les autres colonnes ne calculent
+que leur sensibilité. Le prix moyen et son erreur standard sont donc écrits
+une seule fois par ligne. Chaque colonne réemploie la clé Philox
+`base_seed + row` et rejoue les mêmes innovations. `B=1` est la géométrie de
+cette famille ; `sensitivity_batch_size` doit valoir un.
 
 Le thread 0 construit le `SensitivityTask` de son couple ligne/sensibilité et
 le place dans la mémoire partagée. Le reste du bloc ne reçoit que les nœuds
@@ -275,6 +275,39 @@ Les briques permanentes ont les responsabilités suivantes :
 | `SensitivityValues<C>` | payoffs pathwise aux nœuds |
 | `SensitivityResult` | dérivées reconstruites |
 
+Le moteur **graphe de nœuds** conserve exactement ces types, les mêmes
+`DevicePreparedInputs`, le même `DevicePreparedPlan`, les mêmes stencils et
+les mêmes sorties. Il ajoute seulement une configuration de chunks et un
+workspace typé appartenant à l'appelant. Ses trois phases ont chacune une
+responsabilité unique :
+
+1. `node_evaluation` construit la ligne sur le device, évalue le central et
+   les nœuds perturbés, puis écrit leurs observations terminales ;
+2. `moment_accumulation` reconstruit prix et dérivées chemin par chemin et
+   conserve leurs moments FP64 par thread à travers les chunks de chemins ;
+3. `moment_finalization` réduit ces moments et écrit les sorties publiques.
+
+Un groupe de threads traite un chemin. Sa lane productrice initialise Philox,
+puis diffuse l'innovation aux lanes qui évaluent les nœuds ; cette lane peut
+également évaluer des nœuds. Les modèles dont les innovations dépendent du
+nœud emploient leur `draw_coupled`. Le central est le nœud zéro et n'est
+jamais resimulé pour chaque sensibilité. Le chunking porte à la fois sur les
+lignes et les chemins ; l'affectation d'un chemin à son thread de réduction
+reste inchangée entre chunks, ce qui préserve l'ordre de sommation du moteur
+mono.
+
+L'implémentation commune vit dans
+`src/common/monte_carlo/price_gradients/terminal_node_graph/` : `workspace.cuh`
+décrit la mémoire bornée, `evaluation.cuh` évalue les nœuds,
+`reconstruction.cuh` reconstruit et réduit, et `launcher.cuh` orchestre les
+chunks. `terminal_sensitivity_policy.cuh` contient la préparation et la
+contraction du payoff partagées avec le moteur mono. Une dynamique qui possède
+une composante agrégée en fin d'intervalle expose le contrat optionnel
+`kHasDistributedTerminalAggregation`. Bates l'emploie : les innovations QE-M
+continues sont diffusées pas à pas, puis les domaines Philox Poisson et marques
+construisent un ajustement terminal couplé. Les 13 coordonnées Bates, dont
+intensité, marques et maturité, restent bitwise avec le moteur mono.
+
 L'ordre un est spécialisé à capacité trois. Une Hessienne diagonale emploie
 une capacité quatre : trois nœuds pour un stencil centré, quatre pour le repli
 unilatéral d'ordre deux. Le nombre actif est stocké dans le stencil ; il ne
@@ -282,14 +315,11 @@ provoque aucune allocation dynamique. `reconstruct_sensitivity` transforme
 les payoffs pathwise et le stencil en dérivées d'ordre un et/ou deux. Les
 dérivées mixtes restent hors de cette pipeline et auront un kernel séparé.
 
-Une sélection MC vide délègue au moteur prix canonique quand celui-ci expose
-un launcher terminal compatible. Le launcher Black--Scholes MC emploie le
-kernel prix terminal générique sur la même représentation compacte. Dans les
-deux cas, aucune paire bumpée n'est créée. La maturité est admise à l'ordre un
-pour Black--Scholes, CEV, Heston et SABR, et à l'ordre deux diagonal pour
-CEV, Heston et SABR. Elle reste refusée pour Merton ; l'ordre deux de la
-transition terminale exacte Black--Scholes attend un pont brownien à quatre
-dates.
+Une sélection MC vide délègue au moteur prix canonique ; aucune paire bumpée
+n'est alors créée. Black--Scholes européen suit sa formule fermée et ne fait
+pas partie des deux ordonnancements MC. Les produits terminaux MC exposent la
+maturité aux ordres un et deux diagonal lorsque l'adaptateur du modèle la
+déclare. Les produits à exercice anticipé continuent de l'exclure.
 
 Le contrat d'artefact d'ordre deux écrit `sensitivity.orders =
 ["first", "diagonal_second"]`, `outputs.diagonal_hessians` et, en Monte
@@ -304,6 +334,20 @@ thread par ligne. Ce thread construit puis évalue successivement les nœuds des
 `K` sensibilités. Il n'y a ni état stochastique ni flux Philox. Le nombre de
 threads par bloc reste un paramètre de lancement, avec 256 par défaut.
 
+Les variantes bornées et non bornées des kernels terminaux sont toutes deux
+compilables. Le moteur mono n'emploie `__launch_bounds__` que lorsque le nombre
+de threads demandé à l'exécution correspond au profil compilé ; toute autre
+géométrie passe par son symbole non borné. Le graphe fixe la géométrie de
+`node_evaluation` dans son type `Tuning` et choisit sa variante bornée seulement
+si ce profil l'active. Les paramètres CMake
+`AI_FACTORY_CUDA_PRICE_GRADIENT_{MONO,NODE}_THREADS_PER_BLOCK` et
+`AI_FACTORY_CUDA_PRICE_GRADIENT_{MONO,NODE}_MIN_BLOCKS_PER_SM`, ainsi que
+`AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS`, décrivent ce profil. Ils sont
+publiés dans les métadonnées de lancement. Le paramètre template `Tuning`
+permet une spécialisation ponctuelle par couple modèle/produit sans dupliquer
+le moteur. Ces valeurs sont un profil de build mesuré, pas une hypothèse que
+tous les couples ou GPU partagent le même optimum.
+
 Le manifeste déclare la stratégie de préparation de chaque binding :
 `device_prepared_closed_form_terminal`, `device_prepared_step_terminal` ou
 `device_prepared_exact_terminal`. Le renderer sélectionne son template à
@@ -311,6 +355,21 @@ partir de ce champ et échoue pour toute stratégie inconnue. Ajouter un modèle
 terminal demande donc son `device_preparation.cuh`, sa dynamique couplée, puis
 une entrée explicite dans ce manifeste ; les templates et launchers communs ne
 changent pas.
+
+Chaque binding MC terminal d'ordre deux expose les deux launchers publics et
+la fonction qui dimensionne le workspace du graphe. Les générateurs acceptent
+`--sensitivity-strategy mono|node_graph`, avec `mono` par défaut. La recette
+énumère les deux choix ; le reçu enregistre `sensitivity_strategy` et
+`sensitivity_workspace_bytes`. Le runner alloue le workspace une seule fois à
+la taille du batch maximal et le réemploie pour le warmup, les batches et la
+reprise.
+
+La matrice `terminal_binding_matrix_cuda_test.cpp` compile et exécute les 55
+couples MC terminaux par les deux launchers, puis compare bit à bit prix,
+erreurs standard, gradients, Hessiennes diagonales et stencils. Les tests
+spécialisés gardent les sélections complètes et les frontières de CEV, Heston,
+Merton et Bates. Le test de dataset exécute les deux stratégies de bout en bout
+et exige des lignes JSON identiques.
 
 La reprise de génération ne rejoue pas les chemins déjà confirmés. Le runner
 appelle le callback de préparation de stencils du binding pour reconstruire
@@ -348,54 +407,42 @@ conserve leurs temps agrégés, ressources, accès mémoire, branches et limites
 
 ### Pipeline américaine gelée
 
-Le moteur américain conserve les kernels centraux : préparation des lignes,
-simulation forward, régressions backward, moments et finalisation du prix. La
-politique ajoute une trace compacte `(observation, spot)` par chemin et une
-décision initiale par ligne. Après la finalisation du prix, exactement deux
-kernels supplémentaires sont lancés si `K>0` :
+Le moteur américain conserve la pipeline centrale du prix : préparation,
+simulation forward, régressions backward, décisions d’exercice, moments et
+finalisation. Elle écrit le prix et son erreur une seule fois, ainsi qu’une
+trace compacte de l’exercice central par chemin.
 
-1. `frozen_sensitivity_moments`, sur une grille `(Bp, N*K)`, construit la
-   tâche de sensibilité dans le bloc, rejoue jusqu'à quatre nœuds avec les
-   innovations Philox de la ligne et du chemin central, reconstruit la ou les
-   dérivées pathwise, puis écrit leurs sommes et carrés en FP64 ;
-2. `finalize_frozen_sensitivities`, sur `N*K` blocs, réduit ces moments et
-   écrit les sorties rangées `[ligne*K + sensibilité]`.
+Deux ordonnancements évaluent ensuite les sensibilités sous cette politique
+gelée :
 
-`B=1` est contractuel pour cette première intégration : une tâche de bloc porte
-une sensibilité. `Bp=LaunchConfiguration::block_count` reste le nombre de
-shards de chemins par prix, comme dans le LSM existant. Le workspace commun
-réserve deux doubles par ordre demandé, sensibilité, shard et ligne, réutilisés
-après la finalisation du prix. Le planner central continue de déterminer les
-lots de lignes selon la VRAM disponible et les plafonne aussi à
-`maxGridSize[1]/K`, afin que la grille aplatie `N*K` reste représentable. Les
-buffers compacts de modèles, produits et spécifications, ainsi que les stencils
-et sorties, appartiennent à l'appelant et sont déjà visibles dans la mémoire
-libre interrogée.
+1. `mono` lance `frozen_sensitivity_moments` sur `(path shard, row*sensitivity)`
+   puis `finalize_frozen_sensitivities`. Un bloc possède une sensibilité d’une
+   ligne et rejoue successivement ses trois ou quatre nœuds ;
+2. `node_graph` lance `frozen_node_evaluation`,
+   `frozen_node_moment_accumulation` et
+   `finalize_frozen_node_sensitivities`. Le central est un nœud ordinaire du
+   graphe, évalué une seule fois, et les observations communes ne sont pas
+   recalculées par sensibilité.
 
-Une sensibilité spot ou strike homogène réutilise le spot central enregistré.
-Les paramètres de dynamique rejouent les nœuds actifs avec les innovations ou
-événements couplés du modèle. Les transitions exactes conservent la granularité
-du calendrier LSM : elles ne décomposent pas artificiellement un intervalle en
-pas numériques. Black--Scholes possède un tirage commun à horizon égal qui
-consomme une seule normale par intervalle ; son tirage terminal à trois
-normales reste réservé au pont de maturité. Un bump de taux modifie aussi les
-facteurs d'actualisation du payoff gelé. À l'exercice initial, le stencil est
-évalué directement sur le payoff à `t=0`, avec une erreur standard nulle.
+Les deux voies utilisent la même préparation compacte, la même clé Philox par
+`(row,path)`, les mêmes stencils et les mêmes sorties. Le graphe conserve une
+réduction complète par ligne lorsque son workspace peut contenir tous les
+chemins ; il refuse explicitement une configuration qui changerait l’ordre de
+réduction au lieu de perdre silencieusement la parité. Le planner central
+continue de choisir le batch de lignes d’après la VRAM disponible, en comptant
+le workspace des nœuds, des moments et des sorties.
 
-Sur SM89 et 256 threads, le kernel de moments d'ordre un utilise 72 registres
-par thread et 32 octets de frame local ; sa variante ordre un plus diagonale
-utilise 120 registres et 528 octets de frame local. L'occupation théorique
-passe de 50 % à 33,3 %. Cette pression est acceptée ici parce que la mesure du
-mur complet reste favorable ; elle doit être réévaluée pour chaque nouveau
-couple modèle/produit. La pipeline complète à 4 prix, 9 sensibilités et
-262 144 chemins mesure 65,91 ms de médiane API à l'ordre un, puis 74,43 ms
-avec la diagonale, soit `+12,9 %`. Le CV vaut respectivement 2,10 % et 4,75 %.
-Memcheck, racecheck, initcheck et synccheck passent sur les deux spécialisations.
-Les prix et erreurs du central sont bitwise identiques à `price_delta`. Sur la fixture publique, le
-delta spot diffère d'au plus `5e-6` relatif et son erreur standard de `5e-5`
-relatif entre les deux politiques compilées séparément ; cette borne remplace
-une affirmation de parité bitwise non observée.
+Les transitions exactes gardent la granularité du calendrier LSM ; les modèles
+à pas fixe rejouent leurs intervalles canoniques. Un bump de taux modifie aussi
+l’actualisation du payoff gelé. À l’exercice initial, le stencil est évalué
+directement à `t=0`, avec erreur standard nulle.
 
+Les tests permanents couvrent les familles exactes, à pas fixe et à sauts, et
+comparent les sorties publiques des deux ordonnancements sur leur périmètre
+commun. `memcheck`, `racecheck`, `initcheck` et `synccheck` passent sur les
+représentants américain Bates et bermudéen. Ces preuves ferment l’intégration
+et la sûreté mémoire ; elles ne qualifient pas le biais de la politique gelée
+ni la performance de production sur tout matériel.
 
 ## Suite de la migration
 

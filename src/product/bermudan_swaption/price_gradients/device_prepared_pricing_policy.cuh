@@ -54,7 +54,9 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
     static_assert(Orders != pg::SensitivityOrders::none);
     static constexpr std::size_t kNodeCapacity =
         pg::SensitivityTraits<Orders>::node_capacity;
+    static constexpr pg::SensitivityOrders request_orders = Orders;
     static constexpr bool kCanExerciseAtInitialTime = false;
+    static constexpr bool kTerminalForward = TerminalForward;
     using Base = BasePricingPolicy;
     using Preparation = PreparationPolicy;
     using PrimaryInputs = PrimaryInputsT;
