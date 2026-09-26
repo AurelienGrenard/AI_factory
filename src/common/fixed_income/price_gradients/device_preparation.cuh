@@ -22,6 +22,9 @@ struct Scenario {
     Model model;
     Product product;
     float day_fraction;
+    std::uint32_t step_count = 1U;
+    const float* normal_weights = nullptr;
+    bool reuse_central = false;
 };
 
 template<typename ModelPreparation, typename ProductPreparation>
@@ -153,6 +156,8 @@ struct ScenarioDevicePreparation {
     ) {
         row = central;
         write_parameter(parameter, row, endpoint);
+        row.reuse_central = parameter_owner(parameter)
+            != pg::SensitivityParameterOwner::model;
         return ModelPreparation::valid(row.model)
             && ProductPreparation::valid(row.product);
     }
@@ -176,6 +181,9 @@ struct CurveScenario {
     Curve curve;
     Product product;
     float day_fraction;
+    std::uint32_t step_count = 1U;
+    const float* normal_weights = nullptr;
+    bool reuse_central = false;
 };
 
 template<
@@ -334,6 +342,8 @@ struct CurveScenarioDevicePreparation {
     ) {
         row = central;
         write_parameter(parameter, row, endpoint);
+        row.reuse_central = parameter_owner(parameter)
+            != pg::SensitivityParameterOwner::model;
         return ModelPreparation::valid(row.model)
             && CurvePreparation::valid(row.curve)
             && ProductPreparation::valid(row.product);

@@ -11,10 +11,7 @@ namespace ai_factory::workbench::model::equity::bates::price_gradients {
 
 namespace detail {
 
-struct JumpInnovations {
-    std::uint32_t count;
-    float standard_normal_sum;
-};
+using JumpInnovations = CoupledDynamics::TerminalAdjustment;
 
 template<std::size_t NodeCapacity>
 __device__ __forceinline__ void draw_coupled_jumps(
@@ -32,7 +29,7 @@ __device__ __forceinline__ void draw_coupled_jumps(
         if (node < node_count) {
             means[node] = prepared[node].poisson_mean
                 * static_cast<float>(step_counts[node]);
-            innovations[node].standard_normal_sum = 0.0f;
+            innovations[node].jump_standard_normal_sum = 0.0f;
         }
     }
     ::ai_factory::workbench::monte_carlo::price_gradients::
@@ -43,12 +40,12 @@ __device__ __forceinline__ void draw_coupled_jumps(
         >(
             random, source_step, means, node_count, counts,
             [&](std::uint8_t node, float mark) {
-                innovations[node].standard_normal_sum += mark;
+                innovations[node].jump_standard_normal_sum += mark;
             }
         );
     #pragma unroll
     for (unsigned int node = 0U; node < NodeCapacity; ++node) {
-        if (node < node_count) innovations[node].count = counts[node];
+        if (node < node_count) innovations[node].jump_count = counts[node];
     }
 }
 
@@ -65,6 +62,78 @@ __device__ __forceinline__ CoupledDynamics::State CoupledDynamics::initial(
     const Prepared& prepared
 ) {
     return bates::initial_state(prepared);
+}
+
+__device__ __forceinline__ CoupledDynamics::ContinuousInnovations
+CoupledDynamics::draw_continuous(
+    RandomContext& random,
+    const Prepared&
+) {
+    const auto step = random.next_step();
+    auto continuous = random.source<
+        compound_poisson::kContinuousSource
+    >(step);
+    philox::NormalPairCache continuous_cache;
+    const float variance_normal = philox::next_normal(
+        continuous, continuous_cache
+    );
+    const float stock_normal = philox::next_normal(
+        continuous, continuous_cache
+    );
+    return {variance_normal, continuous.next(), stock_normal};
+}
+
+__device__ __forceinline__ void CoupledDynamics::transition_continuous(
+    const Prepared& prepared,
+    const ContinuousInnovations& innovations,
+    State& state
+) {
+    heston::one_step_transition(
+        prepared.heston,
+        innovations.variance_normal,
+        innovations.variance_uniform,
+        innovations.stock_normal,
+        state
+    );
+}
+
+template<std::size_t NodeCapacity, typename StepCount>
+__device__ __forceinline__ void CoupledDynamics::draw_terminal_adjustments(
+    RandomContext& random,
+    std::uint32_t interval_start_step,
+    const Prepared (&prepared)[NodeCapacity],
+    std::uint8_t node_count,
+    StepCount step_count,
+    TerminalAdjustment (&adjustments)[NodeCapacity]
+) {
+    std::uint32_t step_counts[NodeCapacity]{};
+    #pragma unroll
+    for (unsigned int node = 0U; node < NodeCapacity; ++node) {
+        if (node < node_count) step_counts[node] = step_count(node);
+    }
+    detail::draw_coupled_jumps(
+        random,
+        interval_start_step,
+        prepared,
+        step_counts,
+        node_count,
+        adjustments
+    );
+}
+
+__device__ __forceinline__ void CoupledDynamics::apply_terminal_adjustment(
+    const Prepared& prepared,
+    const TerminalAdjustment& adjustment,
+    std::uint32_t step_count,
+    State& state
+) {
+    bates::apply_jump_interval(
+        prepared,
+        step_count,
+        adjustment.jump_count,
+        adjustment.jump_standard_normal_sum,
+        state
+    );
 }
 
 __device__ __forceinline__ CoupledDynamics::Innovations CoupledDynamics::draw(
@@ -93,8 +162,8 @@ __device__ __forceinline__ CoupledDynamics::Innovations CoupledDynamics::draw(
         variance_normal,
         variance_uniform,
         stock_normal,
-        jump_innovations[0U].count,
-        jump_innovations[0U].standard_normal_sum,
+        jump_innovations[0U].jump_count,
+        jump_innovations[0U].jump_standard_normal_sum,
     };
 }
 
@@ -134,9 +203,9 @@ __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     #pragma unroll
     for (unsigned int node = 0U; node < NodeCapacity; ++node) {
         if (node < node_count) {
-            innovations[node].jump_count = jump_innovations[node].count;
+            innovations[node].jump_count = jump_innovations[node].jump_count;
             innovations[node].jump_standard_normal_sum =
-                jump_innovations[node].standard_normal_sum;
+                jump_innovations[node].jump_standard_normal_sum;
         }
     }
 }
@@ -201,8 +270,8 @@ __device__ __forceinline__ void CoupledDynamics::simulate_coupled_terminal(
             bates::apply_jump_interval(
                 prepared[node],
                 step_counts[node],
-                jump_innovations[node].count,
-                jump_innovations[node].standard_normal_sum,
+                jump_innovations[node].jump_count,
+                jump_innovations[node].jump_standard_normal_sum,
                 state(node)
             );
         }

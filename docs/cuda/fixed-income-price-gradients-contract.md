@@ -2,51 +2,34 @@
 
 ## Périmètre actif
 
-Deux stratégies fixed income utilisent le même contrat de sensibilités
-sélectionnées :
+Quatre formes d’exécution fixed income partagent le même contrat de
+sensibilités sélectionnées :
 
-1. la swaption européenne régulière sous CIR, payer ou receiver, par
-   décomposition de Jamshidian ;
-2. la swaption bermudéenne co-terminale, payer ou receiver, par
-   Longstaff--Schwartz avec politique d'exercice centrale gelée.
+1. 20 bindings de formule fermée scalaire pour caplets/floorlets et options
+   call/put sur zéro-coupon, sur les dix compositions modèle/courbe ;
+2. sept bindings de swaption européenne par Jamshidian coopératif ;
+3. trois bindings de swaption européenne Monte Carlo exacte pour G2 et G2++ ;
+4. dix bindings de swaption bermudéenne Longstaff--Schwartz à exercice central
+   gelé.
 
-Les deux stratégies publient le prix central, les dérivées premières
-sélectionnées et, sur demande, la diagonale de Hessienne. Les dérivées croisées
-ne font pas partie de ce contrat.
+Ces 40 bindings publient le prix central, les dérivées premières sélectionnées
+et, sur demande, la diagonale de Hessienne. Les dérivées mixtes ne font pas
+partie de ce contrat. Les formules scalaires attribuent une ligne à un thread,
+Jamshidian une ligne à un bloc coopératif, et les voies stochastiques exposent
+les ordonnancements `mono` et `node_graph`.
 
-La voie Bermudan couvre les dix compositions déjà disponibles pour le prix :
+Les dix compositions modèle/courbe sont CIR, CIR++ Nelson--Siegel/Svensson,
+G2, G2++ Nelson--Siegel/Svensson, Hull--White Nelson--Siegel/Svensson,
+Ornstein--Uhlenbeck et Vasicek. Les modèles ajustés ajoutent les coordonnées de
+leur courbe. Les domaines appartiennent au modèle, à la courbe ou au produit et
+sont partagés par le loader et la préparation des nœuds.
 
-- CIR autonome ;
-- CIR++ avec courbe Nelson--Siegel ou Svensson ;
-- G2 autonome ;
-- G2++ avec courbe Nelson--Siegel ou Svensson ;
-- Hull--White avec courbe Nelson--Siegel ou Svensson ;
-- Ornstein--Uhlenbeck autonome ;
-- Vasicek autonome.
-
-Le calendrier reste discret. `first_exercise_time_days`,
-`payment_interval_days`, `payment_count`, `exercise_count` et la maturité
-d'exercice anticipé ne sont pas des coordonnées différentiables. Les
-coordonnées produit continues sont `product.notional`, `product.strike` et
-`product.accrual_fraction`.
-
-Les adaptateurs exposent toutes les coordonnées continues de leur modèle :
-
-| Modèle | Coordonnées modèle |
-|---|---|
-| CIR, CIR++ | `mean_reversion`, `long_term_mean`, `volatility`, `initial_state` |
-| G2 | `mean_reversion_x`, `volatility_x`, `mean_reversion_y`, `volatility_y`, `correlation`, `initial_state_x`, `initial_state_y` |
-| G2++ | `mean_reversion_x`, `volatility_x`, `mean_reversion_y`, `volatility_y`, `correlation` |
-| Hull--White | `mean_reversion`, `volatility` |
-| Ornstein--Uhlenbeck | `mean_reversion`, `volatility`, `initial_state` |
-| Vasicek | `mean_reversion`, `long_term_mean`, `volatility`, `initial_state` |
-
-Les modèles ajustés ajoutent les coordonnées de courbe : `beta0`, `beta1`,
-`beta2`, `tau` pour Nelson--Siegel ; `beta0`, `beta1`, `beta2`, `beta3`,
-`tau1`, `tau2` pour Svensson. Les recettes générées sélectionnent ces
-coordonnées avec des bumps explicites. Les prédicats de domaine appartiennent
-au modèle, à la courbe ou au produit ; le loader JSON et la préparation GPU
-appellent le même prédicat.
+Les champs calendaires entiers restent discrets : dates d’exercice, intervalles
+de paiement, nombres de paiements et d’exercices ne sont pas des coordonnées
+différentiables. Pour Bermudan, la maturité d’exercice anticipé reste aussi
+exclue. Les paramètres continus disponibles sont ceux que chaque binding
+résout explicitement ; une recette peut en sélectionner un sous-ensemble sans
+les déduire de leur valeur.
 
 ## Plan compact et préparation des sensibilités
 
@@ -80,71 +63,83 @@ Une frontière produit un stencil unilatéral d'ordre deux. Aucun clamp
 silencieux n'est admis. Les `N*K` stencils sont des sorties de preuve ; les
 entrées restent en `O(M+C+P+K)`.
 
+## Formules fermées scalaires
+
+Les caplets/floorlets et options sur zéro-coupon emploient un thread par ligne.
+Ce thread charge le modèle, la courbe éventuelle et le produit centraux, puis
+construit et évalue successivement les nœuds de chaque sensibilité. Il n’existe
+ni workspace de graphe ni flux Philox. Le même launcher couvre l’ordre un et
+l’ordre un plus deux diagonal ; seul le `SensitivityRequest` choisit les
+sorties reconstruites.
+
+## Swaptions européennes Monte Carlo exactes
+
+G2 et G2++ utilisent leurs transitions exactes état/intégrale avec innovations
+communes. La voie `mono` garde les nœuds et moments dans le bloc. La voie
+`node_graph` sépare évaluation des nœuds, accumulation des moments et
+finalisation, avec la même préparation, les mêmes stencils et le même ordre de
+réduction. La stratégie change l’ordonnancement et le workspace, pas le
+contrat financier ni les sorties.
+
 ## Jamshidian coopératif
 
-Les voies scalaire et coopérative utilisent les mêmes analytics CIR, le même
-calendrier et la même reconstruction :
+Les sept compositions analytiques utilisent les mêmes tâches, stencils et
+reconstruction que les formules scalaires. Un bloc possède une ligne et
+coopère sur la recherche de la racine et la somme des options sur
+zéro-coupon. Le modèle et la courbe éventuelle restent propriétaires de leurs
+analytics ; le moteur commun ne connaît aucun modèle concret.
 
-- `scalar` : un thread possède une ligne et évalue ses sensibilités
-  successivement ;
-- `cooperative` : un bloc possède une ligne et coopère sur le solveur de
-  Jamshidian.
-
-Le central est écrit une fois. Le kernel coopératif réutilise son workspace
-partagé pour chaque nœud ; le launcher peut employer la voie scalaire si le
-workspace coopératif n'est pas admissible. `reconstruct_sensitivity` reste
-l'unique logique de reconstruction.
+Le central est écrit une fois. Le bloc réutilise son workspace partagé pour
+chaque nœud. `reconstruct_sensitivity` reste l’unique logique de
+reconstruction. Le graphe Monte Carlo à trois phases n’est pas utilisé par
+cette famille.
 
 Les mesures historiques du 22 septembre 2026 sur SM89, pour 1 000 lignes,
-sept sensibilités et au plus douze paiements, donnent 1,114 ms pour l'ordre un
+sept sensibilités et au plus douze paiements, donnent 1,114 ms pour l’ordre un
 et 1,841 ms pour ordre un plus diagonale sur la voie coopérative. Elles ne
-qualifient ni la voie Bermudan ni un autre GPU.
+qualifient ni les autres familles fixed income ni un autre GPU.
 
 ## Longstaff--Schwartz à exercice gelé
 
-La pipeline centrale reste celle du prix seul : simulation forward, régressions
-backward, décisions d'exercice puis réduction du prix. Elle enregistre pour
-chaque chemin l'indice d'exercice central. Le prix et son erreur standard sont
-ainsi calculés une seule fois.
+La pipeline centrale reste celle du prix seul : simulation forward,
+régressions backward, décisions d’exercice puis réduction. Elle enregistre
+l’exercice central de chaque chemin et calcule le prix une seule fois.
 
-Si `K>0`, deux kernels sont ajoutés après la pipeline centrale :
+Si `K>0`, deux ordonnancements sont disponibles :
 
-1. `frozen_sensitivity_moments_kernel` utilise une grille
-   `(path shard, row*sensitivity)`. Un bloc possède une sensibilité d'une ligne
-   et ses threads se partagent les chemins. Pour chaque chemin, les nœuds sont
-   rejoués successivement avec la même clé Philox et la décision d'exercice
-   centrale ; cette exécution séquentielle borne les états vivants et la
-   pression registre. Le nœud central est rejoué uniquement quand le stencil
-   en a besoin.
-2. `finalize_frozen_sensitivities_kernel` réduit en FP64 les moments partiels,
-   puis écrit gradient, diagonale et erreurs standards en ordre de sélection.
+- `mono` rejoue les nœuds d’une sensibilité dans
+  `frozen_sensitivity_moments_kernel`, puis les réduit dans
+  `finalize_frozen_sensitivities_kernel` ;
+- `node_graph` évalue chaque nœud utile dans `frozen_node_evaluation`,
+  reconstruit les moments transitoires dans
+  `frozen_node_moment_accumulation`, puis finalise dans
+  `finalize_frozen_node_sensitivities`.
 
-Le cas `K=0` délègue à la voie prix seul. Le planner conserve la géométrie LSM
-native : 128 threads, 64 blocs de chemins par prix fixed income. Le planner de
-workspace natif choisit le nombre de prix résidents d'après la VRAM disponible.
-Le générateur borne séparément à 16 lignes l'intervalle durable entre deux
-checkpoints. Le workspace ajoute l'indice d'exercice par chemin, les moments
-par sensibilité et les sorties `N*K` ; il ne réserve aucun tableau de scénarios
-bumpés.
+Les deux stratégies partagent la préparation compacte, les stencils, la trace
+d’exercice et les policies de dynamique/payoff. CIR/CIR++ utilisent leur
+mesure terminal-forward ; G2, G2++, Hull--White, OU et Vasicek utilisent la
+voie jointe état/intégrale. Cette différence appartient aux policies, pas aux
+kernels communs.
 
-CIR/CIR++ utilisent la voie de mesure terminal-forward avec tables
-d'observation par nœud. G2, G2++, Hull--White, OU et Vasicek utilisent la voie
-jointe état/intégrale. Cette différence appartient aux policies de pricing ;
-les kernels de moments et de finalisation restent communs.
+Le cas `K=0` délègue au prix seul. Le planner compte la trace d’exercice, les
+nœuds, les moments et les sorties dans la VRAM avant de choisir le nombre de
+lignes résidentes. Le graphe conserve une réduction complète par ligne quand
+son workspace est admissible et refuse une géométrie qui changerait
+silencieusement l’ordre de sommation.
 
 ## Génération et provenance
 
-Le codegen produit, pour chacune des dix compositions Bermudan : payer et
-receiver, construction alignée et cartésienne, ordre un et ordre un plus
-second diagonal. Cela représente 80 recettes permanentes sous
-`catalog/model/fixed_income/<model>/price_gradients/`.
+Le codegen produit 320 recettes fixed income permanentes : 80 pour les
+produits de taux scalaires, 80 pour les options sur zéro-coupon, 80 pour les
+swaptions européennes et 80 pour les bermudéennes. Chaque famille couvre ses
+deux côtés, les constructions alignée et cartésienne, l’ordre un et l’ordre un
+plus second diagonal.
 
-Chaque recette contient l'URL `/v2/`, les datasets modèle/courbe/produit, la
-seed, le mapping `philox_source_step_v2`, les bumps sélectionnés et la recette
-de prix source. La génération stochastique écrit un checkpoint durable après
-chaque lot et peut reprendre au premier préfixe incomplet. Le writer conserve
-les identifiants `model_id`, `curve_id` et `product_id` dans l'ordre canonique
-`model, curve, product`.
+Les recettes analytiques conservent l’URL `/v1/` de leur méthode déterministe.
+Les recettes stochastiques emploient `/v2/`, la seed et le mapping
+`philox_source_step_v2`. Toutes déclarent les datasets modèle/courbe/produit,
+les bumps sélectionnés et la recette de prix source. La génération écrit un
+checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 
 ## Responsabilités
 
@@ -156,32 +151,43 @@ les identifiants `model_id`, `curve_id` et `product_id` dans l'ordre canonique
 | Composition Bermudan et replay du payoff | `src/product/bermudan_swaption/price_gradients/` |
 | Accès et domaines modèle | `src/model/fixed_income/<model>/{parameter_domain.hpp,price_gradients/}` |
 | Accès et domaines courbe | `src/curve/<curve>/{parameter_domain.hpp,price_gradients/}` |
-| Bindings publics | `src/model/fixed_income/<model>/product/.../bermudan_swaption_price_gradients.cuh/.cu` |
+| Bindings publics | `src/model/fixed_income/<model>/product/.../<product>_price_gradients.cuh/.cu` |
 | Génération, checkpoint et artefact | `tools/pricing/price_gradients/`, `tools/datasets/price_gradients/` |
 | Templates, manifeste et recettes | `tools/codegen/pricing_bindings/`, `catalog/model/fixed_income/` |
 
 ## Preuves et limites
 
-Le test CUDA permanent couvre CIR terminal-forward, Vasicek joint un facteur,
-G2 joint deux facteurs et CIR++/Nelson--Siegel ajusté. Il vérifie la parité
-bitwise du prix et de son erreur standard avec le pricer central, la finitude
-des ordres un et deux, les propriétaires modèle/courbe/produit, les sélections
-réordonnées et l'invariance des gradients quand la diagonale est aussi
-demandée. Les dix bibliothèques de binding et des générateurs représentatifs
-des dix compositions compilent. La régénération compare exactement les 80
-recettes, 20 wrappers et deux manifestes.
+Les 40 bibliothèques fixed income font partie de la reconstruction exhaustive
+des 301 bindings markoviens. Les 160 générateurs scalaires ajoutés pour
+caplets/floorlets et options sur zéro-coupon ont tous compilé et linké. Le
+catalogue complet compte 320 recettes fixed income et une régénération propre
+ne produit aucune divergence.
 
-Sur SM89, l'inspection statique du binaire de test donne pour G2
-`frozen_sensitivity_moments_kernel` 168 registres/thread, 32 octets de stack,
-1 056 octets de shared et zéro octet local à l'ordre un. L'ordre deux diagonal
-et l'ordre un plus deux atteignent 242 registres/thread, 464 octets de stack,
-1 296 octets de shared et zéro octet local déclaré. Le retour à une boucle
-forcée non déroulée a augmenté simultanément registres et stack ; la version
-compilée conserve donc le déroulage actuel. Cette pression reste une limite à
-mesurer de bout en bout sur secteur.
+Les tests CUDA permanents couvrent les formules fermées, Jamshidian, G2/G2++
+Monte Carlo et les familles Bermudan CIR terminal-forward, Vasicek un facteur,
+G2 deux facteurs et CIR++ ajusté. Ils contrôlent prix central, ordres un et
+deux, paramètres modèle/courbe/produit, sélections réordonnées et parité des
+stratégies sur leur périmètre commun. La suite globale `price_gradients`
+passe 27/27 tests. Les quatre modes Compute Sanitizer passent sur un
+représentant Bermudan.
 
-Ces contrôles qualifient l'intégration et la reproductibilité. Ils ne
-certifient pas encore les bumps, le biais de politique gelée, la convergence
-LSM ni la performance de production. Une campagne numérique multi-seeds et
-une mesure complète sur secteur sont requises avant publication d'une base de
-Hessiennes Bermudan.
+Sur SM89, l’inspection historique du kernel mono G2 Bermudan donne 168
+registres/thread et 32 octets de stack à l’ordre un, puis 242 registres/thread
+et 464 octets de stack à l’ordre un plus deux diagonal. Cette pression justifie
+le graphe de nœuds pour les demandes plus larges, mais ne constitue pas une
+qualification de performance universelle.
+
+Deux exécutions temporaires de générateurs scalaires valident aussi la chaîne
+complète. Vasicek/caplet aligné et CIR++/Nelson--Siegel/option zéro-coupon
+aligné produisent chacun 1 000 lignes dont les prix centraux sont exactement
+égaux aux bases de prix. Une fixture cartésienne `2 x 2 x 2` vérifie le chemin
+à trois axes, la même parité centrale et la finitude des gradients/Hessiennes.
+La recette cartésienne construite avec les trois fichiers permanents de 1 000
+lignes représente un milliard de sorties ; elle dépasse la VRAM de la machine
+de test et n’est pas une campagne qualifiée sur ce matériel.
+
+Ces contrôles qualifient l’intégration, la compilation et la reproductibilité.
+Ils ne certifient pas encore les bumps, le biais de politique gelée, la
+convergence LSM ni la performance de production. Une campagne numérique
+multi-seeds et des mesures complètes sur secteur restent nécessaires avant de
+publier une base de Hessiennes comme qualifiée.

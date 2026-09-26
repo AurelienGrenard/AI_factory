@@ -3,7 +3,7 @@
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
-## État courant — structure, sauts, prix rough, prix-delta et produits de taux — 2026-09-23
+## État courant — structure, sauts, prix rough, prix-delta et produits de taux — 2026-09-26
 
 **Huit constats ouverts, 119 fermés, 127 identifiants.** Le lot 1 puis
 STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
@@ -47,11 +47,10 @@ campagne longue n'est lancée dans ce lot.
   Dans [Heston QE](../../src/model/equity/markovian/heston/dynamics_impl.cuh),
   deux normales et un uniforme auxiliaire sont tirés dans un ordre fixe.
 - **Conséquence / portée :** une consommation variable d'une source peut
-  déplacer les tirages suivants d'une autre source ou d'un autre pas. Le
-  couplage historique reste contractuel pour les coordonnées déjà exposées :
-  l'intensité des sauts est exclue et le tirage Heston fixe partage les mêmes
-  innovations entre scénarios. Le constat vise l'extension sûre aux sauts,
-  facteurs browniens multiples et futurs multi-sous-jacents. Il est distinct
+  déplacer les tirages suivants d'une autre source ou d'un autre pas. Le mapping V2 isole désormais les sources variables des modèles à sauts,
+  tandis que Heston QE et les autres consommateurs fixes gardent un flux
+  unique. Le constat reste ouvert pour les bornes, collisions, futurs facteurs
+  multiples, coût registre et qualification de performance. Il est distinct
   de NUM-008, clos pour l'allocation des **seeds entre recettes**. Maintenir
   un contexte par domaine ferait croître groupes mis en cache, curseurs et
   caches normaux vivants ; ce coût doit être mesuré, pas présumé acceptable.
@@ -84,8 +83,9 @@ campagne longue n'est lancée dans ce lot.
 ### NUM-032 — Ouvrir les sensibilités de saut avec des marques centrales rejouables
 
 - **État / date / propriétaire :** ouvert le 2026-09-22 à la demande de
-  l'utilisateur ; tranche terminale Merton/Kou/Bates/VG/NIG intégrée le
-  2026-09-23, qualification et consommateurs de chemin encore ouverts.
+  l’utilisateur ; Merton/Kou/Bates/VG/NIG, produits terminaux, produits de
+  chemin et exercice gelé intégrés au 2026-09-26 ; qualification numérique et
+  performance encore ouvertes.
   Propriétaires : dynamiques et adapters `price_gradients` de chaque modèle à
   sauts, puis moteur MC commun pour le contrat d'innovations par nœud. Aucun
   prix historique n'est déclaré incorrect.
@@ -103,22 +103,18 @@ campagne longue n'est lancée dans ce lot.
   références de fonctions caractéristiques, sélections, ordre deux diagonal
   et parité `{spot}` avec `price_delta`. Voir le
   [contrat courant](../cuda/equity-price-gradients-contract.md).
-- **Conséquence / portée :** la voie terminale existe, mais l'intensité et les
-  paramètres de marques ne sont pas encore qualifiés sur plusieurs seeds et
-  bumps, et les produits de chemin/LSM ne consomment pas encore tous ce
-  couplage. Le coût des boucles événementielles à forte intensité reste à
-  mesurer avant publication.
-- **Étapes de correction :** suivre le
-  [plan détaillé](../cuda/jump-price-gradient-migration-plan.md) : (1)
-  inventorier consommations, produits et baselines ; (2) piloter le central
-  événementiel Merton et son replay sans tableau de marques ; (3) étendre à la
-  compilation le moteur commun aux innovations couplées **par nœud**, sans
-  recopier payoff ni réduction ; (4) qualifier les comptes conditionnels,
-  marques et compensateurs pour intensité, paramètres de saut et `T` européen ;
-  (5) étendre à Bates puis Kou, aux produits de chemin compatibles et à
-  l'exercice gelé selon leur contrat ; (6) versionner codegen, recettes et
-  datasets avant publication. L'adapter de chaque modèle possède sa loi ;
-  NUM-031 possède l'adressage Philox partagé.
+- **Conséquence / portée :** la surface markovienne consomme le couplage
+  événementiel commun, mais l’intensité et les paramètres de marques ne sont
+  pas encore qualifiés sur plusieurs seeds et bumps. Le coût des boucles à
+  forte intensité et le biais de l’exercice gelé restent à mesurer avant
+  publication.
+- **Étapes restantes :** suivre le
+  [plan détaillé](../cuda/jump-price-gradient-migration-plan.md) pour qualifier
+  les comptes conditionnels, marques, compensateurs, intensité et `T`
+  européen sur plusieurs seeds et bumps, puis mesurer fortes intensités,
+  registres et temps complets. Versionner toute base publiée et conserver les
+  anciennes recettes. L’adapter de chaque modèle possède sa loi ; NUM-031
+  possède l’adressage Philox partagé.
 - **Clôture vérifiable :** pour les modèles à sauts finis qualifiés, toutes
   les coordonnées déclarées disposent de domaines/stencils valides, prix
   central identique bit à bit entre prix seuls et gradients **dans la nouvelle

@@ -2,6 +2,7 @@
 #include "model/equity/markovian/${model}/product/${product}_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/${model}/product/${product}.cuh"
@@ -43,7 +44,7 @@ void prepare_${product}_diagonal_sensitivity_stencils_cuda(
     );
 }
 
-template<OptionSide Side>
+${side_template}
 void launch_${model}_${product}_price_gradients_cuda(
     const ${product_type}PriceGradientPlan& host,
     ${product_type}PriceGradientPlan::DeviceInputs device,
@@ -52,7 +53,7 @@ void launch_${model}_${product}_price_gradients_cuda(
     pg::Outputs outputs
 ) {
     const auto launch_price_only = [&] {
-        launch_${model}_${product}_cuda<Side>(
+        launch_${model}_${product}_cuda${side_argument}(
             device.models,
             host.models.size(),
             host.products.data(),
@@ -81,11 +82,11 @@ ${price_only_time_arguments}            configuration.threads_per_block,
         outputs,
         launch_price_only,
         "${model}.${product}.price_gradients.device_prepared",
-        Side == OptionSide::call ? "call/nodes=3/B=1" : "put/nodes=3/B=1"
+        ${first_variant}
     );
 }
 
-template<OptionSide Side, pg::SensitivityOrders Orders>
+${sensitivity_template}
 void launch_${model}_${product}_diagonal_sensitivities_cuda(
     const ${product_type}PriceGradientPlan& host,
     ${product_type}PriceGradientPlan::DeviceInputs device,
@@ -94,7 +95,7 @@ void launch_${model}_${product}_diagonal_sensitivities_cuda(
     pg::SensitivityOutputs outputs
 ) {
     const auto launch_price_only = [&] {
-        launch_${model}_${product}_cuda<Side>(
+        launch_${model}_${product}_cuda${side_argument}(
             device.models,
             host.models.size(),
             host.products.data(),
@@ -130,28 +131,73 @@ ${price_only_time_arguments}            configuration.threads_per_block,
     );
 }
 
-#define AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(SIDE) \
-    template void launch_${model}_${product}_price_gradients_cuda<SIDE>( \
-        const ${product_type}PriceGradientPlan&, \
-        ${product_type}PriceGradientPlan::DeviceInputs, \
-        ${product_type}PriceGradientPlan::StencilOutputs, \
-        const pg::LaunchConfiguration&, pg::Outputs); \
-    template void launch_${model}_${product}_diagonal_sensitivities_cuda< \
-        SIDE, pg::SensitivityOrders::second>( \
-        const ${product_type}PriceGradientPlan&, \
-        ${product_type}PriceGradientPlan::DeviceInputs, \
-        ${product_type}PriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
-    template void launch_${model}_${product}_diagonal_sensitivities_cuda< \
-        SIDE, pg::SensitivityOrders::first_and_second>( \
-        const ${product_type}PriceGradientPlan&, \
-        ${product_type}PriceGradientPlan::DeviceInputs, \
-        ${product_type}PriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+${sensitivity_template}
+std::size_t ${model}_${product}_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::terminal_node_graph_workspace_bytes<
+        Orders,
+        mpg::CoupledDynamics,
+        ${sensitivity_policy},
+        ${maximum}U,
+        ${graph_group_size}U,
+        ${graph_nodes_per_worker}U
+    >(host, configuration);
+}
 
-AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::call);
-AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::put);
+${sensitivity_template}
+void launch_${model}_${product}_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    const auto launch_price_only = [&] {
+        launch_${model}_${product}_cuda${side_argument}(
+            device.models,
+            host.models.size(),
+            host.products.data(),
+            device.products,
+            host.products.size(),
+            host.construction,
+            host.result_count,
+            configuration.result_offset,
+            configuration.result_count,
+            configuration.paths_per_price,
+${price_only_time_arguments}            configuration.threads_per_block,
+            std::min(configuration.result_count, configuration.block_count),
+            configuration.base_seed,
+            outputs.prices,
+            outputs.price_standard_errors
+        );
+    };
+    epg::launch_terminal_node_graph_sensitivities<
+        Orders,
+        mpg::CoupledDynamics,
+        ${sensitivity_policy},
+        ${maximum}U,
+        ${graph_group_size}U,
+        ${graph_nodes_per_worker}U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        configuration,
+        outputs,
+        workspace,
+        workspace_bytes,
+        launch_price_only,
+        "${model}.${product}.sensitivities.node_graph",
+        Orders == pg::SensitivityOrders::second
+            ? "diagonal_hessian/nodes=graph"
+            : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
 
-#undef AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES
+${explicit_instantiations}
 
 }  // namespace ai_factory::workbench::model::equity::${model}

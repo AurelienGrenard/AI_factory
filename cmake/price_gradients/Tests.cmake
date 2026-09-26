@@ -25,6 +25,32 @@ add_cuda_workbench_test(price_gradients_european_cuda
     tests/price_gradients/european_cuda_test.cu "price_gradients;parity" 120)
 add_cuda_workbench_test(price_gradients_central_work_cuda
     tests/price_gradients/central_work_cuda_test.cu "price_gradients;work_counts" 60)
+add_cuda_workbench_test(price_gradients_terminal_node_graph_cuda
+    tests/price_gradients/terminal_node_graph_cuda_test.cu
+    "price_gradients;parity;node_graph;heston;cev;merton;bates;jumps" 180)
+target_link_libraries(test_price_gradients_terminal_node_graph_cuda PRIVATE
+    ai_factory_equity_bates_european_option_price_gradients
+    ai_factory_equity_heston_european_option_price_gradients
+    ai_factory_equity_cev_european_option_price_gradients
+    ai_factory_equity_merton_european_option_price_gradients)
+add_cuda_workbench_test(price_gradients_path_node_graph_cuda
+    tests/price_gradients/path_node_graph_cuda_test.cu
+    "price_gradients;parity;node_graph;path_products;calendars;jumps" 180)
+target_link_libraries(test_price_gradients_path_node_graph_cuda PRIVATE
+    ai_factory_equity_bates_range_accrual_price_gradients
+    ai_factory_equity_heston_asian_option_price_gradients
+    ai_factory_equity_merton_athena_autocall_price_gradients
+    ai_factory_equity_merton_forward_start_option_price_gradients)
+add_cuda_workbench_test(price_gradients_terminal_binding_matrix_cuda
+    tests/price_gradients/terminal_binding_matrix_cuda_test.cpp
+    "price_gradients;parity;node_graph;terminal_products;binding_matrix" 300)
+add_cuda_workbench_test(price_gradients_fixed_income_terminal_node_graph_cuda
+    tests/price_gradients/fixed_income_terminal_node_graph_cuda_test.cpp
+    "price_gradients;parity;node_graph;fixed_income;g2" 180)
+target_link_libraries(test_price_gradients_fixed_income_terminal_node_graph_cuda PRIVATE
+    ai_factory_fixed_income_g2_european_swaption_price_gradients
+    ai_factory_fixed_income_g2_plus_plus_nelson_siegel_european_swaption_price_gradients
+    ai_factory_fixed_income_g2_plus_plus_svensson_european_swaption_price_gradients)
 add_cuda_workbench_test(price_gradients_cev_cuda
     tests/price_gradients/cev_cuda_test.cu "price_gradients;parity;cev" 120)
 add_cuda_workbench_test(price_gradients_sabr_cuda

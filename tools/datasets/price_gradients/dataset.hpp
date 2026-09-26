@@ -5,6 +5,7 @@
 #include "common/price_gradients/sensitivity_request.hpp"
 #include "common/price_gradients/sensitivity_stencil.cuh"
 #include "common/price_gradients/time_configuration.hpp"
+#include "common/price_gradients/sensitivity_strategy.hpp"
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <vector>
@@ -20,6 +21,10 @@ struct Recipe {
     ::ai_factory::workbench::price_gradients::SensitivityOrders orders =
         ::ai_factory::workbench::price_gradients::SensitivityOrders::first;
     std::filesystem::path curve_input;
+    ::ai_factory::workbench::price_gradients::SensitivityStrategy
+        sensitivity_strategy =
+            ::ai_factory::workbench::price_gradients::
+                SensitivityStrategy::mono;
 };
 struct Results {
     std::vector<float> prices, price_errors, gradients, gradient_errors;

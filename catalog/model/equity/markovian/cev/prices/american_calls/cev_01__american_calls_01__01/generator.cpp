@@ -22,7 +22,7 @@ int main() {
         "cev_01__american_calls_01__01.json",
         "catalog/model/equity/markovian/cev/prices/american_calls/"
         "cev_01__american_calls_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/cev/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/cev/prices/"
         "american_calls/cev_01__american_calls_01__01.json",
         "absorbed Milstein + Longstaff-Schwartz",
         PriceConstruction::Aligned,

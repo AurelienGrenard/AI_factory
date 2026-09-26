@@ -93,6 +93,27 @@ struct ModelContract<BlackScholesTag> {
                 pg::SensitivityOrders::first_and_second
             >;
     }
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                bs::black_scholes_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return bs::
+                launch_black_scholes_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::exact_transition_legacy_reference<
             bs::launch_black_scholes_american_option_price_delta_cuda<
@@ -148,6 +169,27 @@ struct ModelContract<MertonTag> {
             OptionSide::put, pg::SensitivityOrders::first_and_second
         >;
     }
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                merton::merton_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return merton::
+                launch_merton_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::exact_transition_legacy_reference<
             merton::launch_merton_american_option_price_delta_cuda<
@@ -204,6 +246,27 @@ struct ModelContract<KouTag> {
             OptionSide::put, pg::SensitivityOrders::first_and_second
         >;
     }
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                kou::kou_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return kou::
+                launch_kou_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::exact_transition_legacy_reference<
             kou::launch_kou_american_option_price_delta_cuda<
@@ -258,6 +321,27 @@ struct ModelContract<VarianceGammaTag> {
             OptionSide::put, pg::SensitivityOrders::first_and_second
         >;
     }
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                vg::variance_gamma_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return vg::
+                launch_variance_gamma_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::exact_transition_legacy_reference<
             vg::launch_variance_gamma_american_option_price_delta_cuda<
@@ -312,6 +396,27 @@ struct ModelContract<NormalInverseGaussianTag> {
             OptionSide::put, pg::SensitivityOrders::first_and_second
         >;
     }
+
+    static auto node_graph_launcher() {
+        return [](const auto& plan, auto inputs, auto stencils,
+                  const auto& launch, pg::SensitivityOutputs outputs) {
+            const auto bytes =
+                nig::normal_inverse_gaussian_american_option_node_graph_workspace_bytes<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(plan, launch);
+            price_gradient_test::DeviceArray<std::uint8_t> workspace(bytes);
+            return nig::
+                launch_normal_inverse_gaussian_american_option_node_graph_sensitivities_cuda<
+                    OptionSide::put,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    plan, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count
+                );
+        };
+    }
+
     static auto legacy_launcher() {
         return american_test::exact_transition_legacy_reference<
             nig::launch_normal_inverse_gaussian_american_option_price_delta_cuda<
@@ -346,6 +451,7 @@ void verify() {
         prepare,
         Contract::first_launcher(),
         Contract::diagonal_launcher(),
+        Contract::node_graph_launcher(),
         Contract::legacy_launcher()
     );
 }

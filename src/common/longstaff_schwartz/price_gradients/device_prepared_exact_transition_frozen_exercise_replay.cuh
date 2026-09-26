@@ -16,6 +16,25 @@ struct DevicePreparedExactTransitionFrozenExerciseReplay {
     static constexpr std::size_t kEndpointCapacity = NodeCapacity - 1U;
     using Dynamics = CoupledDynamics;
     using Metadata = FrozenExerciseNodeMetadata<NodeCapacity>;
+    static constexpr bool kExactTransitionReplay = true;
+
+    struct GraphPrepared {
+        typename Dynamics::Prepared initial{};
+        typename Dynamics::Prepared regular{};
+    };
+
+    template<typename Scenario>
+    __device__ __forceinline__ static GraphPrepared prepare_graph_node(
+        const Scenario& scenario,
+        FrozenExerciseReplayTime time
+    ) {
+        auto model = scenario.model;
+        model.spot = scenario.simulation_spot;
+        return {
+            Dynamics::prepare(model, time.first_exercise_time),
+            Dynamics::prepare(model, time.exercise_interval),
+        };
+    }
 
     struct Prepared {
         // Exact-transition models have a maturity-aligned first stub and one

@@ -8,6 +8,7 @@
 #include "model/equity/markovian/black_scholes/price_gradients/device_preparation.cuh"
 #include "product/european_option/price_gradients/device_preparation.cuh"
 
+#include <cstddef>
 #include <span>
 
 namespace ai_factory::workbench::model::equity::black_scholes {
@@ -96,5 +97,7 @@ void launch_black_scholes_european_option_diagonal_sensitivities_cuda(
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
 );
+
+
 
 }  // namespace ai_factory::workbench::model::equity::black_scholes

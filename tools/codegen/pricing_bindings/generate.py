@@ -2017,10 +2017,17 @@ def main() -> int:
         generated.extend(generate_fixed_income_bindings(arguments.output))
     if arguments.family in ("catalog", "all"):
         generated.extend(generate_price_delta_recipes(arguments.output))
-        generated.extend(render_price_gradient_recipes(arguments.output, PRICE_GRADIENT_DATASET_SPECS,
-            PRICE_GRADIENT_SOURCE_BY_GENERATOR, MODEL_BY_NAME,
-            resolve_rng_domain, rng_mapping_version, TEMPLATE_DIR,
-            _write_generated))
+        generated.extend(render_price_gradient_recipes(
+            arguments.output,
+            PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_SOURCE_BY_GENERATOR,
+            PRODUCT_BINDING_SPECS,
+            MODEL_BY_NAME,
+            resolve_rng_domain,
+            rng_mapping_version,
+            TEMPLATE_DIR,
+            _write_generated,
+        ))
         generated.extend(generate_catalog_recipes(arguments.output))
         generated.extend(generate_fixed_income_catalog_recipes(
             arguments.output

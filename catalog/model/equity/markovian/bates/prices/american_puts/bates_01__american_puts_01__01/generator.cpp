@@ -22,7 +22,7 @@ int main() {
         "bates_01__american_puts_01__01.json",
         "catalog/model/equity/markovian/bates/prices/american_puts/"
         "bates_01__american_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/prices/"
         "american_puts/bates_01__american_puts_01__01.json",
         "Andersen QE-M with compound-Poisson lognormal jumps + Longstaff-Schwartz",
         PriceConstruction::Aligned,

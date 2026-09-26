@@ -32,8 +32,10 @@ modèles multi-flux encodent source et pas dans le domaine.
 | Variance-Gamma | 2 | source 1 Gamma, 2 Brownien |
 | CIR et CIR++ | 2 | source 1 compte de Poisson, 2 Gamma |
 
-Cette affectation décrit l'adressage des tirages actuels. Le couplage
-événementiel des marques Merton/Bates relève encore du chantier sauts.
+Cette affectation décrit l’adressage des tirages actuels. Le couplage
+événementiel des marques Merton/Bates est intégré aux adapters
+`price_gradients` ; sa qualification multi-seeds et forte intensité reste
+suivie par NUM-032.
 
 ## Règle de choix du nombre de flux
 
@@ -47,10 +49,11 @@ Cette affectation décrit l'adressage des tirages actuels. Le couplage
   Heston QE tire aujourd'hui ses deux normales et son uniforme même si le
   schéma n'utilise pas les trois valeurs ; Vasicek consomme ses deux normales
   conjointes dans un ordre fixe. Ces cas sont les témoins mono-flux, pas des
-  candidats obligatoires à trois ou deux domaines. Une consommation variable
-  peut aussi rester mono-flux tant que les scénarios comparés partagent le
-  même tirage canonique : c'est le cas des sensibilités Merton actuellement
-  exposées, qui ne bumpent ni l'intensité ni la maturité.
+  candidats obligatoires à trois ou deux domaines. Une consommation variable ne reste mono-flux que si tous les scénarios
+  partagent réellement le même tirage canonique et si la coordonnée bumpée ne
+  change pas sa consommation. Les sensibilités d’intensité et de maturité des
+  modèles à sauts utilisent désormais les domaines et le couplage événementiel
+  prévus à cet effet.
 - Donner néanmoins un **identifiant logique stable** à chaque facteur
   brownien indépendant et à chaque autre source. Un domaine Philox distinct
   est justifié lorsque sa consommation variable ou conditionnelle peut décaler

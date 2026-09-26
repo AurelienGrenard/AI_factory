@@ -139,13 +139,30 @@ __device__ __forceinline__ RandomQuad uniform_quad(
 // Expose one continuous scalar stream while keeping Philox groups internal.
 class UniformSequence {
 public:
+    __device__ __forceinline__ UniformSequence() = default;
+
     // Reuse the row key and begin at local group zero for this path.
     __device__ __forceinline__ UniformSequence(
         PhiloxKey key,
         std::uint64_t path_index
     ) : key_(key),
         path_index_(path_index),
-        values_(uniform_quad(key_, path_index_, local_group_index_++)) {}
+        values_(uniform_quad(key_, path_index_, local_group_index_++)),
+        component_index_(0U) {}
+
+    // Lazy reset is used by cooperative kernels: inactive lanes allocate the
+    // same context type without evaluating Philox. The first next() still
+    // returns component zero of group zero, exactly as the constructor does.
+    __device__ __forceinline__ void reset(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) {
+        key_ = key;
+        path_index_ = path_index;
+        local_group_index_ = 0ULL;
+        values_ = {};
+        component_index_ = 4U;
+    }
 
     // Return the next uniform, refreshing the cached group when necessary.
     __device__ __forceinline__ float next() {
@@ -163,11 +180,11 @@ public:
     }
 
 private:
-    PhiloxKey key_;
-    std::uint64_t path_index_;
+    PhiloxKey key_{};
+    std::uint64_t path_index_ = 0ULL;
     std::uint64_t local_group_index_ = 0ULL;
-    RandomQuad values_;
-    std::uint32_t component_index_ = 0U;
+    RandomQuad values_{};
+    std::uint32_t component_index_ = 4U;
 };
 
 // Expose one continuous stream of raw 32-bit Philox words.  Discrete sample
@@ -351,10 +368,20 @@ struct NormalRandomContext {
     UniformSequence uniforms;
     NormalPairCache normals;
 
+    __device__ __forceinline__ NormalRandomContext() = default;
+
     __device__ __forceinline__ NormalRandomContext(
         PhiloxKey key,
         std::uint64_t path_index
     ) : uniforms(key, path_index) {}
+
+    __device__ __forceinline__ void reset(
+        PhiloxKey key,
+        std::uint64_t path_index
+    ) {
+        uniforms.reset(key, path_index);
+        normals = {};
+    }
 };
 
 namespace detail {

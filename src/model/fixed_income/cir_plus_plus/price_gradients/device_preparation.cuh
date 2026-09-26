@@ -1,4 +1,4 @@
-// CIR++ reuses the CIR factor parameterization and admissible domain.
+// Device preparation adapter reusing the CIR factor parameter domain.
 #pragma once
 
 #include "model/fixed_income/cir/price_gradients/device_preparation.cuh"

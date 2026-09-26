@@ -8,6 +8,7 @@
 #include "model/equity/markovian/heston_3_2/price_gradients/device_preparation.cuh"
 #include "product/european_option/price_gradients/device_preparation.cuh"
 
+#include <cstddef>
 #include <span>
 
 namespace ai_factory::workbench::model::equity::heston_3_2 {
@@ -96,5 +97,24 @@ void launch_heston_3_2_european_option_diagonal_sensitivities_cuda(
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
 );
+
+// Public workspace and launch surface for terminal node-graph sensitivities.
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t heston_3_2_european_option_node_graph_workspace_bytes(
+    const EuropeanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+void launch_heston_3_2_european_option_node_graph_sensitivities_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
 
 }  // namespace ai_factory::workbench::model::equity::heston_3_2

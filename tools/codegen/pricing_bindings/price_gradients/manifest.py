@@ -38,7 +38,127 @@ TERMINAL_PRODUCT_METADATA = {
             "product::DigitalOptionPathPolicy<Side>>"
         ),
     },
+    "gap_option": {
+        "product_type": "GapOption",
+        "parameter_count": 2,
+        "policy_header": "product/gap_option/pricing_policy.cuh",
+        "sensitivity_policy": (
+            "epg::TerminalProductSensitivityPolicy<"
+            "product::GapOptionPathPolicy<Side>>"
+        ),
+    },
+    "straddle": {
+        "product_type": "Straddle",
+        "parameter_count": 1,
+        "sided": False,
+        "policy_header": "product/straddle/pricing_policy.cuh",
+        "sensitivity_policy": (
+            "epg::TerminalProductSensitivityPolicy<"
+            "product::StraddlePathPolicy>"
+        ),
+    },
 }
+
+
+BLACK_SCHOLES_CLOSED_FORM_METADATA = {
+    "asset_or_nothing_option": {
+        "product_type": "AssetOrNothingOption",
+        "closed_form_policy":
+            "AssetOrNothingOptionClosedFormPricingPolicy<Side>",
+        "sided": True,
+    },
+    "digital_option": {
+        "product_type": "DigitalOption",
+        "closed_form_policy": "DigitalOptionClosedFormPricingPolicy<Side>",
+        "sided": True,
+    },
+    "gap_option": {
+        "product_type": "GapOption",
+        "closed_form_policy": "GapOptionClosedFormPricingPolicy<Side>",
+        "sided": True,
+    },
+    "straddle": {
+        "product_type": "Straddle",
+        "closed_form_policy": "StraddleClosedFormPricingPolicy",
+        "sided": False,
+    },
+    "forward_start_option": {
+        "product_type": "ForwardStartOption",
+        "closed_form_policy":
+            "ForwardStartOptionClosedFormPricingPolicy<Side>",
+        "sided": True,
+        "exact_transition": True,
+    },
+    "geometric_asian_option": {
+        "product_type": "GeometricAsianOption",
+        "closed_form_policy":
+            "GeometricAsianOptionClosedFormPricingPolicy<Side>",
+        "sided": True,
+        "exact_transition": False,
+    },
+    "range_accrual": {
+        "product_type": "RangeAccrual",
+        "closed_form_policy": "RangeAccrualClosedFormPricingPolicy",
+        "sided": False,
+        "exact_transition": True,
+    },
+}
+
+
+PATH_PRODUCT_PARAMETER_COUNT = {
+    "asian_option": 1,
+    "athena_autocall": 3,
+    "cliquet": 5,
+    "double_knock_out_option": 3,
+    "down_and_in_option": 2,
+    "down_and_out_option": 2,
+    "forward_start_option": 1,
+    "geometric_asian_option": 1,
+    "lookback_option": 1,
+    "phoenix_autocall": 4,
+    "phoenix_memory_autocall": 4,
+    "range_accrual": 3,
+    "up_and_in_option": 2,
+    "up_and_out_option": 2,
+    "up_no_touch": 2,
+    "up_one_touch": 2,
+}
+
+
+def path_product_metadata(binding):
+    manifest = binding.manifest_binding
+    if manifest is None:
+        if (binding.model == "black_scholes"
+                and binding.product in BLACK_SCHOLES_CLOSED_FORM_METADATA):
+            metadata = BLACK_SCHOLES_CLOSED_FORM_METADATA[binding.product]
+            return {
+                **metadata,
+                "parameter_count": PATH_PRODUCT_PARAMETER_COUNT[
+                    binding.product
+                ],
+                "policy_header": "",
+                "sensitivity_policy": "",
+                "schedule": "",
+            }
+        raise KeyError(binding.product)
+    if binding.product not in PATH_PRODUCT_PARAMETER_COUNT:
+        raise KeyError(binding.product)
+    path_policy = f"product::{manifest.pricing_policy.replace('PricingPolicy', 'PathPolicy')}"
+    if manifest.sided:
+        path_policy += "<Side>"
+    schedule = f"{manifest.schedule}<{binding.model}::DynamicsPolicy"
+    if manifest.schedule.endswith("CalendarSchedule"):
+        schedule += ", 2U"
+    schedule += ">"
+    return {
+        "product_type": manifest.product_type,
+        "parameter_count": PATH_PRODUCT_PARAMETER_COUNT[binding.product],
+        "policy_header": f"product/{binding.product}/pricing_policy.cuh",
+        "sensitivity_policy": path_policy,
+        "schedule": schedule,
+        "exact_transition": "ExactTransition" in manifest.schedule,
+        "sided": manifest.sided,
+    }
 
 
 AMERICAN_LSM_METADATA = {
@@ -176,12 +296,16 @@ class PriceGradientBindingSpec:
     def __post_init__(self):
         supported = {
             "device_prepared_closed_form_terminal",
+            "device_prepared_closed_form_path",
             "device_prepared_step_terminal",
             "device_prepared_exact_terminal",
+            "device_prepared_path",
             "device_prepared_lsm",
             "device_prepared_fixed_income_lsm",
             "host_prepared_lsm",
             "device_prepared_cooperative_closed_form",
+            "device_prepared_scalar_closed_form",
+            "device_prepared_fixed_income_monte_carlo",
         }
         if self.preparation_strategy not in supported:
             raise ValueError(
@@ -235,46 +359,65 @@ def compose_bindings(pricing_bindings):
         "variance_gamma": "device_prepared_exact_terminal",
     }
     lsm_models = set(AMERICAN_LSM_METADATA)
-    equity = tuple(
-        PriceGradientBindingSpec(binding,
-                                 model_parameter_count[binding.model] + 1
-                                 if binding.product == "american_option"
-                                 else model_parameter_count[binding.model]
-                                 + TERMINAL_PRODUCT_METADATA[
-                                     binding.product
-                                 ]["parameter_count"]
-                                 + supports_maturity[binding.model],
-                                 binding.model == "black_scholes",
-                                 "device_prepared_lsm"
-                                 if binding.product == "american_option"
-                                 else terminal_strategy[binding.model],
-                                 ("first", "diagonal_second"))
-        for binding in pricing_bindings
-        if binding.model in model_parameter_count and (
-            binding.product in TERMINAL_PRODUCT_METADATA
-            or (binding.model in lsm_models
-                and binding.product == "american_option")
-        ) and not (
-            binding.model == "black_scholes"
-            and binding.product not in {
-                "european_option", "american_option"
-            }
-        )
-    )
-    fixed_income_closed_form = tuple(
+    terminal_equity = tuple(
         PriceGradientBindingSpec(
             binding,
-            7,
-            True,
-            "device_prepared_cooperative_closed_form",
+            model_parameter_count[binding.model]
+                + TERMINAL_PRODUCT_METADATA[binding.product]["parameter_count"]
+                + supports_maturity[binding.model],
+            binding.model == "black_scholes",
+            terminal_strategy[binding.model],
             ("first", "diagonal_second"),
         )
         for binding in pricing_bindings
-        if binding.asset_class == "fixed_income"
-        and binding.model == "cir"
-        and binding.curve is None
-        and binding.product == "european_swaption"
-        and binding.engine == "fixed_income_closed_form"
+        if binding.model in model_parameter_count
+        and binding.product in TERMINAL_PRODUCT_METADATA
+    )
+    path_equity = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            model_parameter_count[binding.model]
+                + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
+            False,
+            "device_prepared_path",
+            ("first", "diagonal_second"),
+        )
+        for binding in pricing_bindings
+        if binding.model in model_parameter_count
+        and binding.product in PATH_PRODUCT_PARAMETER_COUNT
+        and binding.engine == "equity_markovian"
+    )
+    closed_form_path_equity = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            model_parameter_count[binding.model]
+                + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
+            True,
+            "device_prepared_closed_form_path",
+            ("first", "diagonal_second"),
+        )
+        for binding in pricing_bindings
+        if binding.model == "black_scholes"
+        and binding.product in PATH_PRODUCT_PARAMETER_COUNT
+        and binding.engine == "equity_closed_form"
+    )
+    lsm_equity = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            model_parameter_count[binding.model] + 1,
+            False,
+            "device_prepared_lsm",
+            ("first", "diagonal_second"),
+        )
+        for binding in pricing_bindings
+        if binding.model in lsm_models
+        and binding.product == "american_option"
+    )
+    equity = (
+        *terminal_equity,
+        *path_equity,
+        *closed_form_path_equity,
+        *lsm_equity,
     )
     fixed_income_model_parameter_count = {
         "cir": 4,
@@ -290,6 +433,43 @@ def compose_bindings(pricing_bindings):
         "nelson_siegel": 4,
         "svensson": 6,
     }
+    fixed_income_product_parameter_count = {
+        "european_swaption": 3,
+        "rate_option": 2,
+        "zero_coupon_bond_option": 2,
+    }
+    fixed_income_closed_form = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            fixed_income_model_parameter_count[binding.model]
+                + curve_parameter_count[binding.curve]
+                + fixed_income_product_parameter_count[binding.product],
+            True,
+            ("device_prepared_cooperative_closed_form"
+             if binding.product == "european_swaption"
+             else "device_prepared_scalar_closed_form"),
+            ("first", "diagonal_second"),
+        )
+        for binding in pricing_bindings
+        if binding.asset_class == "fixed_income"
+        and binding.engine == "fixed_income_closed_form"
+        and binding.product in fixed_income_product_parameter_count
+    )
+    fixed_income_monte_carlo = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            fixed_income_model_parameter_count[binding.model]
+                + curve_parameter_count[binding.curve]
+                + fixed_income_product_parameter_count[binding.product],
+            False,
+            "device_prepared_fixed_income_monte_carlo",
+            ("first", "diagonal_second"),
+        )
+        for binding in pricing_bindings
+        if binding.asset_class == "fixed_income"
+        and binding.engine == "fixed_income_monte_carlo"
+        and binding.product == "european_swaption"
+    )
     fixed_income_lsm = tuple(
         PriceGradientBindingSpec(
             binding,
@@ -305,7 +485,12 @@ def compose_bindings(pricing_bindings):
         and binding.product == "bermudan_swaption"
         and binding.engine == "fixed_income_lsm"
     )
-    return (*equity, *fixed_income_closed_form, *fixed_income_lsm)
+    return (
+        *equity,
+        *fixed_income_closed_form,
+        *fixed_income_monte_carlo,
+        *fixed_income_lsm,
+    )
 
 
 def compose_datasets(delta_datasets, price_datasets, bindings):
@@ -336,6 +521,11 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
             "fixed_income_bermudan_swaption_generator.cpp.tpl"
             if dataset.product == "bermudan_swaption"
             else "catalog/pricing/price_gradients/"
+            "fixed_income_scalar_product_generator.cpp.tpl"
+            if dataset.product in {
+                "rate_option", "zero_coupon_bond_option"
+            }
+            else "catalog/pricing/price_gradients/"
             "fixed_income_european_swaption_generator.cpp.tpl"
         ),
         numerical_profile=(
@@ -347,7 +537,10 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
         for dataset in price_datasets
         if dataset.dataset_kind == "prices"
         and dataset.asset_class == "fixed_income"
-        and dataset.product in {"european_swaption", "bermudan_swaption"}
+        and dataset.product in {
+            "european_swaption", "bermudan_swaption",
+            "rate_option", "zero_coupon_bond_option",
+        }
         and (dataset.model, dataset.product) in supported
         and any(spec.pricing.model == dataset.model
                 and spec.pricing.product == dataset.product
@@ -360,6 +553,11 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
             "/" + dataset.dataset_id + "_diagonal/"),
         template=("catalog/pricing/price_gradients/fixed_income_bermudan_swaption_diagonal_generator.cpp.tpl"
                   if dataset.product == "bermudan_swaption"
+                  else "catalog/pricing/price_gradients/fixed_income_scalar_product_diagonal_generator.cpp.tpl"
+                  if dataset.asset_class == "fixed_income"
+                  and dataset.product in {
+                      "rate_option", "zero_coupon_bond_option"
+                  }
                   else "catalog/pricing/price_gradients/fixed_income_european_swaption_diagonal_generator.cpp.tpl"
                   if dataset.asset_class == "fixed_income"
                   else "catalog/pricing/price_gradients/american_option_diagonal_generator.cpp.tpl"
@@ -480,6 +678,83 @@ def default_sensitivities(
             ("product.strike", .005, "relative"),
             ("product.cash_payoff", .005, "relative"),
         ),
+        "gap_option": (
+            ("product.trigger_strike", .005, "relative"),
+            ("product.payoff_strike", .005, "relative"),
+        ),
+        "straddle": (
+            ("product.strike", .005, "relative"),
+        ),
+        "asian_option": (
+            ("product.strike", .005, "relative"),
+        ),
+        "athena_autocall": (
+            ("product.autocall_barrier", .005, "relative"),
+            ("product.protection_barrier", .005, "relative"),
+            ("product.annual_coupon_rate", .0005, "absolute"),
+        ),
+        "cliquet": (
+            ("product.participation_rate", .005, "relative"),
+            ("product.local_floor", .002, "absolute"),
+            ("product.local_cap", .002, "absolute"),
+            ("product.global_floor", .002, "absolute"),
+            ("product.global_cap", .002, "absolute"),
+        ),
+        "double_knock_out_option": (
+            ("product.strike", .005, "relative"),
+            ("product.lower_barrier", .005, "relative"),
+            ("product.upper_barrier", .005, "relative"),
+        ),
+        "down_and_in_option": (
+            ("product.strike", .005, "relative"),
+            ("product.barrier", .005, "relative"),
+        ),
+        "down_and_out_option": (
+            ("product.strike", .005, "relative"),
+            ("product.barrier", .005, "relative"),
+        ),
+        "forward_start_option": (
+            ("product.moneyness", .005, "relative"),
+        ),
+        "geometric_asian_option": (
+            ("product.strike", .005, "relative"),
+        ),
+        "lookback_option": (
+            ("product.strike", .005, "relative"),
+        ),
+        "phoenix_autocall": (
+            ("product.autocall_barrier", .005, "relative"),
+            ("product.coupon_barrier", .005, "relative"),
+            ("product.protection_barrier", .005, "relative"),
+            ("product.annual_coupon_rate", .0005, "absolute"),
+        ),
+        "phoenix_memory_autocall": (
+            ("product.autocall_barrier", .005, "relative"),
+            ("product.coupon_barrier", .005, "relative"),
+            ("product.protection_barrier", .005, "relative"),
+            ("product.annual_coupon_rate", .0005, "absolute"),
+        ),
+        "range_accrual": (
+            ("product.lower_barrier", .005, "relative"),
+            ("product.upper_barrier", .005, "relative"),
+            ("product.coupon_rate", .0005, "absolute"),
+        ),
+        "up_and_in_option": (
+            ("product.strike", .005, "relative"),
+            ("product.barrier", .005, "relative"),
+        ),
+        "up_and_out_option": (
+            ("product.strike", .005, "relative"),
+            ("product.barrier", .005, "relative"),
+        ),
+        "up_no_touch": (
+            ("product.barrier", .005, "relative"),
+            ("product.cash_payoff", .005, "relative"),
+        ),
+        "up_one_touch": (
+            ("product.barrier", .005, "relative"),
+            ("product.cash_payoff", .005, "relative"),
+        ),
         "european_swaption": (
             ("product.strike", .0005, "absolute"),
         ),
@@ -487,6 +762,14 @@ def default_sensitivities(
             ("product.notional", .005, "relative"),
             ("product.strike", .0005, "absolute"),
             ("product.accrual_fraction", .005, "relative"),
+        ),
+        "rate_option": (
+            ("product.notional", .005, "relative"),
+            ("product.strike", .0005, "absolute"),
+        ),
+        "zero_coupon_bond_option": (
+            ("product.notional", .005, "relative"),
+            ("product.strike", .005, "relative"),
         ),
     }[product]
     coordinates = (*coordinates, *curves, *products)

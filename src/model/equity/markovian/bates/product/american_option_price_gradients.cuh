@@ -101,4 +101,22 @@ launch_bates_american_option_diagonal_sensitivities_cuda(
     pg::SensitivityOutputs outputs
 );
 
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t bates_american_option_node_graph_workspace_bytes(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_bates_american_option_node_graph_sensitivities_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
 }  // namespace ai_factory::workbench::model::equity::bates

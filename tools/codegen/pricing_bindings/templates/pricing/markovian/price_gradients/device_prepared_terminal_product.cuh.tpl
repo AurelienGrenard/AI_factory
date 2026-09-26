@@ -8,6 +8,7 @@
 #include "model/equity/markovian/${model}/price_gradients/device_preparation.cuh"
 #include "product/${product}/price_gradients/device_preparation.cuh"
 
+#include <cstddef>
 #include <span>
 
 namespace ai_factory::workbench::model::equity::${model} {
@@ -79,7 +80,7 @@ prepare_${model}_${product}_price_gradients(
     );
 }
 
-template<OptionSide Side>
+${side_template}
 void launch_${model}_${product}_price_gradients_cuda(
     const ${product_type}PriceGradientPlan& host,
     ${product_type}PriceGradientPlan::DeviceInputs device,
@@ -88,7 +89,7 @@ void launch_${model}_${product}_price_gradients_cuda(
     pg::Outputs outputs
 );
 
-template<OptionSide Side, pg::SensitivityOrders Orders>
+${sensitivity_template}
 void launch_${model}_${product}_diagonal_sensitivities_cuda(
     const ${product_type}PriceGradientPlan& host,
     ${product_type}PriceGradientPlan::DeviceInputs device,
@@ -96,5 +97,7 @@ void launch_${model}_${product}_diagonal_sensitivities_cuda(
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
 );
+
+${node_graph_declarations}
 
 }  // namespace ai_factory::workbench::model::equity::${model}

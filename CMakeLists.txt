@@ -94,6 +94,24 @@ set(AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS 256 CACHE STRING
     "Threads per block for Volterra path evaluation")
 set(AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS 256 CACHE STRING
     "Threads per block for Volterra result finalization")
+option(AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS
+    "Compile the measured price-gradient launch-bound variants" ON)
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_THREADS_PER_BLOCK 128 CACHE STRING
+    "Threads per block of the bounded terminal mono-sensitivity variant")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_MIN_BLOCKS_PER_SM 6 CACHE STRING
+    "Minimum resident blocks requested by the bounded terminal mono variant")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_THREADS_PER_BLOCK 128 CACHE STRING
+    "Threads per block of the bounded terminal node-evaluation variant")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_MIN_BLOCKS_PER_SM 6 CACHE STRING
+    "Minimum resident blocks requested by the bounded terminal node variant")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_ROW_CHUNK_SIZE 16 CACHE STRING
+    "Maximum rows kept in one terminal node-graph workspace chunk")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_PATH_CHUNK_SIZE 65536 CACHE STRING
+    "Maximum paths kept in one terminal node-graph workspace chunk")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_WORKSPACE_MIB 512 CACHE STRING
+    "Target terminal node-graph workspace budget in MiB")
+set(AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_RESIDENT_WAVES 4 CACHE STRING
+    "Target resident block waves for terminal node evaluation")
 
 if(NOT AI_FACTORY_CUDA_TUNING_PROFILE_ID MATCHES "^[A-Za-z0-9_.-]+$")
     message(FATAL_ERROR
@@ -109,6 +127,8 @@ foreach(variable IN ITEMS
     AI_FACTORY_CUDA_SAMPLE_THREADS_PER_BLOCK
     AI_FACTORY_CUDA_VOLTERRA_PRICING_PATH_THREADS
     AI_FACTORY_CUDA_VOLTERRA_PRICING_FINALIZATION_THREADS
+    AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_THREADS_PER_BLOCK
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_THREADS_PER_BLOCK
 )
     if(NOT ${variable} MATCHES "^[0-9]+$"
         OR ${variable} LESS 32 OR ${variable} GREATER 1024)
@@ -124,9 +144,18 @@ foreach(variable IN ITEMS
     AI_FACTORY_CUDA_FIXED_INCOME_LSM_BLOCKS_PER_PRICE
     AI_FACTORY_CUDA_SAMPLE_BLOCK_COUNT_LIMIT
     AI_FACTORY_CUDA_VOLTERRA_PATH_CHUNK_SIZE
+    AI_FACTORY_CUDA_PRICE_GRADIENT_MONO_MIN_BLOCKS_PER_SM
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_MIN_BLOCKS_PER_SM
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_ROW_CHUNK_SIZE
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_PATH_CHUNK_SIZE
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_WORKSPACE_MIB
+    AI_FACTORY_CUDA_PRICE_GRADIENT_NODE_RESIDENT_WAVES
 )
     if(NOT ${variable} MATCHES "^[0-9]+$" OR ${variable} LESS 1)
         message(FATAL_ERROR "${variable} must be a positive integer")
+    endif()
+    if(variable MATCHES "_MIN_BLOCKS_PER_SM$" AND ${variable} GREATER 32)
+        message(FATAL_ERROR "${variable} cannot exceed 32")
     endif()
 endforeach()
 

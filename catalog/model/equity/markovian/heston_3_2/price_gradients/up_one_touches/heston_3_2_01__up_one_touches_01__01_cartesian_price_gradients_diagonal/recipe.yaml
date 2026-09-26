@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "heston_3_2_01__up_one_touches_01__01_cartesian_price_gradients_diagonal",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
+  "product_input": "datasets/product/up_one_touch/up_one_touches_01.json",
+  "output": {
+    "path": "datasets/model/equity/markovian/heston_3_2/price_gradients/up_one_touches/heston_3_2_01__up_one_touches_01__01_cartesian_price_gradients_diagonal.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/heston_3_2/price_gradients/up_one_touches/heston_3_2_01__up_one_touches_01__01_cartesian_price_gradients_diagonal/generation.yaml",
+  "construction": "cartesian",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/heston_3_2/price_gradients/up_one_touches/heston_3_2_01__up_one_touches_01__01_cartesian_price_gradients_diagonal.json",
+  "paths_per_price": 1048576,
+  "dynamics_seed": 11668827252992245760,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_variance",
+        "displacement": 0.001,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.rho",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.barrier",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.cash_payoff",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/heston_3_2/prices/up_one_touches/heston_3_2_01__up_one_touches_01__01_cartesian/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second"
+    ]
+  },
+  "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
+  "rng_mapping_version": "philox_source_step_v2",
+  "sensitivity_execution": {
+    "default": "mono",
+    "available": [
+      "mono",
+      "node_graph"
+    ],
+    "argument": "--sensitivity-strategy"
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

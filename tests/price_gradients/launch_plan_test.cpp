@@ -19,13 +19,30 @@ int main() {
                 defaults, 10U
             );
         require(
-            device_metadata["central_work_policy"]
+            device_metadata["profile_id"]
+                    == "price_gradients_device_prepared_v2"
+                && device_metadata["central_work_policy"]
                     == "sensitivity_zero_owns_price"
                 && device_metadata["sensitivity_batches_per_price"] == 10U
                 && device_metadata["maximum_live_scenarios"] == 3U
                 && device_metadata["kernel_launches_per_price_batch"] == 1U
                 && device_metadata["materialized_scenario_count"] == 0U
-                && device_metadata["scenario_count"].is_null(),
+                && device_metadata["scenario_count"].is_null()
+                && device_metadata["sensitivity_strategy"] == "mono"
+                && device_metadata["sensitivity_kernel_variant"]
+                    == (tuning::kPriceGradientLaunchBounds
+                            && defaults.profile.threads_per_block
+                                == tuning::kPriceGradientMonoThreadsPerBlock
+                        ? "bounded"
+                        : "unbounded")
+                && device_metadata["sensitivity_launch_bounds"]["enabled"]
+                    == tuning::kPriceGradientLaunchBounds
+                && device_metadata["sensitivity_launch_bounds"]["mono"]
+                        ["threads_per_block"]
+                    == tuning::kPriceGradientMonoThreadsPerBlock
+                && device_metadata["sensitivity_launch_bounds"]
+                        ["node_evaluation"]["minimum_blocks_per_sm"]
+                    == tuning::kPriceGradientNodeMinBlocksPerSm,
             "Device-prepared gradient metadata describes host scenarios."
         );
         const auto empty_device =
@@ -145,7 +162,10 @@ int main() {
                 && device_cf_metadata["sensitivity_batches_per_price"] == 0U
                 && device_cf_metadata["work_distribution"]
                     == "one thread per row; sensitivities evaluated sequentially"
-                && device_cf_metadata["materialized_scenario_count"] == 0U,
+                && device_cf_metadata["materialized_scenario_count"] == 0U
+                && !device_cf_metadata.contains(
+                    "sensitivity_launch_bounds"
+                ),
             "Device-prepared closed form reports MC block geometry."
         );
         const auto jamshidian = tuning::make_price_gradient_launch_plan(

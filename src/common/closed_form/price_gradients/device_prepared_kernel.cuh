@@ -24,10 +24,11 @@ namespace preparation =
 template<
     pg::SensitivityOrders Orders,
     typename Policy,
-    typename Preparation
+    typename Preparation,
+    typename Inputs
 >
 __global__ void device_prepared_kernel(
-    mcpg::DevicePreparedInputs<Preparation> inputs,
+    Inputs inputs,
     mcpg::DevicePreparedPlan plan,
     pg::LaunchConfiguration launch,
     pg::SensitivityOutputs outputs,
@@ -44,16 +45,8 @@ __global__ void device_prepared_kernel(
          local_row < launch.result_count;
          local_row += stride) {
         const std::size_t row = launch.result_offset + local_row;
-        const auto indices = pg::price_row_indices(
-            row, plan.construction, plan.product_count
-        );
         typename Preparation::Scenario central{};
-        if (!Preparation::make_central(
-                inputs.models[indices.model],
-                inputs.products[indices.product],
-                plan.time,
-                central
-            )) {
+        if (!inputs.make_central(row, plan, central)) {
             preparation::record_error(
                 stencil_outputs.error,
                 preparation::invalid_central,
@@ -180,7 +173,8 @@ void launch_device_prepared(
     const auto function = device_prepared_kernel<
         Orders,
         Policy,
-        typename HostPlan::Preparation
+        typename HostPlan::Preparation,
+        typename HostPlan::DeviceInputs
     >;
     report_cuda_kernel_launch_if_enabled(
         kernel_name,

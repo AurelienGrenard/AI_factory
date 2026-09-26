@@ -3,6 +3,44 @@
 Les anciens chemins locaux `build-*` et `build-dev` sont conservés avec leur
 correspondance dans le [plan des artefacts locaux](../local-artifacts.md).
 
+
+## Fermeture de l’intégration markovienne `price_gradients` — 2026-09-26
+
+- **Périmètre :** 301 bindings markoviens d’ordre un et deux diagonal, dont
+  261 equity et 40 fixed income. Equity couvre terminaux, produits de chemin,
+  formules Black--Scholes et américaines LSM. Fixed income couvre formules
+  scalaires, Jamshidian coopératif, swaptions européennes Monte Carlo et
+  Bermudans LSM. Les dérivées mixtes, rough et dates discrètes restent hors
+  périmètre.
+- **Architecture :** les voies stochastiques partagent le plan compact
+  modèle/produit/courbe/spécifications, les nœuds et les stencils entre
+  `mono` et `node_graph`. Les formules fermées conservent un thread par ligne
+  ou un bloc Jamshidian. Les pipelines LSM calculent une politique centrale
+  puis rejouent les nœuds sous exercice gelé.
+- **Catalogue :** 1 776 recettes permanentes, dont 1 456 equity et 320 fixed
+  income. Les 160 recettes scalaires fixed income manquantes ont été ajoutées
+  avec URL, source de prix, sélection, construction et ordre explicites. Le
+  mapping call/put a été comparé aux générateurs de prix canoniques.
+- **Compilation et codegen :** les 301 bibliothèques de binding ont été
+  reconstruites exhaustivement, soit 1 022 étapes Ninja réussies. Les 160
+  nouveaux générateurs scalaires ont ensuite compilé et linké, soit 318 étapes
+  supplémentaires. Une régénération complète depuis un répertoire temporaire
+  comparée au dépôt donne zéro divergence.
+- **Tests :** 75 tests Python et 32 sous-tests de manifeste, catalogue,
+  schémas et artefacts passent. La suite CTest `price_gradients` passe 27/27,
+  incluant terminal, path, LSM américain/Bermudan, sauts, fixed income et
+  parité node-graph. `memcheck`, `racecheck`, `initcheck` et `synccheck`
+  rapportent zéro erreur ou warning sur les représentants Bates américain et
+  Bermudan. Deux smoke tests scalaires produisent 1 000 lignes Vasicek et
+  1 000 lignes CIR++/Nelson--Siegel avec centraux exactement égaux aux bases
+  de prix ; un mini-cartésien `2 x 2 x 2` confirme aussi la parité et la
+  finitude des gradients/Hessiennes.
+- **Verdict :** intégration markovienne, compilation et reproductibilité
+  fermées. La qualification numérique complète des bumps, le biais du freeze
+  LSM, les performances par GPU, les dérivées mixtes, les moteurs rough et la
+  suppression de `price_delta` restent des travaux distincts. Aucun nouveau
+  timing de performance n’est retenu pendant les tests sur batterie.
+
 ## Extension Bermudan fixed income de `price_gradients` — 2026-09-23
 
 - **Périmètre :** sensibilités sélectionnées d'ordre un et diagonale de

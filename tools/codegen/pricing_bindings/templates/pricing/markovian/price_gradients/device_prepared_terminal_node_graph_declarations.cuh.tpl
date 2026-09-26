@@ -1,0 +1,17 @@
+// Public workspace and launch surface for terminal node-graph sensitivities.
+${sensitivity_template}
+std::size_t ${model}_${product}_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+${sensitivity_template}
+void launch_${model}_${product}_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);

@@ -86,13 +86,23 @@ private:
 // A model retains one path identity and step cursor, not a cached quad and
 // Box--Muller pair for every possible source.
 struct DomainRandomContext {
-    PhiloxKey key;
-    std::uint64_t path_index;
+    PhiloxKey key{};
+    std::uint64_t path_index = 0ULL;
     std::uint32_t step_index = 0U;
+
+    __device__ __forceinline__ DomainRandomContext() = default;
 
     __device__ __forceinline__ DomainRandomContext(
         PhiloxKey row_key, std::uint64_t path
     ) : key(row_key), path_index(path) {}
+
+    __device__ __forceinline__ void reset(
+        PhiloxKey row_key, std::uint64_t path
+    ) {
+        key = row_key;
+        path_index = path;
+        step_index = 0U;
+    }
 
     __device__ __forceinline__ std::uint32_t next_step() {
         if (step_index > kMaximumDomainStep) asm volatile("trap;");

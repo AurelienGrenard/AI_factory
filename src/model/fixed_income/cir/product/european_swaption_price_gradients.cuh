@@ -1,4 +1,4 @@
-// cir European-swaption sensitivities under Jamshidian.
+// CIR European-swaption sensitivities under Jamshidian.
 #pragma once
 
 #include "common/closed_form/concepts.cuh"
@@ -17,12 +17,12 @@ namespace pg = ::ai_factory::workbench::price_gradients;
 namespace fipg = ::ai_factory::workbench::fixed_income::price_gradients;
 namespace model_pg =
     ::ai_factory::workbench::model::fixed_income::cir::price_gradients;
-namespace swaption_pg =
+namespace european_swaption_pg =
     ::ai_factory::workbench::product::european_swaption::price_gradients;
 
 using EuropeanSwaptionPriceGradientPlan = fipg::DevicePreparedPlan<
     model_pg::DevicePreparation,
-    swaption_pg::DevicePreparation
+    european_swaption_pg::DevicePreparation
 >;
 
 void prepare_european_swaption_price_gradient_stencils_cuda(
@@ -50,9 +50,14 @@ prepare_cir_european_swaption_sensitivities(
     const pg::PriceGradientConfiguration& configuration,
     pg::SensitivityRequest request
 ) {
-    return fipg::prepare_device_sensitivities<
-        EuropeanSwaptionPriceGradientPlan
-    >(models, products, construction, time, configuration, request);
+    return fipg::prepare_device_sensitivities<EuropeanSwaptionPriceGradientPlan>(
+        models,
+        products,
+        construction,
+        time,
+        configuration,
+        request
+    );
 }
 
 inline EuropeanSwaptionPriceGradientPlan

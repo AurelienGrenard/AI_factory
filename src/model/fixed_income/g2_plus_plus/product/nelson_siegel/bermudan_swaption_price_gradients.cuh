@@ -106,4 +106,22 @@ launch_g2_plus_plus_nelson_siegel_bermudan_swaption_diagonal_sensitivities_cuda(
     pg::SensitivityOutputs outputs
 );
 
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+std::size_t g2_plus_plus_nelson_siegel_bermudan_swaption_node_graph_workspace_bytes(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_g2_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
 }  // namespace ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel

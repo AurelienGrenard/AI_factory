@@ -21,7 +21,7 @@ int main() {
         "merton_01__american_puts_01__01.json",
         "catalog/model/equity/markovian/merton/prices/american_puts/"
         "merton_01__american_puts_01__01/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/markovian/merton/prices/"
+        "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/prices/"
         "american_puts/merton_01__american_puts_01__01.json",
         "Exact Merton increments + Longstaff-Schwartz",
         PriceConstruction::Aligned,

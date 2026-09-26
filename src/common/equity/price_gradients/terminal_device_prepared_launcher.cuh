@@ -216,6 +216,7 @@ template<
     pg::SensitivityOrders Orders,
     typename Dynamics,
     typename ProductPolicy,
+    typename MonoTuning = mcpg::tuning::DefaultTerminalMonoTuning,
     typename HostPlan,
     typename PriceOnlyLaunch
 >
@@ -241,7 +242,8 @@ void launch_terminal_diagonal_sensitivities(
         Orders,
         Dynamics,
         ProductPolicy,
-        typename HostPlan::Preparation
+        typename HostPlan::Preparation,
+        MonoTuning
     >(
         device,
         mcpg::make_device_prepared_plan(host),

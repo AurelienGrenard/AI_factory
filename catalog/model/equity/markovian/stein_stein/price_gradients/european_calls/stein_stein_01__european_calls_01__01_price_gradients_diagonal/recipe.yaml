@@ -50,6 +50,14 @@
   },
   "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
   "rng_mapping_version": "philox_source_step_v2",
+  "sensitivity_execution": {
+    "default": "mono",
+    "available": [
+      "mono",
+      "node_graph"
+    ],
+    "argument": "--sensitivity-strategy"
+  },
   "time_grid": {
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,

@@ -18,7 +18,7 @@ int main() {
         return offline::pricing::price_gradients::execute_dataset<$stochastic>(recipe,
             {offline::cuda_tuning::PricingFamily::$family, "$model", "$product", ""}, ${seed}ULL,
             models, products, model::equity::$model::prepare_${model}_${product}_price_gradients,
-            model::equity::$model::launch_${model}_${product}_price_gradients_cuda<OptionSide::$side>,
+            model::equity::$model::launch_${model}_${product}_price_gradients_cuda${price_template_arguments},
             offline::cuda_tuning::kProductionPathsPerPrice,
             model::equity::$model::prepare_${product}_price_gradient_stencils_cuda);
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

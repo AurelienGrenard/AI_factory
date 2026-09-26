@@ -37,7 +37,7 @@ int main() {
             {"time_convention", {{"unit", "business_day"}, {"days_per_year", 252}}},
             {"products", {{{"id", "000001"}}}}
         });
-        const datasets::price_gradients::Recipe recipe{
+        datasets::price_gradients::Recipe recipe{
             directory / "models.json", directory / "products.json",
             directory / "diagonal.json", directory / "generation.yaml",
             "https://datasets.ai-factory.example/diagonal.json",
@@ -64,13 +64,17 @@ int main() {
             );
         };
         const auto execute = [&] {
-            return offline::pricing::price_gradients::execute_dataset<
-                true, pg::SensitivityOrders::first_and_second>(
+            return offline::pricing::price_gradients::execute_node_graph_dataset<
+                pg::SensitivityOrders::first_and_second>(
                 recipe,
                 {offline::cuda_tuning::PricingFamily::equity_step_mc,
                  "heston", "european_option", ""},
                 1709U, models, products, prepare,
                 heston::launch_heston_european_option_diagonal_sensitivities_cuda<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                heston::heston_european_option_node_graph_workspace_bytes<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                heston::launch_heston_european_option_node_graph_sensitivities_cuda<
                     OptionSide::call, pg::SensitivityOrders::first_and_second>,
                 2048U,
                 heston::prepare_european_option_diagonal_sensitivity_stencils_cuda
@@ -90,6 +94,16 @@ int main() {
         const auto replay = datasets::read_json_file(recipe.dataset);
         require(replay["results"] == first["results"]);
         require(replay["summary"]["checkpoint"]["resumed_prices"] == 1U);
+        require(first["summary"]["sensitivity_strategy"] == "mono");
+        unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
+        unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
+        recipe.sensitivity_strategy =
+            pg::SensitivityStrategy::node_graph;
+        require(execute() == 0);
+        const auto graph = datasets::read_json_file(recipe.dataset);
+        require(graph["results"] == first["results"]);
+        require(graph["summary"]["sensitivity_strategy"] == "node_graph");
+        require(graph["summary"]["sensitivity_workspace_bytes"] > 0U);
 
         datasets::write_json_file(directory / "american_products.json", {
             {"database_id", "american_product_fixture"},

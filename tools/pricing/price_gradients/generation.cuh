@@ -5,6 +5,7 @@
 #include "tools/cuda/generation_checkpoint.hpp"
 #include "tools/cuda/generation_progress.hpp"
 #include "tools/datasets/price_gradients/dataset.hpp"
+#include "tools/pricing/price_gradients/sensitivity_execution.cuh"
 #include "common/equity/price_gradients/device_preparation.cuh"
 #include "common/price_gradients/device_prepared_launch.cuh"
 #include "common/price_gradients/launch.cuh"
@@ -92,14 +93,14 @@ template<
     bool Stochastic,
     pg::SensitivityOrders Orders,
     typename Plan,
-    typename Launch,
+    typename ExecutionPolicy,
     typename StencilPreparation>
 int execute_prepared_dataset(
     const datasets::price_gradients::Recipe& recipe,
     cuda_tuning::PricingIdentity identity,
     std::uint64_t seed,
     const Plan& prepared,
-    Launch launch,
+    ExecutionPolicy execution_policy,
     StencilPreparation prepare_stencils,
     std::size_t paths_per_price
 ) {
@@ -170,12 +171,10 @@ int execute_prepared_dataset(
         std::vector<
             equity::price_gradients::device_preparation::Error
         > preparation_status(1U);
-        auto invoke = [&](auto& execution, std::size_t offset, std::size_t count) {
-            const auto inputs = make_device_inputs(prepared, execution);
-            const auto stencil_outputs = make_stencil_outputs<node_capacity>(
-                prepared, execution, represented_stencils.size()
-            );
-            pg::LaunchConfiguration configuration{
+        const auto make_configuration = [&](
+            std::size_t offset, std::size_t count
+        ) {
+            return pg::LaunchConfiguration{
                 Stochastic
                     ? pg::PricingMethod::monte_carlo
                     : pg::PricingMethod::closed_form,
@@ -187,6 +186,19 @@ int execute_prepared_dataset(
                 seed,
                 1U,
             };
+        };
+        const auto maximum_configuration = make_configuration(
+            0U, plan.prices_per_launch
+        );
+        const auto workspace_bytes = execution_policy.workspace_bytes(
+            prepared, maximum_configuration
+        );
+        auto invoke = [&](auto& execution, std::size_t offset, std::size_t count) {
+            const auto inputs = make_device_inputs(prepared, execution);
+            const auto stencil_outputs = make_stencil_outputs<node_capacity>(
+                prepared, execution, represented_stencils.size()
+            );
+            const auto configuration = make_configuration(offset, count);
             float* price_errors = nullptr;
             float* sensitivity_errors = nullptr;
             if constexpr (Stochastic) {
@@ -201,25 +213,38 @@ int execute_prepared_dataset(
                     Stochastic ? diagonal_errors.data() : nullptr,
                     rows, rows*k
                 };
-                launch(
-                    prepared, inputs, stencil_outputs, configuration, outputs
+                execution_policy.launch(
+                    prepared,
+                    inputs,
+                    stencil_outputs,
+                    configuration,
+                    outputs,
+                    execution.workspace(),
+                    execution.workspace_bytes()
                 );
             } else {
                 const pg::Outputs outputs{
                     execution.prices(), price_errors,
                     gradients.data(), sensitivity_errors, rows, rows*k
                 };
-                launch(
-                    prepared, inputs, stencil_outputs, configuration, outputs
+                execution_policy.launch(
+                    prepared,
+                    inputs,
+                    stencil_outputs,
+                    configuration,
+                    outputs,
+                    execution.workspace(),
+                    execution.workspace_bytes()
                 );
             }
         };
         const auto host_inputs = make_host_inputs(
             prepared, represented_stencils, preparation_status
         );
-        auto run = cuda::run<Stochastic>(
+        auto run = cuda::run_with_workspace<Stochastic>(
             host_inputs,
             rows,
+            workspace_bytes,
             [&](auto& execution) { invoke(execution, 0U, 1U); },
             [&](auto& execution) {
                 if constexpr (Stochastic) {
@@ -406,6 +431,13 @@ int execute_prepared_dataset(
             prepared.sensitivities.size()*sizeof(typename Plan::SensitivitySpec);
         result.execution["stencil_output_bytes"] =
             rows*k*sizeof(pg::SensitivityStencil<node_capacity>);
+        result.execution["sensitivity_workspace_bytes"] = workspace_bytes;
+        if constexpr (requires {
+            execution_policy.strategy_name();
+        }) {
+            result.execution["sensitivity_strategy"] =
+                execution_policy.strategy_name();
+        }
         if constexpr (second_requested) {
             result.execution["requested_orders"] = Orders
                 == pg::SensitivityOrders::second
@@ -478,7 +510,145 @@ int execute_dataset(const datasets::price_gradients::Recipe& recipe, cuda_tuning
         identity,
         seed,
         prepared,
-        std::move(launch),
+        direct_sensitivity_execution(std::move(launch)),
+        std::move(prepare_stencils),
+        paths_per_price
+    );
+}
+
+template<
+    pg::SensitivityOrders Orders,
+    typename Models,
+    typename Products,
+    typename Prepare,
+    typename MonoLaunch,
+    typename GraphWorkspaceBytes,
+    typename GraphLaunch,
+    typename StencilPreparation>
+int execute_node_graph_dataset(
+    const datasets::price_gradients::Recipe& recipe,
+    cuda_tuning::PricingIdentity identity,
+    std::uint64_t seed,
+    const Models& models,
+    const Products& products,
+    Prepare prepare,
+    MonoLaunch mono_launch,
+    GraphWorkspaceBytes graph_workspace_bytes,
+    GraphLaunch graph_launch,
+    std::size_t paths_per_price,
+    StencilPreparation prepare_stencils
+) {
+    static_assert(
+        pg::requests_second_v<Orders>,
+        "The node graph reconstructs diagonal second derivatives."
+    );
+    if (recipe.orders != Orders) {
+        std::cerr
+            << "Gradient recipe and compiled sensitivity orders differ.\n";
+        return 1;
+    }
+    using Prepared = decltype(prepare(
+        models,
+        products,
+        recipe.construction,
+        recipe.time,
+        recipe.configuration
+    ));
+    static_assert(
+        Prepared::kDevicePreparedSensitivities,
+        "Node-graph datasets require compact device-prepared plans."
+    );
+    const Prepared prepared = prepare(
+        models,
+        products,
+        recipe.construction,
+        recipe.time,
+        recipe.configuration
+    );
+    return execute_prepared_dataset<true, Orders>(
+        recipe,
+        identity,
+        seed,
+        prepared,
+        node_graph_sensitivity_execution(
+            recipe.sensitivity_strategy,
+            std::move(mono_launch),
+            std::move(graph_workspace_bytes),
+            std::move(graph_launch)
+        ),
+        std::move(prepare_stencils),
+        paths_per_price
+    );
+}
+
+template<
+    pg::SensitivityOrders Orders,
+    typename Models,
+    typename Curves,
+    typename Products,
+    typename Prepare,
+    typename MonoLaunch,
+    typename GraphWorkspaceBytes,
+    typename GraphLaunch,
+    typename StencilPreparation>
+int execute_curve_node_graph_dataset(
+    const datasets::price_gradients::Recipe& recipe,
+    cuda_tuning::PricingIdentity identity,
+    std::uint64_t seed,
+    const Models& models,
+    const Curves& curves,
+    const Products& products,
+    Prepare prepare,
+    MonoLaunch mono_launch,
+    GraphWorkspaceBytes graph_workspace_bytes,
+    GraphLaunch graph_launch,
+    std::size_t paths_per_price,
+    StencilPreparation prepare_stencils
+) {
+    static_assert(
+        pg::requests_second_v<Orders>,
+        "The node graph reconstructs diagonal second derivatives."
+    );
+    if (recipe.orders != Orders) {
+        std::cerr
+            << "Gradient recipe and compiled sensitivity orders differ.\n";
+        return 1;
+    }
+    using Prepared = decltype(prepare(
+        models,
+        curves,
+        products,
+        recipe.construction,
+        recipe.time,
+        recipe.configuration
+    ));
+    static_assert(
+        Prepared::kDevicePreparedSensitivities,
+        "Node-graph datasets require compact device-prepared plans."
+    );
+    static_assert(
+        has_curve_inputs_v<Prepared>,
+        "Curve node graphs require a curve-aware prepared plan."
+    );
+    const Prepared prepared = prepare(
+        models,
+        curves,
+        products,
+        recipe.construction,
+        recipe.time,
+        recipe.configuration
+    );
+    return execute_prepared_dataset<true, Orders>(
+        recipe,
+        identity,
+        seed,
+        prepared,
+        node_graph_sensitivity_execution(
+            recipe.sensitivity_strategy,
+            std::move(mono_launch),
+            std::move(graph_workspace_bytes),
+            std::move(graph_launch)
+        ),
         std::move(prepare_stencils),
         paths_per_price
     );
@@ -544,7 +714,7 @@ int execute_curve_dataset(
         identity,
         seed,
         prepared,
-        std::move(launch),
+        direct_sensitivity_execution(std::move(launch)),
         std::move(prepare_stencils),
         paths_per_price
     );

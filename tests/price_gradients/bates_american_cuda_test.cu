@@ -139,7 +139,8 @@ Run execute(
     std::size_t paths,
     unsigned int threads,
     std::size_t blocks,
-    std::uint64_t seed
+    std::uint64_t seed,
+    bool node_graph = false
 ) {
     constexpr std::size_t node_capacity =
         pg::SensitivityTraits<Orders>::node_capacity;
@@ -204,6 +205,16 @@ Run execute(
         seed,
         1U,
     };
+    std::size_t workspace_bytes = 0U;
+    if constexpr (pg::requests_second_v<Orders>) {
+        if (node_graph) {
+            workspace_bytes =
+                bates::bates_american_option_node_graph_workspace_bytes<
+                    Side, Orders
+                >(plan, launch);
+        }
+    }
+    DeviceArray<std::uint8_t> workspace(workspace_bytes);
     const auto result = [&] {
         if constexpr (Orders == pg::SensitivityOrders::first) {
             return bates::launch_bates_american_option_price_gradients_cuda<
@@ -223,6 +234,21 @@ Run execute(
                 }
             );
         } else {
+            if (node_graph) {
+                return bates::
+                    launch_bates_american_option_node_graph_sensitivities_cuda<
+                        Side,
+                        Orders
+                    >(
+                        plan,
+                        inputs,
+                        stencil_outputs,
+                        launch,
+                        outputs,
+                        workspace.data,
+                        workspace.count
+                    );
+            }
             return bates::
                 launch_bates_american_option_diagonal_sensitivities_cuda<
                     Side,
@@ -431,6 +457,19 @@ void run() {
         pg::SensitivityOrders::first_and_second,
         Side
     >(diagonal_plan, test_paths, threads, blocks, seed);
+    const auto node_graph = execute<
+        pg::SensitivityOrders::first_and_second,
+        Side
+    >(diagonal_plan, test_paths, threads, blocks, seed, true);
+    require(
+        node_graph.prices == diagonal.prices
+            && node_graph.price_errors == diagonal.price_errors
+            && node_graph.gradients == diagonal.gradients
+            && node_graph.gradient_errors == diagonal.gradient_errors
+            && node_graph.hessians == diagonal.hessians
+            && node_graph.hessian_errors == diagonal.hessian_errors,
+        "Bates American mono and node_graph sensitivity outputs differ."
+    );
     require(
         diagonal.prices == selected.prices
             && diagonal.price_errors == selected.price_errors

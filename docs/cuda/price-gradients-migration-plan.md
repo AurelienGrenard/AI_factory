@@ -99,7 +99,8 @@ Les responsabilités restent lisibles dans l'arborescence :
 | Responsabilité | Propriétaire |
 |---|---|
 | Sélection, tâche, stencil, reconstruction, sorties et validation commune | `src/common/price_gradients/` |
-| Distribution Monte Carlo, réduction et replay des innovations | `src/common/monte_carlo/price_gradients/` |
+| Distribution Monte Carlo mono, politique terminale partagée et replay des innovations | `src/common/monte_carlo/price_gradients/` |
+| Évaluation, reconstruction et finalisation du graphe de nœuds terminal | `src/common/monte_carlo/price_gradients/terminal_node_graph/` |
 | Formules scalaires et coopératives | `src/common/closed_form/price_gradients/` |
 | Stratégie LSM centrale et replay gelé | `src/common/longstaff_schwartz/price_gradients/` |
 | Workspace, convolution et réduction rough FFT, lors de leur ajout | `src/common/volterra/price_gradients/` |
@@ -147,6 +148,17 @@ les précomputations invariantes au niveau modèle, courbe ou calendrier peuvent
 rester hors du kernel chaud, mais ne doivent pas recréer implicitement la
 matrice de scénarios.
 
+Pour les terminaux Monte Carlo, la stratégie mono et le graphe de nœuds à
+trois phases partagent `SensitivitySpec`, `SensitivityTask`,
+`SensitivityStencil`, `TerminalNodePolicy`, les entrées préparées et les
+sorties. La stratégie choisie ne change que l'ordonnancement et son workspace.
+La stratégie mono garde ses nœuds et moments dans le bloc ; le graphe écrit les
+observations de nœuds, reconstruit les dérivées, puis finalise les moments. La
+parité bitwise sur prix, erreurs, gradient et Hessienne diagonale est le garde
+de non-régression entre les deux pour les demandes qu'elles savent toutes deux
+exprimer. Le choix automatique de stratégie reste une étape séparée fondée sur
+les ressources compilées et une qualification par couple et matériel.
+
 **Sortie :** sélection vide, une sensibilité, sous-ensemble et permutation
 passent sur les voies concernées ; le prix central est écrit une fois, les
 stencils et résultats correspondent aux points effectivement évalués, et la
@@ -155,73 +167,74 @@ déclaré migré ne conserve une matrice hôte `N*(1+2K)` de scénarios.
 
 ### 2. Couvrir les modèles et produits markoviens
 
-**Avancement au 23 septembre 2026 :** les payoffs terminaux européens générés
-(`european_option`, `asset_or_nothing_option`, `digital_option`) exposent les
-ordres un et deux diagonal pour Black--Scholes, CEV, Heston, Heston 3/2, SABR,
-Schöbel--Zhu, Stein--Stein, Merton, Kou, Bates, Variance-Gamma et NIG selon les
-bindings de prix existants. Les transitions à sauts finis partagent le replay
-événementiel commun ; VG et NIG partagent leurs primitives de subordination.
+**État au 26 septembre 2026 : porte d’intégration fermée.** Le manifeste
+contient 301 bindings `price_gradients`, tous compilés : 261 equity et 40 fixed
+income. La couverture equity se décompose en 55 bindings Monte Carlo
+terminaux, 189 bindings Monte Carlo de chemin, huit bindings Black--Scholes en
+formule fermée et neuf bindings américains LSM. La couverture fixed income se
+décompose en 20 formules fermées scalaires, sept swaptions européennes
+Jamshidian coopératives, trois swaptions européennes Monte Carlo exactes et dix
+swaptions bermudéennes LSM.
 
-Le moteur américain gelé couvre désormais tous les modèles equity disposant
-d'un binding LSM dans ce périmètre : Black--Scholes, CEV, Heston,
-Schöbel--Zhu, Merton, Kou, Bates, Variance-Gamma et NIG. Il distingue deux
-replays communs : pas fixe sur les intervalles numériques canoniques et
-transition exacte une fois par intervalle contractuel. Le prix et la politique
-d'exercice centraux sont calculés une seule fois. La maturité et les dates
-d'exercice américaines restent exclues. La swaption européenne CIR/Jamshidian et les dix compositions Bermudan
-fixed income sont maintenant intégrées. Les Bermudans couvrent CIR, CIR++,
-G2, G2++, Hull--White, OU et Vasicek, avec Nelson--Siegel ou Svensson lorsque
-le modèle exige une courbe. Leur central LSM est calculé une fois, puis les
-nœuds sont rejoués sous politique d'exercice gelée. Les modèles, courbes et
-produits partagent leurs domaines entre loaders et préparation GPU. Les
-produits de chemin equity et les autres produits de taux restent hors de cette
-tranche.
+Les moteurs stochastiques d’ordre un plus deux diagonal exposent les deux
+ordonnancements `mono` et `node_graph` sur le même plan compact. Les formules
+fermées conservent leur géométrie naturelle : un thread par ligne pour les
+formules scalaires, un bloc par ligne pour Jamshidian. Les pipelines LSM
+calculent une seule politique centrale, puis évaluent les nœuds sous exercice
+gelé. Les produits de chemin calculent simultanément l’état et les cashflows
+de chaque nœud à partir des mêmes innovations primitives.
 
-Ajouter par futur modèle seulement l'accès typé aux paramètres, le domaine,
-la préparation et l'adaptation des transitions. Ajouter par produit la
-préparation du payoff et de son calendrier. Réutiliser les moteurs et
-observers existants pour terminaux, produits de chemin, formules fermées,
-Monte Carlo exact ou à pas, et LSM gelé. Les paramètres de CIR tirés via
-Poisson--Gamma demandent toujours une preuve spécifique de couplage ; le flux
-historique ne vaut pas validation implicite.
+Le catalogue contient 1 776 recettes permanentes : 1 456 equity et 320 fixed
+income. Chaque famille fournit l’ordre un et l’ordre un plus Hessienne
+diagonale, ainsi que les constructions alignée et cartésienne lorsque la
+recette de prix source les expose. Les 301 bibliothèques de binding ont été
+reconstruites sans erreur ; les 160 nouveaux générateurs scalaires fixed income
+ont aussi été compilés exhaustivement. Une régénération propre du codegen ne
+produit aucune divergence.
 
-Pour l'exercice anticipé, enregistrer une seule politique centrale et rejouer
-les trajectoires bumpées contre ses décisions gelées. Comparer sur des cas
-bornés au recalibrage de la stratégie afin de quantifier le biais du freeze ;
-ne pas confondre ce résultat avec une dérivée de la politique réentraînée.
+Les exclusions structurelles restent explicites : dérivées mixtes, maturité
+et dates d’exercice des américaines/bermudéennes, cardinalités calendaires
+discrètes et moteurs rough. La présence d’une coordonnée continue dans le
+binding prouve son intégration logicielle, pas la qualité universelle de son
+bump. Les campagnes multi-seeds, l’étude du biais de stencil et du freeze LSM,
+ainsi que la qualification de performance par matériel restent la porte
+numérique suivante.
 
-**Sortie :** la matrice markovienne est parcourue, les capacités demandées
-sont intégrées ou assorties d'une exclusion justifiée par le contrat du
-modèle/produit. Chaque capacité encore manquante reste une ligne ouverte de
-la matrice et empêche de déclarer le périmètre markovien achevé. Aucune formule,
-transition, observation ou réduction n'est recopiée dans un binding.
+**Sortie atteinte :** aucun couple markovien déjà priceable et déclaré
+admissible par le manifeste n’attend une brique de préparation, un launcher ou
+un générateur `price_gradients`. Les futurs ajouts passent par les propriétaires
+modèle/produit/courbe et réutilisent les moteurs communs ; ils ne recopient ni
+transition, ni observation, ni réduction.
 
-### 3. Achever sauts et temps sur le markovien
+### 3. Qualifier sauts et temps sur le markovien
 
-Les sensibilités de paramètres ordinaires et de maturité déjà présentes
-restent les témoins de compatibilité. Étendre la maturité européenne là où le
-couplage des chemins est défini : pont/extension brownien pour les transitions
-terminales directes, continuité des chemins sur les grilles à pas, cohérence
-des observations et de l'actualisation. Le saut de date ne se réduit pas à
-changer une valeur `T` dans un payoff. La maturité d'une américaine ou d'une
-bermudéenne, ainsi que les dates contractuelles discrètes, restent exclues de
-ce lot jusqu'à une politique d'exercice et de calendrier propre.
+**État d’intégration au 26 septembre 2026 : achevé sur les coordonnées
+admissibles.** Merton, Kou et Bates disposent de comptes emboîtés et de marques
+centrales rejouables pour intensité, paramètres de marque et maturité
+européenne. Variance-Gamma et NIG déclarent leur couplage propre de
+subordonnateur. Les produits terminaux, de chemin et les replays LSM utilisent
+les mêmes adapters, avec le mapping Philox V2 et ses domaines seulement lorsque
+la consommation variable l’exige.
 
-Appliquer le [plan de sauts](jump-price-gradient-migration-plan.md) à Merton,
-Bates, Kou et aux autres modèles admissibles, avec son central événementiel,
-ses comptes couplés et ses marques rejouables. Le
-[plan Philox](philox-domain-migration-plan.md) fournit, seulement si
-nécessaire, des domaines internes indépendants pour éviter qu'une consommation
-variable de tirages décale le brownien, le pas suivant ou une autre source.
-Le flux unique reste prioritaire lorsque son ordre fixe donne déjà le CRN.
-Versionner le mapping et les recettes : les prix centraux d'une **nouvelle**
-version doivent coïncider bit à bit entre prix seuls et prix-gradients, sans
-exiger une parité bit à bit avec l'ancien tirage agrégé des sauts.
+La maturité européenne est exposée quand l’adapter définit son couplage :
+pont/extension brownien pour les transitions directes et poursuite d’une grille
+commune pour les schémas à pas. La maturité d’une américaine ou d’une
+bermudéenne, les dates d’exercice et les cardinalités calendaires restent
+exclues. Elles demandent une convention financière distincte et ne se réduisent
+pas à modifier un scalaire `T`.
 
-**Sortie :** les coordonnées déclarées ont une loi, un compensateur, un
-couplage et un bump qualifiés. Les autres restent explicitement absentes.
-NUM-031 et NUM-032 conservent leurs critères de clôture propres ; ce plan ne
-les remplace pas.
+Le [plan de sauts](jump-price-gradient-migration-plan.md) et le
+[plan Philox](philox-domain-migration-plan.md) restent les propriétaires de la
+qualification. Les tests d’intégration prouvent le central partagé, le rejeu,
+la parité des deux ordonnancements et la sûreté mémoire sur des représentants.
+Ils ne suffisent pas à certifier une intensité, un paramètre de marque ou une
+maturité pour toutes les largeurs de bump et toutes les seeds.
+
+**Sortie logicielle atteinte :** les coordonnées déclarées possèdent une loi,
+un compensateur, un couplage et un stencil implémentés. **Sortie numérique
+ouverte :** NUM-031 et NUM-032 conservent les campagnes de collisions/bornes,
+de lois, de bumps, de forte intensité, de registres et de temps complet avant
+qualification de publication.
 
 ### 4. Fermer la porte markovienne avant le rough
 
