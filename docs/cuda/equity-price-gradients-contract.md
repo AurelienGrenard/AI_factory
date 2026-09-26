@@ -1,4 +1,4 @@
-# Prix et gradients equity sélectionnés
+# Prix, gradients et Hessiennes equity sélectionnés
 
 ## Périmètre actif
 
@@ -13,11 +13,13 @@ Le manifeste contient 261 bindings equity markoviens `price_gradients` :
   produits de chemin analytiques ;
 - neuf bindings américains Longstaff--Schwartz à exercice central gelé.
 
-Tous publient les dérivées premières sélectionnées et, sur demande, la
-diagonale de Hessienne. Les dérivées mixtes restent hors de ce contrat. Les
-moteurs Monte Carlo proposent `mono` et `node_graph` avec les mêmes
-`SensitivitySpec`, tâches, stencils, nœuds et sorties. La formule fermée garde
-un thread par ligne ; elle ne passe pas par le graphe Monte Carlo.
+Tous publient les dérivées premières sélectionnées, la diagonale de
+Hessienne et les dérivées mixtes demandées. Les petites demandes d'ordre un ou
+diagonal peuvent employer `mono` ou `node_graph` avec les mêmes
+`SensitivitySpec`, tâches, stencils, nœuds et sorties. Toute demande mixte
+emploie `mixed_node_graph` afin d'évaluer chaque nœud partagé une seule fois.
+Les formules fermées gardent un thread par ligne et évaluent leur graphe dans
+ce thread ; elles ne passent pas par les trois phases Monte Carlo.
 
 Les paramètres supportés sont déclarés dans les propriétaires modèle et
 produit. Leur domaine admissible est défini une seule fois dans le
@@ -35,10 +37,10 @@ et deux diagonal. La maturité, les dates et l’intervalle d’exercice restent
 exclus. Les moteurs `price_delta` restent les références de migration jusqu’à
 la couverture rough et au retrait de leurs derniers consommateurs.
 
-Le catalogue equity contient 1 456 recettes permanentes issues des recettes
-de prix existantes, avec ordre un ou ordre un plus Hessienne diagonale. Cette
-couverture de génération ne certifie ni la taille des bumps, ni le biais de
-discrétisation ou de politique gelée.
+Le catalogue equity contient 2 184 recettes permanentes issues des recettes
+de prix existantes : 728 d'ordre un, 728 d'ordre un plus Hessienne diagonale et
+728 de Hessienne complète. Cette couverture de génération ne certifie ni la
+taille des bumps, ni le biais de discrétisation ou de politique gelée.
 
 ## Sélection et préparation
 
@@ -268,7 +270,7 @@ Les briques permanentes ont les responsabilités suivantes :
 | Type | Contenu |
 |---|---|
 | `SensitivitySpec` | paramètre résolu et politique de bump |
-| `SensitivityRequest` | ordre un, ordre deux diagonal, ou les deux |
+| `SensitivityRequest` | sous-ensemble d'ordre un, diagonal et mixte, ou Hessienne complète |
 | `SensitivityStencil<C>` | points représentés et coefficients, sans logique de reconstruction |
 | `SensitivityNodes<Node,C>` | jeux de paramètres centraux et perturbés propres à la ligne |
 | `SensitivityTask<Node,C>` | nœuds, stencil et `CentralRequirement` |
@@ -312,8 +314,15 @@ L'ordre un est spécialisé à capacité trois. Une Hessienne diagonale emploie
 une capacité quatre : trois nœuds pour un stencil centré, quatre pour le repli
 unilatéral d'ordre deux. Le nombre actif est stocké dans le stencil ; il ne
 provoque aucune allocation dynamique. `reconstruct_sensitivity` transforme
-les payoffs pathwise et le stencil en dérivées d'ordre un et/ou deux. Les
-dérivées mixtes restent hors de cette pipeline et auront un kernel séparé.
+les payoffs pathwise et le stencil en dérivées d'ordre un et/ou deux.
+
+Pour les dérivées mixtes, `SensitivityGraphPlan` marque les coordonnées
+effectivement utilisées, mutualise le central et les nœuds axiaux, puis ajoute
+quatre coins par paire sélectionnée. `MixedSensitivityStencil` est le produit
+tensoriel des deux stencils axiaux représentés. La voie Monte Carlo écrit les
+valeurs de nœuds par chunks de lignes et de chemins, reconstruit gradients,
+diagonales et termes mixtes dans les moments FP64, puis finalise toutes les
+sorties. Le central reste le nœud zéro.
 
 Une sélection MC vide délègue au moteur prix canonique ; aucune paire bumpée
 n'est alors créée. Black--Scholes européen suit sa formule fermée et ne fait
@@ -321,13 +330,15 @@ pas partie des deux ordonnancements MC. Les produits terminaux MC exposent la
 maturité aux ordres un et deux diagonal lorsque l'adaptateur du modèle la
 déclare. Les produits à exercice anticipé continuent de l'exclure.
 
-Le contrat d'artefact d'ordre deux écrit `sensitivity.orders =
-["first", "diagonal_second"]`, `outputs.diagonal_hessians` et, en Monte
-Carlo, `outputs.diagonal_hessian_standard_errors`. Le stencil conserve
-`node_count`, le quatrième point unilatéral éventuel et tous les poids de
-reconstruction d'ordre deux. Ces canaux font partie du checkpoint : une
-reprise ne peut valider un préfixe qui ne contiendrait que le prix ou le
-gradient.
+Le contrat d'artefact d'ordre deux écrit `sensitivity.orders` et les
+sorties compactes correspondant à la requête. Une Hessienne complète ajoute
+`"mixed_second"`, `sensitivity.mixed_second: "all"`,
+`outputs.mixed_hessians` et, en Monte Carlo,
+`outputs.mixed_hessian_standard_errors`. Chaque paire est identifiée par
+`premier_paramètre|second_paramètre`. Le stencil axial conserve les points
+FP32 représentés ; le stencil mixte conserve les indices locaux et les poids
+du produit tensoriel. Prix, erreurs, gradients, diagonales et termes mixtes
+font partie du checkpoint durable.
 
 La formule fermée Black--Scholes emploie la même préparation compacte et un
 thread par ligne. Ce thread construit puis évalue successivement les nœuds des

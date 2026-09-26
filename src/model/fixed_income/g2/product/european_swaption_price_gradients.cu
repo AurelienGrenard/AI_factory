@@ -2,6 +2,7 @@
 #include "model/fixed_income/g2/product/european_swaption_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
 #include "product/european_swaption/price_gradients/monte_carlo_policy.cuh"
@@ -209,6 +210,57 @@ void launch_g2_european_swaption_node_graph_sensitivities_cuda(
     );
 }
 
+template<SwaptionSide Side>
+std::size_t g2_european_swaption_mixed_node_graph_workspace_bytes(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    using ProductPolicy = european_swaption_pg::StandaloneMonteCarloPolicy<Side>;
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        ProductPolicy,
+        10U,
+        45U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<SwaptionSide Side>
+void launch_g2_european_swaption_mixed_node_graph_sensitivities_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    EuropeanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using ProductPolicy = european_swaption_pg::StandaloneMonteCarloPolicy<Side>;
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        ProductPolicy,
+        10U,
+        45U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "g2.european_swaption.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE(side, orders)                                \
 template void launch_g2_european_swaption_diagonal_sensitivities_cuda< \
     side, orders>(const EuropeanSwaptionPriceGradientPlan&,                 \
@@ -230,6 +282,18 @@ template void launch_g2_european_swaption_price_gradients_cuda< \
     EuropeanSwaptionPriceGradientPlan::DeviceInputs,                        \
     EuropeanSwaptionPriceGradientPlan::StencilOutputs,                      \
     const pg::LaunchConfiguration&, pg::Outputs);                           \
+template std::size_t                                                        \
+g2_european_swaption_mixed_node_graph_workspace_bytes<side>( \
+    const EuropeanSwaptionPriceGradientPlan&,                               \
+    const pg::LaunchConfiguration&);                                        \
+template void                                                               \
+launch_g2_european_swaption_mixed_node_graph_sensitivities_cuda<side>( \
+    const EuropeanSwaptionPriceGradientPlan&,                               \
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs,                        \
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs,              \
+    EuropeanSwaptionPriceGradientPlan::MixedStencilOutputs,                 \
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,                 \
+    pg::MixedSensitivityOutputs, void*, std::size_t);                       \
 AI_FACTORY_INSTANTIATE(side, pg::SensitivityOrders::second);                \
 AI_FACTORY_INSTANTIATE(side, pg::SensitivityOrders::first_and_second)
 

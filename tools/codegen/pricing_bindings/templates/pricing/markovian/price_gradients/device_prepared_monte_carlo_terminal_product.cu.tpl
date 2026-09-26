@@ -2,6 +2,7 @@
 #include "model/equity/markovian/${model}/product/${product}_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
@@ -195,6 +196,55 @@ ${price_only_time_arguments}            configuration.threads_per_block,
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+${side_template}
+std::size_t ${model}_${product}_mixed_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        ${sensitivity_policy},
+        ${maximum}U,
+        ${mixed_maximum}U,
+        ${mixed_team_size}U,
+        ${mixed_nodes_per_worker}U
+    >(host, configuration);
+}
+
+${side_template}
+void launch_${model}_${product}_mixed_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ${product_type}PriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        ${sensitivity_policy},
+        ${maximum}U,
+        ${mixed_maximum}U,
+        ${mixed_team_size}U,
+        ${mixed_nodes_per_worker}U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "${model}.${product}.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
     );
 }
 

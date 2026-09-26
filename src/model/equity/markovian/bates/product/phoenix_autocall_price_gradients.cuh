@@ -4,6 +4,7 @@
 #include "common/equity/price_gradients/path_device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/bates/price_gradients/device_preparation.cuh"
 #include "product/phoenix_autocall/price_gradients/device_preparation.cuh"
@@ -113,6 +114,27 @@ void launch_bates_phoenix_autocall_node_graph_sensitivities_cuda(
     PhoenixAutocallPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+
+// Selected mixed derivatives use the node graph; request shape lives in host.
+
+std::size_t bates_phoenix_autocall_mixed_node_graph_workspace_bytes(
+    const PhoenixAutocallPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+
+void launch_bates_phoenix_autocall_mixed_node_graph_sensitivities_cuda(
+    const PhoenixAutocallPriceGradientPlan& host,
+    PhoenixAutocallPriceGradientPlan::DeviceInputs device,
+    PhoenixAutocallPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    PhoenixAutocallPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
 );

@@ -2,6 +2,7 @@
 #include "model/fixed_income/hull_white/product/svensson/rate_option_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/rate_option/pricing_policy.cuh"
@@ -100,6 +101,54 @@ void launch_hull_white_svensson_rate_option_diagonal_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side>
+std::size_t hull_white_svensson_rate_option_mixed_node_graph_workspace_bytes(
+    const RateOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+template<OptionSide Side>
+void launch_hull_white_svensson_rate_option_mixed_node_graph_sensitivities_cuda(
+    const RateOptionPriceGradientPlan& host,
+    RateOptionPriceGradientPlan::DeviceInputs device,
+    RateOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    RateOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using PricingPolicy = ::ai_factory::workbench::fixed_income::FittedRateOptionClosedFormPricingPolicy<
+        FittedModelComposition, Side
+    >;
+    using Policy = ::ai_factory::workbench::fixed_income::price_gradients::
+    CurveScalarScenarioClosedFormPolicy<
+        PricingPolicy, ModelParameters, CurveParameters,
+        product::RateOptionParameters
+    >;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        Policy,
+        10U,
+        45U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "hull_white.svensson.rate_option.sensitivities.closed_form_mixed",
+        option_side_name(Side)
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE(side)                                        \
 template void launch_hull_white_svensson_rate_option_price_gradients_cuda<    \
     side>(const RateOptionPriceGradientPlan&,                           \
@@ -117,7 +166,19 @@ template void launch_hull_white_svensson_rate_option_diagonal_sensitivities_cuda
     const RateOptionPriceGradientPlan&,                                 \
     RateOptionPriceGradientPlan::DeviceInputs,                          \
     RateOptionPriceGradientPlan::DiagonalStencilOutputs,                \
-    const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);             \
+template std::size_t                                                       \
+hull_white_svensson_rate_option_mixed_node_graph_workspace_bytes<side>(       \
+    const RateOptionPriceGradientPlan&,                                \
+    const pg::LaunchConfiguration&);                                        \
+template void                                                              \
+launch_hull_white_svensson_rate_option_mixed_node_graph_sensitivities_cuda<side>( \
+    const RateOptionPriceGradientPlan&,                                \
+    RateOptionPriceGradientPlan::DeviceInputs,                         \
+    RateOptionPriceGradientPlan::DiagonalStencilOutputs,               \
+    RateOptionPriceGradientPlan::MixedStencilOutputs,                  \
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,                 \
+    pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE(OptionSide::call);
 AI_FACTORY_INSTANTIATE(OptionSide::put);

@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/kou/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/kou/product/up_one_touch.cuh"
 #include "product/up_one_touch/pricing_policy.cuh"
@@ -206,6 +207,58 @@ void launch_kou_up_one_touch_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+
+std::size_t kou_up_one_touch_mixed_node_graph_workspace_bytes(
+    const UpOneTouchPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::UpOneTouchPathPolicy,
+        UpOneTouchGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_kou_up_one_touch_mixed_node_graph_sensitivities_cuda(
+    const UpOneTouchPriceGradientPlan& host,
+    UpOneTouchPriceGradientPlan::DeviceInputs device,
+    UpOneTouchPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    UpOneTouchPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::UpOneTouchPathPolicy,
+        UpOneTouchGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "kou.up_one_touch.sensitivities.mixed_node_graph",
+        "full_hessian"
     );
 }
 

@@ -1,4 +1,4 @@
-# Prix, gradients et diagonales de Hessienne fixed income
+# Prix, gradients et Hessiennes fixed income
 
 ## Périmètre actif
 
@@ -12,11 +12,12 @@ sensibilités sélectionnées :
 4. dix bindings de swaption bermudéenne Longstaff--Schwartz à exercice central
    gelé.
 
-Ces 40 bindings publient le prix central, les dérivées premières sélectionnées
-et, sur demande, la diagonale de Hessienne. Les dérivées mixtes ne font pas
-partie de ce contrat. Les formules scalaires attribuent une ligne à un thread,
-Jamshidian une ligne à un bloc coopératif, et les voies stochastiques exposent
-les ordonnancements `mono` et `node_graph`.
+Ces 40 bindings publient le prix central, les dérivées premières, la
+diagonale et les dérivées mixtes sélectionnées. Les formules scalaires
+attribuent une ligne à un thread, Jamshidian une ligne à un bloc coopératif.
+Les voies stochastiques exposent `mono` et `node_graph` pour les demandes
+sans terme mixte, puis `mixed_node_graph` pour une Hessienne sélectionnée ou
+complète.
 
 Les dix compositions modèle/courbe sont CIR, CIR++ Nelson--Siegel/Svensson,
 G2, G2++ Nelson--Siegel/Svensson, Hull--White Nelson--Siegel/Svensson,
@@ -41,7 +42,7 @@ curves[C]                    # modèles ajustés uniquement
 products[P]
 sensitivities[K] = {paramètre résolu, BumpConfiguration}
 construction = aligned | cartesian
-SensitivityRequest = first | second | first_and_second
+SensitivityRequest = first | second | first_and_second | selected/full_hessian
 ```
 
 Il ne matérialise pas `N*(1+2*K)` scénarios. Le mapping canonique retrouve le
@@ -55,6 +56,8 @@ Pour chaque couple `(ligne, sensibilité)`, le thread 0 du bloc appelle
 
 - trois nœuds pour l'ordre un et les stencils diagonaux centrés ;
 - quatre nœuds pour une diagonale unilatérale d'ordre deux ;
+- quatre coins tensoriels par paire mixte sélectionnée, en réutilisant le
+  central et les nœuds axiaux déjà nécessaires ;
 - le `SensitivityStencil` avec les valeurs FP32 et les poids effectivement
   utilisés ;
 - le besoin éventuel du nœud central pour reconstruire la dérivée.
@@ -67,19 +70,19 @@ entrées restent en `O(M+C+P+K)`.
 
 Les caplets/floorlets et options sur zéro-coupon emploient un thread par ligne.
 Ce thread charge le modèle, la courbe éventuelle et le produit centraux, puis
-construit et évalue successivement les nœuds de chaque sensibilité. Il n’existe
-ni workspace de graphe ni flux Philox. Le même launcher couvre l’ordre un et
-l’ordre un plus deux diagonal ; seul le `SensitivityRequest` choisit les
-sorties reconstruites.
+construit et évalue successivement les nœuds utiles du graphe sélectionné. Il
+n’existe ni workspace Monte Carlo ni flux Philox. Le même launcher couvre
+ordre un, diagonale et termes mixtes ; seul le `SensitivityRequest` choisit
+les sorties reconstruites.
 
 ## Swaptions européennes Monte Carlo exactes
 
 G2 et G2++ utilisent leurs transitions exactes état/intégrale avec innovations
-communes. La voie `mono` garde les nœuds et moments dans le bloc. La voie
-`node_graph` sépare évaluation des nœuds, accumulation des moments et
-finalisation, avec la même préparation, les mêmes stencils et le même ordre de
-réduction. La stratégie change l’ordonnancement et le workspace, pas le
-contrat financier ni les sorties.
+communes. La voie `mono` garde les nœuds et moments dans le bloc pour les
+demandes sans dérivée mixte. Les voies `node_graph` et
+`mixed_node_graph` séparent évaluation des nœuds, accumulation des moments
+et finalisation, avec la même préparation et les mêmes stencils. Le graphe
+mixte mutualise central, axes et coins entre toutes les sorties demandées.
 
 ## Jamshidian coopératif
 
@@ -90,9 +93,10 @@ zéro-coupon. Le modèle et la courbe éventuelle restent propriétaires de leur
 analytics ; le moteur commun ne connaît aucun modèle concret.
 
 Le central est écrit une fois. Le bloc réutilise son workspace partagé pour
-chaque nœud. `reconstruct_sensitivity` reste l’unique logique de
-reconstruction. Le graphe Monte Carlo à trois phases n’est pas utilisé par
-cette famille.
+chaque nœud. `reconstruct_sensitivity` et la reconstruction tensorielle
+restent les logiques communes. Le graphe de sélection décrit les nœuds utiles,
+mais la famille analytique les évalue dans son unique kernel coopératif ; elle
+n'utilise pas les trois phases Monte Carlo.
 
 Les mesures historiques du 22 septembre 2026 sur SM89, pour 1 000 lignes,
 sept sensibilités et au plus douze paiements, donnent 1,114 ms pour l’ordre un
@@ -113,7 +117,10 @@ Si `K>0`, deux ordonnancements sont disponibles :
 - `node_graph` évalue chaque nœud utile dans `frozen_node_evaluation`,
   reconstruit les moments transitoires dans
   `frozen_node_moment_accumulation`, puis finalise dans
-  `finalize_frozen_node_sensitivities`.
+  `finalize_frozen_node_sensitivities` ;
+- `mixed_node_graph` applique la même décomposition au graphe complet,
+  mutualise les nœuds partagés et reconstruit les termes mixtes sous la même
+  politique centrale gelée.
 
 Les deux stratégies partagent la préparation compacte, les stencils, la trace
 d’exercice et les policies de dynamique/payoff. CIR/CIR++ utilisent leur
@@ -129,11 +136,11 @@ silencieusement l’ordre de sommation.
 
 ## Génération et provenance
 
-Le codegen produit 320 recettes fixed income permanentes : 80 pour les
-produits de taux scalaires, 80 pour les options sur zéro-coupon, 80 pour les
-swaptions européennes et 80 pour les bermudéennes. Chaque famille couvre ses
-deux côtés, les constructions alignée et cartésienne, l’ordre un et l’ordre un
-plus second diagonal.
+Le codegen produit 480 recettes fixed income permanentes : 120 pour les
+produits de taux scalaires, 120 pour les options sur zéro-coupon, 120 pour les
+swaptions européennes et 120 pour les bermudéennes. Chaque famille couvre ses
+deux côtés, les constructions alignée et cartésienne, l’ordre un, l’ordre un
+plus second diagonal et la Hessienne complète.
 
 Les recettes analytiques conservent l’URL `/v1/` de leur méthode déterministe.
 Les recettes stochastiques emploient `/v2/`, la seed et le mapping
@@ -160,8 +167,9 @@ checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 Les 40 bibliothèques fixed income font partie de la reconstruction exhaustive
 des 301 bindings markoviens. Les 160 générateurs scalaires ajoutés pour
 caplets/floorlets et options sur zéro-coupon ont tous compilé et linké. Le
-catalogue complet compte 320 recettes fixed income et une régénération propre
-ne produit aucune divergence.
+catalogue complet compte 480 recettes fixed income. Les cinq familles de
+templates full-Hessian ont chacune un représentant compilé ; la régénération
+propre reste le contrôle d'exhaustivité structurelle.
 
 Les tests CUDA permanents couvrent les formules fermées, Jamshidian, G2/G2++
 Monte Carlo et les familles Bermudan CIR terminal-forward, Vasicek un facteur,

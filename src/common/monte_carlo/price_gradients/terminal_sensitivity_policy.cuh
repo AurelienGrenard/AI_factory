@@ -269,7 +269,7 @@ struct TerminalSensitivityPolicy {
 };
 
 template<pg::SensitivityOrders Orders, typename Preparation>
-__device__ __forceinline__ bool build_terminal_sensitivity_task_from_central(
+__host__ __device__ __forceinline__ bool build_terminal_sensitivity_task_from_central(
     const typename Preparation::Scenario& central,
     pg::SensitivitySpec<typename Preparation::Parameter> sensitivity,
     pg::TimeConfiguration time,

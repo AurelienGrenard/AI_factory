@@ -2,6 +2,7 @@
 #include "${unit_path}.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/${product}/pricing_policy.cuh"
@@ -94,6 +95,48 @@ void launch_${function_prefix}_${product}_diagonal_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side>
+std::size_t ${function_prefix}_${product}_mixed_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+template<OptionSide Side>
+void launch_${function_prefix}_${product}_mixed_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ${product_type}PriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using PricingPolicy = ${pricing_policy};
+    using Policy = ${scenario_policy};
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        Policy,
+        ${maximum}U,
+        ${mixed_maximum}U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "${diagnostic_name}.sensitivities.closed_form_mixed",
+        option_side_name(Side)
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE(side)                                        \
 template void launch_${function_prefix}_${product}_price_gradients_cuda<    \
     side>(const ${product_type}PriceGradientPlan&,                           \
@@ -111,7 +154,19 @@ template void launch_${function_prefix}_${product}_diagonal_sensitivities_cuda< 
     const ${product_type}PriceGradientPlan&,                                 \
     ${product_type}PriceGradientPlan::DeviceInputs,                          \
     ${product_type}PriceGradientPlan::DiagonalStencilOutputs,                \
-    const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);             \
+template std::size_t                                                       \
+${function_prefix}_${product}_mixed_node_graph_workspace_bytes<side>(       \
+    const ${product_type}PriceGradientPlan&,                                \
+    const pg::LaunchConfiguration&);                                        \
+template void                                                              \
+launch_${function_prefix}_${product}_mixed_node_graph_sensitivities_cuda<side>( \
+    const ${product_type}PriceGradientPlan&,                                \
+    ${product_type}PriceGradientPlan::DeviceInputs,                         \
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs,               \
+    ${product_type}PriceGradientPlan::MixedStencilOutputs,                  \
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,                 \
+    pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE(OptionSide::call);
 AI_FACTORY_INSTANTIATE(OptionSide::put);

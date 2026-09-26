@@ -19,7 +19,7 @@ __device__ __forceinline__ void draw_coupled_jumps(
     std::uint32_t source_step,
     const CoupledDynamics::Prepared (&prepared)[NodeCapacity],
     const std::uint32_t (&step_counts)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     JumpInnovations (&innovations)[NodeCapacity]
 ) {
     float means[NodeCapacity]{};
@@ -39,7 +39,7 @@ __device__ __forceinline__ void draw_coupled_jumps(
                 StandardNormalEventMarks
         >(
             random, source_step, means, node_count, counts,
-            [&](std::uint8_t node, float mark) {
+            [&](std::uint16_t node, float mark) {
                 innovations[node].jump_standard_normal_sum += mark;
             }
         );
@@ -102,7 +102,7 @@ __device__ __forceinline__ void CoupledDynamics::draw_terminal_adjustments(
     RandomContext& random,
     std::uint32_t interval_start_step,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     StepCount step_count,
     TerminalAdjustment (&adjustments)[NodeCapacity]
 ) {
@@ -171,7 +171,7 @@ template<std::size_t NodeCapacity>
 __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Innovations (&innovations)[NodeCapacity]
 ) {
     const auto step = random.next_step();
@@ -218,7 +218,7 @@ template<
 __device__ __forceinline__ void CoupledDynamics::simulate_coupled_terminal(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     std::uint32_t maximum_steps,
     IsActive is_active,
     StepCount step_count,
@@ -238,7 +238,7 @@ __device__ __forceinline__ void CoupledDynamics::simulate_coupled_terminal(
             continuous, continuous_cache
         );
         const float variance_uniform = continuous.next();
-        for (std::uint8_t node = 0U; node < node_count; ++node) {
+        for (std::uint16_t node = 0U; node < node_count; ++node) {
             if (is_active(node) && step < step_count(node)) {
                 heston::one_step_transition(
                     prepared[node].heston,
@@ -265,7 +265,7 @@ __device__ __forceinline__ void CoupledDynamics::simulate_coupled_terminal(
         node_count,
         jump_innovations
     );
-    for (std::uint8_t node = 0U; node < node_count; ++node) {
+    for (std::uint16_t node = 0U; node < node_count; ++node) {
         if (is_active(node)) {
             bates::apply_jump_interval(
                 prepared[node],

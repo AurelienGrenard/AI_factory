@@ -2,6 +2,8 @@
 #include "model/equity/markovian/${model}/product/european_option_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
 #include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
 #include "model/equity/markovian/${model}/analytics_impl.cuh"
@@ -188,6 +190,83 @@ void launch_${model}_european_option_diagonal_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side>
+std::size_t ${model}_european_option_mixed_node_graph_workspace_bytes(
+    const EuropeanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    if (configuration.method == pg::PricingMethod::closed_form) {
+        return closed_form::price_gradients::mixed_workspace_bytes(host);
+    }
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::EuropeanOptionGradientPathPolicy<Side>,
+        ${maximum}U,
+        ${mixed_maximum}U,
+        ${mixed_team_size}U,
+        ${mixed_nodes_per_worker}U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_${model}_european_option_mixed_node_graph_sensitivities_cuda(
+    const EuropeanOptionPriceGradientPlan& host,
+    EuropeanOptionPriceGradientPlan::DeviceInputs device,
+    EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    EuropeanOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    if (configuration.method == pg::PricingMethod::closed_form) {
+        using AnalyticalPolicy =
+            product::european_option::price_gradients::ClosedFormPolicy<
+                ModelParameters,
+                Side
+            >;
+        closed_form::price_gradients::launch_device_prepared_mixed<
+            AnalyticalPolicy,
+            ${maximum}U,
+            ${mixed_maximum}U
+        >(
+            host,
+            device,
+            stencil_outputs,
+            mixed_stencil_outputs,
+            configuration,
+            outputs,
+            mixed_outputs,
+            workspace,
+            workspace_bytes,
+            "${model}.european_option.sensitivities.closed_form_mixed",
+            Side == OptionSide::call ? "call" : "put"
+        );
+        return;
+    }
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::EuropeanOptionGradientPathPolicy<Side>,
+        ${maximum}U,
+        ${mixed_maximum}U,
+        ${mixed_team_size}U,
+        ${mixed_nodes_per_worker}U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "${model}.european_option.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(SIDE) \
     template void launch_${model}_european_option_price_gradients_cuda<SIDE>( \
         const EuropeanOptionPriceGradientPlan&, \
@@ -205,7 +284,19 @@ void launch_${model}_european_option_diagonal_sensitivities_cuda(
         const EuropeanOptionPriceGradientPlan&, \
         EuropeanOptionPriceGradientPlan::DeviceInputs, \
         EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs, \
-        const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs); \
+    template std::size_t \
+    ${model}_european_option_mixed_node_graph_workspace_bytes<SIDE>( \
+        const EuropeanOptionPriceGradientPlan&, \
+        const pg::LaunchConfiguration&); \
+    template void \
+    launch_${model}_european_option_mixed_node_graph_sensitivities_cuda<SIDE>( \
+        const EuropeanOptionPriceGradientPlan&, \
+        EuropeanOptionPriceGradientPlan::DeviceInputs, \
+        EuropeanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        EuropeanOptionPriceGradientPlan::MixedStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs, \
+        pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::call);
 AI_FACTORY_INSTANTIATE_TERMINAL_SENSITIVITIES(OptionSide::put);

@@ -2,7 +2,8 @@
 #pragma once
 
 #include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/path_group.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/dynamics_traits.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/terminal_node_evaluation.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/row_preparation.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
@@ -20,37 +21,6 @@ namespace preparation =
     ::ai_factory::workbench::price_gradients::device_preparation;
 
 namespace node_graph_detail {
-
-template<std::size_t NodeCapacity, typename Dynamics>
-inline constexpr bool has_coupled_draw_v = requires(
-    typename Dynamics::RandomContext& random,
-    const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    typename Dynamics::Innovations (&innovations)[NodeCapacity]
-) {
-    Dynamics::template draw_coupled<NodeCapacity>(
-        random, prepared, std::uint8_t{}, innovations
-    );
-};
-
-template<typename Dynamics>
-inline constexpr bool has_distributed_terminal_aggregation_v = [] {
-    if constexpr (requires {
-        Dynamics::kHasDistributedTerminalAggregation;
-    }) {
-        return Dynamics::kHasDistributedTerminalAggregation;
-    }
-    return false;
-}();
-
-template<std::size_t NodeCapacity, typename Dynamics>
-inline constexpr std::size_t distributed_node_scratch_bytes_v = [] {
-    if constexpr (has_distributed_terminal_aggregation_v<Dynamics>) {
-        return NodeCapacity * sizeof(typename Dynamics::TerminalAdjustment);
-    } else if constexpr (has_coupled_draw_v<NodeCapacity, Dynamics>) {
-        return NodeCapacity * sizeof(typename Dynamics::Innovations);
-    }
-    return std::size_t{0U};
-}();
 
 template<
     pg::SensitivityOrders Orders,
@@ -172,212 +142,27 @@ __device__ __forceinline__ void evaluate_nodes_body(
     }
     __syncthreads();
 
-    const auto group = WarpPathGroup<GroupSize>::make();
-    constexpr unsigned int groups_per_block =
-        Tuning::kThreadsPerBlock / GroupSize;
-    const std::size_t first_group_path =
-        first_path
-        + static_cast<std::size_t>(blockIdx.y) * groups_per_block
-        + group.group_in_block;
-    const std::size_t path_stride =
-        static_cast<std::size_t>(gridDim.y) * groups_per_block;
-
-    std::uint16_t owned_nodes[NodesPerWorker]{};
-    bool owns[NodesPerWorker]{};
-    bool simulates[NodesPerWorker]{};
-    std::uint32_t step_counts[NodesPerWorker]{};
-    typename Dynamics::Prepared owned_dynamics[NodesPerWorker]{};
-    #pragma unroll
-    for (unsigned int slot = 0U; slot < NodesPerWorker; ++slot) {
-        const unsigned int node =
-            group.local_lane + slot * GroupSize;
-        owned_nodes[slot] = static_cast<std::uint16_t>(node);
-        owns[slot] = node < node_count;
-        if (!owns[slot]) continue;
-        simulates[slot] =
-            node == 0U || !scenarios[node].reuse_central;
-        step_counts[slot] = scenarios[node].step_count;
-        owned_dynamics[slot] = dynamics[node];
-    }
-
-    for (std::size_t path = first_group_path;
-         path < first_path + path_count;
-         path += path_stride) {
-        typename Dynamics::State states[NodesPerWorker]{};
-        #pragma unroll
-        for (unsigned int slot = 0U; slot < NodesPerWorker; ++slot) {
-            if (owns[slot] && simulates[slot]) {
-                states[slot] =
-                    Dynamics::initial(owned_dynamics[slot]);
-            }
-        }
-
-        typename Dynamics::RandomContext random{};
-        std::uint32_t interval_start_step = 0U;
-        if (group.local_lane == 0U) {
-            random.reset(key, path);
-            if constexpr (
-                has_distributed_terminal_aggregation_v<Dynamics>
-            ) {
-                interval_start_step = random.step_index;
-            }
-        }
-        const std::uint32_t iterations =
-            Dynamics::kExactTerminal ? 1U : maximum_steps;
-        for (std::uint32_t step = 0U; step < iterations; ++step) {
-            if constexpr (
-                has_distributed_terminal_aggregation_v<Dynamics>
-            ) {
-                typename Dynamics::ContinuousInnovations innovations{};
-                if (group.local_lane == 0U) {
-                    innovations = Dynamics::draw_continuous(
-                        random, dynamics[0U]
-                    );
-                }
-                innovations = group.broadcast_value(innovations);
-                #pragma unroll
-                for (unsigned int slot = 0U;
-                     slot < NodesPerWorker;
-                     ++slot) {
-                    if (!owns[slot] || !simulates[slot]
-                        || step >= step_counts[slot]) {
-                        continue;
-                    }
-                    Dynamics::transition_continuous(
-                        owned_dynamics[slot], innovations, states[slot]
-                    );
-                }
-                group.synchronize();
-            } else if constexpr (
-                has_coupled_draw_v<node_capacity, Dynamics>
-            ) {
-                auto* all_innovations =
-                    reinterpret_cast<InnovationsArray*>(dynamic_shared);
-                auto& group_innovations =
-                    all_innovations[group.group_in_block];
-                if (group.local_lane == 0U) {
-                    Dynamics::template draw_coupled<node_capacity>(
-                        random,
-                        dynamics,
-                        static_cast<std::uint8_t>(node_count),
-                        group_innovations
-                    );
-                }
-                group.synchronize();
-                #pragma unroll
-                for (unsigned int slot = 0U;
-                     slot < NodesPerWorker;
-                     ++slot) {
-                    if (!owns[slot] || !simulates[slot]
-                        || (!Dynamics::kExactTerminal
-                            && step >= step_counts[slot])) {
-                        continue;
-                    }
-                    const auto node = owned_nodes[slot];
-                    const auto innovations = group_innovations[node];
-                    Dynamics::transition(
-                        owned_dynamics[slot],
-                        innovations,
-                        Dynamics::kExactTerminal
-                            ? scenarios[node].normal_weights
-                            : nullptr,
-                        states[slot]
-                    );
-                }
-                group.synchronize();
-            } else {
-                Innovations innovations{};
-                if (group.local_lane == 0U) {
-                    if constexpr (requires {
-                        Dynamics::draw(random, dynamics[0U]);
-                    }) {
-                        innovations = Dynamics::draw(
-                            random, dynamics[0U]
-                        );
-                    } else {
-                        innovations = Dynamics::draw(random);
-                    }
-                }
-                innovations = group.broadcast_value(innovations);
-                #pragma unroll
-                for (unsigned int slot = 0U;
-                     slot < NodesPerWorker;
-                     ++slot) {
-                    if (!owns[slot] || !simulates[slot]
-                        || (!Dynamics::kExactTerminal
-                            && step >= step_counts[slot])) {
-                        continue;
-                    }
-                    const auto node = owned_nodes[slot];
-                    Dynamics::transition(
-                        owned_dynamics[slot],
-                        innovations,
-                        Dynamics::kExactTerminal
-                            ? scenarios[node].normal_weights
-                            : nullptr,
-                        states[slot]
-                    );
-                }
-                group.synchronize();
-            }
-        }
-        if constexpr (has_distributed_terminal_aggregation_v<Dynamics>) {
-            using Adjustment = typename Dynamics::TerminalAdjustment;
-            using AdjustmentArray = Adjustment[node_capacity];
-            auto* all_adjustments =
-                reinterpret_cast<AdjustmentArray*>(dynamic_shared);
-            auto& group_adjustments =
-                all_adjustments[group.group_in_block];
-            if (group.local_lane == 0U) {
-                Dynamics::template draw_terminal_adjustments<node_capacity>(
-                    random,
-                    interval_start_step,
-                    dynamics,
-                    static_cast<std::uint8_t>(node_count),
-                    [&](unsigned int node) {
-                        return scenarios[node].step_count;
-                    },
-                    group_adjustments
-                );
-            }
-            group.synchronize();
-            #pragma unroll
-            for (unsigned int slot = 0U;
-                 slot < NodesPerWorker;
-                 ++slot) {
-                if (!owns[slot] || !simulates[slot]) continue;
-                Dynamics::apply_terminal_adjustment(
-                    owned_dynamics[slot],
-                    group_adjustments[owned_nodes[slot]],
-                    step_counts[slot],
-                    states[slot]
-                );
-            }
-            group.synchronize();
-        }
-
-        typename NodePolicy::NodeValue central_value{};
-        if (group.local_lane == 0U) {
-            central_value = NodePolicy::observe(states[0U]);
-        }
-        central_value = group.broadcast_value(central_value);
-        #pragma unroll
-        for (unsigned int slot = 0U;
-             slot < NodesPerWorker;
-             ++slot) {
-            if (!owns[slot]) continue;
-            const auto node = owned_nodes[slot];
-            const auto value = simulates[slot]
-                ? NodePolicy::observe(states[slot])
-                : central_value;
-            const auto local_path = path - first_path;
-            workspace.node_values[
-                (local_row * path_capacity + local_path)
-                    * node_capacity
-                + node
-            ] = value;
-        }
-    }
+    evaluate_terminal_node_paths<
+        node_capacity,
+        Dynamics,
+        NodePolicy,
+        GroupSize,
+        NodesPerWorker,
+        Tuning
+    >(
+        scenarios,
+        dynamics,
+        node_count,
+        maximum_steps,
+        key,
+        first_path,
+        path_count,
+        path_capacity,
+        node_capacity,
+        local_row,
+        workspace,
+        dynamic_shared
+    );
 }
 
 template<

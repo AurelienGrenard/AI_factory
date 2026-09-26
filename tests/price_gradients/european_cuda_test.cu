@@ -5,6 +5,7 @@
 #include "model/equity/markovian/heston/product/european_option_price_delta.cuh"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
+#include "closed_form_mixed_cuda_test_support.cuh"
 #include <bit>
 #include <cstring>
 #include <iostream>
@@ -143,6 +144,95 @@ template<OptionSide Side> void black_scholes_diagonal() {
             Side, pg::SensitivityOrders::second
         >
     );
+    const auto mixed_plan =
+        bs::prepare_black_scholes_european_option_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            {},
+            selection,
+            pg::SensitivityRequest::full_hessian()
+        );
+    const auto mixed = execute_closed_form_mixed(
+        mixed_plan,
+        launch,
+        [](const auto& plan, const auto& configuration) {
+            return bs::
+                black_scholes_european_option_mixed_node_graph_workspace_bytes<
+                    Side
+                >(plan, configuration);
+        },
+        [](const auto& plan, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& configuration,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            bs::
+                launch_black_scholes_european_option_mixed_node_graph_sensitivities_cuda<
+                    Side
+                >(
+                    plan,
+                    inputs,
+                    stencils,
+                    mixed_stencils,
+                    configuration,
+                    outputs,
+                    mixed_outputs,
+                    workspace,
+                    workspace_bytes
+                );
+        },
+        "Black-Scholes closed-form mixed Hessian"
+    );
+    require_closed_form_diagonal_parity(
+        combined, mixed, "Black-Scholes closed-form mixed/diagonal"
+    );
+
+    const auto sparse_plan =
+        bs::prepare_black_scholes_european_option_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            {},
+            selection,
+            pg::SensitivityRequest::selected({}, {}, {{0U, 2U}})
+        );
+    const auto sparse = execute_closed_form_mixed(
+        sparse_plan,
+        launch,
+        [](const auto& plan, const auto& configuration) {
+            return bs::
+                black_scholes_european_option_mixed_node_graph_workspace_bytes<
+                    Side
+                >(plan, configuration);
+        },
+        [](const auto& plan, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& configuration,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            bs::
+                launch_black_scholes_european_option_mixed_node_graph_sensitivities_cuda<
+                    Side
+                >(
+                    plan,
+                    inputs,
+                    stencils,
+                    mixed_stencils,
+                    configuration,
+                    outputs,
+                    mixed_outputs,
+                    workspace,
+                    workspace_bytes
+                );
+        },
+        "Black-Scholes sparse mixed Hessian"
+    );
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        same(
+            sparse.mixed_hessians[row],
+            mixed.mixed_hessians[row * 3U + 1U],
+            "Black-Scholes sparse mixed selection changed its value"
+        );
+    }
     for (std::size_t row = 0U; row < models.size(); ++row) {
         same(combined.price[row], second.price[row],
              "Black-Scholes sensitivity order changed price");

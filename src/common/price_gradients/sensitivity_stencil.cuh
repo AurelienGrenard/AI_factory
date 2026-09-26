@@ -43,6 +43,23 @@ __host__ __device__ inline std::size_t active_node_count(
     }
 }
 
+__host__ __device__ inline SensitivityStencil<4U>
+promote_first_sensitivity_stencil(
+    const SensitivityStencil<3U>& source
+) {
+    SensitivityStencil<4U> result{};
+    result.kind = source.kind;
+    for (std::size_t node = 0U; node < 3U; ++node) {
+        result.parameter_values[node] = source.parameter_values[node];
+    }
+    result.displacement = source.displacement;
+    result.represented_width = source.represented_width;
+    result.first_endpoint_weights[0U] = source.first_endpoint_weights[0U];
+    result.first_endpoint_weights[1U] = source.first_endpoint_weights[1U];
+    result.node_count = 3U;
+    return result;
+}
+
 template<std::size_t NodeCapacity>
 __host__ __device__ inline Stencil legacy_stencil(
     const SensitivityStencil<NodeCapacity>& source

@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/variance_gamma/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/variance_gamma/product/up_and_in_option.cuh"
 #include "product/up_and_in_option/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_variance_gamma_up_and_in_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t variance_gamma_up_and_in_option_mixed_node_graph_workspace_bytes(
+    const UpAndInOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::UpAndInOptionPathPolicy<Side>,
+        UpAndInOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_variance_gamma_up_and_in_option_mixed_node_graph_sensitivities_cuda(
+    const UpAndInOptionPriceGradientPlan& host,
+    UpAndInOptionPriceGradientPlan::DeviceInputs device,
+    UpAndInOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    UpAndInOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::UpAndInOptionPathPolicy<Side>,
+        UpAndInOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "variance_gamma.up_and_in_option.sensitivities.mixed_node_graph",
+        "full_hessian"
+    );
+}
+
 template void launch_variance_gamma_up_and_in_option_price_gradients_cuda<OptionSide::call>(
     const UpAndInOptionPriceGradientPlan&,
     UpAndInOptionPriceGradientPlan::DeviceInputs,
@@ -243,6 +296,18 @@ template void launch_variance_gamma_up_and_in_option_node_graph_sensitivities_cu
     UpAndInOptionPriceGradientPlan::DeviceInputs,
     UpAndInOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+variance_gamma_up_and_in_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const UpAndInOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_variance_gamma_up_and_in_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const UpAndInOptionPriceGradientPlan&,
+    UpAndInOptionPriceGradientPlan::DeviceInputs,
+    UpAndInOptionPriceGradientPlan::DiagonalStencilOutputs,
+    UpAndInOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_variance_gamma_up_and_in_option_price_gradients_cuda<OptionSide::put>(
@@ -279,6 +344,18 @@ template void launch_variance_gamma_up_and_in_option_node_graph_sensitivities_cu
     UpAndInOptionPriceGradientPlan::DeviceInputs,
     UpAndInOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+variance_gamma_up_and_in_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const UpAndInOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_variance_gamma_up_and_in_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const UpAndInOptionPriceGradientPlan&,
+    UpAndInOptionPriceGradientPlan::DeviceInputs,
+    UpAndInOptionPriceGradientPlan::DiagonalStencilOutputs,
+    UpAndInOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::variance_gamma

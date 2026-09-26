@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/stein_stein/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/stein_stein/product/asian_option.cuh"
 #include "product/asian_option/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_stein_stein_asian_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t stein_stein_asian_option_mixed_node_graph_workspace_bytes(
+    const AsianOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::AsianOptionPathPolicy<Side>,
+        AsianOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_stein_stein_asian_option_mixed_node_graph_sensitivities_cuda(
+    const AsianOptionPriceGradientPlan& host,
+    AsianOptionPriceGradientPlan::DeviceInputs device,
+    AsianOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AsianOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::AsianOptionPathPolicy<Side>,
+        AsianOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "stein_stein.asian_option.sensitivities.mixed_node_graph",
+        "full_hessian"
+    );
+}
+
 template void launch_stein_stein_asian_option_price_gradients_cuda<OptionSide::call>(
     const AsianOptionPriceGradientPlan&,
     AsianOptionPriceGradientPlan::DeviceInputs,
@@ -243,6 +296,18 @@ template void launch_stein_stein_asian_option_node_graph_sensitivities_cuda<Opti
     AsianOptionPriceGradientPlan::DeviceInputs,
     AsianOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+stein_stein_asian_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const AsianOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_stein_stein_asian_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const AsianOptionPriceGradientPlan&,
+    AsianOptionPriceGradientPlan::DeviceInputs,
+    AsianOptionPriceGradientPlan::DiagonalStencilOutputs,
+    AsianOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_stein_stein_asian_option_price_gradients_cuda<OptionSide::put>(
@@ -279,6 +344,18 @@ template void launch_stein_stein_asian_option_node_graph_sensitivities_cuda<Opti
     AsianOptionPriceGradientPlan::DeviceInputs,
     AsianOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+stein_stein_asian_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const AsianOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_stein_stein_asian_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const AsianOptionPriceGradientPlan&,
+    AsianOptionPriceGradientPlan::DeviceInputs,
+    AsianOptionPriceGradientPlan::DiagonalStencilOutputs,
+    AsianOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::stein_stein

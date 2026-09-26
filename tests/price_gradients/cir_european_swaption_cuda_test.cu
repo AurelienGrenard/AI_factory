@@ -2,6 +2,7 @@
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
 #include "tests/price_gradients/diagonal_cuda_test_support.cuh"
+#include "tests/price_gradients/closed_form_mixed_cuda_test_support.cuh"
 
 #include <algorithm>
 #include <cmath>
@@ -204,6 +205,112 @@ void check_side() {
         pg::SensitivityOrders::first_and_second
     >(diagonal_plan, launch, cooperative_diagonal_launcher);
 
+    const auto mixed_plan =
+        cir::prepare_cir_european_swaption_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U},
+            full,
+            pg::SensitivityRequest::full_hessian()
+        );
+    const auto mixed_workspace_size = [](
+        const auto& plan,
+        const auto& configuration
+    ) {
+        return cir::
+            cir_european_swaption_mixed_node_graph_workspace_bytes<Side>(
+                plan, configuration
+            );
+    };
+    const auto launch_mixed = [](
+        closed_form::WorkDistribution distribution,
+        const auto& plan,
+        auto inputs,
+        auto stencils,
+        auto mixed_stencils,
+        const auto& configuration,
+        auto outputs,
+        auto mixed_outputs,
+        void* workspace,
+        std::size_t workspace_bytes
+    ) {
+        cir::
+            launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda<
+                Side
+            >(
+                plan,
+                inputs,
+                stencils,
+                mixed_stencils,
+                configuration,
+                outputs,
+                mixed_outputs,
+                workspace,
+                workspace_bytes,
+                distribution
+            );
+    };
+    const auto scalar_mixed = execute_closed_form_mixed(
+        mixed_plan,
+        launch,
+        mixed_workspace_size,
+        [&](const auto&... arguments) {
+            launch_mixed(
+                closed_form::WorkDistribution::scalar, arguments...
+            );
+        },
+        "CIR scalar full Hessian"
+    );
+    const auto cooperative_mixed = execute_closed_form_mixed(
+        mixed_plan,
+        launch,
+        mixed_workspace_size,
+        [&](const auto&... arguments) {
+            launch_mixed(
+                closed_form::WorkDistribution::cooperative, arguments...
+            );
+        },
+        "CIR cooperative full Hessian"
+    );
+    require_closed_form_diagonal_parity(
+        scalar_diagonal, scalar_mixed, "CIR scalar mixed/diagonal"
+    );
+    require_closed_form_diagonal_parity(
+        cooperative_diagonal,
+        cooperative_mixed,
+        "CIR cooperative mixed/diagonal"
+    );
+    require(
+        scalar_mixed.mixed_hessians.size()
+            == models.size() * 21U,
+        "CIR full Hessian mixed output cardinality is invalid."
+    );
+    for (std::size_t index = 0U;
+         index < scalar_mixed.mixed_hessians.size();
+         ++index) {
+        const float scale = std::max({
+            1.0f,
+            std::abs(scalar_mixed.mixed_hessians[index]),
+            std::abs(cooperative_mixed.mixed_hessians[index]),
+        });
+        const float difference = std::abs(
+            scalar_mixed.mixed_hessians[index]
+            - cooperative_mixed.mixed_hessians[index]
+        );
+        if (difference > 1.5e-1f * scale) {
+            std::cerr
+                << "CIR mixed mismatch index=" << index
+                << " scalar=" << scalar_mixed.mixed_hessians[index]
+                << " cooperative="
+                << cooperative_mixed.mixed_hessians[index]
+                << " difference=" << difference << '\n';
+            throw std::runtime_error(
+                "CIR scalar/cooperative mixed Hessian gross mismatch."
+            );
+        }
+    }
+
     const auto second_only_launcher = [](
         const auto& plan,
         auto inputs,
@@ -309,7 +416,7 @@ int main() {
         check_side<SwaptionSide::payer>();
         check_side<SwaptionSide::receiver>();
         std::cout
-            << "CIR Jamshidian compact first/diagonal sensitivities passed\n";
+            << "CIR Jamshidian compact full-Hessian sensitivities passed\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

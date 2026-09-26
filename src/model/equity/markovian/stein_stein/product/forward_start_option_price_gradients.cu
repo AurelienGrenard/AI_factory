@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/stein_stein/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/stein_stein/product/forward_start_option.cuh"
 #include "product/forward_start_option/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_stein_stein_forward_start_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t stein_stein_forward_start_option_mixed_node_graph_workspace_bytes(
+    const ForwardStartOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::ForwardStartOptionPathPolicy<Side>,
+        ForwardStartOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_stein_stein_forward_start_option_mixed_node_graph_sensitivities_cuda(
+    const ForwardStartOptionPriceGradientPlan& host,
+    ForwardStartOptionPriceGradientPlan::DeviceInputs device,
+    ForwardStartOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ForwardStartOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::ForwardStartOptionPathPolicy<Side>,
+        ForwardStartOptionGradientSchedule,
+        8U,
+        28U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "stein_stein.forward_start_option.sensitivities.mixed_node_graph",
+        "full_hessian"
+    );
+}
+
 template void launch_stein_stein_forward_start_option_price_gradients_cuda<OptionSide::call>(
     const ForwardStartOptionPriceGradientPlan&,
     ForwardStartOptionPriceGradientPlan::DeviceInputs,
@@ -243,6 +296,18 @@ template void launch_stein_stein_forward_start_option_node_graph_sensitivities_c
     ForwardStartOptionPriceGradientPlan::DeviceInputs,
     ForwardStartOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+stein_stein_forward_start_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const ForwardStartOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_stein_stein_forward_start_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const ForwardStartOptionPriceGradientPlan&,
+    ForwardStartOptionPriceGradientPlan::DeviceInputs,
+    ForwardStartOptionPriceGradientPlan::DiagonalStencilOutputs,
+    ForwardStartOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_stein_stein_forward_start_option_price_gradients_cuda<OptionSide::put>(
@@ -279,6 +344,18 @@ template void launch_stein_stein_forward_start_option_node_graph_sensitivities_c
     ForwardStartOptionPriceGradientPlan::DeviceInputs,
     ForwardStartOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+stein_stein_forward_start_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const ForwardStartOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_stein_stein_forward_start_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const ForwardStartOptionPriceGradientPlan&,
+    ForwardStartOptionPriceGradientPlan::DeviceInputs,
+    ForwardStartOptionPriceGradientPlan::DiagonalStencilOutputs,
+    ForwardStartOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::stein_stein

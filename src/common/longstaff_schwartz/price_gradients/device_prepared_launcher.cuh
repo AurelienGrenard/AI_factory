@@ -4,6 +4,8 @@
 #include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
 #include "common/longstaff_schwartz/price_gradients/frozen_exercise_node_graph/value_policy.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/execution_plan.hpp"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_launch_validation.hpp"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
 #include "common/price_gradients/device_prepared_validation.hpp"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 
@@ -280,6 +282,126 @@ launch_device_prepared_node_graph_sensitivities(
                 launch.result_offset,
                 outputs,
                 graph,
+                workspace
+            );
+        },
+        diagnostic_name,
+        diagnostic_variant,
+        product_name
+    );
+}
+
+
+template<
+    typename Policy,
+    std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
+    unsigned int GroupSize,
+    unsigned int NodesPerWorker,
+    typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
+    typename HostPlan>
+std::size_t frozen_exercise_mixed_node_graph_workspace_bytes(
+    const HostPlan& host,
+    const pg::LaunchConfiguration& launch
+) {
+    const auto make_layout = [&](auto configuration) {
+        return Policy::make_mixed_workspace_layout(
+            host, launch.threads_per_block, configuration
+        );
+    };
+    return mcpg::make_mixed_node_graph_execution_plan_with_layout<
+        MaximumSensitivities,
+        MaximumMixedSensitivities,
+        GroupSize,
+        NodesPerWorker,
+        Tuning
+    >(host, launch, make_layout).workspace.bytes;
+}
+
+template<
+    typename Policy,
+    typename Regressor,
+    std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
+    unsigned int GroupSize,
+    unsigned int NodesPerWorker,
+    typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
+    typename HostPlan>
+longstaff_schwartz::LaunchResult
+launch_device_prepared_mixed_node_graph_sensitivities(
+    const HostPlan& host,
+    typename HostPlan::DeviceInputs device,
+    typename HostPlan::DiagonalStencilOutputs stencil_outputs,
+    typename HostPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace_storage,
+    std::size_t workspace_bytes,
+    const char* diagnostic_name,
+    const char* diagnostic_variant,
+    const char* product_name
+) {
+    if (launch.method != pg::PricingMethod::monte_carlo) {
+        throw std::invalid_argument(
+            "Frozen-exercise mixed sensitivities require Monte Carlo."
+        );
+    }
+    if (launch.sensitivity_batch_size != 1U) {
+        throw std::invalid_argument(
+            "Frozen-exercise mixed sensitivities require B=1."
+        );
+    }
+
+    const auto make_layout = [&](auto configuration) {
+        return Policy::make_mixed_workspace_layout(
+            host, launch.threads_per_block, configuration
+        );
+    };
+    const auto execution =
+        mcpg::make_mixed_node_graph_execution_plan_with_layout<
+            MaximumSensitivities,
+            MaximumMixedSensitivities,
+            GroupSize,
+            NodesPerWorker,
+            Tuning
+        >(host, launch, make_layout);
+    const auto workspace = Policy::make_mixed_workspace(
+        workspace_storage, workspace_bytes, execution.workspace
+    );
+    const auto device_graph = mcpg::upload_mixed_sensitivity_graph(
+        workspace.graph, host.sensitivity_graph
+    );
+    mcpg::validate_mixed_node_graph_launch(
+        device,
+        mcpg::make_device_prepared_plan(host),
+        host.sensitivity_graph,
+        device_graph,
+        launch,
+        outputs,
+        mixed_outputs,
+        stencil_outputs,
+        mixed_stencil_outputs
+    );
+    Policy::validate_mixed_workspace(
+        workspace, execution.workspace.capacities
+    );
+
+    return launcher_detail::launch_with_device_inputs<Policy, Regressor>(
+        host,
+        launch,
+        outputs,
+        [&] {
+            return Policy::make_device_inputs(
+                host,
+                device,
+                stencil_outputs,
+                mixed_stencil_outputs,
+                launch.result_offset,
+                outputs,
+                mixed_outputs,
+                execution.graph,
+                device_graph,
                 workspace
             );
         },

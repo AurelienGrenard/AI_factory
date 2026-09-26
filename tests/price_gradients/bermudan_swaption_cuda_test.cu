@@ -6,9 +6,11 @@
 #include "model/fixed_income/cir_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients.cuh"
 #include "model/fixed_income/g2/product/bermudan_swaption.cuh"
 #include "model/fixed_income/g2/product/bermudan_swaption_price_gradients.cuh"
+#include "model/fixed_income/g2_plus_plus/product/svensson/bermudan_swaption_price_gradients.cuh"
 #include "model/fixed_income/vasicek/product/bermudan_swaption.cuh"
 #include "model/fixed_income/vasicek/product/bermudan_swaption_price_gradients.cuh"
 #include "tests/price_gradients/cuda_test_support.cuh"
+#include "tests/price_gradients/mixed_node_graph_cuda_test_support.cuh"
 
 #include <cmath>
 #include <cstddef>
@@ -602,6 +604,114 @@ void check_g2() {
         "G2 Bermudan mono and node_graph diagonal Hessians differ."
     );
 
+    const auto mixed_plan = g2::prepare_g2_bermudan_swaption_sensitivities(
+        models,
+        kProducts,
+        PriceConstruction::Aligned,
+        kTime,
+        full,
+        pg::SensitivityRequest::full_hessian()
+    );
+    const auto mixed =
+        price_gradient_test::require_mixed_node_graph_parity(
+        mixed_plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return g2::
+                launch_g2_bermudan_swaption_diagonal_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(p, inputs, stencils, launch, outputs);
+        },
+        [](const auto& p, const auto& launch) {
+            return g2::
+                g2_bermudan_swaption_mixed_node_graph_workspace_bytes<
+                    SwaptionSide::payer
+                >(p, launch);
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& launch,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return g2::
+                launch_g2_bermudan_swaption_mixed_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    launch, outputs, mixed_outputs,
+                    workspace, workspace_bytes
+                );
+        },
+        257U,
+        kSeed,
+        "G2 Bermudan mixed node graph"
+    );
+
+    const auto sparse_mixed_plan =
+        g2::prepare_g2_bermudan_swaption_sensitivities(
+            models,
+            kProducts,
+            PriceConstruction::Aligned,
+            kTime,
+            full,
+            pg::SensitivityRequest::selected({}, {}, {{0U, 2U}})
+        );
+    const auto sparse_mixed =
+        price_gradient_test::execute_mixed_node_graph(
+            sparse_mixed_plan,
+            {
+                pg::PricingMethod::monte_carlo,
+                0U,
+                sparse_mixed_plan.result_count,
+                257U,
+                kThreads,
+                kBlocks,
+                kSeed,
+                1U,
+            },
+            [](const auto& p, const auto& launch) {
+                return g2::
+                    g2_bermudan_swaption_mixed_node_graph_workspace_bytes<
+                        SwaptionSide::payer
+                    >(p, launch);
+            },
+            [](const auto& p, auto inputs, auto stencils,
+               auto mixed_stencils, const auto& launch,
+               auto outputs, auto mixed_outputs,
+               void* workspace, std::size_t workspace_bytes) {
+                return g2::
+                    launch_g2_bermudan_swaption_mixed_node_graph_sensitivities_cuda<
+                        SwaptionSide::payer
+                    >(
+                        p, inputs, stencils, mixed_stencils,
+                        launch, outputs, mixed_outputs,
+                        workspace, workspace_bytes
+                    );
+            },
+            "G2 Bermudan sparse mixed-only node graph"
+        );
+    require(
+        sparse_mixed_plan.sensitivity_graph.node_capacity == 9U,
+        "Mixed-only Bermudan graph retained unselected coordinates."
+    );
+    price_gradient_test::require_same_bits(
+        mixed.prices,
+        sparse_mixed.prices,
+        "Bermudan sparse mixed-only central price"
+    );
+    price_gradient_test::require_same_bits(
+        mixed.price_errors,
+        sparse_mixed.price_errors,
+        "Bermudan sparse mixed-only central error"
+    );
+    for (std::size_t row = 0U; row < models.size(); ++row) {
+        price_gradient_test::require_same_bits(
+            std::vector<float>{mixed.mixed_hessians[row * 3U + 1U]},
+            std::vector<float>{sparse_mixed.mixed_hessians[row]},
+            "Bermudan sparse selected mixed Hessian"
+        );
+    }
+
     const Results central = execute_central_standalone(
         models,
         [&](auto device_models, auto device_products,
@@ -742,6 +852,85 @@ void check_cir_plus_plus_nelson_siegel() {
     );
 }
 
+
+void check_g2_plus_plus_svensson_full_mixed_capacity() {
+    namespace fitted = model::fixed_income::g2_plus_plus::svensson;
+    using Model = model::fixed_income::g2_plus_plus::ModelParameters;
+    const std::vector<Model> models{{
+        {0.20f, 0.005f, 0.75f, 0.012f, -0.40f}
+    }};
+    const std::vector<curve::svensson::SvenssonParameters> curves{{
+        0.030f, -0.010f, 0.010f, 0.005f, 2.0f, 5.0f
+    }};
+    const std::vector<product::BermudanSwaptionParameters> products{
+        {1.0f, 0.030f, 0.5f, 126U, 126U, 6U, 4U}
+    };
+    const pg::PriceGradientConfiguration sensitivities{{
+        {"model.mean_reversion_x", {0.005f}},
+        {"model.volatility_x", {0.0005f, pg::BumpScale::absolute}},
+        {"model.mean_reversion_y", {0.005f}},
+        {"model.volatility_y", {0.0005f, pg::BumpScale::absolute}},
+        {"model.correlation", {0.005f, pg::BumpScale::absolute}},
+        {"curve.beta0", {0.0005f, pg::BumpScale::absolute}},
+        {"curve.beta1", {0.0005f, pg::BumpScale::absolute}},
+        {"curve.beta2", {0.0005f, pg::BumpScale::absolute}},
+        {"curve.beta3", {0.0005f, pg::BumpScale::absolute}},
+        {"curve.tau1", {0.005f}},
+        {"curve.tau2", {0.005f}},
+        {"product.notional", {0.005f}},
+        {"product.strike", {0.0005f, pg::BumpScale::absolute}},
+        {"product.accrual_fraction", {0.005f}},
+    }};
+    const auto plan =
+        fitted::prepare_g2_plus_plus_svensson_bermudan_swaption_sensitivities(
+            models,
+            curves,
+            products,
+            PriceConstruction::Aligned,
+            kTime,
+            sensitivities,
+            pg::SensitivityRequest::full_hessian()
+        );
+    require(
+        plan.sensitivity_graph.mixed_second.size() == 91U
+            && plan.sensitivity_graph.node_capacity == 407U,
+        "G2++/Svensson full Hessian graph capacity is incorrect."
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return fitted::
+                launch_g2_plus_plus_svensson_bermudan_swaption_diagonal_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(p, inputs, stencils, launch, outputs);
+        },
+        [](const auto& p, const auto& launch) {
+            return fitted::
+                g2_plus_plus_svensson_bermudan_swaption_mixed_node_graph_workspace_bytes<
+                    SwaptionSide::payer
+                >(p, launch);
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& launch,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return fitted::
+                launch_g2_plus_plus_svensson_bermudan_swaption_mixed_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    launch, outputs, mixed_outputs,
+                    workspace, workspace_bytes
+                );
+        },
+        257U,
+        kSeed,
+        "G2++/Svensson maximum mixed Bermudan graph"
+    );
+}
+
 }  // namespace
 
 int main() {
@@ -758,4 +947,5 @@ int main() {
     check_vasicek();
     check_g2();
     check_cir_plus_plus_nelson_siegel();
+    check_g2_plus_plus_svensson_full_mixed_capacity();
 }

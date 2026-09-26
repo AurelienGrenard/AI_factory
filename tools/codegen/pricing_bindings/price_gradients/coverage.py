@@ -39,7 +39,8 @@ def markovian_coverage(pricing_bindings, gradient_bindings, models):
             "gradient_binding": gradient.unit_path if gradient is not None else None,
             "supported_orders": list(orders),
             "coverage": (
-                "first_and_diagonal_second" if "diagonal_second" in orders
+                "full_hessian" if "mixed_second" in orders
+                else "first_and_diagonal_second" if "diagonal_second" in orders
                 else "first_only" if "first" in orders
                 else "missing_binding"
             ),
@@ -69,7 +70,8 @@ def main() -> int:
     summary = {
         label: sum(row["coverage"] == label for row in rows)
         for label in (
-            "missing_binding", "first_only", "first_and_diagonal_second"
+            "missing_binding", "first_only",
+            "first_and_diagonal_second", "full_hessian"
         )
     }
     print(json.dumps({"summary": summary, "bindings": rows}, indent=2))

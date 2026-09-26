@@ -90,7 +90,7 @@ class PriceGradientCoverageTest(unittest.TestCase):
             len(PRICE_GRADIENT_BINDING_SPECS),
         )
         self.assertEqual(
-            sum(row["coverage"] == "first_and_diagonal_second" for row in rows),
+            sum(row["coverage"] == "full_hessian" for row in rows),
             len(PRICE_GRADIENT_BINDING_SPECS),
         )
         self.assertEqual(

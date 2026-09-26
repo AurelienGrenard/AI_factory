@@ -4,7 +4,7 @@
 #include "common/equity/price_gradients/path_device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+${mixed_output_include}#include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/${model}/price_gradients/device_preparation.cuh"
 #include "product/${product}/price_gradients/device_preparation.cuh"
 

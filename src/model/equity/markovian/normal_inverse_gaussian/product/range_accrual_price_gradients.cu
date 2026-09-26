@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/product/range_accrual.cuh"
 #include "product/range_accrual/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_normal_inverse_gaussian_range_accrual_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+
+std::size_t normal_inverse_gaussian_range_accrual_mixed_node_graph_workspace_bytes(
+    const RangeAccrualPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::RangeAccrualPathPolicy,
+        RangeAccrualGradientSchedule,
+        9U,
+        36U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_normal_inverse_gaussian_range_accrual_mixed_node_graph_sensitivities_cuda(
+    const RangeAccrualPriceGradientPlan& host,
+    RangeAccrualPriceGradientPlan::DeviceInputs device,
+    RangeAccrualPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    RangeAccrualPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::RangeAccrualPathPolicy,
+        RangeAccrualGradientSchedule,
+        9U,
+        36U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "normal_inverse_gaussian.range_accrual.sensitivities.mixed_node_graph",
+        "full_hessian"
     );
 }
 

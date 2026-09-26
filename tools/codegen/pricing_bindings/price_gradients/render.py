@@ -32,6 +32,7 @@ def terminal_explicit_instantiations(
     product: str,
     product_type: str,
     sided: bool,
+    include_mixed: bool,
 ) -> str:
     sides = ("OptionSide::call", "OptionSide::put") if sided else (None,)
     blocks = []
@@ -74,6 +75,23 @@ def terminal_explicit_instantiations(
                 "    const pg::LaunchConfiguration&, pg::SensitivityOutputs,",
                 "    void*, std::size_t);",
             ])
+        if sided and include_mixed:
+            lines.extend([
+                "template std::size_t",
+                f"{model}_{product}_mixed_node_graph_workspace_bytes"
+                f"<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                "    const pg::LaunchConfiguration&);",
+                f"template void launch_{model}_{product}_mixed_node_graph_"
+                f"sensitivities_cuda<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                f"    {product_type}PriceGradientPlan::DeviceInputs,",
+                f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
+                f"    {product_type}PriceGradientPlan::MixedStencilOutputs,",
+                "    const pg::LaunchConfiguration&,",
+                "    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,",
+                "    void*, std::size_t);",
+            ])
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 
@@ -107,6 +125,22 @@ def closed_form_explicit_instantiations(
                 f"    {product_type}PriceGradientPlan::DeviceInputs,",
                 f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
                 "    const pg::LaunchConfiguration&, pg::SensitivityOutputs);",
+            ])
+        if side:
+            lines.extend([
+                "template std::size_t",
+                f"{model}_{product}_mixed_node_graph_workspace_bytes<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                "    const pg::LaunchConfiguration&);",
+                f"template void launch_{model}_{product}_mixed_node_graph_"
+                f"sensitivities_cuda<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                f"    {product_type}PriceGradientPlan::DeviceInputs,",
+                f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
+                f"    {product_type}PriceGradientPlan::MixedStencilOutputs,",
+                "    const pg::LaunchConfiguration&,",
+                "    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,",
+                "    void*, std::size_t);",
             ])
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
@@ -467,6 +501,18 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "model": spec.pricing.model,
             "product": spec.pricing.product,
             "product_type": product_metadata.get("product_type", ""),
+            "mixed_output_include": (
+                '#include "common/price_gradients/'
+                'mixed_sensitivity_outputs.cuh"\n'
+                if spec.preparation_strategy in {
+                    "device_prepared_step_terminal",
+                    "device_prepared_exact_terminal",
+                    "device_prepared_path",
+                    "device_prepared_closed_form_terminal",
+                    "device_prepared_closed_form_path",
+                }
+                else ""
+            ),
             "product_policy_header": product_metadata.get(
                 "policy_header", ""
             ),
@@ -492,6 +538,35 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "lsm_continuation": lsm_metadata.get("continuation", ""),
             "lsm_refinement": lsm_metadata.get("refinement", ""),
             "maximum": str(spec.maximum_sensitivities),
+            "mixed_maximum": str(
+                spec.maximum_sensitivities
+                * (spec.maximum_sensitivities - 1) // 2
+            ),
+            "mixed_nodes_per_worker": str(max(
+                2,
+                (
+                    1 + 3 * spec.maximum_sensitivities
+                    + 2 * spec.maximum_sensitivities
+                        * (spec.maximum_sensitivities - 1)
+                    + 127
+                ) // 128,
+            )),
+            "mixed_team_size": str(next(
+                group for group in (2, 4, 8, 16, 32, 64, 128)
+                if group * max(
+                    2,
+                    (
+                        1 + 3 * spec.maximum_sensitivities
+                        + 2 * spec.maximum_sensitivities
+                            * (spec.maximum_sensitivities - 1)
+                        + 127
+                    ) // 128,
+                ) >= (
+                    1 + 3 * spec.maximum_sensitivities
+                    + 2 * spec.maximum_sensitivities
+                        * (spec.maximum_sensitivities - 1)
+                )
+            )),
             "graph_group_size": str(next(
                 group for group in (2, 4, 8, 16, 32)
                 if group * 2 >= 1 + 3 * spec.maximum_sensitivities
@@ -534,6 +609,13 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 spec.pricing.product,
                 product_metadata.get("product_type", ""),
                 product_metadata.get("sided", True),
+                spec.preparation_strategy in {
+                    "device_prepared_step_terminal",
+                    "device_prepared_exact_terminal",
+                    "device_prepared_path",
+                    "device_prepared_closed_form_terminal",
+                    "device_prepared_closed_form_path",
+                },
             ),
             "closed_form_explicit_instantiations": (
                 closed_form_explicit_instantiations(
@@ -576,6 +658,17 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 + ("device_prepared_path_node_graph_declarations.cuh.tpl"
                    if is_path else
                    "device_prepared_terminal_node_graph_declarations.cuh.tpl")
+            )
+            node_graph_declarations = Template(
+                declaration_template.read_text()
+            ).substitute(values)
+        elif spec.preparation_strategy in {
+            "device_prepared_closed_form_terminal",
+            "device_prepared_closed_form_path",
+        }:
+            declaration_template = template_root / (
+                "pricing/closed_form/price_gradients/"
+                "mixed_declarations.cuh.tpl"
             )
             node_graph_declarations = Template(
                 declaration_template.read_text()
@@ -755,6 +848,35 @@ def render_recipes(
                 "catalog/pricing/price_gradients/"
                 "american_option_generator.cpp.tpl"
             )
+        if "mixed_second" in spec.sensitivity_orders:
+            if spec.asset_class == "equity":
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "american_option_mixed_hessian_generator.cpp.tpl"
+                    if spec.product == "american_option"
+                    else "catalog/pricing/price_gradients/"
+                    "equity_mixed_hessian_generator.cpp.tpl"
+                )
+            elif spec.product == "bermudan_swaption":
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_bermudan_swaption_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
+            elif spec.product in {
+                "rate_option", "zero_coupon_bond_option"
+            }:
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_scalar_product_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
+            else:
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_european_swaption_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
         template = Template((template_root / template_path).read_text())
         source = sources[spec.generator_path]
         model = model_specs[spec.model]
@@ -918,6 +1040,11 @@ def render_recipes(
                 ",\n                    closed_form::WorkDistribution::cooperative"
                 if not stochastic else ""
             ),
+            "mixed_distribution_argument": (
+                ",\n                        "
+                "closed_form::WorkDistribution::cooperative"
+                if not stochastic else ""
+            ),
             "paths_per_price": (
                 "offline::cuda_tuning::kProductionPathsPerPrice"
                 if stochastic else "0U"
@@ -942,9 +1069,16 @@ def render_recipes(
             metadata["curve_input"] = curve_input
         if "diagonal_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["orders"] = list(spec.sensitivity_orders)
+        if "mixed_second" in spec.sensitivity_orders:
+            metadata["sensitivity"]["mixed_second"] = "all"
         if stochastic:
             metadata["rng_mapping_version"] = rng_mapping_version(spec.model)
-        if stochastic and "diagonal_second" in spec.sensitivity_orders:
+        if "mixed_second" in spec.sensitivity_orders:
+            metadata["sensitivity_execution"] = {
+                "default": "mixed_node_graph",
+                "available": ["mixed_node_graph"],
+            }
+        elif stochastic and "diagonal_second" in spec.sensitivity_orders:
             metadata["sensitivity_execution"] = {
                 "default": "mono",
                 "available": ["mono", "node_graph"],

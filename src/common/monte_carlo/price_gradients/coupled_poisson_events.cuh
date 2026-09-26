@@ -53,7 +53,7 @@ __device__ __forceinline__ void replay_coupled_poisson_events(
     philox::DomainRandomContext& random,
     std::uint32_t step,
     const float (&means)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     std::uint32_t (&counts)[NodeCapacity],
     ApplyMark apply_mark
 ) {
@@ -71,7 +71,7 @@ __device__ __forceinline__ void replay_coupled_poisson_events(
     );
 
     bool has_lower_mean = false;
-    for (std::uint8_t node = 1U; node < node_count; ++node) {
+    for (std::uint16_t node = 1U; node < node_count; ++node) {
         has_lower_mean = has_lower_mean || means[node] < central_mean;
     }
     auto central_marks = random.source<
@@ -88,7 +88,7 @@ __device__ __forceinline__ void replay_coupled_poisson_events(
         const float thinning = has_lower_mean
             ? thinning_uniforms.next()
             : 0.0f;
-        for (std::uint8_t node = 0U; node < node_count; ++node) {
+        for (std::uint16_t node = 0U; node < node_count; ++node) {
             const bool retained = node == 0U || means[node] >= central_mean
                 || (central_mean > 0.0f
                     && thinning < means[node] / central_mean);
@@ -100,7 +100,7 @@ __device__ __forceinline__ void replay_coupled_poisson_events(
     }
 
     float maximum_mean = central_mean;
-    for (std::uint8_t node = 1U; node < node_count; ++node) {
+    for (std::uint16_t node = 1U; node < node_count; ++node) {
         if (means[node] > maximum_mean) maximum_mean = means[node];
     }
     auto extension_arrivals = random.source<
@@ -117,7 +117,7 @@ __device__ __forceinline__ void replay_coupled_poisson_events(
         const auto mark = EventMarks::draw(
             extension_marks, extension_mark_cache
         );
-        for (std::uint8_t node = 1U; node < node_count; ++node) {
+        for (std::uint16_t node = 1U; node < node_count; ++node) {
             if (means[node] >= arrival) {
                 ++counts[node];
                 apply_mark(node, mark);

@@ -10,6 +10,7 @@
 #include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
 #include "product/american_option/price_gradients/device_prepared_frozen_exercise_node_graph.cuh"
+#include "product/american_option/price_gradients/device_prepared_frozen_exercise_mixed_node_graph.cuh"
 #include "product/american_option/price_gradients/device_prepared_pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::equity::${model} {
@@ -39,6 +40,10 @@ constexpr std::size_t kNodeGraphMaximumSensitivities = ${maximum}U;
 constexpr unsigned int kNodeGraphGroupSize = ${graph_group_size}U;
 constexpr unsigned int kNodeGraphNodesPerWorker = ${graph_nodes_per_worker}U;
 using NodeGraphTuning = mcpg::tuning::DefaultTerminalNodeTuning;
+constexpr std::size_t kMixedNodeGraphMaximumSensitivities = ${maximum}U;
+constexpr std::size_t kMixedNodeGraphMaximumPairs = ${mixed_maximum}U;
+constexpr unsigned int kMixedNodeGraphTeamSize = ${mixed_team_size}U;
+constexpr unsigned int kMixedNodeGraphNodesPerWorker = ${mixed_nodes_per_worker}U;
 template<OptionSide Side, pg::SensitivityOrders Orders>
 using NodeGraphPolicy = american_option_pg::FrozenExerciseNodeGraphPolicy<
     Policy<Side, Orders>,
@@ -47,6 +52,16 @@ using NodeGraphPolicy = american_option_pg::FrozenExerciseNodeGraphPolicy<
     kNodeGraphNodesPerWorker,
     NodeGraphTuning
 >;
+template<OptionSide Side>
+using MixedNodeGraphPolicy =
+    american_option_pg::FrozenExerciseMixedNodeGraphPolicy<
+        Policy<Side, pg::SensitivityOrders::first_and_second>,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
     longstaff_schwartz::basis::LaguerrePolynomialTwoFactorBasis,
     longstaff_schwartz::RegressionRefinement::${lsm_refinement}
@@ -205,6 +220,60 @@ launch_${model}_american_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t ${model}_american_option_mixed_node_graph_workspace_bytes(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return lspg::frozen_exercise_mixed_node_graph_workspace_bytes<
+        MixedNodeGraphPolicy<Side>,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${model}_american_option_mixed_node_graph_sensitivities_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AmericanOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    return lspg::launch_device_prepared_mixed_node_graph_sensitivities<
+        MixedNodeGraphPolicy<Side>,
+        Regressor,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        launch,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "${model}.american_option.sensitivities.mixed_node_graph",
+        Side == OptionSide::call
+            ? "call/nodes=mixed_graph" : "put/nodes=mixed_graph",
+        "${model} American mixed node-graph sensitivities"
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(SIDE) \
     template longstaff_schwartz::LaunchResult \
     launch_${model}_american_option_price_gradients_cuda<SIDE>( \
@@ -251,7 +320,19 @@ launch_${model}_american_option_node_graph_sensitivities_cuda(
         AmericanOptionPriceGradientPlan::DeviceInputs, \
         AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs, \
-        void*, std::size_t)
+        void*, std::size_t); \
+    template std::size_t \
+    ${model}_american_option_mixed_node_graph_workspace_bytes<SIDE>( \
+        const AmericanOptionPriceGradientPlan&, \
+        const pg::LaunchConfiguration&); \
+    template longstaff_schwartz::LaunchResult \
+    launch_${model}_american_option_mixed_node_graph_sensitivities_cuda<SIDE>( \
+        const AmericanOptionPriceGradientPlan&, \
+        AmericanOptionPriceGradientPlan::DeviceInputs, \
+        AmericanOptionPriceGradientPlan::DiagonalStencilOutputs, \
+        AmericanOptionPriceGradientPlan::MixedStencilOutputs, \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs, \
+        pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::call);
 AI_FACTORY_INSTANTIATE_AMERICAN_SENSITIVITIES(OptionSide::put);

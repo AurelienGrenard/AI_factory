@@ -112,7 +112,7 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         std::uint32_t maximum_exercise_count;
         pg::SensitivityOutputs outputs;
 
-        void validate(std::size_t results) const {
+        void validate_inputs_and_tasks(std::size_t results) const {
             validate_device_pointer(primary.models, "sensitivity models");
             validate_device_pointer(primary.products, "sensitivity products");
             bool insufficient = primary.model_capacity < model_count
@@ -147,6 +147,11 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
                     "Insufficient Bermudan sensitivity task capacity."
                 );
             }
+        }
+
+        void validate(std::size_t results) const {
+            validate_inputs_and_tasks(results);
+            if (sensitivity_count == 0U) return;
             if constexpr (pg::requests_first_v<Orders>) {
                 validate_device_pointer(outputs.gradients, "gradients");
                 validate_device_pointer(

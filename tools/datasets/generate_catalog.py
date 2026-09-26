@@ -412,8 +412,12 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
         inspector += (["--price-delta"] if job["kind"] == "price_delta" else
                       ["--price-gradients", str(len(job["sensitivity"]["parameters"]))]
                       if job["kind"] == "price_gradients" else [])
-        if job["kind"] == "price_gradients" and "diagonal_second" in job["sensitivity"].get("orders", []):
-            inspector.append("--diagonal")
+        if job["kind"] == "price_gradients":
+            orders = job["sensitivity"].get("orders", [])
+            if "mixed_second" in orders:
+                inspector.append("--mixed")
+            elif "diagonal_second" in orders:
+                inspector.append("--diagonal")
         plan = json.loads(subprocess.check_output(inspector, cwd=inputs, text=True))
         description = {"rows": rows, "launch_plan": plan}
     else:

@@ -2,6 +2,7 @@
 #include "model/equity/markovian/black_scholes/product/straddle_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/equity/price_gradients/scenario_closed_form_policy.cuh"
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
@@ -108,6 +109,48 @@ void launch_black_scholes_straddle_diagonal_sensitivities_cuda(
         Orders
     >(
         host, device, stencil_outputs, configuration, outputs
+    );
+}
+
+
+std::size_t black_scholes_straddle_mixed_node_graph_workspace_bytes(
+    const StraddlePriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+
+void launch_black_scholes_straddle_mixed_node_graph_sensitivities_cuda(
+    const StraddlePriceGradientPlan& host,
+    StraddlePriceGradientPlan::DeviceInputs device,
+    StraddlePriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    StraddlePriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using ScenarioClosedFormPolicy =
+        epg::ScenarioClosedFormPolicy<StraddleClosedFormPricingPolicy>;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        ScenarioClosedFormPolicy,
+        6U,
+        15U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "black_scholes.straddle.sensitivities.closed_form_mixed",
+        "selected_gradient_and_hessian"
     );
 }
 

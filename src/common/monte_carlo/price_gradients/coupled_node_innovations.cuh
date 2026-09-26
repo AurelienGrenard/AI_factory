@@ -12,7 +12,7 @@ template<std::size_t NodeCapacity, typename Dynamics, typename Apply>
 __device__ __forceinline__ void draw_and_apply_node_innovations(
     typename Dynamics::RandomContext& random,
     const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Apply&& apply
 ) {
     if constexpr (requires(

@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/heston/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/heston/product/up_no_touch.cuh"
 #include "product/up_no_touch/pricing_policy.cuh"
@@ -206,6 +207,58 @@ void launch_heston_up_no_touch_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+
+std::size_t heston_up_no_touch_mixed_node_graph_workspace_bytes(
+    const UpNoTouchPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::UpNoTouchPathPolicy,
+        UpNoTouchGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_heston_up_no_touch_mixed_node_graph_sensitivities_cuda(
+    const UpNoTouchPriceGradientPlan& host,
+    UpNoTouchPriceGradientPlan::DeviceInputs device,
+    UpNoTouchPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    UpNoTouchPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::UpNoTouchPathPolicy,
+        UpNoTouchGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "heston.up_no_touch.sensitivities.mixed_node_graph",
+        "full_hessian"
     );
 }
 

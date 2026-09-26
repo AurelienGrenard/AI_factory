@@ -29,7 +29,12 @@ target_compile_definitions(ai_factory_cuda_tuning INTERFACE
 add_executable(inspect_pricing_launch_plan EXCLUDE_FROM_ALL
     tools/cuda/inspect_pricing_launch_plan.cpp
 )
-target_include_directories(inspect_pricing_launch_plan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(
+    inspect_pricing_launch_plan
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 target_link_libraries(inspect_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
 target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_23)
 

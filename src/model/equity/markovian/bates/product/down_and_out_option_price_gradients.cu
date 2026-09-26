@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/bates/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/bates/product/down_and_out_option.cuh"
 #include "product/down_and_out_option/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_bates_down_and_out_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t bates_down_and_out_option_mixed_node_graph_workspace_bytes(
+    const DownAndOutOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::DownAndOutOptionPathPolicy<Side>,
+        DownAndOutOptionGradientSchedule,
+        13U,
+        78U,
+        128U,
+        3U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_bates_down_and_out_option_mixed_node_graph_sensitivities_cuda(
+    const DownAndOutOptionPriceGradientPlan& host,
+    DownAndOutOptionPriceGradientPlan::DeviceInputs device,
+    DownAndOutOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    DownAndOutOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::DownAndOutOptionPathPolicy<Side>,
+        DownAndOutOptionGradientSchedule,
+        13U,
+        78U,
+        128U,
+        3U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "bates.down_and_out_option.sensitivities.mixed_node_graph",
+        "full_hessian"
+    );
+}
+
 template void launch_bates_down_and_out_option_price_gradients_cuda<OptionSide::call>(
     const DownAndOutOptionPriceGradientPlan&,
     DownAndOutOptionPriceGradientPlan::DeviceInputs,
@@ -243,6 +296,18 @@ template void launch_bates_down_and_out_option_node_graph_sensitivities_cuda<Opt
     DownAndOutOptionPriceGradientPlan::DeviceInputs,
     DownAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+bates_down_and_out_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const DownAndOutOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_bates_down_and_out_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const DownAndOutOptionPriceGradientPlan&,
+    DownAndOutOptionPriceGradientPlan::DeviceInputs,
+    DownAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
+    DownAndOutOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_bates_down_and_out_option_price_gradients_cuda<OptionSide::put>(
@@ -279,6 +344,18 @@ template void launch_bates_down_and_out_option_node_graph_sensitivities_cuda<Opt
     DownAndOutOptionPriceGradientPlan::DeviceInputs,
     DownAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+bates_down_and_out_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const DownAndOutOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_bates_down_and_out_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const DownAndOutOptionPriceGradientPlan&,
+    DownAndOutOptionPriceGradientPlan::DeviceInputs,
+    DownAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
+    DownAndOutOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::bates

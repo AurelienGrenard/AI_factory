@@ -244,7 +244,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
                     Dynamics::template draw_coupled<node_capacity>(
                         random,
                         dynamics[interval],
-                        static_cast<std::uint8_t>(node_count),
+                        static_cast<std::uint16_t>(node_count),
                         group_innovations
                     );
                 }

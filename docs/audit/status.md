@@ -4,6 +4,36 @@ Les anciens chemins locaux `build-*` et `build-dev` sont conservés avec leur
 correspondance dans le [plan des artefacts locaux](../local-artifacts.md).
 
 
+## Hessiennes complètes markoviennes `price_gradients` — 2026-09-26
+
+- **Périmètre :** les 301 bindings markoviens acceptent désormais une sélection
+  d'ordre un, diagonal et mixte. Le catalogue ajoute 888 recettes de Hessienne
+  complète : 728 equity et 160 fixed income. Le total atteint 2 664 recettes
+  `price_gradients`, dont 2 184 equity et 480 fixed income.
+- **Architecture :** `SensitivityGraphPlan` mutualise central, nœuds axiaux et
+  quatre coins par paire. Les Monte Carlo terminaux et de chemin utilisent le
+  graphe chunké évaluation → moments FP64 → finalisation. LSM réemploie une
+  unique politique centrale gelée. Les formules scalaires gardent un thread par
+  ligne et Jamshidian un bloc par ligne ; ces familles évaluent le graphe dans
+  leur kernel naturel.
+- **Génération :** le runner permanent sérialise valeurs, erreurs standards et
+  stencils mixtes, les inclut dans les checkpoints et restaure un préfixe
+  interrompu. L'inspecteur et le runtime partagent la même description de
+  topologie ; une recette complète déclare `mixed_second: all` et la stratégie
+  `mixed_node_graph`.
+- **Preuves du lot :** parité exacte des canaux prix/gradient/diagonale avec le
+  runner existant sur Heston MC et CIR Jamshidian, reprise de checkpoint et
+  sélections sparse. Les suites Python passent 37 tests codegen, 50 tests
+  datasets et 24 tests gradients. Les 29 CTests fonctionnels
+  `price_gradients` passent ; sept générateurs couvrant les cinq templates
+  full-Hessian compilent. La régénération complète est identique au dépôt.
+  `memcheck`, `racecheck`, `initcheck` et `synccheck` ne rapportent
+  aucune erreur, warning ou hazard sur le runner de dataset.
+- **Limites :** aucune mesure de performance n'est retenue sur batterie. Les
+  bumps, le biais du freeze LSM et la convergence numérique restent à
+  qualifier. Les moteurs rough et le retrait de `price_delta` restent ouverts.
+
+
 ## Fermeture de l’intégration markovienne `price_gradients` — 2026-09-26
 
 - **Périmètre :** 301 bindings markoviens d’ordre un et deux diagonal, dont

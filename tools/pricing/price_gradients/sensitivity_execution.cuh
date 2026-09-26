@@ -136,6 +136,78 @@ auto node_graph_sensitivity_execution(
     );
 }
 
+template<typename GraphWorkspaceBytes, typename GraphLaunch>
+class MixedNodeGraphSensitivityExecution {
+public:
+    MixedNodeGraphSensitivityExecution(
+        GraphWorkspaceBytes graph_workspace_bytes,
+        GraphLaunch graph_launch
+    )
+        : graph_workspace_bytes_(std::move(graph_workspace_bytes)),
+          graph_launch_(std::move(graph_launch)) {}
+
+    template<typename Plan>
+    std::size_t workspace_bytes(
+        const Plan& plan,
+        const pg::LaunchConfiguration& configuration
+    ) const {
+        return std::invoke(graph_workspace_bytes_, plan, configuration);
+    }
+
+    template<
+        typename Plan,
+        typename Inputs,
+        typename Stencils,
+        typename MixedStencils,
+        typename Outputs,
+        typename MixedOutputs>
+    void launch(
+        const Plan& plan,
+        Inputs inputs,
+        Stencils stencils,
+        MixedStencils mixed_stencils,
+        const pg::LaunchConfiguration& configuration,
+        Outputs outputs,
+        MixedOutputs mixed_outputs,
+        void* workspace,
+        std::size_t workspace_bytes
+    ) const {
+        std::invoke(
+            graph_launch_,
+            plan,
+            inputs,
+            stencils,
+            mixed_stencils,
+            configuration,
+            outputs,
+            mixed_outputs,
+            workspace,
+            workspace_bytes
+        );
+    }
+
+    std::string strategy_name() const {
+        return "mixed_node_graph";
+    }
+
+private:
+    GraphWorkspaceBytes graph_workspace_bytes_;
+    GraphLaunch graph_launch_;
+};
+
+template<typename GraphWorkspaceBytes, typename GraphLaunch>
+auto mixed_node_graph_sensitivity_execution(
+    GraphWorkspaceBytes graph_workspace_bytes,
+    GraphLaunch graph_launch
+) {
+    return MixedNodeGraphSensitivityExecution<
+        GraphWorkspaceBytes, GraphLaunch
+    >(
+        std::move(graph_workspace_bytes),
+        std::move(graph_launch)
+    );
+}
+
 inline pg::SensitivityStrategy sensitivity_strategy_from_arguments(
     int argument_count,
     const char* const* arguments

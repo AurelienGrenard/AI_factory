@@ -2,6 +2,7 @@
 #include "model/fixed_income/hull_white/product/nelson_siegel/zero_coupon_bond_option_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/zero_coupon_bond_option/pricing_policy.cuh"
@@ -100,6 +101,54 @@ void launch_hull_white_nelson_siegel_zero_coupon_bond_option_diagonal_sensitivit
     );
 }
 
+template<OptionSide Side>
+std::size_t hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_workspace_bytes(
+    const ZeroCouponBondOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+template<OptionSide Side>
+void launch_hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_sensitivities_cuda(
+    const ZeroCouponBondOptionPriceGradientPlan& host,
+    ZeroCouponBondOptionPriceGradientPlan::DeviceInputs device,
+    ZeroCouponBondOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ZeroCouponBondOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using PricingPolicy = ::ai_factory::workbench::fixed_income::FittedZeroCouponBondOptionClosedFormPricingPolicy<
+        FittedModelComposition, Side
+    >;
+    using Policy = ::ai_factory::workbench::fixed_income::price_gradients::
+    CurveScalarScenarioClosedFormPolicy<
+        PricingPolicy, ModelParameters, CurveParameters,
+        product::ZeroCouponBondOptionParameters
+    >;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        Policy,
+        8U,
+        28U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "hull_white.nelson_siegel.zero_coupon_bond_option.sensitivities.closed_form_mixed",
+        option_side_name(Side)
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE(side)                                        \
 template void launch_hull_white_nelson_siegel_zero_coupon_bond_option_price_gradients_cuda<    \
     side>(const ZeroCouponBondOptionPriceGradientPlan&,                           \
@@ -117,7 +166,19 @@ template void launch_hull_white_nelson_siegel_zero_coupon_bond_option_diagonal_s
     const ZeroCouponBondOptionPriceGradientPlan&,                                 \
     ZeroCouponBondOptionPriceGradientPlan::DeviceInputs,                          \
     ZeroCouponBondOptionPriceGradientPlan::DiagonalStencilOutputs,                \
-    const pg::LaunchConfiguration&, pg::SensitivityOutputs)
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs);             \
+template std::size_t                                                       \
+hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_workspace_bytes<side>(       \
+    const ZeroCouponBondOptionPriceGradientPlan&,                                \
+    const pg::LaunchConfiguration&);                                        \
+template void                                                              \
+launch_hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_sensitivities_cuda<side>( \
+    const ZeroCouponBondOptionPriceGradientPlan&,                                \
+    ZeroCouponBondOptionPriceGradientPlan::DeviceInputs,                         \
+    ZeroCouponBondOptionPriceGradientPlan::DiagonalStencilOutputs,               \
+    ZeroCouponBondOptionPriceGradientPlan::MixedStencilOutputs,                  \
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,                 \
+    pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE(OptionSide::call);
 AI_FACTORY_INSTANTIATE(OptionSide::put);

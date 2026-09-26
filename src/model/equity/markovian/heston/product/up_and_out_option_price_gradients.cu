@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/heston/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/heston/product/up_and_out_option.cuh"
 #include "product/up_and_out_option/pricing_policy.cuh"
@@ -209,6 +210,58 @@ void launch_heston_up_and_out_option_node_graph_sensitivities_cuda(
     );
 }
 
+
+template<OptionSide Side>
+std::size_t heston_up_and_out_option_mixed_node_graph_workspace_bytes(
+    const UpAndOutOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::UpAndOutOptionPathPolicy<Side>,
+        UpAndOutOptionGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_heston_up_and_out_option_mixed_node_graph_sensitivities_cuda(
+    const UpAndOutOptionPriceGradientPlan& host,
+    UpAndOutOptionPriceGradientPlan::DeviceInputs device,
+    UpAndOutOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    UpAndOutOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::UpAndOutOptionPathPolicy<Side>,
+        UpAndOutOptionGradientSchedule,
+        10U,
+        45U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "heston.up_and_out_option.sensitivities.mixed_node_graph",
+        "full_hessian"
+    );
+}
+
 template void launch_heston_up_and_out_option_price_gradients_cuda<OptionSide::call>(
     const UpAndOutOptionPriceGradientPlan&,
     UpAndOutOptionPriceGradientPlan::DeviceInputs,
@@ -243,6 +296,18 @@ template void launch_heston_up_and_out_option_node_graph_sensitivities_cuda<Opti
     UpAndOutOptionPriceGradientPlan::DeviceInputs,
     UpAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+heston_up_and_out_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const UpAndOutOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_heston_up_and_out_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const UpAndOutOptionPriceGradientPlan&,
+    UpAndOutOptionPriceGradientPlan::DeviceInputs,
+    UpAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
+    UpAndOutOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_heston_up_and_out_option_price_gradients_cuda<OptionSide::put>(
@@ -279,6 +344,18 @@ template void launch_heston_up_and_out_option_node_graph_sensitivities_cuda<Opti
     UpAndOutOptionPriceGradientPlan::DeviceInputs,
     UpAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+heston_up_and_out_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const UpAndOutOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_heston_up_and_out_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const UpAndOutOptionPriceGradientPlan&,
+    UpAndOutOptionPriceGradientPlan::DeviceInputs,
+    UpAndOutOptionPriceGradientPlan::DiagonalStencilOutputs,
+    UpAndOutOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::heston

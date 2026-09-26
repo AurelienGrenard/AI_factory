@@ -2,6 +2,8 @@
 #pragma once
 
 #include "common/check_cuda.cuh"
+#include "common/workspace_layout.hpp"
+#include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/price_gradients/sensitivity_request.hpp"
 #include "common/reductions.cuh"
 
@@ -16,21 +18,6 @@
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
-
-template<std::size_t NodeCapacity>
-struct SensitivityNodeIndices {
-    std::uint16_t values[NodeCapacity]{};
-
-    __host__ __device__ std::uint16_t& operator[](std::size_t index) {
-        return values[index];
-    }
-
-    __host__ __device__ std::uint16_t operator[](
-        std::size_t index
-    ) const {
-        return values[index];
-    }
-};
 
 struct TerminalNodeGraphConfiguration {
     std::size_t row_chunk_size = 1U;
@@ -169,36 +156,14 @@ terminal_node_graph_workspace_requirements(
 
 namespace workspace_detail {
 
-inline std::size_t align_workspace_offset(
-    std::size_t offset,
-    std::size_t alignment
-) {
-    const auto remainder = offset % alignment;
-    if (remainder == 0U) return offset;
-    const auto padding = alignment - remainder;
-    if (offset > std::numeric_limits<std::size_t>::max() - padding) {
-        throw std::overflow_error("Terminal node-graph alignment overflow.");
-    }
-    return offset + padding;
-}
-
 template<typename Value>
 std::size_t append_workspace_array(
     std::size_t& offset,
     std::size_t count
 ) {
-    offset = align_workspace_offset(offset, alignof(Value));
-    const auto result = offset;
-    const auto bytes = checked_workspace_product(
-        count,
-        sizeof(Value),
-        "Terminal node-graph byte size overflow."
+    return ::ai_factory::workbench::workspace_layout::append_array<Value>(
+        offset, count, "Terminal node-graph byte-layout overflow."
     );
-    if (offset > std::numeric_limits<std::size_t>::max() - bytes) {
-        throw std::overflow_error("Terminal node-graph byte size overflow.");
-    }
-    offset += bytes;
-    return result;
 }
 
 }  // namespace workspace_detail
@@ -326,7 +291,6 @@ void validate_terminal_node_graph_workspace(
     );
 }
 
-static_assert(std::is_trivially_copyable_v<SensitivityNodeIndices<4U>>);
 static_assert(std::is_trivially_copyable_v<TerminalNodeGraphConfiguration>);
 
 }  // namespace ai_factory::workbench::monte_carlo::price_gradients

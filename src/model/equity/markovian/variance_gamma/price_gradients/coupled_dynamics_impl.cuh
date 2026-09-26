@@ -34,12 +34,12 @@ template<std::size_t NodeCapacity>
 __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Innovations (&innovations)[NodeCapacity]
 ) {
     const auto step = random.next_step();
     float central_gamma = 0.0f;
-    for (std::uint8_t node = 0U; node < node_count; ++node) {
+    for (std::uint16_t node = 0U; node < node_count; ++node) {
         const bool same_clock = node != 0U
             && prepared[node].model.nu == prepared[0U].model.nu
             && prepared[node].transition.gamma_shape
@@ -71,7 +71,7 @@ __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     const float brownian = philox::next_normal(
         brownian_uniforms, brownian_cache
     );
-    for (std::uint8_t node = 0U; node < node_count; ++node) {
+    for (std::uint16_t node = 0U; node < node_count; ++node) {
         innovations[node].brownian_normal = brownian;
     }
 }

@@ -64,13 +64,13 @@ sauts ou le bump de `H`.
   une fois les noms en identifiants typés ; un kernel chaud ne compare pas des
   chaînes. Le modèle, la courbe éventuelle et le produit possèdent l'accès au
   paramètre, son domaine et la préparation qui dépend de sa valeur.
-- `SensitivityRequest` demande l'ordre un, l'ordre deux diagonal ou les deux.
-  `SensitivityStencil<C>` conserve les points FP32 effectivement représentés
-  et leurs poids ; `SensitivityNodes<Node,C>` conserve les jeux de paramètres
-  correspondants. `SensitivityTask` regroupe ces objets et
-  `CentralRequirement`. `reconstruct_sensitivity` possède la règle commune
-  de reconstruction. Les dérivées mixtes demandent une extension séparée ;
-  elles ne sont pas promises par la présence d'un stencil diagonal.
+- `SensitivityRequest` demande un sous-ensemble d'ordre un, diagonal et
+  mixte, ou la Hessienne complète. `SensitivityStencil<C>` conserve les
+  points FP32 axiaux et leurs poids ; `SensitivityGraphPlan` mutualise le
+  central, les axes et les quatre coins de chaque paire sélectionnée.
+  `SensitivityTask` regroupe nœuds, stencil et `CentralRequirement`.
+  `reconstruct_sensitivity` et la reconstruction tensorielle possèdent les
+  règles communes de reconstruction.
 - La préparation part des lignes centrales modèle/produit/courbe et des `K`
   spécifications. La matérialisation hôte de `N*(1+2K)` lignes bumpées n'est
   pas la cible finale, y compris pour LSM et Jamshidian. Une préparation
@@ -177,24 +177,26 @@ Jamshidian coopératives, trois swaptions européennes Monte Carlo exactes et di
 swaptions bermudéennes LSM.
 
 Les moteurs stochastiques d’ordre un plus deux diagonal exposent les deux
-ordonnancements `mono` et `node_graph` sur le même plan compact. Les formules
+ordonnancements `mono` et `node_graph` sur le même plan compact. Les
+requêtes contenant des termes mixtes utilisent `mixed_node_graph`, qui
+évalue chaque nœud partagé une fois avant reconstruction. Les formules
 fermées conservent leur géométrie naturelle : un thread par ligne pour les
 formules scalaires, un bloc par ligne pour Jamshidian. Les pipelines LSM
 calculent une seule politique centrale, puis évaluent les nœuds sous exercice
 gelé. Les produits de chemin calculent simultanément l’état et les cashflows
 de chaque nœud à partir des mêmes innovations primitives.
 
-Le catalogue contient 1 776 recettes permanentes : 1 456 equity et 320 fixed
-income. Chaque famille fournit l’ordre un et l’ordre un plus Hessienne
-diagonale, ainsi que les constructions alignée et cartésienne lorsque la
-recette de prix source les expose. Les 301 bibliothèques de binding ont été
+Le catalogue contient 2 664 recettes permanentes : 2 184 equity et 480 fixed
+income. Chaque famille fournit l’ordre un, l’ordre un plus Hessienne diagonale
+et la Hessienne complète, ainsi que les constructions alignée et cartésienne
+lorsque la recette de prix source les expose. Les 301 bibliothèques de binding ont été
 reconstruites sans erreur ; les 160 nouveaux générateurs scalaires fixed income
 ont aussi été compilés exhaustivement. Une régénération propre du codegen ne
 produit aucune divergence.
 
-Les exclusions structurelles restent explicites : dérivées mixtes, maturité
-et dates d’exercice des américaines/bermudéennes, cardinalités calendaires
-discrètes et moteurs rough. La présence d’une coordonnée continue dans le
+Les exclusions structurelles restent explicites : maturité et dates
+d’exercice des américaines/bermudéennes, cardinalités calendaires discrètes et
+moteurs rough. La présence d’une coordonnée continue dans le
 binding prouve son intégration logicielle, pas la qualité universelle de son
 bump. Les campagnes multi-seeds, l’étude du biais de stencil et du freeze LSM,
 ainsi que la qualification de performance par matériel restent la porte

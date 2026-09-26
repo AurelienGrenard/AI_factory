@@ -32,14 +32,14 @@ __device__ __forceinline__ void coupled_brownian_endpoints(
     philox::DomainUniformSequence& uniforms,
     philox::NormalPairCache& cache,
     const CoupledDynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     CoupledDynamics::Innovations (&innovations)[NodeCapacity]
 ) {
     ::ai_factory::workbench::monte_carlo::price_gradients::
         draw_coupled_brownian_normals<NodeCapacity>(
             uniforms, cache, node_count,
-            [&](std::uint8_t node) { return prepared[node].horizon; },
-            [&](std::uint8_t node, float normal) {
+            [&](std::uint16_t node) { return prepared[node].horizon; },
+            [&](std::uint16_t node, float normal) {
                 innovations[node].diffusion_normal = normal;
             }
         );
@@ -50,7 +50,7 @@ __device__ __forceinline__ void coupled_jump_events(
     philox::DomainRandomContext& random,
     std::uint32_t step,
     const CoupledDynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     CoupledDynamics::Innovations (&innovations)[NodeCapacity]
 ) {
     float means[NodeCapacity]{};
@@ -69,7 +69,7 @@ __device__ __forceinline__ void coupled_jump_events(
                 StandardNormalEventMarks
         >(
             random, step, means, node_count, counts,
-            [&](std::uint8_t node, float mark) {
+            [&](std::uint16_t node, float mark) {
                 innovations[node].jump_standard_normal_sum += mark;
             }
         );
@@ -85,7 +85,7 @@ template<std::size_t NodeCapacity>
 __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Innovations (&innovations)[NodeCapacity]
 ) {
     const auto step = random.next_step();

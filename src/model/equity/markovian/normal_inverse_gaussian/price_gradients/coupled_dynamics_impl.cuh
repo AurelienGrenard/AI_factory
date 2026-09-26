@@ -34,7 +34,7 @@ template<std::size_t NodeCapacity>
 __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Innovations (&innovations)[NodeCapacity]
 ) {
     // MSH has a fixed primitive budget: one normal and one selector. The
@@ -47,7 +47,7 @@ __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     const float brownian = philox::next_normal(
         random.uniforms, random.normals
     );
-    for (std::uint8_t node = 0U; node < node_count; ++node) {
+    for (std::uint16_t node = 0U; node < node_count; ++node) {
         innovations[node].inverse_gaussian_increment =
             philox::michael_schucany_haas_inverse_gaussian_from_variates(
                 clock_normal,
