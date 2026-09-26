@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "stein_stein_01__gap_puts_01__01_price_gradients_hessian",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
+  "product_input": "datasets/product/gap_option/gap_put_options_01.json",
+  "output": {
+    "path": "datasets/model/equity/markovian/stein_stein/price_gradients/gap_puts/stein_stein_01__gap_puts_01__01_price_gradients_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/stein_stein/price_gradients/gap_puts/stein_stein_01__gap_puts_01__01_price_gradients_hessian/generation.yaml",
+  "construction": "aligned",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/stein_stein/price_gradients/gap_puts/stein_stein_01__gap_puts_01__01_price_gradients_hessian.json",
+  "paths_per_price": 1048576,
+  "dynamics_seed": 11668828038971260928,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.rho",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.trigger_strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.payoff_strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/stein_stein/prices/gap_puts/stein_stein_01__gap_puts_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second",
+      "mixed_second"
+    ],
+    "mixed_second": "all"
+  },
+  "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
+  "rng_mapping_version": "philox_source_step_v2",
+  "sensitivity_execution": {
+    "default": "mixed_node_graph",
+    "available": [
+      "mixed_node_graph"
+    ]
+  },
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

@@ -2,6 +2,7 @@
 #pragma once
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "src/common/price_gradients/execution_geometry.hpp"
+#include "src/common/price_gradients/sensitivity_graph_plan.hpp"
 
 namespace ai_factory::workbench::offline::cuda_tuning {
 namespace pg = ::ai_factory::workbench::price_gradients;
@@ -183,6 +184,85 @@ inline nlohmann::ordered_json device_prepared_price_gradient_launch_metadata(
     result["profile_id"] = "price_gradients_device_prepared_v2";
     result["represented_nodes_per_sensitivity"] =
         has_sensitivities ? 3U : 0U;
+    return result;
+}
+
+inline nlohmann::ordered_json mixed_node_graph_launch_metadata(
+    const PriceGradientLaunchPlan& plan,
+    std::size_t sensitivities,
+    const pg::SensitivityGraphPlan& graph
+) {
+    if (sensitivities != plan.sensitivity_count
+        || graph.coordinate_uses.size() != sensitivities) {
+        throw std::invalid_argument(
+            "Mixed node-graph metadata selection mismatch."
+        );
+    }
+    if (graph.mixed_second.empty()) {
+        throw std::invalid_argument(
+            "Mixed node-graph metadata requires a mixed derivative."
+        );
+    }
+
+    auto result = device_prepared_price_gradient_launch_metadata(
+        plan, sensitivities
+    );
+    for (const char* field : {
+             "block_count",
+             "full_batch_block_count",
+             "tail_batch_block_count",
+             "sensitivity_batch_size",
+             "sensitivity_batches_per_price",
+             "sensitivity_block_count",
+             "sensitivity_kernel_variant",
+             "price_moment_batches_per_price",
+             "path_blocks_per_price",
+             "gradient_tasks_per_durable_launch_upper_bound",
+             "gradient_post_kernels_per_native_batch",
+         }) {
+        result.erase(field);
+    }
+
+    const bool closed_form =
+        plan.identity.family == PricingFamily::closed_form;
+    const bool cooperative =
+        plan.identity.family == PricingFamily::jamshidian;
+    const bool lsm = is_lsm_family(plan.identity.family);
+    result["kernel_launches_per_price_batch"] =
+        closed_form || cooperative
+            ? nlohmann::ordered_json(1U)
+            : nlohmann::ordered_json(nullptr);
+    result["central_work_policy"] = lsm
+        ? "one central exercise policy reused by every frozen graph node"
+        : "central node zero evaluated once per row and path chunk";
+    result["work_distribution"] = closed_form
+        ? "one thread per row; selected graph nodes evaluated sequentially"
+        : cooperative
+            ? "one block per row; selected graph nodes evaluated cooperatively"
+        : lsm
+            ? "central LSM batches followed by frozen node-graph replay and reconstruction"
+            : "price and path chunks; graph nodes evaluated before derivative reconstruction";
+    result["profile_id"] = "price_gradients_mixed_node_graph_v1";
+    result["sensitivity_strategy"] = "mixed_node_graph";
+    result["sensitivity_count"] = sensitivities;
+    result["scenario_count"] = nullptr;
+    result["materialized_scenario_count"] = 0U;
+    result["gradient_layout"] = "row_major_selected_sensitivity_graph";
+    result["sensitivity_graph_node_capacity"] = graph.node_capacity;
+    result["first_sensitivity_count"] = graph.first.size();
+    result["diagonal_hessian_count"] = graph.diagonal_second.size();
+    result["mixed_hessian_count"] = graph.mixed_second.size();
+    result["maximum_live_scenarios"] = graph.node_capacity;
+    result["represented_nodes_per_sensitivity"] = 4U;
+    result["mixed_corner_nodes_per_pair"] = 4U;
+    result["requested_orders"] = nlohmann::ordered_json::array();
+    if (!graph.first.empty()) {
+        result["requested_orders"].push_back("first");
+    }
+    if (!graph.diagonal_second.empty()) {
+        result["requested_orders"].push_back("diagonal_second");
+    }
+    result["requested_orders"].push_back("mixed_second");
     return result;
 }
 }  // namespace ai_factory::workbench::offline::cuda_tuning

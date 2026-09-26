@@ -314,7 +314,7 @@ class PriceGradientBindingSpec:
             )
         if self.supported_orders not in {
             ("first",),
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         }:
             raise ValueError("Invalid price-gradient derivative orders")
 
@@ -367,7 +367,7 @@ def compose_bindings(pricing_bindings):
                 + supports_maturity[binding.model],
             binding.model == "black_scholes",
             terminal_strategy[binding.model],
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.model in model_parameter_count
@@ -380,7 +380,7 @@ def compose_bindings(pricing_bindings):
                 + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
             False,
             "device_prepared_path",
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.model in model_parameter_count
@@ -394,7 +394,7 @@ def compose_bindings(pricing_bindings):
                 + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
             True,
             "device_prepared_closed_form_path",
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.model == "black_scholes"
@@ -407,7 +407,7 @@ def compose_bindings(pricing_bindings):
             model_parameter_count[binding.model] + 1,
             False,
             "device_prepared_lsm",
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.model in lsm_models
@@ -448,7 +448,7 @@ def compose_bindings(pricing_bindings):
             ("device_prepared_cooperative_closed_form"
              if binding.product == "european_swaption"
              else "device_prepared_scalar_closed_form"),
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.asset_class == "fixed_income"
@@ -463,7 +463,7 @@ def compose_bindings(pricing_bindings):
                 + fixed_income_product_parameter_count[binding.product],
             False,
             "device_prepared_fixed_income_monte_carlo",
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.asset_class == "fixed_income"
@@ -478,7 +478,7 @@ def compose_bindings(pricing_bindings):
             + 3,
             False,
             "device_prepared_fixed_income_lsm",
-            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         )
         for binding in pricing_bindings
         if binding.asset_class == "fixed_income"
@@ -567,7 +567,22 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
         sensitivity_orders=("first", "diagonal_second"))
         for dataset in (*equity, *fixed_income)
         if (dataset.model, dataset.product) in diagonal_pairs)
-    return (*equity, *fixed_income, *diagonal)
+    full_hessian = tuple(replace(
+        dataset,
+        dataset_id=dataset.dataset_id.removesuffix("_diagonal")
+            + "_hessian",
+        generator_path=dataset.generator_path.replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id.removesuffix("_diagonal")
+                + "_hessian/",
+        ),
+        numerical_profile="selected_full_hessian_production_paths",
+        layout="row_major_selected_full_hessian",
+        sensitivity_orders=(
+            "first", "diagonal_second", "mixed_second"
+        ),
+    ) for dataset in diagonal)
+    return (*equity, *fixed_income, *diagonal, *full_hessian)
 
 
 def default_sensitivities(

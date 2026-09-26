@@ -45,6 +45,34 @@ int main() {
                     == tuning::kPriceGradientNodeMinBlocksPerSm,
             "Device-prepared gradient metadata describes host scenarios."
         );
+        const auto mixed_graph = pg::make_sensitivity_graph_plan(
+            pg::SensitivityRequest::full_hessian(), 10U
+        );
+        const auto mixed_metadata =
+            tuning::mixed_node_graph_launch_metadata(
+                defaults, 10U, mixed_graph
+            );
+        require(
+            mixed_metadata["profile_id"]
+                    == "price_gradients_mixed_node_graph_v1"
+                && mixed_metadata["sensitivity_strategy"]
+                    == "mixed_node_graph"
+                && mixed_metadata["sensitivity_graph_node_capacity"] == 211U
+                && mixed_metadata["first_sensitivity_count"] == 10U
+                && mixed_metadata["diagonal_hessian_count"] == 10U
+                && mixed_metadata["mixed_hessian_count"] == 45U
+                && mixed_metadata["maximum_live_scenarios"] == 211U
+                && mixed_metadata["kernel_launches_per_price_batch"].is_null()
+                && mixed_metadata["requested_orders"]
+                    == nlohmann::ordered_json::array({
+                        "first", "diagonal_second", "mixed_second"
+                    })
+                && !mixed_metadata.contains("sensitivity_batch_size")
+                && !mixed_metadata.contains("sensitivity_block_count")
+                && !mixed_metadata.contains("sensitivity_kernel_variant")
+                && !mixed_metadata.contains("block_count"),
+            "Mixed node-graph metadata reports mono-kernel geometry."
+        );
         const auto empty_device =
             tuning::device_prepared_price_gradient_launch_metadata(
                 tuning::make_price_gradient_launch_plan(identity, 3U, 0U),
@@ -167,6 +195,19 @@ int main() {
                     "sensitivity_launch_bounds"
                 ),
             "Device-prepared closed form reports MC block geometry."
+        );
+        const auto mixed_cf = tuning::mixed_node_graph_launch_metadata(
+            cf,
+            6U,
+            pg::make_sensitivity_graph_plan(
+                pg::SensitivityRequest::full_hessian(), 6U
+            )
+        );
+        require(
+            mixed_cf["kernel_launches_per_price_batch"] == 1U
+                && mixed_cf["work_distribution"]
+                    == "one thread per row; selected graph nodes evaluated sequentially",
+            "Mixed closed-form metadata reports MC graph geometry."
         );
         const auto jamshidian = tuning::make_price_gradient_launch_plan(
             {tuning::PricingFamily::jamshidian,"cir","european_swaption",""},1000,7,0);

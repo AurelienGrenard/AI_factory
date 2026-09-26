@@ -1151,7 +1151,9 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
         )
     if dataset.dataset_kind == "price_gradients":
         if dataset.sensitivity_orders not in {
-            ("first",), ("first", "diagonal_second")
+            ("first",),
+            ("first", "diagonal_second"),
+            ("first", "diagonal_second", "mixed_second"),
         }:
             raise ValueError(
                 f"invalid price-gradient orders: {dataset.generator_path}"

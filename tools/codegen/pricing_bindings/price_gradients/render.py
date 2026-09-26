@@ -848,6 +848,35 @@ def render_recipes(
                 "catalog/pricing/price_gradients/"
                 "american_option_generator.cpp.tpl"
             )
+        if "mixed_second" in spec.sensitivity_orders:
+            if spec.asset_class == "equity":
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "american_option_mixed_hessian_generator.cpp.tpl"
+                    if spec.product == "american_option"
+                    else "catalog/pricing/price_gradients/"
+                    "equity_mixed_hessian_generator.cpp.tpl"
+                )
+            elif spec.product == "bermudan_swaption":
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_bermudan_swaption_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
+            elif spec.product in {
+                "rate_option", "zero_coupon_bond_option"
+            }:
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_scalar_product_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
+            else:
+                template_path = (
+                    "catalog/pricing/price_gradients/"
+                    "fixed_income_european_swaption_mixed_hessian_generator."
+                    "cpp.tpl"
+                )
         template = Template((template_root / template_path).read_text())
         source = sources[spec.generator_path]
         model = model_specs[spec.model]
@@ -1011,6 +1040,11 @@ def render_recipes(
                 ",\n                    closed_form::WorkDistribution::cooperative"
                 if not stochastic else ""
             ),
+            "mixed_distribution_argument": (
+                ",\n                        "
+                "closed_form::WorkDistribution::cooperative"
+                if not stochastic else ""
+            ),
             "paths_per_price": (
                 "offline::cuda_tuning::kProductionPathsPerPrice"
                 if stochastic else "0U"
@@ -1035,9 +1069,16 @@ def render_recipes(
             metadata["curve_input"] = curve_input
         if "diagonal_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["orders"] = list(spec.sensitivity_orders)
+        if "mixed_second" in spec.sensitivity_orders:
+            metadata["sensitivity"]["mixed_second"] = "all"
         if stochastic:
             metadata["rng_mapping_version"] = rng_mapping_version(spec.model)
-        if stochastic and "diagonal_second" in spec.sensitivity_orders:
+        if "mixed_second" in spec.sensitivity_orders:
+            metadata["sensitivity_execution"] = {
+                "default": "mixed_node_graph",
+                "available": ["mixed_node_graph"],
+            }
+        elif stochastic and "diagonal_second" in spec.sensitivity_orders:
             metadata["sensitivity_execution"] = {
                 "default": "mono",
                 "available": ["mono", "node_graph"],

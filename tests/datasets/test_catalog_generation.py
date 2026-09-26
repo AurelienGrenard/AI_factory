@@ -114,6 +114,55 @@ class GenerationTests(unittest.TestCase):
              "heston/european_option", "15", "262144", "--price-gradients", "1"],
         )
 
+    def test_full_hessian_plan_uses_mixed_graph_inspector(self):
+        inputs = self.root / "mixed-inputs"
+        inputs.mkdir()
+        for name, rows in (("models.json", 2), ("products.json", 2)):
+            (inputs / name).write_text(json.dumps({"row_count": rows}))
+        job = {
+            "kind": "price_gradients",
+            "target": "generate_full_hessian_test",
+            "inputs": ["models.json", "products.json"],
+            "identity": "heston/european_option",
+            "declared_method": {"construction": "aligned"},
+            "sensitivity": {
+                "parameters": [
+                    {"parameter": "model.kappa"},
+                    {"parameter": "product.strike"},
+                ],
+                "orders": [
+                    "first",
+                    "diagonal_second",
+                    "mixed_second",
+                ],
+            },
+            "paths_per_price": 262144,
+        }
+        plan = {"sensitivity_strategy": "mixed_node_graph"}
+        with (patch.object(
+                  campaign.subprocess,
+                  "check_output",
+                  return_value=json.dumps(plan),
+              ) as inspect,
+              patch.object(campaign, "input_fingerprints", return_value={})):
+            description = campaign.describe_job(
+                inputs, self.root / "bin", job
+            )
+        self.assertEqual(description["rows"], 2)
+        self.assertEqual(description["launch_plan"], plan)
+        self.assertEqual(
+            inspect.call_args.args[0],
+            [
+                str(self.root / "bin/inspect_pricing_launch_plan"),
+                "heston/european_option",
+                "2",
+                "262144",
+                "--price-gradients",
+                "2",
+                "--mixed",
+            ],
+        )
+
     def test_runner_exposes_progress_sidecar_path(self):
         binary = self.root / "progress-generator"
         binary.write_text(

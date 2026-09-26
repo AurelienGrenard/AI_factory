@@ -2,12 +2,15 @@
 #pragma once
 #include "common/price_construction.cuh"
 #include "common/price_gradients/stencil.hpp"
+#include "common/price_gradients/mixed_sensitivity_stencil.cuh"
 #include "common/price_gradients/sensitivity_request.hpp"
+#include "common/price_gradients/sensitivity_graph_plan.hpp"
 #include "common/price_gradients/sensitivity_stencil.cuh"
 #include "common/price_gradients/time_configuration.hpp"
 #include "common/price_gradients/sensitivity_strategy.hpp"
 #include <nlohmann/json.hpp>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 namespace ai_factory::workbench::datasets::price_gradients {
@@ -25,6 +28,9 @@ struct Recipe {
         sensitivity_strategy =
             ::ai_factory::workbench::price_gradients::
                 SensitivityStrategy::mono;
+    std::optional<
+        ::ai_factory::workbench::price_gradients::SensitivityRequest
+    > sensitivity_request;
 };
 struct Results {
     std::vector<float> prices, price_errors, gradients, gradient_errors;
@@ -34,6 +40,12 @@ struct Results {
     std::vector<float> diagonal_hessians, diagonal_hessian_errors;
     std::vector<::ai_factory::workbench::price_gradients::SensitivityStencil<4U>>
         diagonal_stencils;
+    ::ai_factory::workbench::price_gradients::SensitivityGraphPlan
+        sensitivity_graph;
+    std::vector<float> mixed_hessians, mixed_hessian_errors;
+    std::vector<
+        ::ai_factory::workbench::price_gradients::MixedSensitivityStencil
+    > mixed_stencils;
 };
 nlohmann::ordered_json sensitivity_metadata(const Recipe&, bool stochastic);
 void write_dataset(const Recipe&, const Results&);

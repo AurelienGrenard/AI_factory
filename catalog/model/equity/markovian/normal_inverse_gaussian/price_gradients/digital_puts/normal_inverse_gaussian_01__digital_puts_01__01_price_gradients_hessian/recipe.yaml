@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "normal_inverse_gaussian_01__digital_puts_01__01_price_gradients_hessian",
+  "generator": "generator.cpp",
+  "model_input": "datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json",
+  "product_input": "datasets/product/digital_option/digital_options_01.json",
+  "output": {
+    "path": "datasets/model/equity/markovian/normal_inverse_gaussian/price_gradients/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_gradients_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/normal_inverse_gaussian/price_gradients/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_gradients_hessian/generation.yaml",
+  "construction": "aligned",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/normal_inverse_gaussian/price_gradients/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01_price_gradients_hessian.json",
+  "paths_per_price": 1048576,
+  "dynamics_seed": 11668827587999694848,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.alpha",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.beta",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.delta",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.cash_payoff",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second",
+      "mixed_second"
+    ],
+    "mixed_second": "all"
+  },
+  "launch_profile": "gradient candidate; inspect compiled specialization; not performance-qualified",
+  "rng_mapping_version": "philox_source_step_v2",
+  "sensitivity_execution": {
+    "default": "mixed_node_graph",
+    "available": [
+      "mixed_node_graph"
+    ]
+  },
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

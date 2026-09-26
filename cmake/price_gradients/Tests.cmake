@@ -1,6 +1,11 @@
 # Host and CUDA contract tests for the selectable price-gradient integration.
 add_executable(test_price_gradients_launch_plan EXCLUDE_FROM_ALL tests/price_gradients/launch_plan_test.cpp)
-target_include_directories(test_price_gradients_launch_plan PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(
+    test_price_gradients_launch_plan
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+)
 target_link_libraries(test_price_gradients_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
 target_compile_features(test_price_gradients_launch_plan PRIVATE cxx_std_23)
 add_dependencies(ai_factory_host_tests test_price_gradients_launch_plan)

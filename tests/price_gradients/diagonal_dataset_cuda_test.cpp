@@ -4,6 +4,7 @@
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/pricing/price_gradients/generation.cuh"
+#include "tools/pricing/price_gradients/mixed_generation.cuh"
 
 #include <cuda_runtime.h>
 
@@ -104,6 +105,89 @@ int main() {
         require(graph["results"] == first["results"]);
         require(graph["summary"]["sensitivity_strategy"] == "node_graph");
         require(graph["summary"]["sensitivity_workspace_bytes"] > 0U);
+
+        auto mixed_recipe = recipe;
+        mixed_recipe.dataset = directory / "mixed.json";
+        mixed_recipe.catalog = directory / "mixed_generation.yaml";
+        mixed_recipe.url =
+            "https://datasets.ai-factory.example/mixed.json";
+        mixed_recipe.sensitivity_request =
+            pg::SensitivityRequest::full_hessian();
+        const auto prepare_mixed = [](
+            const auto& model_rows,
+            const auto& product_rows,
+            PriceConstruction construction,
+            pg::TimeConfiguration time,
+            const pg::PriceGradientConfiguration& selected,
+            pg::SensitivityRequest request
+        ) {
+            return heston::prepare_heston_european_option_sensitivities(
+                model_rows,
+                product_rows,
+                construction,
+                time,
+                selected,
+                std::move(request)
+            );
+        };
+        const auto mixed_checkpoint = checkpoint / "mixed";
+        require(setenv(
+            "AI_FACTORY_GENERATION_CHECKPOINT_DIR",
+            mixed_checkpoint.c_str(),
+            1
+        ) == 0);
+        require(setenv(
+            "AI_FACTORY_GENERATION_CHECKPOINT_ID",
+            std::string(64U, 'c').c_str(),
+            1
+        ) == 0);
+        const auto execute_mixed = [&] {
+            return offline::pricing::price_gradients::
+                execute_mixed_node_graph_dataset<true>(
+                    mixed_recipe,
+                    {
+                        offline::cuda_tuning::PricingFamily::equity_step_mc,
+                        "heston",
+                        "european_option",
+                        "",
+                    },
+                    1709U,
+                    models,
+                    products,
+                    prepare_mixed,
+                    heston::
+                        heston_european_option_mixed_node_graph_workspace_bytes<
+                            OptionSide::call>,
+                    heston::
+                        launch_heston_european_option_mixed_node_graph_sensitivities_cuda<
+                            OptionSide::call>,
+                    2048U,
+                    heston::
+                        prepare_european_option_diagonal_sensitivity_stencils_cuda
+                );
+        };
+        require(execute_mixed() == 0);
+        const auto mixed = datasets::read_json_file(mixed_recipe.dataset);
+        require(mixed["results"].size() == 1U);
+        require(mixed["results"][0U]["outputs"]["price"]
+            == graph["results"][0U]["outputs"]["price"]);
+        require(mixed["results"][0U]["outputs"]["gradients"]
+            == graph["results"][0U]["outputs"]["gradients"]);
+        require(mixed["results"][0U]["outputs"]["diagonal_hessians"]
+            == graph["results"][0U]["outputs"]["diagonal_hessians"]);
+        require(
+            mixed["results"][0U]["outputs"]["mixed_hessians"].size() == 1U
+        );
+        require(mixed["results"][0U]["mixed_stencils"].size() == 1U);
+        require(execute_mixed() == 0);
+        const auto mixed_replay =
+            datasets::read_json_file(mixed_recipe.dataset);
+        require(mixed_replay["results"] == mixed["results"]);
+        require(
+            mixed_replay["summary"]["checkpoint"]["resumed_prices"] == 1U
+        );
+        unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
+        unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
 
         datasets::write_json_file(directory / "american_products.json", {
             {"database_id", "american_product_fixture"},
@@ -257,6 +341,90 @@ int main() {
         const auto cir_regenerated = datasets::read_json_file(cir_recipe.dataset);
         require(cir_regenerated["results"] == cir_first["results"]);
         require(!cir_regenerated["summary"].contains("checkpoint"));
+
+        auto cir_mixed_recipe = cir_recipe;
+        cir_mixed_recipe.dataset = directory / "cir_mixed.json";
+        cir_mixed_recipe.catalog =
+            directory / "cir_mixed_generation.yaml";
+        cir_mixed_recipe.url =
+            "https://datasets.ai-factory.example/cir_mixed.json";
+        cir_mixed_recipe.sensitivity_request =
+            pg::SensitivityRequest::full_hessian();
+        const auto prepare_cir_mixed = [](
+            const auto& model_rows,
+            const auto& product_rows,
+            PriceConstruction construction,
+            pg::TimeConfiguration time,
+            const pg::PriceGradientConfiguration& selected,
+            pg::SensitivityRequest request
+        ) {
+            return cir::prepare_cir_european_swaption_sensitivities(
+                model_rows,
+                product_rows,
+                construction,
+                time,
+                selected,
+                std::move(request)
+            );
+        };
+        const auto launch_cir_mixed = [](
+            const auto& plan,
+            auto inputs,
+            auto stencils,
+            auto mixed_stencils,
+            const auto& configuration,
+            auto outputs,
+            auto mixed_outputs,
+            void* workspace,
+            std::size_t workspace_bytes
+        ) {
+            cir::
+                launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer>(
+                        plan,
+                        inputs,
+                        stencils,
+                        mixed_stencils,
+                        configuration,
+                        outputs,
+                        mixed_outputs,
+                        workspace,
+                        workspace_bytes,
+                        closed_form::WorkDistribution::cooperative
+                    );
+        };
+        require(offline::pricing::price_gradients::
+            execute_mixed_node_graph_dataset<false>(
+                cir_mixed_recipe,
+                {
+                    offline::cuda_tuning::PricingFamily::jamshidian,
+                    "cir",
+                    "european_swaption",
+                    "",
+                },
+                0U,
+                cir_models,
+                swaptions,
+                prepare_cir_mixed,
+                cir::cir_european_swaption_mixed_node_graph_workspace_bytes<
+                    SwaptionSide::payer>,
+                launch_cir_mixed,
+                0U,
+                cir::
+                    prepare_european_swaption_diagonal_sensitivity_stencils_cuda
+            ) == 0);
+        const auto cir_mixed =
+            datasets::read_json_file(cir_mixed_recipe.dataset);
+        require(cir_mixed["results"][0U]["outputs"]["price"]
+            == cir_first["results"][0U]["outputs"]["price"]);
+        require(cir_mixed["results"][0U]["outputs"]["gradients"]
+            == cir_first["results"][0U]["outputs"]["gradients"]);
+        require(cir_mixed["results"][0U]["outputs"]["diagonal_hessians"]
+            == cir_first["results"][0U]["outputs"]["diagonal_hessians"]);
+        require(
+            cir_mixed["results"][0U]["outputs"]["mixed_hessians"].size() == 1U
+        );
+
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
         std::filesystem::remove_all(directory);

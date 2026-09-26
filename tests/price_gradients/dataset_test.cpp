@@ -34,6 +34,30 @@ int main() {
         require(valid["sensitivity"]["parameters"][0]["displacement"]==.125);
         require(valid["sensitivity"]["method"]
             == "finite_difference_shared_innovations");
+        auto sparse_recipe = recipe;
+        sparse_recipe.configuration.sensitivities.push_back(
+            {"model.volatility", {.25, pg::BumpScale::absolute}}
+        );
+        sparse_recipe.configuration.sensitivities.push_back(
+            {"product.strike", {.5, pg::BumpScale::absolute}}
+        );
+        sparse_recipe.sensitivity_request = pg::SensitivityRequest::selected(
+            {2U}, {}, {{0U, 1U}}
+        );
+        const auto sparse_metadata =
+            data::sensitivity_metadata(sparse_recipe, true);
+        require(
+            sparse_metadata["orders"]
+                == nlohmann::ordered_json::array(
+                    {"first", "mixed_second"}
+                )
+            && sparse_metadata["first"]
+                == nlohmann::ordered_json::array({"product.strike"})
+            && sparse_metadata["mixed_second"][0U]["first"]
+                == "model.rho"
+            && sparse_metadata["mixed_second"][0U]["second"]
+                == "model.volatility"
+        );
         recipe.orders = pg::SensitivityOrders::first_and_second;
         pg::SensitivityStencil<4U> diagonal{};
         diagonal.kind = pg::StencilKind::backward;
@@ -101,7 +125,7 @@ int main() {
         datasets::write_json_file(directory/"curves.json", curves);
         recipe.curve_input = directory/"curves.json";
         recipe.dataset = directory/"curve_gradients.json";
-        recipe.construction = PriceConstruction::Cartesian;
+        recipe.construction = PriceConstruction::CartesianProduct;
         result.prices.assign(8U, .1f);
         result.gradients.assign(8U, .2f);
         result.stencils.assign(8U, result.stencils.front());
