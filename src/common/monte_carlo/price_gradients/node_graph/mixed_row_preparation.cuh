@@ -5,6 +5,7 @@
 #include "common/monte_carlo/price_gradients/node_graph/capacity.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/price_gradients/device_preparation.cuh"
+#include "common/price_gradients/mixed_sensitivity_preparation.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil.cuh"
 #include "common/price_gradients/sensitivity_graph_plan.hpp"
 
@@ -26,18 +27,6 @@ __host__ __device__ constexpr std::uint32_t larger_step_count(
     std::uint32_t second
 ) {
     return first < second ? second : first;
-}
-
-template<typename Scenario>
-__host__ __device__ inline void copy_first_task(
-    const pg::SensitivityTask<Scenario, 3U>& source,
-    pg::SensitivityStencil<4U>& stencil,
-    Scenario (&nodes)[4U]
-) {
-    stencil = pg::promote_first_sensitivity_stencil(source.stencil);
-    for (std::size_t node = 0U; node < 3U; ++node) {
-        nodes[node] = source.nodes[node];
-    }
 }
 
 template<
@@ -90,45 +79,17 @@ __host__ __device__ inline bool prepare_mixed_sensitivity_row_from_central(
         }
 
         typename Preparation::Scenario nodes[4U]{};
-        if (pg::has_coordinate_use(
-                use, pg::SensitivityCoordinateUse::diagonal_second
+        if (!pg::prepare_axis_sensitivity_nodes<Preparation>(
+                central,
+                sensitivities[sensitivity],
+                use,
+                time,
+                stencils[sensitivity],
+                nodes,
+                error
             )) {
-            pg::SensitivityTask<typename Preparation::Scenario, 4U> task{};
-            if (!preparation::build_sensitivity_task<
-                    pg::SensitivityOrders::first_and_second,
-                    Preparation
-                >(
-                    central,
-                    sensitivities[sensitivity],
-                    time,
-                    task,
-                    error
-                )) {
-                error_sensitivity = sensitivity;
-                return false;
-            }
-            stencils[sensitivity] = task.stencil;
-            for (std::size_t node = 0U;
-                 node < pg::active_node_count(task.stencil);
-                 ++node) {
-                nodes[node] = task.nodes[node];
-            }
-        } else {
-            pg::SensitivityTask<typename Preparation::Scenario, 3U> task{};
-            if (!preparation::build_sensitivity_task<
-                    pg::SensitivityOrders::first,
-                    Preparation
-                >(
-                    central,
-                    sensitivities[sensitivity],
-                    time,
-                    task,
-                    error
-                )) {
-                error_sensitivity = sensitivity;
-                return false;
-            }
-            copy_first_task(task, stencils[sensitivity], nodes);
+            error_sensitivity = sensitivity;
+            return false;
         }
 
         const auto active = pg::active_node_count(stencils[sensitivity]);
@@ -193,12 +154,18 @@ __host__ __device__ inline bool prepare_mixed_sensitivity_row_from_central(
                     return false;
                 }
                 auto& scenario = scenarios[node_count];
-                if (!Preparation::change_scenario_pair(
+                if (!pg::prepare_mixed_corner_scenario<Preparation>(
                         central,
-                        sensitivities[pair.first].parameter,
+                        sensitivities[pair.first],
                         stencils[pair.first].parameter_values[first_local],
-                        sensitivities[pair.second].parameter,
+                        scenarios[
+                            axis_node_indices[pair.first][first_local]
+                        ],
+                        sensitivities[pair.second],
                         stencils[pair.second].parameter_values[second_local],
+                        scenarios[
+                            axis_node_indices[pair.second][second_local]
+                        ],
                         time,
                         scenario
                     )) {
@@ -206,13 +173,6 @@ __host__ __device__ inline bool prepare_mixed_sensitivity_row_from_central(
                     error_sensitivity = pair.first;
                     return false;
                 }
-                Preparation::finalize_mixed_scenario(
-                    sensitivities[pair.first].parameter,
-                    scenarios[axis_node_indices[pair.first][first_local]],
-                    sensitivities[pair.second].parameter,
-                    scenarios[axis_node_indices[pair.second][second_local]],
-                    scenario
-                );
                 maximum_steps = larger_step_count(
                     maximum_steps, scenario.step_count
                 );

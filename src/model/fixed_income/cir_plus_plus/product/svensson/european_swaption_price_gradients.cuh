@@ -5,6 +5,7 @@
 #include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/cir_plus_plus/price_gradients/device_preparation.cuh"
 #include "product/european_swaption/price_gradients/device_preparation.cuh"
@@ -105,6 +106,27 @@ void launch_cir_plus_plus_svensson_european_swaption_diagonal_sensitivities_cuda
     EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    closed_form::WorkDistribution distribution =
+        closed_form::WorkDistribution::cooperative
+);
+
+template<SwaptionSide Side>
+std::size_t cir_plus_plus_svensson_european_swaption_mixed_node_graph_workspace_bytes(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side>
+void launch_cir_plus_plus_svensson_european_swaption_mixed_node_graph_sensitivities_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    EuropeanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
     closed_form::WorkDistribution distribution =
         closed_form::WorkDistribution::cooperative
 );

@@ -4,6 +4,7 @@
 #include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/hull_white/price_gradients/device_preparation.cuh"
 #include "product/zero_coupon_bond_option/price_gradients/device_preparation.cuh"
@@ -102,6 +103,25 @@ void launch_hull_white_nelson_siegel_zero_coupon_bond_option_diagonal_sensitivit
     ZeroCouponBondOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
+);
+
+template<OptionSide Side>
+std::size_t hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_workspace_bytes(
+    const ZeroCouponBondOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side>
+void launch_hull_white_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_sensitivities_cuda(
+    const ZeroCouponBondOptionPriceGradientPlan& host,
+    ZeroCouponBondOptionPriceGradientPlan::DeviceInputs device,
+    ZeroCouponBondOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ZeroCouponBondOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel

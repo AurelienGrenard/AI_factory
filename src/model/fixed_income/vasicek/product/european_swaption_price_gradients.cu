@@ -2,7 +2,9 @@
 #include "model/fixed_income/vasicek/product/european_swaption_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_cooperative_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_cooperative_mixed_kernel.cuh"
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
@@ -130,6 +132,88 @@ void launch_vasicek_european_swaption_diagonal_sensitivities_cuda(
     );
 }
 
+template<SwaptionSide Side>
+std::size_t vasicek_european_swaption_mixed_node_graph_workspace_bytes(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+template<SwaptionSide Side>
+void launch_vasicek_european_swaption_mixed_node_graph_sensitivities_cuda(
+    const EuropeanSwaptionPriceGradientPlan& host,
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    EuropeanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    closed_form::WorkDistribution distribution
+) {
+    if (distribution != closed_form::WorkDistribution::scalar
+        && distribution != closed_form::WorkDistribution::cooperative) {
+        throw std::invalid_argument(
+            "Unknown vasicek.european_swaption mixed-sensitivity work distribution."
+        );
+    }
+    using PricingPolicy = ::ai_factory::workbench::fixed_income::
+    CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy<
+        Side, AnalyticsProvider, ModelParameters,
+        product::RegularEuropeanSwaptionParameters,
+        product::RegularEuropeanSwaptionScheduleSource
+    >;
+    using Policy = ::ai_factory::workbench::fixed_income::price_gradients::
+    ScenarioClosedFormPolicy<
+        PricingPolicy, ModelParameters,
+        product::RegularEuropeanSwaptionParameters,
+        product::RegularEuropeanSwaptionScheduleSource
+    >;
+    const bool cooperative =
+        distribution == closed_form::WorkDistribution::cooperative
+        && host.maximum_payment_count > 1U
+        && closed_form::price_gradients::
+            launch_device_prepared_cooperative_mixed<
+                Policy,
+                7U,
+                21U
+            >(
+                host,
+                device,
+                stencil_outputs,
+                mixed_stencil_outputs,
+                configuration,
+                outputs,
+                mixed_outputs,
+                workspace,
+                workspace_bytes,
+                host.maximum_payment_count,
+                "vasicek.european_swaption.sensitivities.cooperative_mixed",
+                swaption_side_name(Side)
+            );
+    if (cooperative) return;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        Policy,
+        7U,
+        21U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "vasicek.european_swaption.sensitivities.scalar_mixed",
+        swaption_side_name(Side)
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE(side)                                        \
 template void launch_vasicek_european_swaption_price_gradients_cuda< \
     side>(const EuropeanSwaptionPriceGradientPlan&,                         \
@@ -150,6 +234,19 @@ template void launch_vasicek_european_swaption_diagonal_sensitivities_cuda< \
     EuropeanSwaptionPriceGradientPlan::DeviceInputs,                        \
     EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs,              \
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,                 \
+    closed_form::WorkDistribution);                                          \
+template std::size_t                                                        \
+vasicek_european_swaption_mixed_node_graph_workspace_bytes<side>( \
+    const EuropeanSwaptionPriceGradientPlan&,                               \
+    const pg::LaunchConfiguration&);                                         \
+template void                                                               \
+launch_vasicek_european_swaption_mixed_node_graph_sensitivities_cuda<side>( \
+    const EuropeanSwaptionPriceGradientPlan&,                               \
+    EuropeanSwaptionPriceGradientPlan::DeviceInputs,                        \
+    EuropeanSwaptionPriceGradientPlan::DiagonalStencilOutputs,              \
+    EuropeanSwaptionPriceGradientPlan::MixedStencilOutputs,                 \
+    const pg::LaunchConfiguration&, pg::SensitivityOutputs,                  \
+    pg::MixedSensitivityOutputs, void*, std::size_t,                         \
     closed_form::WorkDistribution)
 
 AI_FACTORY_INSTANTIATE(SwaptionSide::payer);

@@ -2,6 +2,7 @@
 #include "model/equity/markovian/black_scholes/product/gap_option_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/equity/price_gradients/scenario_closed_form_policy.cuh"
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
@@ -111,6 +112,48 @@ void launch_black_scholes_gap_option_diagonal_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side>
+std::size_t black_scholes_gap_option_mixed_node_graph_workspace_bytes(
+    const GapOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+template<OptionSide Side>
+void launch_black_scholes_gap_option_mixed_node_graph_sensitivities_cuda(
+    const GapOptionPriceGradientPlan& host,
+    GapOptionPriceGradientPlan::DeviceInputs device,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using ScenarioClosedFormPolicy =
+        epg::ScenarioClosedFormPolicy<GapOptionClosedFormPricingPolicy<Side>>;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        ScenarioClosedFormPolicy,
+        7U,
+        21U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "black_scholes.gap_option.sensitivities.closed_form_mixed",
+        "selected_gradient_and_hessian"
+    );
+}
+
 template void launch_black_scholes_gap_option_price_gradients_cuda<OptionSide::call>(
     const GapOptionPriceGradientPlan&,
     GapOptionPriceGradientPlan::DeviceInputs,
@@ -126,6 +169,18 @@ template void launch_black_scholes_gap_option_diagonal_sensitivities_cuda<Option
     GapOptionPriceGradientPlan::DeviceInputs,
     GapOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+black_scholes_gap_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const GapOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_black_scholes_gap_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const GapOptionPriceGradientPlan&,
+    GapOptionPriceGradientPlan::DeviceInputs,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
+    void*, std::size_t);
 
 template void launch_black_scholes_gap_option_price_gradients_cuda<OptionSide::put>(
     const GapOptionPriceGradientPlan&,
@@ -142,5 +197,17 @@ template void launch_black_scholes_gap_option_diagonal_sensitivities_cuda<Option
     GapOptionPriceGradientPlan::DeviceInputs,
     GapOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs);
+template std::size_t
+black_scholes_gap_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const GapOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_black_scholes_gap_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const GapOptionPriceGradientPlan&,
+    GapOptionPriceGradientPlan::DeviceInputs,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
+    void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::black_scholes

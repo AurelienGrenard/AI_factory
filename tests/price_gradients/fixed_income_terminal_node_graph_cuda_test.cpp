@@ -3,6 +3,7 @@
 #include "model/fixed_income/g2_plus_plus/product/nelson_siegel/european_swaption_price_gradients.cuh"
 #include "model/fixed_income/g2_plus_plus/product/svensson/european_swaption_price_gradients.cuh"
 #include "tests/price_gradients/diagonal_cuda_test_support.cuh"
+#include "tests/price_gradients/mixed_node_graph_cuda_test_support.cuh"
 
 #include <cuda_runtime.h>
 
@@ -43,7 +44,7 @@ void check_g2(std::size_t paths) {
         PriceConstruction::Aligned,
         {1.0f / 504.0f, 2U},
         selection,
-        {orders}
+        pg::SensitivityRequest::full_hessian()
     );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
@@ -56,6 +57,18 @@ void check_g2(std::size_t paths) {
         paths,
         5101U,
         "g2.european_swaption"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        g2::launch_g2_european_swaption_diagonal_sensitivities_cuda<
+            SwaptionSide::payer, orders>,
+        g2::g2_european_swaption_mixed_node_graph_workspace_bytes<
+            SwaptionSide::payer>,
+        g2::launch_g2_european_swaption_mixed_node_graph_sensitivities_cuda<
+            SwaptionSide::payer>,
+        paths,
+        5103U,
+        "g2.european_swaption.mixed"
     );
 }
 
@@ -79,7 +92,7 @@ void check_g2_plus_plus_nelson_siegel(std::size_t paths) {
             PriceConstruction::Aligned,
             {1.0f / 504.0f, 2U},
             selection,
-            {orders}
+            pg::SensitivityRequest::full_hessian()
         );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
@@ -92,6 +105,18 @@ void check_g2_plus_plus_nelson_siegel(std::size_t paths) {
         paths,
         5111U,
         "g2_plus_plus.nelson_siegel.european_swaption"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        ns::launch_g2_plus_plus_nelson_siegel_european_swaption_diagonal_sensitivities_cuda<
+            SwaptionSide::receiver, orders>,
+        ns::g2_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_workspace_bytes<
+            SwaptionSide::receiver>,
+        ns::launch_g2_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_sensitivities_cuda<
+            SwaptionSide::receiver>,
+        paths,
+        5113U,
+        "g2_plus_plus.nelson_siegel.european_swaption.mixed"
     );
 }
 
@@ -115,7 +140,7 @@ void check_g2_plus_plus_svensson(std::size_t paths) {
             PriceConstruction::Aligned,
             {1.0f / 504.0f, 2U},
             selection,
-            {orders}
+            pg::SensitivityRequest::full_hessian()
         );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
@@ -128,6 +153,18 @@ void check_g2_plus_plus_svensson(std::size_t paths) {
         paths,
         5121U,
         "g2_plus_plus.svensson.european_swaption"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        sv::launch_g2_plus_plus_svensson_european_swaption_diagonal_sensitivities_cuda<
+            SwaptionSide::payer, orders>,
+        sv::g2_plus_plus_svensson_european_swaption_mixed_node_graph_workspace_bytes<
+            SwaptionSide::payer>,
+        sv::launch_g2_plus_plus_svensson_european_swaption_mixed_node_graph_sensitivities_cuda<
+            SwaptionSide::payer>,
+        paths,
+        5123U,
+        "g2_plus_plus.svensson.european_swaption.mixed"
     );
 }
 
@@ -148,8 +185,8 @@ int main(int argc, char** argv) {
         check_g2(paths);
         check_g2_plus_plus_nelson_siegel(paths);
         check_g2_plus_plus_svensson(paths);
-        std::cout << "G2 and G2++ terminal MC bindings are bitwise equal "
-                     "between mono and node_graph\n";
+        std::cout << "G2 and G2++ terminal MC bindings preserve mono results "
+                     "across diagonal and mixed node graphs\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

@@ -90,6 +90,7 @@ __global__ void device_prepared_cooperative_kernel(
              sensitivity < plan.sensitivity_count;
              ++sensitivity) {
             if (threadIdx.x == 0U) {
+                task = {};
                 int error = preparation::valid;
                 valid = preparation::build_sensitivity_task<
                     Orders,

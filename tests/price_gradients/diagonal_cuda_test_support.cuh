@@ -118,7 +118,11 @@ inline void require_same_stencils(
                     first.second_weights[node],
                     second.second_weights[node]
                 )) {
-                throw std::runtime_error(label + " stencil node differs.");
+                throw std::runtime_error(
+                    label + " stencil node differs at stencil "
+                    + std::to_string(index) + ", node "
+                    + std::to_string(node)
+                );
             }
         }
         for (std::size_t endpoint = 0U; endpoint < 2U; ++endpoint) {
@@ -126,7 +130,11 @@ inline void require_same_stencils(
                     first.first_endpoint_weights[endpoint],
                     second.first_endpoint_weights[endpoint]
                 )) {
-                throw std::runtime_error(label + " stencil endpoint differs.");
+                throw std::runtime_error(
+                    label + " stencil endpoint differs at stencil "
+                    + std::to_string(index) + ", endpoint "
+                    + std::to_string(endpoint)
+                );
             }
         }
     }

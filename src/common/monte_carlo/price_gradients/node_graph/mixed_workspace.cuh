@@ -3,6 +3,7 @@
 
 #include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
+#include "common/price_gradients/device_sensitivity_graph.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/price_gradients/sensitivity_graph_plan.hpp"
@@ -303,55 +304,7 @@ pg::DeviceSensitivityGraph upload_mixed_sensitivity_graph(
     MixedNodeGraphWorkspace<NodePolicy> workspace,
     const pg::SensitivityGraphPlan& graph
 ) {
-    const auto copy = [](void* destination,
-                         const void* source,
-                         std::size_t bytes,
-                         const char* label) {
-        if (bytes == 0U) return;
-        check_cuda(
-            cudaMemcpy(destination, source, bytes, cudaMemcpyHostToDevice),
-            label
-        );
-    };
-    copy(
-        workspace.first_coordinates,
-        graph.first.data(),
-        graph.first.size() * sizeof(std::uint16_t),
-        "mixed graph first-coordinate upload"
-    );
-    copy(
-        workspace.diagonal_coordinates,
-        graph.diagonal_second.data(),
-        graph.diagonal_second.size() * sizeof(std::uint16_t),
-        "mixed graph diagonal-coordinate upload"
-    );
-    copy(
-        workspace.mixed_pairs,
-        graph.mixed_second.data(),
-        graph.mixed_second.size() * sizeof(pg::SensitivityPair),
-        "mixed graph pair upload"
-    );
-    copy(
-        workspace.coordinate_uses,
-        graph.coordinate_uses.data(),
-        graph.coordinate_uses.size() * sizeof(pg::SensitivityCoordinateUse),
-        "mixed graph coordinate-use upload"
-    );
-    return {
-        workspace.first_coordinates,
-        graph.first.size(),
-        workspace.first_coordinate_capacity,
-        workspace.diagonal_coordinates,
-        graph.diagonal_second.size(),
-        workspace.diagonal_coordinate_capacity,
-        workspace.mixed_pairs,
-        graph.mixed_second.size(),
-        workspace.mixed_pair_capacity,
-        workspace.coordinate_uses,
-        graph.coordinate_uses.size(),
-        workspace.coordinate_use_capacity,
-        graph.node_capacity,
-    };
+    return pg::upload_sensitivity_graph(workspace, graph);
 }
 
 

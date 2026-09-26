@@ -2,6 +2,7 @@
 #include "model/equity/markovian/${model}/product/${product}_price_gradients.cuh"
 
 #include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/equity/price_gradients/scenario_closed_form_policy.cuh"
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
@@ -108,6 +109,48 @@ void launch_${model}_${product}_diagonal_sensitivities_cuda(
         ${closed_form_diagonal_helper_arguments}
     >(
         host, device, stencil_outputs, configuration, outputs
+    );
+}
+
+${side_template}
+std::size_t ${model}_${product}_mixed_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    (void)configuration;
+    return closed_form::price_gradients::mixed_workspace_bytes(host);
+}
+
+${side_template}
+void launch_${model}_${product}_mixed_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ${product_type}PriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    using ScenarioClosedFormPolicy =
+        epg::ScenarioClosedFormPolicy<${closed_form_policy}>;
+    closed_form::price_gradients::launch_device_prepared_mixed<
+        ScenarioClosedFormPolicy,
+        ${maximum}U,
+        ${mixed_maximum}U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "${model}.${product}.sensitivities.closed_form_mixed",
+        "selected_gradient_and_hessian"
     );
 }
 

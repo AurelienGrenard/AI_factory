@@ -126,6 +126,22 @@ def closed_form_explicit_instantiations(
                 f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
                 "    const pg::LaunchConfiguration&, pg::SensitivityOutputs);",
             ])
+        if side:
+            lines.extend([
+                "template std::size_t",
+                f"{model}_{product}_mixed_node_graph_workspace_bytes<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                "    const pg::LaunchConfiguration&);",
+                f"template void launch_{model}_{product}_mixed_node_graph_"
+                f"sensitivities_cuda<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                f"    {product_type}PriceGradientPlan::DeviceInputs,",
+                f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
+                f"    {product_type}PriceGradientPlan::MixedStencilOutputs,",
+                "    const pg::LaunchConfiguration&,",
+                "    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,",
+                "    void*, std::size_t);",
+            ])
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 
@@ -492,6 +508,8 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                     "device_prepared_step_terminal",
                     "device_prepared_exact_terminal",
                     "device_prepared_path",
+                    "device_prepared_closed_form_terminal",
+                    "device_prepared_closed_form_path",
                 }
                 else ""
             ),
@@ -595,6 +613,8 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                     "device_prepared_step_terminal",
                     "device_prepared_exact_terminal",
                     "device_prepared_path",
+                    "device_prepared_closed_form_terminal",
+                    "device_prepared_closed_form_path",
                 },
             ),
             "closed_form_explicit_instantiations": (
@@ -638,6 +658,17 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 + ("device_prepared_path_node_graph_declarations.cuh.tpl"
                    if is_path else
                    "device_prepared_terminal_node_graph_declarations.cuh.tpl")
+            )
+            node_graph_declarations = Template(
+                declaration_template.read_text()
+            ).substitute(values)
+        elif spec.preparation_strategy in {
+            "device_prepared_closed_form_terminal",
+            "device_prepared_closed_form_path",
+        }:
+            declaration_template = template_root / (
+                "pricing/closed_form/price_gradients/"
+                "mixed_declarations.cuh.tpl"
             )
             node_graph_declarations = Template(
                 declaration_template.read_text()

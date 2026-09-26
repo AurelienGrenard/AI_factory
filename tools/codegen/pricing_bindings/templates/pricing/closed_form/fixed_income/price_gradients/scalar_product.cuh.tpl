@@ -4,6 +4,7 @@
 #include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/${model}/price_gradients/device_preparation.cuh"
 #include "product/${product}/price_gradients/device_preparation.cuh"
@@ -90,6 +91,25 @@ void launch_${function_prefix}_${product}_diagonal_sensitivities_cuda(
     ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs
+);
+
+template<OptionSide Side>
+std::size_t ${function_prefix}_${product}_mixed_node_graph_workspace_bytes(
+    const ${product_type}PriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side>
+void launch_${function_prefix}_${product}_mixed_node_graph_sensitivities_cuda(
+    const ${product_type}PriceGradientPlan& host,
+    ${product_type}PriceGradientPlan::DeviceInputs device,
+    ${product_type}PriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    ${product_type}PriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::${binding_namespace}

@@ -4,6 +4,7 @@
 #include "common/equity/price_gradients/terminal_device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/black_scholes/price_gradients/device_preparation.cuh"
 #include "product/straddle/price_gradients/device_preparation.cuh"
@@ -98,6 +99,25 @@ void launch_black_scholes_straddle_diagonal_sensitivities_cuda(
     pg::SensitivityOutputs outputs
 );
 
+// Selected mixed derivatives share one compact analytical graph.
+
+std::size_t black_scholes_straddle_mixed_node_graph_workspace_bytes(
+    const StraddlePriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+
+void launch_black_scholes_straddle_mixed_node_graph_sensitivities_cuda(
+    const StraddlePriceGradientPlan& host,
+    StraddlePriceGradientPlan::DeviceInputs device,
+    StraddlePriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    StraddlePriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
 
 
 }  // namespace ai_factory::workbench::model::equity::black_scholes
