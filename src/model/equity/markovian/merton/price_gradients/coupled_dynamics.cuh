@@ -25,7 +25,7 @@ struct CoupledDynamics {
     __device__ static void draw_coupled(
         RandomContext&,
         const Prepared (&)[NodeCapacity],
-        std::uint8_t node_count,
+        std::uint16_t node_count,
         Innovations (&)[NodeCapacity]
     );
     __device__ static void transition(const Prepared&, const Innovations&, const float*, State&);

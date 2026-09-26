@@ -30,7 +30,7 @@ __device__ __forceinline__ void simulate_coupled_interval(
     const WarpPathGroup<GroupSize>& group,
     typename Dynamics::RandomContext& random,
     const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     std::uint32_t transition_count,
     const std::uint16_t (&owned_nodes)[NodesPerWorker],
     const bool (&owns)[NodesPerWorker],

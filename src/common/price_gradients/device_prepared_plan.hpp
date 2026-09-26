@@ -3,6 +3,7 @@
 
 #include "common/price_construction.cuh"
 #include "common/price_gradients/device_prepared_launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/price_gradients/sensitivity_graph_plan.hpp"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 
@@ -30,6 +31,7 @@ struct DevicePreparedSensitivityPlan {
     using DeviceInputs = mcpg::DevicePreparedInputs<Preparation>;
     using StencilOutputs = mcpg::DevicePreparedStencilOutputs<3U>;
     using DiagonalStencilOutputs = mcpg::DevicePreparedStencilOutputs<4U>;
+    using MixedStencilOutputs = MixedSensitivityStencilOutputs;
 
     static constexpr bool kDevicePreparedSensitivities = true;
 
@@ -62,6 +64,7 @@ struct CurveDevicePreparedSensitivityPlan {
     using DeviceInputs = mcpg::CurveDevicePreparedInputs<Preparation>;
     using StencilOutputs = mcpg::DevicePreparedStencilOutputs<3U>;
     using DiagonalStencilOutputs = mcpg::DevicePreparedStencilOutputs<4U>;
+    using MixedStencilOutputs = MixedSensitivityStencilOutputs;
 
     static constexpr bool kDevicePreparedSensitivities = true;
 

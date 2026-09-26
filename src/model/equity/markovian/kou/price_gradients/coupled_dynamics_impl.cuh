@@ -37,7 +37,7 @@ template<std::size_t NodeCapacity>
 __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     RandomContext& random,
     const Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Innovations (&innovations)[NodeCapacity]
 ) {
     const auto step = random.next_step();
@@ -48,8 +48,8 @@ __device__ __forceinline__ void CoupledDynamics::draw_coupled(
     ::ai_factory::workbench::monte_carlo::price_gradients::
         draw_coupled_brownian_normals<NodeCapacity>(
             diffusion_uniforms, diffusion_cache, node_count,
-            [&](std::uint8_t node) { return prepared[node].horizon; },
-            [&](std::uint8_t node, float normal) {
+            [&](std::uint16_t node) { return prepared[node].horizon; },
+            [&](std::uint16_t node, float normal) {
                 innovations[node].diffusion_normal = normal;
             }
         );

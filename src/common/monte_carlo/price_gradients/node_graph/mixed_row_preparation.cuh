@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_gradients/device_prepared_launch.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/capacity.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/price_gradients/device_preparation.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil.cuh"
@@ -25,17 +26,6 @@ __host__ __device__ constexpr std::uint32_t larger_step_count(
     std::uint32_t second
 ) {
     return first < second ? second : first;
-}
-
-template<std::size_t MaximumSensitivities, std::size_t MaximumMixedSensitivities>
-__host__ __device__ constexpr std::size_t mixed_node_graph_node_capacity() {
-    static_assert(
-        MaximumSensitivities
-                <= (0xffffU - 1U - 4U * MaximumMixedSensitivities) / 3U,
-        "Mixed node indices exceed their compact representation."
-    );
-    return 1U + 3U * MaximumSensitivities
-        + 4U * MaximumMixedSensitivities;
 }
 
 template<typename Scenario>

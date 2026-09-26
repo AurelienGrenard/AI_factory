@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
+#include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/mixed_sensitivity_reconstruction.cuh"
@@ -18,7 +19,7 @@ template<typename NodePolicy>
 __device__ __forceinline__ float reconstruct_mixed_graph_sample(
     const MixedTerminalNodeGraphWorkspace<NodePolicy>& workspace,
     const DevicePreparedStencilOutputs<4U>& stencil_outputs,
-    const DevicePreparedMixedStencilOutputs& mixed_stencil_outputs,
+    const pg::MixedSensitivityStencilOutputs& mixed_stencil_outputs,
     pg::DeviceSensitivityGraph graph,
     std::size_t sensitivity_count,
     std::size_t local_row,
@@ -113,7 +114,7 @@ __global__ void accumulate_mixed_node_moments_kernel(
     pg::DeviceSensitivityGraph graph,
     MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
-    DevicePreparedMixedStencilOutputs mixed_stencil_outputs
+    pg::MixedSensitivityStencilOutputs mixed_stencil_outputs
 ) {
     const std::size_t local_row = blockIdx.x;
     const std::size_t output = blockIdx.y;

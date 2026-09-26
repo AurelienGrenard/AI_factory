@@ -53,7 +53,7 @@ struct CoupledDynamics {
         RandomContext&,
         std::uint32_t interval_start_step,
         const Prepared (&)[NodeCapacity],
-        std::uint8_t node_count,
+        std::uint16_t node_count,
         StepCount,
         TerminalAdjustment (&)[NodeCapacity]
     );
@@ -67,7 +67,7 @@ struct CoupledDynamics {
     __device__ static void draw_coupled(
         RandomContext&,
         const Prepared (&)[NodeCapacity],
-        std::uint8_t node_count,
+        std::uint16_t node_count,
         Innovations (&)[NodeCapacity]
     );
     template<
@@ -78,7 +78,7 @@ struct CoupledDynamics {
     __device__ static void simulate_coupled_terminal(
         RandomContext&,
         const Prepared (&)[NodeCapacity],
-        std::uint8_t node_count,
+        std::uint16_t node_count,
         std::uint32_t maximum_steps,
         IsActive,
         StepCount,

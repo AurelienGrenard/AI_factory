@@ -19,7 +19,7 @@ template<std::size_t NodeCapacity, typename Horizon, typename Store>
 __device__ __forceinline__ void draw_coupled_brownian_normals(
     philox::DomainUniformSequence& uniforms,
     philox::NormalPairCache& cache,
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     Horizon horizon,
     Store store
 ) {
@@ -28,20 +28,20 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
     const float central_normal = philox::next_normal(uniforms, cache);
     endpoints[0U] = sqrtf(central_time_years) * central_normal;
 
-    std::uint8_t lower[NodeCapacity]{};
-    std::uint8_t upper[NodeCapacity]{};
-    std::uint8_t lower_count = 0U;
-    std::uint8_t upper_count = 0U;
-    for (std::uint8_t node = 1U; node < node_count; ++node) {
+    std::uint16_t lower[NodeCapacity]{};
+    std::uint16_t upper[NodeCapacity]{};
+    std::uint16_t lower_count = 0U;
+    std::uint16_t upper_count = 0U;
+    for (std::uint16_t node = 1U; node < node_count; ++node) {
         const float time_years = horizon(node);
         if (time_years < central_time_years) lower[lower_count++] = node;
         else if (time_years > central_time_years) upper[upper_count++] = node;
         else endpoints[node] = endpoints[0U];
     }
 
-    for (std::uint8_t index = 1U; index < lower_count; ++index) {
+    for (std::uint16_t index = 1U; index < lower_count; ++index) {
         const auto node = lower[index];
-        std::uint8_t position = index;
+        std::uint16_t position = index;
         while (position > 0U
                && horizon(lower[position - 1U]) < horizon(node)) {
             lower[position] = lower[position - 1U];
@@ -51,7 +51,7 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
     }
     float right_time_years = central_time_years;
     float right_endpoint = endpoints[0U];
-    for (std::uint8_t index = 0U; index < lower_count; ++index) {
+    for (std::uint16_t index = 0U; index < lower_count; ++index) {
         const auto node = lower[index];
         const float time_years = horizon(node);
         const float fraction = time_years / right_time_years;
@@ -65,9 +65,9 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
         right_endpoint = endpoints[node];
     }
 
-    for (std::uint8_t index = 1U; index < upper_count; ++index) {
+    for (std::uint16_t index = 1U; index < upper_count; ++index) {
         const auto node = upper[index];
-        std::uint8_t position = index;
+        std::uint16_t position = index;
         while (position > 0U
                && horizon(upper[position - 1U]) > horizon(node)) {
             upper[position] = upper[position - 1U];
@@ -77,7 +77,7 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
     }
     float left_time_years = central_time_years;
     float left_endpoint = endpoints[0U];
-    for (std::uint8_t index = 0U; index < upper_count; ++index) {
+    for (std::uint16_t index = 0U; index < upper_count; ++index) {
         const auto node = upper[index];
         const float time_years = horizon(node);
         endpoints[node] = left_endpoint
@@ -87,7 +87,7 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
         left_endpoint = endpoints[node];
     }
 
-    for (std::uint8_t node = 0U; node < node_count; ++node) {
+    for (std::uint16_t node = 0U; node < node_count; ++node) {
         store(
             node,
             horizon(node) == central_time_years

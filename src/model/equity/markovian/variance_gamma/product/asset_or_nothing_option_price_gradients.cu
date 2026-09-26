@@ -2,6 +2,7 @@
 #include "model/equity/markovian/variance_gamma/product/asset_or_nothing_option_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/variance_gamma/price_gradients/coupled_dynamics_impl.cuh"
@@ -207,6 +208,55 @@ void launch_variance_gamma_asset_or_nothing_option_node_graph_sensitivities_cuda
     );
 }
 
+template<OptionSide Side>
+std::size_t variance_gamma_asset_or_nothing_option_mixed_node_graph_workspace_bytes(
+    const AssetOrNothingOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
+        8U,
+        28U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_variance_gamma_asset_or_nothing_option_mixed_node_graph_sensitivities_cuda(
+    const AssetOrNothingOptionPriceGradientPlan& host,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs device,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AssetOrNothingOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
+        8U,
+        28U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "variance_gamma.asset_or_nothing_option.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
+    );
+}
+
 template void launch_variance_gamma_asset_or_nothing_option_price_gradients_cuda<OptionSide::call>(
     const AssetOrNothingOptionPriceGradientPlan&,
     AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
@@ -241,6 +291,18 @@ template void launch_variance_gamma_asset_or_nothing_option_node_graph_sensitivi
     AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
     AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+variance_gamma_asset_or_nothing_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_variance_gamma_asset_or_nothing_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    AssetOrNothingOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_variance_gamma_asset_or_nothing_option_price_gradients_cuda<OptionSide::put>(
@@ -277,6 +339,18 @@ template void launch_variance_gamma_asset_or_nothing_option_node_graph_sensitivi
     AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
     AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+variance_gamma_asset_or_nothing_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_variance_gamma_asset_or_nothing_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const AssetOrNothingOptionPriceGradientPlan&,
+    AssetOrNothingOptionPriceGradientPlan::DeviceInputs,
+    AssetOrNothingOptionPriceGradientPlan::DiagonalStencilOutputs,
+    AssetOrNothingOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::variance_gamma

@@ -2,6 +2,7 @@
 #include "model/equity/markovian/normal_inverse_gaussian/product/gap_option_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/price_gradients/coupled_dynamics_impl.cuh"
@@ -207,6 +208,55 @@ void launch_normal_inverse_gaussian_gap_option_node_graph_sensitivities_cuda(
     );
 }
 
+template<OptionSide Side>
+std::size_t normal_inverse_gaussian_gap_option_mixed_node_graph_workspace_bytes(
+    const GapOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::GapOptionPathPolicy<Side>>,
+        9U,
+        36U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+template<OptionSide Side>
+void launch_normal_inverse_gaussian_gap_option_mixed_node_graph_sensitivities_cuda(
+    const GapOptionPriceGradientPlan& host,
+    GapOptionPriceGradientPlan::DeviceInputs device,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::GapOptionPathPolicy<Side>>,
+        9U,
+        36U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "normal_inverse_gaussian.gap_option.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
+    );
+}
+
 template void launch_normal_inverse_gaussian_gap_option_price_gradients_cuda<OptionSide::call>(
     const GapOptionPriceGradientPlan&,
     GapOptionPriceGradientPlan::DeviceInputs,
@@ -241,6 +291,18 @@ template void launch_normal_inverse_gaussian_gap_option_node_graph_sensitivities
     GapOptionPriceGradientPlan::DeviceInputs,
     GapOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+normal_inverse_gaussian_gap_option_mixed_node_graph_workspace_bytes<OptionSide::call>(
+    const GapOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_normal_inverse_gaussian_gap_option_mixed_node_graph_sensitivities_cuda<OptionSide::call>(
+    const GapOptionPriceGradientPlan&,
+    GapOptionPriceGradientPlan::DeviceInputs,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 template void launch_normal_inverse_gaussian_gap_option_price_gradients_cuda<OptionSide::put>(
@@ -277,6 +339,18 @@ template void launch_normal_inverse_gaussian_gap_option_node_graph_sensitivities
     GapOptionPriceGradientPlan::DeviceInputs,
     GapOptionPriceGradientPlan::DiagonalStencilOutputs,
     const pg::LaunchConfiguration&, pg::SensitivityOutputs,
+    void*, std::size_t);
+template std::size_t
+normal_inverse_gaussian_gap_option_mixed_node_graph_workspace_bytes<OptionSide::put>(
+    const GapOptionPriceGradientPlan&,
+    const pg::LaunchConfiguration&);
+template void launch_normal_inverse_gaussian_gap_option_mixed_node_graph_sensitivities_cuda<OptionSide::put>(
+    const GapOptionPriceGradientPlan&,
+    GapOptionPriceGradientPlan::DeviceInputs,
+    GapOptionPriceGradientPlan::DiagonalStencilOutputs,
+    GapOptionPriceGradientPlan::MixedStencilOutputs,
+    const pg::LaunchConfiguration&,
+    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,
     void*, std::size_t);
 
 }  // namespace ai_factory::workbench::model::equity::normal_inverse_gaussian

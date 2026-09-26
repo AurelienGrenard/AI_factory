@@ -2,8 +2,9 @@
 #pragma once
 
 #include "common/monte_carlo/price_gradients/node_graph/mixed_row_preparation.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/terminal_node_evaluation.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/terminal_node_team_evaluation.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
+#include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
 
@@ -39,7 +40,7 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
-    DevicePreparedMixedStencilOutputs mixed_stencil_outputs,
+    pg::MixedSensitivityStencilOutputs mixed_stencil_outputs,
     std::uint64_t base_seed
 ) {
     static_assert(tuning::valid_profile_v<Tuning>);
@@ -53,7 +54,6 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>;
     using Scenario = typename Preparation::Scenario;
 
-    __shared__ Scenario scenarios[node_capacity];
     __shared__ typename Dynamics::Prepared dynamics[node_capacity];
     __shared__ pg::SensitivityStencil<4U>
         stencils[MaximumSensitivities];
@@ -67,7 +67,16 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
     __shared__ std::uint32_t maximum_steps;
     __shared__ bool valid_row;
     __shared__ philox::PhiloxKey key;
+    constexpr unsigned int teams_per_block =
+        Tuning::kThreadsPerBlock / GroupSize;
+    __shared__ typename Dynamics::RandomContext
+        random_contexts[teams_per_block];
     extern __shared__ __align__(16) unsigned char dynamic_shared[];
+    auto* scenarios = reinterpret_cast<Scenario*>(dynamic_shared);
+    const auto scenario_bytes = (
+        graph.node_capacity * sizeof(Scenario) + 15U
+    ) & ~std::size_t{15U};
+    auto* team_scratch = dynamic_shared + scenario_bytes;
 
     const std::size_t local_row = blockIdx.x;
     if (local_row >= row_count) return;
@@ -150,7 +159,7 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
     }
     __syncthreads();
 
-    evaluate_terminal_node_paths<
+    evaluate_terminal_node_paths_by_team<
         node_capacity,
         Dynamics,
         NodePolicy,
@@ -169,7 +178,8 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
         graph.node_capacity,
         local_row,
         workspace,
-        dynamic_shared
+        random_contexts,
+        team_scratch
     );
 }
 
@@ -196,7 +206,7 @@ __global__ void evaluate_mixed_nodes_kernel(
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
-    DevicePreparedMixedStencilOutputs mixed_stencil_outputs,
+    pg::MixedSensitivityStencilOutputs mixed_stencil_outputs,
     std::uint64_t base_seed
 ) {
     evaluate_mixed_nodes_body<

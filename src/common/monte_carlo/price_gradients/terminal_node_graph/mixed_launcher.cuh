@@ -87,7 +87,7 @@ void launch_device_prepared_terminal_mixed_node_graph(
     pg::SensitivityOutputs outputs,
     pg::MixedSensitivityOutputs mixed_outputs,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
-    DevicePreparedMixedStencilOutputs mixed_stencil_outputs,
+    pg::MixedSensitivityStencilOutputs mixed_stencil_outputs,
     const char* kernel_name,
     const char* variant
 ) {
@@ -227,11 +227,44 @@ void launch_device_prepared_terminal_mixed_node_graph(
     constexpr unsigned int groups_per_block =
         evaluation_threads / GroupSize;
     constexpr std::size_t scratch_bytes_per_group =
-        node_graph_detail::distributed_node_scratch_bytes_v<
+        node_graph_detail::path_team_scratch_bytes_v<
             node_capacity, Dynamics
         >;
-    const std::size_t evaluation_shared =
-        groups_per_block * scratch_bytes_per_group;
+    const auto scenario_shared = (
+        host_graph.node_capacity * sizeof(typename Preparation::Scenario)
+        + 15U
+    ) & ~std::size_t{15U};
+    const std::size_t evaluation_shared = scenario_shared
+        + groups_per_block * scratch_bytes_per_group;
+    cudaFuncAttributes evaluation_attributes{};
+    check_cuda(
+        cudaFuncGetAttributes(&evaluation_attributes, evaluate),
+        "mixed terminal evaluation kernel attributes"
+    );
+    int device = 0;
+    check_cuda(cudaGetDevice(&device), "mixed terminal CUDA device");
+    cudaDeviceProp device_properties{};
+    check_cuda(
+        cudaGetDeviceProperties(&device_properties, device),
+        "mixed terminal CUDA device properties"
+    );
+    const auto total_shared = evaluation_shared
+        + evaluation_attributes.sharedSizeBytes;
+    if (total_shared > device_properties.sharedMemPerBlockOptin) {
+        throw std::invalid_argument(
+            "Mixed terminal sensitivity graph exceeds device shared memory."
+        );
+    }
+    if (total_shared > device_properties.sharedMemPerBlock) {
+        check_cuda(
+            cudaFuncSetAttribute(
+                evaluate,
+                cudaFuncAttributeMaxDynamicSharedMemorySize,
+                static_cast<int>(evaluation_shared)
+            ),
+            "mixed terminal evaluation dynamic shared memory"
+        );
+    }
     const auto reduction_shared =
         2U * (launch.threads_per_block / 32U) * sizeof(double);
 

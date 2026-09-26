@@ -24,7 +24,7 @@ template<
 __device__ __forceinline__ void simulate_coupled_terminal_nodes(
     typename Dynamics::RandomContext& random,
     const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     std::uint32_t maximum_steps,
     IsActive is_active,
     StepCount step_count,
@@ -91,7 +91,7 @@ template<
 __device__ __forceinline__ void simulate_coupled_equal_horizon_nodes(
     typename Dynamics::RandomContext& random,
     const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    std::uint8_t node_count,
+    std::uint16_t node_count,
     IsActive is_active,
     State state
 ) {

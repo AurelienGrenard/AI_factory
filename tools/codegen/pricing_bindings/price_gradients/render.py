@@ -32,6 +32,7 @@ def terminal_explicit_instantiations(
     product: str,
     product_type: str,
     sided: bool,
+    include_mixed: bool,
 ) -> str:
     sides = ("OptionSide::call", "OptionSide::put") if sided else (None,)
     blocks = []
@@ -72,6 +73,23 @@ def terminal_explicit_instantiations(
                 f"    {product_type}PriceGradientPlan::DeviceInputs,",
                 f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
                 "    const pg::LaunchConfiguration&, pg::SensitivityOutputs,",
+                "    void*, std::size_t);",
+            ])
+        if sided and include_mixed:
+            lines.extend([
+                "template std::size_t",
+                f"{model}_{product}_mixed_node_graph_workspace_bytes"
+                f"<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                "    const pg::LaunchConfiguration&);",
+                f"template void launch_{model}_{product}_mixed_node_graph_"
+                f"sensitivities_cuda<{side}>(",
+                f"    const {product_type}PriceGradientPlan&,",
+                f"    {product_type}PriceGradientPlan::DeviceInputs,",
+                f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
+                f"    {product_type}PriceGradientPlan::MixedStencilOutputs,",
+                "    const pg::LaunchConfiguration&,",
+                "    pg::SensitivityOutputs, pg::MixedSensitivityOutputs,",
                 "    void*, std::size_t);",
             ])
         blocks.append("\n".join(lines))
@@ -467,6 +485,15 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "model": spec.pricing.model,
             "product": spec.pricing.product,
             "product_type": product_metadata.get("product_type", ""),
+            "mixed_output_include": (
+                '#include "common/price_gradients/'
+                'mixed_sensitivity_outputs.cuh"\n'
+                if not is_path and spec.preparation_strategy in {
+                    "device_prepared_step_terminal",
+                    "device_prepared_exact_terminal",
+                }
+                else ""
+            ),
             "product_policy_header": product_metadata.get(
                 "policy_header", ""
             ),
@@ -492,6 +519,35 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "lsm_continuation": lsm_metadata.get("continuation", ""),
             "lsm_refinement": lsm_metadata.get("refinement", ""),
             "maximum": str(spec.maximum_sensitivities),
+            "mixed_maximum": str(
+                spec.maximum_sensitivities
+                * (spec.maximum_sensitivities - 1) // 2
+            ),
+            "mixed_nodes_per_worker": str(max(
+                2,
+                (
+                    1 + 3 * spec.maximum_sensitivities
+                    + 2 * spec.maximum_sensitivities
+                        * (spec.maximum_sensitivities - 1)
+                    + 127
+                ) // 128,
+            )),
+            "mixed_team_size": str(next(
+                group for group in (2, 4, 8, 16, 32, 64, 128)
+                if group * max(
+                    2,
+                    (
+                        1 + 3 * spec.maximum_sensitivities
+                        + 2 * spec.maximum_sensitivities
+                            * (spec.maximum_sensitivities - 1)
+                        + 127
+                    ) // 128,
+                ) >= (
+                    1 + 3 * spec.maximum_sensitivities
+                    + 2 * spec.maximum_sensitivities
+                        * (spec.maximum_sensitivities - 1)
+                )
+            )),
             "graph_group_size": str(next(
                 group for group in (2, 4, 8, 16, 32)
                 if group * 2 >= 1 + 3 * spec.maximum_sensitivities
@@ -534,6 +590,10 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 spec.pricing.product,
                 product_metadata.get("product_type", ""),
                 product_metadata.get("sided", True),
+                not is_path and spec.preparation_strategy in {
+                    "device_prepared_step_terminal",
+                    "device_prepared_exact_terminal",
+                },
             ),
             "closed_form_explicit_instantiations": (
                 closed_form_explicit_instantiations(

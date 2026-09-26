@@ -4,7 +4,10 @@
 #include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil.cuh"
+#include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/price_gradients/sensitivity_graph_plan.hpp"
+
+#include <cuda_runtime.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -14,11 +17,6 @@
 
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
-struct DevicePreparedMixedStencilOutputs {
-    pg::MixedSensitivityStencil* stencils = nullptr;
-    std::size_t capacity = 0U;
-};
-
 template<typename NodePolicy>
 struct MixedTerminalNodeGraphWorkspace {
     using NodeValue = typename NodePolicy::NodeValue;
@@ -26,6 +24,14 @@ struct MixedTerminalNodeGraphWorkspace {
     using AxisNodeIndices = SensitivityNodeIndices<4U>;
     using MixedNodeIndices = MixedSensitivityNodeIndices;
 
+    std::uint16_t* first_coordinates = nullptr;
+    std::size_t first_coordinate_capacity = 0U;
+    std::uint16_t* diagonal_coordinates = nullptr;
+    std::size_t diagonal_coordinate_capacity = 0U;
+    pg::SensitivityPair* mixed_pairs = nullptr;
+    std::size_t mixed_pair_capacity = 0U;
+    pg::SensitivityCoordinateUse* coordinate_uses = nullptr;
+    std::size_t coordinate_use_capacity = 0U;
     NodeValue* node_values = nullptr;
     std::size_t node_value_capacity = 0U;
     NodeMetadata* node_metadata = nullptr;
@@ -41,6 +47,10 @@ struct MixedTerminalNodeGraphWorkspace {
 };
 
 struct MixedTerminalNodeGraphWorkspaceRequirements {
+    std::size_t first_coordinates = 0U;
+    std::size_t diagonal_coordinates = 0U;
+    std::size_t mixed_pairs = 0U;
+    std::size_t coordinate_uses = 0U;
     std::size_t node_values = 0U;
     std::size_t node_metadata = 0U;
     std::size_t axis_node_indices = 0U;
@@ -51,6 +61,10 @@ struct MixedTerminalNodeGraphWorkspaceRequirements {
 
 struct MixedTerminalNodeGraphWorkspaceLayout {
     MixedTerminalNodeGraphWorkspaceRequirements capacities{};
+    std::size_t first_coordinates_offset = 0U;
+    std::size_t diagonal_coordinates_offset = 0U;
+    std::size_t mixed_pairs_offset = 0U;
+    std::size_t coordinate_uses_offset = 0U;
     std::size_t node_values_offset = 0U;
     std::size_t node_metadata_offset = 0U;
     std::size_t axis_node_indices_offset = 0U;
@@ -92,6 +106,10 @@ mixed_terminal_node_graph_workspace_requirements(
 
     const auto rows = configuration.row_chunk_size;
     return {
+        graph_plan.first.size(),
+        graph_plan.diagonal_second.size(),
+        graph_plan.mixed_second.size(),
+        graph_plan.coordinate_uses.size(),
         checked_workspace_product(
             checked_workspace_product(
                 rows,
@@ -143,6 +161,18 @@ MixedTerminalNodeGraphWorkspaceLayout mixed_terminal_node_graph_workspace_layout
     std::size_t offset = 0U;
     MixedTerminalNodeGraphWorkspaceLayout layout{};
     layout.capacities = capacities;
+    layout.first_coordinates_offset = workspace_detail::append_workspace_array<
+        std::uint16_t
+    >(offset, capacities.first_coordinates);
+    layout.diagonal_coordinates_offset = workspace_detail::append_workspace_array<
+        std::uint16_t
+    >(offset, capacities.diagonal_coordinates);
+    layout.mixed_pairs_offset = workspace_detail::append_workspace_array<
+        pg::SensitivityPair
+    >(offset, capacities.mixed_pairs);
+    layout.coordinate_uses_offset = workspace_detail::append_workspace_array<
+        pg::SensitivityCoordinateUse
+    >(offset, capacities.coordinate_uses);
     layout.node_values_offset = workspace_detail::append_workspace_array<
         typename Workspace::NodeValue
     >(offset, capacities.node_values);
@@ -180,6 +210,22 @@ make_mixed_terminal_node_graph_workspace(
     using Workspace = MixedTerminalNodeGraphWorkspace<NodePolicy>;
     auto* base = static_cast<unsigned char*>(storage);
     return {
+        reinterpret_cast<std::uint16_t*>(
+            base + layout.first_coordinates_offset
+        ),
+        layout.capacities.first_coordinates,
+        reinterpret_cast<std::uint16_t*>(
+            base + layout.diagonal_coordinates_offset
+        ),
+        layout.capacities.diagonal_coordinates,
+        reinterpret_cast<pg::SensitivityPair*>(
+            base + layout.mixed_pairs_offset
+        ),
+        layout.capacities.mixed_pairs,
+        reinterpret_cast<pg::SensitivityCoordinateUse*>(
+            base + layout.coordinate_uses_offset
+        ),
+        layout.capacities.coordinate_uses,
         reinterpret_cast<typename Workspace::NodeValue*>(
             base + layout.node_values_offset
         ),
@@ -221,6 +267,22 @@ void validate_mixed_terminal_node_graph_workspace(
         }
         validate_device_pointer(pointer, name);
     };
+    validate(workspace.first_coordinates,
+             workspace.first_coordinate_capacity,
+             required.first_coordinates,
+             "mixed graph first coordinates");
+    validate(workspace.diagonal_coordinates,
+             workspace.diagonal_coordinate_capacity,
+             required.diagonal_coordinates,
+             "mixed graph diagonal coordinates");
+    validate(workspace.mixed_pairs,
+             workspace.mixed_pair_capacity,
+             required.mixed_pairs,
+             "mixed graph coordinate pairs");
+    validate(workspace.coordinate_uses,
+             workspace.coordinate_use_capacity,
+             required.coordinate_uses,
+             "mixed graph coordinate uses");
     validate(workspace.node_values, workspace.node_value_capacity,
              required.node_values, "mixed terminal node values");
     validate(workspace.node_metadata, workspace.node_metadata_capacity,
@@ -235,6 +297,62 @@ void validate_mixed_terminal_node_graph_workspace(
              required.thread_moments, "mixed terminal thread moments");
 }
 
-static_assert(std::is_trivially_copyable_v<DevicePreparedMixedStencilOutputs>);
+
+template<typename NodePolicy>
+pg::DeviceSensitivityGraph upload_mixed_sensitivity_graph(
+    MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
+    const pg::SensitivityGraphPlan& graph
+) {
+    const auto copy = [](void* destination,
+                         const void* source,
+                         std::size_t bytes,
+                         const char* label) {
+        if (bytes == 0U) return;
+        check_cuda(
+            cudaMemcpy(destination, source, bytes, cudaMemcpyHostToDevice),
+            label
+        );
+    };
+    copy(
+        workspace.first_coordinates,
+        graph.first.data(),
+        graph.first.size() * sizeof(std::uint16_t),
+        "mixed graph first-coordinate upload"
+    );
+    copy(
+        workspace.diagonal_coordinates,
+        graph.diagonal_second.data(),
+        graph.diagonal_second.size() * sizeof(std::uint16_t),
+        "mixed graph diagonal-coordinate upload"
+    );
+    copy(
+        workspace.mixed_pairs,
+        graph.mixed_second.data(),
+        graph.mixed_second.size() * sizeof(pg::SensitivityPair),
+        "mixed graph pair upload"
+    );
+    copy(
+        workspace.coordinate_uses,
+        graph.coordinate_uses.data(),
+        graph.coordinate_uses.size() * sizeof(pg::SensitivityCoordinateUse),
+        "mixed graph coordinate-use upload"
+    );
+    return {
+        workspace.first_coordinates,
+        graph.first.size(),
+        workspace.first_coordinate_capacity,
+        workspace.diagonal_coordinates,
+        graph.diagonal_second.size(),
+        workspace.diagonal_coordinate_capacity,
+        workspace.mixed_pairs,
+        graph.mixed_second.size(),
+        workspace.mixed_pair_capacity,
+        workspace.coordinate_uses,
+        graph.coordinate_uses.size(),
+        workspace.coordinate_use_capacity,
+        graph.node_capacity,
+    };
+}
+
 
 }  // namespace ai_factory::workbench::monte_carlo::price_gradients

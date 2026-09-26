@@ -2,6 +2,7 @@
 #include "model/equity/markovian/cev/product/straddle_price_gradients.cuh"
 
 #include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
 #include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/cev/price_gradients/coupled_dynamics_impl.cuh"
@@ -201,6 +202,55 @@ void launch_cev_straddle_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+std::size_t cev_straddle_mixed_node_graph_workspace_bytes(
+    const StraddlePriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_terminal_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::StraddlePathPolicy>,
+        7U,
+        21U,
+        64U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_cev_straddle_mixed_node_graph_sensitivities_cuda(
+    const StraddlePriceGradientPlan& host,
+    StraddlePriceGradientPlan::DeviceInputs device,
+    StraddlePriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    StraddlePriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_terminal_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        epg::TerminalProductSensitivityPolicy<product::StraddlePathPolicy>,
+        7U,
+        21U,
+        64U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "cev.straddle.sensitivities.mixed_node_graph",
+        "selected_gradient_and_hessian/nodes=graph"
     );
 }
 
