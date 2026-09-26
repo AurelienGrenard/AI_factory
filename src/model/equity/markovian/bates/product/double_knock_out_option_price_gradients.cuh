@@ -4,6 +4,7 @@
 #include "common/equity/price_gradients/path_device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/bates/price_gradients/device_preparation.cuh"
 #include "product/double_knock_out_option/price_gradients/device_preparation.cuh"
@@ -113,6 +114,27 @@ void launch_bates_double_knock_out_option_node_graph_sensitivities_cuda(
     DoubleKnockOutOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+
+// Selected mixed derivatives use the node graph; request shape lives in host.
+template<OptionSide Side>
+std::size_t bates_double_knock_out_option_mixed_node_graph_workspace_bytes(
+    const DoubleKnockOutOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side>
+void launch_bates_double_knock_out_option_mixed_node_graph_sensitivities_cuda(
+    const DoubleKnockOutOptionPriceGradientPlan& host,
+    DoubleKnockOutOptionPriceGradientPlan::DeviceInputs device,
+    DoubleKnockOutOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    DoubleKnockOutOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
 );

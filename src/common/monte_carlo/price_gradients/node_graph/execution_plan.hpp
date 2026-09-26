@@ -3,7 +3,7 @@
 
 #include "common/check_cuda.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/capacity.cuh"
-#include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
 #include "common/price_gradients/launch.cuh"
@@ -163,22 +163,28 @@ NodeGraphExecutionPlan make_node_graph_execution_plan(
 }
 
 
-struct MixedNodeGraphExecutionPlan {
+template<typename WorkspaceLayout>
+struct BasicMixedNodeGraphExecutionPlan {
     TerminalNodeGraphConfiguration graph{};
-    MixedTerminalNodeGraphWorkspaceLayout workspace{};
+    WorkspaceLayout workspace{};
 };
 
+using MixedNodeGraphExecutionPlan = BasicMixedNodeGraphExecutionPlan<
+    MixedNodeGraphWorkspaceLayout
+>;
+
 template<
-    typename NodePolicy,
     std::size_t MaximumSensitivities,
     std::size_t MaximumMixedSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
     typename Tuning,
-    typename HostPlan>
-MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
+    typename HostPlan,
+    typename MakeWorkspaceLayout>
+auto make_mixed_node_graph_execution_plan_with_layout(
     const HostPlan& host,
-    const pg::LaunchConfiguration& launch
+    const pg::LaunchConfiguration& launch,
+    MakeWorkspaceLayout make_workspace_layout
 ) {
     static_assert(tuning::valid_node_profile_v<Tuning>);
     constexpr auto node_capacity =
@@ -211,12 +217,7 @@ MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
         launch.threads_per_block
     );
     TerminalNodeGraphConfiguration graph{rows, paths, 1U};
-    auto layout = mixed_terminal_node_graph_workspace_layout<NodePolicy>(
-        host.sensitivity_count(),
-        sensitivity_graph,
-        launch.threads_per_block,
-        graph
-    );
+    auto layout = make_workspace_layout(graph);
     while (layout.bytes > Tuning::kWorkspaceByteLimit) {
         if (graph.row_chunk_size > 1U) {
             graph.row_chunk_size = (graph.row_chunk_size + 1U) / 2U;
@@ -234,15 +235,10 @@ MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
                 "Mixed sensitivity node graph exceeds its workspace budget."
             );
         }
-        layout = mixed_terminal_node_graph_workspace_layout<NodePolicy>(
-            host.sensitivity_count(),
-            sensitivity_graph,
-            launch.threads_per_block,
-            graph
-        );
+        layout = make_workspace_layout(graph);
     }
 
-    constexpr auto groups_per_block =
+    constexpr auto teams_per_block =
         Tuning::kThreadsPerBlock / GroupSize;
     const auto multiprocessors =
         node_graph_execution_detail::current_multiprocessor_count();
@@ -252,8 +248,8 @@ MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
         (target_blocks + graph.row_chunk_size - 1U)
         / graph.row_chunk_size;
     const auto useful_shards =
-        (graph.path_chunk_size + groups_per_block - 1U)
-        / groups_per_block;
+        (graph.path_chunk_size + teams_per_block - 1U)
+        / teams_per_block;
     const auto shards = std::max<std::size_t>(
         1U, std::min(desired_shards, useful_shards)
     );
@@ -263,7 +259,38 @@ MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
         );
     }
     graph.path_shards = static_cast<unsigned int>(shards);
-    return {graph, layout};
+    return BasicMixedNodeGraphExecutionPlan<decltype(layout)>{
+        graph, layout
+    };
+}
+
+template<
+    typename NodePolicy,
+    std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
+    unsigned int GroupSize,
+    unsigned int NodesPerWorker,
+    typename Tuning,
+    typename HostPlan>
+MixedNodeGraphExecutionPlan make_mixed_node_graph_execution_plan(
+    const HostPlan& host,
+    const pg::LaunchConfiguration& launch
+) {
+    const auto make_layout = [&](TerminalNodeGraphConfiguration graph) {
+        return mixed_node_graph_workspace_layout<NodePolicy>(
+            host.sensitivity_count(),
+            host.sensitivity_graph,
+            launch.threads_per_block,
+            graph
+        );
+    };
+    return make_mixed_node_graph_execution_plan_with_layout<
+        MaximumSensitivities,
+        MaximumMixedSensitivities,
+        GroupSize,
+        NodesPerWorker,
+        Tuning
+    >(host, launch, make_layout);
 }
 
 }  // namespace ai_factory::workbench::monte_carlo::price_gradients

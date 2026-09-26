@@ -2,7 +2,7 @@
 #include "common/monte_carlo/price_gradients/device_prepared_terminal_diagonal_kernel.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
-#include "diagonal_cuda_test_support.cuh"
+#include "mixed_node_graph_cuda_test_support.cuh"
 
 #include <bit>
 #include <cmath>
@@ -21,136 +21,10 @@ namespace pg = price_gradients;
 namespace heston = model::equity::heston;
 namespace merton = model::equity::merton;
 
-struct MixedResults {
-    std::vector<float> prices;
-    std::vector<float> price_errors;
-    std::vector<float> gradients;
-    std::vector<float> gradient_errors;
-    std::vector<float> diagonal_hessians;
-    std::vector<float> diagonal_hessian_errors;
-    std::vector<float> mixed_hessians;
-    std::vector<float> mixed_hessian_errors;
-};
-
-void same_bits(
-    const std::vector<float>& expected,
-    const std::vector<float>& actual,
-    const char* label
-) {
-    require(expected.size() == actual.size(), "Mixed parity size mismatch.");
-    for (std::size_t index = 0U; index < expected.size(); ++index) {
-        if (std::bit_cast<std::uint32_t>(expected[index])
-            == std::bit_cast<std::uint32_t>(actual[index])) {
-            continue;
-        }
-        throw std::runtime_error(
-            std::string(label) + " differs at " + std::to_string(index)
-        );
-    }
-}
-
-template<typename Plan, typename WorkspaceSizer, typename Launcher>
-MixedResults run_mixed(
-    const Plan& host,
-    pg::LaunchConfiguration launch,
-    WorkspaceSizer workspace_size,
-    Launcher launcher,
-    const char* label
-) {
-    const auto rows = host.result_count;
-    const auto sensitivity_count = host.sensitivity_count();
-    const auto mixed_count = host.sensitivity_graph.mixed_second.size();
-    const auto workspace_bytes = workspace_size(host, launch);
-
-    DeviceArray<typename Plan::Model> models(host.models);
-    DeviceArray<typename Plan::Product> products(host.products);
-    DeviceArray<typename Plan::SensitivitySpec> sensitivities(
-        host.sensitivities
-    );
-    DeviceArray<pg::SensitivityStencil<4U>> stencils(
-        rows * sensitivity_count
-    );
-    DeviceArray<pg::MixedSensitivityStencil> mixed_stencils(
-        rows * mixed_count
-    );
-    DeviceArray<pg::device_preparation::Error> preparation_error(1U);
-    DeviceArray<std::uint8_t> workspace(workspace_bytes);
-    DeviceArray<float> prices(rows), price_errors(rows);
-    DeviceArray<float> gradients(rows * host.sensitivity_graph.first.size());
-    DeviceArray<float> gradient_errors(
-        rows * host.sensitivity_graph.first.size()
-    );
-    DeviceArray<float> diagonal_hessians(
-        rows * host.sensitivity_graph.diagonal_second.size()
-    );
-    DeviceArray<float> diagonal_hessian_errors(
-        rows * host.sensitivity_graph.diagonal_second.size()
-    );
-    DeviceArray<float> mixed_hessians(rows * mixed_count);
-    DeviceArray<float> mixed_hessian_errors(rows * mixed_count);
-
-    const typename Plan::DeviceInputs inputs{
-        models.data,
-        models.count,
-        products.data,
-        products.count,
-        sensitivities.data,
-        sensitivities.count,
-    };
-    const pg::SensitivityOutputs outputs{
-        prices.data,
-        price_errors.data,
-        gradients.data,
-        gradient_errors.data,
-        diagonal_hessians.data,
-        diagonal_hessian_errors.data,
-        rows,
-        rows * sensitivity_count,
-    };
-    const pg::MixedSensitivityOutputs mixed_outputs{
-        mixed_hessians.data,
-        mixed_hessian_errors.data,
-        rows * mixed_count,
-    };
-    const typename Plan::DiagonalStencilOutputs stencil_outputs{
-        stencils.data, stencils.count, preparation_error.data
-    };
-    const pg::MixedSensitivityStencilOutputs mixed_stencil_outputs{
-        mixed_stencils.data, mixed_stencils.count
-    };
-
-    launcher(
-        host,
-        inputs,
-        stencil_outputs,
-        mixed_stencil_outputs,
-        launch,
-        outputs,
-        mixed_outputs,
-        workspace.data,
-        workspace.count
-    );
-    check_cuda(cudaDeviceSynchronize(), label);
-    const auto error = preparation_error.read()[0U];
-    if (error.code != 0) {
-        throw std::runtime_error(
-            "Mixed preparation failed at row "
-            + std::to_string(error.row)
-            + ", sensitivity " + std::to_string(error.sensitivity)
-            + ", code " + std::to_string(error.code)
-        );
-    }
-    return {
-        prices.read(),
-        price_errors.read(),
-        gradients.read(),
-        gradient_errors.read(),
-        diagonal_hessians.read(),
-        diagonal_hessian_errors.read(),
-        mixed_hessians.read(),
-        mixed_hessian_errors.read(),
-    };
-}
+using price_gradient_test::execute_mixed_node_graph;
+using price_gradient_test::require_diagonal_parity;
+using price_gradient_test::require_finite_mixed_results;
+using price_gradient_test::require_same_bits;
 
 void check_heston() {
     const std::vector<heston::ModelParameters> models{
@@ -199,7 +73,7 @@ void check_heston() {
             OptionSide::call, pg::SensitivityOrders::first_and_second
         >
     );
-    const auto mixed = run_mixed(
+    const auto mixed = execute_mixed_node_graph(
         plan,
         launch,
         heston::heston_european_option_mixed_node_graph_workspace_bytes<
@@ -210,14 +84,14 @@ void check_heston() {
         >,
         "Heston mixed terminal graph"
     );
-    same_bits(reference.price, mixed.prices, "central price");
-    same_bits(reference.price_error, mixed.price_errors, "central error");
-    same_bits(reference.gradient, mixed.gradients, "gradient");
-    same_bits(reference.gradient_error, mixed.gradient_errors,
+    require_same_bits(reference.price, mixed.prices, "central price");
+    require_same_bits(reference.price_error, mixed.price_errors, "central error");
+    require_same_bits(reference.gradient, mixed.gradients, "gradient");
+    require_same_bits(reference.gradient_error, mixed.gradient_errors,
               "gradient error");
-    same_bits(reference.diagonal_hessian, mixed.diagonal_hessians,
+    require_same_bits(reference.diagonal_hessian, mixed.diagonal_hessians,
               "diagonal Hessian");
-    same_bits(reference.diagonal_hessian_error,
+    require_same_bits(reference.diagonal_hessian_error,
               mixed.diagonal_hessian_errors,
               "diagonal Hessian error");
     for (const auto value : mixed.mixed_hessians) {
@@ -241,7 +115,7 @@ void check_heston() {
         );
     require(sparse_plan.sensitivity_graph.node_capacity == 12U,
             "Sparse Heston graph did not remove unused nodes.");
-    const auto sparse = run_mixed(
+    const auto sparse = execute_mixed_node_graph(
         sparse_plan,
         launch,
         heston::heston_european_option_mixed_node_graph_workspace_bytes<
@@ -252,21 +126,21 @@ void check_heston() {
         >,
         "Heston sparse mixed terminal graph"
     );
-    same_bits(mixed.prices, sparse.prices, "sparse central price");
-    same_bits(mixed.price_errors, sparse.price_errors,
+    require_same_bits(mixed.prices, sparse.prices, "sparse central price");
+    require_same_bits(mixed.price_errors, sparse.price_errors,
               "sparse central error");
     for (std::size_t row = 0U; row < models.size(); ++row) {
-        same_bits(
+        require_same_bits(
             {mixed.gradients[row * 3U + 2U]},
             {sparse.gradients[row]},
             "sparse selected gradient"
         );
-        same_bits(
+        require_same_bits(
             {mixed.diagonal_hessians[row * 3U]},
             {sparse.diagonal_hessians[row]},
             "sparse selected diagonal Hessian"
         );
-        same_bits(
+        require_same_bits(
             {mixed.mixed_hessians[row * 3U + 2U]},
             {sparse.mixed_hessians[row]},
             "sparse selected mixed Hessian"
@@ -319,7 +193,7 @@ void check_merton() {
             OptionSide::call, pg::SensitivityOrders::first_and_second
         >
     );
-    const auto mixed = run_mixed(
+    const auto mixed = execute_mixed_node_graph(
         plan,
         launch,
         merton::merton_european_option_mixed_node_graph_workspace_bytes<
@@ -330,15 +204,15 @@ void check_merton() {
         >,
         "Merton mixed terminal graph"
     );
-    same_bits(reference.price, mixed.prices, "Merton central price");
-    same_bits(reference.price_error, mixed.price_errors,
+    require_same_bits(reference.price, mixed.prices, "Merton central price");
+    require_same_bits(reference.price_error, mixed.price_errors,
               "Merton central error");
-    same_bits(reference.gradient, mixed.gradients, "Merton gradient");
-    same_bits(reference.gradient_error, mixed.gradient_errors,
+    require_same_bits(reference.gradient, mixed.gradients, "Merton gradient");
+    require_same_bits(reference.gradient_error, mixed.gradient_errors,
               "Merton gradient error");
-    same_bits(reference.diagonal_hessian, mixed.diagonal_hessians,
+    require_same_bits(reference.diagonal_hessian, mixed.diagonal_hessians,
               "Merton diagonal Hessian");
-    same_bits(reference.diagonal_hessian_error,
+    require_same_bits(reference.diagonal_hessian_error,
               mixed.diagonal_hessian_errors,
               "Merton diagonal Hessian error");
     for (const auto value : mixed.mixed_hessians) {

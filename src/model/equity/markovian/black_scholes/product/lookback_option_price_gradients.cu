@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/black_scholes/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/black_scholes/product/lookback_option.cuh"
 #include "product/lookback_option/pricing_policy.cuh"
@@ -206,6 +207,58 @@ void launch_black_scholes_lookback_option_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+
+std::size_t black_scholes_lookback_option_mixed_node_graph_workspace_bytes(
+    const LookbackOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::LookbackOptionPathPolicy,
+        LookbackOptionGradientSchedule,
+        5U,
+        10U,
+        32U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_black_scholes_lookback_option_mixed_node_graph_sensitivities_cuda(
+    const LookbackOptionPriceGradientPlan& host,
+    LookbackOptionPriceGradientPlan::DeviceInputs device,
+    LookbackOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    LookbackOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::LookbackOptionPathPolicy,
+        LookbackOptionGradientSchedule,
+        5U,
+        10U,
+        32U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "black_scholes.lookback_option.sensitivities.mixed_node_graph",
+        "full_hessian"
     );
 }
 

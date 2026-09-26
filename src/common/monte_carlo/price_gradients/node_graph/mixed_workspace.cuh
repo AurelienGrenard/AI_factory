@@ -1,4 +1,4 @@
-// Workspace for terminal node graphs containing selected mixed derivatives.
+// Engine-neutral workspace for selected mixed sensitivity node graphs.
 #pragma once
 
 #include "common/monte_carlo/price_gradients/node_graph/node_indices.cuh"
@@ -18,7 +18,7 @@
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
 template<typename NodePolicy>
-struct MixedTerminalNodeGraphWorkspace {
+struct MixedNodeGraphWorkspace {
     using NodeValue = typename NodePolicy::NodeValue;
     using NodeMetadata = typename NodePolicy::Metadata;
     using AxisNodeIndices = SensitivityNodeIndices<4U>;
@@ -46,7 +46,7 @@ struct MixedTerminalNodeGraphWorkspace {
     std::size_t thread_moment_capacity = 0U;
 };
 
-struct MixedTerminalNodeGraphWorkspaceRequirements {
+struct MixedNodeGraphWorkspaceRequirements {
     std::size_t first_coordinates = 0U;
     std::size_t diagonal_coordinates = 0U;
     std::size_t mixed_pairs = 0U;
@@ -59,8 +59,8 @@ struct MixedTerminalNodeGraphWorkspaceRequirements {
     std::size_t thread_moments = 0U;
 };
 
-struct MixedTerminalNodeGraphWorkspaceLayout {
-    MixedTerminalNodeGraphWorkspaceRequirements capacities{};
+struct MixedNodeGraphWorkspaceLayout {
+    MixedNodeGraphWorkspaceRequirements capacities{};
     std::size_t first_coordinates_offset = 0U;
     std::size_t diagonal_coordinates_offset = 0U;
     std::size_t mixed_pairs_offset = 0U;
@@ -74,8 +74,8 @@ struct MixedTerminalNodeGraphWorkspaceLayout {
     std::size_t bytes = 0U;
 };
 
-inline MixedTerminalNodeGraphWorkspaceRequirements
-mixed_terminal_node_graph_workspace_requirements(
+inline MixedNodeGraphWorkspaceRequirements
+mixed_node_graph_workspace_requirements(
     std::size_t sensitivity_count,
     const pg::SensitivityGraphPlan& graph_plan,
     unsigned int reduction_threads,
@@ -148,18 +148,18 @@ mixed_terminal_node_graph_workspace_requirements(
 }
 
 template<typename NodePolicy>
-MixedTerminalNodeGraphWorkspaceLayout mixed_terminal_node_graph_workspace_layout(
+MixedNodeGraphWorkspaceLayout mixed_node_graph_workspace_layout(
     std::size_t sensitivity_count,
     const pg::SensitivityGraphPlan& graph_plan,
     unsigned int reduction_threads,
     TerminalNodeGraphConfiguration configuration
 ) {
-    const auto capacities = mixed_terminal_node_graph_workspace_requirements(
+    const auto capacities = mixed_node_graph_workspace_requirements(
         sensitivity_count, graph_plan, reduction_threads, configuration
     );
-    using Workspace = MixedTerminalNodeGraphWorkspace<NodePolicy>;
+    using Workspace = MixedNodeGraphWorkspace<NodePolicy>;
     std::size_t offset = 0U;
-    MixedTerminalNodeGraphWorkspaceLayout layout{};
+    MixedNodeGraphWorkspaceLayout layout{};
     layout.capacities = capacities;
     layout.first_coordinates_offset = workspace_detail::append_workspace_array<
         std::uint16_t
@@ -196,18 +196,18 @@ MixedTerminalNodeGraphWorkspaceLayout mixed_terminal_node_graph_workspace_layout
 }
 
 template<typename NodePolicy>
-MixedTerminalNodeGraphWorkspace<NodePolicy>
-make_mixed_terminal_node_graph_workspace(
+MixedNodeGraphWorkspace<NodePolicy>
+make_mixed_node_graph_workspace(
     void* storage,
     std::size_t storage_bytes,
-    const MixedTerminalNodeGraphWorkspaceLayout& layout
+    const MixedNodeGraphWorkspaceLayout& layout
 ) {
     if (storage == nullptr || storage_bytes < layout.bytes) {
         throw std::invalid_argument(
-            "Insufficient mixed terminal node-graph byte workspace."
+            "Insufficient mixed node-graph byte workspace."
         );
     }
-    using Workspace = MixedTerminalNodeGraphWorkspace<NodePolicy>;
+    using Workspace = MixedNodeGraphWorkspace<NodePolicy>;
     auto* base = static_cast<unsigned char*>(storage);
     return {
         reinterpret_cast<std::uint16_t*>(
@@ -252,9 +252,9 @@ make_mixed_terminal_node_graph_workspace(
 }
 
 template<typename NodePolicy>
-void validate_mixed_terminal_node_graph_workspace(
-    MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
-    MixedTerminalNodeGraphWorkspaceRequirements required
+void validate_mixed_node_graph_workspace(
+    MixedNodeGraphWorkspace<NodePolicy> workspace,
+    MixedNodeGraphWorkspaceRequirements required
 ) {
     const auto validate = [](const void* pointer,
                              std::size_t capacity,
@@ -284,23 +284,23 @@ void validate_mixed_terminal_node_graph_workspace(
              required.coordinate_uses,
              "mixed graph coordinate uses");
     validate(workspace.node_values, workspace.node_value_capacity,
-             required.node_values, "mixed terminal node values");
+             required.node_values, "mixed node values");
     validate(workspace.node_metadata, workspace.node_metadata_capacity,
-             required.node_metadata, "mixed terminal node metadata");
+             required.node_metadata, "mixed node metadata");
     validate(workspace.axis_node_indices, workspace.axis_node_index_capacity,
-             required.axis_node_indices, "mixed terminal axis indices");
+             required.axis_node_indices, "mixed axis indices");
     validate(workspace.mixed_node_indices, workspace.mixed_node_index_capacity,
-             required.mixed_node_indices, "mixed terminal pair indices");
+             required.mixed_node_indices, "mixed pair indices");
     validate(workspace.row_status, workspace.row_status_capacity,
-             required.row_status, "mixed terminal row status");
+             required.row_status, "mixed row status");
     validate(workspace.thread_moments, workspace.thread_moment_capacity,
-             required.thread_moments, "mixed terminal thread moments");
+             required.thread_moments, "mixed thread moments");
 }
 
 
 template<typename NodePolicy>
 pg::DeviceSensitivityGraph upload_mixed_sensitivity_graph(
-    MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
+    MixedNodeGraphWorkspace<NodePolicy> workspace,
     const pg::SensitivityGraphPlan& graph
 ) {
     const auto copy = [](void* destination,

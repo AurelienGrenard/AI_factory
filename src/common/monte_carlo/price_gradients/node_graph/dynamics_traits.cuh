@@ -13,7 +13,7 @@ inline constexpr bool has_coupled_draw_v = requires(
     typename Dynamics::Innovations (&innovations)[NodeCapacity]
 ) {
     Dynamics::template draw_coupled<NodeCapacity>(
-        random, prepared, std::uint8_t{}, innovations
+        random, prepared, std::uint16_t{}, innovations
     );
 };
 

@@ -71,7 +71,7 @@ void launch_mixed_terminal_node_graph_sensitivities(
         NodesPerWorker,
         Tuning
     >(host, launch);
-    const auto workspace = mcpg::make_mixed_terminal_node_graph_workspace<
+    const auto workspace = mcpg::make_mixed_node_graph_workspace<
         NodePolicy
     >(workspace_storage, workspace_bytes, execution.workspace);
     const auto device_graph = mcpg::upload_mixed_sensitivity_graph(

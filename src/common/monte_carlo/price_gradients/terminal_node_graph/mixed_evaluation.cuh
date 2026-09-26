@@ -3,7 +3,7 @@
 
 #include "common/monte_carlo/price_gradients/node_graph/mixed_row_preparation.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/terminal_node_team_evaluation.cuh"
-#include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
@@ -36,7 +36,7 @@ __device__ __forceinline__ void evaluate_mixed_nodes_body(
     std::size_t first_path,
     std::size_t path_count,
     std::size_t path_capacity,
-    MixedTerminalNodeGraphWorkspace<
+    MixedNodeGraphWorkspace<
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
@@ -202,7 +202,7 @@ __global__ void evaluate_mixed_nodes_kernel(
     std::size_t first_path,
     std::size_t path_count,
     std::size_t path_capacity,
-    MixedTerminalNodeGraphWorkspace<
+    MixedNodeGraphWorkspace<
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,

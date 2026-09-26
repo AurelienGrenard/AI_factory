@@ -2,9 +2,10 @@
 #pragma once
 
 #include "common/cuda_kernel_diagnostics.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_launch_validation.hpp"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_evaluation.cuh"
-#include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_reconstruction.cuh"
-#include "common/price_gradients/device_prepared_validation.hpp"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_reconstruction.cuh"
 
 #include <cuda_runtime.h>
 
@@ -12,57 +13,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
-#include <vector>
 
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
-namespace mixed_node_graph_detail {
-
-inline void validate_device_graph(
-    pg::DeviceSensitivityGraph device,
-    const pg::SensitivityGraphPlan& host,
-    std::size_t sensitivity_count
-) {
-    const bool shape_mismatch =
-        device.first_count != host.first.size()
-        || device.diagonal_second_count != host.diagonal_second.size()
-        || device.mixed_second_count != host.mixed_second.size()
-        || device.coordinate_use_count != host.coordinate_uses.size()
-        || device.node_capacity != host.node_capacity
-        || device.coordinate_use_count != sensitivity_count;
-    if (shape_mismatch
-        || device.first_capacity < device.first_count
-        || device.diagonal_second_capacity < device.diagonal_second_count
-        || device.mixed_second_capacity < device.mixed_second_count
-        || device.coordinate_use_capacity < device.coordinate_use_count) {
-        throw std::invalid_argument(
-            "Mixed device graph does not match its host plan."
-        );
-    }
-    const auto validate = [](const void* pointer,
-                             std::size_t count,
-                             const char* label) {
-        if (count != 0U) validate_device_pointer(pointer, label);
-    };
-    validate(device.first, device.first_count, "mixed graph first indices");
-    validate(
-        device.diagonal_second,
-        device.diagonal_second_count,
-        "mixed graph diagonal indices"
-    );
-    validate(
-        device.mixed_second,
-        device.mixed_second_count,
-        "mixed graph pairs"
-    );
-    validate(
-        device.coordinate_uses,
-        device.coordinate_use_count,
-        "mixed graph coordinate uses"
-    );
-}
-
-}  // namespace mixed_node_graph_detail
 
 template<
     typename Dynamics,
@@ -81,7 +34,7 @@ void launch_device_prepared_terminal_mixed_node_graph(
     pg::DeviceSensitivityGraph device_graph,
     const pg::LaunchConfiguration& launch,
     TerminalNodeGraphConfiguration graph_configuration,
-    MixedTerminalNodeGraphWorkspace<
+    MixedNodeGraphWorkspace<
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>
     > workspace,
     pg::SensitivityOutputs outputs,
@@ -116,99 +69,26 @@ void launch_device_prepared_terminal_mixed_node_graph(
             "Mixed terminal reductions require whole warps."
         );
     }
-    mixed_node_graph_detail::validate_device_graph(
-        device_graph, host_graph, plan.sensitivity_count
-    );
-
-    const auto rows = plan.result_count;
-    const auto axis_stencil_count = rows * plan.sensitivity_count;
-    const auto mixed_stencil_count =
-        rows * host_graph.mixed_second.size();
-    if (stencil_outputs.stencils == nullptr
-        || stencil_outputs.capacity < axis_stencil_count
-        || stencil_outputs.error == nullptr
-        || mixed_stencil_outputs.stencils == nullptr
-        || mixed_stencil_outputs.capacity < mixed_stencil_count) {
-        throw std::invalid_argument(
-            "Insufficient mixed represented-stencil output capacity."
-        );
-    }
-    if (outputs.prices == nullptr
-        || outputs.price_standard_errors == nullptr
-        || outputs.price_capacity < rows
-        || (host_graph.first.size() != 0U
-            && (outputs.gradients == nullptr
-                || outputs.gradient_standard_errors == nullptr
-                || outputs.sensitivity_capacity
-                    < rows * host_graph.first.size()))
-        || (host_graph.diagonal_second.size() != 0U
-            && (outputs.diagonal_hessians == nullptr
-                || outputs.diagonal_hessian_standard_errors == nullptr
-                || outputs.sensitivity_capacity
-                    < rows * host_graph.diagonal_second.size()))
-        || mixed_outputs.hessians == nullptr
-        || mixed_outputs.standard_errors == nullptr
-        || mixed_outputs.capacity < mixed_stencil_count) {
-        throw std::invalid_argument(
-            "Insufficient mixed terminal numerical output capacity."
-        );
-    }
-
-    std::vector<pg::BufferRange> numerical_outputs{
-        pg::checked_buffer_range(outputs.prices, rows, sizeof(float)),
-        pg::checked_buffer_range(
-            outputs.price_standard_errors, rows, sizeof(float)
-        ),
-        pg::checked_buffer_range(
-            mixed_outputs.hessians, mixed_stencil_count, sizeof(float)
-        ),
-        pg::checked_buffer_range(
-            mixed_outputs.standard_errors, mixed_stencil_count, sizeof(float)
-        ),
-        pg::checked_buffer_range(
-            mixed_stencil_outputs.stencils,
-            mixed_stencil_count,
-            sizeof(pg::MixedSensitivityStencil)
-        ),
-    };
-    if (!host_graph.first.empty()) {
-        numerical_outputs.push_back(pg::checked_buffer_range(
-            outputs.gradients, rows * host_graph.first.size(), sizeof(float)
-        ));
-        numerical_outputs.push_back(pg::checked_buffer_range(
-            outputs.gradient_standard_errors,
-            rows * host_graph.first.size(),
-            sizeof(float)
-        ));
-    }
-    if (!host_graph.diagonal_second.empty()) {
-        numerical_outputs.push_back(pg::checked_buffer_range(
-            outputs.diagonal_hessians,
-            rows * host_graph.diagonal_second.size(),
-            sizeof(float)
-        ));
-        numerical_outputs.push_back(pg::checked_buffer_range(
-            outputs.diagonal_hessian_standard_errors,
-            rows * host_graph.diagonal_second.size(),
-            sizeof(float)
-        ));
-    }
-    validate_device_prepared_launch(
+    validate_mixed_node_graph_launch(
         inputs,
         plan,
-        stencil_outputs,
+        host_graph,
+        device_graph,
         launch,
-        numerical_outputs
+        outputs,
+        mixed_outputs,
+        stencil_outputs,
+        mixed_stencil_outputs
     );
 
     const auto requirements =
-        mixed_terminal_node_graph_workspace_requirements(
+        mixed_node_graph_workspace_requirements(
             plan.sensitivity_count,
             host_graph,
             launch.threads_per_block,
             graph_configuration
         );
-    validate_mixed_terminal_node_graph_workspace(workspace, requirements);
+    validate_mixed_node_graph_workspace(workspace, requirements);
 
     using NodePolicy =
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>;
@@ -236,35 +116,15 @@ void launch_device_prepared_terminal_mixed_node_graph(
     ) & ~std::size_t{15U};
     const std::size_t evaluation_shared = scenario_shared
         + groups_per_block * scratch_bytes_per_group;
-    cudaFuncAttributes evaluation_attributes{};
-    check_cuda(
-        cudaFuncGetAttributes(&evaluation_attributes, evaluate),
-        "mixed terminal evaluation kernel attributes"
+    configure_node_graph_dynamic_shared_memory(
+        evaluate,
+        evaluation_shared,
+        "mixed terminal evaluation kernel attributes",
+        "mixed terminal CUDA device",
+        "mixed terminal CUDA device properties",
+        "Mixed terminal sensitivity graph exceeds device shared memory.",
+        "mixed terminal evaluation dynamic shared memory"
     );
-    int device = 0;
-    check_cuda(cudaGetDevice(&device), "mixed terminal CUDA device");
-    cudaDeviceProp device_properties{};
-    check_cuda(
-        cudaGetDeviceProperties(&device_properties, device),
-        "mixed terminal CUDA device properties"
-    );
-    const auto total_shared = evaluation_shared
-        + evaluation_attributes.sharedSizeBytes;
-    if (total_shared > device_properties.sharedMemPerBlockOptin) {
-        throw std::invalid_argument(
-            "Mixed terminal sensitivity graph exceeds device shared memory."
-        );
-    }
-    if (total_shared > device_properties.sharedMemPerBlock) {
-        check_cuda(
-            cudaFuncSetAttribute(
-                evaluate,
-                cudaFuncAttributeMaxDynamicSharedMemorySize,
-                static_cast<int>(evaluation_shared)
-            ),
-            "mixed terminal evaluation dynamic shared memory"
-        );
-    }
     const auto reduction_shared =
         2U * (launch.threads_per_block / 32U) * sizeof(double);
 

@@ -3,6 +3,7 @@
 
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/equity/price_gradients/path_node_graph_launcher.cuh"
+#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/schobel_zhu/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/schobel_zhu/product/athena_autocall.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
@@ -206,6 +207,58 @@ void launch_schobel_zhu_athena_autocall_node_graph_sensitivities_cuda(
         Orders == pg::SensitivityOrders::second
             ? "diagonal_hessian/nodes=graph"
             : "gradient_and_diagonal_hessian/nodes=graph"
+    );
+}
+
+
+
+std::size_t schobel_zhu_athena_autocall_mixed_node_graph_workspace_bytes(
+    const AthenaAutocallPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return epg::mixed_path_node_graph_workspace_bytes<
+        mpg::CoupledDynamics,
+        product::AthenaAutocallPathPolicy,
+        AthenaAutocallGradientSchedule,
+        11U,
+        55U,
+        128U,
+        2U
+    >(host, configuration);
+}
+
+
+void launch_schobel_zhu_athena_autocall_mixed_node_graph_sensitivities_cuda(
+    const AthenaAutocallPriceGradientPlan& host,
+    AthenaAutocallPriceGradientPlan::DeviceInputs device,
+    AthenaAutocallPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AthenaAutocallPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    epg::launch_mixed_path_node_graph_sensitivities<
+        mpg::CoupledDynamics,
+        product::AthenaAutocallPathPolicy,
+        AthenaAutocallGradientSchedule,
+        11U,
+        55U,
+        128U,
+        2U
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        configuration,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "schobel_zhu.athena_autocall.sensitivities.mixed_node_graph",
+        "full_hessian"
     );
 }
 

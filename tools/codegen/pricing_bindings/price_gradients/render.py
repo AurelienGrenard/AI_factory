@@ -488,9 +488,10 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "mixed_output_include": (
                 '#include "common/price_gradients/'
                 'mixed_sensitivity_outputs.cuh"\n'
-                if not is_path and spec.preparation_strategy in {
+                if spec.preparation_strategy in {
                     "device_prepared_step_terminal",
                     "device_prepared_exact_terminal",
+                    "device_prepared_path",
                 }
                 else ""
             ),
@@ -590,9 +591,10 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 spec.pricing.product,
                 product_metadata.get("product_type", ""),
                 product_metadata.get("sided", True),
-                not is_path and spec.preparation_strategy in {
+                spec.preparation_strategy in {
                     "device_prepared_step_terminal",
                     "device_prepared_exact_terminal",
+                    "device_prepared_path",
                 },
             ),
             "closed_form_explicit_instantiations": (

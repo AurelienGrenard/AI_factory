@@ -1,7 +1,7 @@
 // Pathwise reconstruction and moments for selected mixed terminal outputs.
 #pragma once
 
-#include "common/monte_carlo/price_gradients/terminal_node_graph/mixed_workspace.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/monte_carlo/price_gradients/terminal_sensitivity_policy.cuh"
 #include "common/price_gradients/mixed_sensitivity_outputs.cuh"
@@ -17,7 +17,7 @@ namespace ai_factory::workbench::monte_carlo::price_gradients::node_graph_detail
 
 template<typename NodePolicy>
 __device__ __forceinline__ float reconstruct_mixed_graph_sample(
-    const MixedTerminalNodeGraphWorkspace<NodePolicy>& workspace,
+    const MixedNodeGraphWorkspace<NodePolicy>& workspace,
     const DevicePreparedStencilOutputs<4U>& stencil_outputs,
     const pg::MixedSensitivityStencilOutputs& mixed_stencil_outputs,
     pg::DeviceSensitivityGraph graph,
@@ -112,7 +112,7 @@ __global__ void accumulate_mixed_node_moments_kernel(
     std::size_t path_capacity,
     std::size_t sensitivity_count,
     pg::DeviceSensitivityGraph graph,
-    MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
+    MixedNodeGraphWorkspace<NodePolicy> workspace,
     DevicePreparedStencilOutputs<4U> stencil_outputs,
     pg::MixedSensitivityStencilOutputs mixed_stencil_outputs
 ) {
@@ -156,7 +156,7 @@ __global__ void finalize_mixed_node_moments_kernel(
     std::size_t row_count,
     std::size_t paths_per_row,
     pg::DeviceSensitivityGraph graph,
-    MixedTerminalNodeGraphWorkspace<NodePolicy> workspace,
+    MixedNodeGraphWorkspace<NodePolicy> workspace,
     pg::SensitivityOutputs outputs,
     pg::MixedSensitivityOutputs mixed_outputs
 ) {

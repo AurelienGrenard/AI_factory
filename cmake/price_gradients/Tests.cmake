@@ -47,6 +47,14 @@ add_cuda_workbench_test(price_gradients_mixed_terminal_node_graph_cuda
 target_link_libraries(test_price_gradients_mixed_terminal_node_graph_cuda PRIVATE
     ai_factory_equity_heston_european_option_price_gradients
     ai_factory_equity_merton_european_option_price_gradients)
+add_cuda_workbench_test(price_gradients_mixed_path_node_graph_cuda
+    tests/price_gradients/mixed_path_node_graph_cuda_test.cu
+    "price_gradients;parity;node_graph;path_products;jumps;mixed_hessian" 240)
+target_link_libraries(test_price_gradients_mixed_path_node_graph_cuda PRIVATE
+    ai_factory_equity_bates_cliquet_price_gradients
+    ai_factory_equity_bates_range_accrual_price_gradients
+    ai_factory_equity_heston_asian_option_price_gradients
+    ai_factory_equity_merton_forward_start_option_price_gradients)
 add_cuda_workbench_test(price_gradients_path_node_graph_cuda
     tests/price_gradients/path_node_graph_cuda_test.cu
     "price_gradients;parity;node_graph;path_products;calendars;jumps" 180)

@@ -4,6 +4,7 @@
 #include "common/equity/price_gradients/path_device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/sabr/price_gradients/device_preparation.cuh"
 #include "product/athena_autocall/price_gradients/device_preparation.cuh"
@@ -113,6 +114,27 @@ void launch_sabr_athena_autocall_node_graph_sensitivities_cuda(
     AthenaAutocallPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+
+// Selected mixed derivatives use the node graph; request shape lives in host.
+
+std::size_t sabr_athena_autocall_mixed_node_graph_workspace_bytes(
+    const AthenaAutocallPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+
+void launch_sabr_athena_autocall_mixed_node_graph_sensitivities_cuda(
+    const AthenaAutocallPriceGradientPlan& host,
+    AthenaAutocallPriceGradientPlan::DeviceInputs device,
+    AthenaAutocallPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AthenaAutocallPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
 );
