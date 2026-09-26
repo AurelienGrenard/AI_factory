@@ -175,7 +175,7 @@ template<
     typename MonoLauncher,
     typename WorkspaceSizer,
     typename MixedLauncher>
-void require_mixed_node_graph_parity(
+MixedResults require_mixed_node_graph_parity(
     const Plan& plan,
     MonoLauncher mono_launcher,
     WorkspaceSizer workspace_size,
@@ -206,6 +206,7 @@ void require_mixed_node_graph_parity(
     );
     require_diagonal_parity(reference, mixed, label);
     require_finite_mixed_results(mixed, label.c_str());
+    return mixed;
 }
 
 }  // namespace price_gradient_test

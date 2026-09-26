@@ -5,6 +5,7 @@
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/vasicek/price_gradients/device_preparation.cuh"
 #include "product/bermudan_swaption/price_gradients/device_preparation.cuh"
@@ -112,6 +113,27 @@ launch_vasicek_bermudan_swaption_node_graph_sensitivities_cuda(
     BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+
+template<SwaptionSide Side>
+std::size_t vasicek_bermudan_swaption_mixed_node_graph_workspace_bytes(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_vasicek_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    BermudanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
 );

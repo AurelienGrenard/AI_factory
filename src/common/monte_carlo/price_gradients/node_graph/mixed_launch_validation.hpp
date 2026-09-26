@@ -56,6 +56,38 @@ inline void validate_device_sensitivity_graph(
     );
 }
 
+inline void validate_mixed_output_views(
+    std::size_t rows,
+    std::size_t first_count,
+    std::size_t diagonal_count,
+    std::size_t mixed_count,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    pg::MixedSensitivityStencilOutputs mixed_stencil_outputs
+) {
+    if (outputs.prices == nullptr
+        || outputs.price_standard_errors == nullptr
+        || outputs.price_capacity < rows
+        || (first_count != 0U
+            && (outputs.gradients == nullptr
+                || outputs.gradient_standard_errors == nullptr
+                || outputs.sensitivity_capacity < rows * first_count))
+        || (diagonal_count != 0U
+            && (outputs.diagonal_hessians == nullptr
+                || outputs.diagonal_hessian_standard_errors == nullptr
+                || outputs.sensitivity_capacity < rows * diagonal_count))
+        || (mixed_count != 0U
+            && (mixed_outputs.hessians == nullptr
+                || mixed_outputs.standard_errors == nullptr
+                || mixed_outputs.capacity < rows * mixed_count
+                || mixed_stencil_outputs.stencils == nullptr
+                || mixed_stencil_outputs.capacity < rows * mixed_count))) {
+        throw std::invalid_argument(
+            "Insufficient mixed numerical output capacity."
+        );
+    }
+}
+
 template<typename Inputs>
 void validate_mixed_node_graph_launch(
     Inputs inputs,
@@ -77,33 +109,20 @@ void validate_mixed_node_graph_launch(
         rows * host_graph.mixed_second.size();
     if (stencil_outputs.stencils == nullptr
         || stencil_outputs.capacity < axis_stencil_count
-        || stencil_outputs.error == nullptr
-        || mixed_stencil_outputs.stencils == nullptr
-        || mixed_stencil_outputs.capacity < mixed_stencil_count) {
+        || stencil_outputs.error == nullptr) {
         throw std::invalid_argument(
             "Insufficient mixed represented-stencil output capacity."
         );
     }
-    if (outputs.prices == nullptr
-        || outputs.price_standard_errors == nullptr
-        || outputs.price_capacity < rows
-        || (host_graph.first.size() != 0U
-            && (outputs.gradients == nullptr
-                || outputs.gradient_standard_errors == nullptr
-                || outputs.sensitivity_capacity
-                    < rows * host_graph.first.size()))
-        || (host_graph.diagonal_second.size() != 0U
-            && (outputs.diagonal_hessians == nullptr
-                || outputs.diagonal_hessian_standard_errors == nullptr
-                || outputs.sensitivity_capacity
-                    < rows * host_graph.diagonal_second.size()))
-        || mixed_outputs.hessians == nullptr
-        || mixed_outputs.standard_errors == nullptr
-        || mixed_outputs.capacity < mixed_stencil_count) {
-        throw std::invalid_argument(
-            "Insufficient mixed numerical output capacity."
-        );
-    }
+    validate_mixed_output_views(
+        rows,
+        host_graph.first.size(),
+        host_graph.diagonal_second.size(),
+        host_graph.mixed_second.size(),
+        outputs,
+        mixed_outputs,
+        mixed_stencil_outputs
+    );
 
     std::vector<pg::BufferRange> numerical_outputs{
         pg::checked_buffer_range(outputs.prices, rows, sizeof(float)),

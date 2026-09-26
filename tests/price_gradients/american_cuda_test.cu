@@ -3,6 +3,7 @@
 #include "model/equity/markovian/heston/product/american_option_price_delta.cuh"
 #include "model/equity/markovian/heston/product/american_option_price_gradients.cuh"
 #include "tests/price_gradients/cuda_test_support.cuh"
+#include "tests/price_gradients/mixed_node_graph_cuda_test_support.cuh"
 
 #include <algorithm>
 #include <bit>
@@ -437,6 +438,118 @@ void run() {
             ].node_count == 4U,
             "The variance boundary did not use four one-sided nodes."
         );
+
+        if (threads == 128U) {
+            const auto mixed_plan =
+                heston::prepare_heston_american_option_sensitivities(
+                    models,
+                    products,
+                    PriceConstruction::Aligned,
+                    time,
+                    full,
+                    pg::SensitivityRequest::full_hessian()
+                );
+            const auto mixed =
+                price_gradient_test::require_mixed_node_graph_parity(
+                mixed_plan,
+                [](const auto& p, auto inputs, auto stencils,
+                   const auto& configuration, auto outputs) {
+                    return heston::
+                        launch_heston_american_option_diagonal_sensitivities_cuda<
+                            Side, pg::SensitivityOrders::first_and_second
+                        >(p, inputs, stencils, configuration, outputs);
+                },
+                [](const auto& p, const auto& configuration) {
+                    return heston::
+                        heston_american_option_mixed_node_graph_workspace_bytes<
+                            Side
+                        >(p, configuration);
+                },
+                [](const auto& p, auto inputs, auto stencils,
+                   auto mixed_stencils, const auto& configuration,
+                   auto outputs, auto mixed_outputs,
+                   void* workspace, std::size_t workspace_bytes) {
+                    return heston::
+                        launch_heston_american_option_mixed_node_graph_sensitivities_cuda<
+                            Side
+                        >(
+                            p, inputs, stencils, mixed_stencils,
+                            configuration, outputs, mixed_outputs,
+                            workspace, workspace_bytes
+                        );
+                },
+                paths,
+                seed,
+                "Heston American mixed node graph"
+            );
+
+            const auto sparse_plan =
+                heston::prepare_heston_american_option_sensitivities(
+                    models,
+                    products,
+                    PriceConstruction::Aligned,
+                    time,
+                    full,
+                    pg::SensitivityRequest::selected(
+                        {}, {}, {{0U, 8U}}
+                    )
+                );
+            const auto sparse =
+                price_gradient_test::execute_mixed_node_graph(
+                    sparse_plan,
+                    {
+                        pg::PricingMethod::monte_carlo,
+                        0U,
+                        rows,
+                        paths,
+                        threads,
+                        blocks,
+                        seed,
+                        1U,
+                    },
+                    [](const auto& p, const auto& configuration) {
+                        return heston::
+                            heston_american_option_mixed_node_graph_workspace_bytes<
+                                Side
+                            >(p, configuration);
+                    },
+                    [](const auto& p, auto inputs, auto stencils,
+                       auto mixed_stencils, const auto& configuration,
+                       auto outputs, auto mixed_outputs,
+                       void* workspace, std::size_t workspace_bytes) {
+                        return heston::
+                            launch_heston_american_option_mixed_node_graph_sensitivities_cuda<
+                                Side
+                            >(
+                                p, inputs, stencils, mixed_stencils,
+                                configuration, outputs, mixed_outputs,
+                                workspace, workspace_bytes
+                            );
+                    },
+                    "Heston American sparse mixed-only node graph"
+                );
+            require(
+                sparse_plan.sensitivity_graph.node_capacity == 9U,
+                "Mixed-only American graph retained unselected coordinates."
+            );
+            price_gradient_test::require_same_bits(
+                mixed.prices, sparse.prices,
+                "American sparse mixed-only central price"
+            );
+            price_gradient_test::require_same_bits(
+                mixed.price_errors, sparse.price_errors,
+                "American sparse mixed-only central error"
+            );
+            for (std::size_t row = 0U; row < rows; ++row) {
+                price_gradient_test::require_same_bits(
+                    std::vector<float>{
+                        mixed.mixed_hessians[row * 36U + 7U]
+                    },
+                    std::vector<float>{sparse.mixed_hessians[row]},
+                    "American sparse selected mixed Hessian"
+                );
+            }
+        }
 
         if constexpr (Side == OptionSide::put) {
             require(selected_spot.prices[1] == 1.0f - models[1].spot,

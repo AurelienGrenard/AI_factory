@@ -98,7 +98,7 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
         std::size_t sensitivity_count;
         pg::SensitivityOutputs outputs;
 
-        void validate(std::size_t results) const {
+        void validate_inputs_and_tasks(std::size_t results) const {
             validate_device_pointer(primary.models, "sensitivity models");
             validate_device_pointer(primary.products, "sensitivity products");
             if (primary.model_capacity < model_count
@@ -109,45 +109,49 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
                     "Insufficient American sensitivity input capacity."
                 );
             }
-            if (sensitivity_count != 0U) {
-                validate_device_pointer(
-                    primary.sensitivities, "sensitivity specifications"
-                );
-                validate_device_pointer(
-                    stencil_outputs.stencils, "represented stencils"
-                );
-                validate_device_pointer(
-                    stencil_outputs.error, "sensitivity preparation status"
-                );
-                if (primary.sensitivity_capacity < sensitivity_count
-                    || stencil_outputs.capacity
-                        < total_result_count * sensitivity_count) {
-                    throw std::invalid_argument(
-                        "Insufficient American sensitivity task capacity."
-                    );
-                }
-                if constexpr (pg::requests_first_v<Orders>) {
-                    validate_device_pointer(outputs.gradients, "gradients");
-                    validate_device_pointer(
-                        outputs.gradient_standard_errors,
-                        "gradient standard errors"
-                    );
-                }
-                if constexpr (pg::requests_second_v<Orders>) {
-                    validate_device_pointer(
-                        outputs.diagonal_hessians, "diagonal Hessians"
-                    );
-                    validate_device_pointer(
-                        outputs.diagonal_hessian_standard_errors,
-                        "diagonal Hessian standard errors"
-                    );
-                }
-                if (outputs.sensitivity_capacity
+            if (sensitivity_count == 0U) return;
+            validate_device_pointer(
+                primary.sensitivities, "sensitivity specifications"
+            );
+            validate_device_pointer(
+                stencil_outputs.stencils, "represented stencils"
+            );
+            validate_device_pointer(
+                stencil_outputs.error, "sensitivity preparation status"
+            );
+            if (primary.sensitivity_capacity < sensitivity_count
+                || stencil_outputs.capacity
                     < total_result_count * sensitivity_count) {
-                    throw std::invalid_argument(
-                        "Insufficient American sensitivity output capacity."
-                    );
-                }
+                throw std::invalid_argument(
+                    "Insufficient American sensitivity task capacity."
+                );
+            }
+        }
+
+        void validate(std::size_t results) const {
+            validate_inputs_and_tasks(results);
+            if (sensitivity_count == 0U) return;
+            if constexpr (pg::requests_first_v<Orders>) {
+                validate_device_pointer(outputs.gradients, "gradients");
+                validate_device_pointer(
+                    outputs.gradient_standard_errors,
+                    "gradient standard errors"
+                );
+            }
+            if constexpr (pg::requests_second_v<Orders>) {
+                validate_device_pointer(
+                    outputs.diagonal_hessians, "diagonal Hessians"
+                );
+                validate_device_pointer(
+                    outputs.diagonal_hessian_standard_errors,
+                    "diagonal Hessian standard errors"
+                );
+            }
+            if (outputs.sensitivity_capacity
+                < total_result_count * sensitivity_count) {
+                throw std::invalid_argument(
+                    "Insufficient American sensitivity output capacity."
+                );
             }
         }
 

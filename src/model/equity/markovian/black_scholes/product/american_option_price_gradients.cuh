@@ -5,6 +5,7 @@
 #include "common/longstaff_schwartz/price_gradients/device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
+#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/black_scholes/price_gradients/device_preparation.cuh"
 #include "product/american_option/price_gradients/device_preparation.cuh"
@@ -115,6 +116,27 @@ launch_black_scholes_american_option_node_graph_sensitivities_cuda(
     AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
     const pg::LaunchConfiguration& configuration,
     pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+);
+
+
+template<OptionSide Side>
+std::size_t black_scholes_american_option_mixed_node_graph_workspace_bytes(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_mixed_node_graph_sensitivities_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AmericanOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
 );

@@ -12,6 +12,7 @@
 #include "model/fixed_income/g2_plus_plus/dynamics.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics_impl.cuh"
 #include "product/bermudan_swaption/price_gradients/device_prepared_frozen_exercise_node_graph.cuh"
+#include "product/bermudan_swaption/price_gradients/device_prepared_frozen_exercise_mixed_node_graph.cuh"
 #include "product/bermudan_swaption/price_gradients/device_prepared_pricing_policy.cuh"
 #include "product/bermudan_swaption/pricing_policy.cuh"
 #include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"
@@ -45,6 +46,10 @@ constexpr std::size_t kNodeGraphMaximumSensitivities = 12U;
 constexpr unsigned int kNodeGraphGroupSize = 32U;
 constexpr unsigned int kNodeGraphNodesPerWorker = 2U;
 using NodeGraphTuning = mcpg::tuning::DefaultTerminalNodeTuning;
+constexpr std::size_t kMixedNodeGraphMaximumSensitivities = 12U;
+constexpr std::size_t kMixedNodeGraphMaximumPairs = 66U;
+constexpr unsigned int kMixedNodeGraphTeamSize = 128U;
+constexpr unsigned int kMixedNodeGraphNodesPerWorker = 3U;
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
 using NodeGraphPolicy = bermudan_pg::FrozenExerciseNodeGraphPolicy<
     Policy<Side, Orders>,
@@ -53,6 +58,16 @@ using NodeGraphPolicy = bermudan_pg::FrozenExerciseNodeGraphPolicy<
     kNodeGraphNodesPerWorker,
     NodeGraphTuning
 >;
+template<SwaptionSide Side>
+using MixedNodeGraphPolicy =
+    bermudan_pg::FrozenExerciseMixedNodeGraphPolicy<
+        Policy<Side, pg::SensitivityOrders::first_and_second>,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >;
 using Regressor = longstaff_schwartz::NormalEquationRegressor<
     longstaff_schwartz::basis::TwoFactorHermiteBasis
 >;
@@ -206,6 +221,60 @@ launch_g2_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_cud
     );
 }
 
+
+template<SwaptionSide Side>
+std::size_t g2_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_workspace_bytes(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return lspg::frozen_exercise_mixed_node_graph_workspace_bytes<
+        MixedNodeGraphPolicy<Side>,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(host, configuration);
+}
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_g2_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    BermudanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    return lspg::launch_device_prepared_mixed_node_graph_sensitivities<
+        MixedNodeGraphPolicy<Side>,
+        Regressor,
+        kMixedNodeGraphMaximumSensitivities,
+        kMixedNodeGraphMaximumPairs,
+        kMixedNodeGraphTeamSize,
+        kMixedNodeGraphNodesPerWorker,
+        NodeGraphTuning
+    >(
+        host,
+        device,
+        stencil_outputs,
+        mixed_stencil_outputs,
+        launch,
+        outputs,
+        mixed_outputs,
+        workspace,
+        workspace_bytes,
+        "g2_plus_plus.nelson_siegel.bermudan_swaption.sensitivities.mixed_node_graph",
+        Side == SwaptionSide::payer
+            ? "payer/nodes=mixed_graph" : "receiver/nodes=mixed_graph",
+        "G2++/Nelson-Siegel Bermudan mixed node-graph sensitivities"
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SIDE)                 \
     template longstaff_schwartz::LaunchResult                               \
     launch_g2_plus_plus_nelson_siegel_bermudan_swaption_price_gradients_cuda<SIDE>( \
@@ -252,7 +321,21 @@ launch_g2_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_cud
         BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
         BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
-        void*, std::size_t)
+        void*, std::size_t);                                                \
+    template std::size_t                                                    \
+    g2_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_workspace_bytes<  \
+        SIDE>(                                                              \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        const pg::LaunchConfiguration&);                                    \
+    template longstaff_schwartz::LaunchResult                               \
+    launch_g2_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_sensitivities_cuda<\
+        SIDE>(                                                              \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        BermudanSwaptionPriceGradientPlan::MixedStencilOutputs,             \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        pg::MixedSensitivityOutputs, void*, std::size_t)
 
 AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SwaptionSide::payer);
 AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SwaptionSide::receiver);

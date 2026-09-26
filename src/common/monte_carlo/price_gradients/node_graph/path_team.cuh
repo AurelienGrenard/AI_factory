@@ -53,13 +53,33 @@ struct PathTeam {
         unsigned char* team_scratch
     ) const {
         static_assert(std::is_trivially_copyable_v<Value>);
-        static_assert(alignof(Value) <= 16U);
-        auto* shared_value = reinterpret_cast<Value*>(team_scratch);
-        if (local_lane == 0U) *shared_value = value;
-        synchronize();
-        value = *shared_value;
-        synchronize();
-        return value;
+        if constexpr (TeamSize <= 32U) {
+            static_assert(sizeof(Value) % sizeof(std::uint32_t) == 0U);
+            union Storage {
+                Value value;
+                std::uint32_t words[sizeof(Value) / sizeof(std::uint32_t)];
+            } storage{};
+            storage.value = value;
+            const auto warp_lane = threadIdx.x & 31U;
+            const auto source_lane = warp_lane - local_lane;
+            #pragma unroll
+            for (unsigned int word = 0U;
+                 word < sizeof(Value) / sizeof(std::uint32_t);
+                 ++word) {
+                storage.words[word] = __shfl_sync(
+                    warp_mask, storage.words[word], source_lane
+                );
+            }
+            return storage.value;
+        } else {
+            static_assert(alignof(Value) <= 16U);
+            auto* shared_value = reinterpret_cast<Value*>(team_scratch);
+            if (local_lane == 0U) *shared_value = value;
+            synchronize();
+            value = *shared_value;
+            synchronize();
+            return value;
+        }
     }
 };
 

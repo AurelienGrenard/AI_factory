@@ -61,6 +61,14 @@ struct WarpPathGroup {
         return storage.value;
     }
 
+    template<typename Value>
+    __device__ __forceinline__ Value broadcast_value(
+        Value value,
+        unsigned char*
+    ) const {
+        return broadcast_value(value);
+    }
+
     __device__ __forceinline__ void synchronize() const {
         __syncwarp(mask);
     }

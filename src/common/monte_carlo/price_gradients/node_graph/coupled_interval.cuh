@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/monte_carlo/price_gradients/node_graph/path_group.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/path_team.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/evaluation.cuh"
 
 #include <cuda_runtime.h>
@@ -24,10 +25,25 @@ inline constexpr std::size_t coupled_interval_scratch_bytes_v = [] {
 template<
     std::size_t NodeCapacity,
     typename Dynamics,
+    unsigned int TeamSize>
+inline constexpr std::size_t coupled_interval_team_scratch_bytes_v = [] {
+    constexpr auto coupled = coupled_interval_scratch_bytes_v<
+        NodeCapacity, Dynamics
+    >;
+    constexpr auto broadcast = TeamSize > 32U
+        ? align_path_team_scratch_v<sizeof(typename Dynamics::Innovations)>
+        : 0U;
+    return coupled < broadcast ? broadcast : coupled;
+}();
+
+template<
+    std::size_t NodeCapacity,
+    typename Dynamics,
     unsigned int GroupSize,
-    unsigned int NodesPerWorker>
+    unsigned int NodesPerWorker,
+    typename PathGroup>
 __device__ __forceinline__ void simulate_coupled_interval(
-    const WarpPathGroup<GroupSize>& group,
+    const PathGroup& group,
     typename Dynamics::RandomContext& random,
     const typename Dynamics::Prepared (&prepared)[NodeCapacity],
     std::uint16_t node_count,
@@ -54,7 +70,9 @@ __device__ __forceinline__ void simulate_coupled_interval(
                     random, prepared[0U]
                 );
             }
-            innovations = group.broadcast_value(innovations);
+            innovations = group.broadcast_value(
+                innovations, group_scratch
+            );
             #pragma unroll
             for (unsigned int slot = 0U;
                  slot < NodesPerWorker;
@@ -104,7 +122,9 @@ __device__ __forceinline__ void simulate_coupled_interval(
                     innovations = Dynamics::draw(random);
                 }
             }
-            innovations = group.broadcast_value(innovations);
+            innovations = group.broadcast_value(
+                innovations, group_scratch
+            );
             #pragma unroll
             for (unsigned int slot = 0U;
                  slot < NodesPerWorker;

@@ -6,6 +6,7 @@
 #include "model/equity/markovian/bates/dynamics_impl.cuh"
 #include "model/equity/markovian/bates/price_gradients/coupled_dynamics_impl.cuh"
 #include "tests/price_gradients/cuda_test_support.cuh"
+#include "tests/price_gradients/mixed_node_graph_cuda_test_support.cuh"
 
 #include <algorithm>
 #include <cmath>
@@ -489,6 +490,48 @@ void run() {
             "Invalid Bates American diagonal Hessian error."
         );
     }
+
+    const auto mixed_plan =
+        bates::prepare_bates_american_option_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            time,
+            full,
+            pg::SensitivityRequest::full_hessian()
+        );
+    price_gradient_test::require_mixed_node_graph_parity(
+        mixed_plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& configuration, auto outputs) {
+            return bates::
+                launch_bates_american_option_diagonal_sensitivities_cuda<
+                    Side, pg::SensitivityOrders::first_and_second
+                >(p, inputs, stencils, configuration, outputs);
+        },
+        [](const auto& p, const auto& configuration) {
+            return bates::
+                bates_american_option_mixed_node_graph_workspace_bytes<Side>(
+                    p, configuration
+                );
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& configuration,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return bates::
+                launch_bates_american_option_mixed_node_graph_sensitivities_cuda<
+                    Side
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    configuration, outputs, mixed_outputs,
+                    workspace, workspace_bytes
+                );
+        },
+        257U,
+        seed,
+        "Bates American mixed node graph"
+    );
 }
 
 }  // namespace

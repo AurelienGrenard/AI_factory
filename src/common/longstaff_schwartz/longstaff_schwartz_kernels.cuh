@@ -525,7 +525,13 @@ LaunchResult launch_longstaff_schwartz_cuda(
     std::size_t maximum_batch_size = static_cast<std::size_t>(
         properties.maxGridSize[1]
     );
-    if constexpr (requires { device_inputs.sensitivity_count; }) {
+    if constexpr (requires { device_inputs.task_count; }) {
+        maximum_batch_size = longstaff_schwartz::price_gradients::
+            maximum_batch_size(
+                device_inputs.task_count,
+                maximum_batch_size
+            );
+    } else if constexpr (requires { device_inputs.sensitivity_count; }) {
         maximum_batch_size = longstaff_schwartz::price_gradients::
             maximum_batch_size(
                 device_inputs.sensitivity_count,
@@ -551,7 +557,13 @@ LaunchResult launch_longstaff_schwartz_cuda(
             + " batch exceeds the current gridDim.y limit."
         );
     }
-    if constexpr (requires { device_inputs.sensitivity_count; }) {
+    if constexpr (requires { device_inputs.task_count; }) {
+        longstaff_schwartz::price_gradients::validate_task_grid(
+            plan.maximum_prices_per_batch,
+            device_inputs.task_count,
+            static_cast<std::size_t>(properties.maxGridSize[1])
+        );
+    } else if constexpr (requires { device_inputs.sensitivity_count; }) {
         longstaff_schwartz::price_gradients::validate_task_grid(
             plan.maximum_prices_per_batch,
             device_inputs.sensitivity_count,
