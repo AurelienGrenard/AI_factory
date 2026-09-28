@@ -695,9 +695,10 @@ sources isolées.
 Les domaines isolés sont `(source_id << 24) | step`, avec `source_id` dans
 `1..255`, `step` dans `0..2^24-1` et `groupe` dans `0..2^32-1` ; le domaine
 zéro est réservé au flux unique. Un dépassement provoque une erreur CUDA
-explicite. Toutes les recettes stochastiques déclarent
-`rng_mapping_version: philox_source_step_v2` et utilisent l'URL `/v2/`,
-indépendamment de leur nombre de flux. Les bases historiques `/v1/` gardent
+explicite. Toutes les recettes stochastiques déclarent simplement
+`random_number_generator: philox` et utilisent l'URL `/v2/`, indépendamment
+de leur nombre de flux. Le reçu technique `generation.yaml` conserve la
+version exacte `philox_source_step_v2` dans `execution.declared_method`. Les bases historiques `/v1/` gardent
 leur empreinte. Pour un seul flux et moins de `2^32` groupes, les quatre mots
 du compteur restent identiques à la V1 ; les modèles multi-flux changent de
 tirages. Aucune égalité bit à bit globale entre versions n'est garantie. Une même clé

@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 12000,
     "paths_per_parameter": 250,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -83,10 +83,9 @@
     "schedule": 11668828366462517248,
     "dynamics": 11668828367536259072
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_volterra_fft",
-    "profile": "model_sample_profile",
     "description": "log-modulated hybrid FFT (kappa=1)"
   },
   "outputs": {

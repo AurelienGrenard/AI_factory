@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "bates_01__european_calls_01__01_price_sensitivities",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/bates/parameters/bates_01.json",
+    "product": "datasets/product/european_option/european_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/bates/price_sensitivities/european_calls/bates_01__european_calls_01__01_price_sensitivities.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/bates/price_sensitivities/european_calls/bates_01__european_calls_01__01_price_sensitivities/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/bates/price_sensitivities/european_calls/bates_01__european_calls_01__01_price_sensitivities.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_variance",
+        "displacement": 0.001,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.rho",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.jump_intensity",
+        "displacement": 0.05,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.jump_log_mean",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01/recipe.yaml"
+  },
+  "seeds": {
+    "dynamics": 11668826694646497280
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

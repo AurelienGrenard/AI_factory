@@ -49,7 +49,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
     parser.add_argument("--dataset", type=Path)
-    parser.add_argument("--method", choices=("supervised", "sobolev", "custom"))
+    parser.add_argument(
+        "--method",
+        choices=("supervised", "sobolev", "sobolev_diagonal", "custom"),
+    )
     parser.add_argument(
         "--train-size", "--sample-size", dest="train_size", type=_train_size,
         help="random training rows, or 'all'; validation and test remain fixed",
@@ -67,7 +70,9 @@ def main() -> int:
     config = load_config(arguments.config, _nested_override(arguments))
     data = config["data"]
     prepared = prepare_pricing_dataset(
-        config["dataset"], cache_root=data.get("cache_root")
+        config["dataset"],
+        cache_root=data.get("cache_root"),
+        reference_paths=data.get("reference_paths"),
     )
     split_role = data.get("split_role")
     group_ids = None

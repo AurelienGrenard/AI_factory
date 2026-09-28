@@ -104,6 +104,9 @@ int main() {
         const auto graph = datasets::read_json_file(recipe.dataset);
         require(graph["results"] == first["results"]);
         require(graph["summary"]["sensitivity_strategy"] == "node_graph");
+        require(graph["summary"]["maximum_live_scenarios"] == 7U);
+        require(graph["summary"]["sensitivity_graph_node_capacity"] == 7U);
+        require(graph["summary"]["represented_nodes_per_sensitivity"] == 4U);
         require(graph["summary"]["sensitivity_workspace_bytes"] > 0U);
 
         auto mixed_recipe = recipe;

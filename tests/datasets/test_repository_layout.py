@@ -63,6 +63,49 @@ class RepositoryLayoutTest(unittest.TestCase):
             self.assertNotIn("validation", document)
             self.assertNotIn("generation", document)
 
+    def test_active_dataset_taxonomy_uses_price_sensitivities(self) -> None:
+        for root_name in ("catalog", "datasets"):
+            root = ROOT / root_name
+            if not root.exists():
+                continue
+            obsolete = [
+                path.relative_to(ROOT)
+                for path in root.rglob("*")
+                if path.is_dir()
+                and path.name in {"price_delta", "price_gradients"}
+            ]
+            self.assertEqual(obsolete, [])
+
+    def test_recipes_are_readable_dataset_identity_cards(self) -> None:
+        obsolete_fields = {
+            "profile",
+            "rng_mapping_version",
+            "launch_profile",
+            "sensitivity_execution",
+        }
+
+        def field_names(value):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    yield key
+                    yield from field_names(child)
+            elif isinstance(value, list):
+                for child in value:
+                    yield from field_names(child)
+
+        for path in (ROOT / "catalog").rglob("recipe.yaml"):
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+            self.assertIsInstance(document.get("row_count"), int, path)
+            self.assertGreater(document["row_count"], 0, path)
+            self.assertTrue(
+                obsolete_fields.isdisjoint(field_names(document)),
+                path.relative_to(ROOT),
+            )
+            if document.get("kind") in {"prices", "price_sensitivities"}:
+                self.assertNotIn("construction", document, path)
+            if "random_number_generator" in document:
+                self.assertEqual(document["random_number_generator"], "philox")
+
     def test_generation_receipts_do_not_repeat_recipe_semantics(self) -> None:
         forbidden = {
             "dataset_id",

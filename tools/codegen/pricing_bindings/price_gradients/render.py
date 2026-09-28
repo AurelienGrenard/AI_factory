@@ -770,7 +770,6 @@ def render_recipes(
     pricing_bindings,
     model_specs,
     resolve_rng_domain,
-    rng_mapping_version,
     template_root,
     write_generated,
 ):
@@ -892,6 +891,18 @@ def render_recipes(
         selected = default_sensitivities(
             spec.model, spec.product, spec.curve
         )
+        if spec.sensitivity_parameters:
+            by_name = {item["parameter"]: item for item in selected}
+            missing = [
+                name for name in spec.sensitivity_parameters
+                if name not in by_name
+            ]
+            if missing:
+                raise ValueError(
+                    f"Unknown sensitivity selection for {spec.generator_path}: "
+                    + ", ".join(missing)
+                )
+            selected = [by_name[name] for name in spec.sensitivity_parameters]
         seed = resolve_rng_domain(spec).seed("dynamics") if stochastic else 0
         model_input = f"datasets/{model.source_prefix}/parameters/{model.parameter_dataset_id}.json"
         if spec.asset_class == "fixed_income":
@@ -1055,35 +1066,36 @@ def render_recipes(
         destination.parent.mkdir(parents=True, exist_ok=True)
         write_generated(destination, template.substitute(values))
         generated.append(destination)
-        metadata = {"schema_version":1, "kind":"price_gradients", "dataset_id":spec.dataset_id,
-            "generator":"generator.cpp", "model_input":model_input, "product_input":product_input,
-            "output":{"path":spec.dataset_path,"format":"json"},
-            "generation_output":spec.generation_yaml_path, "construction":spec.construction,
-            "url":spec.url,
-            "paths_per_price":1048576 if stochastic else 0, "dynamics_seed":seed,
-            "sensitivity":{"method":"finite_difference_shared_innovations" if stochastic else "finite_difference",
-                           "parameters":selected,
-                           "source_price_recipe":source.recipe_yaml_path},
-            "launch_profile":"gradient candidate; inspect compiled specialization; not performance-qualified"}
+        inputs = {"model": model_input, "product": product_input}
         if fitted:
-            metadata["curve_input"] = curve_input
+            inputs["curve"] = curve_input
+        metadata = {
+            "schema_version": 1,
+            "kind": "price_sensitivities",
+            "dataset_id": spec.dataset_id,
+            "generator": "generator.cpp",
+            "inputs": inputs,
+            "output": {"path": spec.dataset_path, "format": "json"},
+            "generation_output": spec.generation_yaml_path,
+            "url": spec.url,
+            "row_count": spec.row_count,
+            "paths_per_price": 1048576 if stochastic else 0,
+            "sensitivity": {
+                "method": (
+                    "finite_difference_shared_innovations"
+                    if stochastic else "finite_difference"
+                ),
+                "parameters": selected,
+                "source_price_recipe": source.recipe_yaml_path,
+            },
+        }
+        if stochastic:
+            metadata["seeds"] = {"dynamics": seed}
+            metadata["random_number_generator"] = "philox"
         if "diagonal_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["orders"] = list(spec.sensitivity_orders)
         if "mixed_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["mixed_second"] = "all"
-        if stochastic:
-            metadata["rng_mapping_version"] = rng_mapping_version(spec.model)
-        if "mixed_second" in spec.sensitivity_orders:
-            metadata["sensitivity_execution"] = {
-                "default": "mixed_node_graph",
-                "available": ["mixed_node_graph"],
-            }
-        elif stochastic and "diagonal_second" in spec.sensitivity_orders:
-            metadata["sensitivity_execution"] = {
-                "default": "mono",
-                "available": ["mono", "node_graph"],
-                "argument": "--sensitivity-strategy",
-            }
         if exact_transition:
             metadata["time_representation"] = {
                 "kind": (

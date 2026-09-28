@@ -2,8 +2,7 @@
 # Register one host-only parameter generator with shared build settings.
 add_custom_target(parameter_generators)
 add_custom_target(price_generators)
-add_custom_target(price_delta_generators)
-add_custom_target(price_gradient_generators)
+add_custom_target(price_sensitivity_generators)
 add_custom_target(sample_generators)
 
 function(ai_factory_collect_generation_dependencies output source)
@@ -80,8 +79,7 @@ endfunction()
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
     if(source MATCHES
-        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/"
-        OR source MATCHES "catalog/model/equity/rough/[^/]+/price_delta/")
+        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/")
         # Rough preparation and schedule policies include device definitions.
         # Their generated entry points keep .cpp names but need nvcc.
         set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
@@ -102,14 +100,10 @@ function(add_price_generator target source)
         CUDA_STANDARD 23
         CUDA_STANDARD_REQUIRED YES
     )
-    if(source MATCHES "/price_gradients/")
+    if(source MATCHES "/price_sensitivities/")
         target_link_libraries(${target} PRIVATE ai_factory_price_gradient_dataset)
         if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
-            add_dependencies(price_gradient_generators ${target})
-        endif()
-    elseif(source MATCHES "/price_delta/")
-        if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
-            add_dependencies(price_delta_generators ${target})
+            add_dependencies(price_sensitivity_generators ${target})
         endif()
     else()
         if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
@@ -152,7 +146,7 @@ endfunction()
 function(ai_factory_catalog_generator_target output source)
     get_filename_component(recipe_directory "${source}" DIRECTORY)
     get_filename_component(recipe_id "${recipe_directory}" NAME)
-    if(source MATCHES "/(prices|price_delta|price_gradients)/")
+    if(source MATCHES "/(prices|price_sensitivities)/")
         string(REPLACE "__" ";" components "${recipe_id}")
         list(POP_BACK components version)
         set(target generate)

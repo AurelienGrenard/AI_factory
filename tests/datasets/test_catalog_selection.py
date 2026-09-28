@@ -85,7 +85,7 @@ class CatalogSelectionTest(unittest.TestCase):
     def test_compiles_selected_targets_and_price_inspector(self) -> None:
         jobs = [
             {"target": "generate_z", "kind": "samples"},
-            {"target": "generate_a", "kind": "price_delta"},
+            {"target": "generate_a", "kind": "price_sensitivities"},
         ]
         with patch.object(campaign.subprocess, "run") as run:
             campaign.compile_selected(Path("/repo"), Path("/repo/build"), jobs, 2)

@@ -67,7 +67,7 @@ inline datasets::ModelSampleRecipe recipe(
         "Rough-SABR",
         "datasets/model/equity/rough/rough_sabr/samples/" + id + ".json",
         "catalog/model/equity/rough/rough_sabr/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/equity/rough/rough_sabr/samples/" + id + ".json",
+        "https://datasets.ai-factory.example/v2/model/equity/rough/rough_sabr/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,

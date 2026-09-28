@@ -187,6 +187,46 @@ inline nlohmann::ordered_json device_prepared_price_gradient_launch_metadata(
     return result;
 }
 
+inline nlohmann::ordered_json diagonal_node_graph_launch_metadata(
+    const PriceGradientLaunchPlan& plan,
+    std::size_t sensitivities
+) {
+    const auto graph = pg::make_sensitivity_graph_plan(
+        pg::SensitivityRequest{pg::SensitivityOrders::first_and_second},
+        sensitivities
+    );
+    auto result = device_prepared_price_gradient_launch_metadata(
+        plan, sensitivities
+    );
+    for (const char* field : {
+             "block_count",
+             "full_batch_block_count",
+             "tail_batch_block_count",
+             "sensitivity_batch_size",
+             "sensitivity_batches_per_price",
+             "sensitivity_block_count",
+             "sensitivity_kernel_variant",
+             "price_moment_batches_per_price",
+             "path_blocks_per_price",
+             "gradient_tasks_per_durable_launch_upper_bound",
+             "gradient_post_kernels_per_native_batch",
+         }) {
+        result.erase(field);
+    }
+    result["kernel_launches_per_price_batch"] = nullptr;
+    result["central_work_policy"] =
+        "central node zero evaluated once per row and path chunk";
+    result["work_distribution"] =
+        "price and path chunks; unique diagonal nodes evaluated before reconstruction";
+    result["profile_id"] = "price_gradients_diagonal_node_graph_v1";
+    result["sensitivity_strategy"] = "node_graph";
+    result["maximum_live_scenarios"] = graph.node_capacity;
+    result["sensitivity_graph_node_capacity"] = graph.node_capacity;
+    result["represented_nodes_per_sensitivity"] =
+        sensitivities == 0U ? 0U : 4U;
+    return result;
+}
+
 inline nlohmann::ordered_json mixed_node_graph_launch_metadata(
     const PriceGradientLaunchPlan& plan,
     std::size_t sensitivities,

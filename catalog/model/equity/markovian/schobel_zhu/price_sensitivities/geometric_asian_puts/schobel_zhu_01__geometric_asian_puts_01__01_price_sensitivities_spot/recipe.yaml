@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "schobel_zhu_01__geometric_asian_puts_01__01_price_sensitivities_spot",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json",
+    "product": "datasets/product/geometric_asian_option/geometric_asian_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/schobel_zhu/price_sensitivities/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01_price_sensitivities_spot.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/schobel_zhu/price_sensitivities/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01_price_sensitivities_spot/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/price_sensitivities/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01_price_sensitivities_spot.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01/recipe.yaml"
+  },
+  "seeds": {
+    "dynamics": 11668827914417209344
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

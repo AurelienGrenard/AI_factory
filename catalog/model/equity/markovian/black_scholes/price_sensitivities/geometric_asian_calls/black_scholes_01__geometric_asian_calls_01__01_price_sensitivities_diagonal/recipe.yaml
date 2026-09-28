@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "black_scholes_01__geometric_asian_calls_01__01_price_sensitivities_diagonal",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
+    "product": "datasets/product/geometric_asian_option/geometric_asian_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/black_scholes/price_sensitivities/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_sensitivities_diagonal.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/black_scholes/price_sensitivities/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_sensitivities_diagonal/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v1/model/equity/markovian/black_scholes/price_sensitivities/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01_price_sensitivities_diagonal.json",
+  "row_count": 1000,
+  "paths_per_price": 0,
+  "sensitivity": {
+    "method": "finite_difference",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second"
+    ]
+  },
+  "time_representation": {
+    "kind": "exact_schedule_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

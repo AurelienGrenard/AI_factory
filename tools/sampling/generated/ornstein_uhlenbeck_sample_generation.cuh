@@ -58,7 +58,7 @@ inline datasets::ModelSampleRecipe recipe(
         "Ornstein-Uhlenbeck",
         "datasets/model/fixed_income/ornstein_uhlenbeck/samples/" + id + ".json",
         "catalog/model/fixed_income/ornstein_uhlenbeck/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/fixed_income/ornstein_uhlenbeck/samples/" + id + ".json",
+        "https://datasets.ai-factory.example/v2/model/fixed_income/ornstein_uhlenbeck/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,

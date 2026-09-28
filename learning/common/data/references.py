@@ -83,7 +83,11 @@ def _row_array(document: dict, role: str) -> list[dict]:
     return candidates[0]
 
 
-def load_entity_tables(dataset_path: Path, header: dict) -> tuple[EntityTable, ...]:
+def load_entity_tables(
+    dataset_path: Path,
+    header: dict,
+    reference_paths: Mapping[str, str | Path] | None = None,
+) -> tuple[EntityTable, ...]:
     references: list[tuple[str, dict]] = []
     for name, value in header.items():
         if name.endswith("_dataset") and isinstance(value, dict) and "catalog" in value:
@@ -94,7 +98,12 @@ def load_entity_tables(dataset_path: Path, header: dict) -> tuple[EntityTable, .
 
     tables: list[EntityTable] = []
     for role, reference in references:
-        path = resolve_catalog_reference(dataset_path, str(reference["catalog"]))
+        override = None if reference_paths is None else reference_paths.get(role)
+        path = (
+            resolve_catalog_reference(dataset_path, str(reference["catalog"]))
+            if override is None
+            else Path(override).resolve()
+        )
         if not path.is_file():
             raise FileNotFoundError(f"Missing {role} parameter dataset: {path}")
         document = json.loads(path.read_text(encoding="utf-8"))

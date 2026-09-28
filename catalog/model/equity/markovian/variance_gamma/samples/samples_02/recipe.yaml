@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/equity/markovian/variance_gamma/samples/samples_02/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/samples/samples_02.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 3000000,
     "paths_per_parameter": 1,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -71,10 +71,9 @@
     "schedule": 11668828237613498368,
     "dynamics": 11668828238687240192
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_markovian",
-    "profile": "model_sample_profile",
     "description": "Exact Gamma subordination"
   },
   "outputs": {

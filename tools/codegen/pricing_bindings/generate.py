@@ -414,10 +414,10 @@ def _sample_recipe_metadata(
         },
         "generation_output": dataset.generation_yaml_path,
         "url": dataset.url,
+        "row_count": dataset.row_count,
         "shape": {
             "parameter_count": parameter_count,
             "paths_per_parameter": paths_per_parameter,
-            "row_count": parameter_count * paths_per_parameter,
             "row_order": "parameter-major, then path-major",
         },
         "parameter_sampling": {
@@ -444,10 +444,9 @@ def _sample_recipe_metadata(
         "seeds": {
             name: domain.seed(name) for name in domain.streams
         },
-        "rng_mapping_version": rng_mapping_version(model.name),
+        "random_number_generator": "philox",
         "numerical_method": {
             "engine": dataset.engine,
-            "profile": dataset.numerical_profile,
             "description": model.pricing_numerical_method,
         },
         "outputs": {
@@ -1564,10 +1563,9 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "output": {"path": dataset.dataset_path, "format": "json"},
         "generation_output": dataset.generation_yaml_path,
         "url": dataset.url,
-        "construction": dataset.construction,
+        "row_count": dataset.row_count,
         "numerical_method": {
             "engine": dataset.engine,
-            "profile": dataset.numerical_profile,
         },
         "outputs": (
             ["price", "standard_error"] if stochastic else ["price"]
@@ -1579,7 +1577,7 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         metadata["seeds"] = {
             name: domain.seed(name) for name in domain.streams
         }
-        metadata["rng_mapping_version"] = rng_mapping_version(dataset.model)
+        metadata["random_number_generator"] = "philox"
     denominators = [
         int(value) for value in re.findall(r"1\.0f\s*/\s*(\d+)\.0f", source)
     ]
@@ -1689,7 +1687,7 @@ def cmake_manifest_text(
     )
     price_sources = sorted(
         dataset.generator_path for dataset in dataset_specs
-        if dataset.dataset_kind in {"prices", "price_delta", "price_gradients"}
+        if dataset.dataset_kind in {"prices", "price_sensitivities"}
     )
     sample_sources = sorted(
         dataset.generator_path for dataset in dataset_specs
@@ -1914,8 +1912,6 @@ def _expected_generated_paths() -> set[str]:
     paths.update(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
     paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
     paths.update(str(Path(dataset.generator_path).with_name("recipe.yaml"))
-                 for dataset in PRICE_DELTA_DATASET_SPECS)
-    paths.update(str(Path(dataset.generator_path).with_name("recipe.yaml"))
                  for dataset in PRICE_GRADIENT_DATASET_SPECS)
     paths.update(dataset.recipe_yaml_path for dataset in AVAILABLE_DATASET_SPECS
                  if dataset.dataset_kind in {"prices", "samples"})
@@ -2016,7 +2012,6 @@ def main() -> int:
     if arguments.family in ("fixed_income", "all"):
         generated.extend(generate_fixed_income_bindings(arguments.output))
     if arguments.family in ("catalog", "all"):
-        generated.extend(generate_price_delta_recipes(arguments.output))
         generated.extend(render_price_gradient_recipes(
             arguments.output,
             PRICE_GRADIENT_DATASET_SPECS,
@@ -2024,7 +2019,6 @@ def main() -> int:
             PRODUCT_BINDING_SPECS,
             MODEL_BY_NAME,
             resolve_rng_domain,
-            rng_mapping_version,
             TEMPLATE_DIR,
             _write_generated,
         ))

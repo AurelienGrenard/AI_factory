@@ -10,6 +10,7 @@ required:
   - output
   - generation_output
   - url
+  - row_count
 properties:
   schema_version:
     const: 1
@@ -21,8 +22,11 @@ properties:
     pattern: "^[a-z0-9]+(?:_[a-z0-9]+)*(?:__[a-z0-9]+(?:_[a-z0-9]+)*)*$"
   generator:
     const: generator.cpp
-  rng_mapping_version:
-    enum: [philox_path_group_v1, philox_source_step_v2]
+  row_count:
+    type: integer
+    minimum: 1
+  random_number_generator:
+    const: philox
   output:
     type: object
     required: [path, format]
@@ -39,4 +43,10 @@ properties:
   url:
     type: string
     pattern: "^https://[^\\s]+\\.json$"
+allOf:
+  - not:
+      anyOf:
+        - required: [rng_mapping_version]
+        - required: [launch_profile]
+        - required: [sensitivity_execution]
 additionalProperties: true

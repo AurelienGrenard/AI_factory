@@ -98,11 +98,12 @@ folder. Shared BS product formula policies live in generated `<product>_impl.cuh
 headers beside their launchers, so price and delta use the same formula body.
 All nine American bindings use templates under
 `pricing/longstaff_schwartz/equity/`, composing the common frozen-date policy.
-The 12 Markovian models have price-delta recipes under `catalog/.../price_delta`,
-with generated `generator.cpp` and planned `recipe.yaml`; execution alone writes
-`generation.yaml`. CRN aliases preserve price-only seeds, and production MC/LSM
-uses 2^20 paths. The qualification remains bounded checks, not certified bias
-or delta-specific tuning. See the
+The legacy delta launchers remain implementation references until rough-model
+migration is complete. They no longer own catalogue recipes. A spot-only
+request is rendered by the sensitivity engine under
+`catalog/.../price_sensitivities/` with the explicit `{model.spot}` selection.
+CRN aliases preserve price-only seeds, and production MC/LSM uses 2^20 paths.
+See the
 [implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
 `PRICE_GRADIENT_BINDING_SPECS` also declares its preparation strategy. Equity
 European terminal bindings select one of the compact device-prepared closed
@@ -110,9 +111,9 @@ form, fixed-step MC, or exact-terminal MC templates. Heston American and CIR
 Jamshidian retain their explicit host-prepared strategies. The renderer rejects
 an undeclared strategy instead of falling back to a model-specific template.
 The binding manifest records the public derivative orders separately from the
-dataset recipes. First-order recipes keep their existing identifiers; terminal
-bindings that expose diagonal order also generate distinct
-`*_price_gradients_diagonal` recipes. Run
+dataset recipes. First-order, spot-only, diagonal and full-Hessian recipes share the
+`price_sensitivities` family. The requested parameters and derivative orders,
+rather than the folder name, state their output contract. Run
 `python3 tools/codegen/pricing_bindings/price_gradients/coverage.py` to inspect
 every Markovian pricing binding and the gradient orders currently exposed by
 its launcher. Coordinate-level exclusions remain in the model and product
@@ -123,7 +124,7 @@ default. Both launchers consume the same compact plan and write the same
 artifact schema. The node-graph workspace is sized by the generated binding
 and owned by the shared offline runner.
 Every price recipe has an aligned target and a distinct Cartesian target. Every
-equity price-delta source has the same pair. Cartesian rows use
+published sensitivity selection has the same pair. Cartesian rows use
 model-major/product-fastest order, or model-major/curve/product order for fitted
 rates. Use `tools/datasets/generate_catalog.py --construction cartesian` to
 compile, inspect, execute or resume either family.
@@ -143,7 +144,11 @@ public parameter. FFT bindings also expose a host-only block-dimensions query
 from the compiled sampling specialization, used for truthful recipe metadata
 and grid-count replay without changing FFT tuning.
 Price recipe execution writes both JSON and YAML because timing metadata is
-known only at runtime.
+known only at runtime. `recipe.yaml` is the readable dataset identity card: it
+contains the inputs, output, URL, promised `row_count`, numerical engine and
+requested values. It names the random generator simply as `philox`. Exact RNG
+mapping versions, aligned/Cartesian construction, compiled profiles, launch
+plans and timings belong to the post-generation `generation.yaml` receipt.
 
 Pricing recipes take their production path count (`2^20`) and launch settings
 from `tools/cuda/tuning_profile.hpp`, through the shared host launch planner.

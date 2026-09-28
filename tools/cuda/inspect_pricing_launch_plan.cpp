@@ -22,6 +22,9 @@ std::size_t positive_count(std::string_view text) {
 
 int main(int argc, char** argv) {
     try {
+        const bool node_graph = argc > 1
+            && std::string_view(argv[argc-1]) == "--node-graph";
+        if (node_graph) --argc;
         const bool mixed = argc > 1
             && std::string_view(argv[argc-1]) == "--mixed";
         if (mixed) --argc;
@@ -33,6 +36,10 @@ int main(int argc, char** argv) {
         const bool price_gradients = argc > 2 && std::string_view(argv[argc-2]) == "--price-gradients";
         if ((diagonal || mixed) && !price_gradients)
             throw std::invalid_argument("Higher orders require --price-gradients K.");
+        if (node_graph && !diagonal)
+            throw std::invalid_argument(
+                "--node-graph requires --price-gradients K --diagonal."
+            );
         const std::size_t sensitivity_count = price_gradients
             ? (std::string_view(argv[argc-1]) == "0" ? 0U : positive_count(argv[argc-1])) : 0U;
         if (price_gradients) argc -= 2;
@@ -41,7 +48,7 @@ int main(int argc, char** argv) {
         if (price_delta) --argc;
         if (argc < 3 || argc > 5) {
             std::cerr << "Usage: inspect_pricing_launch_plan MODEL/[CURVE/]PRODUCT PRICES"
-                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--diagonal|--mixed]]\n"
+                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--diagonal [--node-graph]|--mixed]]\n"
                          "Run from the repository root; no CUDA calls are made.\n";
             return 2;
         }
@@ -130,16 +137,22 @@ int main(int argc, char** argv) {
                 metadata = tuning::mixed_node_graph_launch_metadata(
                     plan, sensitivity_count, graph
                 );
+            } else if (node_graph) {
+                metadata = tuning::diagonal_node_graph_launch_metadata(
+                    plan, sensitivity_count
+                );
             } else {
                 metadata = device_prepared
                     ? tuning::device_prepared_price_gradient_launch_metadata(plan,sensitivity_count)
                     : tuning::price_gradient_launch_metadata(plan,sensitivity_count);
             }
             if (diagonal) {
-                metadata["maximum_live_scenarios"] =
-                    sensitivity_count == 0U ? 1U : 4U;
-                metadata["represented_nodes_per_sensitivity"] =
-                    sensitivity_count == 0U ? 0U : 4U;
+                if (!node_graph) {
+                    metadata["maximum_live_scenarios"] =
+                        sensitivity_count == 0U ? 1U : 4U;
+                    metadata["represented_nodes_per_sensitivity"] =
+                        sensitivity_count == 0U ? 0U : 4U;
+                }
                 metadata["requested_orders"] = {"first", "diagonal_second"};
             }
         } else {

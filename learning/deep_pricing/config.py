@@ -64,9 +64,17 @@ def default_loss(method: str) -> list[dict[str, Any]]:
             {"name": "value_mse", "weight": 1.0},
             {"name": "gradient_mse", "weight": 0.1},
         ]
+    if method == "sobolev_diagonal":
+        return [
+            {"name": "value_mse", "weight": 1.0},
+            {"name": "gradient_mse", "weight": 0.1},
+            {"name": "diagonal_hessian_mse", "weight": 0.001},
+        ]
     if method == "custom":
         raise ValueError("method=custom requires loss.terms")
-    raise ValueError("method must be supervised, sobolev or custom")
+    raise ValueError(
+        "method must be supervised, sobolev, sobolev_diagonal or custom"
+    )
 
 
 def load_config(path: str | Path | None, overrides: dict[str, Any]) -> dict[str, Any]:
@@ -93,4 +101,14 @@ def load_config(path: str | Path | None, overrides: dict[str, Any]) -> dict[str,
     config["dataset"] = str(config["dataset"])
     if config["data"].get("cache_root") is not None:
         config["data"]["cache_root"] = str(config["data"]["cache_root"])
+    reference_paths = config["data"].get("reference_paths")
+    if reference_paths is not None:
+        if not isinstance(reference_paths, dict) or not all(
+            isinstance(role, str) and isinstance(path, (str, Path))
+            for role, path in reference_paths.items()
+        ):
+            raise ValueError("data.reference_paths must map roles to local paths")
+        config["data"]["reference_paths"] = {
+            role: str(path) for role, path in reference_paths.items()
+        }
     return config

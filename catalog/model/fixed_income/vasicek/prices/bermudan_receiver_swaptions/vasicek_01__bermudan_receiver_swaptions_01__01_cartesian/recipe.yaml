@@ -13,10 +13,9 @@
   },
   "generation_output": "catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01_cartesian/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01_cartesian.json",
-  "construction": "cartesian",
+  "row_count": 1000000,
   "numerical_method": {
-    "engine": "fixed_income_lsm",
-    "profile": "longstaff_schwartz_price_profile"
+    "engine": "fixed_income_lsm"
   },
   "outputs": [
     "price",
@@ -26,5 +25,5 @@
   "seeds": {
     "dynamics": 11668829147072823296
   },
-  "rng_mapping_version": "philox_source_step_v2"
+  "random_number_generator": "philox"
 }

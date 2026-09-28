@@ -33,6 +33,17 @@ class Standardization:
             raise ValueError("Gradient scaling currently expects one scalar value target")
         return self.feature_scale[input_indices] / self.value_scale[0]
 
+    def normalized_diagonal_hessian_scales(
+        self, input_indices: np.ndarray
+    ) -> np.ndarray:
+        """Convert raw diagonal Hessians to normalized-coordinate units."""
+
+        if self.value_scale.size != 1:
+            raise ValueError(
+                "Diagonal Hessian scaling currently expects one scalar value target"
+            )
+        return np.square(self.feature_scale[input_indices]) / self.value_scale[0]
+
 
 def _moments(array: np.ndarray, indices: np.ndarray, chunk_size: int) -> tuple[np.ndarray, np.ndarray]:
     total = np.zeros(array.shape[1], dtype=np.float64)
