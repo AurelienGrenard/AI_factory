@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_price_sensitivities_diagonal",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json",
+    "product": "datasets/product/bermudan_swaption/bermudan_swaptions_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/ornstein_uhlenbeck/price_sensitivities/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_price_sensitivities_diagonal.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/ornstein_uhlenbeck/price_sensitivities/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_price_sensitivities_diagonal/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/ornstein_uhlenbeck/price_sensitivities/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_price_sensitivities_diagonal.json",
+  "row_count": 1000000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_state",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.notional",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.accrual_fraction",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second"
+    ]
+  },
+  "seeds": {
+    "dynamics": 11668829125597986816
+  },
+  "random_number_generator": "philox",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

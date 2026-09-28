@@ -48,6 +48,15 @@ int main() {
         const auto mixed_graph = pg::make_sensitivity_graph_plan(
             pg::SensitivityRequest::full_hessian(), 10U
         );
+        const auto diagonal_metadata =
+            tuning::diagonal_node_graph_launch_metadata(defaults, 10U);
+        require(
+            diagonal_metadata["sensitivity_strategy"] == "node_graph"
+                && diagonal_metadata["sensitivity_graph_node_capacity"] == 31U
+                && diagonal_metadata["maximum_live_scenarios"] == 31U
+                && diagonal_metadata["represented_nodes_per_sensitivity"] == 4U,
+            "Diagonal graph metadata confuses graph capacity and stencil width."
+        );
         const auto mixed_metadata =
             tuning::mixed_node_graph_launch_metadata(
                 defaults, 10U, mixed_graph

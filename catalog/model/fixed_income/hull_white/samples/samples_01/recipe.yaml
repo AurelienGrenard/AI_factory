@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/fixed_income/hull_white/samples/samples_01/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/fixed_income/hull_white/samples/samples_01.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 12000,
     "paths_per_parameter": 250,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -50,10 +50,9 @@
     "schedule": 11668829118081794048,
     "dynamics": 11668829119155535872
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_fixed_income",
-    "profile": "model_sample_profile",
     "description": "exact OU transition"
   },
   "outputs": {

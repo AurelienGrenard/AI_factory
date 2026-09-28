@@ -202,12 +202,12 @@ prix, du delta et de leurs erreurs standards pour les cas couverts.
 | Manifeste et rendu dédiés | `tools/codegen/pricing_bindings/price_gradients/` |
 | Templates dédiés | `tools/codegen/pricing_bindings/templates/**/price_gradients/` |
 | Planification, exécution, sérialisation | `tools/{cuda,pricing,datasets}/price_gradients/` |
-| Recettes calls/puts, alignées/cartésiennes | `catalog/model/equity/markovian/<model>/price_gradients/` |
+| Recettes calls/puts, alignées/cartésiennes | `catalog/model/equity/markovian/<model>/price_sensitivities/` |
 | Tests de configuration, CUDA, artefacts | `tests/price_gradients/` |
 
 Le manifeste général agrège ces déclarations. Les launchers et recettes sont
 régénérés par la commande habituelle `generate.py --family all --output .`.
-Le contrôleur `tools/datasets/generate_catalog.py` connaît `price_gradients`
+Le contrôleur `tools/datasets/generate_catalog.py` connaît `price_sensitivities`
 et réutilise la provenance, les checkpoints et la progression existants.
 Aucun dataset n'est certifié du seul fait de sa génération : la validation
 indépendante reste explicitement en attente.

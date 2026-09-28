@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/fixed_income/cir/samples/samples_02/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/fixed_income/cir/samples/samples_02.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 3000000,
     "paths_per_parameter": 1,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -55,10 +55,9 @@
     "schedule": 11668829053657284608,
     "dynamics": 11668829054731026432
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_fixed_income",
-    "profile": "model_sample_profile",
     "description": "exact noncentral-chi-square transition"
   },
   "outputs": {

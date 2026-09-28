@@ -325,7 +325,7 @@ class ArtifactContractTests(unittest.TestCase):
             resolve_rng_domain,
         )
         from tools.datasets.generate_catalog import inventory
-        jobs = inventory(root,{"price_gradients"},set(),set())
+        jobs = inventory(root,{"price_sensitivities"},set(),set())
         self.assertEqual(len(jobs),len(PRICE_GRADIENT_DATASET_SPECS))
         self.assertEqual({spec.model for spec in PRICE_GRADIENT_DATASET_SPECS},
                          {"bates", "black_scholes", "heston", "heston_3_2",
@@ -335,11 +335,25 @@ class ArtifactContractTests(unittest.TestCase):
                           "g2_plus_plus", "hull_white",
                           "ornstein_uhlenbeck", "vasicek"})
         self.assertEqual({job["target"] for job in jobs},{spec.cmake_target for spec in PRICE_GRADIENT_DATASET_SPECS})
-        diagonal = [
+        general = [
             spec for spec in PRICE_GRADIENT_DATASET_SPECS
+            if not spec.sensitivity_parameters
+        ]
+        spot_only = [
+            spec for spec in PRICE_GRADIENT_DATASET_SPECS
+            if spec.sensitivity_parameters == ("model.spot",)
+        ]
+        diagonal = [
+            spec for spec in general
             if "diagonal_second" in spec.sensitivity_orders
         ]
-        self.assertEqual(len(diagonal), 2 * len(PRICE_GRADIENT_DATASET_SPECS) // 3)
+        self.assertEqual(len(diagonal), 2 * len(general) // 3)
+        self.assertTrue(spot_only)
+        self.assertTrue(all(
+            spec.sensitivity_orders == ("first",)
+            for spec in spot_only
+        ))
+        self.assertEqual(len(general) + len(spot_only), len(PRICE_GRADIENT_DATASET_SPECS))
         self.assertEqual(
             {spec.model for spec in diagonal},
             {"bates", "black_scholes", "cev", "heston", "heston_3_2",
@@ -361,12 +375,10 @@ class ArtifactContractTests(unittest.TestCase):
             for spec in diagonal
         ))
         full_hessian = [
-            spec for spec in PRICE_GRADIENT_DATASET_SPECS
+            spec for spec in general
             if "mixed_second" in spec.sensitivity_orders
         ]
-        self.assertEqual(
-            len(full_hessian), len(PRICE_GRADIENT_DATASET_SPECS) // 3
-        )
+        self.assertEqual(len(full_hessian), len(general) // 3)
         self.assertTrue(all(
             spec.sensitivity_orders
                 == ("first", "diagonal_second", "mixed_second")
@@ -406,7 +418,7 @@ class ArtifactContractTests(unittest.TestCase):
             expected_product = (
                 f"datasets/product/{spec.product}/{product_dataset}"
             )
-            self.assertEqual(recipe["product_input"], expected_product)
+            self.assertEqual(recipe["inputs"]["product"], expected_product)
             if spec.engine not in {"equity_closed_form", "fixed_income_closed_form"}:
                 self.assertEqual(resolve_rng_domain(spec).seed("dynamics"),
                     resolve_rng_domain(PRICE_GRADIENT_SOURCE_BY_GENERATOR[spec.generator_path]).seed("dynamics"))

@@ -199,3 +199,106 @@ def make_dataset_selection(
         split_strategy=split_strategy,
         group_manifest=group_manifest,
     )
+
+
+def make_preassigned_selection(
+    split_codes: np.ndarray,
+    *,
+    train_size: int | None = None,
+    split_seed: int = 0,
+    selection_seed: int = 1729,
+    group_ids: np.ndarray | None = None,
+) -> DatasetSelection:
+    """Select nested training rows from immutable preassigned split codes."""
+
+    codes = np.asarray(split_codes, dtype=np.uint8)
+    if codes.ndim != 1 or codes.size == 0:
+        raise ValueError(
+            "split_codes must be a non-empty one-dimensional array"
+        )
+    if not set(np.unique(codes)).issubset(
+        {int(TRAIN), int(VALIDATION), int(TEST)}
+    ):
+        raise ValueError(
+            "split_codes may contain only train, validation and test"
+        )
+    if not np.any(codes == VALIDATION) or not np.any(codes == TEST):
+        raise ValueError(
+            "preassigned validation and test splits must be non-empty"
+        )
+
+    group_manifest: dict[str, object] | None = None
+    if group_ids is not None:
+        groups = np.asarray(group_ids, dtype=np.int64)
+        if groups.shape != codes.shape or np.any(groups < 0):
+            raise ValueError(
+                "group_ids must contain one nonnegative id per row"
+            )
+        unique_groups = np.unique(groups)
+        split_groups: dict[str, np.ndarray] = {}
+        for label, code in (
+            ("train", TRAIN),
+            ("validation", VALIDATION),
+            ("test", TEST),
+        ):
+            split_groups[label] = np.unique(groups[codes == code])
+        if (
+            np.intersect1d(
+                split_groups["train"], split_groups["validation"]
+            ).size
+            or np.intersect1d(
+                split_groups["train"], split_groups["test"]
+            ).size
+            or np.intersect1d(
+                split_groups["validation"], split_groups["test"]
+            ).size
+        ):
+            raise ValueError(
+                "A parameter group spans multiple preassigned splits"
+            )
+        group_manifest = {
+            "total": int(unique_groups.size),
+            "train": int(split_groups["train"].size),
+            "validation": int(split_groups["validation"].size),
+            "test": int(split_groups["test"].size),
+            "digests": {
+                name: _digest(np.sort(values))
+                for name, values in split_groups.items()
+            },
+        }
+
+    candidates = np.flatnonzero(codes == TRAIN).astype(np.uint64)
+    requested = train_size
+    if train_size is None:
+        selected = candidates
+    else:
+        if train_size <= 0:
+            raise ValueError(
+                "train_size must be positive or omitted for all"
+            )
+        if train_size > candidates.size:
+            raise ValueError(
+                f"train_size={train_size} exceeds the {candidates.size} "
+                "preassigned training rows"
+            )
+        priorities = _splitmix64(candidates, selection_seed)
+        positions = np.argpartition(priorities, train_size - 1)[:train_size]
+        selected = candidates[positions]
+
+    return DatasetSelection(
+        train_indices=np.sort(selected).astype(np.int64),
+        validation_indices=np.flatnonzero(
+            codes == VALIDATION
+        ).astype(np.int64),
+        test_indices=np.flatnonzero(codes == TEST).astype(np.int64),
+        train_candidate_count=int(candidates.size),
+        train_size_requested=requested,
+        split_seed=split_seed,
+        selection_seed=selection_seed,
+        split_strategy=(
+            "preassigned_group"
+            if group_ids is not None
+            else "preassigned_row"
+        ),
+        group_manifest=group_manifest,
+    )

@@ -21,7 +21,7 @@ properties:
     properties:
       path:
         type: string
-        pattern: "^catalog/.+/recipe\\.yaml$"
+        pattern: '^(?:catalog|work)/.+/recipe\.yaml$'
       sha256:
         type: string
         pattern: "^[0-9a-f]{64}$"

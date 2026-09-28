@@ -26,10 +26,15 @@ class LossContext:
     batch: dict[str, torch.Tensor]
     epoch: int
     global_step: int
+    normalized_predicted_diagonal_hessians: torch.Tensor | None = None
+    normalized_target_diagonal_hessians: torch.Tensor | None = None
+    raw_predicted_diagonal_hessians: torch.Tensor | None = None
+    raw_target_diagonal_hessians: torch.Tensor | None = None
 
 
 class LossTerm(Protocol):
     requires_input_gradients: bool
+    requires_input_hessians: bool
 
     def __call__(self, context: LossContext) -> torch.Tensor: ...
 
@@ -52,6 +57,7 @@ def register_loss(name: str) -> Callable[[LossBuilder], LossBuilder]:
 
 class _ValueMSE:
     requires_input_gradients = False
+    requires_input_hessians = False
 
     def __call__(self, context: LossContext) -> torch.Tensor:
         return torch.mean(
@@ -61,6 +67,7 @@ class _ValueMSE:
 
 class _GradientMSE:
     requires_input_gradients = True
+    requires_input_hessians = False
 
     def __call__(self, context: LossContext) -> torch.Tensor:
         if (
@@ -76,8 +83,29 @@ class _GradientMSE:
         )
 
 
+class _DiagonalHessianMSE:
+    requires_input_gradients = False
+    requires_input_hessians = True
+
+    def __call__(self, context: LossContext) -> torch.Tensor:
+        if (
+            context.normalized_predicted_diagonal_hessians is None
+            or context.normalized_target_diagonal_hessians is None
+        ):
+            raise ValueError(
+                "diagonal_hessian_mse requires published diagonal Hessian targets"
+            )
+        return torch.mean(
+            torch.square(
+                context.normalized_predicted_diagonal_hessians
+                - context.normalized_target_diagonal_hessians
+            )
+        )
+
+
 class _L2Parameters:
     requires_input_gradients = False
+    requires_input_hessians = False
 
     def __init__(self, specification: dict[str, Any]):
         self.normalize = bool(specification.get("normalize", True))
@@ -101,6 +129,11 @@ def _build_gradient_mse(specification: dict[str, Any]) -> LossTerm:
     return _GradientMSE()
 
 
+@register_loss("diagonal_hessian_mse")
+def _build_diagonal_hessian_mse(specification: dict[str, Any]) -> LossTerm:
+    return _DiagonalHessianMSE()
+
+
 @register_loss("l2_parameters")
 def _build_l2_parameters(specification: dict[str, Any]) -> LossTerm:
     return _L2Parameters(specification)
@@ -121,7 +154,17 @@ class CompositeLoss:
 
     @property
     def requires_input_gradients(self) -> bool:
-        return any(term.term.requires_input_gradients for term in self.terms)
+        return any(
+            bool(getattr(term.term, "requires_input_gradients", False))
+            for term in self.terms
+        )
+
+    @property
+    def requires_input_hessians(self) -> bool:
+        return any(
+            bool(getattr(term.term, "requires_input_hessians", False))
+            for term in self.terms
+        )
 
     def __call__(self, context: LossContext) -> tuple[torch.Tensor, dict[str, float]]:
         total = torch.zeros((), device=context.normalized_predictions.device)

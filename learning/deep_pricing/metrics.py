@@ -11,6 +11,7 @@ from collections.abc import Iterable
 
 from learning.common.data.contracts import PricingTensorSchema
 from learning.common.data.transforms import Standardization
+from learning.common.training.derivatives import selected_diagonal_hessians
 
 
 @dataclass
@@ -107,12 +108,27 @@ def evaluate(
         ),
         device=device,
     )
+    diagonal_hessian_indices = torch.as_tensor(
+        [hessian.wrt_index for hessian in schema.diagonal_hessians],
+        dtype=torch.long,
+        device=device,
+    )
+    diagonal_hessian_scale = torch.as_tensor(
+        transform.normalized_diagonal_hessian_scales(
+            np.asarray(
+                [hessian.wrt_index for hessian in schema.diagonal_hessians],
+                dtype=np.int64,
+            )
+        ),
+        device=device,
+    )
     price = _Moments()
     gradient = _Moments()
+    diagonal_hessian = _Moments()
     for batch in loader:
         raw_inputs = batch["features"].to(device)
         normalized_inputs = ((raw_inputs - feature_mean) / feature_scale).requires_grad_(
-            bool(schema.gradients)
+            bool(schema.gradients or schema.diagonal_hessians)
         )
         normalized_prediction = model(normalized_inputs)
         prediction = normalized_prediction * value_scale + value_mean
@@ -121,10 +137,18 @@ def evaluate(
             batch["values"].to(device),
             batch["value_standard_errors"].to(device),
         )
+        full_normalized_derivatives = None
+        if schema.gradients or schema.diagonal_hessians:
+            full_normalized_derivatives = torch.autograd.grad(
+                normalized_prediction.sum(),
+                normalized_inputs,
+                create_graph=bool(schema.diagonal_hessians),
+            )[0]
         if schema.gradients:
-            normalized_derivatives = torch.autograd.grad(
-                normalized_prediction.sum(), normalized_inputs, create_graph=False
-            )[0].index_select(1, gradient_indices)
+            assert full_normalized_derivatives is not None
+            normalized_derivatives = full_normalized_derivatives.index_select(
+                1, gradient_indices
+            )
             raw_derivatives = normalized_derivatives / gradient_scale
             gradient.add(
                 raw_derivatives.detach(),
@@ -132,4 +156,23 @@ def evaluate(
                 batch["gradient_standard_errors"].to(device),
                 compare_sign=True,
             )
-    return {**price.result("price"), **gradient.result("gradient")}
+        if schema.diagonal_hessians:
+            assert full_normalized_derivatives is not None
+            normalized_diagonal = selected_diagonal_hessians(
+                full_normalized_derivatives,
+                normalized_inputs,
+                diagonal_hessian_indices,
+                create_graph=False,
+            )
+            raw_diagonal = normalized_diagonal / diagonal_hessian_scale
+            diagonal_hessian.add(
+                raw_diagonal.detach(),
+                batch["diagonal_hessians"].to(device),
+                batch["diagonal_hessian_standard_errors"].to(device),
+                compare_sign=True,
+            )
+    return {
+        **price.result("price"),
+        **gradient.result("gradient"),
+        **diagonal_hessian.result("diagonal_hessian"),
+    }

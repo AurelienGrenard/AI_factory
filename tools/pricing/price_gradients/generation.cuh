@@ -102,7 +102,8 @@ int execute_prepared_dataset(
     const Plan& prepared,
     ExecutionPolicy execution_policy,
     StencilPreparation prepare_stencils,
-    std::size_t paths_per_price
+    std::size_t paths_per_price,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     try {
         const auto start = std::chrono::steady_clock::now();
@@ -113,7 +114,11 @@ int execute_prepared_dataset(
         constexpr std::size_t node_capacity =
             pg::SensitivityTraits<Orders>::node_capacity;
         const auto plan = cuda_tuning::make_price_gradient_launch_plan(
-            identity, rows, k, Stochastic ? paths_per_price : 0U
+            identity,
+            rows,
+            k,
+            Stochastic ? paths_per_price : 0U,
+            launch_limits
         );
         cuda::DeviceBuffer<float> gradients(first_requested ? rows*k : 0U);
         cuda::DeviceBuffer<float> gradient_errors(
@@ -409,8 +414,16 @@ int execute_prepared_dataset(
             result.diagonal_stencils = std::move(represented_stencils);
         }
         progress.complete();
-        result.execution =
-            cuda_tuning::device_prepared_price_gradient_launch_metadata(
+        const bool uses_node_graph = [&] {
+            if constexpr (requires { execution_policy.strategy(); }) {
+                return execution_policy.strategy()
+                    == pg::SensitivityStrategy::node_graph;
+            }
+            return false;
+        }();
+        result.execution = uses_node_graph
+            ? cuda_tuning::diagonal_node_graph_launch_metadata(plan, k)
+            : cuda_tuning::device_prepared_price_gradient_launch_metadata(
                 plan, k
             );
         result.execution["monte_carlo_paths_per_price"] =
@@ -443,7 +456,10 @@ int execute_prepared_dataset(
                 == pg::SensitivityOrders::second
                 ? nlohmann::ordered_json::array({"diagonal_second"})
                 : nlohmann::ordered_json::array({"first", "diagonal_second"});
-            result.execution["maximum_live_scenarios"] = k == 0U ? 1U : 4U;
+            if (!uses_node_graph) {
+                result.execution["maximum_live_scenarios"] =
+                    k == 0U ? 1U : 4U;
+            }
             result.execution["represented_nodes_per_sensitivity"] =
                 k == 0U ? 0U : 4U;
         }
@@ -478,7 +494,8 @@ template<
 int execute_dataset(const datasets::price_gradients::Recipe& recipe, cuda_tuning::PricingIdentity identity,
                     std::uint64_t seed, const Models& models, const Products& products, Prepare prepare, Launch launch,
                     std::size_t paths_per_price = cuda_tuning::kProductionPathsPerPrice,
-                    StencilPreparation prepare_stencils = nullptr) {
+                    StencilPreparation prepare_stencils = nullptr,
+                    cuda_tuning::PricingLaunchLimits launch_limits = {}) {
     if (recipe.orders != Orders) {
         std::cerr << "Gradient recipe and compiled sensitivity orders differ.\n";
         return 1;
@@ -512,7 +529,8 @@ int execute_dataset(const datasets::price_gradients::Recipe& recipe, cuda_tuning
         prepared,
         direct_sensitivity_execution(std::move(launch)),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 
@@ -536,7 +554,8 @@ int execute_node_graph_dataset(
     GraphWorkspaceBytes graph_workspace_bytes,
     GraphLaunch graph_launch,
     std::size_t paths_per_price,
-    StencilPreparation prepare_stencils
+    StencilPreparation prepare_stencils,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     static_assert(
         pg::requests_second_v<Orders>,
@@ -577,7 +596,8 @@ int execute_node_graph_dataset(
             std::move(graph_launch)
         ),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 
@@ -603,7 +623,8 @@ int execute_curve_node_graph_dataset(
     GraphWorkspaceBytes graph_workspace_bytes,
     GraphLaunch graph_launch,
     std::size_t paths_per_price,
-    StencilPreparation prepare_stencils
+    StencilPreparation prepare_stencils,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     static_assert(
         pg::requests_second_v<Orders>,
@@ -650,7 +671,8 @@ int execute_curve_node_graph_dataset(
             std::move(graph_launch)
         ),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 
@@ -674,7 +696,8 @@ int execute_curve_dataset(
     Prepare prepare,
     Launch launch,
     std::size_t paths_per_price = cuda_tuning::kProductionPathsPerPrice,
-    StencilPreparation prepare_stencils = nullptr
+    StencilPreparation prepare_stencils = nullptr,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     if (recipe.orders != Orders) {
         std::cerr
@@ -716,7 +739,8 @@ int execute_curve_dataset(
         prepared,
         direct_sensitivity_execution(std::move(launch)),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 }  // namespace ai_factory::workbench::offline::pricing::price_gradients

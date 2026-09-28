@@ -30,6 +30,7 @@ class RunSpec:
     seed: int
     method: str
     gradient_weight: float | None
+    diagonal_hessian_weight: float | None
     config: dict[str, Any]
 
 
@@ -77,6 +78,7 @@ def expand_runs(specification: dict[str, Any]) -> list[RunSpec]:
     sizes = specification.get("train_sizes")
     seeds = specification.get("seeds")
     gradient_weights = specification.get("gradient_weights", [0.1, 1.0])
+    diagonal_hessian_weights = specification.get("diagonal_hessian_weights", [])
     if not dataset or not isinstance(architectures, list) or not architectures:
         raise ValueError("Campaign requires dataset and non-empty architectures")
     if not isinstance(sizes, list) or not sizes or not isinstance(seeds, list) or not seeds:
@@ -117,16 +119,32 @@ def expand_runs(specification: dict[str, Any]) -> list[RunSpec]:
                     pair_id = (
                         f"{prefix}{architecture_id}__n{train_size}__seed{seed}"
                     )
-                    modes: list[tuple[str, float | None]] = [("price", None)]
+                    modes: list[
+                        tuple[str, float | None, float | None]
+                    ] = [("price", None, None)]
                     modes.extend(
-                        ("price_delta", float(weight)) for weight in gradient_weights
+                        ("price_delta", float(weight), None)
+                        for weight in gradient_weights
                     )
-                    for method, gradient_weight in modes:
-                        suffix = (
-                            "price"
-                            if gradient_weight is None
-                            else f"price_delta_lambda{_token(gradient_weight)}"
+                    modes.extend(
+                        (
+                            "price_gradient_diagonal",
+                            float(gradient_weight),
+                            float(hessian_weight),
                         )
+                        for gradient_weight in gradient_weights
+                        for hessian_weight in diagonal_hessian_weights
+                    )
+                    for method, gradient_weight, hessian_weight in modes:
+                        if gradient_weight is None:
+                            suffix = "price"
+                        elif hessian_weight is None:
+                            suffix = f"price_delta_lambda{_token(gradient_weight)}"
+                        else:
+                            suffix = (
+                                f"price_gradient_diagonal_lambda_g"
+                                f"{_token(gradient_weight)}_h{_token(hessian_weight)}"
+                            )
                         run_id = f"{pair_id}__{suffix}"
                         terms: list[dict[str, Any]] = [
                             {"name": "value_mse", "weight": 1.0}
@@ -135,12 +153,26 @@ def expand_runs(specification: dict[str, Any]) -> list[RunSpec]:
                             terms.append(
                                 {"name": "gradient_mse", "weight": gradient_weight}
                             )
+                        if hessian_weight is not None:
+                            terms.append(
+                                {
+                                    "name": "diagonal_hessian_mse",
+                                    "weight": hessian_weight,
+                                }
+                            )
                         terms.extend(common_terms)
+                        configured_method = (
+                            "supervised"
+                            if method == "price"
+                            else (
+                                "sobolev_diagonal"
+                                if hessian_weight is not None
+                                else "sobolev"
+                            )
+                        )
                         override = {
                             "dataset": str(dataset),
-                            "method": (
-                                "supervised" if method == "price" else "sobolev"
-                            ),
+                            "method": configured_method,
                             "data": {**common_data, "train_size": train_size},
                             "network": network,
                             "representation": representation,
@@ -153,6 +185,7 @@ def expand_runs(specification: dict[str, Any]) -> list[RunSpec]:
                                 "architecture_id": architecture_id,
                                 "method": method,
                                 "gradient_weight": gradient_weight,
+                                "diagonal_hessian_weight": hessian_weight,
                             },
                         }
                         config = load_config(None, override)
@@ -166,6 +199,7 @@ def expand_runs(specification: dict[str, Any]) -> list[RunSpec]:
                                 seed=seed,
                                 method=method,
                                 gradient_weight=gradient_weight,
+                                diagonal_hessian_weight=hessian_weight,
                                 config=config,
                             )
                         )
@@ -211,6 +245,7 @@ def _collect_results(root: Path, runs: list[RunSpec]) -> list[dict[str, object]]
             "seed": run.seed,
             "method": run.method,
             "gradient_weight": run.gradient_weight,
+            "diagonal_hessian_weight": run.diagonal_hessian_weight,
             "elapsed_seconds": result["runtime"]["elapsed_seconds"],
             "training_seconds": result["runtime"].get("training_seconds"),
             "training_examples_per_second": result["runtime"].get(
@@ -268,7 +303,9 @@ def run_campaign(config_path: Path) -> int:
         frozen_path.write_text(yaml.safe_dump(specification, sort_keys=False), encoding="utf-8")
     runs = expand_runs(specification)
     prepared = prepare_pricing_dataset(
-        specification["dataset"], cache_root=specification.get("cache_root")
+        specification["dataset"],
+        cache_root=specification.get("cache_root"),
+        reference_paths=specification.get("data", {}).get("reference_paths"),
     )
     state = {
         "status": "running",

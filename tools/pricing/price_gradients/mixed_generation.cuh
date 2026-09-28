@@ -99,7 +99,8 @@ int execute_prepared_mixed_dataset(
     const Plan& prepared,
     ExecutionPolicy execution_policy,
     StencilPreparation prepare_stencils,
-    std::size_t paths_per_price
+    std::size_t paths_per_price,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     try {
         const auto start = std::chrono::steady_clock::now();
@@ -147,7 +148,8 @@ int execute_prepared_mixed_dataset(
             identity,
             rows,
             sensitivity_count,
-            Stochastic ? paths_per_price : 0U
+            Stochastic ? paths_per_price : 0U,
+            launch_limits
         );
         cuda::DeviceBuffer<float> gradients(first_output_count);
         cuda::DeviceBuffer<float> gradient_errors(
@@ -627,7 +629,8 @@ int execute_mixed_node_graph_dataset(
     GraphWorkspaceBytes graph_workspace_bytes,
     GraphLaunch graph_launch,
     std::size_t paths_per_price,
-    StencilPreparation prepare_stencils
+    StencilPreparation prepare_stencils,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     const auto request = mixed_recipe_request(recipe);
     using Prepared = decltype(prepare(
@@ -660,7 +663,8 @@ int execute_mixed_node_graph_dataset(
             std::move(graph_launch)
         ),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 
@@ -684,7 +688,8 @@ int execute_curve_mixed_node_graph_dataset(
     GraphWorkspaceBytes graph_workspace_bytes,
     GraphLaunch graph_launch,
     std::size_t paths_per_price,
-    StencilPreparation prepare_stencils
+    StencilPreparation prepare_stencils,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
 ) {
     const auto request = mixed_recipe_request(recipe);
     using Prepared = decltype(prepare(
@@ -723,7 +728,8 @@ int execute_curve_mixed_node_graph_dataset(
             std::move(graph_launch)
         ),
         std::move(prepare_stencils),
-        paths_per_price
+        paths_per_price,
+        launch_limits
     );
 }
 

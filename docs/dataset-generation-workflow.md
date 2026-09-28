@@ -39,7 +39,7 @@ Closed-form prices have no paths. Samples retain their independent shapes from
 the [sample contract](model-sample-dataset-generation.md). This controller has
 no path-count or shape override.
 
-For equity sensitivities, build the separate `price_delta_generators` target
+For equity sensitivities, build the separate `price_sensitivity_generators` target
 and select `--kind price_delta`. Building `price_generators` alone still builds
 only price-only recipes. Generated `recipe.yaml` describes planned settings;
 the native generator produces a minimal `generation.yaml` receipt during

@@ -26,11 +26,18 @@ class PricingTorchDataset(Dataset):
             "features": torch.tensor(self.prepared.features[index], dtype=torch.float32),
             "values": torch.tensor(self.prepared.values[index], dtype=torch.float32),
             "gradients": torch.tensor(self.prepared.gradients[index], dtype=torch.float32),
+            "diagonal_hessians": torch.tensor(
+                self.prepared.diagonal_hessians[index], dtype=torch.float32
+            ),
             "value_standard_errors": torch.tensor(
                 self.prepared.value_standard_errors[index], dtype=torch.float32
             ),
             "gradient_standard_errors": torch.tensor(
                 self.prepared.gradient_standard_errors[index], dtype=torch.float32
+            ),
+            "diagonal_hessian_standard_errors": torch.tensor(
+                self.prepared.diagonal_hessian_standard_errors[index],
+                dtype=torch.float32,
             ),
         }
 
@@ -75,11 +82,17 @@ class PricingBatchLoader:
                 "features": self._tensor(self.prepared.features[batch_indices]),
                 "values": self._tensor(self.prepared.values[batch_indices]),
                 "gradients": self._tensor(self.prepared.gradients[batch_indices]),
+                "diagonal_hessians": self._tensor(
+                    self.prepared.diagonal_hessians[batch_indices]
+                ),
                 "value_standard_errors": self._tensor(
                     self.prepared.value_standard_errors[batch_indices]
                 ),
                 "gradient_standard_errors": self._tensor(
                     self.prepared.gradient_standard_errors[batch_indices]
+                ),
+                "diagonal_hessian_standard_errors": self._tensor(
+                    self.prepared.diagonal_hessian_standard_errors[batch_indices]
                 ),
                 "entity_ordinals": self._tensor(
                     self.prepared.entity_ordinals[batch_indices]

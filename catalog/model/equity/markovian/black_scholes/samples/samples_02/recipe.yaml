@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/equity/markovian/black_scholes/samples/samples_02/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/black_scholes/samples/samples_02.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 3000000,
     "paths_per_parameter": 1,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -58,10 +58,9 @@
     "schedule": 11668826846044094464,
     "dynamics": 11668826847117836288
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_markovian",
-    "profile": "model_sample_profile",
     "description": "Exact Gaussian log-price transitions"
   },
   "outputs": {

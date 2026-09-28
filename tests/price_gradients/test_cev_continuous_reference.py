@@ -2,7 +2,12 @@
 import math
 import unittest
 
-import QuantLib as ql
+try:
+    import QuantLib as ql
+except ModuleNotFoundError as error:
+    if error.name != "QuantLib":
+        raise
+    raise unittest.SkipTest("QuantLib Python bindings are unavailable") from error
 
 from validation.quantlib.model.equity.cev.european_option import (
     _price, continuous_time_price,

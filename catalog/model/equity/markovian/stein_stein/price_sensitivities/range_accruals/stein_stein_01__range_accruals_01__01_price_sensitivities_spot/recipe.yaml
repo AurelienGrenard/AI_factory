@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "stein_stein_01__range_accruals_01__01_price_sensitivities_spot",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
+    "product": "datasets/product/range_accrual/range_accruals_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/stein_stein/price_sensitivities/range_accruals/stein_stein_01__range_accruals_01__01_price_sensitivities_spot.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/stein_stein/price_sensitivities/range_accruals/stein_stein_01__range_accruals_01__01_price_sensitivities_spot/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/stein_stein/price_sensitivities/range_accruals/stein_stein_01__range_accruals_01__01_price_sensitivities_spot.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/stein_stein/prices/range_accruals/stein_stein_01__range_accruals_01__01/recipe.yaml"
+  },
+  "seeds": {
+    "dynamics": 11668828064741064704
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

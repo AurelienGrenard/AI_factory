@@ -25,6 +25,7 @@ VALID_DOCUMENTS = {
         "output": {"path": "datasets/model/example.json", "format": "json"},
         "generation_output": "catalog/model/example/generation.yaml",
         "url": "https://datasets.ai-factory.example/v1/model/example.json",
+        "row_count": 1,
     },
     "generation": {
         "schema_version": 1,
@@ -79,9 +80,9 @@ class MetadataSchemaTest(unittest.TestCase):
                 schema_validator(kind)
                 validate_document(document, kind)
         counts = validate_repository(ROOT)
-        self.assertEqual(counts["recipe"], 5080)
-        self.assertEqual(counts["generation"], 720)
-        self.assertEqual(counts["validation"], 619)
+        self.assertEqual(counts["recipe"], 4732)
+        self.assertEqual(counts["generation"], 719)
+        self.assertEqual(counts["validation"], 618)
 
     def test_each_schema_rejects_a_broken_contract(self) -> None:
         mutations = {
@@ -98,6 +99,13 @@ class MetadataSchemaTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, f"invalid {kind} metadata"):
                     validate_document(document, kind)
 
+    def test_generation_accepts_an_experimental_work_recipe(self) -> None:
+        document = deepcopy(VALID_DOCUMENTS["generation"])
+        document["recipe"]["path"] = (
+            "work/generation/example/recipe.yaml"
+        )
+        validate_document(document, "generation")
+
     def test_generation_cannot_repeat_recipe_or_validation_fields(self) -> None:
         for field in ("dataset_id", "validation", "time_grid"):
             document = deepcopy(VALID_DOCUMENTS["generation"])
@@ -105,6 +113,33 @@ class MetadataSchemaTest(unittest.TestCase):
             with self.subTest(field=field):
                 with self.assertRaisesRegex(ValueError, "invalid generation metadata"):
                     validate_document(document, "generation")
+
+    def test_recipe_rejects_execution_only_fields(self) -> None:
+        for field, value in (
+            ("rng_mapping_version", "philox_source_step_v2"),
+            ("launch_profile", "candidate"),
+            ("sensitivity_execution", {"default": "mono"}),
+        ):
+            document = deepcopy(VALID_DOCUMENTS["recipe"])
+            document[field] = value
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(
+                    ValueError, "invalid recipe metadata"
+                ):
+                    validate_document(document, "recipe")
+
+    def test_recipe_requires_a_positive_row_count(self) -> None:
+        for value in (None, 0, -1):
+            document = deepcopy(VALID_DOCUMENTS["recipe"])
+            if value is None:
+                document.pop("row_count")
+            else:
+                document["row_count"] = value
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(
+                    ValueError, "invalid recipe metadata"
+                ):
+                    validate_document(document, "recipe")
 
     def test_recipe_requires_an_https_json_url(self) -> None:
         for value in (None, "http://datasets.example/test.json", "https://datasets.example/test"):

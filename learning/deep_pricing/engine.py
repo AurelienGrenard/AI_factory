@@ -20,6 +20,7 @@ from learning.common.data.selection import DatasetSelection
 from learning.common.data.torch_dataset import PricingBatchLoader
 from learning.common.data.transforms import Standardization, fit_standardization
 from learning.common.training import LossContext, build_composite_loss
+from learning.common.training.derivatives import selected_diagonal_hessians
 
 from .metrics import evaluate
 from .representations import build_pricing_model
@@ -204,6 +205,14 @@ def train_experiment(
     loss_function = build_composite_loss(config["loss"]["terms"])
     if loss_function.requires_input_gradients and not prepared.schema.gradients:
         raise ValueError("The configured objective requires gradients absent from this dataset")
+    if (
+        loss_function.requires_input_hessians
+        and not prepared.schema.diagonal_hessians
+    ):
+        raise ValueError(
+            "The configured objective requires diagonal Hessians absent from "
+            "this dataset"
+        )
     optimizer = _optimizer(model, training)
     scheduler = _scheduler(optimizer, training, epochs)
     pin_memory = False
@@ -234,6 +243,17 @@ def train_experiment(
     )
     gradient_scales = torch.as_tensor(
         transform.normalized_gradient_scales(gradient_indices_np), device=device
+    )
+    diagonal_hessian_indices_np = np.asarray(
+        [hessian.wrt_index for hessian in prepared.schema.diagonal_hessians],
+        dtype=np.int64,
+    )
+    diagonal_hessian_indices = torch.as_tensor(
+        diagonal_hessian_indices_np, dtype=torch.long, device=device
+    )
+    diagonal_hessian_scales = torch.as_tensor(
+        transform.normalized_diagonal_hessian_scales(diagonal_hessian_indices_np),
+        device=device,
     )
 
     run_directory = Path(run_directory)
@@ -317,8 +337,12 @@ def train_experiment(
             train_started = time.time()
             for batch in train_loader:
                 raw_inputs = batch["features"].to(device, non_blocking=pin_memory)
-                inputs = ((raw_inputs - feature_mean) / feature_scale).requires_grad_(
+                needs_input_derivatives = (
                     loss_function.requires_input_gradients
+                    or loss_function.requires_input_hessians
+                )
+                inputs = ((raw_inputs - feature_mean) / feature_scale).requires_grad_(
+                    needs_input_derivatives
                 )
                 raw_targets = batch["values"].to(device, non_blocking=pin_memory)
                 targets = (raw_targets - value_mean) / value_scale
@@ -328,15 +352,42 @@ def train_experiment(
                 target_gradients = None
                 raw_predicted_gradients = None
                 raw_target_gradients = None
-                if loss_function.requires_input_gradients:
-                    predicted_gradients = torch.autograd.grad(
+                predicted_diagonal_hessians = None
+                target_diagonal_hessians = None
+                raw_predicted_diagonal_hessians = None
+                raw_target_diagonal_hessians = None
+                full_predicted_gradients = None
+                if needs_input_derivatives:
+                    full_predicted_gradients = torch.autograd.grad(
                         predictions.sum(), inputs, create_graph=True
-                    )[0].index_select(1, gradient_indices)
+                    )[0]
+                if loss_function.requires_input_gradients:
+                    assert full_predicted_gradients is not None
+                    predicted_gradients = full_predicted_gradients.index_select(
+                        1, gradient_indices
+                    )
                     raw_target_gradients = batch["gradients"].to(
                         device, non_blocking=pin_memory
                     )
                     target_gradients = raw_target_gradients * gradient_scales
                     raw_predicted_gradients = predicted_gradients / gradient_scales
+                if loss_function.requires_input_hessians:
+                    assert full_predicted_gradients is not None
+                    predicted_diagonal_hessians = selected_diagonal_hessians(
+                        full_predicted_gradients,
+                        inputs,
+                        diagonal_hessian_indices,
+                        create_graph=True,
+                    )
+                    raw_target_diagonal_hessians = batch["diagonal_hessians"].to(
+                        device, non_blocking=pin_memory
+                    )
+                    target_diagonal_hessians = (
+                        raw_target_diagonal_hessians * diagonal_hessian_scales
+                    )
+                    raw_predicted_diagonal_hessians = (
+                        predicted_diagonal_hessians / diagonal_hessian_scales
+                    )
                 context = LossContext(
                     model=model,
                     normalized_inputs=inputs,
@@ -352,6 +403,14 @@ def train_experiment(
                     batch={name: value.to(device) for name, value in batch.items()},
                     epoch=epoch,
                     global_step=global_step,
+                    normalized_predicted_diagonal_hessians=(
+                        predicted_diagonal_hessians
+                    ),
+                    normalized_target_diagonal_hessians=target_diagonal_hessians,
+                    raw_predicted_diagonal_hessians=(
+                        raw_predicted_diagonal_hessians
+                    ),
+                    raw_target_diagonal_hessians=raw_target_diagonal_hessians,
                 )
                 loss, components = loss_function(context)
                 loss.backward()

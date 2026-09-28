@@ -33,7 +33,7 @@ inline datasets::ModelSampleRecipe recipe(
         "$display",
         "datasets/model/$source_folder/samples/" + id + ".json",
         "catalog/model/$source_folder/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/$source_folder/samples/" + id + ".json",
+        "https://datasets.ai-factory.example/v2/model/$source_folder/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,

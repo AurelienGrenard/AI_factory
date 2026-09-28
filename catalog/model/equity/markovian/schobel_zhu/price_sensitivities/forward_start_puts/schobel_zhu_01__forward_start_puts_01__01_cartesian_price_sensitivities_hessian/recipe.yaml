@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "schobel_zhu_01__forward_start_puts_01__01_cartesian_price_sensitivities_hessian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json",
+    "product": "datasets/product/forward_start_option/forward_start_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/schobel_zhu/price_sensitivities/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01_cartesian_price_sensitivities_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/schobel_zhu/price_sensitivities/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01_cartesian_price_sensitivities_hessian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/schobel_zhu/price_sensitivities/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01_cartesian_price_sensitivities_hessian.json",
+  "row_count": 1000000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.correlation",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.moneyness",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/schobel_zhu/prices/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01_cartesian/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second",
+      "mixed_second"
+    ],
+    "mixed_second": "all"
+  },
+  "seeds": {
+    "dynamics": 11668827897237340160
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504"
+  }
+}

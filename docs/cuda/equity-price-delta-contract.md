@@ -149,42 +149,21 @@ Record registers, local memory/spills, shared memory and bounded timings before
 selecting production settings. Production recipes will use 2^20 paths; small
 unit-test counts do not change that requirement.
 
-## Recipes, artifacts and reuse
+## Legacy catalogue status
 
-`catalog/model/equity/{markovian,rough}/<model>/price_delta/<variant>/<id>/`
-contains generated `generator.cpp` and `recipe.yaml`. The latter describes
-planned inputs, method, full bump, CRN seed, fixed time grid when applicable
-and 2^20 paths (zero for closed form). It is not a claim that data were generated.
-Execution writes the mirrored JSON under `datasets/.../price_delta/` and a
-standalone `generation.yaml` receipt describing actual execution and timing.
-Each source price recipe has distinct aligned and Cartesian price-delta targets.
-The writer records the construction and the controller derives the result count
-from the frozen input cardinalities.
+The dedicated `price_delta` catalogue family has been retired. Markovian
+spot-only datasets are now ordinary `{model.spot}` selections below
+`catalog/model/**/price_sensitivities/`, generated through the common
+sensitivity engine and selected with
+`tools/datasets/generate_catalog.py --kind price_sensitivities`.
 
-Run these through `tools/datasets/generate_catalog.py --kind price_delta`.
-The controller freezes both recipe files and inputs, checks paired outputs
-against the declared sensitivity, grid, seed, preparation and geometry. It attaches the existing generation
-provenance before optional publication. Validation stays independent in
-`validation.yaml`; no fictitious validator or certificate is added. Changing the bump or
-method changes the semantic specification used by the compatibility checker.
-Rough preparation settings also participate in that specification. N-factor
-recipes declare seven factors and a horizon equal to the maximum product
-maturity. Execution records the actual horizon and coefficient precision. FFT
-execution records every row's step count and the allocated workspace size.
-The 174 rough recipes are planned recipes; their presence does not mean that
-174 datasets have been generated.
-
-CRN aliases explicitly reuse the source price recipe's dynamics seed and row
-reservation. Existing reservations are not rekeyed. No independent stream is
-claimed between a price and its paired sensitivity. The common launch planner
-supplies inherited candidates with the MC thread bound; LSM's actual trace-aware batch sizes
-and launch count are recorded after execution. Warmup uses one production-path
-row, excluded from kernel timing but included in native wall time.
-
-Outputs include price, delta, the two sampling errors for stochastic methods,
-and each row's represented bump endpoints/denominator. Closed formulas have
-no fabricated sampling error. Finite outputs do not certify finite-difference
-bias, rare-crossing accuracy or approximate LSM stopping-policy bias.
+The launchers described by this document remain migration references for rough
+models and parity tests. They do not own active recipes or dataset paths.
+Historical datasets and frozen campaign evidence keep their original metadata
+outside the active catalogue; this avoids rewriting provenance as if the new
+recipe had produced old bytes. Exact construction, RNG mapping, compiled
+profile, geometry and timing are recorded after execution in `generation.yaml`.
+The readable recipe exposes the promised row count and names only `philox`.
 
 ## Discontinuous products
 

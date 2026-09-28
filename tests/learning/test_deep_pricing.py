@@ -86,6 +86,39 @@ def _pricing_fixture(root: Path, *, repetitions: int = 1) -> Path:
     return dataset_path
 
 
+def _add_diagonal_targets(dataset: Path) -> None:
+    document = json.loads(dataset.read_text())
+    document["sensitivity"] = {
+        "method": "finite_difference_shared_innovations",
+        "parameters": [
+            {"parameter": "model.volatility"},
+            {"parameter": "product.strike"},
+        ],
+        "orders": ["first", "diagonal_second"],
+    }
+    for index, row in enumerate(document["results"]):
+        outputs = row["outputs"]
+        outputs.pop("delta")
+        outputs.pop("delta_standard_error")
+        outputs["gradients"] = {
+            "model.volatility": 1.0 + index,
+            "product.strike": -2.0 - index,
+        }
+        outputs["gradient_standard_errors"] = {
+            "model.volatility": 0.03,
+            "product.strike": 0.04,
+        }
+        outputs["diagonal_hessians"] = {
+            "model.volatility": 0.2 + index,
+            "product.strike": 0.3 + index,
+        }
+        outputs["diagonal_hessian_standard_errors"] = {
+            "model.volatility": 0.05,
+            "product.strike": 0.06,
+        }
+    _write_json(dataset, document)
+
+
 class PricingDataTest(unittest.TestCase):
     def test_streams_joins_and_caches_price_delta(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -144,6 +177,52 @@ class PricingDataTest(unittest.TestCase):
                 prepared.gradient_standard_errors,
                 [[0.03, 0.04]] * 4,
             )
+
+    def test_streams_diagonal_hessians_and_sampling_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset = _pricing_fixture(root)
+            _add_diagonal_targets(dataset)
+
+            prepared = prepare_pricing_dataset(dataset, cache_root=root / "cache")
+
+            self.assertEqual(
+                tuple(
+                    target.wrt_name
+                    for target in prepared.schema.diagonal_hessians
+                ),
+                ("model.volatility", "product.strike"),
+            )
+            np.testing.assert_allclose(
+                prepared.diagonal_hessians,
+                [[0.2, 0.3], [1.2, 1.3], [2.2, 2.3], [3.2, 3.3]],
+            )
+            np.testing.assert_allclose(
+                prepared.diagonal_hessian_standard_errors,
+                [[0.05, 0.06]] * 4,
+            )
+
+    def test_explicit_reference_paths_override_missing_catalog_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset = _pricing_fixture(root)
+            document = json.loads(dataset.read_text())
+            model_path = root / "datasets/model/test/parameters/model_01.json"
+            product_path = root / "datasets/product/test/products_01.json"
+            document["model_dataset"]["catalog"] = "catalog/missing/model"
+            document["product_dataset"]["catalog"] = "catalog/missing/product"
+            _write_json(dataset, document)
+
+            prepared = prepare_pricing_dataset(
+                dataset,
+                cache_root=root / "cache",
+                reference_paths={
+                    "model": model_path,
+                    "product": product_path,
+                },
+            )
+
+            self.assertEqual(prepared.schema.entity_roles, ("model", "product"))
 
     def test_rejects_ambiguous_sensitivity(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -250,6 +329,51 @@ class SelectionAndLossTest(unittest.TestCase):
         self.assertEqual(float(value.detach()), 0.0)
         self.assertEqual(components["gradient_mse"], 0.0)
 
+    def test_diagonal_hessian_loss_uses_normalized_second_derivative_units(
+        self,
+    ) -> None:
+        transform = Standardization(
+            feature_mean=np.array([10.0], dtype=np.float32),
+            feature_scale=np.array([3.0], dtype=np.float32),
+            value_mean=np.array([2.0], dtype=np.float32),
+            value_scale=np.array([2.0], dtype=np.float32),
+        )
+        scale = float(
+            transform.normalized_diagonal_hessian_scales(np.array([0]))[0]
+        )
+        self.assertEqual(scale, 4.5)
+        raw_hessian = torch.full((2, 1), 2.0)
+        normalized_hessian = raw_hessian * scale
+        prediction = torch.zeros((2, 1), requires_grad=True)
+        loss = build_composite_loss(
+            [{"name": "diagonal_hessian_mse", "weight": 1.0}]
+        )
+        value, components = loss(
+            LossContext(
+                model=torch.nn.Linear(1, 1),
+                normalized_inputs=prediction,
+                normalized_predictions=prediction,
+                normalized_targets=prediction.detach(),
+                normalized_predicted_gradients=None,
+                normalized_target_gradients=None,
+                raw_inputs=prediction,
+                raw_predictions=prediction,
+                raw_targets=prediction.detach(),
+                raw_predicted_gradients=None,
+                raw_target_gradients=None,
+                batch={},
+                epoch=1,
+                global_step=0,
+                normalized_predicted_diagonal_hessians=normalized_hessian,
+                normalized_target_diagonal_hessians=normalized_hessian,
+                raw_predicted_diagonal_hessians=raw_hessian,
+                raw_target_diagonal_hessians=raw_hessian,
+            )
+        )
+        self.assertEqual(float(value.detach()), 0.0)
+        self.assertEqual(components["diagonal_hessian_mse"], 0.0)
+        self.assertTrue(loss.requires_input_hessians)
+
     def test_custom_penalty_can_be_registered_without_changing_trainer(self) -> None:
         @register_loss("test_constant_penalty")
         def build_penalty(specification):
@@ -348,6 +472,53 @@ class SelectionAndLossTest(unittest.TestCase):
                 result.manifest["initial_model_hash"],
             )
 
+    def test_tiny_diagonal_sobolev_experiment_trains_and_reports_hessians(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset = _pricing_fixture(root, repetitions=50)
+            _add_diagonal_targets(dataset)
+            prepared = prepare_pricing_dataset(dataset, cache_root=root / "cache")
+            selection = make_dataset_selection(200, train_size=100)
+            config = {
+                "dataset": str(dataset),
+                "method": "sobolev_diagonal",
+                "data": {},
+                "network": {
+                    "name": "mlp",
+                    "hidden_sizes": [8],
+                    "activation": "tanh",
+                },
+                "loss": {
+                    "terms": [
+                        {"name": "value_mse", "weight": 1.0},
+                        {"name": "gradient_mse", "weight": 0.1},
+                        {"name": "diagonal_hessian_mse", "weight": 0.01},
+                    ]
+                },
+                "training": {
+                    "seed": 11,
+                    "epochs": 1,
+                    "batch_size": 32,
+                    "learning_rate": 0.001,
+                    "num_workers": 0,
+                    "device": "cpu",
+                },
+            }
+
+            result = train_experiment(
+                prepared, selection, config, root / "diagonal_run"
+            )
+
+            self.assertIn(
+                "diagonal_hessian_mae", result.manifest["metrics"]["test"]
+            )
+            self.assertIn(
+                "diagonal_hessian_standard_error_unit_count",
+                result.manifest["metrics"]["test"],
+            )
+
     def test_campaign_expands_one_identical_triplet_per_configuration(self) -> None:
         runs = expand_runs(
             {
@@ -369,6 +540,33 @@ class SelectionAndLossTest(unittest.TestCase):
         )
         self.assertTrue(all(run.config["network"] == runs[0].config["network"] for run in runs))
         self.assertTrue(all(run.config["training"] == runs[0].config["training"] for run in runs))
+
+    def test_campaign_adds_price_gradient_diagonal_runs(self) -> None:
+        runs = expand_runs(
+            {
+                "dataset": "prices.json",
+                "architectures": [
+                    {"id": "small", "network": {"name": "mlp", "hidden_sizes": [8]}}
+                ],
+                "train_sizes": [100],
+                "seeds": [17],
+                "gradient_weights": [0.1],
+                "diagonal_hessian_weights": [0.01],
+                "data": {},
+                "training": {"epochs": 2},
+            }
+        )
+
+        self.assertEqual(len(runs), 3)
+        diagonal = runs[-1]
+        self.assertEqual(diagonal.method, "price_gradient_diagonal")
+        self.assertEqual(diagonal.gradient_weight, 0.1)
+        self.assertEqual(diagonal.diagonal_hessian_weight, 0.01)
+        self.assertEqual(diagonal.config["method"], "sobolev_diagonal")
+        self.assertEqual(
+            [term["name"] for term in diagonal.config["loss"]["terms"]],
+            ["value_mse", "gradient_mse", "diagonal_hessian_mse"],
+        )
 
     def test_campaign_pairs_each_explicit_representation_independently(self) -> None:
         runs = expand_runs(

@@ -9,16 +9,20 @@ import math
 import os
 from pathlib import Path
 import shutil
-from typing import Iterator
+from typing import Iterator, Mapping
 
 import numpy as np
 
-from .contracts import GradientTarget, PricingTensorSchema
+from .contracts import (
+    DiagonalHessianTarget,
+    GradientTarget,
+    PricingTensorSchema,
+)
 from .json_stream import open_object_array
 from .references import EntityTable, find_repository_root, load_entity_tables
 
 
-_CACHE_SCHEMA_VERSION = 2
+_CACHE_SCHEMA_VERSION = 3
 
 
 def _sha256(path: Path) -> str:
@@ -110,6 +114,75 @@ def _infer_gradients(
     )
 
 
+def _infer_diagonal_hessians(
+    header: dict, outputs: dict, feature_names: tuple[str, ...]
+) -> tuple[DiagonalHessianTarget, ...]:
+    values = outputs.get("diagonal_hessians")
+    if values is None:
+        return ()
+    sensitivity = header.get("sensitivity")
+    parameters = (
+        sensitivity.get("parameters") if isinstance(sensitivity, dict) else None
+    )
+    orders = sensitivity.get("orders", []) if isinstance(sensitivity, dict) else []
+    if (
+        not isinstance(values, dict)
+        or not isinstance(parameters, list)
+        or not parameters
+        or "diagonal_second" not in orders
+    ):
+        raise ValueError(
+            "Diagonal Hessian outputs require sensitivity.parameters metadata "
+            "and the diagonal_second order"
+        )
+    names = [
+        str(item.get("parameter", "")) if isinstance(item, dict) else ""
+        for item in parameters
+    ]
+    if any(not name for name in names) or len(set(names)) != len(names):
+        raise ValueError(
+            "Diagonal Hessian sensitivity parameters must be non-empty and unique"
+        )
+    if list(values) != names:
+        raise ValueError(
+            "Diagonal Hessian outputs disagree with sensitivity parameter order"
+        )
+    errors = outputs.get("diagonal_hessian_standard_errors")
+    if errors is not None and (not isinstance(errors, dict) or list(errors) != names):
+        raise ValueError(
+            "Diagonal Hessian standard errors disagree with sensitivity parameter order"
+        )
+
+    targets = []
+    for parameter in names:
+        suffix = f".{parameter}"
+        matches = [
+            (index, name)
+            for index, name in enumerate(feature_names)
+            if name == parameter or name.endswith(suffix)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Sensitivity parameter {parameter!r} resolves to {len(matches)} "
+                "features; publish an unambiguous role-qualified input"
+            )
+        index, name = matches[0]
+        targets.append(
+            DiagonalHessianTarget(
+                source_name=f"diagonal_hessians:{parameter}",
+                value_name="price",
+                wrt_name=name,
+                wrt_index=index,
+                standard_error_name=(
+                    f"diagonal_hessian_standard_errors:{parameter}"
+                    if errors is not None
+                    else None
+                ),
+            )
+        )
+    return tuple(targets)
+
+
 def _cache_identity(dataset_path: Path, tables: tuple[EntityTable, ...]) -> dict[str, object]:
     return {
         "schema_version": _CACHE_SCHEMA_VERSION,
@@ -144,8 +217,10 @@ class PreparedPricingDataset:
     features: np.ndarray
     values: np.ndarray
     gradients: np.ndarray
+    diagonal_hessians: np.ndarray
     value_standard_errors: np.ndarray
     gradient_standard_errors: np.ndarray
+    diagonal_hessian_standard_errors: np.ndarray
     entity_ordinals: np.ndarray
 
     @property
@@ -174,8 +249,12 @@ class PreparedPricingDataset:
             features=array("features"),
             values=array("values"),
             gradients=array("gradients"),
+            diagonal_hessians=array("diagonal_hessians"),
             value_standard_errors=array("value_standard_errors"),
             gradient_standard_errors=array("gradient_standard_errors"),
+            diagonal_hessian_standard_errors=array(
+                "diagonal_hessian_standard_errors"
+            ),
             entity_ordinals=array("entity_ordinals"),
         )
         if prepared.features.shape != (schema.row_count, len(schema.feature_names)):
@@ -184,6 +263,37 @@ class PreparedPricingDataset:
             raise ValueError("Prepared value shape disagrees with its manifest")
         if prepared.gradients.shape != (schema.row_count, len(schema.gradients)):
             raise ValueError("Prepared gradient shape disagrees with its manifest")
+        if prepared.diagonal_hessians.shape != (
+            schema.row_count,
+            len(schema.diagonal_hessians),
+        ):
+            raise ValueError(
+                "Prepared diagonal Hessian shape disagrees with its manifest"
+            )
+        expected_shapes = {
+            "value standard error": prepared.values.shape,
+            "gradient standard error": prepared.gradients.shape,
+            "diagonal Hessian standard error": prepared.diagonal_hessians.shape,
+        }
+        actual_arrays = {
+            "value standard error": prepared.value_standard_errors,
+            "gradient standard error": prepared.gradient_standard_errors,
+            "diagonal Hessian standard error": (
+                prepared.diagonal_hessian_standard_errors
+            ),
+        }
+        for name, expected_shape in expected_shapes.items():
+            if actual_arrays[name].shape != expected_shape:
+                raise ValueError(
+                    f"Prepared {name} shape disagrees with its manifest"
+                )
+        if prepared.entity_ordinals.shape != (
+            schema.row_count,
+            len(schema.entity_roles),
+        ):
+            raise ValueError(
+                "Prepared entity ordinal shape disagrees with its manifest"
+            )
         return prepared
 
 
@@ -225,9 +335,10 @@ def prepare_pricing_dataset(
     dataset: str | Path,
     *,
     cache_root: str | Path | None = None,
+    reference_paths: Mapping[str, str | Path] | None = None,
     force: bool = False,
 ) -> PreparedPricingDataset:
-    """Validate and convert one published price/price-delta JSON dataset."""
+    """Validate and convert one published pricing JSON dataset."""
 
     dataset_path = Path(dataset).resolve()
     if not dataset_path.is_file():
@@ -238,18 +349,20 @@ def prepare_pricing_dataset(
         except StopIteration as error:
             raise ValueError("Price dataset contains no results") from error
     row_count = _positive_int(header.get("row_count"), "row_count")
-    tables = load_entity_tables(dataset_path, header)
+    tables = load_entity_tables(dataset_path, header, reference_paths)
     feature_names = tuple(name for table in tables for name in table.feature_names)
     outputs = first.get("outputs")
     if not isinstance(outputs, dict) or "price" not in outputs:
         raise ValueError("Price result rows must contain outputs.price")
     gradients = _infer_gradients(header, outputs, feature_names)
+    diagonal_hessians = _infer_diagonal_hessians(header, outputs, feature_names)
     schema = PricingTensorSchema(
         database_id=str(header.get("database_id", "")),
         row_count=row_count,
         feature_names=feature_names,
         value_names=("price",),
         gradients=gradients,
+        diagonal_hessians=diagonal_hessians,
         entity_roles=tuple(table.role for table in tables),
     )
     identity = _cache_identity(dataset_path, tables)
@@ -282,6 +395,10 @@ def prepare_pricing_dataset(
             temporary / "gradients.npy", mode="w+", dtype=np.float32,
             shape=(row_count, len(gradients)),
         )
+        diagonal_hessian_array = np.lib.format.open_memmap(
+            temporary / "diagonal_hessians.npy", mode="w+", dtype=np.float32,
+            shape=(row_count, len(diagonal_hessians)),
+        )
         value_se_array = np.lib.format.open_memmap(
             temporary / "value_standard_errors.npy", mode="w+", dtype=np.float32,
             shape=(row_count, 1),
@@ -289,6 +406,12 @@ def prepare_pricing_dataset(
         gradient_se_array = np.lib.format.open_memmap(
             temporary / "gradient_standard_errors.npy", mode="w+", dtype=np.float32,
             shape=(row_count, len(gradients)),
+        )
+        diagonal_hessian_se_array = np.lib.format.open_memmap(
+            temporary / "diagonal_hessian_standard_errors.npy",
+            mode="w+",
+            dtype=np.float32,
+            shape=(row_count, len(diagonal_hessians)),
         )
         ordinal_array = np.lib.format.open_memmap(
             temporary / "entity_ordinals.npy", mode="w+", dtype=np.int32,
@@ -320,6 +443,15 @@ def prepare_pricing_dataset(
                     gradient_se_array[index, gradient_index] = _optional_standard_error(
                         row_outputs, gradient.standard_error_name, index
                     )
+                for hessian_index, hessian in enumerate(diagonal_hessians):
+                    diagonal_hessian_array[index, hessian_index] = _finite_output(
+                        row_outputs, hessian.source_name, index
+                    )
+                    diagonal_hessian_se_array[index, hessian_index] = (
+                        _optional_standard_error(
+                            row_outputs, hessian.standard_error_name, index
+                        )
+                    )
             if count != row_count:
                 raise ValueError(
                     f"Dataset contains {count} rows but declares row_count={row_count}"
@@ -329,8 +461,10 @@ def prepare_pricing_dataset(
             feature_array,
             value_array,
             gradient_array,
+            diagonal_hessian_array,
             value_se_array,
             gradient_se_array,
+            diagonal_hessian_se_array,
             ordinal_array,
         ):
             array.flush()
@@ -347,8 +481,12 @@ def prepare_pricing_dataset(
                 "features": "features.npy",
                 "values": "values.npy",
                 "gradients": "gradients.npy",
+                "diagonal_hessians": "diagonal_hessians.npy",
                 "value_standard_errors": "value_standard_errors.npy",
                 "gradient_standard_errors": "gradient_standard_errors.npy",
+                "diagonal_hessian_standard_errors": (
+                    "diagonal_hessian_standard_errors.npy"
+                ),
                 "entity_ordinals": "entity_ordinals.npy",
             },
         }

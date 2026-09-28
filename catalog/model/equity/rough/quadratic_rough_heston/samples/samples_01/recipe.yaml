@@ -10,10 +10,10 @@
   },
   "generation_output": "catalog/model/equity/rough/quadratic_rough_heston/samples/samples_01/generation.yaml",
   "url": "https://datasets.ai-factory.example/v2/model/equity/rough/quadratic_rough_heston/samples/samples_01.json",
+  "row_count": 3000000,
   "shape": {
     "parameter_count": 12000,
     "paths_per_parameter": 250,
-    "row_count": 3000000,
     "row_order": "parameter-major, then path-major"
   },
   "parameter_sampling": {
@@ -88,10 +88,9 @@
     "schedule": 11668828499606503424,
     "dynamics": 11668828500680245248
   },
-  "rng_mapping_version": "philox_source_step_v2",
+  "random_number_generator": "philox",
   "numerical_method": {
     "engine": "sample_n_factor",
-    "profile": "model_sample_profile",
     "description": "7-factor Markovian lift"
   },
   "outputs": {

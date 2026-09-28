@@ -1,7 +1,8 @@
 # Deep-pricing learning contract
 
 This contract defines reproducible neural pricing experiments over published
-AI Factory price and price-gradient datasets. Simulation and pricing remain
+AI Factory price, price-gradient and diagonal-Hessian datasets. Simulation and
+pricing remain
 owned by C++/CUDA. `learning/` contains only reusable implementation. Concrete
 dataset choices, campaign configurations, notebooks and reports live below
 `work/experiments/`. Re-creatable caches and run outputs use the directory selected
@@ -29,7 +30,10 @@ Price-delta publications declare one `sensitivity.parameter` and an
 `outputs.gradient_standard_errors` objects. The adapter resolves every
 parameter to exactly one role-qualified input. Missing, duplicate, reordered,
 zero-match or multiple-match coordinates are errors. The training engine sees
-both formats through the same ordered derivative list.
+both formats through the same ordered derivative list. Publications with
+`diagonal_second` additionally expose ordered `outputs.diagonal_hessians` and
+optional `outputs.diagonal_hessian_standard_errors`; every target must resolve
+to the same unique input coordinate contract.
 
 ## Prepared data
 
@@ -85,10 +89,11 @@ x_norm = (x - mean_x) / scale_x
 y_norm = (y - mean_y) / scale_y
 ```
 
-a raw derivative target is converted as
+raw derivative targets are converted as
 
 ```text
-dy_norm / dx_norm = (scale_x / scale_y) * dy / dx.
+dy_norm / dx_norm = (scale_x / scale_y) * dy / dx
+d2y_norm / dx_norm2 = (scale_x**2 / scale_y) * d2y / dx2.
 ```
 
 This conversion belongs to the shared transform and is tested independently.
@@ -108,14 +113,17 @@ loss:
       weight: 1.0
     - name: gradient_mse
       weight: 0.1
+    - name: diagonal_hessian_mse
+      weight: 0.001
     - name: l2_parameters
       weight: 1.0e-6
 ```
 
 Adding a penalty means implementing and registering a component that consumes
-`LossContext`; the training loop remains unchanged. Gradient-consuming terms
-declare that need so the engine creates the required higher-order autograd
-graph only for methods that use it. Network builders follow the same rule.
+`LossContext`; the training loop remains unchanged. Gradient- and diagonal-
+Hessian-consuming terms declare those needs so the engine creates the required
+higher-order autograd graph only for methods that
+use it. Network builders follow the same rule.
 The context exposes raw and normalized inputs, prices and derivatives under
 distinct names, plus epoch and global step. Penalties therefore declare their
 units explicitly and may implement schedules without reaching into the loop.

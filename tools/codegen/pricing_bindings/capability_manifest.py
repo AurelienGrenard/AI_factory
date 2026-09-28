@@ -144,6 +144,27 @@ class DatasetSpec:
     numerical_profile: str = ""
     layout: str = ""
     sensitivity_orders: tuple[str, ...] = ()
+    sensitivity_parameters: tuple[str, ...] = ()
+
+    @property
+    def row_count(self) -> int:
+        """Return the cardinality promised by the canonical recipe."""
+        if self.dataset_kind == "samples":
+            return 3_000_000
+        if self.dataset_kind in {
+            "model_parameters", "curve_parameters", "product_parameters"
+        }:
+            return 1_000
+        if self.dataset_kind in {"prices", "price_sensitivities"}:
+            if self.construction == "aligned":
+                return 1_000
+            if self.construction == "cartesian":
+                input_count = 3 if self.curve is not None else 2
+                return 1_000 ** input_count
+        raise ValueError(
+            f"dataset cardinality is not declared for {self.dataset_kind}: "
+            f"{self.generator_path}"
+        )
 
     @property
     def recipe_yaml_path(self) -> str:
@@ -168,7 +189,7 @@ class DatasetSpec:
         relative = PurePosixPath(self.dataset_path).relative_to("datasets")
         stochastic = (
             self.dataset_kind == "samples"
-            or self.dataset_kind in {"prices", "price_delta", "price_gradients"}
+            or self.dataset_kind in {"prices", "price_sensitivities"}
             and self.engine not in {"equity_closed_form", "fixed_income_closed_form"}
         )
         url_version = "v2" if stochastic else "v1"
@@ -176,7 +197,7 @@ class DatasetSpec:
 
     @property
     def cmake_target(self) -> str:
-        if self.dataset_kind in {"prices", "price_delta", "price_gradients"}:
+        if self.dataset_kind in {"prices", "price_sensitivities"}:
             components = self.dataset_id.split("__")[:-1]
             names = [component.rsplit("_", 1)[0] for component in components]
             version = self.dataset_id.split("__")[-1]
@@ -1149,7 +1170,7 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
         raise ValueError(
             f"dataset lacks numerical profile or layout: {dataset.generator_path}"
         )
-    if dataset.dataset_kind == "price_gradients":
+    if dataset.dataset_kind == "price_sensitivities":
         if dataset.sensitivity_orders not in {
             ("first",),
             ("first", "diagonal_second"),
@@ -1158,9 +1179,9 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
             raise ValueError(
                 f"invalid price-gradient orders: {dataset.generator_path}"
             )
-    elif dataset.sensitivity_orders:
+    elif dataset.sensitivity_orders or dataset.sensitivity_parameters:
         raise ValueError(
-            f"non-gradient dataset declares sensitivity orders: "
+            f"non-sensitivity dataset declares sensitivity metadata: "
             f"{dataset.generator_path}"
         )
 
@@ -1626,10 +1647,10 @@ PRICE_DELTA_SOURCE_BY_GENERATOR.update({
         strict=True,
     )
 })
-DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
-AVAILABLE_DATASET_SPECS += PRICE_DELTA_DATASET_SPECS
+# The dedicated price-delta catalogue family is retired. Its spot-only use
+# case is represented by a regular sensitivity selection below; legacy delta
+# launch bindings remain available until rough-model migration is complete.
 PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(
-    PRICE_DELTA_DATASET_SPECS,
     AVAILABLE_DATASET_SPECS,
     PRICE_GRADIENT_BINDING_SPECS,
 )
@@ -1646,12 +1667,6 @@ PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
 }
 DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
 AVAILABLE_DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
-RNG_DOMAIN_SPECS += tuple(
-    replace(RNG_DOMAIN_BY_GENERATOR[source.generator_path], generator_path=delta.generator_path)
-    for delta in PRICE_DELTA_DATASET_SPECS
-    if (source := PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
-)
-RNG_DOMAIN_BY_GENERATOR = {domain.generator_path: domain for domain in RNG_DOMAIN_SPECS}
 _RNG_ALIAS_ROOT_BY_GENERATOR = {
     dataset.generator_path: dataset.generator_path
     for dataset in ALIGNED_PRICE_DATASET_SPECS
@@ -1675,16 +1690,6 @@ _RNG_ALIAS_ROOT_BY_GENERATOR.update({
     if (source := CARTESIAN_PRICE_SOURCE_BY_GENERATOR[cartesian.generator_path]).generator_path
     in RNG_DOMAIN_BY_GENERATOR
 })
-_RNG_ALIAS_ROOT_BY_GENERATOR.update({
-    delta.generator_path: (
-        CARTESIAN_PRICE_SOURCE_BY_GENERATOR[source.generator_path].generator_path
-        if source.generator_path in CARTESIAN_PRICE_SOURCE_BY_GENERATOR
-        else source.generator_path
-    )
-    for delta in PRICE_DELTA_DATASET_SPECS
-    if (source := PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]).generator_path
-    in RNG_DOMAIN_BY_GENERATOR
-})
 RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
     tuple(sorted((left, right)))
     for left, left_root in _RNG_ALIAS_ROOT_BY_GENERATOR.items()
@@ -1692,7 +1697,7 @@ RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
     if left < right and left_root == right_root
 )
 validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
-for _dataset in (*PRICE_DELTA_DATASET_SPECS, *PRICE_GRADIENT_DATASET_SPECS):
+for _dataset in PRICE_GRADIENT_DATASET_SPECS:
     validate_dataset_spec(_dataset)
 
 

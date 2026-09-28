@@ -152,7 +152,7 @@ Ces cibles produisent respectivement
 `build/generate_heston_european_calls_01_cartesian_price_delta` et
 `build/generate_rough_heston_european_calls_01_cartesian_price_delta`. La
 première est associée au fichier source
-[`generator.cpp`](../catalog/model/equity/markovian/heston/price_delta/european_calls/heston_01__european_calls_01__01_cartesian_price_delta/generator.cpp).
+[`generator.cpp`](../catalog/model/equity/markovian/heston/price_sensitivities/european_calls/heston_01__european_calls_01__01_cartesian_price_sensitivities_spot/generator.cpp).
 Le nom de la cible n'est donc pas `generator.cpp` : ce nom de fichier est
 réutilisé par de nombreuses recettes.
 
@@ -171,7 +171,7 @@ sa liste complète et filtrer les noms Heston :
 ninja -C build -t targets all | rg '^generate_heston_'
 ```
 
-On peut demander une cible de regroupement, comme `price_delta_generators`,
+On peut demander une cible de regroupement, comme `price_sensitivity_generators`,
 mais cela construit beaucoup plus de générateurs. Les générateurs individuels
 sont exclus de la construction par défaut (`EXCLUDE_FROM_ALL`) : choisir leur
 cible évite de compiler tout le catalogue.

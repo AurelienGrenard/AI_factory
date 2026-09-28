@@ -1,6 +1,5 @@
 """Check catalogue staging and resume without CUDA or independent references."""
 import json
-import copy
 import os
 from pathlib import Path
 import tempfile
@@ -25,12 +24,13 @@ class GenerationTests(unittest.TestCase):
                     "recipe": f"{base}/recipe.yaml",
                     "generation": f"{base}/generation.yaml",
                     "validation": f"{base}/validation.yaml",
+                    "row_count": 2,
                     "launch_plan": {"paths_per_price": 32}, "state": "pending", "previous": {}}
         self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
                        "generator": "generator.cpp",
                        "output": {"path": self.job["dataset"], "format": "json"},
                        "generation_output": self.job["generation"], "url": self.job["url"],
-                       "construction": "aligned"}
+                       "row_count": 2}
         self.receipt = {"schema_version": 1, "status": "complete",
                         "artifact": {"row_count": 2},
                         "execution": {"paths_per_price": 32},
@@ -94,8 +94,9 @@ class GenerationTests(unittest.TestCase):
         for name, rows in (("models.json", 3), ("products.json", 5)):
             (inputs / name).write_text(json.dumps({"row_count": rows}))
         job = {
-            "kind": "price_gradients",
+            "kind": "price_sensitivities",
             "target": "generate_gradient_test",
+            "row_count": 15,
             "inputs": ["models.json", "products.json"],
             "identity": "heston/european_option",
             "declared_method": {"construction": "cartesian"},
@@ -120,8 +121,9 @@ class GenerationTests(unittest.TestCase):
         for name, rows in (("models.json", 2), ("products.json", 2)):
             (inputs / name).write_text(json.dumps({"row_count": rows}))
         job = {
-            "kind": "price_gradients",
+            "kind": "price_sensitivities",
             "target": "generate_full_hessian_test",
+            "row_count": 2,
             "inputs": ["models.json", "products.json"],
             "identity": "heston/european_option",
             "declared_method": {"construction": "aligned"},
@@ -137,6 +139,7 @@ class GenerationTests(unittest.TestCase):
                 ],
             },
             "paths_per_price": 262144,
+            "maximum_resident_prices": 16,
         }
         plan = {"sensitivity_strategy": "mixed_node_graph"}
         with (patch.object(
@@ -157,9 +160,60 @@ class GenerationTests(unittest.TestCase):
                 "heston/european_option",
                 "2",
                 "262144",
+                "16",
                 "--price-gradients",
                 "2",
                 "--mixed",
+            ],
+        )
+
+    def test_diagonal_node_graph_plan_records_strategy_and_batch_limit(self):
+        inputs = self.root / "diagonal-inputs"
+        inputs.mkdir()
+        for name, rows in (("models.json", 4), ("products.json", 3)):
+            (inputs / name).write_text(json.dumps({"row_count": rows}))
+        job = {
+            "kind": "price_sensitivities",
+            "target": "generate_diagonal_node_graph_test",
+            "row_count": 12,
+            "inputs": ["models.json", "products.json"],
+            "identity": "heston/european_option",
+            "declared_method": {"construction": "cartesian"},
+            "sensitivity": {
+                "parameters": [
+                    {"parameter": "model.kappa"},
+                    {"parameter": "product.strike"},
+                ],
+                "orders": ["first", "diagonal_second"],
+            },
+            "sensitivity_strategy": "node_graph",
+            "paths_per_price": 262144,
+            "maximum_resident_prices": 256,
+        }
+        plan = {"sensitivity_strategy": "node_graph"}
+        with (patch.object(
+                  campaign.subprocess,
+                  "check_output",
+                  return_value=json.dumps(plan),
+              ) as inspect,
+              patch.object(campaign, "input_fingerprints", return_value={})):
+            description = campaign.describe_job(
+                inputs, self.root / "bin", job
+            )
+        self.assertEqual(description["rows"], 12)
+        self.assertEqual(description["launch_plan"], plan)
+        self.assertEqual(
+            inspect.call_args.args[0],
+            [
+                str(self.root / "bin/inspect_pricing_launch_plan"),
+                "heston/european_option",
+                "12",
+                "262144",
+                "256",
+                "--price-gradients",
+                "2",
+                "--diagonal",
+                "--node-graph",
             ],
         )
 
@@ -212,70 +266,53 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
             campaign.execute(self.run, self.state)
 
-    def test_price_delta_inventory_inherits_seeds_and_records_bump(self):
-        jobs = campaign.inventory(campaign.ROOT, {"price_delta"}, set(), set())
-        from capability_manifest import PRICE_DELTA_DATASET_SPECS, PRICE_DELTA_SOURCE_BY_GENERATOR, resolve_rng_domain
-        self.assertEqual(len(jobs), len(PRICE_DELTA_DATASET_SPECS))
-        for job in jobs:
-            self.assertEqual(job["sensitivity"]["relative_full_width"], .01)
-            source = PRICE_DELTA_SOURCE_BY_GENERATOR[job["generator"]]
-            self.assertEqual(job["sensitivity"]["source_price_recipe"], source.recipe_yaml_path)
-            if source.engine != "equity_closed_form":
-                self.assertEqual(job["rng_stream_seeds"]["dynamics"], resolve_rng_domain(source).seed("dynamics"))
+    def test_spot_sensitivity_inventory_preserves_the_narrow_selection(self):
+        jobs = campaign.inventory(
+            campaign.ROOT, {"price_sensitivities"}, set(), set()
+        )
+        from capability_manifest import (
+            PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_SOURCE_BY_GENERATOR,
+            resolve_rng_domain,
+        )
+        spot_specs = {
+            spec.generator_path: spec
+            for spec in PRICE_GRADIENT_DATASET_SPECS
+            if spec.sensitivity_parameters == ("model.spot",)
+        }
+        spot_jobs = [job for job in jobs if job["generator"] in spot_specs]
+        self.assertEqual(len(spot_jobs), len(spot_specs))
+        for job in spot_jobs:
+            self.assertEqual(
+                [item["parameter"] for item in job["sensitivity"]["parameters"]],
+                ["model.spot"],
+            )
+            source = PRICE_GRADIENT_SOURCE_BY_GENERATOR[job["generator"]]
+            self.assertEqual(
+                job["sensitivity"]["source_price_recipe"],
+                source.recipe_yaml_path,
+            )
+            if source.engine not in {
+                "equity_closed_form", "fixed_income_closed_form"
+            }:
+                self.assertEqual(
+                    job["rng_stream_seeds"]["dynamics"],
+                    resolve_rng_domain(source).seed("dynamics"),
+                )
 
-        cartesian = next(job for job in jobs
-                         if job["target"] == "generate_heston_european_calls_01_cartesian_price_delta")
+        cartesian = next(
+            job for job in spot_jobs
+            if "/heston/" in job["generator"]
+            and "/european_calls/" in job["generator"]
+            and "_cartesian_" in job["generator"]
+        )
         self.assertEqual(cartesian["declared_method"]["construction"], "cartesian")
-
-    def test_price_delta_publication_checks_paired_outputs_and_contract(self):
-        self.job.update(kind="price_delta", sensitivity={"parameter": "spot", "method": "centered_crn",
-                        "relative_full_width": .01, "source_price_recipe": "original.yaml"}, time_grid=None)
-        self.recipe["kind"] = "price_delta"
-        self.recipe["sensitivity"] = self.job["sensitivity"].copy()
-        self.document["sensitivity"] = self.job["sensitivity"].copy()
-        self.receipt["execution"]["seed"] = 123
-        self.document["summary"] = {"paths_per_price": 32, "seed": 123}
-        for row in self.document["results"]:
-            row["outputs"].update(delta=.5, delta_standard_error=.02)
-            row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
-        work = self.root / "paired"
-        self.generator(None, work, None)
-        self.assertEqual(len(campaign.check_outputs(work, self.job)), 2)
-        self.document["sensitivity"]["relative_full_width"] = .02
-        self.generator(None, work, None)
-        with self.assertRaisesRegex(ValueError, "sensitivity"):
-            campaign.check_outputs(work, self.job)
 
     def test_publication_rejects_a_dataset_url_different_from_the_recipe(self):
         work = self.root / "wrong-url"
         self.document["url"] = "https://datasets.example/wrong.json"
         self.generator(None, work, None)
         with self.assertRaisesRegex(ValueError, "Dataset URL"):
-            campaign.check_outputs(work, self.job)
-
-    def test_price_delta_preparation_and_fft_geometry_are_checked(self):
-        self.job.update(kind="price_delta", sensitivity={}, time_grid=None,
-                        preparation={"method": "hybrid_fft", "shared_convolution": True})
-        self.job["launch_plan"]["path_chunk_size"] = 65536
-        self.recipe["kind"] = "price_delta"
-        self.recipe["preparation"] = self.job["preparation"].copy()
-        self.receipt["execution"].update(seed=123, path_chunk_size=65536,
-                                         preparation=self.job["preparation"].copy())
-        self.document["summary"] = copy.deepcopy(self.receipt["execution"])
-        for row in self.document["results"]:
-            row["outputs"].update(delta=.5, delta_standard_error=.02)
-            row["spot_bump"] = {"lower": .995, "upper": 1.005, "represented_width": 1.005 - .995}
-        work = self.root / "rough-paired"
-        self.generator(None, work, None)
-        campaign.check_outputs(work, self.job)
-        self.document["summary"]["preparation"]["shared_convolution"] = False
-        self.generator(None, work, None)
-        with self.assertRaisesRegex(ValueError, "preparation"):
-            campaign.check_outputs(work, self.job)
-        self.document["summary"]["preparation"]["shared_convolution"] = True
-        self.document["summary"]["path_chunk_size"] = 8192
-        self.generator(None, work, None)
-        with self.assertRaisesRegex(ValueError, "geometry"):
             campaign.check_outputs(work, self.job)
 
     def test_generation_cannot_claim_validation_and_path_count_is_checked(self):

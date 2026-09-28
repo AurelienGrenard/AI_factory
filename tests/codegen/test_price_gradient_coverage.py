@@ -22,7 +22,7 @@ from price_gradients.manifest import default_sensitivities  # noqa: E402
 
 
 class PriceGradientCoverageTest(unittest.TestCase):
-    def test_monte_carlo_diagonal_recipes_expose_both_execution_strategies(self):
+    def test_monte_carlo_diagonal_generators_expose_both_execution_strategies(self):
         node_graph_products = {
             "european_option",
             "asset_or_nothing_option",
@@ -63,15 +63,7 @@ class PriceGradientCoverageTest(unittest.TestCase):
             generator = ROOT / spec.generator_path
             metadata = yaml.safe_load(generator.with_name("recipe.yaml").read_text())
             self.assertIn("execute_node_graph_dataset", generator.read_text())
-            self.assertEqual(
-                metadata.get("sensitivity_execution"),
-                {
-                    "default": "mono",
-                    "available": ["mono", "node_graph"],
-                    "argument": "--sensitivity-strategy",
-                },
-                spec.dataset_id,
-            )
+            self.assertNotIn("sensitivity_execution", metadata)
 
     def test_every_markovian_pricer_has_one_inventory_row(self):
         rows = markovian_coverage(

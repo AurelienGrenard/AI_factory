@@ -45,8 +45,7 @@ ${curve_load}        const auto product_dataset =
                 launch_${function_prefix}_european_swaption_price_gradients_cuda<
                     SwaptionSide::$side
                 >(
-                    plan, inputs, stencils, configuration, outputs
-                    ${closed_form_distribution_argument}
+                    plan, inputs, stencils, configuration, outputs${closed_form_distribution_argument}
                 );
         };
         return offline::pricing::price_gradients::${execute_function}<

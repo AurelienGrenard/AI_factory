@@ -112,6 +112,10 @@ public:
         return std::string(pg::to_string(strategy_));
     }
 
+    pg::SensitivityStrategy strategy() const noexcept {
+        return strategy_;
+    }
+
 private:
     pg::SensitivityStrategy strategy_;
     MonoLaunch mono_launch_;

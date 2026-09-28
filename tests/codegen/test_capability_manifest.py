@@ -81,7 +81,7 @@ class CapabilityManifestTest(unittest.TestCase):
                       "vasicek", "g2", "normal_inverse_gaussian"):
             self.assertEqual(rng_mapping_version(model), "philox_source_step_v2")
         for spec in AVAILABLE_DATASET_SPECS:
-            if spec.dataset_kind not in {"prices", "price_delta", "price_gradients", "samples"}:
+            if spec.dataset_kind not in {"prices", "price_sensitivities", "samples"}:
                 continue
             recipe = ROOT / spec.recipe_yaml_path
             if not recipe.is_file():
@@ -89,11 +89,16 @@ class CapabilityManifestTest(unittest.TestCase):
             metadata = yaml.safe_load(recipe.read_text())
             if (spec.dataset_kind == "samples" or
                     spec.engine not in {"equity_closed_form", "fixed_income_closed_form"}):
-                self.assertEqual(metadata.get("rng_mapping_version"),
-                                 "philox_source_step_v2", spec.recipe_yaml_path)
+                self.assertEqual(
+                    metadata.get("random_number_generator"),
+                    "philox",
+                    spec.recipe_yaml_path,
+                )
             else:
-                self.assertNotIn("rng_mapping_version", metadata,
-                                 spec.recipe_yaml_path)
+                self.assertNotIn(
+                    "random_number_generator", metadata, spec.recipe_yaml_path
+                )
+            self.assertNotIn("rng_mapping_version", metadata, spec.recipe_yaml_path)
 
     def test_unchanged_generated_output_preserves_timestamp(self):
         from generate import _write_generated
@@ -258,6 +263,10 @@ class CapabilityManifestTest(unittest.TestCase):
         for model in SAMPLE_MODELS:
             validate_model_contracts((model,))
             rendered = _render_sample_generation_header(model)
+            self.assertIn(
+                "https://datasets.ai-factory.example/v2/model/",
+                rendered,
+            )
             for name, law in model.derived_parameter_laws:
                 self.assertIn(json.dumps(name), rendered)
                 self.assertIn(json.dumps(law), rendered)
@@ -299,7 +308,7 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertEqual(len(PRODUCT_SPECS), 26)
         self.assertEqual(
             len(AVAILABLE_DATASET_SPECS),
-            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_DELTA_DATASET_SPECS) + len(PRICE_GRADIENT_DATASET_SPECS),
+            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_GRADIENT_DATASET_SPECS),
         )
         self.assertEqual(len(CARTESIAN_PRICE_DATASET_SPECS), 618)
         self.assertEqual(len(DEFERRED_DATASET_SPECS), 0)
@@ -341,7 +350,7 @@ class CapabilityManifestTest(unittest.TestCase):
             )
             stochastic = (
                 dataset.dataset_kind == "samples"
-                or dataset.dataset_kind in {"prices", "price_delta", "price_gradients"}
+                or dataset.dataset_kind in {"prices", "price_sensitivities"}
                 and dataset.engine not in {"equity_closed_form", "fixed_income_closed_form"}
             )
             version = "v2" if stochastic else "v1"
@@ -419,13 +428,21 @@ class CapabilityManifestTest(unittest.TestCase):
             stochastic_datasets,
         )
         self.assertTrue(RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
-        for delta in PRICE_DELTA_DATASET_SPECS:
-            source = PRICE_DELTA_SOURCE_BY_GENERATOR[delta.generator_path]
-            if delta.engine != "equity_closed_form":
-                self.assertEqual(resolve_rng_domain(delta).seed("dynamics"),
-                                 resolve_rng_domain(source).seed("dynamics"))
-                self.assertIn(tuple(sorted((delta.generator_path, source.generator_path))),
-                              RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
+        for sensitivity in PRICE_GRADIENT_DATASET_SPECS:
+            source = PRICE_GRADIENT_SOURCE_BY_GENERATOR[
+                sensitivity.generator_path
+            ]
+            if sensitivity.engine not in {
+                "equity_closed_form", "fixed_income_closed_form"
+            }:
+                self.assertEqual(
+                    resolve_rng_domain(sensitivity).seed("dynamics"),
+                    resolve_rng_domain(source).seed("dynamics"),
+                )
+                self.assertIn(
+                    tuple(sorted((sensitivity.generator_path, source.generator_path))),
+                    RNG_COMMON_RANDOM_NUMBER_ALLOWLIST,
+                )
         validate_rng_domain_specs(RNG_DOMAIN_SPECS)
 
     def test_bates_sample_recipes_do_not_share_dynamics_keys(self) -> None:

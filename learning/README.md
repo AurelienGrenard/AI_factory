@@ -22,20 +22,55 @@ parameter row go to the same split. Consumers must preserve this grouping and
 must keep `T` in the conditioning vector. The reader is independent of
 PyTorch so that data-contract checks can run without a GPU.
 
-The next vertical slice will add a PyTorch conditional generator and
-discriminator, reusable networks and training utilities under `common/`, and
-an evaluation protocol under `learning/`. The protocol will fix dataset
-identity, splits, preprocessing, seeds, compute budget, and metrics before
-comparing methods. Terminal-distribution tests should compare conditional
-moments, quantiles and model-specific constraints; repricing via Monte Carlo
-requires a payoff whose required observables are present. Arbitrary path
-dependent payoffs cannot be repriced from `Y_T` alone.
+Conditional terminal GANs are implemented under `gan/`. The generic
+WGAN-GP engine learns `G(theta, T, z) -> Y_T` with separate generator and
+critic learning rates, configurable critic steps, configurable Gaussian or
+bounded-uniform latent vectors, logistic or WGAN-GP objectives, constant, cosine
+or exponential scheduling, an exponential moving average of the generator,
+deterministic checkpoints and live JSON progress.
+Generator and critic registries infer their dimensions from the terminal
+schema. A configuration may select any non-empty subset of published
+observables, so one source dataset can train separate scalar and joint
+generators without model-specific code.
+
+Optional, model-independent anti-collapse terms include mode-seeking
+regularization (output sensitivity to paired latent draws) and normalized batch
+moment matching. Validation reports generated-to-real standard-deviation ratios
+and can penalize collapsed checkpoints during selection. These mechanisms are
+disabled by default and must be qualified by an experiment under `work/`.
+
+The terminal cache streams the large JSON once into content-addressed NumPy
+memory maps. Published parameter-group splits are preserved, transformations
+are fitted on training rows only, and observable constraints are declared as
+configuration transforms rather than inferred from a model name. Universal
+evaluation covers moments, quantiles, covariance, multiscale MMD, sliced
+Wasserstein distance, conditional slices and a direct noise-diversity
+diagnostic. Repricing via Monte Carlo still requires a payoff whose observables
+are present; arbitrary path-dependent payoffs cannot be repriced from `Y_T`
+alone.
+
+Train, monitor and sample a configured run with:
+
+```sh
+python3 -m learning.gan.train --config my_terminal_gan.yaml
+python3 -m learning.gan.watch artifacts/learning/gan-runs/<run>
+python3 -m learning.gan.sample artifacts/learning/gan-runs/<run> conditions.json
+```
+
+A completed run can be evaluated on an independent compatible publication
+without refitting its preprocessing:
+
+```sh
+python3 -m learning.gan.evaluate   artifacts/learning/gan-runs/<run> datasets/model/.../samples_02.json
+```
 
 Deep pricing is implemented under `deep_pricing/`. Its reader joins published
 price rows to their model, curve and product parameters, creates a content-
 addressed memory-mapped cache, and presents one model-independent tensor
-contract. Price-only and price-plus-gradient methods compose registered loss
-terms over the same training engine. The normative rules, including nested
+contract. Price-only, price-plus-gradient and price-plus-gradient-plus-diagonal-
+Hessian methods compose registered loss terms over the same training engine.
+Diagonal second derivatives use exact PyTorch autograd on the published
+coordinates and are reported in raw units. The normative rules, including nested
 training subsets and fixed held-out rows, are in the
 [deep-pricing learning contract](../docs/deep-pricing-learning-contract.md).
 

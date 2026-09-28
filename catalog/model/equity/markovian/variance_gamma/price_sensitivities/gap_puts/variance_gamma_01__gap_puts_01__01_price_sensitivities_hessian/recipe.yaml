@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "price_sensitivities",
+  "dataset_id": "variance_gamma_01__gap_puts_01__01_price_sensitivities_hessian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
+    "product": "datasets/product/gap_option/gap_put_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/variance_gamma/price_sensitivities/gap_puts/variance_gamma_01__gap_puts_01__01_price_sensitivities_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/variance_gamma/price_sensitivities/gap_puts/variance_gamma_01__gap_puts_01__01_price_sensitivities_hessian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/price_sensitivities/gap_puts/variance_gamma_01__gap_puts_01__01_price_sensitivities_hessian.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.sigma",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.nu",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.theta",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.trigger_strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.payoff_strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/variance_gamma/prices/gap_puts/variance_gamma_01__gap_puts_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second",
+      "mixed_second"
+    ],
+    "mixed_second": "all"
+  },
+  "seeds": {
+    "dynamics": 11668828180705181696
+  },
+  "random_number_generator": "philox",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

@@ -60,7 +60,7 @@ inline datasets::ModelSampleRecipe recipe(
         "Vasicek",
         "datasets/model/fixed_income/vasicek/samples/" + id + ".json",
         "catalog/model/fixed_income/vasicek/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v1/model/fixed_income/vasicek/samples/" + id + ".json",
+        "https://datasets.ai-factory.example/v2/model/fixed_income/vasicek/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,

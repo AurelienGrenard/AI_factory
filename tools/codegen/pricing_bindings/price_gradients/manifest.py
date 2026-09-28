@@ -493,7 +493,13 @@ def compose_bindings(pricing_bindings):
     )
 
 
-def compose_datasets(delta_datasets, price_datasets, bindings):
+def compose_datasets(price_datasets, bindings):
+    """Compose sensitivity datasets directly from their price datasets.
+
+    A spot-only first derivative is one sensitivity selection, not a separate
+    dataset family. Keeping the price recipe as the sole parent makes the
+    catalogue hierarchy independent of the requested derivative orders.
+    """
     supported = {(spec.pricing.model, spec.pricing.product) for spec in bindings}
     diagonal_pairs = {
         (spec.pricing.model, spec.pricing.product) for spec in bindings
@@ -501,21 +507,44 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
         and spec.preparation_strategy.startswith("device_prepared_")
     }
     equity = tuple(replace(dataset,
-        dataset_id=dataset.dataset_id.removesuffix("_price_delta") + "_price_gradients",
-        dataset_kind="price_gradients",
-        generator_path=dataset.generator_path.replace("/price_delta/", "/price_gradients/")
-            .replace("_price_delta/", "_price_gradients/"),
+        dataset_id=dataset.dataset_id + "_price_sensitivities",
+        dataset_kind="price_sensitivities",
+        generator_path=dataset.generator_path.replace(
+            "/prices/", "/price_sensitivities/"
+        ).replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id + "_price_sensitivities/",
+        ),
         template="catalog/pricing/price_gradients/generator.cpp.tpl",
-        numerical_profile="selected_gradients_production_paths", layout="row_major_selected_gradients",
+        numerical_profile="selected_gradients_production_paths",
+        layout="row_major_selected_gradients",
         sensitivity_orders=("first",))
-        for dataset in delta_datasets
-        if (dataset.model, dataset.product) in supported)
+        for dataset in price_datasets
+        if dataset.dataset_kind == "prices"
+        and dataset.asset_class == "equity"
+        and (dataset.model, dataset.product) in supported)
+    spot = tuple(replace(
+        dataset,
+        dataset_id=(
+            dataset.dataset_id.removesuffix("_price_sensitivities")
+            + "_price_sensitivities_spot"
+        ),
+        generator_path=dataset.generator_path.replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id.removesuffix("_price_sensitivities")
+            + "_price_sensitivities_spot/",
+        ),
+        sensitivity_parameters=("model.spot",),
+    ) for dataset in equity)
     fixed_income = tuple(replace(dataset,
-        dataset_id=dataset.dataset_id + "_price_gradients",
-        dataset_kind="price_gradients",
-        generator_path=dataset.generator_path.replace("/prices/", "/price_gradients/")
-            .replace("/" + dataset.dataset_id + "/",
-                     "/" + dataset.dataset_id + "_price_gradients/"),
+        dataset_id=dataset.dataset_id + "_price_sensitivities",
+        dataset_kind="price_sensitivities",
+        generator_path=dataset.generator_path.replace(
+            "/prices/", "/price_sensitivities/"
+        ).replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id + "_price_sensitivities/",
+        ),
         template=(
             "catalog/pricing/price_gradients/"
             "fixed_income_bermudan_swaption_generator.cpp.tpl"
@@ -582,7 +611,7 @@ def compose_datasets(delta_datasets, price_datasets, bindings):
             "first", "diagonal_second", "mixed_second"
         ),
     ) for dataset in diagonal)
-    return (*equity, *fixed_income, *diagonal, *full_hessian)
+    return (*spot, *equity, *fixed_income, *diagonal, *full_hessian)
 
 
 def default_sensitivities(
