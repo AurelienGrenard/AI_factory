@@ -86,6 +86,13 @@ inline void require_same_bits(
         }
         throw std::runtime_error(
             label + " differs at output " + std::to_string(index)
+            + ": expected=" + std::to_string(expected[index])
+            + " (bits=" + std::to_string(
+                std::bit_cast<std::uint32_t>(expected[index])
+            ) + "), actual=" + std::to_string(actual[index])
+            + " (bits=" + std::to_string(
+                std::bit_cast<std::uint32_t>(actual[index])
+            ) + ")"
         );
     }
 }
@@ -303,6 +310,42 @@ DiagonalResults execute_diagonal_node_graph(
     );
 }
 
+
+template<typename Plan, typename MonoLaunch>
+void require_price_only_parity(
+    const Plan& sensitivity_plan,
+    const Plan& price_only_plan,
+    MonoLaunch mono_launch,
+    std::size_t paths,
+    std::uint64_t seed,
+    const std::string& label
+) {
+    pg::LaunchConfiguration configuration{
+        pg::PricingMethod::monte_carlo,
+        0U,
+        sensitivity_plan.result_count,
+        paths,
+        128U,
+        sensitivity_plan.result_count
+            * sensitivity_plan.sensitivity_count(),
+        seed,
+        1U,
+    };
+    const auto sensitivities = execute_diagonal<
+        pg::SensitivityOrders::first_and_second
+    >(sensitivity_plan, configuration, mono_launch);
+    const auto price_only = execute_diagonal<
+        pg::SensitivityOrders::first_and_second
+    >(price_only_plan, configuration, mono_launch);
+    require_same_bits(
+        price_only.price, sensitivities.price, label + " price"
+    );
+    require_same_bits(
+        price_only.price_error,
+        sensitivities.price_error,
+        label + " price error"
+    );
+}
 
 template<
     typename Plan,

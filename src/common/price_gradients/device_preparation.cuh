@@ -269,7 +269,7 @@ __host__ __device__ inline bool build_stencil(
     if constexpr (Preparation::kSupportsMaturitySensitivity) {
         if (Preparation::is_maturity(sensitivity.parameter)) {
             if constexpr (Orders != pg::SensitivityOrders::first
-                && !Preparation::ModelAdapter::kSupportsMaturityDiagonal) {
+                && !Preparation::kSupportsMaturityDiagonal) {
                 error = unsupported_order;
                 return false;
             }
@@ -320,32 +320,38 @@ __host__ __device__ inline bool build_stencil(
     );
 }
 
+template<std::size_t NodeCapacity>
 __host__ __device__ inline void brownian_endpoint_weights(
-    float central,
-    float first,
-    float second,
-    float first_weights[3U],
-    float second_weights[3U]
+    const float (&input_times)[NodeCapacity],
+    std::size_t node_count,
+    float (&weights)[NodeCapacity][NodeCapacity]
 ) {
-    double coefficients[3U][3U]{};
-    coefficients[0U][0U] = ::sqrt(static_cast<double>(central));
-    const double times[3U]{central, first, second};
-    for (unsigned int index = 1U; index < 3U; ++index) {
+    double coefficients[NodeCapacity][NodeCapacity]{};
+    double times[NodeCapacity]{};
+    for (std::size_t node = 0U; node < node_count; ++node) {
+        times[node] = static_cast<double>(input_times[node]);
+    }
+    coefficients[0U][0U] = ::sqrt(times[0U]);
+    for (std::size_t index = 1U; index < node_count; ++index) {
         if (times[index] == times[0U]) {
-            for (unsigned int normal = 0U; normal < 3U; ++normal) {
+            for (std::size_t normal = 0U; normal < node_count; ++normal) {
                 coefficients[index][normal] = coefficients[0U][normal];
             }
             continue;
         }
-        if (index == 2U && times[2U] == times[1U]) {
-            for (unsigned int normal = 0U; normal < 3U; ++normal) {
-                coefficients[2U][normal] = coefficients[1U][normal];
+        bool reused = false;
+        for (std::size_t known = 1U; known < index; ++known) {
+            if (times[index] != times[known]) continue;
+            for (std::size_t normal = 0U; normal < node_count; ++normal) {
+                coefficients[index][normal] = coefficients[known][normal];
             }
-            continue;
+            reused = true;
+            break;
         }
+        if (reused) continue;
         int left = -1;
         int right = -1;
-        for (unsigned int known = 0U; known < index; ++known) {
+        for (std::size_t known = 0U; known < index; ++known) {
             if (times[known] < times[index]
                 && (left < 0 || times[known] > times[left])) {
                 left = static_cast<int>(known);
@@ -358,7 +364,9 @@ __host__ __device__ inline void brownian_endpoint_weights(
         const double left_time = left < 0 ? 0.0 : times[left];
         if (right < 0) {
             if (left >= 0) {
-                for (unsigned int normal = 0U; normal < 3U; ++normal) {
+                for (std::size_t normal = 0U;
+                     normal < node_count;
+                     ++normal) {
                     coefficients[index][normal] = coefficients[left][normal];
                 }
             }
@@ -366,7 +374,9 @@ __host__ __device__ inline void brownian_endpoint_weights(
         } else {
             const double interval = times[right] - left_time;
             const double fraction = (times[index] - left_time) / interval;
-            for (unsigned int normal = 0U; normal < 3U; ++normal) {
+            for (std::size_t normal = 0U;
+                 normal < node_count;
+                 ++normal) {
                 coefficients[index][normal] = (
                     left < 0
                         ? 0.0
@@ -379,15 +389,29 @@ __host__ __device__ inline void brownian_endpoint_weights(
             );
         }
     }
-    const double first_scale = ::sqrt(times[1U]);
-    const double second_scale = ::sqrt(times[2U]);
-    for (unsigned int normal = 0U; normal < 3U; ++normal) {
-        first_weights[normal] = static_cast<float>(
-            coefficients[1U][normal] / first_scale
-        );
-        second_weights[normal] = static_cast<float>(
-            coefficients[2U][normal] / second_scale
-        );
+    for (std::size_t node = 0U; node < node_count; ++node) {
+        const double scale = ::sqrt(times[node]);
+        for (std::size_t normal = 0U; normal < node_count; ++normal) {
+            weights[node][normal] = static_cast<float>(
+                coefficients[node][normal] / scale
+            );
+        }
+    }
+}
+
+__host__ __device__ inline void brownian_endpoint_weights(
+    float central_time,
+    float first_time,
+    float second_time,
+    float* first_weights,
+    float* second_weights
+) {
+    const float times[3U]{central_time, first_time, second_time};
+    float weights[3U][3U]{};
+    brownian_endpoint_weights(times, 3U, weights);
+    for (std::size_t normal = 0U; normal < 3U; ++normal) {
+        first_weights[normal] = weights[1U][normal];
+        second_weights[normal] = weights[2U][normal];
     }
 }
 

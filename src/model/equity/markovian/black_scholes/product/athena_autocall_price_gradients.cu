@@ -151,7 +151,7 @@ std::size_t black_scholes_athena_autocall_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_black_scholes_athena_autocall_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(
@@ -223,9 +223,9 @@ std::size_t black_scholes_athena_autocall_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(host, configuration);
 }
@@ -246,9 +246,9 @@ void launch_black_scholes_athena_autocall_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(
         host,

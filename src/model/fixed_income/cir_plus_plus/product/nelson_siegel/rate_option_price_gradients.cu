@@ -132,8 +132,8 @@ void launch_cir_plus_plus_nelson_siegel_rate_option_mixed_node_graph_sensitiviti
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        10U,
-        45U
+        11U,
+        55U
     >(
         host,
         device,

@@ -153,5 +153,7 @@ python3 -m learning.common.terminal_samples \
   --limit 1000
 ```
 
-This reads 1,000 rows and reports the schema and split counts. It does not
-train a model or alter the dataset.
+This reads 1,000 rows and reports the schema and split counts. It resolves the
+sample shape from the `recipe.yaml` referenced by the JSON `catalog` field; the
+public JSON keeps only its minimal envelope and `results`. It does not train a
+model or alter the dataset.

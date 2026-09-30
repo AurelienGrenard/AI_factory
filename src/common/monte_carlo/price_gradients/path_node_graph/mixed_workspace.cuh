@@ -20,7 +20,7 @@ inline constexpr std::size_t path_dynamics_interval_capacity_v =
 template<typename NodePolicy, typename Dynamics, typename Schedule>
 struct MixedPathNodeGraphWorkspace {
     using PreparedDynamics = typename Dynamics::Prepared;
-    using ScheduleData = PreparedPathSchedule<
+    using ScheduleData = PreparedTerminalPathSchedule<
         PathScheduleTraits<Schedule>::kIntervalCapacity
     >;
 
@@ -33,6 +33,14 @@ struct MixedPathNodeGraphWorkspace {
     std::size_t node_count_capacity = 0U;
     std::uint8_t* simulation_flags = nullptr;
     std::size_t simulation_flag_capacity = 0U;
+    PreparedDynamics* terminal_dynamics = nullptr;
+    std::size_t terminal_dynamics_capacity = 0U;
+    std::uint32_t* terminal_transition_counts = nullptr;
+    std::size_t terminal_transition_count_capacity = 0U;
+    std::uint32_t* maximum_terminal_transitions = nullptr;
+    std::size_t maximum_terminal_transition_capacity = 0U;
+    float* terminal_normal_weights = nullptr;
+    std::size_t terminal_normal_weight_capacity = 0U;
 };
 
 struct MixedPathNodeGraphWorkspaceRequirements {
@@ -41,6 +49,10 @@ struct MixedPathNodeGraphWorkspaceRequirements {
     std::size_t schedules = 0U;
     std::size_t node_counts = 0U;
     std::size_t simulation_flags = 0U;
+    std::size_t terminal_dynamics = 0U;
+    std::size_t terminal_transition_counts = 0U;
+    std::size_t maximum_terminal_transitions = 0U;
+    std::size_t terminal_normal_weights = 0U;
 };
 
 struct MixedPathNodeGraphWorkspaceLayout {
@@ -50,6 +62,10 @@ struct MixedPathNodeGraphWorkspaceLayout {
     std::size_t schedules_offset = 0U;
     std::size_t node_counts_offset = 0U;
     std::size_t simulation_flags_offset = 0U;
+    std::size_t terminal_dynamics_offset = 0U;
+    std::size_t terminal_transition_counts_offset = 0U;
+    std::size_t maximum_terminal_transitions_offset = 0U;
+    std::size_t terminal_normal_weights_offset = 0U;
     std::size_t bytes = 0U;
 };
 
@@ -58,7 +74,8 @@ MixedPathNodeGraphWorkspaceLayout mixed_path_node_graph_workspace_layout(
     std::size_t sensitivity_count,
     const pg::SensitivityGraphPlan& graph_plan,
     unsigned int reduction_threads,
-    TerminalNodeGraphConfiguration configuration
+    TerminalNodeGraphConfiguration configuration,
+    bool variable_terminal = false
 ) {
     const auto graph_layout = mixed_node_graph_workspace_layout<NodePolicy>(
         sensitivity_count,
@@ -83,6 +100,16 @@ MixedPathNodeGraphWorkspaceLayout mixed_path_node_graph_workspace_layout(
     layout.capacities.schedules = rows;
     layout.capacities.node_counts = rows;
     layout.capacities.simulation_flags = row_nodes;
+    if (variable_terminal) {
+        layout.capacities.terminal_dynamics = row_nodes;
+        layout.capacities.terminal_transition_counts = row_nodes;
+        layout.capacities.maximum_terminal_transitions = rows;
+        layout.capacities.terminal_normal_weights = checked_workspace_product(
+            row_nodes,
+            4U,
+            "Mixed path terminal Brownian-weight workspace size overflow."
+        );
+    }
 
     std::size_t offset = graph_layout.bytes;
     layout.prepared_dynamics_offset =
@@ -100,6 +127,22 @@ MixedPathNodeGraphWorkspaceLayout mixed_path_node_graph_workspace_layout(
     layout.simulation_flags_offset = workspace_detail::append_workspace_array<
         std::uint8_t
     >(offset, layout.capacities.simulation_flags);
+    layout.terminal_dynamics_offset =
+        workspace_detail::append_workspace_array<
+            typename Dynamics::Prepared
+        >(offset, layout.capacities.terminal_dynamics);
+    layout.terminal_transition_counts_offset =
+        workspace_detail::append_workspace_array<std::uint32_t>(
+            offset, layout.capacities.terminal_transition_counts
+        );
+    layout.maximum_terminal_transitions_offset =
+        workspace_detail::append_workspace_array<std::uint32_t>(
+            offset, layout.capacities.maximum_terminal_transitions
+        );
+    layout.terminal_normal_weights_offset =
+        workspace_detail::append_workspace_array<float>(
+            offset, layout.capacities.terminal_normal_weights
+        );
     layout.bytes = offset;
     return layout;
 }
@@ -138,6 +181,22 @@ make_mixed_path_node_graph_workspace(
             base + layout.simulation_flags_offset
         ),
         layout.capacities.simulation_flags,
+        reinterpret_cast<typename Workspace::PreparedDynamics*>(
+            base + layout.terminal_dynamics_offset
+        ),
+        layout.capacities.terminal_dynamics,
+        reinterpret_cast<std::uint32_t*>(
+            base + layout.terminal_transition_counts_offset
+        ),
+        layout.capacities.terminal_transition_counts,
+        reinterpret_cast<std::uint32_t*>(
+            base + layout.maximum_terminal_transitions_offset
+        ),
+        layout.capacities.maximum_terminal_transitions,
+        reinterpret_cast<float*>(
+            base + layout.terminal_normal_weights_offset
+        ),
+        layout.capacities.terminal_normal_weights,
     };
 }
 
@@ -156,7 +215,7 @@ void validate_mixed_path_node_graph_workspace(
                 std::string("Insufficient ") + name + " capacity."
             );
         }
-        validate_device_pointer(pointer, name);
+        if (needed > 0U) validate_device_pointer(pointer, name);
     };
     validate(
         workspace.prepared_dynamics,
@@ -181,6 +240,30 @@ void validate_mixed_path_node_graph_workspace(
         workspace.simulation_flag_capacity,
         required.simulation_flags,
         "mixed path simulation flags"
+    );
+    validate(
+        workspace.terminal_dynamics,
+        workspace.terminal_dynamics_capacity,
+        required.terminal_dynamics,
+        "mixed path terminal dynamics"
+    );
+    validate(
+        workspace.terminal_transition_counts,
+        workspace.terminal_transition_count_capacity,
+        required.terminal_transition_counts,
+        "mixed path terminal transition counts"
+    );
+    validate(
+        workspace.maximum_terminal_transitions,
+        workspace.maximum_terminal_transition_capacity,
+        required.maximum_terminal_transitions,
+        "mixed path maximum terminal transitions"
+    );
+    validate(
+        workspace.terminal_normal_weights,
+        workspace.terminal_normal_weight_capacity,
+        required.terminal_normal_weights,
+        "mixed path terminal Brownian weights"
     );
 }
 

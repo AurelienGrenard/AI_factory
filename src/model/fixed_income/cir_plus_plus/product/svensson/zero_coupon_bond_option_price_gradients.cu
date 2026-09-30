@@ -132,8 +132,8 @@ void launch_cir_plus_plus_svensson_zero_coupon_bond_option_mixed_node_graph_sens
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        12U,
-        66U
+        13U,
+        78U
     >(
         host,
         device,

@@ -85,9 +85,10 @@ void validate_terminal_diagonal_sensitivity_launch(
         throw std::invalid_argument("Insufficient terminal price outputs.");
     }
     if constexpr (pg::requests_first_v<Orders>) {
-        if (outputs.gradients == nullptr
-            || outputs.gradient_standard_errors == nullptr
-            || outputs.sensitivity_capacity < sensitivity_count) {
+        if (selected != 0U
+            && (outputs.gradients == nullptr
+                || outputs.gradient_standard_errors == nullptr
+                || outputs.sensitivity_capacity < sensitivity_count)) {
             throw std::invalid_argument(
                 "Insufficient terminal gradient outputs."
             );

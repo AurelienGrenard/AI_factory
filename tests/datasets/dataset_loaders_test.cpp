@@ -1,4 +1,5 @@
 // Exercise JSON loader invariants and generated-artifact validation.
+#include "curve/flat/dataset.hpp"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/cir/dataset.hpp"
@@ -227,6 +228,7 @@ nlohmann::json one_row(
 
 // Validate every model, curve, and product loader without generating datasets.
 int main() {
+    namespace flat = ai_factory::workbench::curve::flat;
     namespace curve = ai_factory::workbench::curve::nelson_siegel;
     namespace svensson = ai_factory::workbench::curve::svensson;
     namespace g2 = ai_factory::workbench::model::fixed_income::g2;
@@ -564,6 +566,13 @@ int main() {
             {"volatility", 0.01f},
         }),
         ai_factory::workbench::model::fixed_income::hull_white::load_models
+    );
+    check_loader(
+        "Flat", "curves", "rate", 1.0e100, "rate",
+        one_row("curves", {
+            {"rate", 0.03f},
+        }),
+        flat::load_curves
     );
     check_loader(
         "Nelson-Siegel", "curves", "tau", 0.0f, "tau",

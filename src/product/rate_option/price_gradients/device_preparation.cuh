@@ -12,6 +12,17 @@ namespace ai_factory::workbench::product::rate_option::price_gradients {
 
 struct DevicePreparation {
     using Product = RateOptionParameters;
+    static constexpr bool kSupportsMaturitySensitivity = true;
+    __host__ __device__ static std::uint32_t terminal_maturity_days(
+        const Product& product
+    ) {
+        return product.payment_time_days;
+    }
+    __host__ __device__ static std::uint32_t terminal_prefix_days(
+        const Product& product
+    ) {
+        return product.fixing_time_days;
+    }
     static constexpr std::array parameter_names{
         std::string_view{"product.notional"},
         std::string_view{"product.strike"},

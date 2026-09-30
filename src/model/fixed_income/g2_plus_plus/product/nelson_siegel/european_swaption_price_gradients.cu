@@ -151,7 +151,7 @@ std::size_t g2_plus_plus_nelson_siegel_european_swaption_node_graph_workspace_by
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        12U,
+        13U,
         32U,
         2U
     >(host, configuration);
@@ -199,7 +199,7 @@ void launch_g2_plus_plus_nelson_siegel_european_swaption_node_graph_sensitivitie
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        12U,
+        13U,
         32U,
         2U
     >(
@@ -229,8 +229,8 @@ std::size_t g2_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_worksp
     return epg::mixed_terminal_node_graph_workspace_bytes<
         mpg::CoupledDynamics,
         ProductPolicy,
-        12U,
-        66U,
+        13U,
+        78U,
         128U,
         3U
     >(host, configuration);
@@ -254,8 +254,8 @@ void launch_g2_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_sensit
     epg::launch_mixed_terminal_node_graph_sensitivities<
         mpg::CoupledDynamics,
         ProductPolicy,
-        12U,
-        66U,
+        13U,
+        78U,
         128U,
         3U
     >(

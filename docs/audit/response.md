@@ -1,29 +1,37 @@
 # Constats d'audit non résolus
 
+Référentiel actif : **v10.0 — 2026-09-29**.
+
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
-## État courant — structure, sauts, prix rough, prix-delta et produits de taux — 2026-09-26
+## Report vers le référentiel v10
 
-**Huit constats ouverts, 119 fermés, 127 identifiants.** Le lot 1 puis
-STRUCT-025/026/027/028 sont corrigés et clôturés avec leurs preuves et limites dans
-[closed.md](closed.md). Restent PERF-016, DELTA-001, PRODUCT-001, les trois
-constats de qualité des prix rough NUM-028/029/030. Les cinq constats du
-passage `price_gradients` sont corrigés et transférés dans
-[closed.md](closed.md). NUM-031 suit le mapping Philox interne et NUM-032 les
-sensibilités de saut événementielles. Aucune clôture de performance globale,
-de migration rough ou de validation indépendante n'est revendiquée.
+Ce registre contient **huit constats ouverts**. Ils sont reportés avec leurs
+identifiants, leurs preuves historiques et leurs critères de clôture. Aucun
+n'est réputé confirmé, corrigé ou clos par la seule refonte du référentiel.
 
-Le passage indépendant portait sur le worktree réel de main, HEAD
-`872a986b1f0947a1a832af0615ffc6d80dbedb81`, query v9, pas sur le seul commit.
-Son snapshot et sa couverture partielle restent historiques dans
-[status.md](status.md), qui décrit séparément la remédiation actuelle.
-Aucune conformité globale ni certification des datasets n'est déduite des
-tests de non-régression. Le passage structurel du 2026-09-18 porte sur la
-révision propre `50d9ad8`; sa couverture et ses exclusions sont consignées
-dans [status.md](status.md#audit-ciblé-de-larborescence-complète--2026-09-18).
-Les anciennes campagnes PERF-017/019 restent fusionnées dans PERF-016; aucune
-campagne longue n'est lancée dans ce lot.
+Plusieurs descriptions sont antérieures aux migrations récentes du code. Le
+prochain passage doit confronter chaque signature au snapshot courant, puis :
+
+- mettre à jour le constat si le risque subsiste sous une forme différente ;
+- le transférer dans [closed.md](closed.md) si sa clôture est démontrée ;
+- ouvrir un nouvel identifiant seulement si le défaut observé est distinct.
+
+| Constat | Axe principal v10 | Axes secondaires |
+|---|---|---|
+| `NUM-031` | I. Véracité | II. Factorisation, IV. Performance |
+| `NUM-032` | I. Véracité | II. Factorisation, IV. Performance |
+| `DELTA-001` | II. Factorisation | I. Véracité, III. Arborescence, IV. Performance |
+| `PRODUCT-001` | I. Véracité | II. Factorisation, III. Arborescence |
+| `NUM-028` | I. Véracité | IV. Performance |
+| `NUM-029` | I. Véracité | IV. Performance |
+| `NUM-030` | I. Véracité | IV. Performance |
+| `PERF-016` | IV. Performance | VI. Hygiène et artefacts |
+
+L'absence de constat reporté ayant III, V ou VI comme axe principal ne constitue
+pas un verdict de conformité. La couverture courante est publiée dans
+[status.md](status.md).
 
 ## Adressage des innovations Monte Carlo
 
@@ -245,8 +253,9 @@ standards combinées et 0,5 % de `max(S0, K)`. Ce n'est pas une référence de
 prix indépendante : la cause d'un écart peut être une queue rare, le biais de
 discrétisation, le statut martingale du modèle ou une erreur de code.
 [Le script et son résultat local](../../artifacts/audit/rough-price-quality-2026-09-14/result.json)
-figent la règle et les nombres ; le passage est détaillé dans
-[status.md](status.md#qualité-ciblée-des-prix-rough-alignés--2026-09-14).
+figent la règle et les nombres. Le compte rendu détaillé appartient aux preuves
+historiques antérieures à v10 ; sa compatibilité avec le prochain snapshot doit
+être réétablie avant réemploi.
 
 ### NUM-028 — Qualifier les prix quadratic rough Heston dominés par les queues extrêmes
 

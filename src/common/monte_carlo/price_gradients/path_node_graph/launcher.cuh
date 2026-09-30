@@ -80,30 +80,57 @@ void launch_device_prepared_path_node_graph(
         DevicePreparedStencilOutputs<4U>,
         std::uint64_t
     );
-    EvaluationKernel evaluate =
-        path_node_graph_detail::evaluate_nodes_kernel<
-            Orders,
-            Dynamics,
-            ProductPolicy,
-            Preparation,
-            Schedule,
-            MaximumSensitivities,
-            GroupSize,
-            NodesPerWorker,
-            Tuning
-        >;
+    EvaluationKernel evaluate = plan.has_maturity_sensitivity
+        ? path_node_graph_detail::evaluate_nodes_kernel<
+              Orders,
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              GroupSize,
+              NodesPerWorker,
+              true,
+              Tuning
+          >
+        : path_node_graph_detail::evaluate_nodes_kernel<
+              Orders,
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              GroupSize,
+              NodesPerWorker,
+              false,
+              Tuning
+          >;
     if constexpr (Tuning::kLaunchBoundsEnabled) {
-        evaluate = path_node_graph_detail::bounded_evaluate_nodes_kernel<
-            Orders,
-            Dynamics,
-            ProductPolicy,
-            Preparation,
-            Schedule,
-            MaximumSensitivities,
-            GroupSize,
-            NodesPerWorker,
-            Tuning
-        >;
+        evaluate = plan.has_maturity_sensitivity
+            ? path_node_graph_detail::bounded_evaluate_nodes_kernel<
+                  Orders,
+                  Dynamics,
+                  ProductPolicy,
+                  Preparation,
+                  Schedule,
+                  MaximumSensitivities,
+                  GroupSize,
+                  NodesPerWorker,
+                  true,
+                  Tuning
+              >
+            : path_node_graph_detail::bounded_evaluate_nodes_kernel<
+                  Orders,
+                  Dynamics,
+                  ProductPolicy,
+                  Preparation,
+                  Schedule,
+                  MaximumSensitivities,
+                  GroupSize,
+                  NodesPerWorker,
+                  false,
+                  Tuning
+              >;
     }
 
     constexpr unsigned int evaluation_threads =

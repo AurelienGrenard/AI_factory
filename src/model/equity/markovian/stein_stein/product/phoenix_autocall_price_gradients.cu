@@ -149,7 +149,7 @@ std::size_t stein_stein_phoenix_autocall_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
-        11U,
+        12U,
         32U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_stein_stein_phoenix_autocall_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
-        11U,
+        12U,
         32U,
         2U
     >(
@@ -220,10 +220,10 @@ std::size_t stein_stein_phoenix_autocall_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
-        11U,
-        55U,
+        12U,
+        66U,
         128U,
-        2U
+        3U
     >(host, configuration);
 }
 
@@ -243,10 +243,10 @@ void launch_stein_stein_phoenix_autocall_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
-        11U,
-        55U,
+        12U,
+        66U,
         128U,
-        2U
+        3U
     >(
         host,
         device,

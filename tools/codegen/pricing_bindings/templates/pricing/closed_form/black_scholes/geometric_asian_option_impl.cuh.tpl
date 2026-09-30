@@ -40,6 +40,58 @@ struct GeometricAsianOptionClosedFormPricingPolicy {
         );
     }
 
+    __device__ __forceinline__ static PreparedRow prepare_sensitivity_row(
+        const ModelParameters& model,
+        const product::GeometricAsianOptionParameters& product,
+        const TimeConfiguration& time_configuration,
+        float maturity_years
+    ) {
+        const std::uint32_t transition_count =
+            time_configuration.simulation_steps_per_day
+                * product.maturity_days;
+        const float central_maturity_years =
+            static_cast<float>(transition_count)
+                * time_configuration.dt;
+        if (maturity_years == central_maturity_years) {
+            return prepare_geometric_asian_option_values(
+                prepare_analytics(model),
+                product.strike,
+                maturity_years,
+                transition_count
+            );
+        }
+        const float n = static_cast<float>(transition_count);
+        const float observation_count = n + 1.0f;
+        const float fixed_time_sum =
+            time_configuration.dt * n * (n - 1.0f) * 0.5f;
+        const float covariance_sum =
+            time_configuration.dt
+                * n * (n - 1.0f) * (2.0f * n + 5.0f) / 6.0f
+            + maturity_years;
+        const auto analytics = prepare_analytics(model);
+        const float average_time =
+            (fixed_time_sum + maturity_years) / observation_count;
+        const float log_mean = analytics.log_spot
+            + (
+                analytics.risk_free_rate
+                - analytics.dividend_yield
+                - 0.5f * analytics.variance
+            ) * average_time;
+        const float log_variance = analytics.variance * covariance_sum
+            / (observation_count * observation_count);
+        const float discount_log_level =
+            -analytics.risk_free_rate * maturity_years;
+        return prepare_discounted_lognormal_option_values(
+            {
+                discount_log_level + log_mean + 0.5f * log_variance,
+                discount_log_level,
+                expf(discount_log_level),
+            },
+            sqrtf(log_variance),
+            product.strike
+        );
+    }
+
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {

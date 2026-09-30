@@ -151,7 +151,7 @@ std::size_t normal_inverse_gaussian_forward_start_option_node_graph_workspace_by
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_normal_inverse_gaussian_forward_start_option_node_graph_sensitivitie
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(
@@ -223,9 +223,9 @@ std::size_t normal_inverse_gaussian_forward_start_option_mixed_node_graph_worksp
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(host, configuration);
 }
@@ -246,9 +246,9 @@ void launch_normal_inverse_gaussian_forward_start_option_mixed_node_graph_sensit
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(
         host,

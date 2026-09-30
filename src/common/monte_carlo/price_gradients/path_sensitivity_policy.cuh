@@ -3,6 +3,7 @@
 
 #include "common/equity/path_product_policy.cuh"
 #include "common/monte_carlo/price_gradients/coupled_node_innovations.cuh"
+#include "common/monte_carlo/price_gradients/coupled_terminal_simulation.cuh"
 #include "common/monte_carlo/price_gradients/path_schedule.cuh"
 #include "common/price_gradients/reconstruction.cuh"
 #include "common/price_gradients/sensitivity_task.cuh"
@@ -151,12 +152,38 @@ struct PathNodePolicy {
 };
 
 template<
+    bool VariableTerminal,
+    std::size_t NodeCapacity,
+    typename Dynamics,
+    typename Schedule>
+struct PathRowScheduleStorage;
+
+template<std::size_t NodeCapacity, typename Dynamics, typename Schedule>
+struct PathRowScheduleStorage<false, NodeCapacity, Dynamics, Schedule> {
+    using Traits = PathScheduleTraits<Schedule>;
+    PreparedPathSchedule<Traits::kIntervalCapacity> schedule;
+};
+
+template<std::size_t NodeCapacity, typename Dynamics, typename Schedule>
+struct PathRowScheduleStorage<true, NodeCapacity, Dynamics, Schedule> {
+    using Traits = PathScheduleTraits<Schedule>;
+    PreparedTerminalPathSchedule<Traits::kIntervalCapacity> schedule;
+    typename Dynamics::Prepared terminal_dynamics[NodeCapacity];
+    PreparedTerminalPathNode terminal_nodes[NodeCapacity];
+    std::uint32_t maximum_terminal_transitions = 0U;
+};
+
+template<
     std::size_t NodeCapacity,
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
-    typename Schedule>
-struct PreparedPathSensitivityRow {
+    typename Schedule,
+    bool VariableTerminal>
+struct PreparedPathSensitivityRow
+    : PathRowScheduleStorage<
+          VariableTerminal, NodeCapacity, Dynamics, Schedule
+      > {
     using CoupledDynamics = Dynamics;
     using NodePolicy =
         PathNodePolicy<Dynamics, ProductPolicy, Preparation, Schedule>;
@@ -165,11 +192,11 @@ struct PreparedPathSensitivityRow {
     using Stencil = pg::SensitivityStencil<NodeCapacity>;
     using Nodes = pg::SensitivityNodes<Scenario, NodeCapacity>;
     static constexpr std::size_t kNodeCapacity = NodeCapacity;
+    static constexpr bool kVariableTerminal = VariableTerminal;
 
     typename Dynamics::Prepared
         dynamics[Traits::kIntervalCapacity][NodeCapacity];
     typename NodePolicy::Metadata metadata[NodeCapacity];
-    PreparedPathSchedule<Traits::kIntervalCapacity> schedule;
     const Nodes* nodes;
     const Stencil* stencil;
     std::uint8_t node_count;
@@ -186,7 +213,8 @@ template<
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
-    typename Schedule>
+    typename Schedule,
+    bool VariableTerminal>
 __device__ __forceinline__ auto prepare_path_sensitivity_row(
     const pg::SensitivityNodes<
         typename Preparation::Scenario, NodeCapacity
@@ -195,7 +223,12 @@ __device__ __forceinline__ auto prepare_path_sensitivity_row(
     pg::TimeConfiguration time
 ) {
     using Row = PreparedPathSensitivityRow<
-        NodeCapacity, Dynamics, ProductPolicy, Preparation, Schedule
+        NodeCapacity,
+        Dynamics,
+        ProductPolicy,
+        Preparation,
+        Schedule,
+        VariableTerminal
     >;
     using NodePolicy = typename Row::NodePolicy;
     using Traits = typename Row::Traits;
@@ -207,7 +240,13 @@ __device__ __forceinline__ auto prepare_path_sensitivity_row(
         pg::active_node_count(*stencil)
     );
     const auto calendar = ProductPolicy::calendar((*nodes)[0U].product);
-    row.schedule = prepare_path_schedule<Schedule>(calendar, time);
+    if constexpr (VariableTerminal) {
+        row.schedule = prepare_terminal_path_schedule<Schedule>(
+            calendar, time, (*nodes)[0U].central_step_count
+        );
+    } else {
+        row.schedule = prepare_path_schedule<Schedule>(calendar, time);
+    }
     #pragma unroll
     for (unsigned int node = 0U; node < NodeCapacity; ++node) {
         if (node >= row.node_count) continue;
@@ -218,10 +257,32 @@ __device__ __forceinline__ auto prepare_path_sensitivity_row(
         for (unsigned int interval = 0U;
              interval < Traits::kIntervalCapacity;
              ++interval) {
+            const auto& central_schedule = [&]() -> const auto& {
+                if constexpr (VariableTerminal) {
+                    return row.schedule.central;
+                } else {
+                    return row.schedule;
+                }
+            }();
             const float horizon = Traits::kExactTransition
-                ? row.schedule.interval_years[interval]
+                ? central_schedule.interval_years[interval]
                 : time.dt;
             row.dynamics[interval][node] =
+                NodePolicy::prepare_dynamics(row.input(node), horizon);
+        }
+        if constexpr (VariableTerminal) {
+            row.terminal_nodes[node] =
+                prepare_terminal_path_node<Schedule>(
+                    row.input(node), row.schedule
+                );
+            row.maximum_terminal_transitions = max(
+                row.maximum_terminal_transitions,
+                row.terminal_nodes[node].transition_count
+            );
+            const float horizon = Traits::kExactTransition
+                ? row.terminal_nodes[node].interval_years
+                : time.dt;
+            row.terminal_dynamics[node] =
                 NodePolicy::prepare_dynamics(row.input(node), horizon);
         }
     }
@@ -257,6 +318,10 @@ __device__ __forceinline__ auto evaluate_path_nodes(
         );
     }
 
+    const auto simulates = [&](unsigned int node) {
+        return (IncludeCentral || node != 0U)
+            && (node == 0U || !row.input(node).reuse_central);
+    };
     typename Dynamics::RandomContext random(key, path);
     const auto transition = [&](unsigned int interval) {
         draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
@@ -264,8 +329,7 @@ __device__ __forceinline__ auto evaluate_path_nodes(
             row.dynamics[interval],
             row.node_count,
             [&](unsigned int node, const auto& innovations) {
-                if ((IncludeCentral || node != 0U)
-                    && (node == 0U || !row.input(node).reuse_central)) {
+                if (simulates(node)) {
                     Dynamics::transition(
                         row.dynamics[interval][node],
                         innovations,
@@ -273,6 +337,17 @@ __device__ __forceinline__ auto evaluate_path_nodes(
                         states[node]
                     );
                 }
+            }
+        );
+    };
+    const auto equal_horizon_transition = [&](unsigned int interval) {
+        simulate_coupled_equal_horizon_nodes<NodeCapacity, Dynamics>(
+            random,
+            row.dynamics[interval],
+            row.node_count,
+            simulates,
+            [&](unsigned int node) -> typename Dynamics::State& {
+                return states[node];
             }
         );
     };
@@ -293,28 +368,139 @@ __device__ __forceinline__ auto evaluate_path_nodes(
         }
     };
 
-    if constexpr (Traits::kKind == PathScheduleKind::dense) {
-        for (std::uint32_t observation = 0U;
-             observation < row.schedule.observation_count;
-             ++observation) {
-            transition(0U);
-            observe(observation);
+    if constexpr (!Row::kVariableTerminal) {
+        if constexpr (Traits::kKind == PathScheduleKind::dense) {
+            for (std::uint32_t observation = 0U;
+                 observation < row.schedule.observation_count;
+                 ++observation) {
+                transition(0U);
+                observe(observation);
+            }
+        } else {
+            for (std::uint32_t observation = 0U;
+                 observation < row.schedule.observation_count;
+                 ++observation) {
+                const unsigned int interval =
+                    Traits::kKind == PathScheduleKind::calendar
+                    ? observation
+                    : 0U;
+                const auto transition_count =
+                    row.schedule.transition_counts[interval];
+                if constexpr (Traits::kExactTransition) {
+                    for (std::uint32_t step = 0U;
+                         step < transition_count;
+                         ++step) {
+                        transition(interval);
+                    }
+                } else {
+                    simulate_coupled_fixed_step_nodes<
+                        NodeCapacity, Dynamics
+                    >(
+                        random,
+                        row.dynamics[interval],
+                        row.node_count,
+                        transition_count,
+                        simulates,
+                        [&](unsigned int) { return transition_count; },
+                        [&](unsigned int node)
+                            -> typename Dynamics::State& {
+                            return states[node];
+                        }
+                    );
+                }
+                observe(observation);
+            }
         }
     } else {
+        const auto& central_schedule = row.schedule.central;
         for (std::uint32_t observation = 0U;
-             observation < row.schedule.observation_count;
+             observation < row.schedule.prefix_observation_count;
              ++observation) {
             const unsigned int interval =
                 Traits::kKind == PathScheduleKind::calendar
                 ? observation
                 : 0U;
-            for (std::uint32_t step = 0U;
-                 step < row.schedule.transition_counts[interval];
-                 ++step) {
-                transition(interval);
+            const auto transition_count =
+                Traits::kKind == PathScheduleKind::dense
+                ? 1U
+                : central_schedule.transition_counts[interval];
+            if constexpr (Traits::kExactTransition) {
+                for (std::uint32_t step = 0U;
+                     step < transition_count;
+                     ++step) {
+                    equal_horizon_transition(interval);
+                }
+            } else {
+                simulate_coupled_fixed_step_nodes<
+                    NodeCapacity, Dynamics
+                >(
+                    random,
+                    row.dynamics[interval],
+                    row.node_count,
+                    transition_count,
+                    simulates,
+                    [&](unsigned int) { return transition_count; },
+                    [&](unsigned int node)
+                        -> typename Dynamics::State& {
+                        return states[node];
+                    }
+                );
             }
             observe(observation);
         }
+
+        if constexpr (Traits::kExactTransition) {
+            if constexpr (requires {
+                Dynamics::draw_maturity_coupled(random);
+            }) {
+                const auto innovations =
+                    Dynamics::draw_maturity_coupled(random);
+                #pragma unroll
+                for (unsigned int node = 0U;
+                     node < NodeCapacity;
+                     ++node) {
+                    if (node < row.node_count && simulates(node)) {
+                        Dynamics::transition(
+                            row.terminal_dynamics[node],
+                            innovations,
+                            row.input(node).normal_weights,
+                            states[node]
+                        );
+                    }
+                }
+            } else {
+                draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
+                    random,
+                    row.terminal_dynamics,
+                    row.node_count,
+                    [&](unsigned int node, const auto& innovations) {
+                        if (simulates(node)) {
+                            Dynamics::transition(
+                                row.terminal_dynamics[node],
+                                innovations,
+                                nullptr,
+                                states[node]
+                            );
+                        }
+                    }
+                );
+            }
+        } else {
+            simulate_coupled_fixed_step_nodes<NodeCapacity, Dynamics>(
+                random,
+                row.terminal_dynamics,
+                row.node_count,
+                row.maximum_terminal_transitions,
+                simulates,
+                [&](unsigned int node) {
+                    return row.terminal_nodes[node].transition_count;
+                },
+                [&](unsigned int node) -> typename Dynamics::State& {
+                    return states[node];
+                }
+            );
+        }
+        observe(row.schedule.prefix_observation_count);
     }
 
     pg::SensitivityValues<NodeCapacity> values{};
@@ -337,7 +523,8 @@ template<
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
-    typename Schedule>
+    typename Schedule,
+    bool VariableTerminal = false>
 struct PathSensitivityPolicy {
     static_assert(pg::requests_second_v<Orders>);
     static constexpr std::size_t kNodeCapacity = 4U;
@@ -347,7 +534,12 @@ struct PathSensitivityPolicy {
     using Stencil = pg::SensitivityStencil<kNodeCapacity>;
     using Nodes = pg::SensitivityNodes<Scenario, kNodeCapacity>;
     using PreparedRow = PreparedPathSensitivityRow<
-        kNodeCapacity, Dynamics, ProductPolicy, Preparation, Schedule
+        kNodeCapacity,
+        Dynamics,
+        ProductPolicy,
+        Preparation,
+        Schedule,
+        VariableTerminal
     >;
 
     __device__ __forceinline__ static PreparedRow prepare(
@@ -356,7 +548,12 @@ struct PathSensitivityPolicy {
         pg::TimeConfiguration time
     ) {
         return prepare_path_sensitivity_row<
-            kNodeCapacity, Dynamics, ProductPolicy, Preparation, Schedule
+            kNodeCapacity,
+            Dynamics,
+            ProductPolicy,
+            Preparation,
+            Schedule,
+            VariableTerminal
         >(nodes, stencil, time);
     }
 
@@ -385,7 +582,8 @@ template<
     typename Dynamics,
     typename ProductPolicy,
     typename Preparation,
-    typename Schedule>
+    typename Schedule,
+    bool VariableTerminal = false>
 struct FirstPathSensitivityPolicy {
     static constexpr std::size_t kNodeCapacity = 3U;
     using NodePolicy =
@@ -394,7 +592,12 @@ struct FirstPathSensitivityPolicy {
     using Stencil = pg::SensitivityStencil<kNodeCapacity>;
     using Nodes = pg::SensitivityNodes<Scenario, kNodeCapacity>;
     using PreparedRow = PreparedPathSensitivityRow<
-        kNodeCapacity, Dynamics, ProductPolicy, Preparation, Schedule
+        kNodeCapacity,
+        Dynamics,
+        ProductPolicy,
+        Preparation,
+        Schedule,
+        VariableTerminal
     >;
 
     __device__ __forceinline__ static PreparedRow prepare(
@@ -404,7 +607,12 @@ struct FirstPathSensitivityPolicy {
         bool
     ) {
         return prepare_path_sensitivity_row<
-            kNodeCapacity, Dynamics, ProductPolicy, Preparation, Schedule
+            kNodeCapacity,
+            Dynamics,
+            ProductPolicy,
+            Preparation,
+            Schedule,
+            VariableTerminal
         >(nodes, stencil, time);
     }
 

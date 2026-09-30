@@ -149,7 +149,7 @@ std::size_t variance_gamma_up_and_in_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_variance_gamma_up_and_in_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t variance_gamma_up_and_in_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_variance_gamma_up_and_in_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(

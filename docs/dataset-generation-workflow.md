@@ -26,7 +26,7 @@ python3 tools/datasets/generate_catalog.py --kind all --model cir
 ```
 
 `--model` and `--target` can be repeated. Omitting filters selects every
-available recipe of `--kind prices`, `price_delta`, `samples`, or `all`. The
+available recipe of `--kind prices`, `price_gradients`, `samples`, or `all`. The
 inventory comes from the typed capability manifest. Input paths and sample
 shapes come from the recipes. The compiled launch inspector supplies proposed
 pricing settings. No second Python table of CUDA geometries is maintained.
@@ -39,20 +39,20 @@ Closed-form prices have no paths. Samples retain their independent shapes from
 the [sample contract](model-sample-dataset-generation.md). This controller has
 no path-count or shape override.
 
-For equity sensitivities, build the separate `price_sensitivity_generators` target
-and select `--kind price_delta`. Building `price_generators` alone still builds
+For published price gradients, build the separate `price_gradient_generators` target
+and select `--kind price_gradients`. Building `price_generators` alone still builds
 only price-only recipes. Generated `recipe.yaml` describes planned settings;
 the native generator produces a minimal `generation.yaml` receipt during
 execution. The controller enriches that receipt with frozen hashes and
 provenance without copying recipe semantics into it.
 The recipes reuse the price-only launch profile as a candidate, not as a
-delta-specific performance qualification. See the [price-delta contract](cuda/equity-price-delta-contract.md)
-for CRN seed sharing, paired errors, frozen LSM dates and bias limitations.
-The controller accepts explicitly declared Cartesian price and price-delta
+gradient-specific performance qualification. See the [price-gradient contract](cuda/equity-price-gradients-contract.md)
+for CRN seed sharing, derivative errors, frozen LSM dates and bias limitations.
+The controller accepts explicitly declared Cartesian price and price-gradient
 recipes. It computes their output row count as the product of the frozen input
 counts, including model/curve/product products for curve-fitted rates recipes.
 
-Compile and inspect every Cartesian price and price-delta recipe for one model:
+Compile and inspect every Cartesian price and price-gradient recipe for one model:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
@@ -60,7 +60,7 @@ python3 tools/datasets/generate_catalog.py \
 ```
 
 Add `--run-dir <directory> --execute --publish` to run and publish this
-selection. Use `--kind prices` or `--kind price_delta` to select one output
+selection. Use `--kind prices` or `--kind price_gradients` to select one output
 family. Omitting `--model` selects every Cartesian recipe. This can take a long
 time. Resume with `--run-dir <directory> --execute --resume`.
 
@@ -73,7 +73,8 @@ python3 tools/datasets/generate_catalog.py \
 ```
 
 The selection comes from the typed capability manifest: currently 80 recipes,
-each with 1,000 aligned price rows. The price-delta family is equity-only.
+each with 1,000 aligned price rows. The published price-gradient family also
+contains 80 aligned fixed-income recipes.
 After any other campaign has finished or been stopped, build and run these
 targets sequentially with publication:
 
@@ -313,14 +314,14 @@ there is no automatic retry.
 Version-4 campaigns provide within-dataset checkpoints for batched terminal
 Monte Carlo price generation. This covers ordinary equity prices, prepared
 N-factor prices, Volterra FFT prices, fixed-income terminal Monte Carlo prices,
-and stochastic European equity price-delta recipes such as Heston and Bates.
+and stochastic price-gradient recipes such as Heston and Bates.
 At every native batch boundary, the generator copies only the completed output
 slice, appends it to `results.checkpoint`, validates it with a checksum and
 flushes it to durable storage. A truncated final record is discarded after a
-power loss; the preceding contiguous prefix remains usable. Price-only records
-store price and standard error (8 bytes per price before small record headers);
-price-delta records store price, price error, delta and delta error (16 bytes per
-price). The controller deletes the checkpoint only after the final JSON/receipt
+power loss; the preceding contiguous prefix remains usable. Price-only records store price and standard error. Price-gradient records
+store the selected gradient and diagonal-Hessian outputs, their errors, and the
+reconstruction stencils; their size therefore follows the selected parameter
+count. The controller deletes the checkpoint only after the final JSON/receipt
 pair has passed structural checks and reached the durable `staged` state.
 
 The checkpoint identity binds the exact frozen executable, recipe, parameter
@@ -334,7 +335,7 @@ synchronization, a small device-to-host copy and `fsync` at each existing price
 batch. When the checkpoint environment is absent, the previous non-blocking path
 is preserved.
 
-Longstaff--Schwartz price/price-delta jobs and model-sample generators do not yet
+Longstaff--Schwartz price/price-gradient jobs and model-sample generators do not yet
 have a numerical checkpoint and restart the active dataset from the beginning.
 Older campaign versions use earlier metadata contracts and cannot be resumed by
 the version-4 controller. Versions 1 and 2 also contain progress observations

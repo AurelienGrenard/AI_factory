@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/fixed_income/swaption_side.cuh"
+#include "common/fixed_income/price_gradients/terminal_maturity.cuh"
 #include "common/price_gradients/time_configuration.hpp"
 #include "product/european_swaption/pricing_row.cuh"
 #include "product/european_swaption/schedule.cuh"
@@ -49,10 +50,12 @@ struct StandaloneTerminalNodePolicy {
         RegularEuropeanSwaptionScheduleSource{},
         0.0f
     ));
-    using Metadata = fixed_income::PreparedEuropeanSwaptionRow<
+    using BaseMetadata = fixed_income::PreparedEuropeanSwaptionRow<
         typename Preparation::Model,
         ScheduleView
     >;
+    using Metadata = fixed_income::price_gradients::
+        TerminalMaturityPreparedRow<BaseMetadata>;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Scenario& scenario,
@@ -69,11 +72,15 @@ struct StandaloneTerminalNodePolicy {
         const Scenario& scenario,
         pg::TimeConfiguration
     ) {
-        return fixed_income::prepare_european_swaption_row(
-            scenario.model,
-            scenario.product,
-            RegularEuropeanSwaptionScheduleSource{},
-            scenario.day_fraction
+        return fixed_income::price_gradients::apply_terminal_maturity(
+            fixed_income::prepare_european_swaption_row(
+                scenario.model,
+                scenario.product,
+                RegularEuropeanSwaptionScheduleSource{},
+                scenario.day_fraction
+            ),
+            scenario.maturity_years,
+            scenario.step_count != scenario.central_step_count
         );
     }
 
@@ -90,7 +97,7 @@ struct StandaloneTerminalNodePolicy {
         return terminal_payoff<Side>(metadata, value);
     }
 
-    __device__ __forceinline__ static float centered_first(
+    __device__ __noinline__ static float centered_first(
         const Metadata& first,
         const Metadata& second,
         const NodeValue& first_value,
@@ -117,10 +124,12 @@ struct FittedTerminalNodePolicy {
         RegularEuropeanSwaptionScheduleSource{},
         0.0f
     ));
-    using Metadata = fixed_income::PreparedEuropeanSwaptionRow<
+    using BaseMetadata = fixed_income::PreparedEuropeanSwaptionRow<
         typename Composition::FittedModel,
         ScheduleView
     >;
+    using Metadata = fixed_income::price_gradients::
+        TerminalMaturityPreparedRow<BaseMetadata>;
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Scenario& scenario,
@@ -137,12 +146,16 @@ struct FittedTerminalNodePolicy {
         const Scenario& scenario,
         pg::TimeConfiguration
     ) {
-        return fixed_income::prepare_european_swaption_row<Composition>(
-            scenario.model,
-            scenario.curve,
-            scenario.product,
-            RegularEuropeanSwaptionScheduleSource{},
-            scenario.day_fraction
+        return fixed_income::price_gradients::apply_terminal_maturity(
+            fixed_income::prepare_european_swaption_row<Composition>(
+                scenario.model,
+                scenario.curve,
+                scenario.product,
+                RegularEuropeanSwaptionScheduleSource{},
+                scenario.day_fraction
+            ),
+            scenario.maturity_years,
+            scenario.step_count != scenario.central_step_count
         );
     }
 
@@ -159,7 +172,7 @@ struct FittedTerminalNodePolicy {
         return terminal_payoff<Side>(metadata, value);
     }
 
-    __device__ __forceinline__ static float centered_first(
+    __device__ __noinline__ static float centered_first(
         const Metadata& first,
         const Metadata& second,
         const NodeValue& first_value,

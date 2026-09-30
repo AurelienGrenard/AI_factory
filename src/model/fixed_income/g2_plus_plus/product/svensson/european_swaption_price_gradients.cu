@@ -151,7 +151,7 @@ std::size_t g2_plus_plus_svensson_european_swaption_node_graph_workspace_bytes(
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        14U,
+        15U,
         32U,
         2U
     >(host, configuration);
@@ -199,7 +199,7 @@ void launch_g2_plus_plus_svensson_european_swaption_node_graph_sensitivities_cud
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        14U,
+        15U,
         32U,
         2U
     >(
@@ -229,8 +229,8 @@ std::size_t g2_plus_plus_svensson_european_swaption_mixed_node_graph_workspace_b
     return epg::mixed_terminal_node_graph_workspace_bytes<
         mpg::CoupledDynamics,
         ProductPolicy,
-        14U,
-        91U,
+        15U,
+        105U,
         128U,
         4U
     >(host, configuration);
@@ -254,8 +254,8 @@ void launch_g2_plus_plus_svensson_european_swaption_mixed_node_graph_sensitiviti
     epg::launch_mixed_terminal_node_graph_sensitivities<
         mpg::CoupledDynamics,
         ProductPolicy,
-        14U,
-        91U,
+        15U,
+        105U,
         128U,
         4U
     >(

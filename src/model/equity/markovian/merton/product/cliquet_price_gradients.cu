@@ -151,7 +151,7 @@ std::size_t merton_cliquet_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        12U,
+        13U,
         32U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_merton_cliquet_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        12U,
+        13U,
         32U,
         2U
     >(
@@ -223,8 +223,8 @@ std::size_t merton_cliquet_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        12U,
-        66U,
+        13U,
+        78U,
         128U,
         3U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_merton_cliquet_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        12U,
-        66U,
+        13U,
+        78U,
         128U,
         3U
     >(

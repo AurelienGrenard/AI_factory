@@ -149,7 +149,7 @@ std::size_t normal_inverse_gaussian_down_and_out_option_node_graph_workspace_byt
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_normal_inverse_gaussian_down_and_out_option_node_graph_sensitivities
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t normal_inverse_gaussian_down_and_out_option_mixed_node_graph_workspa
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_normal_inverse_gaussian_down_and_out_option_mixed_node_graph_sensiti
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(

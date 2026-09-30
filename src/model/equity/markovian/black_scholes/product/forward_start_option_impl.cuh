@@ -38,6 +38,22 @@ struct ForwardStartOptionClosedFormPricingPolicy {
         );
     }
 
+    __device__ __forceinline__ static PreparedRow prepare_sensitivity_row(
+        const ModelParameters& model,
+        const product::ForwardStartOptionParameters& product,
+        const TimeConfiguration& time_configuration,
+        float maturity_years
+    ) {
+        return prepare_forward_start_option_values(
+            prepare_analytics(model),
+            product.moneyness,
+            time::year_fraction(
+                product.reset_time_days, time_configuration
+            ),
+            maturity_years
+        );
+    }
+
     __device__ __forceinline__ static float evaluate_price(
         const PreparedRow& row
     ) {

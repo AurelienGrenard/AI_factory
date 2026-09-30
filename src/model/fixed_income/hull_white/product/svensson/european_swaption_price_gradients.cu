@@ -180,8 +180,8 @@ void launch_hull_white_svensson_european_swaption_mixed_node_graph_sensitivities
         && closed_form::price_gradients::
             launch_device_prepared_cooperative_mixed<
                 Policy,
-                11U,
-                55U
+                12U,
+                66U
             >(
                 host,
                 device,
@@ -199,8 +199,8 @@ void launch_hull_white_svensson_european_swaption_mixed_node_graph_sensitivities
     if (cooperative) return;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        11U,
-        55U
+        12U,
+        66U
     >(
         host,
         device,

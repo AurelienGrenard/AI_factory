@@ -4,6 +4,7 @@
 #include "common/equity/price_gradients/device_preparation.cuh"
 #include "common/equity/price_gradients/terminal_scenario.cuh"
 #include "common/price_gradients/sensitivity_parameter.cuh"
+#include "common/simulation/calendar.hpp"
 
 #include <cuda_runtime.h>
 
@@ -93,6 +94,9 @@ struct ScenarioDevicePreparation {
     >;
     static constexpr bool kSupportsMaturitySensitivity =
         EnableMaturitySensitivity;
+    static constexpr bool kSupportsMaturityDiagonal =
+        EnableMaturitySensitivity
+        && ModelPreparation::kSupportsMaturityDiagonal;
     static constexpr std::size_t sensitivity_parameter_count =
         ModelPreparation::parameter_names.size()
         + ProductPreparation::parameter_names.size()
@@ -185,11 +189,13 @@ struct ScenarioDevicePreparation {
             product,
             maturity_years,
             static_cast<std::uint32_t>(steps),
+            maturity_years,
+            static_cast<std::uint32_t>(steps),
             model.spot,
             1.0f,
             false,
             pg::CentralRequirement::payoff,
-            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f, 0.0f},
         };
         return true;
     }
@@ -267,6 +273,19 @@ struct ScenarioDevicePreparation {
         if (static_cast<float>(row.step_count) * time.dt != endpoint) {
             return false;
         }
+        if constexpr (requires {
+            ProductPreparation::calendar(row.product);
+        }) {
+            const auto calendar = ProductPreparation::calendar(row.product);
+            const auto prefix_steps =
+                simulation::calendar_terminal_prefix_days(calendar)
+                * static_cast<std::uint64_t>(
+                    time.simulation_steps_per_day
+                );
+            if (static_cast<std::uint64_t>(row.step_count) <= prefix_steps) {
+                return false;
+            }
+        }
         row.maturity_years = endpoint;
         return true;
     }
@@ -335,7 +354,7 @@ struct ScenarioDevicePreparation {
                 maturity_row = &second_row;
             }
             if (maturity_row != nullptr) {
-                for (std::size_t normal = 0U; normal < 3U; ++normal) {
+                for (std::size_t normal = 0U; normal < 4U; ++normal) {
                     mixed_row.normal_weights[normal] =
                         maturity_row->normal_weights[normal];
                 }
@@ -367,13 +386,25 @@ struct ScenarioDevicePreparation {
             task.nodes[node].central_requirement = task.central_requirement;
         }
         if (is_maturity(parameter)) {
+            constexpr auto capacity =
+                pg::SensitivityTraits<Orders>::node_capacity;
+            const auto count = pg::active_node_count(task.stencil);
+            float times[capacity]{};
+            float weights[capacity][capacity]{};
+            for (std::size_t node = 0U; node < count; ++node) {
+                times[node] = task.nodes[node].maturity_years;
+            }
             preparation::brownian_endpoint_weights(
-                task.nodes[0U].maturity_years,
-                task.nodes[1U].maturity_years,
-                task.nodes[2U].maturity_years,
-                task.nodes[1U].normal_weights,
-                task.nodes[2U].normal_weights
+                times, count, weights
             );
+            for (std::size_t node = 0U; node < count; ++node) {
+                for (std::size_t normal = 0U;
+                     normal < capacity;
+                     ++normal) {
+                    task.nodes[node].normal_weights[normal] =
+                        weights[node][normal];
+                }
+            }
         }
     }
 };

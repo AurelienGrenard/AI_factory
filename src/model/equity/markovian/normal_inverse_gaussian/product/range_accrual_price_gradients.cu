@@ -151,7 +151,7 @@ std::size_t normal_inverse_gaussian_range_accrual_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_normal_inverse_gaussian_range_accrual_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(
@@ -223,8 +223,8 @@ std::size_t normal_inverse_gaussian_range_accrual_mixed_node_graph_workspace_byt
         mpg::CoupledDynamics,
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_normal_inverse_gaussian_range_accrual_mixed_node_graph_sensitivities
         mpg::CoupledDynamics,
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(

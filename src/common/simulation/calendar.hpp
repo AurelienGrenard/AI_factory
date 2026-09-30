@@ -42,11 +42,26 @@ __host__ __device__ inline std::uint64_t calendar_maturity_days(
     return calendar.maturity_days;
 }
 
+// Contractual time immediately before the terminal event. Terminal-time
+// sensitivities keep this prefix unchanged and move only the last event.
+__host__ __device__ inline std::uint64_t calendar_terminal_prefix_days(
+    const MaturityCalendar&
+) {
+    return 0U;
+}
+
 __host__ __device__ inline std::uint64_t calendar_maturity_days(
     const RegularCalendar& calendar
 ) {
     return static_cast<std::uint64_t>(calendar.observation_interval_days)
         * calendar.observation_count;
+}
+
+__host__ __device__ inline std::uint64_t calendar_terminal_prefix_days(
+    const RegularCalendar& calendar
+) {
+    return static_cast<std::uint64_t>(calendar.observation_interval_days)
+        * (calendar.observation_count - 1U);
 }
 
 __host__ __device__ inline std::uint64_t calendar_maturity_days(
@@ -55,6 +70,16 @@ __host__ __device__ inline std::uint64_t calendar_maturity_days(
     return calendar.first_observation_day
         + static_cast<std::uint64_t>(calendar.observation_count - 1U)
             * calendar.observation_interval_days;
+}
+
+__host__ __device__ inline std::uint64_t calendar_terminal_prefix_days(
+    const StubbedRegularCalendar& calendar
+) {
+    return calendar.observation_count == 1U
+        ? 0U
+        : calendar.first_observation_day
+            + static_cast<std::uint64_t>(calendar.observation_count - 2U)
+                * calendar.observation_interval_days;
 }
 
 template<std::size_t ObservationCount>
@@ -69,6 +94,20 @@ __host__ __device__ inline std::uint64_t calendar_maturity_days(
         maturity_days += calendar.interval_days[observation];
     }
     return maturity_days;
+}
+
+template<std::size_t ObservationCount>
+__host__ __device__ inline std::uint64_t calendar_terminal_prefix_days(
+    const StaticCalendar<ObservationCount>& calendar
+) {
+    std::uint64_t prefix_days = 0U;
+    #pragma unroll
+    for (std::size_t observation = 0U;
+         observation + 1U < ObservationCount;
+         ++observation) {
+        prefix_days += calendar.interval_days[observation];
+    }
+    return prefix_days;
 }
 
 struct FixedStepTimeConfiguration {

@@ -28,12 +28,21 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
     const float central_normal = philox::next_normal(uniforms, cache);
     endpoints[0U] = sqrtf(central_time_years) * central_normal;
 
+    std::uint16_t representatives[NodeCapacity]{};
     std::uint16_t lower[NodeCapacity]{};
     std::uint16_t upper[NodeCapacity]{};
     std::uint16_t lower_count = 0U;
     std::uint16_t upper_count = 0U;
     for (std::uint16_t node = 1U; node < node_count; ++node) {
         const float time_years = horizon(node);
+        representatives[node] = node;
+        for (std::uint16_t known = 0U; known < node; ++known) {
+            if (horizon(known) == time_years) {
+                representatives[node] = known;
+                break;
+            }
+        }
+        if (representatives[node] != node) continue;
         if (time_years < central_time_years) lower[lower_count++] = node;
         else if (time_years > central_time_years) upper[upper_count++] = node;
         else endpoints[node] = endpoints[0U];
@@ -85,6 +94,12 @@ __device__ __forceinline__ void draw_coupled_brownian_normals(
                 * philox::next_normal(uniforms, cache);
         left_time_years = time_years;
         left_endpoint = endpoints[node];
+    }
+
+    for (std::uint16_t node = 1U; node < node_count; ++node) {
+        if (representatives[node] != node) {
+            endpoints[node] = endpoints[representatives[node]];
+        }
     }
 
     for (std::uint16_t node = 0U; node < node_count; ++node) {

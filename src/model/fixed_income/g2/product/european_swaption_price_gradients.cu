@@ -145,8 +145,8 @@ std::size_t g2_european_swaption_node_graph_workspace_bytes(
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(host, configuration);
 }
@@ -191,8 +191,8 @@ void launch_g2_european_swaption_node_graph_sensitivities_cuda(
         Orders,
         mpg::CoupledDynamics,
         ProductPolicy,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(
         host,
@@ -219,8 +219,8 @@ std::size_t g2_european_swaption_mixed_node_graph_workspace_bytes(
     return epg::mixed_terminal_node_graph_workspace_bytes<
         mpg::CoupledDynamics,
         ProductPolicy,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(host, configuration);
@@ -242,8 +242,8 @@ void launch_g2_european_swaption_mixed_node_graph_sensitivities_cuda(
     epg::launch_mixed_terminal_node_graph_sensitivities<
         mpg::CoupledDynamics,
         ProductPolicy,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(

@@ -493,6 +493,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        flat_curve_cuda
+        tests/model/fixed_income/flat_curve_cuda_test.cu
+        "flat_curve;analytics_contract"
+        30
+    )
+    add_cuda_workbench_test(
         fixed_income_dynamics_policy_cuda
         tests/model/fixed_income/fixed_income_dynamics_policy_cuda_test.cu
         dynamics_policy

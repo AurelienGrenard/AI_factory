@@ -18,7 +18,7 @@ The process parameters and domain checks are shared with CIR. The exact
 noncentral-chi-square transition supports both Feller regimes. Samples contain
 the nonnegative factor `y`; the total rate may be negative after shifting.
 
-Nelson–Siegel and Svensson supply the initial market curve. Neither the
+Flat, Nelson–Siegel and Svensson supply the initial market curve. Neither the
 parameter dataset nor the factor sampler owns a curve.
 
 ## Core formulas
@@ -60,8 +60,8 @@ bonds, exercise values and numeraire values differ. Exercise coefficients use
 absolute dates: a fitted bond cannot be replaced by a time-zero bond with the
 same tenor. No fine grid or simulated rate integral is introduced.
 
-The codegen owns both curves' product bindings, all 16 price recipes, both
-sample recipes and CMake registration. Each Bermudan recipe uses `2^20`
+The capability manifest owns the supported curves, their product bindings,
+recipes and CMake registration. Each Bermudan recipe uses `2^20`
 trajectories per price. Parameters follow the ordered 900 core / 100 stress
 policy. Launch profiles remain defaults to measure on the user's GPU.
 

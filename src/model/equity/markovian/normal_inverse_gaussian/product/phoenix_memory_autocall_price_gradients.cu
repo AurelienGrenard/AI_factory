@@ -151,8 +151,8 @@ std::size_t normal_inverse_gaussian_phoenix_memory_autocall_node_graph_workspace
         mpg::CoupledDynamics,
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(host, configuration);
 }
@@ -194,8 +194,8 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_node_graph_sensitivi
         mpg::CoupledDynamics,
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(
         host,
@@ -223,8 +223,8 @@ std::size_t normal_inverse_gaussian_phoenix_memory_autocall_mixed_node_graph_wor
         mpg::CoupledDynamics,
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_mixed_node_graph_sen
         mpg::CoupledDynamics,
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(

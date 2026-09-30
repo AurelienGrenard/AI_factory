@@ -151,7 +151,7 @@ std::size_t merton_forward_start_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_merton_forward_start_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(
@@ -223,8 +223,8 @@ std::size_t merton_forward_start_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_merton_forward_start_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(

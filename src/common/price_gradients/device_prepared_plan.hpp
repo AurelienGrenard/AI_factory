@@ -48,6 +48,13 @@ struct DevicePreparedSensitivityPlan {
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
     }
+
+    bool has_maturity_sensitivity() const noexcept {
+        for (const auto& sensitivity : sensitivities) {
+            if (Preparation::is_maturity(sensitivity.parameter)) return true;
+        }
+        return false;
+    }
 };
 
 template<typename PreparationT>
@@ -81,6 +88,13 @@ struct CurveDevicePreparedSensitivityPlan {
 
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
+    }
+
+    bool has_maturity_sensitivity() const noexcept {
+        for (const auto& sensitivity : sensitivities) {
+            if (Preparation::is_maturity(sensitivity.parameter)) return true;
+        }
+        return false;
     }
 };
 
@@ -123,7 +137,7 @@ Plan prepare_device_sensitivities(
                 SensitivityCoordinateUse::diagonal_second
             )
             && Preparation::is_maturity(sensitivities[index].parameter)
-            && !Preparation::ModelAdapter::kSupportsMaturityDiagonal) {
+            && !Preparation::kSupportsMaturityDiagonal) {
             throw std::invalid_argument(
                 "Maturity diagonal sensitivity is not supported."
             );
@@ -198,7 +212,7 @@ Plan prepare_curve_device_sensitivities(
                 SensitivityCoordinateUse::diagonal_second
             )
             && Preparation::is_maturity(sensitivities[index].parameter)
-            && !Preparation::ModelAdapter::kSupportsMaturityDiagonal) {
+            && !Preparation::kSupportsMaturityDiagonal) {
             throw std::invalid_argument(
                 "Maturity diagonal sensitivity is not supported."
             );

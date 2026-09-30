@@ -17,6 +17,7 @@
 #include "model/fixed_income/hull_white/price_gradients/device_preparation.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/price_gradients/device_preparation.cuh"
 #include "model/fixed_income/vasicek/price_gradients/device_preparation.cuh"
+#include "curve/flat/price_gradients/device_preparation.cuh"
 #include "curve/nelson_siegel/price_gradients/device_preparation.cuh"
 #include "curve/svensson/price_gradients/device_preparation.cuh"
 #include "product/american_option/price_gradients/device_preparation.cuh"
@@ -303,6 +304,18 @@ int main() {
         >(
             vasicek_valid, vasicek_invalid, vasicek::valid_parameters,
             vasicek::validate_parameters, "Vasicek domains diverged."
+        );
+
+        namespace flat = curve::flat;
+        auto flat_valid = flat::FlatCurveParameters{0.03f};
+        auto flat_invalid = flat_valid;
+        flat_invalid.rate = std::numeric_limits<float>::infinity();
+        require_shared_domain<
+            flat::FlatCurveParameters,
+            flat::price_gradients::DevicePreparation
+        >(
+            flat_valid, flat_invalid, flat::valid_parameters,
+            flat::validate_parameters, "Flat-curve domains diverged."
         );
 
         namespace ns = curve::nelson_siegel;

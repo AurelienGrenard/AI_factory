@@ -81,7 +81,7 @@ class CapabilityManifestTest(unittest.TestCase):
                       "vasicek", "g2", "normal_inverse_gaussian"):
             self.assertEqual(rng_mapping_version(model), "philox_source_step_v2")
         for spec in AVAILABLE_DATASET_SPECS:
-            if spec.dataset_kind not in {"prices", "price_sensitivities", "samples"}:
+            if spec.dataset_kind not in {"prices", "price_gradients", "samples"}:
                 continue
             recipe = ROOT / spec.recipe_yaml_path
             if not recipe.is_file():
@@ -242,11 +242,14 @@ class CapabilityManifestTest(unittest.TestCase):
                 "device_prepared_fixed_income_lsm"
             for model, curve in {
                 ("cir", None),
+                ("cir_plus_plus", "flat"),
                 ("cir_plus_plus", "nelson_siegel"),
                 ("cir_plus_plus", "svensson"),
                 ("g2", None),
+                ("g2_plus_plus", "flat"),
                 ("g2_plus_plus", "nelson_siegel"),
                 ("g2_plus_plus", "svensson"),
+                ("hull_white", "flat"),
                 ("hull_white", "nelson_siegel"),
                 ("hull_white", "svensson"),
                 ("ornstein_uhlenbeck", None),
@@ -308,14 +311,14 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertEqual(len(PRODUCT_SPECS), 26)
         self.assertEqual(
             len(AVAILABLE_DATASET_SPECS),
-            722 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_GRADIENT_DATASET_SPECS),
+            747 + len(CARTESIAN_PRICE_DATASET_SPECS) + len(PRICE_GRADIENT_DATASET_SPECS),
         )
-        self.assertEqual(len(CARTESIAN_PRICE_DATASET_SPECS), 618)
+        self.assertEqual(len(CARTESIAN_PRICE_DATASET_SPECS), 642)
         self.assertEqual(len(DEFERRED_DATASET_SPECS), 0)
-        self.assertEqual(len(FIXED_INCOME_UNITS), 47)
-        self.assertEqual(len(PRODUCT_BINDING_SPECS), 427)
-        self.assertEqual(len(DECLARED_PRODUCT_BINDING_PATHS), 854)
-        self.assertEqual(len(GENERATED_PRODUCT_BINDING_PATHS), 820)
+        self.assertEqual(len(FIXED_INCOME_UNITS), 59)
+        self.assertEqual(len(PRODUCT_BINDING_SPECS), 439)
+        self.assertEqual(len(DECLARED_PRODUCT_BINDING_PATHS), 878)
+        self.assertEqual(len(GENERATED_PRODUCT_BINDING_PATHS), 840)
 
     def test_every_domain_object_has_the_src_taxonomy_prefix(self) -> None:
         for model in MODEL_SPECS:
@@ -350,7 +353,7 @@ class CapabilityManifestTest(unittest.TestCase):
             )
             stochastic = (
                 dataset.dataset_kind == "samples"
-                or dataset.dataset_kind in {"prices", "price_sensitivities"}
+                or dataset.dataset_kind in {"prices", "price_gradients"}
                 and dataset.engine not in {"equity_closed_form", "fixed_income_closed_form"}
             )
             version = "v2" if stochastic else "v1"
@@ -464,7 +467,7 @@ class CapabilityManifestTest(unittest.TestCase):
         appended = [d for d in RNG_DOMAIN_SPECS
                     if 588 <= d.ordinal < 594 and d.generator_path not in aliases]
         self.assertEqual(len(appended), 6)
-        self.assertTrue(all(d.version == 3 for d in RNG_DOMAIN_SPECS))
+        self.assertTrue(all(d.version == 4 for d in RNG_DOMAIN_SPECS))
         self.assertTrue(all("/european_" in d.generator_path and "/g2" in d.generator_path
                             for d in appended))
 
@@ -476,18 +479,32 @@ class CapabilityManifestTest(unittest.TestCase):
         self.assertEqual(hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
             "d73cd893f1a5fb413e3a1921a3631c0e3f26f00b86886772c1f33d8d61f2c617")
         appended = [d for d in RNG_DOMAIN_SPECS
-                    if d.ordinal >= 594 and d.generator_path not in aliases]
+                    if 594 <= d.ordinal < 600 and d.generator_path not in aliases]
         self.assertEqual(len(appended), 6)
         self.assertTrue(all("/cir_plus_plus/" in d.generator_path for d in appended))
 
-    def test_cir_plus_plus_composes_all_products_for_both_curves(self) -> None:
+    def test_rng_v4_appends_flat_curve_without_rekeying_v3(self) -> None:
+        aliases = set(CARTESIAN_PRICE_SOURCE_BY_GENERATOR) | set(PRICE_DELTA_SOURCE_BY_GENERATOR) | set(PRICE_GRADIENT_SOURCE_BY_GENERATOR)
+        legacy = [(d.generator_path, d.ordinal, d.seed("dynamics"))
+                  for d in RNG_DOMAIN_SPECS if d.ordinal < 600 and d.generator_path not in aliases]
+        self.assertEqual(len(legacy), 600)
+        self.assertEqual(
+            hashlib.sha256(json.dumps(legacy, separators=(",", ":")).encode()).hexdigest(),
+            "e52c9fa1eab1bfafa6ea8144fd65d1d8db5533059b0ee9dd525be14580cf3607",
+        )
+        appended = [d for d in RNG_DOMAIN_SPECS
+                    if d.ordinal >= 600 and d.generator_path not in aliases]
+        self.assertEqual(len(appended), 8)
+        self.assertTrue(all("/flat/" in d.generator_path for d in appended))
+
+    def test_cir_plus_plus_composes_all_products_for_supported_curves(self) -> None:
         self.assertEqual(set(SAMPLE_MODEL_BY_NAME), {model.name for model in SAMPLE_MODELS})
         self.assertEqual(SAMPLE_MODEL_BY_NAME["cir_plus_plus"].constructor,
                          SAMPLE_MODEL_BY_NAME["cir"].constructor)
         self.assertEqual(SAMPLE_MODEL_BY_NAME["cir_plus_plus"].derived_parameter_laws,
                          SAMPLE_MODEL_BY_NAME["cir"].derived_parameter_laws)
         self.assertIn("volatility", dict(SAMPLE_MODEL_BY_NAME["cir_plus_plus"].derived_parameter_laws))
-        for curve in ("nelson_siegel", "svensson"):
+        for curve in ("flat", "nelson_siegel", "svensson"):
             for product, variant in (
                 ("rate_option", "caplets"), ("rate_option", "floorlets"),
                 ("zero_coupon_bond_option", "zero_coupon_bond_calls"),
@@ -651,7 +668,7 @@ class CapabilityManifestTest(unittest.TestCase):
             binding for binding in PRODUCT_BINDING_SPECS
             if binding.engine == "fixed_income_lsm"
         ]
-        self.assertEqual(len(bindings), 10)
+        self.assertEqual(len(bindings), 13)
         cir = next(binding for binding in bindings if binding.model == "cir")
         self.assertEqual(
             cir.transition_contract,

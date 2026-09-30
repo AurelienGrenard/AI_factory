@@ -149,7 +149,7 @@ std::size_t normal_inverse_gaussian_geometric_asian_option_node_graph_workspace_
         mpg::CoupledDynamics,
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_normal_inverse_gaussian_geometric_asian_option_node_graph_sensitivit
         mpg::CoupledDynamics,
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(
@@ -220,9 +220,9 @@ std::size_t normal_inverse_gaussian_geometric_asian_option_mixed_node_graph_work
         mpg::CoupledDynamics,
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(host, configuration);
 }
@@ -243,9 +243,9 @@ void launch_normal_inverse_gaussian_geometric_asian_option_mixed_node_graph_sens
         mpg::CoupledDynamics,
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(
         host,

@@ -9,7 +9,7 @@ The hierarchy mirrors the canonical identities under `src`:
 ```text
 catalog/
 |-- curve/<curve>/<dataset-id>/
-|-- model/<asset-class>/<family>/<model>/{parameters,samples,prices}/...
+|-- model/<asset-class>/<family>/<model>/{parameters,samples,prices,price_gradients}/...
 `-- product/<product>/<dataset-id>/
 ```
 
@@ -18,18 +18,21 @@ and, when required by the pricing contract, its curve before the dataset ID.
 The matching generated artifact follows the same hierarchy under the ignored
 `datasets/` directory.
 
-Each generated leaf owns three files with deliberately separate roles:
+The public derivative catalogue deliberately exposes one canonical contract:
+`price_gradients/**/<dataset-id>_price_gradient_diagonal_hessian`. It contains
+the price, the selected gradient, and the selected diagonal Hessian. Gradient-
+only, spot-only, and full-Hessian variants remain code-generation capabilities
+for experiments; they do not multiply public catalogue recipes.
 
-- `generator.cpp`: executable implementation;
-- `recipe.yaml`: canonical, minimal description of what the dataset means and
-  how it must be built;
-- `generation.yaml`: receipt for one completed materialization, including
-  hashes, execution evidence and timing. It is written last and therefore acts
-  as the publication-complete marker.
+Each recipe leaf always owns two source files:
 
-Price leaves may also own `validation.yaml`. Validation never belongs in the
-recipe or generation receipt. A generator and its recipe always exist together;
-`generation.yaml` exists only for a materialized published artifact.
+- `generator.cpp`: minimal executable entry point;
+- `recipe.yaml`: canonical description of the dataset identity and contents.
+
+After a completed materialization, the leaf also owns `generation.yaml`. This
+receipt contains hashes, execution evidence and timing; it is written last and
+therefore acts as the publication-complete marker. Independent certification is
+deferred and no `validation.yaml` belongs in the catalogue for now.
 
 Published dataset IDs are immutable. If data or recipe semantics change, use a
 new dataset ID. Publication requires a clean Git revision, stages the JSON

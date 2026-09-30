@@ -5,7 +5,7 @@ recipe:
   sha256: b7c5b5e9addf7d9a34167501657141d69c53b5b5af8bbd9dfe02d232c3ee85ec
 artifact:
   row_count: 3000000
-  sha256: 608c3ec238f7a44609ca8ae97e7e6e09f881055b8d8a913e668bfa91f491b4be
+  sha256: 826f09caeafe231916792ff124367d1ce8166ab5c980b2baa6fa9730080cceb0
 inputs: {}
 execution:
   binary_sha256: c025df4d7007e6dac97708bc1a8532ad8f3d15a5bdda8d6c96e6f5d0fd0cc950
@@ -61,4 +61,4 @@ provenance:
 legacy_checksums:
   contract_sha256: b0cff7ed0f9a754055e7ad48bb2b06ce3831fc6e3582f0bafdf73f5ccc0b989f
   record_sha256: f2ed8d15ca003341df6b9f070099a785cf81a3edabde93f75d895e35d8ae49d7
-record_sha256: ebb807b4924e6aa93e7787f32161e6ab807dcba98e80b630db4c1f863e9357bd
+record_sha256: 8ebb33be72584293d218598ed938ba2708ff44ef8b197a4fc3f3def0878bd6bf

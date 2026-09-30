@@ -5,7 +5,7 @@ recipe:
   sha256: 0eed2c68f19a0feec5ca53b41c696171e6f3df1a2029a5af045bd90fb53d5df6
 artifact:
   row_count: 3000000
-  sha256: e56df10df01b31aaf3536f72018ad075869eaba689d9e35fe7087ef1dd757e4e
+  sha256: 28d41e057ad67419448ce4d012ddd27eb4621934993380d5d0c81e7881bcf131
 execution:
   mode: legacy_materialization
   evidence: limited to fields preserved by the legacy combined metadata
@@ -29,4 +29,4 @@ provenance:
   metadata_migration: dataset.yaml split into canonical recipe and generation receipt
   limitation: legacy metadata preserves geometry and timing but not revision or binary
     hashes
-record_sha256: 3348eee7dd1d1e4f81526d87b33b37c2cf7b474d9554c84f9e9dc5818abe718c
+record_sha256: d923a7e159c9ae4671435f00e5fcfb99be8ae8c78371ed4121580340644fa3f1

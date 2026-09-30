@@ -108,7 +108,7 @@ Shared rate and swap identities: [fixed-income rate reference](../../../common/f
 ## Related contracts
 
 European payer/receiver swaptions use the same terminal Monte Carlo policy as
-G2, for both Nelson–Siegel and Svensson curves. One exact joint factor/integral
+G2, for Flat, Nelson–Siegel and Svensson curves. One exact joint factor/integral
 transition under Q supplies the terminal state; curve-fitted bond analytics
 and the deterministic shift supply the payoff and discounting. No quadrature
 or fine simulation grid is used. Bermudans retain exact-transition LSM.

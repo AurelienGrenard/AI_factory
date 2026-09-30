@@ -132,8 +132,8 @@ void launch_g2_plus_plus_svensson_zero_coupon_bond_option_mixed_node_graph_sensi
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        13U,
-        78U
+        14U,
+        91U
     >(
         host,
         device,

@@ -56,6 +56,10 @@ add_cuda_workbench_test(price_gradients_mixed_path_node_graph_cuda
     tests/price_gradients/mixed_path_node_graph_cuda_test.cu
     "price_gradients;parity;node_graph;path_products;jumps;mixed_hessian" 240)
 target_link_libraries(test_price_gradients_mixed_path_node_graph_cuda PRIVATE
+    ai_factory_equity_black_scholes_asian_option_price_gradients
+    ai_factory_equity_black_scholes_forward_start_option_price_gradients
+    ai_factory_equity_black_scholes_geometric_asian_option_price_gradients
+    ai_factory_equity_black_scholes_range_accrual_price_gradients
     ai_factory_equity_bates_cliquet_price_gradients
     ai_factory_equity_bates_range_accrual_price_gradients
     ai_factory_equity_heston_asian_option_price_gradients
@@ -64,6 +68,7 @@ add_cuda_workbench_test(price_gradients_path_node_graph_cuda
     tests/price_gradients/path_node_graph_cuda_test.cu
     "price_gradients;parity;node_graph;path_products;calendars;jumps" 180)
 target_link_libraries(test_price_gradients_path_node_graph_cuda PRIVATE
+    ai_factory_equity_black_scholes_asian_option_price_gradients
     ai_factory_equity_bates_range_accrual_price_gradients
     ai_factory_equity_heston_asian_option_price_gradients
     ai_factory_equity_merton_athena_autocall_price_gradients
@@ -76,6 +81,7 @@ add_cuda_workbench_test(price_gradients_fixed_income_terminal_node_graph_cuda
     "price_gradients;parity;node_graph;fixed_income;g2" 180)
 target_link_libraries(test_price_gradients_fixed_income_terminal_node_graph_cuda PRIVATE
     ai_factory_fixed_income_g2_european_swaption_price_gradients
+    ai_factory_fixed_income_g2_plus_plus_flat_european_swaption_price_gradients
     ai_factory_fixed_income_g2_plus_plus_nelson_siegel_european_swaption_price_gradients
     ai_factory_fixed_income_g2_plus_plus_svensson_european_swaption_price_gradients)
 add_cuda_workbench_test(price_gradients_cev_cuda
@@ -119,6 +125,12 @@ add_cuda_workbench_test(price_gradients_fixed_step_american_cuda
 add_cuda_workbench_test(price_gradients_cir_european_swaption_cuda
     tests/price_gradients/cir_european_swaption_cuda_test.cu
     "price_gradients;fixed_income;cir;jamshidian" 120)
+add_cuda_workbench_test(price_gradients_flat_fixed_income_cuda
+    tests/price_gradients/flat_fixed_income_cuda_test.cu
+    "price_gradients;fixed_income;flat_curve;closed_form;warp_packing" 60)
+target_link_libraries(test_price_gradients_cir_european_swaption_cuda PRIVATE
+    ai_factory_fixed_income_cir_rate_option_price_gradients
+    ai_factory_fixed_income_cir_zero_coupon_bond_option_price_gradients)
 add_cuda_workbench_test(price_gradients_bermudan_swaption_cuda
     tests/price_gradients/bermudan_swaption_cuda_test.cu
     "price_gradients;fixed_income;bermudan_swaption;longstaff_schwartz" 300)

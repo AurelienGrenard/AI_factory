@@ -167,6 +167,19 @@ __device__ __forceinline__ void evaluate_terminal_node_paths_by_team(
                 typename Dynamics::Innovations innovations{};
                 if (team.local_lane == 0U) {
                     if constexpr (requires {
+                        Dynamics::draw_maturity_coupled(random);
+                    }) {
+                        bool needs_fourth_normal = false;
+                        for (std::uint16_t node = 0U;
+                             node < node_count;
+                             ++node) {
+                            needs_fourth_normal = needs_fourth_normal
+                                || scenarios[node].normal_weights[3U] != 0.0f;
+                        }
+                        innovations = needs_fourth_normal
+                            ? Dynamics::draw_maturity_coupled(random)
+                            : Dynamics::draw(random);
+                    } else if constexpr (requires {
                         Dynamics::draw(random, dynamics[0U]);
                     }) {
                         innovations = Dynamics::draw(random, dynamics[0U]);

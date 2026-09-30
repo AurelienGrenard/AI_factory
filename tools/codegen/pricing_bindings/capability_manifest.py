@@ -28,7 +28,7 @@ from sample_manifest import SAMPLE_MODELS
 
 SCHEMA_VERSION = 2
 
-RNG_DOMAIN_VERSION = 3
+RNG_DOMAIN_VERSION = 4
 RNG_NAMESPACE_BASE = 0xA1F0_0000_0000_0000
 RNG_DOMAIN_STRIDE = 1 << 32
 RNG_STREAM_CAPACITY = 1 << 30
@@ -118,6 +118,7 @@ class CurveSpec:
     display: str
     cpp_type: str
     parameter_dataset_id: str
+    rng_domain_epoch: int = 0
 
     @property
     def source_prefix(self) -> str:
@@ -155,7 +156,7 @@ class DatasetSpec:
             "model_parameters", "curve_parameters", "product_parameters"
         }:
             return 1_000
-        if self.dataset_kind in {"prices", "price_sensitivities"}:
+        if self.dataset_kind in {"prices", "price_gradients"}:
             if self.construction == "aligned":
                 return 1_000
             if self.construction == "cartesian":
@@ -189,7 +190,7 @@ class DatasetSpec:
         relative = PurePosixPath(self.dataset_path).relative_to("datasets")
         stochastic = (
             self.dataset_kind == "samples"
-            or self.dataset_kind in {"prices", "price_sensitivities"}
+            or self.dataset_kind in {"prices", "price_gradients"}
             and self.engine not in {"equity_closed_form", "fixed_income_closed_form"}
         )
         url_version = "v2" if stochastic else "v1"
@@ -197,7 +198,7 @@ class DatasetSpec:
 
     @property
     def cmake_target(self) -> str:
-        if self.dataset_kind in {"prices", "price_sensitivities"}:
+        if self.dataset_kind in {"prices", "price_gradients"}:
             components = self.dataset_id.split("__")[:-1]
             names = [component.rsplit("_", 1)[0] for component in components]
             version = self.dataset_id.split("__")[-1]
@@ -727,6 +728,7 @@ PRODUCT_BY_NAME = {
 
 
 CURVE_SPECS = (
+    CurveSpec("flat", "Flat", "FlatCurve", "flat_01", rng_domain_epoch=3),
     CurveSpec(
         "nelson_siegel", "Nelson-Siegel", "NelsonSiegel", "nelson_siegel_01"
     ),
@@ -788,6 +790,21 @@ FIXED_INCOME_CAPABILITIES = (
     ),
     FixedIncomeCapabilitySpec(
         "vasicek", None, "affine_one_factor", "gaussian",
+        FIXED_INCOME_ALL_VARIANTS,
+    ),
+    # New fitted-curve capabilities are append-only: their stochastic
+    # recipes must not re-key the historical Philox domain prefix.
+    FixedIncomeCapabilitySpec(
+        "cir_plus_plus", "flat", "curve_fitted_one_factor", None,
+        FIXED_INCOME_ALL_VARIANTS,
+        terminal_forward_dynamics="cir",
+    ),
+    FixedIncomeCapabilitySpec(
+        "g2_plus_plus", "flat", "curve_fitted_two_factor", None,
+        FIXED_INCOME_ALL_VARIANTS,
+    ),
+    FixedIncomeCapabilitySpec(
+        "hull_white", "flat", "curve_fitted_one_factor", None,
         FIXED_INCOME_ALL_VARIANTS,
     ),
 )
@@ -1056,9 +1073,11 @@ RNG_DOMAIN_SPECS = tuple(
                 dataset for dataset in AVAILABLE_DATASET_SPECS
                 if _uses_philox(dataset)
             ),
-            # Append extension epochs; preserve the frozen V1 and V2 prefixes.
+            # Append extension epochs; preserve every frozen historical prefix.
             key=lambda dataset: (
                 max(MODEL_BY_NAME[dataset.model].rng_domain_epoch,
+                    CURVE_BY_NAME[dataset.curve].rng_domain_epoch
+                    if dataset.curve is not None else 0,
                     int(dataset.engine == "fixed_income_monte_carlo")),
                 dataset.generator_path,
             ),
@@ -1170,7 +1189,7 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
         raise ValueError(
             f"dataset lacks numerical profile or layout: {dataset.generator_path}"
         )
-    if dataset.dataset_kind == "price_sensitivities":
+    if dataset.dataset_kind == "price_gradients":
         if dataset.sensitivity_orders not in {
             ("first",),
             ("first", "diagonal_second"),
@@ -1647,12 +1666,20 @@ PRICE_DELTA_SOURCE_BY_GENERATOR.update({
         strict=True,
     )
 })
-# The dedicated price-delta catalogue family is retired. Its spot-only use
-# case is represented by a regular sensitivity selection below; legacy delta
-# launch bindings remain available until rough-model migration is complete.
-PRICE_GRADIENT_DATASET_SPECS = compose_price_gradient_datasets(
+# The dedicated price-delta catalogue family is retired. A spot-only request
+# remains one of the code-generation variants below; legacy delta launch
+# bindings remain available until rough-model migration is complete.
+PRICE_GRADIENT_DATASET_VARIANTS = compose_price_gradient_datasets(
     AVAILABLE_DATASET_SPECS,
     PRICE_GRADIENT_BINDING_SPECS,
+)
+# The catalogue publishes one canonical derivative contract. More specialised
+# and full-Hessian variants remain code-generation capabilities and can be
+# materialised by experiments without multiplying public recipes.
+PRICE_GRADIENT_DATASET_SPECS = tuple(
+    spec
+    for spec in PRICE_GRADIENT_DATASET_VARIANTS
+    if spec.sensitivity_orders == ("first", "diagonal_second")
 )
 PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
     gradient.generator_path: next(

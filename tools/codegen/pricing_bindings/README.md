@@ -99,10 +99,10 @@ headers beside their launchers, so price and delta use the same formula body.
 All nine American bindings use templates under
 `pricing/longstaff_schwartz/equity/`, composing the common frozen-date policy.
 The legacy delta launchers remain implementation references until rough-model
-migration is complete. They no longer own catalogue recipes. A spot-only
-request is rendered by the sensitivity engine under
-`catalog/.../price_sensitivities/` with the explicit `{model.spot}` selection.
-CRN aliases preserve price-only seeds, and production MC/LSM uses 2^20 paths.
+migration is complete. They no longer own catalogue recipes. Spot-only and
+first-order-only requests remain available to the gradient code generator for
+experiments, without owning permanent catalogue recipes. CRN aliases preserve
+price-only seeds, and production MC/LSM uses 2^20 paths.
 See the
 [implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
 `PRICE_GRADIENT_BINDING_SPECS` also declares its preparation strategy. Equity
@@ -110,10 +110,11 @@ European terminal bindings select one of the compact device-prepared closed
 form, fixed-step MC, or exact-terminal MC templates. Heston American and CIR
 Jamshidian retain their explicit host-prepared strategies. The renderer rejects
 an undeclared strategy instead of falling back to a model-specific template.
-The binding manifest records the public derivative orders separately from the
-dataset recipes. First-order, spot-only, diagonal and full-Hessian recipes share the
-`price_sensitivities` family. The requested parameters and derivative orders,
-rather than the folder name, state their output contract. Run
+The binding manifest records derivative capabilities separately from public
+dataset recipes. First-order, spot-only, diagonal and full-Hessian variants
+remain available in codegen. The catalogue materialises only
+`price_gradient_diagonal_hessian`, with orders `first` and `diagonal_second`,
+under the `price_gradients` family. Run
 `python3 tools/codegen/pricing_bindings/price_gradients/coverage.py` to inspect
 every Markovian pricing binding and the gradient orders currently exposed by
 its launcher. Coordinate-level exclusions remain in the model and product
@@ -167,7 +168,7 @@ product policy, not these templates, owns the calendar and payoff.
 
 CIR++ composes the one-factor fitted closed-form templates and the fitted
 terminal-forward LSM templates. Its sample specification inherits the CIR
-factor law; its two curve entries declare the same underlying forward dynamics.
+factor law; its supported curve entries declare the same underlying forward dynamics.
 No new product algorithm belongs in these bindings.
 
 Philox reservations are append-only by extension epoch. New models declare

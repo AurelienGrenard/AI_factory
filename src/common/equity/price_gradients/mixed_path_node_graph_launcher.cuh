@@ -39,7 +39,8 @@ auto make_mixed_path_node_graph_execution_plan(
             host.sensitivity_count(),
             host.sensitivity_graph,
             launch.threads_per_block,
-            graph
+            graph,
+            host.has_maturity_sensitivity()
         );
     };
     return mcpg::make_mixed_node_graph_execution_plan_with_layout<

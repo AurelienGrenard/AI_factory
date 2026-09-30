@@ -130,8 +130,8 @@ void launch_ornstein_uhlenbeck_rate_option_mixed_node_graph_sensitivities_cuda(
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        5U,
-        10U
+        6U,
+        15U
     >(
         host,
         device,

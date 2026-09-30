@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient_diagonal_hessian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json",
+    "product": "datasets/product/european_swaption/european_swaptions_01.json",
+    "curve": "datasets/curve/svensson/svensson_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient_diagonal_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient_diagonal_hessian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient_diagonal_hessian.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion_x",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility_x",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.mean_reversion_y",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility_y",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.correlation",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta0",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta1",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta2",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta3",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.tau1",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.tau2",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.maturity_years",
+        "displacement": 0.001984126984126984,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second"
+    ]
+  },
+  "seeds": {
+    "dynamics": 11668829181432561664
+  },
+  "random_number_generator": "philox",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

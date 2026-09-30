@@ -8,13 +8,14 @@ struct CoupledDynamics {
     using State = black_scholes::State;
     using Prepared = black_scholes::PreparedDynamics;
     using RandomContext = DynamicsPolicy::RandomContext;
-    struct Innovations { float normals[3]; };
+    struct Innovations { float normals[4]; };
     static constexpr bool kExactTerminal = true;
     static constexpr bool kDrawRequiresCentralPrepared = false;
     __device__ static Prepared prepare(const ModelParameters&, float);
     __device__ static State initial(const Prepared&);
     __device__ static Innovations draw(RandomContext&);
     __device__ static Innovations draw_equal_horizon(RandomContext&);
+    __device__ static Innovations draw_maturity_coupled(RandomContext&);
     __device__ static void transition(const Prepared&, const Innovations&, const float*, State&);
     __device__ static float spot(const State&);
 };

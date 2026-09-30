@@ -320,12 +320,13 @@ class ArtifactContractTests(unittest.TestCase):
         sys.path.insert(0,str(root/"tools/codegen/pricing_bindings"))
         from capability_manifest import (
             PRICE_GRADIENT_DATASET_SPECS,
+            PRICE_GRADIENT_DATASET_VARIANTS,
             PRICE_GRADIENT_SOURCE_BY_GENERATOR,
             PRICE_VARIANTS,
             resolve_rng_domain,
         )
         from tools.datasets.generate_catalog import inventory
-        jobs = inventory(root,{"price_sensitivities"},set(),set())
+        jobs = inventory(root,{"price_gradients"},set(),set())
         self.assertEqual(len(jobs),len(PRICE_GRADIENT_DATASET_SPECS))
         self.assertEqual({spec.model for spec in PRICE_GRADIENT_DATASET_SPECS},
                          {"bates", "black_scholes", "heston", "heston_3_2",
@@ -335,25 +336,39 @@ class ArtifactContractTests(unittest.TestCase):
                           "g2_plus_plus", "hull_white",
                           "ornstein_uhlenbeck", "vasicek"})
         self.assertEqual({job["target"] for job in jobs},{spec.cmake_target for spec in PRICE_GRADIENT_DATASET_SPECS})
-        general = [
-            spec for spec in PRICE_GRADIENT_DATASET_SPECS
-            if not spec.sensitivity_parameters
-        ]
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_SPECS), 888)
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_VARIANTS), 3392)
+        diagonal = list(PRICE_GRADIENT_DATASET_SPECS)
+        self.assertTrue(all(
+            spec.dataset_kind == "price_gradients"
+            and spec.sensitivity_orders == ("first", "diagonal_second")
+            and not spec.sensitivity_parameters
+            and spec.dataset_id.endswith(
+                "_price_gradient_diagonal_hessian"
+            )
+            and "/price_gradients/" in spec.generator_path
+            for spec in diagonal
+        ))
         spot_only = [
-            spec for spec in PRICE_GRADIENT_DATASET_SPECS
+            spec for spec in PRICE_GRADIENT_DATASET_VARIANTS
             if spec.sensitivity_parameters == ("model.spot",)
         ]
-        diagonal = [
-            spec for spec in general
-            if "diagonal_second" in spec.sensitivity_orders
+        full_hessian = [
+            spec for spec in PRICE_GRADIENT_DATASET_VARIANTS
+            if spec.sensitivity_orders
+                == ("first", "diagonal_second", "mixed_second")
         ]
-        self.assertEqual(len(diagonal), 2 * len(general) // 3)
         self.assertTrue(spot_only)
+        self.assertEqual(len(full_hessian), len(diagonal))
         self.assertTrue(all(
-            spec.sensitivity_orders == ("first",)
+            spec.dataset_id.endswith("_price_gradient_spot")
+            and spec.sensitivity_orders == ("first",)
             for spec in spot_only
         ))
-        self.assertEqual(len(general) + len(spot_only), len(PRICE_GRADIENT_DATASET_SPECS))
+        self.assertTrue(all(
+            spec.dataset_id.endswith("_price_gradient_full_hessian")
+            for spec in full_hessian
+        ))
         self.assertEqual(
             {spec.model for spec in diagonal},
             {"bates", "black_scholes", "cev", "heston", "heston_3_2",
@@ -364,37 +379,23 @@ class ArtifactContractTests(unittest.TestCase):
         )
         equity_products = {variant.product for variant in PRICE_VARIANTS}
         self.assertTrue(all(
-            spec.sensitivity_orders in {
-                ("first", "diagonal_second"),
-                ("first", "diagonal_second", "mixed_second"),
-            }
-            and spec.product in equity_products | {
+            spec.product in equity_products | {
                 "american_option", "european_swaption", "bermudan_swaption",
                 "rate_option", "zero_coupon_bond_option",
             }
             for spec in diagonal
         ))
-        full_hessian = [
-            spec for spec in general
-            if "mixed_second" in spec.sensitivity_orders
-        ]
-        self.assertEqual(len(full_hessian), len(general) // 3)
-        self.assertTrue(all(
-            spec.sensitivity_orders
-                == ("first", "diagonal_second", "mixed_second")
-            for spec in full_hessian
-        ))
         self.assertEqual(
             sum(spec.product == "american_option" for spec in diagonal),
-            64,
+            32,
         )
         self.assertEqual(
             sum(spec.product == "european_swaption" for spec in diagonal),
-            80,
+            40,
         )
         self.assertEqual(
             sum(spec.product == "bermudan_swaption" for spec in diagonal),
-            80,
+            40,
         )
         import json
         for spec in PRICE_GRADIENT_DATASET_SPECS:

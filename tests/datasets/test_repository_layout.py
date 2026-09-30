@@ -63,7 +63,7 @@ class RepositoryLayoutTest(unittest.TestCase):
             self.assertNotIn("validation", document)
             self.assertNotIn("generation", document)
 
-    def test_active_dataset_taxonomy_uses_price_sensitivities(self) -> None:
+    def test_active_dataset_taxonomy_uses_price_gradients(self) -> None:
         for root_name in ("catalog", "datasets"):
             root = ROOT / root_name
             if not root.exists():
@@ -72,9 +72,28 @@ class RepositoryLayoutTest(unittest.TestCase):
                 path.relative_to(ROOT)
                 for path in root.rglob("*")
                 if path.is_dir()
-                and path.name in {"price_delta", "price_gradients"}
+                and path.name in {"price_delta", "price_sensitivities"}
             ]
             self.assertEqual(obsolete, [])
+
+        gradient_recipes = tuple(
+            (ROOT / "catalog").glob("**/price_gradients/**/recipe.yaml")
+        )
+        self.assertEqual(len(gradient_recipes), 936)
+        for recipe in gradient_recipes:
+            document = yaml.safe_load(recipe.read_text(encoding="utf-8"))
+            self.assertEqual(document.get("kind"), "price_gradients", recipe)
+            self.assertTrue(
+                document["dataset_id"].endswith(
+                    "_price_gradient_diagonal_hessian"
+                ),
+                recipe,
+            )
+            self.assertEqual(
+                document["sensitivity"]["orders"],
+                ["first", "diagonal_second"],
+                recipe,
+            )
 
     def test_recipes_are_readable_dataset_identity_cards(self) -> None:
         obsolete_fields = {
@@ -101,7 +120,7 @@ class RepositoryLayoutTest(unittest.TestCase):
                 obsolete_fields.isdisjoint(field_names(document)),
                 path.relative_to(ROOT),
             )
-            if document.get("kind") in {"prices", "price_sensitivities"}:
+            if document.get("kind") in {"prices", "price_gradients"}:
                 self.assertNotIn("construction", document, path)
             if "random_number_generator" in document:
                 self.assertEqual(document["random_number_generator"], "philox")

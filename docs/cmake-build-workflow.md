@@ -140,19 +140,17 @@ source de l'exécutable. Quand on construit cette cible, Ninja construit aussi
 les bibliothèques liées qui manquent, puis fait le lien final. Il n'est pas
 nécessaire de nommer chaque `.cu` et `.cpp` dans la commande `cmake --build`.
 
-Après la configuration, on peut construire exactement les deux générateurs
-prix-delta cartésiens qui nous intéressent :
+Après la configuration, on peut construire exactement le générateur Heston
+cartésien prix + gradient + Hessienne diagonale :
 
 ```bash
-cmake --build build --target generate_heston_european_calls_01_cartesian_price_delta -j2
-cmake --build build --target generate_rough_heston_european_calls_01_cartesian_price_delta -j2
+cmake --build build --target generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian -j2
 ```
 
-Ces cibles produisent respectivement
-`build/generate_heston_european_calls_01_cartesian_price_delta` et
-`build/generate_rough_heston_european_calls_01_cartesian_price_delta`. La
-première est associée au fichier source
-[`generator.cpp`](../catalog/model/equity/markovian/heston/price_sensitivities/european_calls/heston_01__european_calls_01__01_cartesian_price_sensitivities_spot/generator.cpp).
+Cette cible produit
+`build/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
+et correspond au fichier source
+[`generator.cpp`](../catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp).
 Le nom de la cible n'est donc pas `generator.cpp` : ce nom de fichier est
 réutilisé par de nombreuses recettes.
 
@@ -171,14 +169,14 @@ sa liste complète et filtrer les noms Heston :
 ninja -C build -t targets all | rg '^generate_heston_'
 ```
 
-On peut demander une cible de regroupement, comme `price_sensitivity_generators`,
+On peut demander une cible de regroupement, comme `price_gradient_generators`,
 mais cela construit beaucoup plus de générateurs. Les générateurs individuels
 sont exclus de la construction par défaut (`EXCLUDE_FROM_ALL`) : choisir leur
 cible évite de compiler tout le catalogue.
 
 **Compiler n'est pas générer une base.** Les commandes `cmake --build`
 construisent des exécutables ; elles ne les lancent pas. Une commande distincte
-comme `./build/generate_heston_european_calls_01_cartesian_price_delta`
+comme `./build/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
 déclenche la simulation et écrit des données. Pour préparer, suivre, publier ou
 reprendre une campagne, voir le
 [workflow de génération](dataset-generation-workflow.md). Le notebook

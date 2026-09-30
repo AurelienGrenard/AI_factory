@@ -221,9 +221,11 @@ def _random_state() -> dict[str, object]:
 def _restore_random_state(state: dict[str, object]) -> None:
     random.setstate(state["python"])
     np.random.set_state(state["numpy"])
-    torch.set_rng_state(state["torch"])
+    torch.set_rng_state(state["torch"].detach().cpu())
     if state["cuda"] is not None and torch.cuda.is_available():
-        torch.cuda.set_rng_state_all(state["cuda"])
+        torch.cuda.set_rng_state_all(
+            [item.detach().cpu() for item in state["cuda"]]
+        )
 
 
 def _checkpoint_payload(

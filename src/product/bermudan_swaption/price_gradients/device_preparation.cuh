@@ -13,6 +13,20 @@ namespace ai_factory::workbench::product::bermudan_swaption::price_gradients {
 
 struct DevicePreparation {
     using Product = BermudanSwaptionParameters;
+    static constexpr bool kSupportsMaturitySensitivity = false;
+    __host__ __device__ static std::uint32_t terminal_maturity_days(
+        const Product& product
+    ) {
+        return product.first_exercise_time_days
+            + product.payment_count * product.payment_interval_days;
+    }
+    __host__ __device__ static std::uint32_t terminal_prefix_days(
+        const Product& product
+    ) {
+        return product.first_exercise_time_days
+            + (product.payment_count - 1U)
+                * product.payment_interval_days;
+    }
     static constexpr std::array parameter_names{
         std::string_view{"product.notional"},
         std::string_view{"product.strike"},

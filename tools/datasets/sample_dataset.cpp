@@ -178,22 +178,6 @@ void write_streamed_json(
             {"unit", "business_day"},
             {"days_per_year", kBusinessDaysPerYear},
         }},
-        {"construction", {
-            {"parameter_count", execution.parameter_count},
-            {"paths_per_parameter", execution.paths_per_parameter},
-            {"row_order", "parameter-major, then path-major"},
-            {"parameter_sampling", recipe.parameter_sampling},
-            {"maturity_sampling", {
-                {"distribution", "discrete uniform"},
-                {"minimum_days", recipe.minimum_maturity_days},
-                {"maximum_days", recipe.maximum_maturity_days},
-            }},
-        }},
-        {"seeds", {
-            {"parameters", recipe.seeds.parameters},
-            {"schedule", recipe.seeds.schedule},
-            {"dynamics", recipe.seeds.dynamics},
-        }},
         {"timing", {
             {"wall_seconds", execution.wall_seconds},
             {"kernel_seconds", execution.kernel_seconds},
@@ -201,7 +185,7 @@ void write_streamed_json(
     };
     std::string prefix = envelope.dump(2);
     prefix.pop_back();
-    output << prefix << ",\n  \"samples\": [\n";
+    output << prefix << ",\n  \"results\": [\n";
 
     for (std::size_t sample_index = 0U;
          sample_index < row_count;
@@ -332,12 +316,12 @@ void validate_model_sample_dataset_file(
 ) {
     const nlohmann::ordered_json document = read_json_file(dataset_path);
     if (document.at("row_count").get<std::size_t>() != expected_row_count
-        || document.at("samples").size() != expected_row_count
+        || document.at("results").size() != expected_row_count
         || document.at("time_convention").at("days_per_year")
             .get<std::uint32_t>() != kBusinessDaysPerYear) {
         throw std::runtime_error("Invalid model-sample dataset envelope.");
     }
-    for (const auto& row : document.at("samples")) {
+    for (const auto& row : document.at("results")) {
         const std::uint32_t days =
             row.at("maturity_days").get<std::uint32_t>();
         const float time = row.at("T").get<float>();

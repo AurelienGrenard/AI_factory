@@ -132,8 +132,8 @@ void launch_hull_white_nelson_siegel_rate_option_mixed_node_graph_sensitivities_
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        8U,
-        28U
+        9U,
+        36U
     >(
         host,
         device,

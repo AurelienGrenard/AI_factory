@@ -87,4 +87,8 @@ Shared rate and swap identities: [fixed-income rate reference](../../../common/f
 
 ## Related contracts
 
+Flat, Nelson–Siegel and Svensson curves use the same fitted analytics and
+product engines. The capability manifest is the authority for the supported
+curve/product matrix.
+
 Shared product and engine contracts: [fixed-income entry point](../README.md).

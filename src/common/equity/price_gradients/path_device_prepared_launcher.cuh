@@ -33,24 +33,32 @@ void launch_path_first_sensitivities(
         std::forward<PriceOnlyLaunch>(launch_price_only)();
         return;
     }
-    using Policy = mcpg::FirstPathSensitivityPolicy<
-        Dynamics,
-        ProductPolicy,
-        typename HostPlan::Preparation,
-        Schedule
-    >;
-    mcpg::launch_device_prepared_first_sensitivities<
-        Policy,
-        typename HostPlan::Preparation
-    >(
-        device,
-        mcpg::make_device_prepared_plan(host),
-        configuration,
-        outputs,
-        stencil_outputs,
-        kernel_name,
-        variant
-    );
+    const auto launch_policy = [&]<bool VariableTerminal>() {
+        using Policy = mcpg::FirstPathSensitivityPolicy<
+            Dynamics,
+            ProductPolicy,
+            typename HostPlan::Preparation,
+            Schedule,
+            VariableTerminal
+        >;
+        mcpg::launch_device_prepared_first_sensitivities<
+            Policy,
+            typename HostPlan::Preparation
+        >(
+            device,
+            mcpg::make_device_prepared_plan(host),
+            configuration,
+            outputs,
+            stencil_outputs,
+            kernel_name,
+            variant
+        );
+    };
+    if (host.has_maturity_sensitivity()) {
+        launch_policy.template operator()<true>();
+    } else {
+        launch_policy.template operator()<false>();
+    }
 }
 
 template<
@@ -79,27 +87,35 @@ void launch_path_diagonal_sensitivities(
         std::forward<PriceOnlyLaunch>(launch_price_only)();
         return;
     }
-    using Policy = mcpg::PathSensitivityPolicy<
-        Orders,
-        Dynamics,
-        ProductPolicy,
-        typename HostPlan::Preparation,
-        Schedule
-    >;
-    mcpg::launch_device_prepared_diagonal_sensitivities<
-        Orders,
-        Policy,
-        typename HostPlan::Preparation,
-        MonoTuning
-    >(
-        device,
-        mcpg::make_device_prepared_plan(host),
-        configuration,
-        outputs,
-        stencil_outputs,
-        kernel_name,
-        variant
-    );
+    const auto launch_policy = [&]<bool VariableTerminal>() {
+        using Policy = mcpg::PathSensitivityPolicy<
+            Orders,
+            Dynamics,
+            ProductPolicy,
+            typename HostPlan::Preparation,
+            Schedule,
+            VariableTerminal
+        >;
+        mcpg::launch_device_prepared_diagonal_sensitivities<
+            Orders,
+            Policy,
+            typename HostPlan::Preparation,
+            MonoTuning
+        >(
+            device,
+            mcpg::make_device_prepared_plan(host),
+            configuration,
+            outputs,
+            stencil_outputs,
+            kernel_name,
+            variant
+        );
+    };
+    if (host.has_maturity_sensitivity()) {
+        launch_policy.template operator()<true>();
+    } else {
+        launch_policy.template operator()<false>();
+    }
 }
 
 }  // namespace ai_factory::workbench::equity::price_gradients

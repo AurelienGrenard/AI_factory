@@ -1,5 +1,6 @@
 // Fixed-income terminal MC bindings: mono and node-graph bitwise parity.
 #include "model/fixed_income/g2/product/european_swaption_price_gradients.cuh"
+#include "model/fixed_income/g2_plus_plus/product/flat/european_swaption_price_gradients.cuh"
 #include "model/fixed_income/g2_plus_plus/product/nelson_siegel/european_swaption_price_gradients.cuh"
 #include "model/fixed_income/g2_plus_plus/product/svensson/european_swaption_price_gradients.cuh"
 #include "tests/price_gradients/diagonal_cuda_test_support.cuh"
@@ -18,6 +19,7 @@ using namespace ai_factory::workbench;
 namespace pg = price_gradients;
 namespace g2 = model::fixed_income::g2;
 namespace g2pp = model::fixed_income::g2_plus_plus;
+namespace flat = model::fixed_income::g2_plus_plus::flat;
 namespace ns = model::fixed_income::g2_plus_plus::nelson_siegel;
 namespace sv = model::fixed_income::g2_plus_plus::svensson;
 
@@ -37,6 +39,8 @@ void check_g2(std::size_t paths) {
         {"model.volatility_x", {.0005f, pg::BumpScale::absolute}},
         {"model.initial_state_x", {.0005f, pg::BumpScale::absolute}},
         {"product.strike", {.0005f, pg::BumpScale::absolute}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan = g2::prepare_g2_european_swaption_sensitivities(
         models,
@@ -72,6 +76,62 @@ void check_g2(std::size_t paths) {
     );
 }
 
+void check_g2_plus_plus_flat(std::size_t paths) {
+    const std::vector<g2pp::ModelParameters> models{
+        {{0.15f, 0.010f, 0.45f, 0.015f, -0.35f}},
+        {{0.08f, 0.007f, 0.60f, 0.012f, 0.20f}},
+    };
+    const std::vector<curve::flat::FlatCurveParameters> curves{
+        {0.030f}, {-0.005f},
+    };
+    const std::vector<product::RegularEuropeanSwaptionParameters>
+        flat_products{
+            {1.0f, 0.035f, 0.5f, 252U, 126U, 6U},
+            {0.8f, 0.0275f, 0.25f, 504U, 63U, 8U},
+        };
+    const pg::PriceGradientConfiguration selection{{
+        {"model.volatility_x", {.0005f, pg::BumpScale::absolute}},
+        {"curve.rate", {.0005f, pg::BumpScale::absolute}},
+        {"product.strike", {.0005f, pg::BumpScale::absolute}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
+    }};
+    const auto plan =
+        flat::prepare_g2_plus_plus_flat_european_swaption_sensitivities(
+            models,
+            curves,
+            flat_products,
+            PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U},
+            selection,
+            pg::SensitivityRequest::full_hessian()
+        );
+    price_gradient_test::require_mono_node_graph_parity(
+        plan,
+        flat::launch_g2_plus_plus_flat_european_swaption_diagonal_sensitivities_cuda<
+            SwaptionSide::receiver, orders>,
+        flat::g2_plus_plus_flat_european_swaption_node_graph_workspace_bytes<
+            SwaptionSide::receiver, orders>,
+        flat::launch_g2_plus_plus_flat_european_swaption_node_graph_sensitivities_cuda<
+            SwaptionSide::receiver, orders>,
+        paths,
+        5105U,
+        "g2_plus_plus.flat.european_swaption"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        flat::launch_g2_plus_plus_flat_european_swaption_diagonal_sensitivities_cuda<
+            SwaptionSide::receiver, orders>,
+        flat::g2_plus_plus_flat_european_swaption_mixed_node_graph_workspace_bytes<
+            SwaptionSide::receiver>,
+        flat::launch_g2_plus_plus_flat_european_swaption_mixed_node_graph_sensitivities_cuda<
+            SwaptionSide::receiver>,
+        paths,
+        5107U,
+        "g2_plus_plus.flat.european_swaption.mixed"
+    );
+}
+
 void check_g2_plus_plus_nelson_siegel(std::size_t paths) {
     const std::vector<g2pp::ModelParameters> models{{
         {0.15f, 0.010f, 0.45f, 0.015f, -0.35f}
@@ -83,6 +143,8 @@ void check_g2_plus_plus_nelson_siegel(std::size_t paths) {
         {"model.volatility_x", {.0005f, pg::BumpScale::absolute}},
         {"curve.beta0", {.0005f, pg::BumpScale::absolute}},
         {"product.strike", {.0005f, pg::BumpScale::absolute}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan =
         ns::prepare_g2_plus_plus_nelson_siegel_european_swaption_sensitivities(
@@ -131,6 +193,8 @@ void check_g2_plus_plus_svensson(std::size_t paths) {
         {"model.volatility_y", {.0005f, pg::BumpScale::absolute}},
         {"curve.beta3", {.0005f, pg::BumpScale::absolute}},
         {"product.strike", {.0005f, pg::BumpScale::absolute}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan =
         sv::prepare_g2_plus_plus_svensson_european_swaption_sensitivities(
@@ -183,6 +247,7 @@ int main(int argc, char** argv) {
             return 77;
         }
         check_g2(paths);
+        check_g2_plus_plus_flat(paths);
         check_g2_plus_plus_nelson_siegel(paths);
         check_g2_plus_plus_svensson(paths);
         std::cout << "G2 and G2++ terminal MC bindings preserve mono results "

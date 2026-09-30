@@ -10,6 +10,80 @@
 
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
+// Fixed-step path intervals must not inherit a dynamics adapter's exact-terminal
+// shortcut. They consume one canonical step at a time unless the model exposes
+// an interval aggregation that preserves the scalar pricer (for example Bates).
+template<
+    std::size_t NodeCapacity,
+    typename Dynamics,
+    typename IsActive,
+    typename StepCount,
+    typename State>
+__device__ __forceinline__ void simulate_coupled_fixed_step_nodes(
+    typename Dynamics::RandomContext& random,
+    const typename Dynamics::Prepared (&prepared)[NodeCapacity],
+    std::uint16_t node_count,
+    std::uint32_t maximum_steps,
+    IsActive is_active,
+    StepCount step_count,
+    State state
+) {
+    if constexpr (requires {
+        Dynamics::template simulate_coupled_terminal<NodeCapacity>(
+            random,
+            prepared,
+            node_count,
+            maximum_steps,
+            is_active,
+            step_count,
+            state
+        );
+    }) {
+        Dynamics::template simulate_coupled_terminal<NodeCapacity>(
+            random,
+            prepared,
+            node_count,
+            maximum_steps,
+            is_active,
+            step_count,
+            state
+        );
+    } else {
+        for (std::uint32_t step = 0U; step < maximum_steps; ++step) {
+            if constexpr (requires {
+                Dynamics::draw_equal_horizon(random);
+            }) {
+                const auto innovations =
+                    Dynamics::draw_equal_horizon(random);
+                #pragma unroll
+                for (unsigned int node = 0U;
+                     node < NodeCapacity;
+                     ++node) {
+                    if (node < node_count
+                        && is_active(node)
+                        && step < step_count(node)) {
+                        Dynamics::transition(
+                            prepared[node], innovations, nullptr, state(node)
+                        );
+                    }
+                }
+            } else {
+                draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
+                    random, prepared, node_count,
+                    [&](unsigned int node, const auto& innovations) {
+                        if (is_active(node) && step < step_count(node)) {
+                            Dynamics::transition(
+                                prepared[node], innovations, nullptr,
+                                state(node)
+                            );
+                        }
+                    }
+                );
+            }
+        }
+    }
+}
+
 // Most models consume one innovation per numerical step through the fallback.
 // A model with an exactly aggregable independent component may instead expose
 // simulate_coupled_terminal: it keeps the same node topology while owning the
@@ -52,30 +126,49 @@ __device__ __forceinline__ void simulate_coupled_terminal_nodes(
             state
         );
     } else if constexpr (Dynamics::kExactTerminal) {
-        draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
-            random, prepared, node_count,
-            [&](unsigned int node, const auto& innovations) {
-                if (is_active(node)) {
+        if constexpr (requires {
+            Dynamics::draw_maturity_coupled(random);
+        }) {
+            bool needs_fourth_normal = false;
+            for (std::uint16_t node = 0U; node < node_count; ++node) {
+                needs_fourth_normal = needs_fourth_normal
+                    || normal_weights(node)[3U] != 0.0f;
+            }
+            const auto innovations = needs_fourth_normal
+                ? Dynamics::draw_maturity_coupled(random)
+                : Dynamics::draw(random);
+            #pragma unroll
+            for (unsigned int node = 0U; node < NodeCapacity; ++node) {
+                if (node < node_count && is_active(node)) {
                     Dynamics::transition(
                         prepared[node], innovations,
                         normal_weights(node), state(node)
                     );
                 }
             }
-        );
-    } else {
-        for (std::uint32_t step = 0U; step < maximum_steps; ++step) {
+        } else {
             draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
                 random, prepared, node_count,
                 [&](unsigned int node, const auto& innovations) {
-                    if (is_active(node) && step < step_count(node)) {
+                    if (is_active(node)) {
                         Dynamics::transition(
-                            prepared[node], innovations, nullptr, state(node)
+                            prepared[node], innovations,
+                            normal_weights(node), state(node)
                         );
                     }
                 }
             );
         }
+    } else {
+        simulate_coupled_fixed_step_nodes<NodeCapacity, Dynamics>(
+            random,
+            prepared,
+            node_count,
+            maximum_steps,
+            is_active,
+            step_count,
+            state
+        );
     }
 }
 

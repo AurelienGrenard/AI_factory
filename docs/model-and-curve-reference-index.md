@@ -51,6 +51,7 @@ can move from a mathematical reference to its implementation owner.
 ## Curves
 
 - [Curve family](../src/curve/README.md)
+- [Flat](../src/curve/flat/README.md)
 - [Nelson--Siegel](../src/curve/nelson_siegel/README.md)
 - [Svensson](../src/curve/svensson/README.md)
 

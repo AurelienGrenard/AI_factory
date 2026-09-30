@@ -32,6 +32,13 @@ Each row is autonomous and contains:
 parameter dataset. `samples_01` intentionally repeats each parameter row for
 its 250 conditional paths.
 
+The published JSON envelope is deliberately small and mirrors price datasets:
+`database_id`, `model_family`, `catalog`, `url`, `row_count`,
+`time_convention`, `timing`, then `results`. Construction, seeds, sampling laws,
+numerical methods, output descriptions, and time-grid details belong to the
+referenced `recipe.yaml` and `generation.yaml`; they are not duplicated in the
+JSON artifact.
+
 For fitted short-rate models, observables describe the underlying factors,
 not curve-adjusted rates. In particular, CIR++ `state` is the nonnegative CIR
 factor `y(t)`; `initial_state` is `y0`, and reconstructing `r(t)=y(t)+phi(t)`

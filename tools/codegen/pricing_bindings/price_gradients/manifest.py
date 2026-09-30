@@ -377,7 +377,8 @@ def compose_bindings(pricing_bindings):
         PriceGradientBindingSpec(
             binding,
             model_parameter_count[binding.model]
-                + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
+                + PATH_PRODUCT_PARAMETER_COUNT[binding.product]
+                + 1,
             False,
             "device_prepared_path",
             ("first", "diagonal_second", "mixed_second"),
@@ -391,7 +392,8 @@ def compose_bindings(pricing_bindings):
         PriceGradientBindingSpec(
             binding,
             model_parameter_count[binding.model]
-                + PATH_PRODUCT_PARAMETER_COUNT[binding.product],
+                + PATH_PRODUCT_PARAMETER_COUNT[binding.product]
+                + 1,
             True,
             "device_prepared_closed_form_path",
             ("first", "diagonal_second", "mixed_second"),
@@ -430,6 +432,7 @@ def compose_bindings(pricing_bindings):
     }
     curve_parameter_count = {
         None: 0,
+        "flat": 1,
         "nelson_siegel": 4,
         "svensson": 6,
     }
@@ -443,7 +446,8 @@ def compose_bindings(pricing_bindings):
             binding,
             fixed_income_model_parameter_count[binding.model]
                 + curve_parameter_count[binding.curve]
-                + fixed_income_product_parameter_count[binding.product],
+                + fixed_income_product_parameter_count[binding.product]
+                + 1,
             True,
             ("device_prepared_cooperative_closed_form"
              if binding.product == "european_swaption"
@@ -460,7 +464,8 @@ def compose_bindings(pricing_bindings):
             binding,
             fixed_income_model_parameter_count[binding.model]
                 + curve_parameter_count[binding.curve]
-                + fixed_income_product_parameter_count[binding.product],
+                + fixed_income_product_parameter_count[binding.product]
+                + 1,
             False,
             "device_prepared_fixed_income_monte_carlo",
             ("first", "diagonal_second", "mixed_second"),
@@ -494,11 +499,11 @@ def compose_bindings(pricing_bindings):
 
 
 def compose_datasets(price_datasets, bindings):
-    """Compose sensitivity datasets directly from their price datasets.
+    """Compose every supported price-gradient dataset variant.
 
-    A spot-only first derivative is one sensitivity selection, not a separate
-    dataset family. Keeping the price recipe as the sole parent makes the
-    catalogue hierarchy independent of the requested derivative orders.
+    The public catalogue selects a deliberately small subset of these specs.
+    Keeping the other variants here preserves code-generation coverage without
+    publishing four near-identical recipes for every pricing binding.
     """
     supported = {(spec.pricing.model, spec.pricing.product) for spec in bindings}
     diagonal_pairs = {
@@ -507,13 +512,13 @@ def compose_datasets(price_datasets, bindings):
         and spec.preparation_strategy.startswith("device_prepared_")
     }
     equity = tuple(replace(dataset,
-        dataset_id=dataset.dataset_id + "_price_sensitivities",
-        dataset_kind="price_sensitivities",
+        dataset_id=dataset.dataset_id + "_price_gradient",
+        dataset_kind="price_gradients",
         generator_path=dataset.generator_path.replace(
-            "/prices/", "/price_sensitivities/"
+            "/prices/", "/price_gradients/"
         ).replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id + "_price_sensitivities/",
+            "/" + dataset.dataset_id + "_price_gradient/",
         ),
         template="catalog/pricing/price_gradients/generator.cpp.tpl",
         numerical_profile="selected_gradients_production_paths",
@@ -526,24 +531,24 @@ def compose_datasets(price_datasets, bindings):
     spot = tuple(replace(
         dataset,
         dataset_id=(
-            dataset.dataset_id.removesuffix("_price_sensitivities")
-            + "_price_sensitivities_spot"
+            dataset.dataset_id.removesuffix("_price_gradient")
+            + "_price_gradient_spot"
         ),
         generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id.removesuffix("_price_sensitivities")
-            + "_price_sensitivities_spot/",
+            "/" + dataset.dataset_id.removesuffix("_price_gradient")
+            + "_price_gradient_spot/",
         ),
         sensitivity_parameters=("model.spot",),
     ) for dataset in equity)
     fixed_income = tuple(replace(dataset,
-        dataset_id=dataset.dataset_id + "_price_sensitivities",
-        dataset_kind="price_sensitivities",
+        dataset_id=dataset.dataset_id + "_price_gradient",
+        dataset_kind="price_gradients",
         generator_path=dataset.generator_path.replace(
-            "/prices/", "/price_sensitivities/"
+            "/prices/", "/price_gradients/"
         ).replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id + "_price_sensitivities/",
+            "/" + dataset.dataset_id + "_price_gradient/",
         ),
         template=(
             "catalog/pricing/price_gradients/"
@@ -576,10 +581,10 @@ def compose_datasets(price_datasets, bindings):
                 and spec.pricing.curve == dataset.curve
                 for spec in bindings))
     diagonal = tuple(replace(dataset,
-        dataset_id=dataset.dataset_id + "_diagonal",
+        dataset_id=dataset.dataset_id + "_diagonal_hessian",
         generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id + "_diagonal/"),
+            "/" + dataset.dataset_id + "_diagonal_hessian/"),
         template=("catalog/pricing/price_gradients/fixed_income_bermudan_swaption_diagonal_generator.cpp.tpl"
                   if dataset.product == "bermudan_swaption"
                   else "catalog/pricing/price_gradients/fixed_income_scalar_product_diagonal_generator.cpp.tpl"
@@ -598,12 +603,12 @@ def compose_datasets(price_datasets, bindings):
         if (dataset.model, dataset.product) in diagonal_pairs)
     full_hessian = tuple(replace(
         dataset,
-        dataset_id=dataset.dataset_id.removesuffix("_diagonal")
-            + "_hessian",
+        dataset_id=dataset.dataset_id.removesuffix("_diagonal_hessian")
+            + "_full_hessian",
         generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id.removesuffix("_diagonal")
-                + "_hessian/",
+            "/" + dataset.dataset_id.removesuffix("_diagonal_hessian")
+                + "_full_hessian/",
         ),
         numerical_profile="selected_full_hessian_production_paths",
         layout="row_major_selected_full_hessian",
@@ -697,6 +702,9 @@ def default_sensitivities(
     }[model]
     curves = {
         None: (),
+        "flat": (
+            ("curve.rate", .0005, "absolute"),
+        ),
         "nelson_siegel": (
             ("curve.beta0", .0005, "absolute"),
             ("curve.beta1", .0005, "absolute"),
@@ -816,6 +824,11 @@ def default_sensitivities(
             ("product.strike", .005, "relative"),
         ),
     }[product]
-    coordinates = (*coordinates, *curves, *products)
+    maturities = () if product in {
+        "american_option", "bermudan_swaption"
+    } else (
+        ("product.maturity_years", 1.0 / 504.0, "absolute"),
+    )
+    coordinates = (*coordinates, *curves, *products, *maturities)
     return [{"parameter": name, "displacement": h, "scale": scale,
              "boundary": "central_then_one_sided_order2"} for name, h, scale in coordinates]

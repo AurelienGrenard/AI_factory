@@ -132,8 +132,8 @@ void launch_g2_plus_plus_nelson_siegel_zero_coupon_bond_option_mixed_node_graph_
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        11U,
-        55U
+        12U,
+        66U
     >(
         host,
         device,

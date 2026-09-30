@@ -110,17 +110,33 @@ et ses coefficients. L'erreur standard MC est celle de la différence couplée
 par trajectoire, et non celle obtenue en combinant des erreurs de prix
 indépendants. Elle ne mesure pas le biais du bump.
 
-La coordonnée `product.maturity_years` est distincte du champ d'entrée entier
-`maturity_days` (clé JSON `maturity`). Sa perturbation doit correspondre à un
-nombre entier de pas `dt`. Le minimum est donc un pas, par défaut `1/504` an.
-Les scénarios portent leurs dates numériques en nombres entiers de pas ; on
-ne tronque pas une demi-journée dans un champ entier de jours. Cette convention
-est actuellement réservée au produit européen terminal.
-Pour les dynamiques à pas fixe CEV, Heston et SABR, les mêmes innovations de
-chaque pas alimentent aussi le stencil de maturité d'ordre deux diagonal ;
-un stencil unilatéral peut activer quatre dates. L'écart d'un seul pas est une
-capacité de calcul, pas une qualification du biais ou de la variance de la
-dérivée temporelle seconde.
+La coordonnée virtuelle `product.maturity_years` est distincte du champ
+d'entrée entier `maturity_days` (clé JSON `maturity`). Sa perturbation doit
+correspondre à un nombre entier de pas `dt`. Le minimum est donc un pas, par
+défaut `1/504` an. Les scénarios portent leurs dates numériques en nombres
+entiers de pas ; on ne tronque pas une demi-journée dans un champ entier de
+jours.
+
+Cette coordonnée couvre les produits européens terminaux, de chemin et leurs
+formules fermées. Pour un calendrier central
+`t_1 < ... < t_{m-1} < T`, seuls `T` et l'événement terminal se déplacent. Le
+nombre d'événements, toutes les dates antérieures et leur ordre restent fixes ;
+le dernier intervalle devient donc un stub. Un nœud est admissible uniquement
+si `T_node > t_{m-1}`. Une collision du bump bas avec la date précédente fait
+basculer la politique `central_then_one_sided_order2` vers le stencil
+unilatéral, sans clamp ni déplacement d'une autre date. Les options
+américaines restent exclues : leur politique d'exercice gelée ne définit pas
+une dérivée temporelle contractuelle satisfaisante.
+
+Pour les dynamiques à pas fixe, les mêmes innovations de chaque pas alimentent
+le stencil de maturité ; le préfixe commun est simulé une fois puis chaque nœud
+prolonge seulement son dernier intervalle. Un stencil unilatéral diagonal peut
+activer quatre dates. Pour Black--Scholes exact, le premier normal conserve
+l'incrément central et jusqu'à trois normales auxiliaires construisent les
+endpoints supplémentaires par pont ou extension browniens. Le préfixe à
+horizon égal ne consomme qu'une normale par intervalle, comme le pricer seul.
+L'écart d'un seul pas est une capacité de calcul, pas une qualification du
+biais ou de la variance de la dérivée temporelle seconde.
 
 ## CRN et responsabilité des dynamiques
 
@@ -136,8 +152,8 @@ ne recopient ni équations du modèle ni préparation de ses coefficients.
 Pour un horizon fixe, les scénarios consomment les mêmes innovations. Heston
 évolue dans chaque lot sur la grille commune jusqu'à sa plus grande maturité et fige chaque
 état terminal à sa propre date. Pour Black–Scholes exact, le premier normal
-conserve le terminal central ; deux normales supplémentaires construisent
-les autres dates par pont/extension browniens. Cela assure la covariance
+conserve le terminal central ; jusqu'à trois normales supplémentaires
+construisent les autres dates par pont/extension browniens. Cela assure la covariance
 `Cov(W(s), W(t)) = min(s,t)`, y compris pour un stencil de maturité unilatéral.
 
 Black–Scholes et Heston sont homogènes en spot : la trajectoire
@@ -202,12 +218,15 @@ prix, du delta et de leurs erreurs standards pour les cas couverts.
 | Manifeste et rendu dédiés | `tools/codegen/pricing_bindings/price_gradients/` |
 | Templates dédiés | `tools/codegen/pricing_bindings/templates/**/price_gradients/` |
 | Planification, exécution, sérialisation | `tools/{cuda,pricing,datasets}/price_gradients/` |
-| Recettes calls/puts, alignées/cartésiennes | `catalog/model/equity/markovian/<model>/price_sensitivities/` |
+| Recettes calls/puts, alignées/cartésiennes | `catalog/model/equity/markovian/<model>/price_gradients/` |
 | Tests de configuration, CUDA, artefacts | `tests/price_gradients/` |
 
 Le manifeste général agrège ces déclarations. Les launchers et recettes sont
 régénérés par la commande habituelle `generate.py --family all --output .`.
-Le contrôleur `tools/datasets/generate_catalog.py` connaît `price_sensitivities`
+Le codegen conserve les variantes gradient seul, spot seul et Hessienne complète,
+mais le catalogue permanent ne publie que `price_gradient_diagonal_hessian`
+(`first` + `diagonal_second`) afin de garder une taxonomie compacte.
+Le contrôleur `tools/datasets/generate_catalog.py` connaît `price_gradients`
 et réutilise la provenance, les checkpoints et la progression existants.
 Aucun dataset n'est certifié du seul fait de sa génération : la validation
 indépendante reste explicitement en attente.

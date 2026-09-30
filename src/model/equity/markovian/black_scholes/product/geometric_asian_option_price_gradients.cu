@@ -137,8 +137,8 @@ void launch_black_scholes_geometric_asian_option_mixed_node_graph_sensitivities_
         epg::ScenarioClosedFormPolicy<GeometricAsianOptionClosedFormPricingPolicy<Side>>;
     closed_form::price_gradients::launch_device_prepared_mixed<
         ScenarioClosedFormPolicy,
-        5U,
-        10U
+        6U,
+        15U
     >(
         host,
         device,

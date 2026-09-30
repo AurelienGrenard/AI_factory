@@ -13,11 +13,7 @@ namespace pg = ::ai_factory::workbench::price_gradients;
 
 template<typename ModelPreparation, typename ProductPreparation>
 using PathDevicePreparedPlan = DevicePreparedSensitivityPlan<
-    ScenarioDevicePreparation<
-        ModelPreparation,
-        ProductPreparation,
-        false
-    >
+    TerminalDevicePreparation<ModelPreparation, ProductPreparation>
 >;
 
 template<

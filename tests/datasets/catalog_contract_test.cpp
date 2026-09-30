@@ -73,19 +73,6 @@ void validate_generation(const std::filesystem::path& path) {
     );
 }
 
-void validate_validation(const std::filesystem::path& path) {
-    const std::string validation = read_text(path);
-    require(
-        has_key(validation, "schema_version")
-            && has_key(validation, "status")
-            && has_key(validation, "verified"),
-        "independent validation metadata is incomplete: " + path.string()
-    );
-    require(
-        !has_key(validation, "execution") && !has_key(validation, "timing"),
-        "validation metadata contains generation facts: " + path.string()
-    );
-}
 
 }  // namespace
 
@@ -142,7 +129,6 @@ int main() {
     std::size_t generators = 0U;
     std::size_t recipes = 0U;
     std::size_t generations = 0U;
-    std::size_t validations = 0U;
     for (const auto& entry : std::filesystem::recursive_directory_iterator("catalog")) {
         if (!entry.is_regular_file()) continue;
         const auto name = entry.path().filename();
@@ -160,14 +146,16 @@ int main() {
             ++generations;
             validate_generation(entry.path());
         } else if (name == "validation.yaml") {
-            ++validations;
-            validate_validation(entry.path());
+            throw std::runtime_error(
+                "validation.yaml is deferred and must not live in catalog: "
+                + entry.path().string()
+            );
         }
     }
     require(generators > 0U && recipes == generators,
             "catalogue must contain exactly one recipe per generator");
-    require(generations > 0U && validations > 0U,
-            "migrated generation/validation metadata is missing");
+    require(generations > 0U,
+            "materialized generation metadata is missing");
 
     const std::string heston = read_text(
         "catalog/model/equity/markovian/heston/parameters/heston_01/recipe.yaml"

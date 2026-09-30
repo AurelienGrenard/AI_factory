@@ -149,7 +149,7 @@ std::size_t heston_3_2_cliquet_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        13U,
+        14U,
         32U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_heston_3_2_cliquet_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        13U,
+        14U,
         32U,
         2U
     >(
@@ -220,10 +220,10 @@ std::size_t heston_3_2_cliquet_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        13U,
-        78U,
+        14U,
+        91U,
         128U,
-        3U
+        4U
     >(host, configuration);
 }
 
@@ -243,10 +243,10 @@ void launch_heston_3_2_cliquet_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        13U,
-        78U,
+        14U,
+        91U,
         128U,
-        3U
+        4U
     >(
         host,
         device,
