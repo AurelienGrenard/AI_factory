@@ -23,7 +23,6 @@ class GenerationTests(unittest.TestCase):
                     "generator": f"{base}/generator.cpp",
                     "recipe": f"{base}/recipe.yaml",
                     "generation": f"{base}/generation.yaml",
-                    "validation": f"{base}/validation.yaml",
                     "row_count": 2,
                     "launch_plan": {"paths_per_price": 32}, "state": "pending", "previous": {}}
         self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
@@ -94,7 +93,7 @@ class GenerationTests(unittest.TestCase):
         for name, rows in (("models.json", 3), ("products.json", 5)):
             (inputs / name).write_text(json.dumps({"row_count": rows}))
         job = {
-            "kind": "price_sensitivities",
+            "kind": "price_gradients",
             "target": "generate_gradient_test",
             "row_count": 15,
             "inputs": ["models.json", "products.json"],
@@ -121,7 +120,7 @@ class GenerationTests(unittest.TestCase):
         for name, rows in (("models.json", 2), ("products.json", 2)):
             (inputs / name).write_text(json.dumps({"row_count": rows}))
         job = {
-            "kind": "price_sensitivities",
+            "kind": "price_gradients",
             "target": "generate_full_hessian_test",
             "row_count": 2,
             "inputs": ["models.json", "products.json"],
@@ -173,7 +172,7 @@ class GenerationTests(unittest.TestCase):
         for name, rows in (("models.json", 4), ("products.json", 3)):
             (inputs / name).write_text(json.dumps({"row_count": rows}))
         job = {
-            "kind": "price_sensitivities",
+            "kind": "price_gradients",
             "target": "generate_diagonal_node_graph_test",
             "row_count": 12,
             "inputs": ["models.json", "products.json"],
@@ -266,47 +265,36 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
             campaign.execute(self.run, self.state)
 
-    def test_spot_sensitivity_inventory_preserves_the_narrow_selection(self):
+    def test_spot_gradient_remains_codegen_only(self):
         jobs = campaign.inventory(
-            campaign.ROOT, {"price_sensitivities"}, set(), set()
+            campaign.ROOT, {"price_gradients"}, set(), set()
         )
         from capability_manifest import (
             PRICE_GRADIENT_DATASET_SPECS,
-            PRICE_GRADIENT_SOURCE_BY_GENERATOR,
-            resolve_rng_domain,
+            PRICE_GRADIENT_DATASET_VARIANTS,
         )
-        spot_specs = {
-            spec.generator_path: spec
-            for spec in PRICE_GRADIENT_DATASET_SPECS
+        spot_specs = [
+            spec
+            for spec in PRICE_GRADIENT_DATASET_VARIANTS
             if spec.sensitivity_parameters == ("model.spot",)
-        }
-        spot_jobs = [job for job in jobs if job["generator"] in spot_specs]
-        self.assertEqual(len(spot_jobs), len(spot_specs))
-        for job in spot_jobs:
-            self.assertEqual(
-                [item["parameter"] for item in job["sensitivity"]["parameters"]],
-                ["model.spot"],
-            )
-            source = PRICE_GRADIENT_SOURCE_BY_GENERATOR[job["generator"]]
-            self.assertEqual(
-                job["sensitivity"]["source_price_recipe"],
-                source.recipe_yaml_path,
-            )
-            if source.engine not in {
-                "equity_closed_form", "fixed_income_closed_form"
-            }:
-                self.assertEqual(
-                    job["rng_stream_seeds"]["dynamics"],
-                    resolve_rng_domain(source).seed("dynamics"),
-                )
-
+        ]
+        self.assertTrue(spot_specs)
+        self.assertFalse(any(
+            spec.sensitivity_parameters == ("model.spot",)
+            for spec in PRICE_GRADIENT_DATASET_SPECS
+        ))
+        self.assertFalse(any(
+            job["generator"] in {spec.generator_path for spec in spot_specs}
+            for job in jobs
+        ))
         cartesian = next(
-            job for job in spot_jobs
-            if "/heston/" in job["generator"]
-            and "/european_calls/" in job["generator"]
-            and "_cartesian_" in job["generator"]
+            spec for spec in spot_specs
+            if spec.model == "heston"
+            and spec.variant == "european_calls"
+            and spec.construction == "cartesian"
         )
-        self.assertEqual(cartesian["declared_method"]["construction"], "cartesian")
+        self.assertEqual(cartesian.dataset_kind, "price_gradients")
+        self.assertTrue(cartesian.dataset_id.endswith("_price_gradient_spot"))
 
     def test_publication_rejects_a_dataset_url_different_from_the_recipe(self):
         work = self.root / "wrong-url"
@@ -402,11 +390,15 @@ class GenerationTests(unittest.TestCase):
         path = self.root / "samples.json"
         job = {"rows": 2, "dataset": "samples.json", "sample_shape": [1, 2]}
         recipe = {"maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}
-        envelope = {"database_id": "samples", "row_count": 2,
-                    "construction": {"parameter_count": 1, "paths_per_parameter": 2}}
+        envelope = {
+            "database_id": "samples", "model_family": "Test", "catalog": "catalog/test",
+            "url": "https://datasets.ai-factory.example/test/samples.json", "row_count": 2,
+            "time_convention": {"unit": "business_day", "days_per_year": 252},
+            "timing": {"wall_seconds": 0.1, "kernel_seconds": 0.01},
+        }
         rows = [{"id": f"{i:06d}", "parameters": {"x": 1.0}, "values": {"spot": 1.1},
                  "maturity_days": 252, "T": 1.0} for i in (1, 2)]
-        contents = json.dumps(envelope)[:-1] + ',\n  "samples": [\n'
+        contents = json.dumps(envelope)[:-1] + ',\n  "results": [\n'
         contents += ",\n".join(json.dumps(row) for row in rows) + "\n  ]\n}\n"
         path.write_text(contents)
         campaign.check_samples(path, job, recipe)

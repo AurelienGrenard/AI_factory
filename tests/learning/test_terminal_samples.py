@@ -13,13 +13,20 @@ def write_dataset(path: Path, *, bad_t: bool = False, written_count: int = 4) ->
         "database_id": "samples_01",
         "model_family": "test_model",
         "row_count": 4,
-        "time_convention": {"days_per_year": 252},
-        "construction": {
+        "catalog": "catalog/test/samples",
+        "url": "https://datasets.ai-factory.example/test/samples.json",
+        "time_convention": {"unit": "business_day", "days_per_year": 252},
+        "timing": {"wall_seconds": 0.1, "kernel_seconds": 0.01},
+    }
+    recipe = path.parent / "catalog/test/samples/recipe.yaml"
+    recipe.parent.mkdir(parents=True, exist_ok=True)
+    recipe.write_text(json.dumps({
+        "shape": {
             "parameter_count": 2,
             "paths_per_parameter": 2,
             "row_order": "parameter-major, then path-major",
-        },
-    }
+        }
+    }))
     rows = [
         {
             "id": str(index + 1),
@@ -31,7 +38,7 @@ def write_dataset(path: Path, *, bad_t: bool = False, written_count: int = 4) ->
         for index in range(4)
     ]
     with path.open("w", encoding="utf-8") as stream:
-        stream.write(json.dumps(header)[:-1] + ',\n"samples": [\n')
+        stream.write(json.dumps(header)[:-1] + ',\n"results": [\n')
         for index, row in enumerate(rows[:written_count]):
             stream.write(json.dumps(row) + (",\n" if index < written_count - 1 else "\n"))
         stream.write("]\n}\n")

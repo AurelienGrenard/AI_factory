@@ -151,11 +151,12 @@ unit-test counts do not change that requirement.
 
 ## Legacy catalogue status
 
-The dedicated `price_delta` catalogue family has been retired. Markovian
-spot-only datasets are now ordinary `{model.spot}` selections below
-`catalog/model/**/price_sensitivities/`, generated through the common
-sensitivity engine and selected with
-`tools/datasets/generate_catalog.py --kind price_sensitivities`.
+The dedicated `price_delta` catalogue family has been retired. The public
+Markovian derivative recipes now live below `catalog/model/**/price_gradients/`
+and expose the canonical price, selected gradient, and selected diagonal
+Hessian contract. Spot-only selection remains available in codegen for
+experiments, without a permanent catalogue recipe. Use
+`tools/datasets/generate_catalog.py --kind price_gradients`.
 
 The launchers described by this document remain migration references for rough
 models and parity tests. They do not own active recipes or dataset paths.

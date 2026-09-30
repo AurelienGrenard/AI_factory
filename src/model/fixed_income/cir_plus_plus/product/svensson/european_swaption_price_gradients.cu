@@ -180,8 +180,8 @@ void launch_cir_plus_plus_svensson_european_swaption_mixed_node_graph_sensitivit
         && closed_form::price_gradients::
             launch_device_prepared_cooperative_mixed<
                 Policy,
-                13U,
-                78U
+                14U,
+                91U
             >(
                 host,
                 device,
@@ -199,8 +199,8 @@ void launch_cir_plus_plus_svensson_european_swaption_mixed_node_graph_sensitivit
     if (cooperative) return;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        13U,
-        78U
+        14U,
+        91U
     >(
         host,
         device,

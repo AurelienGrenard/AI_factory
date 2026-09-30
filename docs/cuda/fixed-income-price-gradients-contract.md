@@ -5,30 +5,44 @@
 Quatre formes d’exécution fixed income partagent le même contrat de
 sensibilités sélectionnées :
 
-1. 20 bindings de formule fermée scalaire pour caplets/floorlets et options
-   call/put sur zéro-coupon, sur les dix compositions modèle/courbe ;
-2. sept bindings de swaption européenne par Jamshidian coopératif ;
-3. trois bindings de swaption européenne Monte Carlo exacte pour G2 et G2++ ;
-4. dix bindings de swaption bermudéenne Longstaff--Schwartz à exercice central
+1. 26 bindings de formule fermée scalaire pour caplets/floorlets et options
+   call/put sur zéro-coupon, sur les treize compositions modèle/courbe ;
+2. neuf bindings de swaption européenne par Jamshidian coopératif ;
+3. quatre bindings de swaption européenne Monte Carlo exacte pour G2 et G2++ ;
+4. treize bindings de swaption bermudéenne Longstaff--Schwartz à exercice central
    gelé.
 
-Ces 40 bindings publient le prix central, les dérivées premières, la
+Ces 52 bindings publient le prix central, les dérivées premières, la
 diagonale et les dérivées mixtes sélectionnées. Les formules scalaires
 attribuent une ligne à un thread, Jamshidian une ligne à un bloc coopératif.
 Les voies stochastiques exposent `mono` et `node_graph` pour les demandes
 sans terme mixte, puis `mixed_node_graph` pour une Hessienne sélectionnée ou
 complète.
 
-Les dix compositions modèle/courbe sont CIR, CIR++ Nelson--Siegel/Svensson,
-G2, G2++ Nelson--Siegel/Svensson, Hull--White Nelson--Siegel/Svensson,
-Ornstein--Uhlenbeck et Vasicek. Les modèles ajustés ajoutent les coordonnées de
-leur courbe. Les domaines appartiennent au modèle, à la courbe ou au produit et
-sont partagés par le loader et la préparation des nœuds.
+Les treize compositions modèle/courbe sont CIR, CIR++
+Flat/Nelson--Siegel/Svensson, G2, G2++ Flat/Nelson--Siegel/Svensson,
+Hull--White Flat/Nelson--Siegel/Svensson, Ornstein--Uhlenbeck et Vasicek. Les
+modèles ajustés ajoutent les coordonnées de leur courbe. Les domaines
+appartiennent au modèle, à la courbe ou au produit et sont partagés par le
+loader et la préparation des nœuds.
 
 Les champs calendaires entiers restent discrets : dates d’exercice, intervalles
 de paiement, nombres de paiements et d’exercices ne sont pas des coordonnées
-différentiables. Pour Bermudan, la maturité d’exercice anticipé reste aussi
-exclue. Les paramètres continus disponibles sont ceux que chaque binding
+différentiables. Les bindings européens exposent toutefois la coordonnée
+virtuelle continue `product.maturity_years`, avec un bump absolu minimal
+`dt = 1/504` par défaut. Elle déplace uniquement la dernière date
+contractuelle : date de paiement du rate option, maturité du zéro-coupon pour
+l'option sur bond, dernier paiement de la swaption européenne. Le fixing,
+l'expiry/exercice, les paiements antérieurs, les accruals antérieurs et la
+cardinalité du calendrier restent fixes. Pour une swaption, l'accrual du dernier
+coupon devient le stub `T_node - t_{m-1}`. Le nœud doit rester strictement
+postérieur à la date fixe précédente ; sinon la préparation emploie le repli unilatéral d'ordre
+deux demandé ou refuse le stencil.
+
+Le central conserve le type et le chemin de calcul du pricer historique. Une
+vue gradient-only ne substitue la dernière date que pour un nœud réellement
+bumpé, ce qui préserve ses bits. Pour Bermudan, la maturité d’exercice anticipé
+reste exclue. Les paramètres continus disponibles sont ceux que chaque binding
 résout explicitement ; une recette peut en sélectionner un sous-ensemble sans
 les déduire de leur valeur.
 
@@ -86,7 +100,7 @@ mixte mutualise central, axes et coins entre toutes les sorties demandées.
 
 ## Jamshidian coopératif
 
-Les sept compositions analytiques utilisent les mêmes tâches, stencils et
+Les neuf compositions analytiques utilisent les mêmes tâches, stencils et
 reconstruction que les formules scalaires. Un bloc possède une ligne et
 coopère sur la recherche de la racine et la somme des options sur
 zéro-coupon. Le modèle et la courbe éventuelle restent propriétaires de leurs
@@ -136,15 +150,17 @@ silencieusement l’ordre de sommation.
 
 ## Génération et provenance
 
-Le codegen produit 480 recettes fixed income permanentes : 120 pour les
-produits de taux scalaires, 120 pour les options sur zéro-coupon, 120 pour les
-swaptions européennes et 120 pour les bermudéennes. Chaque famille couvre ses
-deux côtés, les constructions alignée et cartésienne, l’ordre un, l’ordre un
-plus second diagonal et la Hessienne complète.
+Le codegen produit 208 recettes fixed income permanentes : 52 pour les
+produits de taux scalaires, 52 pour les options sur zéro-coupon, 52 pour les
+swaptions européennes et 52 pour les bermudéennes. Chaque famille couvre ses
+deux côtés et les constructions alignée et cartésienne. Le catalogue permanent
+publie l’ordre un avec la diagonale de la Hessienne. Les APIs et templates de
+codegen conservent les sélections d’ordre un et la Hessienne mixte pour les
+générations ponctuelles, sans multiplier les recettes permanentes.
 
 Les recettes analytiques conservent l’URL `/v1/` de leur méthode déterministe.
-Les recettes stochastiques emploient `/v2/`, la seed et le mapping
-`philox_source_step_v2`. Toutes déclarent les datasets modèle/courbe/produit,
+Les recettes stochastiques emploient `/v2/`, une seed et le générateur
+`philox`. Toutes déclarent les datasets modèle/courbe/produit,
 les bumps sélectionnés et la recette de prix source. La génération écrit un
 checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 
@@ -153,7 +169,7 @@ checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 | Responsabilité | Emplacement |
 |---|---|
 | Specs, tâches, stencils et reconstruction | `src/common/price_gradients/` |
-| Plan compact modèle/courbe/produit | `src/common/fixed_income/price_gradients/` |
+| Plan compact modèle/courbe/produit et vue de dernière date | `src/common/fixed_income/price_gradients/` |
 | Workspace et kernels LSM gelés communs | `src/common/longstaff_schwartz/price_gradients/` |
 | Composition Bermudan et replay du payoff | `src/product/bermudan_swaption/price_gradients/` |
 | Accès et domaines modèle | `src/model/fixed_income/<model>/{parameter_domain.hpp,price_gradients/}` |
@@ -164,12 +180,12 @@ checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 
 ## Preuves et limites
 
-Les 40 bibliothèques fixed income font partie de la reconstruction exhaustive
-des 301 bindings markoviens. Les 160 générateurs scalaires ajoutés pour
-caplets/floorlets et options sur zéro-coupon ont tous compilé et linké. Le
-catalogue complet compte 480 recettes fixed income. Les cinq familles de
-templates full-Hessian ont chacune un représentant compilé ; la régénération
-propre reste le contrôle d'exhaustivité structurelle.
+Les 52 bibliothèques fixed income et les 208 recettes permanentes sont dérivées
+du même manifeste de capacités. La régénération complète avec comparaison au
+dépôt, les contrôles du catalogue et la compilation des générateurs constituent
+le contrôle d’exhaustivité structurelle. Les templates de Hessienne complète
+restent vérifiés par leurs représentants dédiés sans dupliquer ces variantes
+dans le catalogue permanent.
 
 Les tests CUDA permanents couvrent les formules fermées, Jamshidian, G2/G2++
 Monte Carlo et les familles Bermudan CIR terminal-forward, Vasicek un facteur,

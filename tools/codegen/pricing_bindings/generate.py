@@ -1687,7 +1687,7 @@ def cmake_manifest_text(
     )
     price_sources = sorted(
         dataset.generator_path for dataset in dataset_specs
-        if dataset.dataset_kind in {"prices", "price_sensitivities"}
+        if dataset.dataset_kind in {"prices", "price_gradients"}
     )
     sample_sources = sorted(
         dataset.generator_path for dataset in dataset_specs

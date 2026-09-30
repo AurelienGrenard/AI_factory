@@ -1,0 +1,66 @@
+// Reusable CUDA interface for a flat continuously compounded curve.
+#pragma once
+
+#include "curve/flat/parameters.hpp"
+
+#include <cuda_runtime.h>
+
+namespace ai_factory::workbench::curve::flat {
+
+// Return the continuously compounded zero rate z(0, maturity_years).
+__device__ __forceinline__ float zero_rate(
+    const FlatCurveParameters& parameters,
+    float maturity_years
+);
+
+// Return log P(0, maturity_years) without exponentiating the discount factor.
+__device__ __forceinline__ float log_discount_factor(
+    const FlatCurveParameters& parameters,
+    float maturity_years
+);
+
+// Return the discount factor P(0, maturity_years).
+__device__ __forceinline__ float discount_factor(
+    const FlatCurveParameters& parameters,
+    float maturity_years
+);
+
+// Return the instantaneous forward rate f(0, maturity_years).
+__device__ __forceinline__ float instantaneous_forward(
+    const FlatCurveParameters& parameters,
+    float maturity_years
+);
+
+// Return the maturity_years derivative of the instantaneous forward rate.
+__device__ __forceinline__ float forward_derivative(
+    const FlatCurveParameters& parameters,
+    float maturity_years
+);
+
+// Return the continuously compounded forward rate over [start_years, end_years].
+__device__ __forceinline__ float forward_rate(
+    const FlatCurveParameters& parameters,
+    float start_years,
+    float end_years
+);
+
+// Static adapter consumed by fitted short-rate analytics.
+struct AnalyticsProvider {
+    using Parameters = FlatCurveParameters;
+
+    __device__ __forceinline__ static float log_discount_factor(
+        const Parameters& parameters,
+        float time_years
+    ) {
+        return flat::log_discount_factor(parameters, time_years);
+    }
+
+    __device__ __forceinline__ static float instantaneous_forward(
+        const Parameters& parameters,
+        float time_years
+    ) {
+        return flat::instantaneous_forward(parameters, time_years);
+    }
+};
+
+}  // namespace ai_factory::workbench::curve::flat

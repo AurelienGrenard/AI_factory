@@ -33,8 +33,8 @@ The receipt contains schema version 1 and four distinct kinds of evidence:
 
 The canonical `recipe.yaml` fingerprint includes time grids,
 numerical-method metadata, output definitions, parameter laws, seeds and
-execution settings when present. Validation is stored independently in
-`validation.yaml`. Parameter fingerprints likewise exclude only top-level
+execution settings when present. Independent certification is currently deferred
+and does not create a catalogue document. Parameter fingerprints exclude only top-level
 presentation fields; unknown non-presentation fields remain significant.
 Row ordering is never sorted away. JSON output integrity is deliberately
 byte-exact, including its original envelope; do not edit a published JSON to

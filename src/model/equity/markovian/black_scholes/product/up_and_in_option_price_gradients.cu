@@ -149,7 +149,7 @@ std::size_t black_scholes_up_and_in_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        6U,
+        7U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_black_scholes_up_and_in_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        6U,
+        7U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t black_scholes_up_and_in_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        6U,
-        15U,
+        7U,
+        21U,
         64U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_black_scholes_up_and_in_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
-        6U,
-        15U,
+        7U,
+        21U,
         64U,
         2U
     >(

@@ -130,8 +130,8 @@ void launch_ornstein_uhlenbeck_zero_coupon_bond_option_mixed_node_graph_sensitiv
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        5U,
-        10U
+        6U,
+        15U
     >(
         host,
         device,

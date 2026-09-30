@@ -12,6 +12,17 @@ namespace ai_factory::workbench::product::zero_coupon_bond_option::price_gradien
 
 struct DevicePreparation {
     using Product = ZeroCouponBondOptionParameters;
+    static constexpr bool kSupportsMaturitySensitivity = true;
+    __host__ __device__ static std::uint32_t terminal_maturity_days(
+        const Product& product
+    ) {
+        return product.bond_maturity_days;
+    }
+    __host__ __device__ static std::uint32_t terminal_prefix_days(
+        const Product& product
+    ) {
+        return product.option_expiry_days;
+    }
     static constexpr std::array parameter_names{
         std::string_view{"product.notional"},
         std::string_view{"product.strike"},

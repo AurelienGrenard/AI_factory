@@ -1,4 +1,5 @@
 // Public path-product bindings: mono and node-graph sensitivities are bitwise equal.
+#include "model/equity/markovian/black_scholes/product/asian_option_price_gradients.cuh"
 #include "model/equity/markovian/bates/product/range_accrual_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/asian_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/athena_autocall_price_gradients.cuh"
@@ -20,12 +21,62 @@ namespace {
 
 using namespace ai_factory::workbench;
 namespace pg = price_gradients;
+namespace bs = model::equity::black_scholes;
 namespace bates = model::equity::bates;
 namespace heston = model::equity::heston;
 namespace merton = model::equity::merton;
 
 constexpr pg::SensitivityOrders orders =
     pg::SensitivityOrders::first_and_second;
+
+
+void check_black_scholes_asian(std::size_t paths) {
+    const std::vector<bs::ModelParameters> models{{
+        1.0f, 0.02f, 0.01f, 0.20f
+    }};
+    const std::vector<product::AsianOptionParameters> products{{
+        1.0f, 12U
+    }};
+    const pg::PriceGradientConfiguration selection{{
+        {"model.spot", {.005f, pg::BumpScale::relative}},
+        {"model.volatility", {.005f, pg::BumpScale::relative}},
+        {"product.strike", {.005f, pg::BumpScale::relative}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
+    }};
+    const auto plan =
+        bs::prepare_black_scholes_asian_option_sensitivities(
+            models,
+            products,
+            PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U},
+            selection,
+            {orders}
+        );
+    const auto price_only =
+        bs::prepare_black_scholes_asian_option_sensitivities(
+            models, products, PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U}, {}, {orders}
+        );
+    price_gradient_test::require_price_only_parity(
+        plan, price_only,
+        bs::launch_black_scholes_asian_option_diagonal_sensitivities_cuda<
+            OptionSide::call, orders>,
+        paths, 4091U, "black_scholes.asian_option central"
+    );
+    price_gradient_test::require_mono_node_graph_parity(
+        plan,
+        bs::launch_black_scholes_asian_option_diagonal_sensitivities_cuda<
+            OptionSide::call, orders>,
+        bs::black_scholes_asian_option_node_graph_workspace_bytes<
+            OptionSide::call, orders>,
+        bs::launch_black_scholes_asian_option_node_graph_sensitivities_cuda<
+            OptionSide::call, orders>,
+        paths,
+        4091U,
+        "black_scholes.asian_option"
+    );
+}
 
 void check_heston_asian(std::size_t paths) {
     const std::vector<heston::ModelParameters> models{{
@@ -36,6 +87,8 @@ void check_heston_asian(std::size_t paths) {
         {"model.spot", {.005f, pg::BumpScale::relative}},
         {"model.initial_variance", {.001f, pg::BumpScale::absolute}},
         {"product.strike", {.005f, pg::BumpScale::relative}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan = heston::prepare_heston_asian_option_sensitivities(
         models,
@@ -44,6 +97,16 @@ void check_heston_asian(std::size_t paths) {
         {1.0f / 504.0f, 2U},
         selection,
         {orders}
+    );
+    const auto price_only = heston::prepare_heston_asian_option_sensitivities(
+        models, products, PriceConstruction::Aligned,
+        {1.0f / 504.0f, 2U}, {}, {orders}
+    );
+    price_gradient_test::require_price_only_parity(
+        plan, price_only,
+        heston::launch_heston_asian_option_diagonal_sensitivities_cuda<
+            OptionSide::call, orders>,
+        paths, 4101U, "heston.asian_option central"
     );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
@@ -103,6 +166,8 @@ void check_merton_forward_start(std::size_t paths) {
         {"model.spot", {.005f, pg::BumpScale::relative}},
         {"model.jump_log_mean", {.002f, pg::BumpScale::absolute}},
         {"product.moneyness", {.005f, pg::BumpScale::relative}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan =
         merton::prepare_merton_forward_start_option_sensitivities(
@@ -113,6 +178,17 @@ void check_merton_forward_start(std::size_t paths) {
             selection,
             {orders}
         );
+    const auto price_only =
+        merton::prepare_merton_forward_start_option_sensitivities(
+            models, products, PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U}, {}, {orders}
+        );
+    price_gradient_test::require_price_only_parity(
+        plan, price_only,
+        merton::launch_merton_forward_start_option_diagonal_sensitivities_cuda<
+            OptionSide::put, orders>,
+        paths, 4121U, "merton.forward_start_option central"
+    );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
         merton::launch_merton_forward_start_option_diagonal_sensitivities_cuda<
@@ -139,6 +215,8 @@ void check_bates_range_accrual(std::size_t paths) {
         {"model.spot", {.005f, pg::BumpScale::relative}},
         {"model.jump_intensity", {.05f, pg::BumpScale::absolute}},
         {"product.lower_barrier", {.005f, pg::BumpScale::relative}},
+        {"product.maturity_years",
+         {1.0f / 504.0f, pg::BumpScale::absolute}},
     }};
     const auto plan = bates::prepare_bates_range_accrual_sensitivities(
         models,
@@ -147,6 +225,15 @@ void check_bates_range_accrual(std::size_t paths) {
         {1.0f / 504.0f, 2U},
         selection,
         {orders}
+    );
+    const auto price_only = bates::prepare_bates_range_accrual_sensitivities(
+        models, products, PriceConstruction::Aligned,
+        {1.0f / 504.0f, 2U}, {}, {orders}
+    );
+    price_gradient_test::require_price_only_parity(
+        plan, price_only,
+        bates::launch_bates_range_accrual_diagonal_sensitivities_cuda<orders>,
+        paths, 4131U, "bates.range_accrual central"
     );
     price_gradient_test::require_mono_node_graph_parity(
         plan,
@@ -173,6 +260,7 @@ int main(int argc, char** argv) {
         if (cudaGetDeviceCount(&devices) != cudaSuccess || devices == 0) {
             return 77;
         }
+        check_black_scholes_asian(paths);
         check_heston_asian(paths);
         check_merton_athena(paths);
         check_merton_forward_start(paths);

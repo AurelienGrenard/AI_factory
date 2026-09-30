@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "variance_gamma_01__asset_or_nothing_puts_01__01_price_gradient_diagonal_hessian",
+  "generator": "generator.cpp",
+  "inputs": {
+    "model": "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json",
+    "product": "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json"
+  },
+  "output": {
+    "path": "datasets/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_price_gradient_diagonal_hessian.json",
+    "format": "json"
+  },
+  "generation_output": "catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_price_gradient_diagonal_hessian/generation.yaml",
+  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_price_gradient_diagonal_hessian.json",
+  "row_count": 1000,
+  "paths_per_price": 1048576,
+  "sensitivity": {
+    "method": "finite_difference_shared_innovations",
+    "parameters": [
+      {
+        "parameter": "model.spot",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.sigma",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.nu",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.theta",
+        "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.maturity_years",
+        "displacement": 0.001984126984126984,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "source_price_recipe": "catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01/recipe.yaml",
+    "orders": [
+      "first",
+      "diagonal_second"
+    ]
+  },
+  "seeds": {
+    "dynamics": 11668828120575639552
+  },
+  "random_number_generator": "philox",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

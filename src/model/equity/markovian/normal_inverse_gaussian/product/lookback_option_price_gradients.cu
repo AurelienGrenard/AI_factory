@@ -149,7 +149,7 @@ std::size_t normal_inverse_gaussian_lookback_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_normal_inverse_gaussian_lookback_option_node_graph_sensitivities_cud
         mpg::CoupledDynamics,
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(
@@ -220,9 +220,9 @@ std::size_t normal_inverse_gaussian_lookback_option_mixed_node_graph_workspace_b
         mpg::CoupledDynamics,
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(host, configuration);
 }
@@ -243,9 +243,9 @@ void launch_normal_inverse_gaussian_lookback_option_mixed_node_graph_sensitiviti
         mpg::CoupledDynamics,
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(
         host,

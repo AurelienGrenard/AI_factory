@@ -22,6 +22,7 @@ template<
     typename Schedule,
     std::size_t MaximumSensitivities,
     std::size_t MaximumMixedSensitivities,
+    bool VariableTerminal,
     typename Inputs>
 __global__ void prepare_mixed_rows_kernel(
     Inputs inputs,
@@ -89,10 +90,20 @@ __global__ void prepare_mixed_rows_kernel(
             static_cast<std::uint8_t>(valid_row);
         if (valid_row) {
             workspace.node_counts[local_row] = node_count;
-            workspace.schedules[local_row] = prepare_path_schedule<Schedule>(
-                ProductPolicy::calendar(scenarios[0U].product),
-                plan.time
-            );
+            const auto calendar =
+                ProductPolicy::calendar(scenarios[0U].product);
+            if constexpr (VariableTerminal) {
+                workspace.schedules[local_row] =
+                    prepare_terminal_path_schedule<Schedule>(
+                        calendar,
+                        plan.time,
+                        scenarios[0U].central_step_count
+                    );
+                workspace.maximum_terminal_transitions[local_row] = 0U;
+            } else {
+                workspace.schedules[local_row].central =
+                    prepare_path_schedule<Schedule>(calendar, plan.time);
+            }
             for (std::size_t sensitivity = 0U;
                  sensitivity < plan.sensitivity_count;
                  ++sensitivity) {
@@ -125,7 +136,8 @@ __global__ void prepare_mixed_rows_kernel(
     __syncthreads();
     if (!valid_row) return;
 
-    const auto schedule = workspace.schedules[local_row];
+    const auto& terminal_schedule = workspace.schedules[local_row];
+    const auto& schedule = terminal_schedule.central;
     for (std::size_t node = threadIdx.x;
          node < node_count;
          node += blockDim.x) {
@@ -149,6 +161,32 @@ __global__ void prepare_mixed_rows_kernel(
                     * sensitivity_graph.node_capacity
                 + node
             ] = NodePolicy::prepare_dynamics(scenarios[node], horizon);
+        }
+        if constexpr (VariableTerminal) {
+            const auto terminal_node = prepare_terminal_path_node<Schedule>(
+                scenarios[node], terminal_schedule
+            );
+            const auto row_node =
+                local_row * sensitivity_graph.node_capacity + node;
+            workspace.terminal_transition_counts[row_node] =
+                terminal_node.transition_count;
+            const float terminal_horizon = Traits::kExactTransition
+                ? terminal_node.interval_years
+                : plan.time.dt;
+            workspace.terminal_dynamics[row_node] =
+                NodePolicy::prepare_dynamics(
+                    scenarios[node], terminal_horizon
+                );
+            #pragma unroll
+            for (unsigned int weight = 0U; weight < 4U; ++weight) {
+                workspace.terminal_normal_weights[
+                    row_node * 4U + weight
+                ] = scenarios[node].normal_weights[weight];
+            }
+            atomicMax(
+                workspace.maximum_terminal_transitions + local_row,
+                terminal_node.transition_count
+            );
         }
     }
 }

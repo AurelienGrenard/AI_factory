@@ -151,8 +151,8 @@ std::size_t merton_athena_autocall_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(host, configuration);
 }
@@ -194,8 +194,8 @@ void launch_merton_athena_autocall_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        10U,
-        16U,
+        11U,
+        32U,
         2U
     >(
         host,
@@ -223,8 +223,8 @@ std::size_t merton_athena_autocall_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_merton_athena_autocall_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        10U,
-        45U,
+        11U,
+        55U,
         128U,
         2U
     >(

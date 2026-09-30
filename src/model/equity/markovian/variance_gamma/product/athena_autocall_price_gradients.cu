@@ -151,7 +151,7 @@ std::size_t variance_gamma_athena_autocall_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(host, configuration);
@@ -194,7 +194,7 @@ void launch_variance_gamma_athena_autocall_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(
@@ -223,8 +223,8 @@ std::size_t variance_gamma_athena_autocall_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(host, configuration);
@@ -246,8 +246,8 @@ void launch_variance_gamma_athena_autocall_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(

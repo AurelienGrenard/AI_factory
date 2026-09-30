@@ -180,8 +180,8 @@ void launch_cir_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_sensi
         && closed_form::price_gradients::
             launch_device_prepared_cooperative_mixed<
                 Policy,
-                11U,
-                55U
+                12U,
+                66U
             >(
                 host,
                 device,
@@ -199,8 +199,8 @@ void launch_cir_plus_plus_nelson_siegel_european_swaption_mixed_node_graph_sensi
     if (cooperative) return;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        11U,
-        55U
+        12U,
+        66U
     >(
         host,
         device,

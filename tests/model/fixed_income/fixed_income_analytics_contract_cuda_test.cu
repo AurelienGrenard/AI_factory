@@ -2,12 +2,16 @@
 #include "common/check_cuda.cuh"
 #include "common/fixed_income/analytics_concepts.cuh"
 #include "common/fixed_income/cashflows.cuh"
+#include "curve/flat/term_structure_impl.cuh"
 #include "curve/nelson_siegel/term_structure_impl.cuh"
 #include "curve/svensson/term_structure_impl.cuh"
 #include "model/fixed_income/cir/analytics_impl.cuh"
+#include "model/fixed_income/cir_plus_plus/flat/analytics_impl.cuh"
 #include "model/fixed_income/g2/analytics_impl.cuh"
+#include "model/fixed_income/g2_plus_plus/flat/analytics_impl.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics.cuh"
 #include "model/fixed_income/g2_plus_plus/svensson/analytics.cuh"
+#include "model/fixed_income/hull_white/flat/analytics_impl.cuh"
 #include "model/fixed_income/hull_white/nelson_siegel/analytics.cuh"
 #include "model/fixed_income/hull_white/svensson/analytics.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/analytics_impl.cuh"
@@ -27,7 +31,11 @@ namespace ou =
 namespace vasicek =
     ai_factory::workbench::model::fixed_income::vasicek;
 namespace cir = ai_factory::workbench::model::fixed_income::cir;
+namespace cirpp_flat =
+    ai_factory::workbench::model::fixed_income::cir_plus_plus::flat;
 namespace g2 = ai_factory::workbench::model::fixed_income::g2;
+namespace hw_flat =
+    ai_factory::workbench::model::fixed_income::hull_white::flat;
 namespace hw_ns =
     ai_factory::workbench::model::fixed_income::hull_white::nelson_siegel;
 namespace hw_sv =
@@ -36,6 +44,8 @@ namespace g2pp_ns =
     ai_factory::workbench::model::fixed_income::g2_plus_plus::nelson_siegel;
 namespace g2pp_sv =
     ai_factory::workbench::model::fixed_income::g2_plus_plus::svensson;
+namespace g2pp_flat =
+    ai_factory::workbench::model::fixed_income::g2_plus_plus::flat;
 
 using Schedule = fi::FixedLegScheduleView;
 
@@ -125,6 +135,12 @@ AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
     cir, cir::ModelParameters, float, float
 );
 AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
+    cirpp_flat, cirpp_flat::CirPlusPlusFittedParameters, float, float
+);
+AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
+    hw_flat, hw_flat::HullWhiteFittedParameters, float, float
+);
+AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
     hw_ns, hw_ns::HullWhiteFittedParameters, float, float
 );
 AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
@@ -145,6 +161,12 @@ AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
     g2::State,
     g2::TwoFactorAffineBondLoadings
 );
+AI_FACTORY_ASSERT_FIXED_INCOME_ANALYTICS(
+    g2pp_flat,
+    g2pp_flat::G2PlusPlusFittedParameters,
+    g2::State,
+    g2::TwoFactorAffineBondLoadings
+);
 
 AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
     ou, ou::ModelParameters, float
@@ -156,6 +178,12 @@ AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
     cir, cir::ModelParameters, float
 );
 AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
+    cirpp_flat, cirpp_flat::CirPlusPlusFittedParameters, float
+);
+AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
+    hw_flat, hw_flat::HullWhiteFittedParameters, float
+);
+AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
     hw_ns, hw_ns::HullWhiteFittedParameters, float
 );
 AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
@@ -163,12 +191,26 @@ AI_FACTORY_ASSERT_JAMSHIDIAN_ANALYTICS(
 );
 
 static_assert(fi::ParametricCurveProvider<
+    hw_flat::CurveAnalyticsProvider,
+    ai_factory::workbench::curve::flat::FlatCurveParameters
+>);
+static_assert(fi::ParametricCurveProvider<
     hw_ns::CurveAnalyticsProvider,
     ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters
 >);
 static_assert(fi::ParametricCurveProvider<
     hw_sv::CurveAnalyticsProvider,
     ai_factory::workbench::curve::svensson::SvenssonParameters
+>);
+static_assert(fi::JamshidianAnalyticsProvider<
+    cirpp_flat::FittedAnalyticsProvider,
+    cirpp_flat::CirPlusPlusFittedParameters,
+    float
+>);
+static_assert(fi::JamshidianAnalyticsProvider<
+    hw_flat::FittedAnalyticsProvider,
+    hw_flat::HullWhiteFittedParameters,
+    float
 >);
 static_assert(fi::JamshidianAnalyticsProvider<
     hw_ns::FittedAnalyticsProvider,
@@ -181,6 +223,11 @@ static_assert(fi::JamshidianAnalyticsProvider<
     float
 >);
 static_assert(fi::ZeroCouponBondProvider<
+    g2pp_flat::FittedAnalyticsProvider,
+    g2pp_flat::G2PlusPlusFittedParameters,
+    g2::State
+>);
+static_assert(fi::ZeroCouponBondProvider<
     g2pp_ns::FittedAnalyticsProvider,
     g2pp_ns::G2PlusPlusFittedParameters,
     g2::State
@@ -188,6 +235,11 @@ static_assert(fi::ZeroCouponBondProvider<
 static_assert(fi::ZeroCouponBondProvider<
     g2pp_sv::FittedAnalyticsProvider,
     g2pp_sv::G2PlusPlusFittedParameters,
+    g2::State
+>);
+static_assert(fi::BondOptionProvider<
+    g2pp_flat::FittedAnalyticsProvider,
+    g2pp_flat::G2PlusPlusFittedParameters,
     g2::State
 >);
 static_assert(fi::BondOptionProvider<
@@ -332,6 +384,18 @@ AI_FACTORY_DEFINE_ANALYTICS_FACADE(
     CirAnalytics, cir, cir::ModelParameters, float
 );
 AI_FACTORY_DEFINE_ANALYTICS_FACADE(
+    CirPlusPlusFlatAnalytics,
+    cirpp_flat,
+    cirpp_flat::CirPlusPlusFittedParameters,
+    float
+);
+AI_FACTORY_DEFINE_ANALYTICS_FACADE(
+    HullWhiteFlatAnalytics,
+    hw_flat,
+    hw_flat::HullWhiteFittedParameters,
+    float
+);
+AI_FACTORY_DEFINE_ANALYTICS_FACADE(
     HullWhiteNelsonSiegelAnalytics,
     hw_ns,
     hw_ns::HullWhiteFittedParameters,
@@ -345,6 +409,12 @@ AI_FACTORY_DEFINE_ANALYTICS_FACADE(
 );
 AI_FACTORY_DEFINE_ANALYTICS_FACADE(
     G2Analytics, g2, g2::ModelParameters, g2::State
+);
+AI_FACTORY_DEFINE_ANALYTICS_FACADE(
+    G2PlusPlusFlatAnalytics,
+    g2pp_flat,
+    g2pp_flat::G2PlusPlusFittedParameters,
+    g2::State
 );
 AI_FACTORY_DEFINE_ANALYTICS_FACADE(
     G2PlusPlusNelsonSiegelAnalytics,
@@ -501,6 +571,8 @@ __global__ void fixed_income_analytics_matrix_kernel(
     };
     const ai_factory::workbench::model::fixed_income::hull_white::ModelParameters
         hull_white_parameters{0.15f, 0.01f};
+    const ai_factory::workbench::curve::flat::FlatCurveParameters
+        flat_curve{0.03f};
     const ai_factory::workbench::curve::nelson_siegel::NelsonSiegelParameters
         nelson_siegel_curve{0.03f, -0.01f, 0.02f, 2.0f};
     const ai_factory::workbench::curve::svensson::SvenssonParameters
@@ -523,7 +595,17 @@ __global__ void fixed_income_analytics_matrix_kernel(
     rows[2] = evaluate_analytics_matrix_row<CirAnalytics>(
         cir_parameters, 0.025f, schedule
     );
-    rows[3] = evaluate_analytics_matrix_row<
+    rows[3] = evaluate_analytics_matrix_row<CirPlusPlusFlatAnalytics>(
+        cirpp_flat::compose_fitted_model(cir_parameters, flat_curve),
+        0.025f,
+        schedule
+    );
+    rows[4] = evaluate_analytics_matrix_row<HullWhiteFlatAnalytics>(
+        hw_flat::compose_fitted_model(hull_white_parameters, flat_curve),
+        0.0f,
+        schedule
+    );
+    rows[5] = evaluate_analytics_matrix_row<
         HullWhiteNelsonSiegelAnalytics
     >(
         hw_ns::compose_fitted_model(
@@ -532,17 +614,22 @@ __global__ void fixed_income_analytics_matrix_kernel(
         0.0f,
         schedule
     );
-    rows[4] = evaluate_analytics_matrix_row<HullWhiteSvenssonAnalytics>(
+    rows[6] = evaluate_analytics_matrix_row<HullWhiteSvenssonAnalytics>(
         hw_sv::compose_fitted_model(
             hull_white_parameters, svensson_curve
         ),
         0.0f,
         schedule
     );
-    rows[5] = evaluate_analytics_matrix_row<G2Analytics>(
+    rows[7] = evaluate_analytics_matrix_row<G2Analytics>(
         g2_parameters, g2_parameters.initial_state, schedule
     );
-    rows[6] = evaluate_analytics_matrix_row<
+    rows[8] = evaluate_analytics_matrix_row<G2PlusPlusFlatAnalytics>(
+        g2pp_flat::compose_fitted_model(g2_plus_plus_parameters, flat_curve),
+        g2::State{0.0f, 0.0f},
+        schedule
+    );
+    rows[9] = evaluate_analytics_matrix_row<
         G2PlusPlusNelsonSiegelAnalytics
     >(
         g2pp_ns::compose_fitted_model(
@@ -551,7 +638,7 @@ __global__ void fixed_income_analytics_matrix_kernel(
         g2::State{0.0f, 0.0f},
         schedule
     );
-    rows[7] = evaluate_analytics_matrix_row<
+    rows[10] = evaluate_analytics_matrix_row<
         G2PlusPlusSvenssonAnalytics
     >(
         g2pp_sv::compose_fitted_model(
@@ -580,7 +667,7 @@ int main() {
         availability, "analytics contract cudaGetDeviceCount"
     );
 
-    constexpr std::size_t row_count = 8U;
+    constexpr std::size_t row_count = 11U;
     AnalyticsMatrixRow* device_rows = nullptr;
     ai_factory::workbench::check_cuda(
         cudaMalloc(&device_rows, row_count * sizeof(AnalyticsMatrixRow)),
@@ -605,9 +692,9 @@ int main() {
     );
 
     constexpr const char* model_names[row_count] = {
-        "OU", "Vasicek", "CIR", "Hull-White Nelson-Siegel",
-        "Hull-White Svensson", "G2", "G2++ Nelson-Siegel",
-        "G2++ Svensson",
+        "OU", "Vasicek", "CIR", "CIR++ Flat", "Hull-White Flat",
+        "Hull-White Nelson-Siegel", "Hull-White Svensson", "G2",
+        "G2++ Flat", "G2++ Nelson-Siegel", "G2++ Svensson",
     };
     for (std::size_t row = 0U; row < row_count; ++row) {
         if (!std::isfinite(rows[row].short_rate_value)) {

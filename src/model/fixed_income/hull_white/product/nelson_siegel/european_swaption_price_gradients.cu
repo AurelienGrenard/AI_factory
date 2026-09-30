@@ -180,8 +180,8 @@ void launch_hull_white_nelson_siegel_european_swaption_mixed_node_graph_sensitiv
         && closed_form::price_gradients::
             launch_device_prepared_cooperative_mixed<
                 Policy,
-                9U,
-                36U
+                10U,
+                45U
             >(
                 host,
                 device,
@@ -199,8 +199,8 @@ void launch_hull_white_nelson_siegel_european_swaption_mixed_node_graph_sensitiv
     if (cooperative) return;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        9U,
-        36U
+        10U,
+        45U
     >(
         host,
         device,

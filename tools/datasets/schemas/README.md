@@ -1,12 +1,12 @@
 # Dataset metadata schemas
 
-These schemas define the three independent documents owned by every catalogue
-leaf:
+The active catalogue contract uses two independent documents:
 
 - `recipe.yaml` describes the dataset that should exist;
-- `generation.yaml` records one completed materialization and is written last;
-- `validation.yaml` records independent certification without changing either
-  the recipe or its generation history.
+- `generation.yaml` records one completed materialization and is written last.
+
+The validation schema is retained for future independent certification, but no
+`validation.yaml` belongs in the catalogue while that workflow is deferred.
 
 The files use JSON Schema syntax encoded as YAML. They live under `tools`
 because they are machine contracts used by generators, publication checks and

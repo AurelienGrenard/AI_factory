@@ -149,7 +149,7 @@ std::size_t cev_forward_start_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        6U,
+        7U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_cev_forward_start_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        6U,
+        7U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t cev_forward_start_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        6U,
-        15U,
+        7U,
+        21U,
         64U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_cev_forward_start_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
-        6U,
-        15U,
+        7U,
+        21U,
         64U,
         2U
     >(

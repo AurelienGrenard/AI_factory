@@ -149,8 +149,8 @@ std::size_t black_scholes_asian_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AsianOptionPathPolicy<Side>,
         AsianOptionGradientSchedule,
-        5U,
-        8U,
+        6U,
+        16U,
         2U
     >(host, configuration);
 }
@@ -191,8 +191,8 @@ void launch_black_scholes_asian_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AsianOptionPathPolicy<Side>,
         AsianOptionGradientSchedule,
-        5U,
-        8U,
+        6U,
+        16U,
         2U
     >(
         host,
@@ -220,9 +220,9 @@ std::size_t black_scholes_asian_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::AsianOptionPathPolicy<Side>,
         AsianOptionGradientSchedule,
-        5U,
-        10U,
-        32U,
+        6U,
+        15U,
+        64U,
         2U
     >(host, configuration);
 }
@@ -243,9 +243,9 @@ void launch_black_scholes_asian_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::AsianOptionPathPolicy<Side>,
         AsianOptionGradientSchedule,
-        5U,
-        10U,
-        32U,
+        6U,
+        15U,
+        64U,
         2U
     >(
         host,

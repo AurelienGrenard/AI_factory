@@ -186,6 +186,15 @@ calculent une seule politique centrale, puis évaluent les nœuds sous exercice
 gelé. Les produits de chemin calculent simultanément l’état et les cashflows
 de chaque nœud à partir des mêmes innovations primitives.
 
+La coordonnée virtuelle `product.maturity_years` est intégrée à toutes les
+voies markoviennes européennes : terminales, produits de chemin, formules
+fermées equity, formules scalaires fixed income, Jamshidian et swaptions
+européennes Monte Carlo. La préparation garde le calendrier central fixe et
+ne déplace que sa dernière date ; les préfixes réutilisent les mêmes
+innovations. American et Bermudan restent explicitement exclus. Les recettes
+codegen sélectionnent `T` avec un bump absolu `1/504` et dimensionnent leurs
+capacités de graphe en conséquence.
+
 Le catalogue contient 2 664 recettes permanentes : 2 184 equity et 480 fixed
 income. Chaque famille fournit l’ordre un, l’ordre un plus Hessienne diagonale
 et la Hessienne complète, ainsi que les constructions alignée et cartésienne

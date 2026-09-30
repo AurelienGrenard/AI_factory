@@ -130,8 +130,8 @@ void launch_vasicek_rate_option_mixed_node_graph_sensitivities_cuda(
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        6U,
-        15U
+        7U,
+        21U
     >(
         host,
         device,

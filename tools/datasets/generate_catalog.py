@@ -150,7 +150,7 @@ def inventory(
             raise ValueError(f"Recipe URL contradicts manifest: {recipe_path}")
         if recipe.get("row_count") != spec.row_count:
             raise ValueError(f"Recipe row count contradicts manifest: {recipe_path}")
-        if spec.dataset_kind == "price_sensitivities":
+        if spec.dataset_kind == "price_gradients":
             source_path = recipe["sensitivity"]["source_price_recipe"]
             source_recipe = yaml.safe_load(
                 contained_path(root, source_path).read_text()
@@ -165,7 +165,7 @@ def inventory(
                    for group in re.findall(r'"(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*', source)]
         inputs = sorted({item for item in strings if item.startswith("datasets/")
                          and item.endswith(".json") and item != spec.dataset_path})
-        if spec.dataset_kind in {"prices", "price_sensitivities"}:
+        if spec.dataset_kind in {"prices", "price_gradients"}:
             if (len(inputs) != (3 if spec.curve else 2)
                     or spec.construction not in {"aligned", "cartesian"}):
                 raise ValueError(f"Unrecognized price input contract: {spec.generator_path}")
@@ -182,7 +182,6 @@ def inventory(
         jobs.append({"target": spec.cmake_target, "kind": spec.dataset_kind,
                      "model": spec.model, "generator": spec.generator_path,
                      "recipe": recipe_path, "generation": spec.generation_yaml_path,
-                     "validation": str(Path(spec.generation_yaml_path).with_name("validation.yaml")),
                      "dataset": spec.dataset_path,
                      "url": spec.url,
                      "inputs": inputs, "sample_shape": shape,
@@ -203,7 +202,7 @@ def inventory(
                          ),
                      },
                      "identity": "/".join(value for value in (spec.model, spec.curve, spec.product) if value)})
-        if spec.dataset_kind in {"price_sensitivities"}:
+        if spec.dataset_kind in {"price_gradients"}:
             time_key = "time_representation" if "time_representation" in recipe else "time_grid"
             jobs[-1].update(sensitivity=recipe["sensitivity"], time_key=time_key,
                             time_configuration=recipe[time_key],
@@ -228,18 +227,21 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
     with path.open() as stream:
         prefix = []
         for line in stream:
-            if line.strip() == '"samples": [':
+            if line.strip() == '"results": [':
                 break
             prefix.append(line)
         else:
-            raise ValueError("Missing native sample array")
+            raise ValueError("Missing native results array")
         envelope = json.loads("".join(prefix).rstrip().rstrip(",") + "}")
         finite_values(envelope)
+        expected_keys = {
+            "database_id", "model_family", "catalog", "url", "row_count",
+            "time_convention", "timing",
+        }
+        if set(envelope) != expected_keys:
+            raise ValueError("Sample envelope contains non-public generation metadata")
         if envelope["row_count"] != job["rows"] or envelope["database_id"] != Path(job["dataset"]).stem:
             raise ValueError("Sample envelope contradicts its recipe")
-        construction = envelope["construction"]
-        if [construction["parameter_count"], construction["paths_per_parameter"]] != job["sample_shape"]:
-            raise ValueError("Sample shape contradicts its recipe")
         bounds = recipe["maturity_sampling"]
         count = 0
         for line in stream:
@@ -287,7 +289,7 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
     if forbidden & generation.keys():
         raise ValueError("Generation receipt repeats recipe or validation fields")
     finite_values(generation)
-    if job["kind"] in {"prices", "price_sensitivities"}:
+    if job["kind"] in {"prices", "price_gradients"}:
         expected_paths = job["launch_plan"]["paths_per_price"]
         if generation["execution"].get("paths_per_price", 0) != expected_paths:
             raise ValueError("Published MC path count contradicts the compiled production plan")
@@ -309,7 +311,7 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
         )
         if document.get("price_construction", expected_construction) != expected_construction:
             raise ValueError("Price construction contradicts the frozen recipe")
-        if job["kind"] == "price_sensitivities":
+        if job["kind"] == "price_gradients":
             from tools.datasets.price_gradients.contract import check_outputs as check_gradients
             check_gradients(job, document, document)
         if (document["row_count"] != job["rows"] or len(document["results"]) != job["rows"]
@@ -350,7 +352,7 @@ def copy_frozen(source: Path, destination: Path) -> str:
 def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
     """Use the native build graph to reject missing or stale generation prerequisites."""
     targets = [job["target"] for job in jobs]
-    if any(job["kind"] in {"prices", "price_sensitivities"} for job in jobs):
+    if any(job["kind"] in {"prices", "price_gradients"} for job in jobs):
         targets.append("inspect_pricing_launch_plan")
     for path in [build / target for target in targets] + [root / item for job in jobs for item in job["inputs"]]:
         if not path.is_file():
@@ -367,7 +369,7 @@ def compile_selected(root: Path, build: Path, jobs: list[dict], parallel_jobs: i
     if parallel_jobs <= 0:
         raise ValueError("Compile jobs must be positive")
     targets = {job["target"] for job in jobs}
-    if any(job["kind"] in {"prices", "price_sensitivities"} for job in jobs):
+    if any(job["kind"] in {"prices", "price_gradients"} for job in jobs):
         targets.add("inspect_pricing_launch_plan")
     subprocess.run(
         [
@@ -386,7 +388,7 @@ def compile_selected(root: Path, build: Path, jobs: list[dict], parallel_jobs: i
 
 def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
     """Resolve shape, parameter identity and the compiled plan without CUDA execution."""
-    if job["kind"] in {"prices", "price_sensitivities"}:
+    if job["kind"] in {"prices", "price_gradients"}:
         input_counts = [json.loads(contained_path(inputs, name).read_text())["row_count"]
                         for name in job["inputs"]]
         counts = set(input_counts)
@@ -406,12 +408,12 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
                     f"{job['target']}"
                 )
             inspector.append(str(job["maximum_resident_prices"]))
-        if job["kind"] == "price_sensitivities":
+        if job["kind"] == "price_gradients":
             inspector += [
                 "--price-gradients",
                 str(len(job["sensitivity"]["parameters"])),
             ]
-        if job["kind"] == "price_sensitivities":
+        if job["kind"] == "price_gradients":
             orders = job["sensitivity"].get("orders", [])
             if "mixed_second" in orders:
                 inspector.append("--mixed")
@@ -463,7 +465,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
                      "tools/datasets/schemas/recipe.schema.yaml",
                      "tools/datasets/schemas/validation.schema.yaml")}
     state["source_archive_sha256"] = snapshot_sources(root, run / "sources.tar.gz")
-    if any(job["kind"] in {"prices", "price_sensitivities"} for job in jobs):
+    if any(job["kind"] in {"prices", "price_gradients"} for job in jobs):
         state["inspector_sha256"] = copy_frozen(build / "inspect_pricing_launch_plan",
                                                 run / "bin" / "inspect_pricing_launch_plan")
         launch_manifest = "cmake/generated/PricingCapabilityManifest.json"
@@ -485,7 +487,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
         job["previous"] = {path: digest(contained_path(root, path))
                            for path in (job["dataset"], job["generation"])}
         job.update(describe_job(run / "inputs", run / "bin", job))
-        if job["kind"] in {"prices", "price_sensitivities"} and job["launch_plan"]["paths_per_price"]:
+        if job["kind"] in {"prices", "price_gradients"} and job["launch_plan"]["paths_per_price"]:
             checkpoint_contract = {
                 "schema_version": 1,
                 "kind": job["kind"],
@@ -707,7 +709,7 @@ def interrupt_campaign(*_arguments) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", type=Path, default=ROOT / "build")
-    parser.add_argument("--kind", choices=("prices", "price_sensitivities", "samples", "all"), default="prices")
+    parser.add_argument("--kind", choices=("prices", "price_gradients", "samples", "all"), default="prices")
     parser.add_argument("--asset-class", action="append", choices=("equity", "fixed_income"), default=[])
     parser.add_argument("--model-family", action="append", choices=("markovian", "rough"), default=[])
     parser.add_argument("--construction", action="append", choices=("aligned", "cartesian"), default=[])
@@ -750,7 +752,7 @@ def main() -> int:
             raise ValueError("Resume uses the frozen selection and publication policy; do not override them")
         jobs = state["jobs"]
     else:
-        kinds = {"prices", "price_sensitivities", "samples"} if arguments.kind == "all" else {arguments.kind}
+        kinds = {"prices", "price_gradients", "samples"} if arguments.kind == "all" else {arguments.kind}
         jobs = inventory(
             ROOT,
             kinds,

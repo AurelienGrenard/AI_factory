@@ -139,6 +139,78 @@ __device__ __forceinline__ auto prepare_path_schedule(
     return result;
 }
 
+
+template<std::size_t IntervalCapacity>
+struct PreparedTerminalPathSchedule {
+    PreparedPathSchedule<IntervalCapacity> central;
+    std::uint32_t prefix_observation_count = 0U;
+    std::uint32_t prefix_step_count = 0U;
+    float prefix_years = 0.0f;
+};
+
+struct PreparedTerminalPathNode {
+    std::uint32_t transition_count;
+    float interval_years;
+};
+
+template<typename Schedule>
+__device__ __forceinline__ auto prepare_terminal_path_schedule(
+    const typename PathScheduleTraits<Schedule>::Calendar& calendar,
+    pg::TimeConfiguration time,
+    std::uint32_t central_step_count
+) {
+    using Traits = PathScheduleTraits<Schedule>;
+    PreparedTerminalPathSchedule<Traits::kIntervalCapacity> result{};
+    result.central = prepare_path_schedule<Schedule>(calendar, time);
+    result.prefix_observation_count =
+        result.central.observation_count - 1U;
+    if constexpr (Traits::kKind == PathScheduleKind::dense) {
+        result.prefix_step_count = central_step_count - 1U;
+        result.prefix_years =
+            static_cast<float>(result.prefix_step_count) * time.dt;
+    } else {
+        const auto prefix_days =
+            simulation::calendar_terminal_prefix_days(calendar);
+        result.prefix_step_count = static_cast<std::uint32_t>(
+            prefix_days * static_cast<std::uint64_t>(
+                time.simulation_steps_per_day
+            )
+        );
+        result.prefix_years = static_cast<float>(result.prefix_step_count)
+            * time.dt;
+    }
+    return result;
+}
+
+template<typename Schedule, typename Scenario>
+__device__ __forceinline__ PreparedTerminalPathNode
+prepare_terminal_path_node(
+    const Scenario& scenario,
+    const PreparedTerminalPathSchedule<
+        PathScheduleTraits<Schedule>::kIntervalCapacity
+    >& schedule
+) {
+    using Traits = PathScheduleTraits<Schedule>;
+    PreparedTerminalPathNode result{};
+    if (scenario.step_count == scenario.central_step_count) {
+        // Preserve the canonical price-only arithmetic for the central date.
+        // Reconstructing T - prefix can differ by one FP32 ulp from the
+        // calendar interval even when both represent the same contract.
+        const std::uint32_t interval =
+            Traits::kKind == PathScheduleKind::calendar
+            ? schedule.prefix_observation_count
+            : 0U;
+        result.interval_years = schedule.central.interval_years[interval];
+    } else {
+        result.interval_years =
+            scenario.maturity_years - schedule.prefix_years;
+    }
+    result.transition_count = Traits::kExactTransition
+        ? 1U
+        : scenario.step_count - schedule.prefix_step_count;
+    return result;
+}
+
 template<typename Schedule>
 inline void validate_path_schedule(
     const typename PathScheduleTraits<Schedule>::Calendar& calendar,

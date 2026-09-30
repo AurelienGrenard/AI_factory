@@ -36,16 +36,23 @@ def write_terminal_dataset(
         "database_id": "synthetic_samples",
         "model_family": "synthetic",
         "row_count": row_count,
-        "time_convention": {"days_per_year": 252},
-        "construction": {
+        "catalog": "catalog/test/samples",
+        "url": "https://datasets.ai-factory.example/test/samples.json",
+        "time_convention": {"unit": "business_day", "days_per_year": 252},
+        "timing": {"wall_seconds": 0.1, "kernel_seconds": 0.01},
+    }
+    recipe = path.parent / "catalog/test/samples/recipe.yaml"
+    recipe.parent.mkdir(parents=True, exist_ok=True)
+    recipe.write_text(json.dumps({
+        "shape": {
             "parameter_count": group_count,
             "paths_per_parameter": paths_per_group,
             "row_order": "parameter-major, then path-major",
-        },
-    }
+        }
+    }))
     with path.open("w", encoding="utf-8") as stream:
         stream.write(
-            json.dumps(header)[:-1] + ',\n"samples": [\n'
+            json.dumps(header)[:-1] + ',\n"results": [\n'
         )
         for index in range(row_count):
             group = index // paths_per_group

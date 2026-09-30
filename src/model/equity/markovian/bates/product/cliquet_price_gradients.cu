@@ -149,7 +149,7 @@ std::size_t bates_cliquet_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        16U,
+        17U,
         32U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_bates_cliquet_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        16U,
+        17U,
         32U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t bates_cliquet_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        16U,
-        120U,
+        17U,
+        136U,
         128U,
         5U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_bates_cliquet_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::CliquetPathPolicy,
         CliquetGradientSchedule,
-        16U,
-        120U,
+        17U,
+        136U,
         128U,
         5U
     >(

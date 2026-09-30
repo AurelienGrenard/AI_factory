@@ -149,7 +149,7 @@ std::size_t bates_double_knock_out_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        14U,
+        15U,
         32U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_bates_double_knock_out_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        14U,
+        15U,
         32U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t bates_double_knock_out_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        14U,
-        91U,
+        15U,
+        105U,
         128U,
         4U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_bates_double_knock_out_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        14U,
-        91U,
+        15U,
+        105U,
         128U,
         4U
     >(

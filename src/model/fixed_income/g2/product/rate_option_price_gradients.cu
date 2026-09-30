@@ -130,8 +130,8 @@ void launch_g2_rate_option_mixed_node_graph_sensitivities_cuda(
     >;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        9U,
-        36U
+        10U,
+        45U
     >(
         host,
         device,

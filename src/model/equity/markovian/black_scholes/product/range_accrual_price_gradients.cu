@@ -137,8 +137,8 @@ void launch_black_scholes_range_accrual_mixed_node_graph_sensitivities_cuda(
         epg::ScenarioClosedFormPolicy<RangeAccrualClosedFormPricingPolicy>;
     closed_form::price_gradients::launch_device_prepared_mixed<
         ScenarioClosedFormPolicy,
-        7U,
-        21U
+        8U,
+        28U
     >(
         host,
         device,

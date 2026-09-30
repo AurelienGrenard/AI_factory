@@ -414,17 +414,20 @@ void fixed_income_selection() {
         {"model.mean_reversion", {.005}},
         {"model.initial_state", {.0005, pg::BumpScale::absolute}},
         {"product.strike", {.0001, pg::BumpScale::absolute}},
+        {"product.maturity_years",
+         {1.f / 504.f, pg::BumpScale::absolute}},
     }};
     const auto plan = cir::prepare_cir_european_swaption_price_gradients(
         models, products, PriceConstruction::CartesianProduct, {}, selection
     );
     require(plan.result_count == 4U && plan.models.size() == 2U
-        && plan.products.size() == 2U && plan.sensitivities.size() == 3U
+        && plan.products.size() == 2U && plan.sensitivities.size() == 4U
         && plan.maximum_payment_count == 8U,
         "Fixed-income selected Cartesian shape is incorrect.");
     const auto mean_reversion = first_order_task(plan, 0U, 0U);
     const auto initial_state = first_order_task(plan, 0U, 1U);
     const auto strike = first_order_task(plan, 0U, 2U);
+    const auto maturity = first_order_task(plan, 0U, 3U);
     require(mean_reversion.nodes[1U].model.process.mean_reversion
             < mean_reversion.nodes[0U].model.process.mean_reversion
         && initial_state.nodes[1U].model.initial_state
@@ -432,6 +435,18 @@ void fixed_income_selection() {
         && strike.nodes[1U].product.strike
             < strike.nodes[0U].product.strike,
         "Fixed-income nested/product coordinate resolution changed.");
+    require(
+        maturity.nodes[1U].step_count + 2U
+                == maturity.nodes[2U].step_count
+            && maturity.nodes[1U].reuse_central
+            && maturity.nodes[2U].reuse_central
+            && maturity.nodes[1U].product.payment_count
+                == maturity.nodes[0U].product.payment_count
+            && decltype(plan)::Preparation::parameter_owner(
+                plan.sensitivities[3U].parameter
+            ) == pg::SensitivityParameterOwner::maturity,
+        "Fixed-income terminal date did not move independently of its calendar."
+    );
     require(first_order_task(plan, 2U, 1U).stencil.kind
                 == pg::StencilKind::forward,
         "Fixed-income zero initial-state boundary was not one-sided.");

@@ -1,6 +1,7 @@
 // Cooperative evaluation of path-dependent sensitivity graph nodes.
 #pragma once
 
+#include "common/monte_carlo/price_gradients/node_graph/coupled_interval.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/path_group.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/row_preparation.cuh"
 #include "common/monte_carlo/price_gradients/path_sensitivity_policy.cuh"
@@ -11,27 +12,43 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 namespace ai_factory::workbench::monte_carlo::price_gradients {
 
 namespace path_node_graph_detail {
 
-template<std::size_t NodeCapacity, typename Dynamics>
-inline constexpr bool has_coupled_draw_v = requires(
+template<typename Dynamics>
+inline constexpr bool has_prepared_draw_v = requires(
     typename Dynamics::RandomContext& random,
-    const typename Dynamics::Prepared (&prepared)[NodeCapacity],
-    typename Dynamics::Innovations (&innovations)[NodeCapacity]
+    const typename Dynamics::Prepared& prepared
 ) {
-    Dynamics::template draw_coupled<NodeCapacity>(
-        random, prepared, std::uint8_t{}, innovations
-    );
+    Dynamics::draw(random, prepared);
 };
 
 template<std::size_t NodeCapacity, typename Dynamics>
-inline constexpr std::size_t scratch_bytes_per_group_v =
-    has_coupled_draw_v<NodeCapacity, Dynamics>
-    ? NodeCapacity * sizeof(typename Dynamics::Innovations)
-    : 0U;
+inline constexpr std::size_t scratch_bytes_per_group_v = [] {
+    constexpr auto coupled =
+        node_graph_detail::coupled_interval_scratch_bytes_v<
+            NodeCapacity, Dynamics
+        >;
+    constexpr auto innovations =
+        node_graph_detail::has_coupled_draw_v<NodeCapacity, Dynamics>
+        ? NodeCapacity * sizeof(typename Dynamics::Innovations)
+        : 0U;
+    return coupled < innovations ? innovations : coupled;
+}();
+
+
+template<bool VariableTerminal, typename Dynamics, std::size_t NodeCapacity>
+struct PathGraphTerminalStorage {};
+
+template<typename Dynamics, std::size_t NodeCapacity>
+struct PathGraphTerminalStorage<true, Dynamics, NodeCapacity> {
+    typename Dynamics::Prepared dynamics[NodeCapacity];
+    PreparedTerminalPathNode nodes[NodeCapacity];
+    std::uint32_t maximum_transitions;
+};
 
 template<
     pg::SensitivityOrders Orders,
@@ -42,6 +59,7 @@ template<
     std::size_t MaximumSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
+    bool VariableTerminal,
     typename Tuning>
 __device__ __forceinline__ void evaluate_nodes_body(
     DevicePreparedInputs<Preparation> inputs,
@@ -78,7 +96,15 @@ __device__ __forceinline__ void evaluate_nodes_body(
         stencils[MaximumSensitivities];
     __shared__ SensitivityNodeIndices<4U>
         node_indices[MaximumSensitivities];
-    __shared__ PreparedPathSchedule<Traits::kIntervalCapacity> schedule;
+    using ScheduleData = std::conditional_t<
+        VariableTerminal,
+        PreparedTerminalPathSchedule<Traits::kIntervalCapacity>,
+        PreparedPathSchedule<Traits::kIntervalCapacity>
+    >;
+    __shared__ ScheduleData schedule;
+    __shared__ PathGraphTerminalStorage<
+        VariableTerminal, Dynamics, node_capacity
+    > terminal;
     __shared__ std::uint16_t node_count;
     __shared__ std::uint32_t maximum_steps;
     __shared__ bool valid_row;
@@ -114,10 +140,19 @@ __device__ __forceinline__ void evaluate_nodes_body(
         }
         if (valid_row) {
             key = philox::make_key(base_seed + row);
-            schedule = prepare_path_schedule<Schedule>(
-                ProductPolicy::calendar(scenarios[0U].product),
-                plan.time
-            );
+            const auto calendar =
+                ProductPolicy::calendar(scenarios[0U].product);
+            if constexpr (VariableTerminal) {
+                schedule = prepare_terminal_path_schedule<Schedule>(
+                    calendar,
+                    plan.time,
+                    scenarios[0U].central_step_count
+                );
+            } else {
+                schedule = prepare_path_schedule<Schedule>(
+                    calendar, plan.time
+                );
+            }
         } else {
             preparation::record_error(
                 stencil_outputs.error,
@@ -151,15 +186,50 @@ __device__ __forceinline__ void evaluate_nodes_body(
          flat += blockDim.x) {
         const auto interval = flat / node_count;
         const auto node = flat % node_count;
+        const auto& central_schedule = [&]() -> const auto& {
+            if constexpr (VariableTerminal) return schedule.central;
+            else return schedule;
+        }();
         const float horizon = Traits::kExactTransition
-            ? schedule.interval_years[interval]
+            ? central_schedule.interval_years[interval]
             : plan.time.dt;
         dynamics[interval][node] =
             NodePolicy::prepare_dynamics(scenarios[node], horizon);
     }
     __syncthreads();
+    if constexpr (VariableTerminal) {
+        if (threadIdx.x == 0U) terminal.maximum_transitions = 0U;
+        __syncthreads();
+        for (std::size_t node = threadIdx.x;
+             node < node_count;
+             node += blockDim.x) {
+            terminal.nodes[node] = prepare_terminal_path_node<Schedule>(
+                scenarios[node], schedule
+            );
+            const float horizon = Traits::kExactTransition
+                ? terminal.nodes[node].interval_years
+                : plan.time.dt;
+            terminal.dynamics[node] =
+                NodePolicy::prepare_dynamics(scenarios[node], horizon);
+        }
+        __syncthreads();
+        if (threadIdx.x == 0U) {
+            for (std::uint16_t node = 0U; node < node_count; ++node) {
+                terminal.maximum_transitions = max(
+                    terminal.maximum_transitions,
+                    terminal.nodes[node].transition_count
+                );
+            }
+        }
+        __syncthreads();
+    }
 
     const auto group = node_graph_detail::WarpPathGroup<GroupSize>::make();
+    constexpr auto group_scratch_stride =
+        scratch_bytes_per_group_v<node_capacity, Dynamics>;
+    auto* group_scratch = dynamic_shared
+        + static_cast<std::size_t>(group.group_in_block)
+            * group_scratch_stride;
     constexpr unsigned int groups_per_block =
         Tuning::kThreadsPerBlock / GroupSize;
     const std::size_t first_group_path =
@@ -174,6 +244,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
     bool simulates[NodesPerWorker]{};
     typename Dynamics::Prepared
         owned_dynamics[Traits::kIntervalCapacity][NodesPerWorker]{};
+    typename Dynamics::Prepared owned_terminal_dynamics[NodesPerWorker]{};
     typename NodePolicy::Metadata owned_metadata[NodesPerWorker]{};
     #pragma unroll
     for (unsigned int slot = 0U; slot < NodesPerWorker; ++slot) {
@@ -189,6 +260,9 @@ __device__ __forceinline__ void evaluate_nodes_body(
              ++interval) {
             owned_dynamics[interval][slot] =
                 dynamics[interval][node];
+        }
+        if constexpr (VariableTerminal) {
+            owned_terminal_dynamics[slot] = terminal.dynamics[node];
         }
         owned_metadata[slot] =
             NodePolicy::prepare_metadata(scenarios[node], plan.time);
@@ -234,8 +308,18 @@ __device__ __forceinline__ void evaluate_nodes_body(
         typename Dynamics::RandomContext random{};
         if (group.local_lane == 0U) random.reset(key, path);
 
-        const auto transition = [&](unsigned int interval) {
-            if constexpr (has_coupled_draw_v<node_capacity, Dynamics>) {
+        const auto transition_prepared = [&]<typename Predicate>(
+            const typename Dynamics::Prepared
+                (&shared_dynamics)[node_capacity],
+            const typename Dynamics::Prepared
+                (&local_dynamics)[NodesPerWorker],
+            Predicate&& should_transition
+        ) {
+            if constexpr (
+                node_graph_detail::has_coupled_draw_v<
+                    node_capacity, Dynamics
+                >
+            ) {
                 auto* all_innovations =
                     reinterpret_cast<InnovationsArray*>(dynamic_shared);
                 auto& group_innovations =
@@ -243,7 +327,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
                 if (group.local_lane == 0U) {
                     Dynamics::template draw_coupled<node_capacity>(
                         random,
-                        dynamics[interval],
+                        shared_dynamics,
                         static_cast<std::uint16_t>(node_count),
                         group_innovations
                     );
@@ -253,10 +337,12 @@ __device__ __forceinline__ void evaluate_nodes_body(
                 for (unsigned int slot = 0U;
                      slot < NodesPerWorker;
                      ++slot) {
-                    if (!owns[slot] || !simulates[slot]) continue;
+                    if (!owns[slot]
+                        || !simulates[slot]
+                        || !should_transition(slot)) continue;
                     const auto node = owned_nodes[slot];
                     Dynamics::transition(
-                        owned_dynamics[interval][slot],
+                        local_dynamics[slot],
                         group_innovations[node],
                         nullptr,
                         states[slot]
@@ -265,15 +351,48 @@ __device__ __forceinline__ void evaluate_nodes_body(
             } else {
                 Innovations innovations{};
                 if (group.local_lane == 0U) {
-                    if constexpr (requires {
-                        Dynamics::draw(random, dynamics[interval][0U]);
-                    }) {
+                    if constexpr (has_prepared_draw_v<Dynamics>) {
                         innovations = Dynamics::draw(
-                            random, dynamics[interval][0U]
+                            random, shared_dynamics[0U]
                         );
                     } else {
                         innovations = Dynamics::draw(random);
                     }
+                }
+                innovations = group.broadcast_value(innovations);
+                #pragma unroll
+                for (unsigned int slot = 0U;
+                     slot < NodesPerWorker;
+                     ++slot) {
+                    if (!owns[slot]
+                        || !simulates[slot]
+                        || !should_transition(slot)) continue;
+                    Dynamics::transition(
+                        local_dynamics[slot],
+                        innovations,
+                        nullptr,
+                        states[slot]
+                    );
+                }
+            }
+            group.synchronize();
+        };
+        const auto transition = [&](unsigned int interval) {
+            transition_prepared(
+                dynamics[interval],
+                owned_dynamics[interval],
+                [](unsigned int) { return true; }
+            );
+        };
+        const auto transition_equal_horizon = [&](unsigned int interval) {
+            if constexpr (
+                requires(typename Dynamics::RandomContext& context) {
+                    Dynamics::draw_equal_horizon(context);
+                }
+            ) {
+                Innovations innovations{};
+                if (group.local_lane == 0U) {
+                    innovations = Dynamics::draw_equal_horizon(random);
                 }
                 innovations = group.broadcast_value(innovations);
                 #pragma unroll
@@ -288,8 +407,10 @@ __device__ __forceinline__ void evaluate_nodes_body(
                         states[slot]
                     );
                 }
+                group.synchronize();
+            } else {
+                transition(interval);
             }
-            group.synchronize();
         };
 
         const auto observe = [&](std::uint32_t observation) {
@@ -311,28 +432,131 @@ __device__ __forceinline__ void evaluate_nodes_body(
             group.synchronize();
         };
 
-        if constexpr (Traits::kKind == PathScheduleKind::dense) {
-            for (std::uint32_t observation = 0U;
-                 observation < schedule.observation_count;
-                 ++observation) {
-                transition(0U);
-                observe(observation);
+        const auto simulate_fixed_interval = [&] (
+            unsigned int interval,
+            std::uint32_t transition_count
+        ) {
+            node_graph_detail::simulate_coupled_interval<
+                node_capacity, Dynamics, GroupSize, NodesPerWorker
+            >(
+                group,
+                random,
+                dynamics[interval],
+                static_cast<std::uint16_t>(node_count),
+                transition_count,
+                owned_nodes,
+                owns,
+                simulates,
+                states,
+                group_scratch
+            );
+        };
+
+        if constexpr (!VariableTerminal) {
+            if constexpr (Traits::kKind == PathScheduleKind::dense) {
+                for (std::uint32_t observation = 0U;
+                     observation < schedule.observation_count;
+                     ++observation) {
+                    simulate_fixed_interval(0U, 1U);
+                    observe(observation);
+                }
+            } else {
+                for (std::uint32_t observation = 0U;
+                     observation < schedule.observation_count;
+                     ++observation) {
+                    const unsigned int interval =
+                        Traits::kKind == PathScheduleKind::calendar
+                        ? observation
+                        : 0U;
+                    const auto transition_count =
+                        schedule.transition_counts[interval];
+                    if constexpr (Traits::kExactTransition) {
+                        for (std::uint32_t step = 0U;
+                             step < transition_count;
+                             ++step) {
+                            transition(interval);
+                        }
+                    } else {
+                        simulate_fixed_interval(
+                            interval, transition_count
+                        );
+                    }
+                    observe(observation);
+                }
             }
         } else {
             for (std::uint32_t observation = 0U;
-                 observation < schedule.observation_count;
+                 observation < schedule.prefix_observation_count;
                  ++observation) {
                 const unsigned int interval =
                     Traits::kKind == PathScheduleKind::calendar
                     ? observation
                     : 0U;
-                for (std::uint32_t step = 0U;
-                     step < schedule.transition_counts[interval];
-                     ++step) {
-                    transition(interval);
+                const auto transition_count =
+                    Traits::kKind == PathScheduleKind::dense
+                    ? 1U
+                    : schedule.central.transition_counts[interval];
+                if constexpr (Traits::kExactTransition) {
+                    for (std::uint32_t step = 0U;
+                         step < transition_count;
+                         ++step) {
+                        transition_equal_horizon(interval);
+                    }
+                } else {
+                    simulate_fixed_interval(interval, transition_count);
                 }
                 observe(observation);
             }
+
+            if constexpr (Traits::kExactTransition
+                && requires(typename Dynamics::RandomContext& context) {
+                    Dynamics::draw_maturity_coupled(context);
+                }) {
+                Innovations innovations{};
+                if (group.local_lane == 0U) {
+                    innovations = Dynamics::draw_maturity_coupled(random);
+                }
+                innovations = group.broadcast_value(innovations);
+                #pragma unroll
+                for (unsigned int slot = 0U;
+                     slot < NodesPerWorker;
+                     ++slot) {
+                    if (!owns[slot] || !simulates[slot]) continue;
+                    const auto node = owned_nodes[slot];
+                    Dynamics::transition(
+                        owned_terminal_dynamics[slot],
+                        innovations,
+                        scenarios[node].normal_weights,
+                        states[slot]
+                    );
+                }
+                group.synchronize();
+            } else if constexpr (Traits::kExactTransition) {
+                transition_prepared(
+                    terminal.dynamics,
+                    owned_terminal_dynamics,
+                    [](unsigned int) { return true; }
+                );
+            } else {
+                node_graph_detail::simulate_coupled_variable_interval<
+                    node_capacity, Dynamics, GroupSize, NodesPerWorker
+                >(
+                    group,
+                    random,
+                    terminal.dynamics,
+                    static_cast<std::uint16_t>(node_count),
+                    terminal.maximum_transitions,
+                    [&](unsigned int node) {
+                        return terminal.nodes[node].transition_count;
+                    },
+                    owned_nodes,
+                    owns,
+                    simulates,
+                    states,
+                    group_scratch
+                );
+            }
+            observe(schedule.prefix_observation_count);
         }
 
         if (group.local_lane == 0U) central_state = states[0U];
@@ -366,6 +590,7 @@ template<
     std::size_t MaximumSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
+    bool VariableTerminal,
     typename Tuning>
 __global__ void evaluate_nodes_kernel(
     DevicePreparedInputs<Preparation> inputs,
@@ -390,6 +615,7 @@ __global__ void evaluate_nodes_kernel(
         MaximumSensitivities,
         GroupSize,
         NodesPerWorker,
+        VariableTerminal,
         Tuning
     >(
         inputs,
@@ -414,6 +640,7 @@ template<
     std::size_t MaximumSensitivities,
     unsigned int GroupSize,
     unsigned int NodesPerWorker,
+    bool VariableTerminal,
     typename Tuning>
 __global__ __launch_bounds__(
     Tuning::kThreadsPerBlock,
@@ -441,6 +668,7 @@ __global__ __launch_bounds__(
         MaximumSensitivities,
         GroupSize,
         NodesPerWorker,
+        VariableTerminal,
         Tuning
     >(
         inputs,

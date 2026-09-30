@@ -38,7 +38,7 @@ Disposable targets under ignored `work/experiments/` are absent from the
 normal build graph. Configure explicitly with
 `-DAI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON` to include their local
 `CMakeLists.txt`. Even in that mode, those targets remain outside the permanent
-`parameter_generators`, `price_generators`, `price_sensitivity_generators`, and `sample_generators` aggregates.
+`parameter_generators`, `price_generators`, `price_gradient_generators`, and `sample_generators` aggregates.
 
 Sources read at configuration time to infer link dependencies or test labels
 must be registered in `CMAKE_CONFIGURE_DEPENDS`. Editing their includes must

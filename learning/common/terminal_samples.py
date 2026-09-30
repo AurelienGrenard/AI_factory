@@ -11,9 +11,11 @@ from pathlib import Path
 import re
 from typing import Iterator, Literal
 
+import yaml
+
 
 Split = Literal["train", "validation", "test"]
-_SAMPLES_START = re.compile(r'^\s*"samples"\s*:\s*\[\s*$')
+_RESULTS_START = re.compile(r'^\s*"results"\s*:\s*\[\s*$')
 
 
 @dataclass(frozen=True)
@@ -44,11 +46,27 @@ class TerminalSample:
 def _read_header(stream) -> dict:
     lines: list[str] = []
     for line in stream:
-        if _SAMPLES_START.match(line):
+        if _RESULTS_START.match(line):
             lines.append(line)
             return json.loads("".join(lines) + "]}")
         lines.append(line)
-    raise ValueError("Missing line-streamed samples array")
+    raise ValueError("Missing line-streamed results array")
+
+
+def _read_recipe(dataset_path: Path, header: dict) -> dict:
+    catalog = Path(str(header["catalog"]))
+    if catalog.is_absolute() or not catalog.parts or catalog.parts[0] != "catalog":
+        raise ValueError("Unsupported sample catalog reference")
+    for parent in (dataset_path.parent, *dataset_path.parents):
+        candidate = parent / catalog / "recipe.yaml"
+        if candidate.is_file():
+            recipe = yaml.safe_load(candidate.read_text(encoding="utf-8"))
+            if not isinstance(recipe, dict):
+                raise ValueError(f"Sample recipe is not a mapping: {candidate}")
+            return recipe
+    raise FileNotFoundError(
+        f"Cannot resolve sample recipe {catalog / 'recipe.yaml'} from {dataset_path}"
+    )
 
 
 def _positive_int(value: object, name: str) -> int:
@@ -57,16 +75,16 @@ def _positive_int(value: object, name: str) -> int:
     return value
 
 
-def _schema_from_header(header: dict, first: dict) -> TerminalSchema:
-    construction = header["construction"]
+def _schema_from_header(header: dict, recipe: dict, first: dict) -> TerminalSchema:
+    shape = recipe["shape"]
     row_count = _positive_int(header["row_count"], "row_count")
-    parameter_count = _positive_int(construction["parameter_count"], "parameter_count")
+    parameter_count = _positive_int(shape["parameter_count"], "parameter_count")
     paths_per_parameter = _positive_int(
-        construction["paths_per_parameter"], "paths_per_parameter"
+        shape["paths_per_parameter"], "paths_per_parameter"
     )
     if row_count != parameter_count * paths_per_parameter:
-        raise ValueError("row_count does not match construction shape")
-    if construction.get("row_order") != "parameter-major, then path-major":
+        raise ValueError("row_count does not match recipe shape")
+    if shape.get("row_order") != "parameter-major, then path-major":
         raise ValueError("Unsupported sample row order")
     days_per_year = _positive_int(
         header["time_convention"]["days_per_year"], "days_per_year"
@@ -126,8 +144,10 @@ def iter_terminal_samples(
     """Yield schema and rows; validate the declared count on a complete scan."""
     if limit is not None and limit < 0:
         raise ValueError("limit must be nonnegative")
-    with Path(path).open(encoding="utf-8") as stream:
+    dataset_path = Path(path).resolve()
+    with dataset_path.open(encoding="utf-8") as stream:
         header = _read_header(stream)
+        recipe = _read_recipe(dataset_path, header)
         schema: TerminalSchema | None = None
         count = 0
         for line in stream:
@@ -140,7 +160,7 @@ def iter_terminal_samples(
                 return
             row = json.loads(stripped.removesuffix(","))
             if schema is None:
-                schema = _schema_from_header(header, row)
+                schema = _schema_from_header(header, recipe, row)
             yield schema, _sample_from_row(row, schema, count, seed)
             count += 1
         if count != _positive_int(header["row_count"], "row_count"):

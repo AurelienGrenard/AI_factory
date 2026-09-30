@@ -71,8 +71,9 @@ struct OneFactorEuropeanSwaptionClosedFormPricingPolicy {
         );
     }
 
+    template<typename Row>
     __device__ __forceinline__ static float evaluate_price(
-        const PreparedRow& row
+        const Row& row
     ) {
         return evaluate_european_swaption_price<Side>(
             row,
@@ -115,8 +116,9 @@ struct CooperativeOneFactorEuropeanSwaptionClosedFormPricingPolicy
         );
     }
 
+    template<typename Row>
     __device__ __forceinline__ static float evaluate_price(
-        const PreparedRow& row,
+        const Row& row,
         std::byte* workspace,
         std::uint32_t workspace_capacity
     ) {
@@ -178,8 +180,9 @@ struct FittedOneFactorEuropeanSwaptionClosedFormPricingPolicy {
         );
     }
 
+    template<typename Row>
     __device__ __forceinline__ static float evaluate_price(
-        const PreparedRow& row
+        const Row& row
     ) {
         return evaluate_european_swaption_price<Side>(
             row,
@@ -228,8 +231,9 @@ struct CooperativeFittedOneFactorEuropeanSwaptionClosedFormPricingPolicy
         );
     }
 
+    template<typename Row>
     __device__ __forceinline__ static float evaluate_price(
-        const PreparedRow& row,
+        const Row& row,
         std::byte* workspace,
         std::uint32_t workspace_capacity
     ) {

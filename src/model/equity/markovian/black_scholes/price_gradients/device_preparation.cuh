@@ -16,7 +16,7 @@ struct DevicePreparation {
     using Model = ModelParameters;
     static constexpr bool kMultiplicativeSpot = true;
     static constexpr bool kSupportsMaturitySensitivity = true;
-    static constexpr bool kSupportsMaturityDiagonal = false;
+    static constexpr bool kSupportsMaturityDiagonal = true;
     static constexpr std::array parameter_names{
         std::string_view{"model.spot"},
         std::string_view{"model.risk_free_rate"},

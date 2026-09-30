@@ -149,7 +149,7 @@ std::size_t cev_down_and_out_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_cev_down_and_out_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        7U,
+        8U,
         16U,
         2U
     >(
@@ -220,9 +220,9 @@ std::size_t cev_down_and_out_option_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(host, configuration);
 }
@@ -243,9 +243,9 @@ void launch_cev_down_and_out_option_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::DownAndOutOptionPathPolicy<Side>,
         DownAndOutOptionGradientSchedule,
-        7U,
-        21U,
-        64U,
+        8U,
+        28U,
+        128U,
         2U
     >(
         host,

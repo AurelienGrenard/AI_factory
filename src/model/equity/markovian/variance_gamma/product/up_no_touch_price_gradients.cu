@@ -149,7 +149,7 @@ std::size_t variance_gamma_up_no_touch_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_variance_gamma_up_no_touch_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
-        8U,
+        9U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t variance_gamma_up_no_touch_mixed_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_variance_gamma_up_no_touch_mixed_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
-        8U,
-        28U,
+        9U,
+        36U,
         128U,
         2U
     >(

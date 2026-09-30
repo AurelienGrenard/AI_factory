@@ -23,6 +23,8 @@ DevicePreparedPlan make_device_prepared_plan(const HostPlan& host) {
         host.products.size(),
         host.result_count,
         host.sensitivity_count(),
+        0U,
+        host.has_maturity_sensitivity(),
     };
     if constexpr (requires { host.curves.size(); }) {
         result.curve_count = host.curves.size();

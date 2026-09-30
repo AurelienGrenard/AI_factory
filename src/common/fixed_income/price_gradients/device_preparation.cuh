@@ -16,13 +16,68 @@
 namespace ai_factory::workbench::fixed_income::price_gradients {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
+namespace preparation = pg::device_preparation;
+
+namespace detail {
+
+template<typename ProductPreparation, typename Product>
+__host__ __device__ bool prepare_terminal_time(
+    const Product& product,
+    pg::TimeConfiguration time,
+    float& day_fraction,
+    float& maturity_years,
+    std::uint32_t& step_count
+) {
+    day_fraction = time.dt
+        * static_cast<float>(time.simulation_steps_per_day);
+    const std::uint64_t steps =
+        static_cast<std::uint64_t>(
+            ProductPreparation::terminal_maturity_days(product)
+        ) * time.simulation_steps_per_day;
+    if (!preparation::finite(day_fraction) || !(day_fraction > 0.0f)
+        || steps == 0U
+        || steps > static_cast<std::uint64_t>(0xffffffffU)) {
+        return false;
+    }
+    step_count = static_cast<std::uint32_t>(steps);
+    maturity_years = static_cast<float>(step_count) * time.dt;
+    return preparation::finite(maturity_years)
+        && maturity_years > 0.0f;
+}
+
+template<typename ProductPreparation, typename Scenario>
+__host__ __device__ bool apply_terminal_time(
+    float endpoint,
+    pg::TimeConfiguration time,
+    Scenario& row
+) {
+    const double step_value = static_cast<double>(endpoint)
+        / static_cast<double>(time.dt);
+    if (!preparation::finite(step_value) || step_value < 1.0
+        || step_value > static_cast<double>(0xffffffffU)) {
+        return false;
+    }
+    const auto steps = static_cast<std::uint32_t>(::llround(step_value));
+    if (static_cast<float>(steps) * time.dt != endpoint) return false;
+    const auto prefix_steps = static_cast<std::uint64_t>(
+        ProductPreparation::terminal_prefix_days(row.product)
+    ) * time.simulation_steps_per_day;
+    if (static_cast<std::uint64_t>(steps) <= prefix_steps) return false;
+    row.maturity_years = endpoint;
+    row.step_count = steps;
+    return true;
+}
+
+}  // namespace detail
 
 template<typename Model, typename Product>
 struct Scenario {
     Model model;
     Product product;
     float day_fraction;
+    float maturity_years;
     std::uint32_t step_count = 1U;
+    std::uint32_t central_step_count = 1U;
     const float* normal_weights = nullptr;
     bool reuse_central = false;
 };
@@ -35,11 +90,15 @@ struct ScenarioDevicePreparation {
     using Product = typename ProductPreparation::Product;
     using Parameter = pg::SensitivityParameter;
     using Scenario = fixed_income::price_gradients::Scenario<Model, Product>;
-    static constexpr bool kSupportsMaturitySensitivity = false;
+    static constexpr bool kSupportsMaturitySensitivity =
+        ProductPreparation::kSupportsMaturitySensitivity;
+    static constexpr bool kSupportsMaturityDiagonal =
+        kSupportsMaturitySensitivity;
 
     static constexpr std::size_t sensitivity_parameter_count =
         ModelPreparation::parameter_names.size()
-        + ProductPreparation::parameter_names.size();
+        + ProductPreparation::parameter_names.size()
+        + (kSupportsMaturitySensitivity ? 1U : 0U);
     static_assert(sensitivity_parameter_count <= 256U);
     static constexpr std::uint8_t model_parameter_count =
         static_cast<std::uint8_t>(ModelPreparation::parameter_names.size());
@@ -75,6 +134,20 @@ struct ScenarioDevicePreparation {
             };
             found = true;
         }
+        if constexpr (kSupportsMaturitySensitivity) {
+            if (name == "product.maturity_years") {
+                if (found) {
+                    throw std::invalid_argument(
+                        "Ambiguous sensitivity: " + std::string(name)
+                    );
+                }
+                return {
+                    static_cast<std::uint8_t>(
+                        model_parameter_count + product_parameter_count
+                    )
+                };
+            }
+        }
         if (!found) {
             throw std::invalid_argument(
                 "Unsupported sensitivity: " + std::string(name)
@@ -89,28 +162,50 @@ struct ScenarioDevicePreparation {
         pg::TimeConfiguration time,
         Scenario& central
     ) {
-        const float day_fraction = time.dt
-            * static_cast<float>(time.simulation_steps_per_day);
+        float day_fraction = 0.0f;
+        float maturity_years = 0.0f;
+        std::uint32_t step_count = 0U;
         if (!ModelPreparation::valid(model)
             || !ProductPreparation::valid(product)
-            || !pg::device_preparation::finite(day_fraction)
-            || !(day_fraction > 0.0f)) {
+            || !detail::prepare_terminal_time<ProductPreparation>(
+                product,
+                time,
+                day_fraction,
+                maturity_years,
+                step_count
+            )) {
             return false;
         }
-        central = {model, product, day_fraction};
+        central = {
+            model,
+            product,
+            day_fraction,
+            maturity_years,
+            step_count,
+            step_count,
+            nullptr,
+            false,
+        };
         return true;
     }
 
-    __host__ __device__ static bool is_maturity(Parameter) {
-        return false;
+    __host__ __device__ static bool is_maturity(Parameter parameter) {
+        return kSupportsMaturitySensitivity
+            && parameter.code
+                == model_parameter_count + product_parameter_count;
     }
 
     __host__ __device__ static pg::SensitivityParameterOwner parameter_owner(
         Parameter parameter
     ) {
-        return parameter.code < model_parameter_count
-            ? pg::SensitivityParameterOwner::model
-            : pg::SensitivityParameterOwner::product;
+        if (parameter.code < model_parameter_count) {
+            return pg::SensitivityParameterOwner::model;
+        }
+        if (parameter.code
+            < model_parameter_count + product_parameter_count) {
+            return pg::SensitivityParameterOwner::product;
+        }
+        return pg::SensitivityParameterOwner::maturity;
     }
 
     __host__ __device__ static float read_parameter(
@@ -127,7 +222,9 @@ struct ScenarioDevicePreparation {
                 scenario.product
             );
         }
-        return ::nanf("");
+        return is_maturity(parameter)
+            ? scenario.maturity_years
+            : ::nanf("");
     }
 
     __host__ __device__ static void write_parameter(
@@ -147,6 +244,21 @@ struct ScenarioDevicePreparation {
         }
     }
 
+    __host__ __device__ static bool apply_parameter(
+        Parameter parameter,
+        float endpoint,
+        pg::TimeConfiguration time,
+        Scenario& row
+    ) {
+        if (is_maturity(parameter)) {
+            return detail::apply_terminal_time<ProductPreparation>(
+                endpoint, time, row
+            );
+        }
+        write_parameter(parameter, row, endpoint);
+        return true;
+    }
+
     __host__ __device__ static bool finalize_scenario(
         Scenario& row,
         bool model_changed
@@ -160,12 +272,12 @@ struct ScenarioDevicePreparation {
         const Scenario& central,
         Parameter parameter,
         float endpoint,
-        pg::TimeConfiguration,
+        pg::TimeConfiguration time,
         Scenario& row
     ) {
         row = central;
-        write_parameter(parameter, row, endpoint);
-        return finalize_scenario(
+        return apply_parameter(parameter, endpoint, time, row)
+            && finalize_scenario(
             row,
             parameter_owner(parameter)
                 == pg::SensitivityParameterOwner::model
@@ -178,13 +290,17 @@ struct ScenarioDevicePreparation {
         float first_endpoint,
         Parameter second_parameter,
         float second_endpoint,
-        pg::TimeConfiguration,
+        pg::TimeConfiguration time,
         Scenario& row
     ) {
         row = central;
-        write_parameter(first_parameter, row, first_endpoint);
-        write_parameter(second_parameter, row, second_endpoint);
-        return finalize_scenario(
+        return apply_parameter(
+                first_parameter, first_endpoint, time, row
+            )
+            && apply_parameter(
+                second_parameter, second_endpoint, time, row
+            )
+            && finalize_scenario(
             row,
             parameter_owner(first_parameter)
                     == pg::SensitivityParameterOwner::model
@@ -220,7 +336,9 @@ struct CurveScenario {
     Curve curve;
     Product product;
     float day_fraction;
+    float maturity_years;
     std::uint32_t step_count = 1U;
+    std::uint32_t central_step_count = 1U;
     const float* normal_weights = nullptr;
     bool reuse_central = false;
 };
@@ -241,12 +359,16 @@ struct CurveScenarioDevicePreparation {
     using Scenario = fixed_income::price_gradients::CurveScenario<
         Model, Curve, Product
     >;
-    static constexpr bool kSupportsMaturitySensitivity = false;
+    static constexpr bool kSupportsMaturitySensitivity =
+        ProductPreparation::kSupportsMaturitySensitivity;
+    static constexpr bool kSupportsMaturityDiagonal =
+        kSupportsMaturitySensitivity;
 
     static constexpr std::size_t sensitivity_parameter_count =
         ModelPreparation::parameter_names.size()
         + CurvePreparation::parameter_names.size()
-        + ProductPreparation::parameter_names.size();
+        + ProductPreparation::parameter_names.size()
+        + (kSupportsMaturitySensitivity ? 1U : 0U);
     static_assert(sensitivity_parameter_count <= 256U);
     static constexpr std::uint8_t model_parameter_count =
         static_cast<std::uint8_t>(ModelPreparation::parameter_names.size());
@@ -280,6 +402,22 @@ struct CurveScenarioDevicePreparation {
                 model_parameter_count + curve_parameter_count
             )
         );
+        if constexpr (kSupportsMaturitySensitivity) {
+            if (name == "product.maturity_years") {
+                if (found) {
+                    throw std::invalid_argument(
+                        "Ambiguous sensitivity: " + std::string(name)
+                    );
+                }
+                return {
+                    static_cast<std::uint8_t>(
+                        model_parameter_count
+                        + curve_parameter_count
+                        + product_parameter_count
+                    )
+                };
+            }
+        }
         if (!found) {
             throw std::invalid_argument(
                 "Unsupported sensitivity: " + std::string(name)
@@ -295,21 +433,41 @@ struct CurveScenarioDevicePreparation {
         pg::TimeConfiguration time,
         Scenario& central
     ) {
-        const float day_fraction = time.dt
-            * static_cast<float>(time.simulation_steps_per_day);
+        float day_fraction = 0.0f;
+        float maturity_years = 0.0f;
+        std::uint32_t step_count = 0U;
         if (!ModelPreparation::valid(model)
             || !CurvePreparation::valid(curve)
             || !ProductPreparation::valid(product)
-            || !pg::device_preparation::finite(day_fraction)
-            || !(day_fraction > 0.0f)) {
+            || !detail::prepare_terminal_time<ProductPreparation>(
+                product,
+                time,
+                day_fraction,
+                maturity_years,
+                step_count
+            )) {
             return false;
         }
-        central = {model, curve, product, day_fraction};
+        central = {
+            model,
+            curve,
+            product,
+            day_fraction,
+            maturity_years,
+            step_count,
+            step_count,
+            nullptr,
+            false,
+        };
         return true;
     }
 
-    __host__ __device__ static bool is_maturity(Parameter) {
-        return false;
+    __host__ __device__ static bool is_maturity(Parameter parameter) {
+        return kSupportsMaturitySensitivity
+            && parameter.code
+                == model_parameter_count
+                    + curve_parameter_count
+                    + product_parameter_count;
     }
 
     __host__ __device__ static pg::SensitivityParameterOwner parameter_owner(
@@ -322,7 +480,13 @@ struct CurveScenarioDevicePreparation {
             < model_parameter_count + curve_parameter_count) {
             return pg::SensitivityParameterOwner::curve;
         }
-        return pg::SensitivityParameterOwner::product;
+        if (parameter.code
+            < model_parameter_count
+                + curve_parameter_count
+                + product_parameter_count) {
+            return pg::SensitivityParameterOwner::product;
+        }
+        return pg::SensitivityParameterOwner::maturity;
     }
 
     __host__ __device__ static float read_parameter(
@@ -338,14 +502,19 @@ struct CurveScenarioDevicePreparation {
                 parameter.code - model_parameter_count, scenario.curve
             );
         }
-        if (parameter.code < sensitivity_parameter_count) {
+        if (parameter.code
+            < model_parameter_count
+                + curve_parameter_count
+                + product_parameter_count) {
             return ProductPreparation::read(
                 parameter.code - model_parameter_count
                     - curve_parameter_count,
                 scenario.product
             );
         }
-        return ::nanf("");
+        return is_maturity(parameter)
+            ? scenario.maturity_years
+            : ::nanf("");
     }
 
     __host__ __device__ static void write_parameter(
@@ -362,7 +531,10 @@ struct CurveScenarioDevicePreparation {
                 scenario.curve,
                 value
             );
-        } else if (parameter.code < sensitivity_parameter_count) {
+        } else if (parameter.code
+                   < model_parameter_count
+                       + curve_parameter_count
+                       + product_parameter_count) {
             ProductPreparation::write(
                 parameter.code - model_parameter_count
                     - curve_parameter_count,
@@ -370,6 +542,21 @@ struct CurveScenarioDevicePreparation {
                 value
             );
         }
+    }
+
+    __host__ __device__ static bool apply_parameter(
+        Parameter parameter,
+        float endpoint,
+        pg::TimeConfiguration time,
+        Scenario& row
+    ) {
+        if (is_maturity(parameter)) {
+            return detail::apply_terminal_time<ProductPreparation>(
+                endpoint, time, row
+            );
+        }
+        write_parameter(parameter, row, endpoint);
+        return true;
     }
 
     __host__ __device__ static bool finalize_scenario(
@@ -386,12 +573,12 @@ struct CurveScenarioDevicePreparation {
         const Scenario& central,
         Parameter parameter,
         float endpoint,
-        pg::TimeConfiguration,
+        pg::TimeConfiguration time,
         Scenario& row
     ) {
         row = central;
-        write_parameter(parameter, row, endpoint);
-        return finalize_scenario(
+        return apply_parameter(parameter, endpoint, time, row)
+            && finalize_scenario(
             row,
             parameter_owner(parameter)
                 == pg::SensitivityParameterOwner::model
@@ -404,13 +591,17 @@ struct CurveScenarioDevicePreparation {
         float first_endpoint,
         Parameter second_parameter,
         float second_endpoint,
-        pg::TimeConfiguration,
+        pg::TimeConfiguration time,
         Scenario& row
     ) {
         row = central;
-        write_parameter(first_parameter, row, first_endpoint);
-        write_parameter(second_parameter, row, second_endpoint);
-        return finalize_scenario(
+        return apply_parameter(
+                first_parameter, first_endpoint, time, row
+            )
+            && apply_parameter(
+                second_parameter, second_endpoint, time, row
+            )
+            && finalize_scenario(
             row,
             parameter_owner(first_parameter)
                     == pg::SensitivityParameterOwner::model

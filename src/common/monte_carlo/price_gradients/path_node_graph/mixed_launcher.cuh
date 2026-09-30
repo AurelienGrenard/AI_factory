@@ -94,32 +94,59 @@ void launch_device_prepared_path_mixed_node_graph(
         plan.sensitivity_count,
         host_graph,
         launch.threads_per_block,
-        graph_configuration
+        graph_configuration,
+        plan.has_maturity_sensitivity
     );
     validate_mixed_path_node_graph_workspace(
         workspace, layout.capacities
     );
 
-    const auto prepare = path_node_graph_detail::prepare_mixed_rows_kernel<
-        Dynamics,
-        ProductPolicy,
-        Preparation,
-        Schedule,
-        MaximumSensitivities,
-        MaximumMixedSensitivities,
-        Inputs
-    >;
-    const auto evaluate = path_node_graph_detail::evaluate_mixed_nodes_kernel<
-        Dynamics,
-        ProductPolicy,
-        Preparation,
-        Schedule,
-        MaximumSensitivities,
-        MaximumMixedSensitivities,
-        TeamSize,
-        NodesPerWorker,
-        Tuning
-    >;
+    const auto prepare = plan.has_maturity_sensitivity
+        ? path_node_graph_detail::prepare_mixed_rows_kernel<
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              MaximumMixedSensitivities,
+              true,
+              Inputs
+          >
+        : path_node_graph_detail::prepare_mixed_rows_kernel<
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              MaximumMixedSensitivities,
+              false,
+              Inputs
+          >;
+    const auto evaluate = plan.has_maturity_sensitivity
+        ? path_node_graph_detail::evaluate_mixed_nodes_kernel<
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              MaximumMixedSensitivities,
+              TeamSize,
+              NodesPerWorker,
+              true,
+              Tuning
+          >
+        : path_node_graph_detail::evaluate_mixed_nodes_kernel<
+              Dynamics,
+              ProductPolicy,
+              Preparation,
+              Schedule,
+              MaximumSensitivities,
+              MaximumMixedSensitivities,
+              TeamSize,
+              NodesPerWorker,
+              false,
+              Tuning
+          >;
     constexpr unsigned int evaluation_threads = Tuning::kThreadsPerBlock;
     constexpr unsigned int teams_per_block =
         evaluation_threads / TeamSize;
@@ -129,7 +156,7 @@ void launch_device_prepared_path_mixed_node_graph(
     ) & ~std::size_t{15U};
     constexpr auto scratch_bytes_per_team =
         path_node_graph_detail::mixed_path_team_scratch_bytes_v<
-            node_capacity, Dynamics
+            node_capacity, Dynamics, TeamSize
         >;
     const std::size_t evaluation_shared =
         teams_per_block * scratch_bytes_per_team;

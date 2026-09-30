@@ -27,6 +27,7 @@ struct RangeAccrualClosedFormPricingPolicy {
         float maturity_discount;
         float discounted_coupon_per_observation;
         std::uint32_t observation_count;
+        float terminal_observation_years;
     };
 
     __device__ __forceinline__ static PreparedRow prepare_row(
@@ -54,7 +55,24 @@ struct RangeAccrualClosedFormPricingPolicy {
             maturity_discount * product.coupon_rate
                 * observation_interval_years,
             product.maturity_days / product.observation_interval_days,
+            maturity_years,
         };
+    }
+
+    __device__ __forceinline__ static PreparedRow prepare_sensitivity_row(
+        const ModelParameters& model,
+        const product::RangeAccrualParameters& product,
+        const TimeConfiguration& time_configuration,
+        float maturity_years
+    ) {
+        auto row = prepare_row(model, product, time_configuration);
+        row.maturity_discount =
+            expf(-model.risk_free_rate * maturity_years);
+        row.discounted_coupon_per_observation =
+            row.maturity_discount * product.coupon_rate
+                * row.observation_interval_years;
+        row.terminal_observation_years = maturity_years;
+        return row;
     }
 
     __device__ __forceinline__ static float evaluate_price(
@@ -65,8 +83,10 @@ struct RangeAccrualClosedFormPricingPolicy {
              observation <= row.observation_count;
              ++observation) {
             const float observation_time =
-                static_cast<float>(observation)
-                * row.observation_interval_years;
+                observation == row.observation_count
+                ? row.terminal_observation_years
+                : static_cast<float>(observation)
+                    * row.observation_interval_years;
             probability_sum.add(lognormal_log_interval_probability(
                 row.evolution,
                 row.log_lower_barrier,

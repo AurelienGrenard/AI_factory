@@ -7,6 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 int main() {
@@ -85,9 +86,21 @@ int main() {
         throw std::runtime_error("sample progress journal is incomplete");
     }
     const auto document = read_json_file(recipe.dataset_path);
-    if (document.at("samples").at(0).at("parameters").at("sigma") != 0.2f
-        || document.at("samples").at(1).at("parameters").at("sigma") != 0.2f
-        || document.at("samples").at(2).at("parameters").at("sigma") != 0.3f) {
+    const std::unordered_set<std::string> expected_keys = {
+        "database_id", "model_family", "catalog", "url", "row_count",
+        "time_convention", "timing", "results",
+    };
+    std::unordered_set<std::string> actual_keys;
+    for (const auto& [key, value] : document.items()) {
+        (void)value;
+        actual_keys.insert(key);
+    }
+    if (actual_keys != expected_keys) {
+        throw std::runtime_error("sample envelope is not minimal");
+    }
+    if (document.at("results").at(0).at("parameters").at("sigma") != 0.2f
+        || document.at("results").at(1).at("parameters").at("sigma") != 0.2f
+        || document.at("results").at(2).at("parameters").at("sigma") != 0.3f) {
         throw std::runtime_error(
             "sample parameter packages are not parameter-major"
         );

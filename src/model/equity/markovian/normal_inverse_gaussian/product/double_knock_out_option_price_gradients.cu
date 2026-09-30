@@ -149,7 +149,7 @@ std::size_t normal_inverse_gaussian_double_knock_out_option_node_graph_workspace
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(host, configuration);
@@ -191,7 +191,7 @@ void launch_normal_inverse_gaussian_double_knock_out_option_node_graph_sensitivi
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        9U,
+        10U,
         16U,
         2U
     >(
@@ -220,8 +220,8 @@ std::size_t normal_inverse_gaussian_double_knock_out_option_mixed_node_graph_wor
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(host, configuration);
@@ -243,8 +243,8 @@ void launch_normal_inverse_gaussian_double_knock_out_option_mixed_node_graph_sen
         mpg::CoupledDynamics,
         product::DoubleKnockOutOptionPathPolicy<Side>,
         DoubleKnockOutOptionGradientSchedule,
-        9U,
-        36U,
+        10U,
+        45U,
         128U,
         2U
     >(

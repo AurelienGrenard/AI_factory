@@ -15,6 +15,7 @@ from capability_manifest import (  # noqa: E402
     MODEL_BY_NAME,
     PRICE_GRADIENT_BINDING_SPECS,
     PRICE_GRADIENT_DATASET_SPECS,
+    PRICE_GRADIENT_DATASET_VARIANTS,
     PRODUCT_BINDING_SPECS,
 )
 from price_gradients.coverage import markovian_coverage  # noqa: E402
@@ -22,6 +23,30 @@ from price_gradients.manifest import default_sensitivities  # noqa: E402
 
 
 class PriceGradientCoverageTest(unittest.TestCase):
+    def test_catalogue_publishes_only_diagonal_hessian_recipes(self):
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_VARIANTS), 3536)
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_SPECS), 936)
+        self.assertEqual(
+            {spec.sensitivity_orders for spec in PRICE_GRADIENT_DATASET_SPECS},
+            {("first", "diagonal_second")},
+        )
+        self.assertTrue(all(
+            spec.dataset_kind == "price_gradients"
+            and spec.dataset_id.endswith(
+                "_price_gradient_diagonal_hessian"
+            )
+            and "/price_gradients/" in spec.generator_path
+            for spec in PRICE_GRADIENT_DATASET_SPECS
+        ))
+        self.assertEqual(
+            {spec.sensitivity_orders for spec in PRICE_GRADIENT_DATASET_VARIANTS},
+            {
+                ("first",),
+                ("first", "diagonal_second"),
+                ("first", "diagonal_second", "mixed_second"),
+            },
+        )
+
     def test_monte_carlo_diagonal_generators_expose_both_execution_strategies(self):
         node_graph_products = {
             "european_option",
@@ -76,7 +101,7 @@ class PriceGradientCoverageTest(unittest.TestCase):
             for row in rows
         ]
         self.assertEqual(len(keys), len(set(keys)))
-        self.assertEqual(len(rows), 301)
+        self.assertEqual(len(rows), 313)
         self.assertEqual(
             sum(row["coverage"] != "missing_binding" for row in rows),
             len(PRICE_GRADIENT_BINDING_SPECS),
@@ -99,6 +124,36 @@ class PriceGradientCoverageTest(unittest.TestCase):
         self.assertIn("model.initial_state_x", names)
         self.assertIn("model.initial_state_y", names)
         self.assertEqual(len(names), 10)
+
+    def test_terminal_time_is_selected_except_for_early_exercise(self):
+        maturity = "product.maturity_years"
+        for model, product in (
+            ("heston", "european_option"),
+            ("heston", "asian_option"),
+            ("black_scholes", "forward_start_option"),
+            ("cir", "rate_option"),
+            ("cir", "zero_coupon_bond_option"),
+            ("cir", "european_swaption"),
+        ):
+            selected = {
+                item["parameter"]: item
+                for item in default_sensitivities(model, product)
+            }
+            self.assertIn(maturity, selected)
+            self.assertEqual(selected[maturity]["scale"], "absolute")
+            self.assertEqual(
+                selected[maturity]["displacement"], 1.0 / 504.0
+            )
+
+        for model, product in (
+            ("heston", "american_option"),
+            ("g2", "bermudan_swaption"),
+        ):
+            names = {
+                item["parameter"]
+                for item in default_sensitivities(model, product)
+            }
+            self.assertNotIn(maturity, names)
 
     def test_gradient_orders_and_binding_identity_are_checked(self):
         spec = PRICE_GRADIENT_BINDING_SPECS[0]

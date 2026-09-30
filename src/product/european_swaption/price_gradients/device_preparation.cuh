@@ -13,6 +13,20 @@ namespace ai_factory::workbench::product::european_swaption::price_gradients {
 
 struct DevicePreparation {
     using Product = RegularEuropeanSwaptionParameters;
+    static constexpr bool kSupportsMaturitySensitivity = true;
+    __host__ __device__ static std::uint32_t terminal_maturity_days(
+        const Product& product
+    ) {
+        return product.exercise_time_days
+            + product.payment_count * product.payment_interval_days;
+    }
+    __host__ __device__ static std::uint32_t terminal_prefix_days(
+        const Product& product
+    ) {
+        return product.exercise_time_days
+            + (product.payment_count - 1U)
+                * product.payment_interval_days;
+    }
     static constexpr std::array parameter_names{
         std::string_view{"product.notional"},
         std::string_view{"product.strike"},

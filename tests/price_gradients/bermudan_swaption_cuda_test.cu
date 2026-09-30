@@ -2,6 +2,8 @@
 #include "common/longstaff_schwartz/launch.cuh"
 #include "model/fixed_income/cir/product/bermudan_swaption.cuh"
 #include "model/fixed_income/cir/product/bermudan_swaption_price_gradients.cuh"
+#include "model/fixed_income/cir_plus_plus/product/flat/bermudan_swaption.cuh"
+#include "model/fixed_income/cir_plus_plus/product/flat/bermudan_swaption_price_gradients.cuh"
 #include "model/fixed_income/cir_plus_plus/product/nelson_siegel/bermudan_swaption.cuh"
 #include "model/fixed_income/cir_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients.cuh"
 #include "model/fixed_income/g2/product/bermudan_swaption.cuh"
@@ -737,6 +739,116 @@ void check_g2() {
     );
 }
 
+void check_cir_plus_plus_flat() {
+    namespace fitted = model::fixed_income::cir_plus_plus::flat;
+    using Model = model::fixed_income::cir_plus_plus::ModelParameters;
+    using Curve = curve::flat::FlatCurveParameters;
+    const std::vector<Model> models{
+        {{0.50f, 0.040f, 0.10f}, 0.040f},
+        {{0.30f, 0.025f, 0.08f}, 0.015f},
+    };
+    const std::vector<Curve> curves{{0.030f}, {-0.005f}};
+    const pg::PriceGradientConfiguration selection{{
+        {"model.volatility", {0.005}},
+        {"curve.rate", {0.0005, pg::BumpScale::absolute}},
+        {"product.strike", {0.0005, pg::BumpScale::absolute}},
+    }};
+    const auto plan =
+        fitted::prepare_cir_plus_plus_flat_bermudan_swaption_sensitivities(
+            models,
+            curves,
+            kProducts,
+            PriceConstruction::Aligned,
+            kTime,
+            selection,
+            {pg::SensitivityOrders::first_and_second}
+        );
+    const Results diagonal = execute_curve<
+        pg::SensitivityOrders::first_and_second
+    >(
+        plan,
+        [](const auto& host, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return fitted::
+                launch_cir_plus_plus_flat_bermudan_swaption_diagonal_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(host, inputs, stencils, launch, outputs);
+        }
+    );
+    const Results node_graph = execute_curve<
+        pg::SensitivityOrders::first_and_second
+    >(
+        plan,
+        [](const auto& host, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            const auto bytes = fitted::
+                cir_plus_plus_flat_bermudan_swaption_node_graph_workspace_bytes<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(host, launch);
+            DeviceArray<std::uint8_t> workspace(bytes);
+            return fitted::
+                launch_cir_plus_plus_flat_bermudan_swaption_node_graph_sensitivities_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    host,
+                    inputs,
+                    stencils,
+                    launch,
+                    outputs,
+                    workspace.data,
+                    workspace.count
+                );
+        }
+    );
+    require_same_first_order(
+        diagonal,
+        node_graph,
+        "CIR++/Flat Bermudan mono and node_graph first-order outputs differ."
+    );
+    require(
+        diagonal.hessians == node_graph.hessians
+            && diagonal.hessian_errors == node_graph.hessian_errors,
+        "CIR++/Flat Bermudan mono and node_graph diagonal Hessians differ."
+    );
+
+    const Results central = execute_central_curve(
+        models,
+        curves,
+        [&](auto device_models, auto device_curves, auto device_products,
+            auto prices, auto errors) {
+            return fitted::
+                launch_cir_plus_plus_flat_bermudan_swaption_cuda<
+                    SwaptionSide::payer
+                >(
+                    device_models,
+                    models.size(),
+                    device_curves,
+                    curves.size(),
+                    kProducts.data(),
+                    device_products,
+                    kProducts.size(),
+                    PriceConstruction::Aligned,
+                    models.size(),
+                    kPaths,
+                    kTime.dt * kTime.simulation_steps_per_day,
+                    kThreads,
+                    kBlocks,
+                    kSeed,
+                    prices,
+                    errors
+                );
+        }
+    );
+    require_same_central(
+        diagonal,
+        central,
+        "CIR++/Flat gradient pipeline changed central bits."
+    );
+}
+
 void check_cir_plus_plus_nelson_siegel() {
     namespace fitted =
         model::fixed_income::cir_plus_plus::nelson_siegel;
@@ -946,6 +1058,7 @@ int main() {
     check_cir();
     check_vasicek();
     check_g2();
+    check_cir_plus_plus_flat();
     check_cir_plus_plus_nelson_siegel();
     check_g2_plus_plus_svensson_full_mixed_capacity();
 }

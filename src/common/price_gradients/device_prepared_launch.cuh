@@ -92,6 +92,7 @@ struct DevicePreparedPlan {
     std::size_t result_count;
     std::size_t sensitivity_count;
     std::size_t curve_count = 0U;
+    bool has_maturity_sensitivity = false;
 };
 
 static_assert(std::is_trivially_copyable_v<DevicePreparedPlan>);

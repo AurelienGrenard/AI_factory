@@ -147,6 +147,7 @@ def closed_form_explicit_instantiations(
 
 
 CURVE_METADATA = {
+    "flat": ("Flat", "FlatCurve"),
     "nelson_siegel": ("Nelson-Siegel", "NelsonSiegel"),
     "svensson": ("Svensson", "Svensson"),
 }
@@ -1071,7 +1072,7 @@ def render_recipes(
             inputs["curve"] = curve_input
         metadata = {
             "schema_version": 1,
-            "kind": "price_sensitivities",
+            "kind": "price_gradients",
             "dataset_id": spec.dataset_id,
             "generator": "generator.cpp",
             "inputs": inputs,

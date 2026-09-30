@@ -178,8 +178,8 @@ void launch_ornstein_uhlenbeck_european_swaption_mixed_node_graph_sensitivities_
         && closed_form::price_gradients::
             launch_device_prepared_cooperative_mixed<
                 Policy,
-                6U,
-                15U
+                7U,
+                21U
             >(
                 host,
                 device,
@@ -197,8 +197,8 @@ void launch_ornstein_uhlenbeck_european_swaption_mixed_node_graph_sensitivities_
     if (cooperative) return;
     closed_form::price_gradients::launch_device_prepared_mixed<
         Policy,
-        6U,
-        15U
+        7U,
+        21U
     >(
         host,
         device,

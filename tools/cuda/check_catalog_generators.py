@@ -183,7 +183,7 @@ def main() -> int:
                 ("catalog", f"catalog/{prefix}"),
                 (
                     "URL",
-                    "https://datasets.ai-factory.example/v1/" + prefix,
+                    "https://datasets.ai-factory.example/v2/" + prefix,
                 ),
             ):
                 if value not in helper_literals:

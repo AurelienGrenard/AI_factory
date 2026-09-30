@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/fixed_income/price_gradients/device_preparation.cuh"
+#include "common/fixed_income/price_gradients/terminal_maturity.cuh"
 
 #include <cstddef>
 #include <cstdint>
@@ -16,16 +17,23 @@ template<
 >
 struct ScenarioClosedFormPolicy {
     using InputRow = Scenario<Model, Product>;
-    using PreparedRow = typename PricingPolicy::PreparedRow;
+    using BasePreparedRow = typename PricingPolicy::PreparedRow;
+    using PreparedRow = TerminalMaturityPreparedRow<BasePreparedRow>;
 
     __device__ __forceinline__ static PreparedRow prepare(
         const InputRow& input
     ) {
-        return PricingPolicy::prepare_row(
-            input.model,
-            input.product,
-            Context{},
-            typename PricingPolicy::TimeConfiguration{input.day_fraction}
+        return apply_terminal_maturity(
+            PricingPolicy::prepare_row(
+                input.model,
+                input.product,
+                Context{},
+                typename PricingPolicy::TimeConfiguration{
+                    input.day_fraction
+                }
+            ),
+            input.maturity_years,
+            input.step_count != input.central_step_count
         );
     }
 
@@ -64,15 +72,22 @@ struct ScenarioClosedFormPolicy {
 template<typename PricingPolicy, typename Model, typename Product>
 struct ScalarScenarioClosedFormPolicy {
     using InputRow = Scenario<Model, Product>;
-    using PreparedRow = typename PricingPolicy::PreparedRow;
+    using BasePreparedRow = typename PricingPolicy::PreparedRow;
+    using PreparedRow = TerminalMaturityPreparedRow<BasePreparedRow>;
 
     __device__ __forceinline__ static PreparedRow prepare(
         const InputRow& input
     ) {
-        return PricingPolicy::prepare_row(
-            input.model,
-            input.product,
-            typename PricingPolicy::TimeConfiguration{input.day_fraction}
+        return apply_terminal_maturity(
+            PricingPolicy::prepare_row(
+                input.model,
+                input.product,
+                typename PricingPolicy::TimeConfiguration{
+                    input.day_fraction
+                }
+            ),
+            input.maturity_years,
+            input.step_count != input.central_step_count
         );
     }
 
@@ -91,16 +106,23 @@ template<
 >
 struct CurveScalarScenarioClosedFormPolicy {
     using InputRow = CurveScenario<Model, Curve, Product>;
-    using PreparedRow = typename PricingPolicy::PreparedRow;
+    using BasePreparedRow = typename PricingPolicy::PreparedRow;
+    using PreparedRow = TerminalMaturityPreparedRow<BasePreparedRow>;
 
     __device__ __forceinline__ static PreparedRow prepare(
         const InputRow& input
     ) {
-        return PricingPolicy::prepare_row(
-            input.model,
-            input.curve,
-            input.product,
-            typename PricingPolicy::TimeConfiguration{input.day_fraction}
+        return apply_terminal_maturity(
+            PricingPolicy::prepare_row(
+                input.model,
+                input.curve,
+                input.product,
+                typename PricingPolicy::TimeConfiguration{
+                    input.day_fraction
+                }
+            ),
+            input.maturity_years,
+            input.step_count != input.central_step_count
         );
     }
 
@@ -120,17 +142,24 @@ template<
 >
 struct CurveScenarioClosedFormPolicy {
     using InputRow = CurveScenario<Model, Curve, Product>;
-    using PreparedRow = typename PricingPolicy::PreparedRow;
+    using BasePreparedRow = typename PricingPolicy::PreparedRow;
+    using PreparedRow = TerminalMaturityPreparedRow<BasePreparedRow>;
 
     __device__ __forceinline__ static PreparedRow prepare(
         const InputRow& input
     ) {
-        return PricingPolicy::prepare_row(
-            input.model,
-            input.curve,
-            input.product,
-            Context{},
-            typename PricingPolicy::TimeConfiguration{input.day_fraction}
+        return apply_terminal_maturity(
+            PricingPolicy::prepare_row(
+                input.model,
+                input.curve,
+                input.product,
+                Context{},
+                typename PricingPolicy::TimeConfiguration{
+                    input.day_fraction
+                }
+            ),
+            input.maturity_years,
+            input.step_count != input.central_step_count
         );
     }
 
