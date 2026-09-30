@@ -44,6 +44,11 @@ struct ScalarRateContinuationState {
         const typename Analytics::PreparedRegressionState& prepared,
         StateView states, std::size_t index
     ) { return Analytics::normalize_regression_state(prepared, factor(states, index)); }
+    template<typename Analytics>
+    __device__ __forceinline__ static float regression_input(
+        const typename Analytics::PreparedRegressionState& prepared,
+        float state
+    ) { return Analytics::normalize_regression_state(prepared, state); }
 };
 
 }  // namespace ai_factory::workbench::fixed_income

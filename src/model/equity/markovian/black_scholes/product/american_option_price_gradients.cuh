@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/longstaff_schwartz/launch.cuh"
+#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
 #include "common/longstaff_schwartz/price_gradients/device_prepared_plan.hpp"
 #include "common/option_side.cuh"
 #include "common/price_gradients/launch.cuh"
@@ -92,6 +93,17 @@ launch_black_scholes_american_option_price_gradients_cuda(
     pg::Outputs outputs
 );
 
+template<OptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_price_gradients_with_replay_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::Outputs outputs,
+    lspg::ExerciseReplayStrategy replay
+);
+
 template<OptionSide Side, pg::SensitivityOrders Orders>
 longstaff_schwartz::LaunchResult
 launch_black_scholes_american_option_diagonal_sensitivities_cuda(
@@ -103,9 +115,27 @@ launch_black_scholes_american_option_diagonal_sensitivities_cuda(
 );
 
 template<OptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_diagonal_sensitivities_with_replay_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    lspg::ExerciseReplayStrategy replay
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
 std::size_t black_scholes_american_option_node_graph_workspace_bytes(
     const AmericanOptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side, pg::SensitivityOrders Orders>
+std::size_t black_scholes_american_option_node_graph_workspace_bytes_with_replay(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
 );
 
 template<OptionSide Side, pg::SensitivityOrders Orders>
@@ -120,11 +150,31 @@ launch_black_scholes_american_option_node_graph_sensitivities_cuda(
     std::size_t workspace_bytes
 );
 
+template<OptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_node_graph_sensitivities_with_replay_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
+);
+
 
 template<OptionSide Side>
 std::size_t black_scholes_american_option_mixed_node_graph_workspace_bytes(
     const AmericanOptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
+);
+
+template<OptionSide Side>
+std::size_t black_scholes_american_option_mixed_node_graph_workspace_bytes_with_replay(
+    const AmericanOptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
 );
 
 template<OptionSide Side>
@@ -139,6 +189,21 @@ launch_black_scholes_american_option_mixed_node_graph_sensitivities_cuda(
     pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
+);
+
+template<OptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_black_scholes_american_option_mixed_node_graph_sensitivities_with_replay_cuda(
+    const AmericanOptionPriceGradientPlan& host,
+    AmericanOptionPriceGradientPlan::DeviceInputs device,
+    AmericanOptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    AmericanOptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
 );
 
 }  // namespace ai_factory::workbench::model::equity::black_scholes

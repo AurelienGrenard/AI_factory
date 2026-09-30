@@ -49,6 +49,17 @@
       "diagonal_second"
     ]
   },
+  "numerical_method": {
+    "engine": "equity_lsm_fixed",
+    "algorithm": "longstaff_schwartz",
+    "regression": {
+      "basis": "laguerre_polynomial_two_factor_6_term",
+      "feature_normalization": "central_lsm_row",
+      "solver": "ridge_regularized_fp64_normal_equations_cholesky",
+      "refinement": "none"
+    }
+  },
+  "exercise_replay": "frozen_exercise_time",
   "seeds": {
     "dynamics": 11668826990999240704
   },

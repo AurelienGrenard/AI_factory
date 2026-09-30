@@ -417,6 +417,32 @@ void check_cir() {
                 >(p, inputs, stencils, launch, outputs);
         }
     );
+    const Results frozen_policy = execute_standalone<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(full, pg::SensitivityOrders::first_and_second),
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return cir::
+                launch_cir_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p,
+                    inputs,
+                    stencils,
+                    launch,
+                    outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        }
+    );
+    require_same_central(
+        diagonal,
+        frozen_policy,
+        "CIR terminal-forward replay strategy changed central results."
+    );
     const Results central = execute_central_standalone(
         models,
         [&](auto device_models, auto device_products,
@@ -606,6 +632,64 @@ void check_g2() {
         "G2 Bermudan mono and node_graph diagonal Hessians differ."
     );
 
+    const Results frozen_policy = execute_standalone<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(pg::SensitivityOrders::first_and_second),
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return g2::
+                launch_g2_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, launch, outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        }
+    );
+    const Results frozen_policy_graph = execute_standalone<
+        pg::SensitivityOrders::first_and_second
+    >(
+        prepare(pg::SensitivityOrders::first_and_second),
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            const auto bytes = g2::
+                g2_bermudan_swaption_node_graph_workspace_bytes_with_replay<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p,
+                    launch,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+            DeviceArray<std::uint8_t> workspace(bytes);
+            return g2::
+                launch_g2_bermudan_swaption_node_graph_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, launch, outputs,
+                    workspace.data, workspace.count,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        }
+    );
+    require_same_first_order(
+        frozen_policy,
+        frozen_policy_graph,
+        "G2 Bermudan frozen-policy mono and node graph differ."
+    );
+    require(
+        frozen_policy.hessians == frozen_policy_graph.hessians
+            && frozen_policy.hessian_errors
+                == frozen_policy_graph.hessian_errors,
+        "G2 Bermudan frozen-policy diagonal Hessians differ."
+    );
+
     const auto mixed_plan = g2::prepare_g2_bermudan_swaption_sensitivities(
         models,
         kProducts,
@@ -647,6 +731,50 @@ void check_g2() {
         257U,
         kSeed,
         "G2 Bermudan mixed node graph"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        mixed_plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return g2::
+                launch_g2_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, launch, outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, const auto& launch) {
+            return g2::
+                g2_bermudan_swaption_mixed_node_graph_workspace_bytes_with_replay<
+                    SwaptionSide::payer
+                >(
+                    p,
+                    launch,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& launch,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return g2::
+                launch_g2_bermudan_swaption_mixed_node_graph_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    launch, outputs, mixed_outputs,
+                    workspace, workspace_bytes,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        257U,
+        kSeed,
+        "G2 Bermudan frozen-policy mixed node graph"
     );
 
     const auto sparse_mixed_plan =
@@ -776,6 +904,32 @@ void check_cir_plus_plus_flat() {
                 >(host, inputs, stencils, launch, outputs);
         }
     );
+    const Results frozen_policy = execute_curve<
+        pg::SensitivityOrders::first_and_second
+    >(
+        plan,
+        [](const auto& host, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return fitted::
+                launch_cir_plus_plus_flat_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    host,
+                    inputs,
+                    stencils,
+                    launch,
+                    outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        }
+    );
+    require_same_central(
+        diagonal,
+        frozen_policy,
+        "CIR++/Flat replay strategy changed central results."
+    );
     const Results node_graph = execute_curve<
         pg::SensitivityOrders::first_and_second
     >(
@@ -812,6 +966,49 @@ void check_cir_plus_plus_flat() {
         diagonal.hessians == node_graph.hessians
             && diagonal.hessian_errors == node_graph.hessian_errors,
         "CIR++/Flat Bermudan mono and node_graph diagonal Hessians differ."
+    );
+    const Results frozen_policy_graph = execute_curve<
+        pg::SensitivityOrders::first_and_second
+    >(
+        plan,
+        [](const auto& host, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            constexpr auto replay = longstaff_schwartz::price_gradients::
+                ExerciseReplayStrategy::frozen_regression_policy;
+            const auto bytes = fitted::
+                cir_plus_plus_flat_bermudan_swaption_node_graph_workspace_bytes_with_replay<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(host, launch, replay);
+            DeviceArray<std::uint8_t> workspace(bytes);
+            return fitted::
+                launch_cir_plus_plus_flat_bermudan_swaption_node_graph_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    host,
+                    inputs,
+                    stencils,
+                    launch,
+                    outputs,
+                    workspace.data,
+                    workspace.count,
+                    replay
+                );
+        }
+    );
+    require_same_first_order(
+        frozen_policy,
+        frozen_policy_graph,
+        "CIR++/Flat frozen-policy mono and node_graph first-order "
+        "outputs differ."
+    );
+    require(
+        frozen_policy.hessians == frozen_policy_graph.hessians
+            && frozen_policy.hessian_errors
+                == frozen_policy_graph.hessian_errors,
+        "CIR++/Flat frozen-policy mono and node_graph diagonal Hessians "
+        "differ."
     );
 
     const Results central = execute_central_curve(
@@ -1040,6 +1237,50 @@ void check_g2_plus_plus_svensson_full_mixed_capacity() {
         257U,
         kSeed,
         "G2++/Svensson maximum mixed Bermudan graph"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& launch, auto outputs) {
+            return fitted::
+                launch_g2_plus_plus_svensson_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer,
+                    pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, launch, outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, const auto& launch) {
+            return fitted::
+                g2_plus_plus_svensson_bermudan_swaption_mixed_node_graph_workspace_bytes_with_replay<
+                    SwaptionSide::payer
+                >(
+                    p,
+                    launch,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& launch,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return fitted::
+                launch_g2_plus_plus_svensson_bermudan_swaption_mixed_node_graph_sensitivities_with_replay_cuda<
+                    SwaptionSide::payer
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    launch, outputs, mixed_outputs,
+                    workspace, workspace_bytes,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        257U,
+        kSeed,
+        "G2++/Svensson maximum frozen-policy mixed Bermudan graph"
     );
 }
 

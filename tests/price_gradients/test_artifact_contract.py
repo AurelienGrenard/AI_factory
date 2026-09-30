@@ -336,15 +336,18 @@ class ArtifactContractTests(unittest.TestCase):
                           "g2_plus_plus", "hull_white",
                           "ornstein_uhlenbeck", "vasicek"})
         self.assertEqual({job["target"] for job in jobs},{spec.cmake_target for spec in PRICE_GRADIENT_DATASET_SPECS})
-        self.assertEqual(len(PRICE_GRADIENT_DATASET_SPECS), 888)
-        self.assertEqual(len(PRICE_GRADIENT_DATASET_VARIANTS), 3392)
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_SPECS), 1020)
+        self.assertEqual(len(PRICE_GRADIENT_DATASET_VARIANTS), 3620)
         diagonal = list(PRICE_GRADIENT_DATASET_SPECS)
         self.assertTrue(all(
             spec.dataset_kind == "price_gradients"
             and spec.sensitivity_orders == ("first", "diagonal_second")
             and not spec.sensitivity_parameters
             and spec.dataset_id.endswith(
-                "_price_gradient_diagonal_hessian"
+                (
+                    "_price_gradient_diagonal_hessian",
+                    "_price_gradient_diagonal_hessian_frozen_policy",
+                )
             )
             and "/price_gradients/" in spec.generator_path
             for spec in diagonal
@@ -359,7 +362,13 @@ class ArtifactContractTests(unittest.TestCase):
                 == ("first", "diagonal_second", "mixed_second")
         ]
         self.assertTrue(spot_only)
-        self.assertEqual(len(full_hessian), len(diagonal))
+        self.assertEqual(
+            len(full_hessian),
+            sum(
+                spec.exercise_replay != "frozen_regression_policy"
+                for spec in diagonal
+            ),
+        )
         self.assertTrue(all(
             spec.dataset_id.endswith("_price_gradient_spot")
             and spec.sensitivity_orders == ("first",)
@@ -387,15 +396,15 @@ class ArtifactContractTests(unittest.TestCase):
         ))
         self.assertEqual(
             sum(spec.product == "american_option" for spec in diagonal),
-            32,
+            64,
         )
         self.assertEqual(
             sum(spec.product == "european_swaption" for spec in diagonal),
-            40,
+            52,
         )
         self.assertEqual(
             sum(spec.product == "bermudan_swaption" for spec in diagonal),
-            40,
+            104,
         )
         import json
         for spec in PRICE_GRADIENT_DATASET_SPECS:

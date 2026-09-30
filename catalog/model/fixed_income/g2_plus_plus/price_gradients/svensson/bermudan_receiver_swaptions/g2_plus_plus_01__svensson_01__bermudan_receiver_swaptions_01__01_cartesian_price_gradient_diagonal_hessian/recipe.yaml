@@ -110,6 +110,17 @@
       "diagonal_second"
     ]
   },
+  "numerical_method": {
+    "engine": "fixed_income_lsm",
+    "algorithm": "longstaff_schwartz",
+    "regression": {
+      "basis": "hermite_probabilists_two_factor_quadratic_6_term",
+      "feature_normalization": "central_lsm_row",
+      "solver": "ridge_regularized_fp64_normal_equations_cholesky",
+      "refinement": "none"
+    }
+  },
+  "exercise_replay": "frozen_exercise_time",
   "seeds": {
     "dynamics": 11668829086943281152
   },

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_exercise_node_graph/value_policy.cuh"
+#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/execution_plan.hpp"
 #include "common/monte_carlo/price_gradients/node_graph/mixed_launch_validation.hpp"
 #include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
@@ -205,19 +205,40 @@ template<
     unsigned int NodesPerWorker,
     typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
     typename HostPlan>
-std::size_t frozen_exercise_node_graph_workspace_bytes(
+std::size_t frozen_replay_node_graph_workspace_bytes(
     const HostPlan& host,
     const pg::LaunchConfiguration& launch
 ) {
     if (host.sensitivity_count() == 0U) return 0U;
     return mcpg::make_node_graph_execution_plan<
         Orders,
-        FrozenExerciseValueNodePolicy,
+        FrozenReplayValueNodePolicy,
         MaximumSensitivities,
         GroupSize,
         NodesPerWorker,
         Tuning
     >(host, launch, true).workspace.bytes;
+}
+
+// Compatibility wrapper for the former, overly specific name.
+template<
+    pg::SensitivityOrders Orders,
+    std::size_t MaximumSensitivities,
+    unsigned int GroupSize,
+    unsigned int NodesPerWorker,
+    typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
+    typename HostPlan>
+std::size_t frozen_exercise_node_graph_workspace_bytes(
+    const HostPlan& host,
+    const pg::LaunchConfiguration& launch
+) {
+    return frozen_replay_node_graph_workspace_bytes<
+        Orders,
+        MaximumSensitivities,
+        GroupSize,
+        NodesPerWorker,
+        Tuning
+    >(host, launch);
 }
 
 template<
@@ -253,12 +274,12 @@ launch_device_prepared_node_graph_sensitivities(
         1U,
     };
     mcpg::TerminalNodeGraphWorkspace<
-        FrozenExerciseValueNodePolicy
+        FrozenReplayValueNodePolicy
     > workspace{};
     if (host.sensitivity_count() != 0U) {
         const auto execution = mcpg::make_node_graph_execution_plan<
             Orders,
-            FrozenExerciseValueNodePolicy,
+            FrozenReplayValueNodePolicy,
             MaximumSensitivities,
             GroupSize,
             NodesPerWorker,
@@ -266,7 +287,7 @@ launch_device_prepared_node_graph_sensitivities(
         >(host, launch, true);
         graph = execution.graph;
         workspace = mcpg::make_terminal_node_graph_workspace<
-            FrozenExerciseValueNodePolicy
+            FrozenReplayValueNodePolicy
         >(workspace_storage, workspace_bytes, execution.workspace);
     }
 
@@ -300,7 +321,7 @@ template<
     unsigned int NodesPerWorker,
     typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
     typename HostPlan>
-std::size_t frozen_exercise_mixed_node_graph_workspace_bytes(
+std::size_t frozen_replay_mixed_node_graph_workspace_bytes(
     const HostPlan& host,
     const pg::LaunchConfiguration& launch
 ) {
@@ -316,6 +337,29 @@ std::size_t frozen_exercise_mixed_node_graph_workspace_bytes(
         NodesPerWorker,
         Tuning
     >(host, launch, make_layout).workspace.bytes;
+}
+
+// Compatibility wrapper for the former, overly specific name.
+template<
+    typename Policy,
+    std::size_t MaximumSensitivities,
+    std::size_t MaximumMixedSensitivities,
+    unsigned int GroupSize,
+    unsigned int NodesPerWorker,
+    typename Tuning = mcpg::tuning::DefaultTerminalNodeTuning,
+    typename HostPlan>
+std::size_t frozen_exercise_mixed_node_graph_workspace_bytes(
+    const HostPlan& host,
+    const pg::LaunchConfiguration& launch
+) {
+    return frozen_replay_mixed_node_graph_workspace_bytes<
+        Policy,
+        MaximumSensitivities,
+        MaximumMixedSensitivities,
+        GroupSize,
+        NodesPerWorker,
+        Tuning
+    >(host, launch);
 }
 
 template<

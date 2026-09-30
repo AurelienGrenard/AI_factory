@@ -141,7 +141,10 @@ Run execute(
     unsigned int threads,
     std::size_t blocks,
     std::uint64_t seed,
-    bool node_graph = false
+    bool node_graph = false,
+    longstaff_schwartz::price_gradients::ExerciseReplayStrategy replay =
+        longstaff_schwartz::price_gradients::ExerciseReplayStrategy::
+            frozen_exercise_time
 ) {
     constexpr std::size_t node_capacity =
         pg::SensitivityTraits<Orders>::node_capacity;
@@ -210,15 +213,15 @@ Run execute(
     if constexpr (pg::requests_second_v<Orders>) {
         if (node_graph) {
             workspace_bytes =
-                bates::bates_american_option_node_graph_workspace_bytes<
+                bates::bates_american_option_node_graph_workspace_bytes_with_replay<
                     Side, Orders
-                >(plan, launch);
+                >(plan, launch, replay);
         }
     }
     DeviceArray<std::uint8_t> workspace(workspace_bytes);
     const auto result = [&] {
         if constexpr (Orders == pg::SensitivityOrders::first) {
-            return bates::launch_bates_american_option_price_gradients_cuda<
+            return bates::launch_bates_american_option_price_gradients_with_replay_cuda<
                 Side
             >(
                 plan,
@@ -232,12 +235,13 @@ Run execute(
                     outputs.gradient_standard_errors,
                     outputs.price_capacity,
                     outputs.sensitivity_capacity,
-                }
+                },
+                replay
             );
         } else {
             if (node_graph) {
                 return bates::
-                    launch_bates_american_option_node_graph_sensitivities_cuda<
+                    launch_bates_american_option_node_graph_sensitivities_with_replay_cuda<
                         Side,
                         Orders
                     >(
@@ -247,11 +251,12 @@ Run execute(
                         launch,
                         outputs,
                         workspace.data,
-                        workspace.count
+                        workspace.count,
+                        replay
                     );
             }
             return bates::
-                launch_bates_american_option_diagonal_sensitivities_cuda<
+                launch_bates_american_option_diagonal_sensitivities_with_replay_cuda<
                     Side,
                     Orders
                 >(
@@ -259,7 +264,8 @@ Run execute(
                     inputs,
                     stencil_outputs,
                     launch,
-                    outputs
+                    outputs,
+                    replay
                 );
         }
     }();
@@ -471,6 +477,49 @@ void run() {
             && node_graph.hessian_errors == diagonal.hessian_errors,
         "Bates American mono and node_graph sensitivity outputs differ."
     );
+    constexpr auto frozen_policy_replay =
+        longstaff_schwartz::price_gradients::ExerciseReplayStrategy::
+            frozen_regression_policy;
+    const auto frozen_policy = execute<
+        pg::SensitivityOrders::first_and_second,
+        Side
+    >(
+        diagonal_plan,
+        test_paths,
+        threads,
+        blocks,
+        seed,
+        false,
+        frozen_policy_replay
+    );
+    const auto frozen_policy_graph = execute<
+        pg::SensitivityOrders::first_and_second,
+        Side
+    >(
+        diagonal_plan,
+        test_paths,
+        threads,
+        blocks,
+        seed,
+        true,
+        frozen_policy_replay
+    );
+    require(
+        frozen_policy_graph.prices == frozen_policy.prices
+            && frozen_policy_graph.price_errors == frozen_policy.price_errors
+            && frozen_policy_graph.gradients == frozen_policy.gradients
+            && frozen_policy_graph.gradient_errors
+                == frozen_policy.gradient_errors
+            && frozen_policy_graph.hessians == frozen_policy.hessians
+            && frozen_policy_graph.hessian_errors
+                == frozen_policy.hessian_errors,
+        "Bates frozen-policy mono and node_graph outputs differ."
+    );
+    require(
+        frozen_policy.prices == diagonal.prices
+            && frozen_policy.price_errors == diagonal.price_errors,
+        "Bates replay strategy changed central results."
+    );
     require(
         diagonal.prices == selected.prices
             && diagonal.price_errors == selected.price_errors
@@ -531,6 +580,49 @@ void run() {
         257U,
         seed,
         "Bates American mixed node graph"
+    );
+    price_gradient_test::require_mixed_node_graph_parity(
+        mixed_plan,
+        [](const auto& p, auto inputs, auto stencils,
+           const auto& configuration, auto outputs) {
+            return bates::
+                launch_bates_american_option_diagonal_sensitivities_with_replay_cuda<
+                    Side, pg::SensitivityOrders::first_and_second
+                >(
+                    p, inputs, stencils, configuration, outputs,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, const auto& configuration) {
+            return bates::
+                bates_american_option_mixed_node_graph_workspace_bytes_with_replay<
+                    Side
+                >(
+                    p,
+                    configuration,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        [](const auto& p, auto inputs, auto stencils,
+           auto mixed_stencils, const auto& configuration,
+           auto outputs, auto mixed_outputs,
+           void* workspace, std::size_t workspace_bytes) {
+            return bates::
+                launch_bates_american_option_mixed_node_graph_sensitivities_with_replay_cuda<
+                    Side
+                >(
+                    p, inputs, stencils, mixed_stencils,
+                    configuration, outputs, mixed_outputs,
+                    workspace, workspace_bytes,
+                    longstaff_schwartz::price_gradients::
+                        ExerciseReplayStrategy::frozen_regression_policy
+                );
+        },
+        257U,
+        seed,
+        "Bates American frozen-policy mixed node graph"
     );
 }
 

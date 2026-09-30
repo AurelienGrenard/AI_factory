@@ -764,6 +764,35 @@ def render_bindings(output_root, specifications, template_root, write_generated)
     return generated
 
 
+def early_exercise_numerical_method(spec):
+    """Describe the LSM fit shared by both early-exercise replays."""
+    if spec.product == "american_option":
+        basis = "laguerre_polynomial_two_factor_6_term"
+        refinement = american_lsm_metadata(spec.model)["refinement"]
+    elif spec.product == "bermudan_swaption":
+        basis = (
+            "hermite_probabilists_two_factor_quadratic_6_term"
+            if spec.model in {"g2", "g2_plus_plus"}
+            else "hermite_probabilists_one_factor_degree_3"
+        )
+        refinement = "none"
+    else:
+        raise ValueError(
+            "Longstaff-Schwartz metadata requested for a non early-exercise "
+            f"product: {spec.product}"
+        )
+    return {
+        "engine": spec.engine,
+        "algorithm": "longstaff_schwartz",
+        "regression": {
+            "basis": basis,
+            "feature_normalization": "central_lsm_row",
+            "solver": "ridge_regularized_fp64_normal_equations_cholesky",
+            "refinement": refinement,
+        },
+    }
+
+
 def render_recipes(
     output_root,
     specifications,
@@ -1035,6 +1064,7 @@ def render_recipes(
             "construction": "Aligned" if spec.construction == "aligned" else "CartesianProduct",
             "family": family,
             "exact_transition": str(exact_transition).lower(),
+            "exercise_replay": spec.exercise_replay or "",
             "curve": spec.curve or "",
             "curve_input": curve_input,
             "curve_prefix": curve_prefix,
@@ -1090,6 +1120,9 @@ def render_recipes(
                 "source_price_recipe": source.recipe_yaml_path,
             },
         }
+        if spec.exercise_replay is not None:
+            metadata["numerical_method"] = early_exercise_numerical_method(spec)
+            metadata["exercise_replay"] = spec.exercise_replay
         if stochastic:
             metadata["seeds"] = {"dynamics": seed}
             metadata["random_number_generator"] = "philox"

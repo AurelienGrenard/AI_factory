@@ -27,6 +27,10 @@ properties:
     minimum: 1
   random_number_generator:
     const: philox
+  exercise_replay:
+    enum:
+      - frozen_exercise_time
+      - frozen_regression_policy
   output:
     type: object
     required: [path, format]

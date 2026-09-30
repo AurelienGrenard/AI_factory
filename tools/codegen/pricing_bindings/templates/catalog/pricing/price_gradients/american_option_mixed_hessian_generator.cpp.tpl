@@ -1,4 +1,4 @@
-// Generated ${model} American selected full Hessian with frozen exercise.
+// Generated ${model} American selected full Hessian with explicit exercise replay.
 #include "model/equity/markovian/${model}/product/american_option_price_gradients.cuh"
 #include "model/equity/markovian/${model}/dataset.hpp"
 #include "product/american_option/dataset.hpp"
@@ -6,6 +6,7 @@
 
 int main() {
     using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
     namespace pg = price_gradients;
     try {
         datasets::price_gradients::Recipe recipe{
@@ -16,6 +17,9 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, false,
             pg::SensitivityOrders::first_and_second
         };
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::$exercise_replay;
+        recipe.exercise_replay = exercise_replay;
         recipe.sensitivity_request = pg::SensitivityRequest::full_hessian();
         const auto models =
             model::equity::${model}::load_models(recipe.model_input);
@@ -52,12 +56,18 @@ int main() {
                 models,
                 products,
                 prepare,
-                model::equity::${model}::
-                    ${model}_american_option_mixed_node_graph_workspace_bytes<
-                        OptionSide::${side}>,
-                model::equity::${model}::
-                    launch_${model}_american_option_mixed_node_graph_sensitivities_cuda<
-                        OptionSide::${side}>,
+                offline::pricing::price_gradients::with_exercise_replay(
+                    model::equity::${model}::
+                        ${model}_american_option_mixed_node_graph_workspace_bytes_with_replay<
+                            OptionSide::${side}>,
+                    exercise_replay
+                ),
+                offline::pricing::price_gradients::with_exercise_replay(
+                    model::equity::${model}::
+                        launch_${model}_american_option_mixed_node_graph_sensitivities_with_replay_cuda<
+                            OptionSide::${side}>,
+                    exercise_replay
+                ),
                 offline::cuda_tuning::kProductionPathsPerPrice,
                 model::equity::${model}::
                     prepare_american_option_diagonal_sensitivity_stencils_cuda

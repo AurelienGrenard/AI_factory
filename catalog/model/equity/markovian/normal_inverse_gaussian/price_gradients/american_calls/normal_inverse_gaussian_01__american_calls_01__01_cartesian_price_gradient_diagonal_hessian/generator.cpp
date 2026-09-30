@@ -1,4 +1,4 @@
-// Generated normal_inverse_gaussian American gradient and diagonal Hessian with frozen exercise.
+// Generated normal_inverse_gaussian American gradient and diagonal Hessian with explicit exercise replay.
 #include "model/equity/markovian/normal_inverse_gaussian/product/american_option_price_gradients.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dataset.hpp"
 #include "product/american_option/dataset.hpp"
@@ -6,6 +6,7 @@
 
 int main(int argc, char** argv) {
     using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
     namespace pg = price_gradients;
     try {
         datasets::price_gradients::Recipe recipe{
@@ -18,6 +19,9 @@ int main(int argc, char** argv) {
         {"product.strike", {0.005, pg::BumpScale::relative}}
             }}, {1.0f/504.0f, 2U}, false,
             pg::SensitivityOrders::first_and_second};
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::frozen_exercise_time;
+        recipe.exercise_replay = exercise_replay;
         recipe.sensitivity_strategy =
             offline::pricing::price_gradients::
                 sensitivity_strategy_from_arguments(argc, argv);
@@ -35,12 +39,21 @@ int main(int argc, char** argv) {
             recipe,
             {offline::cuda_tuning::PricingFamily::equity_lsm, "normal_inverse_gaussian", "american_option", ""},
             11668827549344989184ULL, models, products, prepare,
-            model::equity::normal_inverse_gaussian::launch_normal_inverse_gaussian_american_option_diagonal_sensitivities_cuda<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
-            model::equity::normal_inverse_gaussian::normal_inverse_gaussian_american_option_node_graph_workspace_bytes<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
-            model::equity::normal_inverse_gaussian::launch_normal_inverse_gaussian_american_option_node_graph_sensitivities_cuda<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::normal_inverse_gaussian::launch_normal_inverse_gaussian_american_option_diagonal_sensitivities_with_replay_cuda<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::normal_inverse_gaussian::normal_inverse_gaussian_american_option_node_graph_workspace_bytes_with_replay<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::normal_inverse_gaussian::launch_normal_inverse_gaussian_american_option_node_graph_sensitivities_with_replay_cuda<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
             offline::cuda_tuning::kProductionPathsPerPrice,
             model::equity::normal_inverse_gaussian::prepare_american_option_diagonal_sensitivity_stencils_cuda);
     } catch (const std::exception& error) {

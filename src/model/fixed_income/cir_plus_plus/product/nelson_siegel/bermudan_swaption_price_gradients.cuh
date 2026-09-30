@@ -4,6 +4,7 @@
 #include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
 #include "common/fixed_income/swaption_side.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
+#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
 #include "common/price_gradients/launch.cuh"
 #include "common/price_gradients/mixed_sensitivity_outputs.cuh"
 #include "common/price_gradients/sensitivity_outputs.cuh"
@@ -17,6 +18,8 @@ namespace ai_factory::workbench::model::fixed_income::cir_plus_plus::nelson_sieg
 
 namespace pg = ::ai_factory::workbench::price_gradients;
 namespace fipg = ::ai_factory::workbench::fixed_income::price_gradients;
+namespace lspg =
+    ::ai_factory::workbench::longstaff_schwartz::price_gradients;
 namespace model_pg =
     ::ai_factory::workbench::model::fixed_income::cir_plus_plus::price_gradients;
 namespace bermudan_pg =
@@ -97,6 +100,17 @@ launch_cir_plus_plus_nelson_siegel_bermudan_swaption_price_gradients_cuda(
     pg::Outputs outputs
 );
 
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_cir_plus_plus_nelson_siegel_bermudan_swaption_price_gradients_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::Outputs outputs,
+    lspg::ExerciseReplayStrategy replay
+);
+
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
 longstaff_schwartz::LaunchResult
 launch_cir_plus_plus_nelson_siegel_bermudan_swaption_diagonal_sensitivities_cuda(
@@ -108,9 +122,27 @@ launch_cir_plus_plus_nelson_siegel_bermudan_swaption_diagonal_sensitivities_cuda
 );
 
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_cir_plus_plus_nelson_siegel_bermudan_swaption_diagonal_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    lspg::ExerciseReplayStrategy replay
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
 std::size_t cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_workspace_bytes(
     const BermudanSwaptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+std::size_t cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_workspace_bytes_with_replay(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
 );
 
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
@@ -125,11 +157,31 @@ launch_cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_cu
     std::size_t workspace_bytes
 );
 
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_cir_plus_plus_nelson_siegel_bermudan_swaption_node_graph_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
+);
+
 
 template<SwaptionSide Side>
 std::size_t cir_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_workspace_bytes(
     const BermudanSwaptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
+);
+
+template<SwaptionSide Side>
+std::size_t cir_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_workspace_bytes_with_replay(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
 );
 
 template<SwaptionSide Side>
@@ -144,6 +196,21 @@ launch_cir_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_sensitivit
     pg::MixedSensitivityOutputs mixed_outputs,
     void* workspace,
     std::size_t workspace_bytes
+);
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_cir_plus_plus_nelson_siegel_bermudan_swaption_mixed_node_graph_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    BermudanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& configuration,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
 );
 
 }  // namespace ai_factory::workbench::model::fixed_income::cir_plus_plus::nelson_siegel

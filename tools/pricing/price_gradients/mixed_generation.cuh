@@ -557,6 +557,9 @@ int execute_prepared_mixed_dataset(
             plan.paths_per_price;
         result.execution["seed"] = seed;
         result.execution["preparation"] = "device_per_row_sensitivity_graph";
+        datasets::price_gradients::append_exercise_replay_metadata(
+            recipe, result.execution
+        );
         result.execution["model_input_bytes"] =
             prepared.models.size() * sizeof(typename Plan::Preparation::Model);
         if constexpr (has_curve_inputs_v<Plan>) {

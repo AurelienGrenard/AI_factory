@@ -146,6 +146,7 @@ class DatasetSpec:
     layout: str = ""
     sensitivity_orders: tuple[str, ...] = ()
     sensitivity_parameters: tuple[str, ...] = ()
+    exercise_replay: str | None = None
 
     @property
     def row_count(self) -> int:
@@ -1198,7 +1199,30 @@ def validate_dataset_spec(dataset: DatasetSpec) -> None:
             raise ValueError(
                 f"invalid price-gradient orders: {dataset.generator_path}"
             )
-    elif dataset.sensitivity_orders or dataset.sensitivity_parameters:
+        if dataset.exercise_replay not in {
+            None,
+            "frozen_exercise_time",
+            "frozen_regression_policy",
+        }:
+            raise ValueError(
+                f"invalid exercise replay: {dataset.generator_path}"
+            )
+        early_exercise = dataset.product in {
+            "american_option", "bermudan_swaption"
+        }
+        if early_exercise != (dataset.exercise_replay is not None):
+            raise ValueError(
+                f"exercise replay does not match product: {dataset.generator_path}"
+            )
+        if (dataset.exercise_replay == "frozen_regression_policy"
+                and (not dataset.dataset_id.endswith("_frozen_policy")
+                     or "frozen_policy" not in dataset.generator_path)):
+            raise ValueError(
+                "frozen-policy datasets require a distinct frozen_policy "
+                f"identity: {dataset.generator_path}"
+            )
+    elif (dataset.sensitivity_orders or dataset.sensitivity_parameters
+          or dataset.exercise_replay is not None):
         raise ValueError(
             f"non-sensitivity dataset declares sensitivity metadata: "
             f"{dataset.generator_path}"

@@ -195,6 +195,30 @@ target_link_libraries(benchmark_price_gradients_american PRIVATE ai_factory_runt
 set_target_properties(benchmark_price_gradients_american PROPERTIES
     CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
 
+add_executable(
+    benchmark_price_gradients_early_exercise_replay EXCLUDE_FROM_ALL
+    tests/performance/price_gradients/early_exercise_replay.cu
+)
+target_include_directories(
+    benchmark_price_gradients_early_exercise_replay PRIVATE ${CMAKE_SOURCE_DIR}
+)
+target_link_libraries(
+    benchmark_price_gradients_early_exercise_replay PRIVATE
+    ai_factory_runtime
+    ai_factory_equity_black_scholes_american_option_price_gradients
+    ai_factory_equity_heston_american_option_price_gradients
+    ai_factory_equity_bates_american_option_price_gradients
+    ai_factory_fixed_income_cir_bermudan_swaption_price_gradients
+    ai_factory_fixed_income_g2_bermudan_swaption_price_gradients
+    ai_factory_fixed_income_g2_plus_plus_svensson_bermudan_swaption_price_gradients
+)
+set_target_properties(
+    benchmark_price_gradients_early_exercise_replay PROPERTIES
+    CUDA_STANDARD 23
+    CUDA_STANDARD_REQUIRED YES
+)
+
+
 add_executable(benchmark_price_gradients_jamshidian EXCLUDE_FROM_ALL
     tests/performance/price_gradients/jamshidian.cu)
 target_include_directories(benchmark_price_gradients_jamshidian PRIVATE ${CMAKE_SOURCE_DIR})
@@ -208,6 +232,7 @@ add_custom_target(price_gradients_performance_benchmarks DEPENDS
     benchmark_price_gradients_closed_form
     benchmark_price_gradients_cev
     benchmark_price_gradients_american
+    benchmark_price_gradients_early_exercise_replay
     benchmark_price_gradients_jamshidian)
 
 add_executable(study_price_gradients_heston_rates EXCLUDE_FROM_ALL tests/price_gradients/heston_rate_study.cu)

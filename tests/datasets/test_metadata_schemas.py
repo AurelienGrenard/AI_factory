@@ -80,7 +80,7 @@ class MetadataSchemaTest(unittest.TestCase):
                 schema_validator(kind)
                 validate_document(document, kind)
         counts = validate_repository(ROOT)
-        self.assertEqual(counts["recipe"], 2325)
+        self.assertEqual(counts["recipe"], 2409)
         self.assertEqual(counts["generation"], 720)
         self.assertEqual(counts["validation"], 0)
 

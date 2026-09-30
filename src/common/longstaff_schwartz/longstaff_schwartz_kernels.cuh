@@ -248,6 +248,28 @@ __global__ void update_cashflows_kernel(
     __syncthreads();
     if (backward_level >= row.regression_count) return;
 
+    if constexpr (requires {
+        PricingPolicy::record_regression(
+            row,
+            states,
+            backward_level,
+            coefficients,
+            regression_status
+        );
+    }) {
+        // Every x-block loaded the same fitted row. Persist it exactly once,
+        // inside the existing update launch and after residual refinement.
+        if (blockIdx.x == 0U && threadIdx.x == 0U) {
+            PricingPolicy::record_regression(
+                row,
+                states,
+                backward_level,
+                coefficients,
+                regression_status
+            );
+        }
+    }
+
     float* const row_cashflows =
         cashflows + static_cast<std::size_t>(blockIdx.y) * paths_per_price;
     const std::size_t first_path =
@@ -410,11 +432,31 @@ __global__ void finalize_prices_kernel(
     const double immediate = static_cast<double>(
         PricingPolicy::initial_exercise_value(row)
     );
-    if constexpr (requires { PricingPolicy::record_initial_exercise(row, false, false); }) {
-        PricingPolicy::record_initial_exercise(row, immediate > continuation,
-            isfinite(immediate) && isfinite(continuation) && isfinite(standard_error));
+    const bool valid_initial_decision = isfinite(immediate)
+        && isfinite(continuation) && isfinite(standard_error);
+    if constexpr (requires {
+        PricingPolicy::record_initial_continuation(
+            row, continuation, valid_initial_decision
+        );
+    }) {
+        PricingPolicy::record_initial_continuation(
+            row, continuation, valid_initial_decision
+        );
     }
-    if (immediate > continuation) {
+    if constexpr (requires {
+        PricingPolicy::record_initial_exercise(
+            row, false, valid_initial_decision
+        );
+    }) {
+        PricingPolicy::record_initial_exercise(
+            row,
+            exercise_is_preferred(
+                static_cast<float>(immediate), continuation
+            ),
+            valid_initial_decision
+        );
+    }
+    if (exercise_is_preferred(static_cast<float>(immediate), continuation)) {
         prices[row.result_index] = static_cast<float>(immediate);
         standard_errors[row.result_index] = 0.0f;
     } else {
