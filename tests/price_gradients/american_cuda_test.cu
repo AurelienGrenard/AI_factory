@@ -56,7 +56,10 @@ GradientRun execute(
     std::size_t blocks,
     std::uint64_t seed,
     bool split = false,
-    bool node_graph = false
+    bool node_graph = false,
+    longstaff_schwartz::price_gradients::ExerciseReplayStrategy replay =
+        longstaff_schwartz::price_gradients::ExerciseReplayStrategy::
+            frozen_exercise_time
 ) {
     constexpr std::size_t node_capacity =
         pg::SensitivityTraits<Orders>::node_capacity;
@@ -125,9 +128,9 @@ GradientRun execute(
     if constexpr (pg::requests_second_v<Orders>) {
         if (node_graph) {
             node_graph_workspace_bytes =
-                heston::heston_american_option_node_graph_workspace_bytes<
+                heston::heston_american_option_node_graph_workspace_bytes_with_replay<
                     Side, Orders
-                >(plan, launch);
+                >(plan, launch, replay);
         }
     }
     DeviceArray<std::uint8_t> node_graph_workspace(
@@ -135,7 +138,7 @@ GradientRun execute(
     );
     const auto invoke = [&](const auto& configuration) {
         if constexpr (Orders == pg::SensitivityOrders::first) {
-            return heston::launch_heston_american_option_price_gradients_cuda<
+            return heston::launch_heston_american_option_price_gradients_with_replay_cuda<
                 Side
             >(
                 plan,
@@ -149,12 +152,13 @@ GradientRun execute(
                     outputs.gradient_standard_errors,
                     outputs.price_capacity,
                     outputs.sensitivity_capacity,
-                }
+                },
+                replay
             );
         } else {
             if (node_graph) {
                 return heston::
-                    launch_heston_american_option_node_graph_sensitivities_cuda<
+                    launch_heston_american_option_node_graph_sensitivities_with_replay_cuda<
                         Side,
                         Orders
                     >(
@@ -164,11 +168,12 @@ GradientRun execute(
                         configuration,
                         outputs,
                         node_graph_workspace.data,
-                        node_graph_workspace.count
+                        node_graph_workspace.count,
+                        replay
                     );
             }
             return heston::
-                launch_heston_american_option_diagonal_sensitivities_cuda<
+                launch_heston_american_option_diagonal_sensitivities_with_replay_cuda<
                     Side,
                     Orders
                 >(
@@ -176,7 +181,8 @@ GradientRun execute(
                     inputs,
                     stencil_outputs,
                     configuration,
-                    outputs
+                    outputs,
+                    replay
                 );
         }
     };
@@ -404,6 +410,53 @@ void run() {
                 && node_graph_diagonal.diagonal_hessian_errors
                     == diagonal.diagonal_hessian_errors,
             "American mono and node_graph sensitivities differ."
+        );
+        constexpr auto frozen_policy_replay =
+            longstaff_schwartz::price_gradients::ExerciseReplayStrategy::
+                frozen_regression_policy;
+        const auto frozen_policy = execute<
+            pg::SensitivityOrders::first_and_second,
+            Side
+        >(
+            diagonal_plan,
+            paths,
+            threads,
+            blocks,
+            seed,
+            false,
+            false,
+            frozen_policy_replay
+        );
+        const auto frozen_policy_graph = execute<
+            pg::SensitivityOrders::first_and_second,
+            Side
+        >(
+            diagonal_plan,
+            paths,
+            threads,
+            blocks,
+            seed,
+            false,
+            true,
+            frozen_policy_replay
+        );
+        require(
+            frozen_policy_graph.prices == frozen_policy.prices
+                && frozen_policy_graph.price_errors
+                    == frozen_policy.price_errors
+                && frozen_policy_graph.gradients == frozen_policy.gradients
+                && frozen_policy_graph.gradient_errors
+                    == frozen_policy.gradient_errors
+                && frozen_policy_graph.diagonal_hessians
+                    == frozen_policy.diagonal_hessians
+                && frozen_policy_graph.diagonal_hessian_errors
+                    == frozen_policy.diagonal_hessian_errors,
+            "Heston frozen-policy mono and node_graph sensitivities differ."
+        );
+        require(
+            frozen_policy.prices == diagonal.prices
+                && frozen_policy.price_errors == diagonal.price_errors,
+            "Heston replay strategy changed central results."
         );
         require(
             diagonal.prices == extended.prices

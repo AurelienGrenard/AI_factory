@@ -85,6 +85,19 @@ struct SpotLogMoneynessContinuationState {
             logf(fmaxf(normalized_spot, 1.0e-6f)),
         };
     }
+
+    __device__ __forceinline__ static RegressionInput regression_input(
+        const PreparedState&,
+        const typename Dynamics::State& state,
+        float inverse_strike
+    ) {
+        const float normalized_spot =
+            Dynamics::spot(state) * inverse_strike;
+        return {
+            normalized_spot,
+            logf(fmaxf(normalized_spot, 1.0e-6f)),
+        };
+    }
 };
 
 template<
@@ -169,6 +182,17 @@ struct SpotAndScaledStateContinuationState {
         return {
             states.spots[state_index] * inverse_strike,
             states.secondary_states[state_index] * prepared.inverse_scale,
+        };
+    }
+
+    __device__ __forceinline__ static RegressionInput regression_input(
+        const PreparedState& prepared,
+        const typename Dynamics::State& state,
+        float inverse_strike
+    ) {
+        return {
+            Dynamics::spot(state) * inverse_strike,
+            state.*StateMember * prepared.inverse_scale,
         };
     }
 };

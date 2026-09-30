@@ -523,6 +523,10 @@ def compose_datasets(price_datasets, bindings):
         template="catalog/pricing/price_gradients/generator.cpp.tpl",
         numerical_profile="selected_gradients_production_paths",
         layout="row_major_selected_gradients",
+        exercise_replay=(
+            "frozen_exercise_time"
+            if dataset.product == "american_option" else None
+        ),
         sensitivity_orders=("first",))
         for dataset in price_datasets
         if dataset.dataset_kind == "prices"
@@ -567,7 +571,12 @@ def compose_datasets(price_datasets, bindings):
             if dataset.product == "bermudan_swaption"
             else "selected_gradients_closed_form"
         ),
-        layout="row_major_selected_gradients", sensitivity_orders=("first",))
+        layout="row_major_selected_gradients",
+        exercise_replay=(
+            "frozen_exercise_time"
+            if dataset.product == "bermudan_swaption" else None
+        ),
+        sensitivity_orders=("first",))
         for dataset in price_datasets
         if dataset.dataset_kind == "prices"
         and dataset.asset_class == "fixed_income"
@@ -601,6 +610,19 @@ def compose_datasets(price_datasets, bindings):
         sensitivity_orders=("first", "diagonal_second"))
         for dataset in (*equity, *fixed_income)
         if (dataset.model, dataset.product) in diagonal_pairs)
+    frozen_policy_diagonal = tuple(
+        replace(
+            dataset,
+            dataset_id=dataset.dataset_id + "_frozen_policy",
+            generator_path=dataset.generator_path.replace(
+                "/" + dataset.dataset_id + "/",
+                "/" + dataset.dataset_id + "_frozen_policy/",
+            ),
+            exercise_replay="frozen_regression_policy",
+        )
+        for dataset in diagonal
+        if dataset.product in {"american_option", "bermudan_swaption"}
+    )
     full_hessian = tuple(replace(
         dataset,
         dataset_id=dataset.dataset_id.removesuffix("_diagonal_hessian")
@@ -616,7 +638,14 @@ def compose_datasets(price_datasets, bindings):
             "first", "diagonal_second", "mixed_second"
         ),
     ) for dataset in diagonal)
-    return (*spot, *equity, *fixed_income, *diagonal, *full_hessian)
+    return (
+        *spot,
+        *equity,
+        *fixed_income,
+        *diagonal,
+        *frozen_policy_diagonal,
+        *full_hessian,
+    )
 
 
 def default_sensitivities(

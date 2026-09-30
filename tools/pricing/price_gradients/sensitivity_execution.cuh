@@ -14,6 +14,18 @@ namespace ai_factory::workbench::offline::pricing::price_gradients {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
 
+template<typename Callable, typename Replay>
+auto with_exercise_replay(Callable callable, Replay replay) {
+    return [callable = std::move(callable), replay](auto&&... arguments)
+        -> decltype(auto) {
+        return std::invoke(
+            callable,
+            std::forward<decltype(arguments)>(arguments)...,
+            replay
+        );
+    };
+}
+
 template<typename Launch>
 class DirectSensitivityExecution {
 public:

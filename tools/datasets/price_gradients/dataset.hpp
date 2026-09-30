@@ -1,5 +1,6 @@
 // Price-gradient artifact contract, including selected coordinates and represented stencils.
 #pragma once
+#include "common/longstaff_schwartz/price_gradients/exercise_replay_strategy.hpp"
 #include "common/price_construction.cuh"
 #include "common/price_gradients/stencil.hpp"
 #include "common/price_gradients/mixed_sensitivity_stencil.cuh"
@@ -29,9 +30,17 @@ struct Recipe {
             ::ai_factory::workbench::price_gradients::
                 SensitivityStrategy::mono;
     std::optional<
+        ::ai_factory::workbench::longstaff_schwartz::price_gradients::
+            ExerciseReplayStrategy
+    > exercise_replay;
+    std::optional<
         ::ai_factory::workbench::price_gradients::SensitivityRequest
     > sensitivity_request;
 };
+void append_exercise_replay_metadata(
+    const Recipe&,
+    nlohmann::ordered_json&
+);
 struct Results {
     std::vector<float> prices, price_errors, gradients, gradient_errors;
     std::vector<::ai_factory::workbench::price_gradients::Stencil> stencils;

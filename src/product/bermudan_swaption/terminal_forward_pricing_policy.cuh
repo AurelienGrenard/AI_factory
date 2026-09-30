@@ -23,8 +23,10 @@ struct TerminalForwardBermudanSwaptionPricingPolicy : BasePricingPolicy {
     static StateView make_state_view(
         unsigned char* workspace, const longstaff_schwartz::WorkspaceLayout& layout
     ) {
-        if (layout.observation_fields.size() != 1U)
-            throw std::logic_error("A terminal-forward policy requires an observation table.");
+        if (layout.observation_fields.empty())
+            throw std::logic_error(
+                "A terminal-forward policy requires an observation table."
+            );
         return {Base::make_state_view(workspace, layout),
             longstaff_schwartz::workspace_pointer<Observation>(workspace, layout.observation_fields[0])};
     }
@@ -77,6 +79,35 @@ struct TerminalForwardBermudanSwaptionPricingPolicy : BasePricingPolicy {
             row.schedule.initial_log_numeraire - observation.log_numeraire_a);
         return Base::immediate_value_at(row, state, exercise) * expf(log_ratio);
     }
+
+    __device__ __forceinline__ static float replay_immediate_value(
+        const PreparedRow& central,
+        const PreparedRow& bumped,
+        const typename Dynamics::State& state,
+        std::uint32_t exercise
+    ) {
+        const auto& observation = central.schedule.observations[exercise];
+        const float log_ratio = fmaf(
+            observation.numeraire_b,
+            state,
+            central.schedule.initial_log_numeraire
+                - observation.log_numeraire_a
+        );
+        return Base::immediate_value_at(
+            bumped, state, exercise
+        ) * expf(log_ratio);
+    }
+
+    __device__ __forceinline__ static typename Base::RegressionInput
+    replay_regression_input(
+        const PreparedRow& central,
+        const typename Dynamics::State& state
+    ) {
+        return ContinuationState::template regression_input<
+            typename Base::Analytics
+        >(central.regression_state, state);
+    }
+
     __device__ __forceinline__ static float simulate_path(
         const PreparedRow& row, std::size_t path, std::size_t paths, StateView states
     ) {

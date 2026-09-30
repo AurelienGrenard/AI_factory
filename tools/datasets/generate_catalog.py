@@ -206,6 +206,7 @@ def inventory(
             time_key = "time_representation" if "time_representation" in recipe else "time_grid"
             jobs[-1].update(sensitivity=recipe["sensitivity"], time_key=time_key,
                             time_configuration=recipe[time_key],
+                            exercise_replay=recipe.get("exercise_replay"),
                             preparation=recipe.get("preparation", {}),
                             paths_per_price=recipe.get("paths_per_price"))
     return jobs
@@ -293,6 +294,13 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
         expected_paths = job["launch_plan"]["paths_per_price"]
         if generation["execution"].get("paths_per_price", 0) != expected_paths:
             raise ValueError("Published MC path count contradicts the compiled production plan")
+        expected_replay = job.get("exercise_replay")
+        if (job["kind"] == "price_gradients"
+                and generation["execution"].get("exercise_replay")
+                != expected_replay):
+            raise ValueError(
+                "Generation receipt exercise replay contradicts frozen recipe"
+            )
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
         if document.get("url") != job["url"]:
@@ -500,6 +508,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
                 "launch_plan": job["launch_plan"],
                 "rng_stream_seeds": job["rng_stream_seeds"],
                 "sensitivity": job.get("sensitivity"),
+                "exercise_replay": job.get("exercise_replay"),
                 "time_grid": job.get("time_grid"),
                 "preparation": job.get("preparation"),
             }

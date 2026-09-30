@@ -136,9 +136,11 @@ def check_outputs(job, catalog, document):
         if (
             artifact.get("sensitivity") != job["sensitivity"]
             or artifact.get(job["time_key"]) != job["time_configuration"]
+            or artifact.get("exercise_replay")
+                != job.get("exercise_replay")
         ):
             raise ValueError(
-                "Gradient sensitivity/time grid contradicts frozen recipe"
+                "Gradient sensitivity/time grid/replay contradicts frozen recipe"
             )
         execution = artifact.get("summary", {})
         for key in (

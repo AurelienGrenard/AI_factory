@@ -9,8 +9,8 @@
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
 #include "common/simulation/early_exercise_schedule.cuh"
 #include "common/simulation/terminal_forward_exercise_schedule.cuh"
-${implementation_includes}#include "product/bermudan_swaption/price_gradients/device_prepared_frozen_exercise_node_graph.cuh"
-#include "product/bermudan_swaption/price_gradients/device_prepared_frozen_exercise_mixed_node_graph.cuh"
+${implementation_includes}#include "product/bermudan_swaption/price_gradients/device_prepared_frozen_replay_node_graph.cuh"
+#include "product/bermudan_swaption/price_gradients/device_prepared_frozen_replay_mixed_node_graph.cuh"
 #include "product/bermudan_swaption/price_gradients/device_prepared_pricing_policy.cuh"
 #include "product/bermudan_swaption/pricing_policy.cuh"
 #include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"
@@ -28,14 +28,23 @@ using Analytics = BermudanSwaptionAnalyticsPolicy;
 using ContinuationState = ${continuation};
 ${curve_type_alias}template<SwaptionSide Side>
 using CentralPolicy = ${central_policy};
+using Regressor = longstaff_schwartz::NormalEquationRegressor<
+    ${regressor_basis}
+>;
 
-template<SwaptionSide Side, pg::SensitivityOrders Orders>
+template<
+    SwaptionSide Side,
+    pg::SensitivityOrders Orders,
+    typename ExerciseReplay = lspg::FrozenExerciseTimeReplay
+>
 using Policy = product::BermudanSwaptionDevicePreparedSensitivityPolicy<
     CentralPolicy<Side>,
     typename BermudanSwaptionPriceGradientPlan::Preparation,
     typename BermudanSwaptionPriceGradientPlan::DeviceInputs,
     Orders,
-    ${terminal_forward}
+    ${terminal_forward},
+    Regressor,
+    ExerciseReplay
 >;
 constexpr std::size_t kNodeGraphMaximumSensitivities = ${maximum}U;
 constexpr unsigned int kNodeGraphGroupSize = ${graph_group_size}U;
@@ -45,28 +54,33 @@ constexpr std::size_t kMixedNodeGraphMaximumSensitivities = ${maximum}U;
 constexpr std::size_t kMixedNodeGraphMaximumPairs = ${mixed_maximum}U;
 constexpr unsigned int kMixedNodeGraphTeamSize = ${mixed_team_size}U;
 constexpr unsigned int kMixedNodeGraphNodesPerWorker = ${mixed_nodes_per_worker}U;
-template<SwaptionSide Side, pg::SensitivityOrders Orders>
-using NodeGraphPolicy = bermudan_pg::FrozenExerciseNodeGraphPolicy<
-    Policy<Side, Orders>,
+template<
+    SwaptionSide Side,
+    pg::SensitivityOrders Orders,
+    typename ExerciseReplay = lspg::FrozenExerciseTimeReplay
+>
+using NodeGraphPolicy = bermudan_pg::FrozenReplayNodeGraphPolicy<
+    Policy<Side, Orders, ExerciseReplay>,
     kNodeGraphMaximumSensitivities,
     kNodeGraphGroupSize,
     kNodeGraphNodesPerWorker,
     NodeGraphTuning
 >;
-template<SwaptionSide Side>
+template<
+    SwaptionSide Side,
+    typename ExerciseReplay = lspg::FrozenExerciseTimeReplay
+>
 using MixedNodeGraphPolicy =
-    bermudan_pg::FrozenExerciseMixedNodeGraphPolicy<
-        Policy<Side, pg::SensitivityOrders::first_and_second>,
+    bermudan_pg::FrozenReplayMixedNodeGraphPolicy<
+        Policy<
+            Side, pg::SensitivityOrders::first_and_second, ExerciseReplay
+        >,
         kMixedNodeGraphMaximumSensitivities,
         kMixedNodeGraphMaximumPairs,
         kMixedNodeGraphTeamSize,
         kMixedNodeGraphNodesPerWorker,
         NodeGraphTuning
     >;
-using Regressor = longstaff_schwartz::NormalEquationRegressor<
-    ${regressor_basis}
->;
-
 }  // namespace
 
 void prepare_bermudan_swaption_price_gradient_stencils_cuda(
@@ -105,9 +119,11 @@ void prepare_bermudan_swaption_diagonal_sensitivity_stencils_cuda(
     );
 }
 
-template<SwaptionSide Side>
+namespace {
+
+template<SwaptionSide Side, typename ExerciseReplay>
 longstaff_schwartz::LaunchResult
-launch_${function_prefix}_bermudan_swaption_price_gradients_cuda(
+launch_bermudan_swaption_price_gradients_for_replay(
     const BermudanSwaptionPriceGradientPlan& host,
     BermudanSwaptionPriceGradientPlan::DeviceInputs device,
     BermudanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
@@ -127,7 +143,7 @@ launch_${function_prefix}_bermudan_swaption_price_gradients_cuda(
     return longstaff_schwartz::price_gradients::
         launch_device_prepared_sensitivities<
             pg::SensitivityOrders::first,
-            Policy<Side, pg::SensitivityOrders::first>,
+            Policy<Side, pg::SensitivityOrders::first, ExerciseReplay>,
             Regressor
         >(
             host,
@@ -142,9 +158,13 @@ launch_${function_prefix}_bermudan_swaption_price_gradients_cuda(
         );
 }
 
-template<SwaptionSide Side, pg::SensitivityOrders Orders>
+template<
+    SwaptionSide Side,
+    pg::SensitivityOrders Orders,
+    typename ExerciseReplay
+>
 longstaff_schwartz::LaunchResult
-launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda(
+launch_bermudan_swaption_diagonal_sensitivities_for_replay(
     const BermudanSwaptionPriceGradientPlan& host,
     BermudanSwaptionPriceGradientPlan::DeviceInputs device,
     BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
@@ -153,7 +173,9 @@ launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda(
 ) {
     static_assert(pg::requests_second_v<Orders>);
     return longstaff_schwartz::price_gradients::
-        launch_device_prepared_sensitivities<Orders, Policy<Side, Orders>, Regressor>(
+        launch_device_prepared_sensitivities<
+            Orders, Policy<Side, Orders, ExerciseReplay>, Regressor
+        >(
             host,
             device,
             stencil_outputs,
@@ -166,13 +188,84 @@ launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda(
         );
 }
 
+}  // namespace
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_price_gradients_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::Outputs outputs
+) {
+    return launch_bermudan_swaption_price_gradients_for_replay<
+        Side, lspg::FrozenExerciseTimeReplay
+    >(host, device, stencil_outputs, launch, outputs);
+}
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_price_gradients_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::StencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::Outputs outputs,
+    lspg::ExerciseReplayStrategy replay
+) {
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            return launch_bermudan_swaption_price_gradients_for_replay<
+                Side, ExerciseReplay
+            >(host, device, stencil_outputs, launch, outputs);
+        }
+    );
+}
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs
+) {
+    return launch_bermudan_swaption_diagonal_sensitivities_for_replay<
+        Side, Orders, lspg::FrozenExerciseTimeReplay
+    >(host, device, stencil_outputs, launch, outputs);
+}
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    lspg::ExerciseReplayStrategy replay
+) {
+    static_assert(pg::requests_second_v<Orders>);
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            return launch_bermudan_swaption_diagonal_sensitivities_for_replay<
+                Side, Orders, ExerciseReplay
+            >(host, device, stencil_outputs, launch, outputs);
+        }
+    );
+}
+
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
 std::size_t ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes(
     const BermudanSwaptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
 ) {
     static_assert(pg::requests_second_v<Orders>);
-    return lspg::frozen_exercise_node_graph_workspace_bytes<
+    return lspg::frozen_replay_node_graph_workspace_bytes<
         Orders,
         kNodeGraphMaximumSensitivities,
         kNodeGraphGroupSize,
@@ -182,8 +275,31 @@ std::size_t ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes(
 }
 
 template<SwaptionSide Side, pg::SensitivityOrders Orders>
+std::size_t ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes_with_replay(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
+) {
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            static_cast<void>(sizeof(ExerciseReplay));
+            return ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes<
+                Side, Orders
+            >(host, configuration);
+        }
+    );
+}
+
+namespace {
+
+template<
+    SwaptionSide Side,
+    pg::SensitivityOrders Orders,
+    typename ExerciseReplay
+>
 longstaff_schwartz::LaunchResult
-launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda(
+launch_bermudan_swaption_node_graph_for_replay(
     const BermudanSwaptionPriceGradientPlan& host,
     BermudanSwaptionPriceGradientPlan::DeviceInputs device,
     BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
@@ -195,7 +311,7 @@ launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda(
     static_assert(pg::requests_second_v<Orders>);
     return lspg::launch_device_prepared_node_graph_sensitivities<
         Orders,
-        NodeGraphPolicy<Side, Orders>,
+        NodeGraphPolicy<Side, Orders, ExerciseReplay>,
         Regressor,
         kNodeGraphMaximumSensitivities,
         kNodeGraphGroupSize,
@@ -216,14 +332,61 @@ launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda(
     );
 }
 
+}  // namespace
 
-template<SwaptionSide Side>
-std::size_t ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_bytes(
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    return launch_bermudan_swaption_node_graph_for_replay<
+        Side, Orders, lspg::FrozenExerciseTimeReplay
+    >(
+        host, device, stencil_outputs, launch, outputs,
+        workspace, workspace_bytes
+    );
+}
+
+template<SwaptionSide Side, pg::SensitivityOrders Orders>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
+) {
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            return launch_bermudan_swaption_node_graph_for_replay<
+                Side, Orders, ExerciseReplay
+            >(
+                host, device, stencil_outputs, launch, outputs,
+                workspace, workspace_bytes
+            );
+        }
+    );
+}
+
+namespace {
+
+template<SwaptionSide Side, typename ExerciseReplay>
+std::size_t bermudan_swaption_mixed_node_graph_workspace_bytes_for_replay(
     const BermudanSwaptionPriceGradientPlan& host,
     const pg::LaunchConfiguration& configuration
 ) {
-    return lspg::frozen_exercise_mixed_node_graph_workspace_bytes<
-        MixedNodeGraphPolicy<Side>,
+    return lspg::frozen_replay_mixed_node_graph_workspace_bytes<
+        MixedNodeGraphPolicy<Side, ExerciseReplay>,
         kMixedNodeGraphMaximumSensitivities,
         kMixedNodeGraphMaximumPairs,
         kMixedNodeGraphTeamSize,
@@ -232,9 +395,39 @@ std::size_t ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_byte
     >(host, configuration);
 }
 
+}  // namespace
+
 template<SwaptionSide Side>
+std::size_t ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_bytes(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration
+) {
+    return bermudan_swaption_mixed_node_graph_workspace_bytes_for_replay<
+        Side, lspg::FrozenExerciseTimeReplay
+    >(host, configuration);
+}
+
+template<SwaptionSide Side>
+std::size_t ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_bytes_with_replay(
+    const BermudanSwaptionPriceGradientPlan& host,
+    const pg::LaunchConfiguration& configuration,
+    lspg::ExerciseReplayStrategy replay
+) {
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            return bermudan_swaption_mixed_node_graph_workspace_bytes_for_replay<
+                Side, ExerciseReplay
+            >(host, configuration);
+        }
+    );
+}
+
+namespace {
+
+template<SwaptionSide Side, typename ExerciseReplay>
 longstaff_schwartz::LaunchResult
-launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
+launch_bermudan_swaption_mixed_node_graph_for_replay(
     const BermudanSwaptionPriceGradientPlan& host,
     BermudanSwaptionPriceGradientPlan::DeviceInputs device,
     BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
@@ -246,7 +439,7 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
     std::size_t workspace_bytes
 ) {
     return lspg::launch_device_prepared_mixed_node_graph_sensitivities<
-        MixedNodeGraphPolicy<Side>,
+        MixedNodeGraphPolicy<Side, ExerciseReplay>,
         Regressor,
         kMixedNodeGraphMaximumSensitivities,
         kMixedNodeGraphMaximumPairs,
@@ -270,6 +463,56 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
     );
 }
 
+}  // namespace
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    BermudanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes
+) {
+    return launch_bermudan_swaption_mixed_node_graph_for_replay<
+        Side, lspg::FrozenExerciseTimeReplay
+    >(
+        host, device, stencil_outputs, mixed_stencil_outputs,
+        launch, outputs, mixed_outputs, workspace, workspace_bytes
+    );
+}
+
+template<SwaptionSide Side>
+longstaff_schwartz::LaunchResult
+launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_with_replay_cuda(
+    const BermudanSwaptionPriceGradientPlan& host,
+    BermudanSwaptionPriceGradientPlan::DeviceInputs device,
+    BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs stencil_outputs,
+    BermudanSwaptionPriceGradientPlan::MixedStencilOutputs mixed_stencil_outputs,
+    const pg::LaunchConfiguration& launch,
+    pg::SensitivityOutputs outputs,
+    pg::MixedSensitivityOutputs mixed_outputs,
+    void* workspace,
+    std::size_t workspace_bytes,
+    lspg::ExerciseReplayStrategy replay
+) {
+    return lspg::dispatch_exercise_replay<Regressor>(
+        replay,
+        [&]<typename ExerciseReplay>() {
+            return launch_bermudan_swaption_mixed_node_graph_for_replay<
+                Side, ExerciseReplay
+            >(
+                host, device, stencil_outputs, mixed_stencil_outputs,
+                launch, outputs, mixed_outputs, workspace, workspace_bytes
+            );
+        }
+    );
+}
+
 #define AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SIDE)                 \
     template longstaff_schwartz::LaunchResult                               \
     launch_${function_prefix}_bermudan_swaption_price_gradients_cuda<SIDE>( \
@@ -278,6 +521,13 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
         BermudanSwaptionPriceGradientPlan::StencilOutputs,                  \
         const pg::LaunchConfiguration&, pg::Outputs);                       \
     template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_price_gradients_with_replay_cuda<SIDE>( \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::StencilOutputs,                  \
+        const pg::LaunchConfiguration&, pg::Outputs,                        \
+        lspg::ExerciseReplayStrategy);                                      \
+    template longstaff_schwartz::LaunchResult                               \
     launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda<\
         SIDE, pg::SensitivityOrders::second>(                               \
         const BermudanSwaptionPriceGradientPlan&,                           \
@@ -285,12 +535,28 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
         BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs);            \
     template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<\
+        SIDE, pg::SensitivityOrders::second>(                               \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        lspg::ExerciseReplayStrategy);                                      \
+    template longstaff_schwartz::LaunchResult                               \
     launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda<\
         SIDE, pg::SensitivityOrders::first_and_second>(                     \
         const BermudanSwaptionPriceGradientPlan&,                           \
         BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
         BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs);            \
+    template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<\
+        SIDE, pg::SensitivityOrders::first_and_second>(                     \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        lspg::ExerciseReplayStrategy);                                      \
     template std::size_t                                                    \
     ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes<        \
         SIDE, pg::SensitivityOrders::second>(                               \
@@ -301,6 +567,16 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
         SIDE, pg::SensitivityOrders::first_and_second>(                     \
         const BermudanSwaptionPriceGradientPlan&,                           \
         const pg::LaunchConfiguration&);                                    \
+    template std::size_t                                                    \
+    ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes_with_replay<\
+        SIDE, pg::SensitivityOrders::second>(                               \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        const pg::LaunchConfiguration&, lspg::ExerciseReplayStrategy);      \
+    template std::size_t                                                    \
+    ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes_with_replay<\
+        SIDE, pg::SensitivityOrders::first_and_second>(                     \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        const pg::LaunchConfiguration&, lspg::ExerciseReplayStrategy);      \
     template longstaff_schwartz::LaunchResult                               \
     launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda<\
         SIDE, pg::SensitivityOrders::second>(                               \
@@ -317,11 +593,32 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
         BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
         void*, std::size_t);                                                \
+    template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_with_replay_cuda<\
+        SIDE, pg::SensitivityOrders::second>(                               \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        void*, std::size_t, lspg::ExerciseReplayStrategy);                  \
+    template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_with_replay_cuda<\
+        SIDE, pg::SensitivityOrders::first_and_second>(                     \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        void*, std::size_t, lspg::ExerciseReplayStrategy);                  \
     template std::size_t                                                    \
     ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_bytes<  \
         SIDE>(                                                              \
         const BermudanSwaptionPriceGradientPlan&,                           \
         const pg::LaunchConfiguration&);                                    \
+    template std::size_t                                                    \
+    ${function_prefix}_bermudan_swaption_mixed_node_graph_workspace_bytes_with_replay<\
+        SIDE>(                                                              \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        const pg::LaunchConfiguration&, lspg::ExerciseReplayStrategy);      \
     template longstaff_schwartz::LaunchResult                               \
     launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda<\
         SIDE>(                                                              \
@@ -330,7 +627,17 @@ launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_cuda(
         BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
         BermudanSwaptionPriceGradientPlan::MixedStencilOutputs,             \
         const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
-        pg::MixedSensitivityOutputs, void*, std::size_t)
+        pg::MixedSensitivityOutputs, void*, std::size_t);                   \
+    template longstaff_schwartz::LaunchResult                               \
+    launch_${function_prefix}_bermudan_swaption_mixed_node_graph_sensitivities_with_replay_cuda<\
+        SIDE>(                                                              \
+        const BermudanSwaptionPriceGradientPlan&,                           \
+        BermudanSwaptionPriceGradientPlan::DeviceInputs,                    \
+        BermudanSwaptionPriceGradientPlan::DiagonalStencilOutputs,          \
+        BermudanSwaptionPriceGradientPlan::MixedStencilOutputs,             \
+        const pg::LaunchConfiguration&, pg::SensitivityOutputs,             \
+        pg::MixedSensitivityOutputs, void*, std::size_t,                    \
+        lspg::ExerciseReplayStrategy)
 
 AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SwaptionSide::payer);
 AI_FACTORY_INSTANTIATE_BERMUDAN_SENSITIVITIES(SwaptionSide::receiver);

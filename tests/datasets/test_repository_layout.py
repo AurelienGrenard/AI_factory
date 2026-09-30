@@ -79,13 +79,16 @@ class RepositoryLayoutTest(unittest.TestCase):
         gradient_recipes = tuple(
             (ROOT / "catalog").glob("**/price_gradients/**/recipe.yaml")
         )
-        self.assertEqual(len(gradient_recipes), 936)
+        self.assertEqual(len(gradient_recipes), 1020)
         for recipe in gradient_recipes:
             document = yaml.safe_load(recipe.read_text(encoding="utf-8"))
             self.assertEqual(document.get("kind"), "price_gradients", recipe)
             self.assertTrue(
                 document["dataset_id"].endswith(
-                    "_price_gradient_diagonal_hessian"
+                    (
+                        "_price_gradient_diagonal_hessian",
+                        "_price_gradient_diagonal_hessian_frozen_policy",
+                    )
                 ),
                 recipe,
             )

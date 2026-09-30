@@ -430,6 +430,9 @@ int execute_prepared_dataset(
             plan.paths_per_price;
         result.execution["seed"] = seed;
         result.execution["preparation"] = "device_per_row_sensitivity";
+        datasets::price_gradients::append_exercise_replay_metadata(
+            recipe, result.execution
+        );
         result.execution["scenario_input_bytes"] = 0U;
         result.execution["model_input_bytes"] =
             prepared.models.size()*sizeof(typename Plan::Preparation::Model);

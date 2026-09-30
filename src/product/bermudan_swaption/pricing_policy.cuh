@@ -263,6 +263,28 @@ struct BermudanSwaptionPricingPolicyCore {
         );
     }
 
+    __device__ __forceinline__ static float replay_immediate_value(
+        const PreparedRow&,
+        const PreparedRow& bumped,
+        const typename Dynamics::State& state,
+        std::uint32_t exercise
+    ) {
+        return immediate_value_at(
+            bumped, Analytics::factor_state(state), exercise
+        );
+    }
+
+    __device__ __forceinline__ static RegressionInput
+    replay_regression_input(
+        const PreparedRow& row,
+        const typename Dynamics::State& state
+    ) {
+        return ContinuationState::template regression_input<Analytics>(
+            row.regression_state,
+            Analytics::factor_state(state)
+        );
+    }
+
     __device__ __forceinline__ static bool regression_candidate(
         float immediate
     ) {

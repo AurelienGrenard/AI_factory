@@ -6,6 +6,7 @@ ${curve_dataset_include}#include "product/bermudan_swaption/dataset.hpp"
 
 int main(int argc, char** argv) {
     using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
     namespace pg = price_gradients;
     namespace model_namespace = model::fixed_income::${binding_namespace};
     try {
@@ -17,6 +18,9 @@ int main(int argc, char** argv) {
             }}, {1.0f / 504.0f, 2U}, true,
             pg::SensitivityOrders::first_and_second
         };
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::$exercise_replay;
+        recipe.exercise_replay = exercise_replay;
         recipe.sensitivity_strategy =
             offline::pricing::price_gradients::
                 sensitivity_strategy_from_arguments(argc, argv);
@@ -53,21 +57,30 @@ ${curve_load}        const auto products =
             models,
             ${execute_curve_argument}products,
             prepare,
-            model_namespace::
-                launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_cuda<
-                    SwaptionSide::$side,
-                    pg::SensitivityOrders::first_and_second
-                >,
-            model_namespace::
-                ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes<
-                    SwaptionSide::$side,
-                    pg::SensitivityOrders::first_and_second
-                >,
-            model_namespace::
-                launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_cuda<
-                    SwaptionSide::$side,
-                    pg::SensitivityOrders::first_and_second
-                >,
+            offline::pricing::price_gradients::with_exercise_replay(
+                model_namespace::
+                    launch_${function_prefix}_bermudan_swaption_diagonal_sensitivities_with_replay_cuda<
+                        SwaptionSide::$side,
+                        pg::SensitivityOrders::first_and_second
+                    >,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model_namespace::
+                    ${function_prefix}_bermudan_swaption_node_graph_workspace_bytes_with_replay<
+                        SwaptionSide::$side,
+                        pg::SensitivityOrders::first_and_second
+                    >,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model_namespace::
+                    launch_${function_prefix}_bermudan_swaption_node_graph_sensitivities_with_replay_cuda<
+                        SwaptionSide::$side,
+                        pg::SensitivityOrders::first_and_second
+                    >,
+                exercise_replay
+            ),
             offline::cuda_tuning::kProductionPathsPerPrice,
             model_namespace::
                 prepare_bermudan_swaption_diagonal_sensitivity_stencils_cuda

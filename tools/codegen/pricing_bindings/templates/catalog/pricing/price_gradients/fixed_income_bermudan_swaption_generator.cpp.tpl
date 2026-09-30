@@ -6,6 +6,7 @@ ${curve_dataset_include}#include "product/bermudan_swaption/dataset.hpp"
 
 int main() {
     using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
     namespace pg = price_gradients;
     namespace model_namespace = model::fixed_income::${binding_namespace};
     try {
@@ -16,6 +17,9 @@ int main() {
         $selections
             }}, {1.0f / 504.0f, 2U}, true
         };
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::$exercise_replay;
+        recipe.exercise_replay = exercise_replay;
 ${curve_recipe_assignment}        const auto models =
             model::fixed_income::${model}::load_models(recipe.model_input);
 ${curve_load}        const auto products =
@@ -33,7 +37,7 @@ ${curve_load}        const auto products =
                     construction, time, configuration
                 );
         };
-        const auto launch = [](
+        const auto launch = [exercise_replay](
             const auto& plan,
             auto inputs,
             auto stencils,
@@ -41,9 +45,9 @@ ${curve_load}        const auto products =
             auto outputs
         ) {
             return model_namespace::
-                launch_${function_prefix}_bermudan_swaption_price_gradients_cuda<
+                launch_${function_prefix}_bermudan_swaption_price_gradients_with_replay_cuda<
                     SwaptionSide::$side
-                >(plan, inputs, stencils, configuration, outputs);
+                >(plan, inputs, stencils, configuration, outputs, exercise_replay);
         };
         return offline::pricing::price_gradients::${execute_function}<
             true,

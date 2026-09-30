@@ -1,4 +1,4 @@
-// Generated merton American gradient and diagonal Hessian with frozen exercise.
+// Generated merton American gradient and diagonal Hessian with explicit exercise replay.
 #include "model/equity/markovian/merton/product/american_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "product/american_option/dataset.hpp"
@@ -6,6 +6,7 @@
 
 int main(int argc, char** argv) {
     using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
     namespace pg = price_gradients;
     try {
         datasets::price_gradients::Recipe recipe{
@@ -17,6 +18,9 @@ int main(int argc, char** argv) {
         {"product.strike", {0.005, pg::BumpScale::relative}}
             }}, {1.0f/504.0f, 2U}, false,
             pg::SensitivityOrders::first_and_second};
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::frozen_exercise_time;
+        recipe.exercise_replay = exercise_replay;
         recipe.sensitivity_strategy =
             offline::pricing::price_gradients::
                 sensitivity_strategy_from_arguments(argc, argv);
@@ -34,12 +38,21 @@ int main(int argc, char** argv) {
             recipe,
             {offline::cuda_tuning::PricingFamily::equity_lsm, "merton", "american_option", ""},
             11668827407611068416ULL, models, products, prepare,
-            model::equity::merton::launch_merton_american_option_diagonal_sensitivities_cuda<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
-            model::equity::merton::merton_american_option_node_graph_workspace_bytes<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
-            model::equity::merton::launch_merton_american_option_node_graph_sensitivities_cuda<
-                OptionSide::call, pg::SensitivityOrders::first_and_second>,
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::merton::launch_merton_american_option_diagonal_sensitivities_with_replay_cuda<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::merton::merton_american_option_node_graph_workspace_bytes_with_replay<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
+            offline::pricing::price_gradients::with_exercise_replay(
+                model::equity::merton::launch_merton_american_option_node_graph_sensitivities_with_replay_cuda<
+                    OptionSide::call, pg::SensitivityOrders::first_and_second>,
+                exercise_replay
+            ),
             offline::cuda_tuning::kProductionPathsPerPrice,
             model::equity::merton::prepare_american_option_diagonal_sensitivity_stencils_cuda);
     } catch (const std::exception& error) {

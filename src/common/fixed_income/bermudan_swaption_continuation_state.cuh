@@ -114,6 +114,17 @@ struct OneFactorRateContinuationState {
             prepared, states.factors[state_index]
         );
     }
+
+    template<typename RegressionProjection>
+    __device__ __forceinline__ static RegressionInput regression_input(
+        const typename RegressionProjection::PreparedRegressionState&
+            prepared,
+        float factor
+    ) {
+        return RegressionProjection::normalize_regression_state(
+            prepared, factor
+        );
+    }
 };
 
 template<simulation::DynamicsPolicy DynamicsPolicy>
@@ -228,6 +239,22 @@ struct TwoFactorRateContinuationState {
             ),
             RegressionProjection::normalize_regression_state_y(
                 prepared, states.factors_y[state_index]
+            ),
+        };
+    }
+
+    template<typename RegressionProjection>
+    __device__ __forceinline__ static RegressionInput regression_input(
+        const typename RegressionProjection::PreparedRegressionState&
+            prepared,
+        const FactorState& factor
+    ) {
+        return {
+            RegressionProjection::normalize_regression_state_x(
+                prepared, factor.state_x
+            ),
+            RegressionProjection::normalize_regression_state_y(
+                prepared, factor.state_y
             ),
         };
     }

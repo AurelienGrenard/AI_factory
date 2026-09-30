@@ -235,6 +235,29 @@ struct AmericanOptionPricingPolicy {
         );
     }
 
+    __device__ __forceinline__ static float replay_immediate_value(
+        const PreparedRow&,
+        const PreparedRow& bumped,
+        const typename Dynamics::State& state,
+        std::uint32_t
+    ) {
+        return payoff::vanilla_option_payoff<Side>(
+            Dynamics::spot(state), bumped.strike
+        );
+    }
+
+    __device__ __forceinline__ static RegressionInput
+    replay_regression_input(
+        const PreparedRow& row,
+        const typename Dynamics::State& state
+    ) {
+        return ContinuationState::regression_input(
+            row.continuation_state,
+            state,
+            row.inverse_strike
+        );
+    }
+
     __device__ __forceinline__ static bool regression_candidate(
         float immediate
     ) {

@@ -2,7 +2,8 @@
 #pragma once
 
 #include "common/longstaff_schwartz/frozen_exercise_trace.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_exercise_kernels.cuh"
+#include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_replay_kernels.cuh"
+#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
 #include "common/longstaff_schwartz/price_gradients/workspace.cuh"
 #include "common/price_gradients/device_prepared_launch.cuh"
 #include "common/price_gradients/reconstruction.cuh"
@@ -15,6 +16,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace ai_factory::workbench::product {
@@ -47,7 +49,9 @@ template<
     typename PreparationPolicy,
     typename PrimaryInputsT,
     pg::SensitivityOrders Orders,
-    bool TerminalForward
+    bool TerminalForward,
+    typename RegressorT,
+    typename ExerciseReplayPolicy
 >
 struct BermudanSwaptionDevicePreparedSensitivityPolicy
     : BasePricingPolicy {
@@ -60,6 +64,13 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
     using Base = BasePricingPolicy;
     using Preparation = PreparationPolicy;
     using PrimaryInputs = PrimaryInputsT;
+    using Regressor = RegressorT;
+    using ExerciseReplay = ExerciseReplayPolicy;
+    using RegressionSnapshot = longstaff_schwartz::price_gradients::
+        FrozenRegressionSnapshot<Regressor>;
+    static constexpr bool kFrozenRegressionPolicy =
+        longstaff_schwartz::price_gradients::
+            is_frozen_regression_policy_v<ExerciseReplay>;
     using ModelParameters = typename Base::ModelParameters;
     using ProductParameters = typename Base::ProductParameters;
     using Schedule = typename Base::Schedule;
@@ -231,6 +242,7 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         sensitivity_preparation::Error* preparation_error;
         std::size_t sensitivity_count;
         Exercise* exercises;
+        RegressionSnapshot* frozen_regressions;
         pg::TimeConfiguration time;
         TimeConfiguration simulation_time;
     };
@@ -244,6 +256,7 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
 
     struct StateView : Base::StateView {
         Exercise* exercises;
+        RegressionSnapshot* frozen_regressions;
     };
 
     template<typename HostPlan>
@@ -290,7 +303,23 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
     }
 
     static std::vector<longstaff_schwartz::StateFieldDescriptor>
+    observation_field_descriptors() {
+        std::vector<longstaff_schwartz::StateFieldDescriptor> descriptors;
+        if constexpr (requires { Base::observation_field_descriptors(); }) {
+            descriptors = Base::observation_field_descriptors();
+        }
+        if constexpr (kFrozenRegressionPolicy) {
+            descriptors = longstaff_schwartz::price_gradients::
+                with_frozen_regression_field<Regressor>(
+                    std::move(descriptors)
+                );
+        }
+        return descriptors;
+    }
+
+    static std::vector<longstaff_schwartz::StateFieldDescriptor>
     path_field_descriptors() {
+        if constexpr (kFrozenRegressionPolicy) return {};
         return {{sizeof(Exercise), alignof(Exercise)}};
     }
 
@@ -306,11 +335,22 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         unsigned char* workspace,
         const longstaff_schwartz::WorkspaceLayout& layout
     ) {
+        Exercise* exercises = nullptr;
+        RegressionSnapshot* frozen_regressions = nullptr;
+        if constexpr (kFrozenRegressionPolicy) {
+            frozen_regressions =
+                longstaff_schwartz::workspace_pointer<RegressionSnapshot>(
+                    workspace, layout.observation_fields.back()
+                );
+        } else {
+            exercises = longstaff_schwartz::workspace_pointer<Exercise>(
+                workspace, layout.path_fields.at(0)
+            );
+        }
         return {
             Base::make_state_view(workspace, layout),
-            longstaff_schwartz::workspace_pointer<Exercise>(
-                workspace, layout.path_fields.at(0)
-            ),
+            exercises,
+            frozen_regressions,
         };
     }
 
@@ -390,9 +430,25 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
             stencil_outputs.error,
             sensitivity_count,
             nullptr,
+            nullptr,
             sensitivity_time,
             simulation_time,
         };
+    }
+
+    __device__ __forceinline__ static void prepare_observations(
+        PreparedRow& row,
+        const StateView& states
+    ) {
+        if constexpr (requires {
+            Base::prepare_observations(row, states);
+        }) {
+            Base::prepare_observations(row, states);
+        }
+        if constexpr (kFrozenRegressionPolicy) {
+            row.frozen_regressions = states.frozen_regressions
+                + row.state_offset / row.paths_per_price;
+        }
     }
 
     __device__ __forceinline__ static void prepare_path_outputs(
@@ -401,7 +457,9 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         std::size_t batch_price,
         std::size_t paths
     ) {
-        row.exercises = states.exercises + batch_price * paths;
+        if constexpr (!kFrozenRegressionPolicy) {
+            row.exercises = states.exercises + batch_price * paths;
+        }
     }
 
     __device__ __forceinline__ static float simulate_path(
@@ -410,7 +468,9 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         std::size_t paths,
         const StateView& states
     ) {
-        row.exercises[path].observation = row.regression_count;
+        if constexpr (!kFrozenRegressionPolicy) {
+            row.exercises[path].observation = row.regression_count;
+        }
         return Base::simulate_path(row, path, paths, states);
     }
 
@@ -421,8 +481,28 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         std::size_t path,
         std::uint32_t
     ) {
-        row.exercises[path].observation =
-            Base::exercise_from_state_index(row, observation);
+        if constexpr (!kFrozenRegressionPolicy) {
+            row.exercises[path].observation =
+                Base::exercise_from_state_index(row, observation);
+        }
+    }
+
+    __device__ __forceinline__ static void record_regression(
+        const PreparedRow& row,
+        const StateView&,
+        std::uint32_t backward_level,
+        const double* coefficients,
+        longstaff_schwartz::RegressionStatus status
+    ) requires(kFrozenRegressionPolicy) {
+        longstaff_schwartz::price_gradients::capture_frozen_regression<
+            Regressor
+        >(
+            row.frozen_regressions,
+            row.regression_count,
+            backward_level,
+            coefficients,
+            status
+        );
     }
 
     __device__ __forceinline__ static InitialDecision
@@ -532,39 +612,62 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         );
     }
 
+    __device__ __forceinline__ static float replay_node_value(
+        const PreparedRow& row,
+        const typename Base::PreparedRow& node,
+        std::size_t path
+    ) {
+        std::uint32_t exercise = row.regression_count;
+        typename Dynamics::State state{};
+        if constexpr (kFrozenRegressionPolicy) {
+            longstaff_schwartz::price_gradients::
+                FrozenRegressionExerciseHandler<Base, Regressor> handler{
+                    row,
+                    node,
+                    row.frozen_regressions,
+                    row.regression_count,
+                };
+            state = Schedule::simulate(
+                node.schedule, row.key, path, handler
+            );
+            exercise = handler.exercise;
+        } else {
+            exercise = row.exercises[path].observation;
+            StopAtExerciseObservation<Dynamics> handler{exercise};
+            state = Schedule::simulate(
+                node.schedule, row.key, path, handler
+            );
+        }
+
+        if constexpr (TerminalForward) {
+            return Base::normalized_payoff(node, state, exercise);
+        } else {
+            const float payoff = Base::immediate_value_at(
+                node,
+                Analytics::factor_state(state),
+                exercise
+            );
+            const float log_discount = Analytics::log_discount_factor(
+                node.analytics,
+                state.state_integral,
+                Base::exercise_time(node, exercise)
+            );
+            return expf(log_discount) * payoff;
+        }
+    }
+
     __device__ __forceinline__ static pg::SensitivityResult path_sensitivity(
         const PreparedRow& row,
         const PreparedSensitivity& prepared,
         std::size_t path
     ) {
         pg::SensitivityValues<kNodeCapacity> values{};
-        const std::uint32_t exercise = row.exercises[path].observation;
         #pragma unroll
         for (std::size_t node = 0U; node < kNodeCapacity; ++node) {
-            if (node >= prepared.node_count) continue;
-            StopAtExerciseObservation<Dynamics> handler{exercise};
-            const typename Dynamics::State state = Schedule::simulate(
-                prepared.nodes[node].schedule,
-                row.key,
-                path,
-                handler
-            );
-            if constexpr (TerminalForward) {
-                values[node] = Base::normalized_payoff(
-                    prepared.nodes[node], state, exercise
+            if (node < prepared.node_count) {
+                values[node] = replay_node_value(
+                    row, prepared.nodes[node], path
                 );
-            } else {
-                const float payoff = Base::immediate_value_at(
-                    prepared.nodes[node],
-                    Analytics::factor_state(state),
-                    exercise
-                );
-                const float log_discount = Analytics::log_discount_factor(
-                    prepared.nodes[node].analytics,
-                    state.state_integral,
-                    Base::exercise_time(prepared.nodes[node], exercise)
-                );
-                values[node] = expf(log_discount) * payoff;
             }
         }
         return pg::reconstruct_sensitivity<Orders>(
@@ -589,7 +692,7 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         const char* name
     ) {
         return longstaff_schwartz::price_gradients::
-            finish_device_prepared_frozen_sensitivity_batch<
+            finish_device_prepared_frozen_replay_sensitivity_batch<
                 Orders,
                 BermudanSwaptionDevicePreparedSensitivityPolicy
             >(

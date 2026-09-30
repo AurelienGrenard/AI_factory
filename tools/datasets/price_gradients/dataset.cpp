@@ -8,6 +8,7 @@
 #include <string>
 
 namespace ai_factory::workbench::datasets::price_gradients {
+namespace lspg = ::ai_factory::workbench::longstaff_schwartz::price_gradients;
 namespace pg = ::ai_factory::workbench::price_gradients;
 
 namespace {
@@ -57,6 +58,15 @@ std::size_t checked_product(
 }
 
 }  // namespace
+
+void append_exercise_replay_metadata(
+    const Recipe& recipe,
+    nlohmann::ordered_json& metadata
+) {
+    if (recipe.exercise_replay.has_value()) {
+        metadata["exercise_replay"] = lspg::to_string(*recipe.exercise_replay);
+    }
+}
 
 nlohmann::ordered_json sensitivity_metadata(
     const Recipe& recipe,
@@ -557,6 +567,7 @@ void write_dataset(const Recipe& recipe, const Results& result) {
             {"kernel_seconds", result.kernel_seconds},
         }},
     };
+    append_exercise_replay_metadata(recipe, metadata);
     if (curve_rows != nullptr) {
         metadata["curve_dataset"] = reference(curves);
     }

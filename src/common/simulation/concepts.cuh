@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/philox.cuh"
+#include "common/simulation/calendar.hpp"
 
 #include <concepts>
 #include <cstddef>
@@ -222,7 +223,10 @@ concept SchedulePolicy =
         const typename Schedule::TimeConfiguration& time_configuration
     ) {
         {
-            validate_time_configuration(time_configuration)
+            ::ai_factory::workbench::simulation::
+                validate_time_configuration(
+                    time_configuration
+                )
         } -> std::same_as<void>;
     }
     && (DevicePreparedSchedulePolicy<Schedule>
