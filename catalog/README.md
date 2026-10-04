@@ -1,49 +1,28 @@
-# Dataset catalogue recipes
+# Dataset catalog recipes
 
-`catalog` contains reproducible dataset recipes and adjacent publication
-metadata. It contains no generated JSON dataset and does not own runtime
-pricing or simulation algorithms.
-
-The hierarchy mirrors the canonical identities under `src`:
+The catalog is divided into `prod` and `other`. Both use the same taxonomy:
 
 ```text
-catalog/
-|-- curve/<curve>/<dataset-id>/
-|-- model/<asset-class>/<family>/<model>/{parameters,samples,prices,price_gradients}/...
-`-- product/<product>/<dataset-id>/
+catalog/<branch>/curve/<curve>/<dataset-id>/
+catalog/<branch>/model/<asset-class>/<family>/<model>/{parameters,samples,prices,price_gradients}/...
+catalog/<branch>/product/<product>/<dataset-id>/
 ```
 
 Fixed-income models omit the equity family level. A price path adds its product
-and, when required by the pricing contract, its curve before the dataset ID.
-The matching generated artifact follows the same hierarchy under the ignored
-`datasets/` directory.
+and, when required, its curve before the dataset ID. Every leaf contains a
+`generator.cpp` and a `recipe.yaml`. Published leaves also contain a
+`generation.yaml` receipt. The matching JSON file lives under the same
+relative path in `datasets/<branch>/`.
 
-The public derivative catalogue deliberately exposes one canonical contract:
-`price_gradients/**/<dataset-id>_price_gradient_diagonal_hessian`. It contains
-the price, the selected gradient, and the selected diagonal Hessian. Gradient-
-only, spot-only, and full-Hessian variants remain code-generation capabilities
-for experiments; they do not multiply public catalogue recipes.
+`prod` contains the selected published recipes. `other` contains every
+remaining recipe and is ignored by Git; it stays local. All generated JSONs
+are ignored by Git. See [the production layout guide](../docs/deployment-catalog.md)
+for the selection and server copy instructions.
 
-Each recipe leaf always owns two source files:
-
-- `generator.cpp`: minimal executable entry point;
-- `recipe.yaml`: canonical description of the dataset identity and contents.
-
-After a completed materialization, the leaf also owns `generation.yaml`. This
-receipt contains hashes, execution evidence and timing; it is written last and
-therefore acts as the publication-complete marker. Independent certification is
-deferred and no `validation.yaml` belongs in the catalogue for now.
-
-Published dataset IDs are immutable. If data or recipe semantics change, use a
-new dataset ID. Publication requires a clean Git revision, stages the JSON
-first, and publishes `generation.yaml` last.
+The recipes and receipts retain their historical logical paths and hashes.
+`tools/datasets/catalog_layout.py` resolves those paths into their physical
+branches. Do not rewrite historical receipts to disguise a move.
 
 Generated bindings and repeated price/sample recipes are owned by the
 [typed capability manifest and code generator](../tools/codegen/pricing_bindings/README.md).
-Do not edit generated recipes or runtime-produced receipts by hand. Their
-schemas live under [`tools/datasets/schemas`](../tools/datasets/schemas/).
-
-Use the [catalogue extension workflow](../docs/catalog-extension-and-validation-workflow.md)
-for the complete addition and publication sequence, and the specialized
-[parameter](../docs/model-and-product-parameter-dataset-generation.md) or
-[sample](../docs/model-sample-dataset-generation.md) contract for row rules.
+Their schemas live under [`tools/datasets/schemas`](../tools/datasets/schemas/).

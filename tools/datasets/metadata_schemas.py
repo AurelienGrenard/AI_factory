@@ -72,7 +72,8 @@ def catalogue_documents(root: Path) -> Iterable[tuple[str, Path]]:
 
     catalog = root / "catalog"
     for kind in ("recipe", "generation", "validation"):
-        yield from ((kind, path) for path in sorted(catalog.rglob(f"{kind}.yaml")))
+        for branch in ("prod", "other"):
+            yield from ((kind, path) for path in sorted((catalog / branch).rglob(f"{kind}.yaml")))
 
 
 def validate_repository(

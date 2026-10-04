@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 from string import Template
 
 from manifest import (
@@ -66,6 +67,15 @@ from price_gradients.render import render_recipes as render_price_gradient_recip
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
+from tools.datasets.catalog_layout import physical_path  # noqa: E402
+
+
+def layout_relative(path: str) -> str:
+    return physical_path(PROJECT_ROOT, path).relative_to(PROJECT_ROOT).as_posix()
+
+
 TEMPLATE_DIR = SCRIPT_DIR / "templates"
 
 
@@ -492,9 +502,10 @@ def generate_samples(output_root: Path) -> list[Path]:
         generated.append(helper)
         for recipe_index in (1, 2):
             recipe = (
-                output_root / "catalog" / "model" / model.source_folder
-                / "samples" / f"samples_{recipe_index:02d}"
-                / "generator.cpp"
+                output_root / layout_relative(
+                    f"catalog/model/{model.source_folder}/samples/"
+                    f"samples_{recipe_index:02d}/generator.cpp"
+                )
             )
             recipe.parent.mkdir(parents=True, exist_ok=True)
             _write_generated(recipe, _render_sample_recipe_source(model, recipe_index))
@@ -888,7 +899,7 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
                 if dataset.construction == "cartesian" else ""
             ),
         }
-        destination = output_root / dataset.generator_path
+        destination = output_root / layout_relative(dataset.generator_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         template = dataset.template
         if fft:
@@ -1259,7 +1270,7 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
                 f"Generated fixed-income dataset lacks a template: "
                 f"{dataset.generator_path}"
             )
-        destination = output_root / dataset.generator_path
+        destination = output_root / layout_relative(dataset.generator_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         rendered = _render_dollar_template(
             dataset.template,
@@ -1361,7 +1372,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
         variant = variants[dataset.variant or ""]
         database_id = dataset.dataset_id
         backend = template_keys[dataset.engine or ""]
-        destination = output_root / dataset.generator_path
+        destination = output_root / layout_relative(dataset.generator_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         side_template = (
             f"<OptionSide::{variant.side}>" if variant.side else ""
@@ -1450,7 +1461,7 @@ def generate_catalog_recipes(output_root: Path) -> list[Path]:
         model = american_models[dataset.model or ""]
         side = "call" if dataset.variant == "american_calls" else "put"
         database_id = dataset.dataset_id
-        destination = output_root / dataset.generator_path
+        destination = output_root / layout_relative(dataset.generator_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         if model.time_kind == "fixed":
             time_values = {
@@ -1597,8 +1608,8 @@ def generate_price_recipe_metadata(output_root: Path) -> list[Path]:
     for dataset in AVAILABLE_DATASET_SPECS:
         if dataset.dataset_kind != "prices" or dataset.owner != "generated":
             continue
-        generator = output_root / dataset.generator_path
-        metadata_path = output_root / dataset.recipe_yaml_path
+        generator = output_root / layout_relative(dataset.generator_path)
+        metadata_path = output_root / layout_relative(dataset.recipe_yaml_path)
         _write_generated(
             metadata_path,
             json.dumps(
@@ -1682,19 +1693,19 @@ def cmake_manifest_text(
         if spec.pricing.asset_class == "fixed_income"
     })
     parameter_sources = sorted(
-        dataset.generator_path for dataset in dataset_specs
+        layout_relative(dataset.generator_path) for dataset in dataset_specs
         if dataset.dataset_kind.endswith("_parameters")
     )
     price_sources = sorted(
-        dataset.generator_path for dataset in dataset_specs
+        layout_relative(dataset.generator_path) for dataset in dataset_specs
         if dataset.dataset_kind in {"prices", "price_gradients"}
     )
     sample_sources = sorted(
-        dataset.generator_path for dataset in dataset_specs
+        layout_relative(dataset.generator_path) for dataset in dataset_specs
         if dataset.dataset_kind == "samples"
     )
     mathdx_sources = sorted(
-        dataset.generator_path for dataset in dataset_specs
+        layout_relative(dataset.generator_path) for dataset in dataset_specs
         if dataset.condition == "AI_FACTORY_MATHDX_ROOT"
     )
     return (
@@ -1867,7 +1878,9 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
         ),
         (
             "catalog recipe",
-            {dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS},
+            {layout_relative(dataset.generator_path) for dataset in AVAILABLE_DATASET_SPECS
+             if (reference_root / layout_relative(dataset.generator_path)).is_file()
+             or not layout_relative(dataset.generator_path).startswith("catalog/other/")},
             _relative_files(reference_root, "catalog/**/generator.cpp"),
         ),
         (
@@ -1911,12 +1924,12 @@ def _expected_generated_paths() -> set[str]:
     paths.update(GENERATED_PRICE_DELTA_BINDING_PATHS)
     paths.update(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
     paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
-    paths.update(str(Path(dataset.generator_path).with_name("recipe.yaml"))
+    paths.update(layout_relative(str(Path(dataset.generator_path).with_name("recipe.yaml")))
                  for dataset in PRICE_GRADIENT_DATASET_SPECS)
-    paths.update(dataset.recipe_yaml_path for dataset in AVAILABLE_DATASET_SPECS
+    paths.update(layout_relative(dataset.recipe_yaml_path) for dataset in AVAILABLE_DATASET_SPECS
                  if dataset.dataset_kind in {"prices", "samples"})
     paths.update(
-        dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
+        layout_relative(dataset.generator_path) for dataset in AVAILABLE_DATASET_SPECS
         if dataset.owner == "generated"
     )
     for model in MODEL_SPECS:
@@ -1963,6 +1976,9 @@ def compare(
         mismatch_count += len(diagnostics)
     for generated_path in generated:
         relative_path = generated_path.relative_to(output_root)
+        if (relative_path.parts[:2] == ("catalog", "other")
+                and not (reference_root / "catalog" / "other").exists()):
+            continue
         reference_path = reference_root / relative_path
         if not reference_path.is_file():
             mismatch_count += 1

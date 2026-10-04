@@ -11,6 +11,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 CODEGEN = ROOT / "tools" / "codegen" / "pricing_bindings"
 sys.path.insert(0, str(CODEGEN))
+sys.path.insert(0, str(ROOT))
+from tools.datasets.catalog_layout import physical_path  # noqa: E402
 
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
@@ -50,10 +52,15 @@ def main() -> int:
         validate_rng_domain_specs(RNG_DOMAIN_SPECS)
     except ValueError as error:
         failures.append(str(error))
-    generators = sorted((ROOT / "catalog").rglob("generator.cpp"))
-    generator_paths = {relative(path) for path in generators}
+    generators = sorted(path for branch in ("prod", "other")
+                        for path in (ROOT / "catalog" / branch).rglob("generator.cpp"))
+    generator_paths = {"catalog/" + "/".join(relative(path).split("/")[2:])
+                       for path in generators}
+    all_recipe_paths = {dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS}
     expected_recipe_paths = {
-        dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS
+        path for path in all_recipe_paths
+        if (ROOT / "catalog/other").exists()
+        or "/catalog/prod/" in physical_path(ROOT, path).as_posix()
     }
     deferred_recipe_paths = {
         dataset.generator_path for dataset in DEFERRED_DATASET_SPECS
@@ -79,7 +86,7 @@ def main() -> int:
         (product.asset_class, product.name) for product in PRODUCT_SPECS
     }) != len(PRODUCT_SPECS):
         failures.append("duplicate ProductSpec key")
-    if len(expected_recipe_paths) != len(AVAILABLE_DATASET_SPECS):
+    if len(all_recipe_paths) != len(AVAILABLE_DATASET_SPECS):
         failures.append("duplicate available DatasetSpec recipe path")
 
     for dataset in AVAILABLE_DATASET_SPECS:
@@ -101,13 +108,13 @@ def main() -> int:
                 f"{dataset.generator_path}"
             )
 
-    missing_generated = GENERATED_RECIPES - generator_paths
+    missing_generated = (GENERATED_RECIPES & expected_recipe_paths) - generator_paths
     failures.extend(
         f"missing generated recipe: {path}"
         for path in sorted(missing_generated)
     )
     for path_text in sorted(GENERATED_RECIPES & generator_paths):
-        source = (ROOT / path_text).read_text()
+        source = physical_path(ROOT, path_text).read_text()
         if not source.startswith("// Generated "):
             failures.append(
                 f"generated recipe is not codegen-owned: {path_text}"
@@ -140,7 +147,7 @@ def main() -> int:
             )
 
     for dataset in AVAILABLE_DATASET_SPECS:
-        path = ROOT / dataset.generator_path
+        path = physical_path(ROOT, dataset.generator_path)
         if not path.is_file():
             continue
         source = path.read_text()

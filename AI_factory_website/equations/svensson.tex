@@ -1,0 +1,13 @@
+\documentclass{equation-sheet}
+\begin{document}
+\begin{equation*}
+\begin{aligned}
+z(0,T)
+  &= \beta_0 + \beta_1 L(T/\tau_1) \\
+  &\quad + \beta_2 C(T/\tau_1) + \beta_3 C(T/\tau_2), \\[0.45em]
+L(x) &= \frac{1-e^{-x}}{x},
+  \qquad C(x)=L(x)-e^{-x}, \\[0.45em]
+P(0,T) &= e^{-Tz(0,T)}.
+\end{aligned}
+\end{equation*}
+\end{document}

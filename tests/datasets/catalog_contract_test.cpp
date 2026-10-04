@@ -158,13 +158,13 @@ int main() {
             "materialized generation metadata is missing");
 
     const std::string heston = read_text(
-        "catalog/model/equity/markovian/heston/parameters/heston_01/recipe.yaml"
+        "catalog/prod/model/equity/markovian/heston/parameters/heston_01/recipe.yaml"
     );
     require(heston.find("core_share: 0.9") != std::string::npos
                 && heston.find("stress_share: 0.1") != std::string::npos,
             "parameter recipe lost its ordered core/stress construction");
     const std::string sample = read_text(
-        "catalog/model/equity/markovian/heston/samples/samples_01/recipe.yaml"
+        "catalog/prod/model/equity/markovian/heston/samples/samples_01/recipe.yaml"
     );
     require(sample.find("\"parameter_count\": 12000") != std::string::npos
                 && sample.find("\"paths_per_parameter\": 250") != std::string::npos,
