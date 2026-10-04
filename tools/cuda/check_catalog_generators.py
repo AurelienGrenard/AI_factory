@@ -52,15 +52,17 @@ def main() -> int:
         validate_rng_domain_specs(RNG_DOMAIN_SPECS)
     except ValueError as error:
         failures.append(str(error))
-    generators = sorted(path for branch in ("prod", "other")
-                        for path in (ROOT / "catalog" / branch).rglob("generator.cpp"))
-    generator_paths = {"catalog/" + "/".join(relative(path).split("/")[2:])
-                       for path in generators}
+    published = sorted((ROOT / "catalog").rglob("generator.cpp"))
+    local = sorted((ROOT / "work/catalog").rglob("generator.cpp"))
+    generators = sorted(published + local)
+    generator_paths = {relative(path) for path in published}
+    generator_paths.update("catalog/" + path.relative_to(ROOT / "work/catalog").as_posix()
+                           for path in local)
     all_recipe_paths = {dataset.generator_path for dataset in AVAILABLE_DATASET_SPECS}
     expected_recipe_paths = {
         path for path in all_recipe_paths
-        if (ROOT / "catalog/other").exists()
-        or "/catalog/prod/" in physical_path(ROOT, path).as_posix()
+        if (ROOT / "work/catalog").exists()
+        or physical_path(ROOT, path).is_relative_to(ROOT / "catalog")
     }
     deferred_recipe_paths = {
         dataset.generator_path for dataset in DEFERRED_DATASET_SPECS

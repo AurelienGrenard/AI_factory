@@ -33,5 +33,6 @@ __pycache__/
 # Local agent instructions are workstation-specific.
 /AGENTS.md
 
-# Research and pending catalog recipes remain local.
-/catalog/other/
+# The local website and validation workspace are not published.
+/AI_factory_website/
+/validation/

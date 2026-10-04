@@ -1,1 +1,0 @@
-"""Published Kou dataset validation."""
