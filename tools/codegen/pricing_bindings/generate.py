@@ -1880,8 +1880,9 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
             "catalog recipe",
             {layout_relative(dataset.generator_path) for dataset in AVAILABLE_DATASET_SPECS
              if (reference_root / layout_relative(dataset.generator_path)).is_file()
-             or not layout_relative(dataset.generator_path).startswith("catalog/other/")},
-            _relative_files(reference_root, "catalog/**/generator.cpp"),
+             or not layout_relative(dataset.generator_path).startswith("work/catalog/")},
+            _relative_files(reference_root, "catalog/**/generator.cpp")
+            | _relative_files(reference_root, "work/catalog/**/generator.cpp"),
         ),
         (
             "sample binding",
@@ -1976,8 +1977,8 @@ def compare(
         mismatch_count += len(diagnostics)
     for generated_path in generated:
         relative_path = generated_path.relative_to(output_root)
-        if (relative_path.parts[:2] == ("catalog", "other")
-                and not (reference_root / "catalog" / "other").exists()):
+        if (relative_path.parts[:2] == ("work", "catalog")
+                and not (reference_root / "work" / "catalog").exists()):
             continue
         reference_path = reference_root / relative_path
         if not reference_path.is_file():

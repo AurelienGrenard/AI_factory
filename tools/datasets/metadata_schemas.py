@@ -70,10 +70,9 @@ def validate_path(path: Path, kind: str) -> None:
 def catalogue_documents(root: Path) -> Iterable[tuple[str, Path]]:
     """Enumerate every versioned catalogue document governed by a schema."""
 
-    catalog = root / "catalog"
     for kind in ("recipe", "generation", "validation"):
-        for branch in ("prod", "other"):
-            yield from ((kind, path) for path in sorted((catalog / branch).rglob(f"{kind}.yaml")))
+        for folder in (root / "catalog", root / "work/catalog"):
+            yield from ((kind, path) for path in sorted(folder.rglob(f"{kind}.yaml")))
 
 
 def validate_repository(

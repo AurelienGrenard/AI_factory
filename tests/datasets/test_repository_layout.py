@@ -12,9 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def source_catalog_files(pattern: str):
-    catalog = ROOT / "catalog"
-    return (path for branch in ("prod", "other")
-            for path in (catalog / branch).rglob(pattern))
+    return (path for folder in (ROOT / "catalog", ROOT / "work/catalog")
+            for path in folder.rglob(pattern))
 
 
 class RepositoryLayoutTest(unittest.TestCase):
@@ -87,7 +86,7 @@ class RepositoryLayoutTest(unittest.TestCase):
             if "price_gradients" in path.parts
         )
         self.assertEqual(len(gradient_recipes),
-                         1020 if (ROOT / "catalog/other").exists() else 0)
+                         1020 if (ROOT / "work/catalog").exists() else 0)
         for recipe in gradient_recipes:
             document = yaml.safe_load(recipe.read_text(encoding="utf-8"))
             self.assertEqual(document.get("kind"), "price_gradients", recipe)

@@ -80,9 +80,9 @@ def select_specs(
             continue
         if constructions and spec.construction not in constructions:
             continue
-        if (root / "catalog/prod/manifest.json").is_file():
+        if (root / "catalog/manifest.json").is_file():
             generator = contained_path(root, spec.generator_path)
-            if not generator.is_file() and "catalog/other/" in generator.as_posix():
+            if not generator.is_file() and "work/catalog/" in generator.as_posix():
                 # The local-only branch is intentionally absent from GitHub.
                 continue
         matched_targets.add(spec.cmake_target)

@@ -97,14 +97,13 @@ record a separate architecture profile.
 src/          Runtime C++/CUDA models, products, curves, and shared primitives
 learning/     Python/PyTorch training, shared data contracts and evaluation
 tools/        Offline generation, publication, code generation, and diagnostics
-work/         Ignored, disposable generation campaigns and experiments
-catalog/      Versioned recipes plus generation and validation metadata
+work/         Ignored, local recipes, generation campaigns and experiments
+catalog/      Published recipes and generation metadata
 datasets/     Published or downloaded dataset artifacts only; ignored by Git
 build/        Main local CMake build; ignored by Git
 builds/       Optional separate CMake builds; ignored by Git
 artifacts/    Local audit evidence, performance runs and tool caches; ignored by Git
 tests/        Host, CUDA, architecture, and performance tests
-validation/   Independent price-reference pipelines and backend adapters
 cmake/        Build ownership by runtime, catalogue, tests, and performance
 docs/         Task-oriented workflows, contracts, references, and audit records
 ```
