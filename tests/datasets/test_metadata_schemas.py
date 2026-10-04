@@ -80,8 +80,10 @@ class MetadataSchemaTest(unittest.TestCase):
                 schema_validator(kind)
                 validate_document(document, kind)
         counts = validate_repository(ROOT)
-        self.assertEqual(counts["recipe"], 2409)
-        self.assertEqual(counts["generation"], 720)
+        other_recipes = len(list((ROOT / "catalog/other").rglob("recipe.yaml")))
+        other_receipts = len(list((ROOT / "catalog/other").rglob("generation.yaml")))
+        self.assertEqual(counts["recipe"], 696 + other_recipes)
+        self.assertEqual(counts["generation"], 696 + other_receipts)
         self.assertEqual(counts["validation"], 0)
 
     def test_each_schema_rejects_a_broken_contract(self) -> None:

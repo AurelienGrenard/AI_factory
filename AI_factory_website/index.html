@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI Factory quantitative-finance dataset catalog.">
+  <title>AI Factory | Dataset catalog</title>
+  <link rel="icon" href="static/logo.png" type="image/png">
+  <link rel="stylesheet" href="static/catalog.css">
+  <link rel="stylesheet" href="static/inventory.css">
+</head>
+<body>
+  <div class="site-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#/" aria-label="AI Factory catalog home">
+        <span class="brand-mark" aria-hidden="true">AF</span>
+        <span>
+          <strong>AI Factory</strong>
+          <small>Quantitative datasets</small>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Catalog navigation">
+        <a href="#/" data-nav="catalog">Dataset catalog</a>
+        <a href="#/markets/equity" data-nav="equity">Equity</a>
+        <a href="#/markets/fixed_income" data-nav="fixed_income">Fixed Income</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="status-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Dataset library</strong>
+          <small>Only selected production datasets are listed.</small>
+        </div>
+      </div>
+
+      <div class="institution-logos" aria-label="Project institutions">
+        <img src="static/logo_lpsm.jpg" alt="LPSM">
+        <img src="static/logo.png" alt="MLP">
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+      </header>
+
+      <main id="app" tabindex="-1"></main>
+
+      <footer class="site-footer">
+        <span>AI Factory datasets</span>
+        <span>Selected production datasets</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="static/dataset-index.js"></script>
+  <script src="static/catalog.js"></script>
+</body>
+</html>

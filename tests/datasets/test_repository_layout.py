@@ -11,6 +11,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def source_catalog_files(pattern: str):
+    catalog = ROOT / "catalog"
+    return (path for branch in ("prod", "other")
+            for path in (catalog / branch).rglob(pattern))
+
+
 class RepositoryLayoutTest(unittest.TestCase):
     def test_local_experiments_are_explicit_and_isolated_from_aggregates(self) -> None:
         root_cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
@@ -40,7 +46,7 @@ class RepositoryLayoutTest(unittest.TestCase):
         if datasets.exists():
             self.assertLessEqual(
                 {path.name for path in datasets.iterdir()},
-                {"curve", "model", "product"},
+                {"prod", "other"},
             )
 
     def test_local_workspaces_are_ignored_together(self) -> None:
@@ -51,9 +57,9 @@ class RepositoryLayoutTest(unittest.TestCase):
 
     def test_catalog_generators_have_canonical_recipes_only(self) -> None:
         catalog = ROOT / "catalog"
-        obsolete = tuple(catalog.rglob("dataset.yaml"))
+        obsolete = tuple(source_catalog_files("dataset.yaml"))
         self.assertEqual(obsolete, ())
-        generators = tuple(catalog.rglob("generator.cpp"))
+        generators = tuple(source_catalog_files("generator.cpp"))
         self.assertGreater(len(generators), 0)
         for generator in generators:
             recipe = generator.with_name("recipe.yaml")
@@ -77,9 +83,11 @@ class RepositoryLayoutTest(unittest.TestCase):
             self.assertEqual(obsolete, [])
 
         gradient_recipes = tuple(
-            (ROOT / "catalog").glob("**/price_gradients/**/recipe.yaml")
+            path for path in source_catalog_files("recipe.yaml")
+            if "price_gradients" in path.parts
         )
-        self.assertEqual(len(gradient_recipes), 1020)
+        self.assertEqual(len(gradient_recipes),
+                         1020 if (ROOT / "catalog/other").exists() else 0)
         for recipe in gradient_recipes:
             document = yaml.safe_load(recipe.read_text(encoding="utf-8"))
             self.assertEqual(document.get("kind"), "price_gradients", recipe)
@@ -115,7 +123,7 @@ class RepositoryLayoutTest(unittest.TestCase):
                 for child in value:
                     yield from field_names(child)
 
-        for path in (ROOT / "catalog").rglob("recipe.yaml"):
+        for path in source_catalog_files("recipe.yaml"):
             document = yaml.safe_load(path.read_text(encoding="utf-8"))
             self.assertIsInstance(document.get("row_count"), int, path)
             self.assertGreater(document["row_count"], 0, path)
@@ -139,7 +147,7 @@ class RepositoryLayoutTest(unittest.TestCase):
             "construction",
             "numerical_method",
         }
-        for path in (ROOT / "catalog").rglob("generation.yaml"):
+        for path in source_catalog_files("generation.yaml"):
             document = yaml.safe_load(path.read_text(encoding="utf-8"))
             self.assertEqual(document.get("schema_version"), 1)
             self.assertTrue(forbidden.isdisjoint(document), path.relative_to(ROOT))

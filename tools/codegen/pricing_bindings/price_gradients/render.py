@@ -1093,7 +1093,10 @@ def render_recipes(
             ),
             "selections": ",\n        ".join('{"' + item["parameter"] + '", {' + repr(item["displacement"])
                 + ', pg::BumpScale::' + item["scale"] + '}}' for item in selected)}
-        destination = output_root / spec.generator_path
+        from tools.datasets.catalog_layout import physical_path
+        project_root = Path(__file__).resolve().parents[4]
+        relative = physical_path(project_root, spec.generator_path).relative_to(project_root)
+        destination = output_root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         write_generated(destination, template.substitute(values))
         generated.append(destination)

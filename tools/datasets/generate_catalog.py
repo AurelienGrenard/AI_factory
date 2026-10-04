@@ -80,6 +80,11 @@ def select_specs(
             continue
         if constructions and spec.construction not in constructions:
             continue
+        if (root / "catalog/prod/manifest.json").is_file():
+            generator = contained_path(root, spec.generator_path)
+            if not generator.is_file() and "catalog/other/" in generator.as_posix():
+                # The local-only branch is intentionally absent from GitHub.
+                continue
         matched_targets.add(spec.cmake_target)
         if skip_published:
             dataset_exists = contained_path(root, spec.dataset_path).exists()
@@ -487,10 +492,10 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
     for job in jobs:
         job["binary_sha256"] = copy_frozen(build / job["target"], run / "bin" / job["target"])
         job["generator_sha256"] = copy_frozen(
-            root / job["generator"], contained_path(run / "sources", job["generator"])
+            contained_path(root, job["generator"]), contained_path(run / "sources", job["generator"])
         )
         job["recipe_sha256"] = copy_frozen(
-            root / job["recipe"], contained_path(run / "sources", job["recipe"])
+            contained_path(root, job["recipe"]), contained_path(run / "sources", job["recipe"])
         )
         job["previous"] = {path: digest(contained_path(root, path))
                            for path in (job["dataset"], job["generation"])}

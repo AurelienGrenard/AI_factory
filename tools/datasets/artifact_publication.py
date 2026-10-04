@@ -13,6 +13,7 @@ from pathlib import Path
 import tempfile
 
 from tools.datasets.metadata_schemas import validate_path
+from tools.datasets.catalog_layout import physical_path
 
 
 def digest(path: Path) -> str | None:
@@ -28,14 +29,8 @@ def digest(path: Path) -> str | None:
 
 
 def contained_path(root: Path, relative: str) -> Path:
-    """Reject absolute paths, traversal, and symlink redirection before writes."""
-    part = Path(relative)
-    if part.is_absolute() or not part.parts or ".." in part.parts:
-        raise ValueError(f"Expected a repository-relative path: {relative}")
-    path = root.resolve() / part
-    if path.resolve() != path:
-        raise ValueError(f"Artifact path traverses a symlink: {path}")
-    return path
+    """Reject traversal and map legacy logical paths to their physical branch."""
+    return physical_path(root, relative)
 
 
 def sync_directory(path: Path) -> None:

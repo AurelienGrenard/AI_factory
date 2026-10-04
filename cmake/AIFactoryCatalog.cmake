@@ -79,7 +79,7 @@ endfunction()
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
     if(source MATCHES
-        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/")
+        "catalog/(prod|other)/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/")
         # Rough preparation and schedule policies include device definitions.
         # Their generated entry points keep .cpp names but need nvcc.
         set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
@@ -115,7 +115,7 @@ endfunction()
 # Register one model-sample generator against its thin CUDA model binding.
 function(add_sample_generator target source)
     if(source MATCHES
-        "catalog/model/equity/rough/(rough_heston|quadratic_rough_heston)/samples/")
+        "catalog/(prod|other)/model/equity/rough/(rough_heston|quadratic_rough_heston)/samples/")
         # Host N-factor preparation includes CUDA-decorated dynamics types.
         set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
     endif()
@@ -156,11 +156,11 @@ function(ai_factory_catalog_generator_target output source)
         endforeach()
         string(APPEND target "_${version}")
     elseif(source MATCHES
-        "catalog/model/equity/(markovian|rough)/([^/]+)/samples/")
-        set(target "generate_${CMAKE_MATCH_2}_${recipe_id}")
+        "catalog/(prod|other)/model/equity/(markovian|rough)/([^/]+)/samples/")
+        set(target "generate_${CMAKE_MATCH_3}_${recipe_id}")
     elseif(source MATCHES
-        "catalog/model/fixed_income/([^/]+)/samples/")
-        set(target "generate_${CMAKE_MATCH_1}_${recipe_id}")
+        "catalog/(prod|other)/model/fixed_income/([^/]+)/samples/")
+        set(target "generate_${CMAKE_MATCH_2}_${recipe_id}")
     else()
         set(target "generate_${recipe_id}")
     endif()
@@ -171,6 +171,10 @@ endfunction()
 # optional dependency. CMake consumes that inventory without scanning source
 # text or inferring availability from model names.
 function(ai_factory_register_catalog_generator source kind)
+    # `other` is local-only and is absent from a clean GitHub checkout.
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+        return()
+    endif()
     if(NOT AI_FACTORY_MATHDX_ROOT
         AND source IN_LIST AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES)
         return()

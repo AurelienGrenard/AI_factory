@@ -1,0 +1,14 @@
+\documentclass{equation-sheet}
+\begin{document}
+\begin{equation*}
+\begin{aligned}
+\mathrm{d}x_t
+  &= -a x_t\,\mathrm{d}t + \sigma\,\mathrm{d}W_t, \\[0.45em]
+\mathbb{E}[x_t\mid x_s]
+  &= e^{-a\Delta}x_s, \\[0.45em]
+\operatorname{Var}(x_t\mid x_s)
+  &= \frac{\sigma^2}{2a}\left(1-e^{-2a\Delta}\right),
+  \qquad \Delta=t-s.
+\end{aligned}
+\end{equation*}
+\end{document}
