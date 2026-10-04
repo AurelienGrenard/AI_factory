@@ -14,6 +14,9 @@ VISIBLE = {"samples", "model_parameters", "prices"}
 def build() -> None:
     manifest = json.loads(MANIFEST.read_text())
     rows = [row for row in manifest["datasets"] if row["kind"] in VISIBLE]
+    if any(not row["catalogPath"].startswith("catalog/prod/")
+           or not row["output"].startswith("datasets/prod/") for row in rows):
+        raise ValueError("The website index must contain only prod paths")
     if any(not row["ready"] for row in rows):
         raise ValueError("The prod bundle contains an unpublished visible dataset")
     keys = set()
