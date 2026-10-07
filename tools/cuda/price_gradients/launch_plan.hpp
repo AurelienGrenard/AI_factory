@@ -44,6 +44,7 @@ inline PriceGradientLaunchPlan make_price_gradient_launch_plan(
     if (identity.family != PricingFamily::closed_form
             && identity.family != PricingFamily::equity_exact_mc
             && identity.family != PricingFamily::equity_step_mc
+            && identity.family != PricingFamily::fixed_income_mc
             && !is_lsm_family(identity.family)
             && identity.family != PricingFamily::jamshidian)
         throw std::invalid_argument("Unsupported price-gradient execution family.");

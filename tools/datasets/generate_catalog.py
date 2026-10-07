@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 import shutil
 import signal
+import struct
 import subprocess
 import sys
 import time
@@ -380,6 +381,28 @@ def copy_frozen(source: Path, destination: Path) -> str:
     return expected
 
 
+def build_graph_files(build: Path) -> tuple[str, ...]:
+    """Return the CMake files that identify the native build graph."""
+    cache = (build / "CMakeCache.txt").read_text()
+    match = re.search(r"^CMAKE_GENERATOR:INTERNAL=(.+)$", cache, re.MULTILINE)
+    if match is None:
+        raise ValueError(f"Missing CMake generator in {build / 'CMakeCache.txt'}")
+    generator = match.group(1)
+    if generator == "Ninja":
+        return ("CMakeCache.txt", "build.ninja")
+    if generator == "Unix Makefiles":
+        return ("CMakeCache.txt", "Makefile", "CMakeFiles/Makefile2")
+    raise ValueError(f"Unsupported CMake generator for campaign freshness check: {generator}")
+
+
+def cmake_make_program(build: Path) -> str:
+    cache = (build / "CMakeCache.txt").read_text()
+    match = re.search(r"^CMAKE_MAKE_PROGRAM:[^=]+=(.+)$", cache, re.MULTILINE)
+    if match is None:
+        raise ValueError(f"Missing CMake make program in {build / 'CMakeCache.txt'}")
+    return match.group(1)
+
+
 def require_current_build(root: Path, build: Path, jobs: list[dict],
                           input_overrides: dict[str, Path] | None = None) -> None:
     """Use the native build graph to reject missing or stale generation prerequisites."""
@@ -392,10 +415,25 @@ def require_current_build(root: Path, build: Path, jobs: list[dict],
     for path in [build / target for target in targets] + inputs:
         if not path.is_file():
             raise ValueError(f"Missing build/input prerequisite: {path}")
-    # Refuse stale binaries. Build explicitly before starting the campaign.
-    dry = subprocess.run(["ninja", "-C", str(build), "-n", *targets],
-                         text=True, capture_output=True, check=True, env={**os.environ, "LC_ALL": "C"})
-    if "no work to do" not in dry.stdout:
+    graph = build_graph_files(build)
+    if graph[1] == "build.ninja":
+        dry = subprocess.run(["ninja", "-C", str(build), "-n", *targets],
+                             text=True, capture_output=True, check=True,
+                             env={**os.environ, "LC_ALL": "C"})
+        stale = "no work to do" not in dry.stdout
+    else:
+        # CMake's outer Makefile has phony targets: make -q reports stale even
+        # when every executable is current. Dry-run the concrete dependency
+        # graph and look for an actual compile, generated file or link step.
+        dry = subprocess.run(
+            [cmake_make_program(build), "-C", str(build), "-n", "-f", "CMakeFiles/Makefile2",
+             *(f"CMakeFiles/{target}.dir/all" for target in targets)],
+            text=True, capture_output=True, check=True,
+            env={**os.environ, "LC_ALL": "C"},
+        )
+        stale = any(re.search(r'"(?:Building|Linking|Generating) ', line)
+                    for line in dry.stdout.splitlines())
+    if stale:
         raise ValueError("Generators need rebuilding; run the CMake aggregate build first")
 
 
@@ -494,7 +532,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
     # Retain the build configuration and exact controller independently of the
     # mutable checkout. Binary hashes do not prove source-level reproducibility.
     state["build_hashes"] = {name: copy_frozen(build / name, run / "build" / name)
-                              for name in ("CMakeCache.txt", "build.ninja")}
+                              for name in build_graph_files(build)}
     state["controller_hashes"] = {
         name: copy_frozen(contained_path(root, name), contained_path(run / "sources", name))
         for name in ("tools/datasets/generate_catalog.py", "tools/datasets/artifact_publication.py",
@@ -554,6 +592,38 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
     require_current_build(root, build, jobs, input_overrides)
     save_campaign(run / "campaign.json", state)
     return state
+
+
+def verify_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
+    """Require bitwise equal central prices when the source price is in this run."""
+    if job["kind"] != "price_gradients":
+        return None
+    source_recipe = job["sensitivity"]["source_price_recipe"]
+    peers = [candidate for candidate in state["jobs"]
+             if candidate["kind"] == "prices" and candidate["recipe"] == source_recipe]
+    if not peers:
+        return None
+    if len(peers) != 1:
+        raise ValueError(f"Ambiguous source price recipe: {source_recipe}")
+    peer = peers[0]
+    if peer["state"] != "complete" or peer["inputs"] != job["inputs"]:
+        raise ValueError(f"Source price is unfinished or uses different inputs: {peer['target']}")
+    source_dataset = contained_path(Path(peer["work"]), peer["dataset"])
+    source_digest = digest(source_dataset)
+    if "artifacts" in peer and source_digest != peer["artifacts"][0]["sha256"]:
+        raise ValueError(f"Source price dataset changed after staging: {peer['target']}")
+    price_rows = json.loads(source_dataset.read_text())["results"]
+    gradient_rows = json.loads(contained_path(work, job["dataset"]).read_text())["results"]
+    if len(price_rows) != len(gradient_rows):
+        raise ValueError(f"Central price row count differs: {job['target']}")
+    for index, (price, gradient) in enumerate(zip(price_rows, gradient_rows), 1):
+        left = price["outputs"]["price"]
+        right = gradient["outputs"]["price"]
+        if price["id"] != gradient["id"] or struct.pack("!d", left) != struct.pack("!d", right):
+            raise ValueError(f"Central price differs from {peer['target']} at row {index}")
+    return {"source_target": peer["target"],
+            "source_dataset_sha256": source_digest,
+            "matched_rows": len(price_rows), "comparison": "binary64_exact"}
 
 
 def append_journal(path: Path, event: str, **details: object) -> None:
@@ -707,6 +777,9 @@ def execute(run: Path, state: dict) -> None:
                         raise ValueError(f"Generator modified a parameter input: {item}")
                 started = time.perf_counter()
                 job["artifacts"] = check_outputs(work, job)
+                parity = verify_matching_prices(state, job, work)
+                if parity is not None:
+                    job["price_parity"] = parity
                 attach_generation(work, job, state)
                 # The publication journal must cover the enriched YAML, not
                 # the native intermediate. JSON bytes remain untouched.

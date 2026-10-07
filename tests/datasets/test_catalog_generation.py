@@ -1,6 +1,8 @@
 """Check catalogue staging and resume without CUDA or independent references."""
 import json
 import os
+import subprocess
+import time
 from pathlib import Path
 import tempfile
 import unittest
@@ -79,6 +81,38 @@ class GenerationTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
         return 0.125
+
+    def test_matching_central_prices(self):
+        price_work = self.root / "price_work"
+        gradient_work = self.root / "gradient_work"
+        for directory, name, value in ((price_work, "prices", 0.1),
+                                       (gradient_work, "gradients", 0.1)):
+            output = directory / "datasets" / f"{name}.json"
+            output.parent.mkdir(parents=True)
+            output.write_text(json.dumps({"results": [
+                {"id": "000001", "outputs": {"price": value}}]}))
+        source = {"kind": "prices", "recipe": "catalog/prices/recipe.yaml",
+                  "target": "generate_prices", "state": "complete", "inputs": ["models.json"],
+                  "work": str(price_work), "dataset": "datasets/prices.json"}
+        gradient = {"kind": "price_gradients", "target": "generate_gradients",
+                    "inputs": ["models.json"], "dataset": "datasets/gradients.json",
+                    "sensitivity": {"source_price_recipe": source["recipe"]}}
+        state = {"jobs": [source, gradient]}
+        self.assertEqual(
+            campaign.verify_matching_prices(state, gradient, gradient_work),
+            {"source_target": "generate_prices",
+             "source_dataset_sha256": digest(price_work / source["dataset"]),
+             "matched_rows": 1, "comparison": "binary64_exact"},
+        )
+        source["artifacts"] = [{"sha256": "0" * 64}]
+        with self.assertRaisesRegex(ValueError, "Source price dataset changed"):
+            campaign.verify_matching_prices(state, gradient, gradient_work)
+        source["artifacts"][0]["sha256"] = digest(price_work / source["dataset"])
+        output = gradient_work / gradient["dataset"]
+        output.write_text(json.dumps({"results": [
+            {"id": "000001", "outputs": {"price": 0.10000000000000002}}]}))
+        with self.assertRaisesRegex(ValueError, "Central price differs"):
+            campaign.verify_matching_prices(state, gradient, gradient_work)
 
     def test_inventory(self):
         jobs = campaign.inventory(campaign.ROOT, {"prices", "samples"}, set(), set())
@@ -379,6 +413,50 @@ class GenerationTests(unittest.TestCase):
             path.write_text(invalid)
             with self.assertRaises(ValueError):
                 campaign.check_samples(path, job, recipe)
+
+
+class BuildFreshnessTests(unittest.TestCase):
+    def test_unix_makefiles_current_then_stale(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "main.cpp"
+            source.write_text("extern int value(); int main() { return value(); }\n")
+            library = root / "lib.cpp"
+            library.write_text("int value() { return 0; }\n")
+            (root / "CMakeLists.txt").write_text(
+                "cmake_minimum_required(VERSION 3.18)\n"
+                "project(campaign_freshness CXX)\n"
+                "add_library(check_lib STATIC lib.cpp)\n"
+                "add_executable(generate_check main.cpp)\n"
+                "target_link_libraries(generate_check PRIVATE check_lib)\n"
+            )
+            build = root / "build"
+            subprocess.run(["cmake", "-S", str(root), "-B", str(build),
+                            "-G", "Unix Makefiles"], check=True, capture_output=True)
+            subprocess.run(["cmake", "--build", str(build), "--target", "generate_check"],
+                           check=True, capture_output=True)
+            self.assertEqual(campaign.build_graph_files(build),
+                             ("CMakeCache.txt", "Makefile", "CMakeFiles/Makefile2"))
+            job = {"target": "generate_check", "kind": "parameters", "inputs": []}
+            campaign.require_current_build(root, build, [job])
+            time.sleep(0.02)
+            source.write_text("extern int value(); int main() { return value() + 1; }\n")
+            with self.assertRaisesRegex(ValueError, "Generators need rebuilding"):
+                campaign.require_current_build(root, build, [job])
+            subprocess.run(["cmake", "--build", str(build), "--target", "generate_check"],
+                           check=True, capture_output=True)
+            campaign.require_current_build(root, build, [job])
+            time.sleep(0.02)
+            library.write_text("int value() { return 1; }\n")
+            with self.assertRaisesRegex(ValueError, "Generators need rebuilding"):
+                campaign.require_current_build(root, build, [job])
+
+    def test_ninja_graph_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            build = Path(directory)
+            (build / "CMakeCache.txt").write_text("CMAKE_GENERATOR:INTERNAL=Ninja\n")
+            self.assertEqual(campaign.build_graph_files(build),
+                             ("CMakeCache.txt", "build.ninja"))
 
 
 if __name__ == "__main__":
