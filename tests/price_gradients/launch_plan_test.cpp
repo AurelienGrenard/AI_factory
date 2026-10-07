@@ -101,6 +101,13 @@ int main() {
         const auto merton_plan=tuning::make_price_gradient_launch_plan(merton,3,7);
         require(merton_plan.blocks_for(3)==21 && merton_plan.profile.threads_per_block==256,
             "Merton gradient planner lost the common geometry.");
+        const tuning::PricingIdentity g2_swaption{
+            tuning::PricingFamily::fixed_income_mc,"g2","european_swaption",""};
+        const auto g2_plan = tuning::make_price_gradient_launch_plan(g2_swaption,3,7);
+        require(g2_plan.blocks_for(3)==21
+                && g2_plan.profile.threads_per_block
+                    == tuning::kMarkovianCompactThreadsPerBlock,
+            "G2 Monte Carlo gradient planner rejected its production family.");
         const auto future_model = tuning::make_price_gradient_launch_plan(
             {tuning::PricingFamily::equity_step_mc,"future_model","future_product",""},3,17);
         require(future_model.blocks_for(3)==51,

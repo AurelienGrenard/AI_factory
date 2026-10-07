@@ -31,7 +31,12 @@ python3 tools/datasets/generate_catalog.py \
 
 The results and their `generation.yaml` receipts remain under the two
 `work/generation/` run directories. Existing canonical JSON and receipts are
-not overwritten. An interrupted pricing campaign resumes with:
+not overwritten. The controller accepts both Ninja and Unix Makefiles builds;
+`--compile` updates only stale targets before freezing the campaign. When a
+source price and its gradient recipe are selected together, each gradient job
+requires bitwise equality of all central prices before staging. Its receipt
+records the matching source dataset SHA256 and row count. An interrupted
+pricing campaign resumes with:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
@@ -123,9 +128,9 @@ python3 tools/datasets/generate_catalog.py \
   --construction aligned --kind prices
 ```
 
-The published selection contains 93 aligned price recipes, each with 1,000
+The public selection contains 117 aligned price recipes, each with 1,000
 rows. Thirteen are bond barrier recipes without current datasets or receipts.
-The published price-gradient family contains 80 aligned fixed-income recipes.
+The public price-gradient family contains 104 aligned fixed-income recipes.
 When the bond barrier product parameter dataset is missing, generate it first.
 Then run the missing published fixed-income prices in a new campaign:
 
@@ -146,7 +151,7 @@ exist. `--skip-published` rejects a partial published pair and does not replace
 any existing artifact.
 
 The controller builds only the selected generators and the launch inspector in
-`build/`. It then freezes the inputs and binaries. It runs one job at a time.
+the configured CMake build directory. It then freezes the inputs and binaries. It runs one job at a time.
 It checks each dataset and publishes the immutable JSON first, then its
 `generation.yaml` completion marker, to the declared `datasets/` and
 `catalog/` paths. A

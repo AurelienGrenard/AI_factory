@@ -91,6 +91,8 @@ def attach_generation(work: Path, job: dict, state: dict) -> None:
         "launch_plan": job.get("launch_plan"),
         "build_hashes": state["build_hashes"],
     })
+    if job.get("price_parity") is not None:
+        record["execution"]["central_price_parity"] = job["price_parity"]
     record["provenance"] = {
         "revision": state["revision"],
         "source_archive_sha256": state["source_archive_sha256"],

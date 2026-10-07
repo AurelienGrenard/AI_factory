@@ -94,7 +94,13 @@ int main(int argc, char** argv) {
             bool gradient_available = false;
             for (auto it = inventory.at("price_gradient_bindings").begin();
                  it != inventory.at("price_gradient_bindings").end(); ++it) {
-                if (it.value().at("identity").get<std::string>() == key) {
+                const auto binding_identity = it.value().at("identity").get<std::string>();
+                const bool exact_identity = binding_identity == key;
+                const bool curve_binding = !curve.empty()
+                    && binding_identity == model + "/" + product
+                    && it.key().ends_with(
+                        "/product/" + curve + "/" + product + "_price_gradients");
+                if (exact_identity || curve_binding) {
                     gradient_available = true;
                     device_prepared = it.value().at("preparation_strategy")
                         .get<std::string>().starts_with("device_prepared_");
