@@ -125,6 +125,41 @@ class GenerationTests(unittest.TestCase):
         )
         self.assertEqual(len(jobs), len({job["target"] for job in jobs}))
 
+    def test_public_monte_carlo_recipes_use_production_path_count(self):
+        jobs = campaign.inventory(campaign.ROOT, {"prices", "price_gradients"},
+                                  set(), set(), catalog_only=True)
+        stochastic = [job for job in jobs if job.get("paths_per_price")]
+        self.assertGreater(len(stochastic), 900)
+        self.assertTrue(all(job["paths_per_price"] == 1 << 20 for job in stochastic))
+        self.assertTrue(any("/rough/" in job["recipe"] for job in stochastic))
+        self.assertEqual(
+            sum("zero_coupon_bond_up_and_out_calls" in job["target"] for job in stochastic),
+            13,
+        )
+
+    def test_price_plan_uses_recipe_path_count(self):
+        inputs = self.root / "price-inputs"
+        inputs.mkdir()
+        for name in ("models.json", "products.json"):
+            (inputs / name).write_text(json.dumps({"row_count": 3}))
+        job = {
+            "kind": "prices", "target": "generate_barrier_test", "row_count": 3,
+            "inputs": ["models.json", "products.json"],
+            "identity": "cir/zero_coupon_bond_up_and_out",
+            "declared_method": {"construction": "aligned"},
+            "paths_per_price": 1 << 20,
+        }
+        plan = {"paths_per_price": 1 << 20}
+        with (patch.object(campaign.subprocess, "check_output", return_value=json.dumps(plan)) as inspect,
+              patch.object(campaign, "input_fingerprints", return_value={})):
+            description = campaign.describe_job(inputs, self.root / "bin", job)
+        self.assertEqual(description["rows"], 3)
+        self.assertEqual(
+            inspect.call_args.args[0],
+            [str(self.root / "bin/inspect_pricing_launch_plan"),
+             "cir/zero_coupon_bond_up_and_out", "3", str(1 << 20)],
+        )
+
     def test_gradient_plan_uses_recipe_path_count(self):
         inputs = self.root / "inputs"
         inputs.mkdir()
@@ -308,6 +343,14 @@ class GenerationTests(unittest.TestCase):
         self.document["url"] = "https://datasets.example/wrong.json"
         self.generator(None, work, None)
         with self.assertRaisesRegex(ValueError, "Dataset URL"):
+            campaign.check_outputs(work, self.job)
+
+    def test_native_launch_profile_must_match_inspector(self):
+        work = self.root / "wrong-profile"
+        self.job["launch_plan"]["profile_id"] = "sm89"
+        self.receipt["execution"]["launch_plan"] = {"profile_id": "sm70"}
+        self.generator(None, work, None)
+        with self.assertRaisesRegex(ValueError, "Native launch profile"):
             campaign.check_outputs(work, self.job)
 
     def test_generation_cannot_claim_validation_and_path_count_is_checked(self):

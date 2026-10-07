@@ -12,7 +12,7 @@ int main() {
         "datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json",
         "datasets/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01.json", "catalog/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01/generation.yaml", "https://datasets.ai-factory.example/v2/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01.json",
         11668829250152038400ULL, ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::fixed_income_mc, "cir", "zero_coupon_bond_up_and_out", ""}, PriceConstruction::Aligned,
-        65'536U, 1U, {}, "exact noncentral chi-square factor transitions; trapezoidal stochastic rate integral",
+        1'048'576U, 1U, {}, "exact noncentral chi-square factor transitions; trapezoidal stochastic rate integral",
     };
     const auto models = rates::load_models(recipe.model_dataset_path);
     const auto products = product::load_zero_coupon_bond_up_and_outs(recipe.product_dataset_path);

@@ -66,9 +66,17 @@ recettes de prix mais pas de binding de gradients. Le codegen comparé au
 dépôt, 49 tests dataset, le plan de 221 jobs sur un paquet public sans `work/`,
 et la compilation de cinq générateurs représentatifs passent. Le générateur
 de paramètres du produit barrière a été exécuté en staging (1 000 lignes et
-reçu authentique). La campagne des 221 prix et gradients fixed income est
-prête mais n'a pas été exécutée. Les 618 anciens prix physiquement présents
-ne deviennent pas des références des nouveaux paramètres par ce déplacement.
+reçu authentique). Une première campagne de 221 jobs a été lancée : quatre
+prix analytiques ont terminé, puis le premier prix barrière a été rejeté par
+le contrôleur, car sa recette demandait 65 536 chemins alors que l'inspecteur utilisait
+2²⁰ par défaut. Aucun dataset de cette campagne n'a été publié. Les
+13 recettes barrières et leurs générateurs utilisent désormais 2²⁰ chemins,
+comme tous les Monte Carlo publics, rough inclus. Le codegen complet passe
+sans divergence ; un générateur CIR/barrière reconstruit a produit 1 000 prix
+à 2²⁰ chemins avec reçu SM89 cohérent et contrôles d'artefact valides.
+L'ancienne campagne reste figée ; une nouvelle campagne est requise. Les
+618 anciens prix physiquement présents ne deviennent pas des références des
+nouveaux paramètres par ce déplacement.
 `NUM-028` et `NUM-030` restent ouverts ; aucune clôture numérique nouvelle
 n'est revendiquée.
 

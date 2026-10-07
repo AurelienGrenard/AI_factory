@@ -14,7 +14,7 @@ int main() {
         "datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json",
         "datasets/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01.json", "catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/generation.yaml", "https://datasets.ai-factory.example/v2/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01.json",
         11668829288806744064ULL, ::ai_factory::workbench::offline::cuda_tuning::PricingIdentity{::ai_factory::workbench::offline::cuda_tuning::PricingFamily::fixed_income_mc, "hull_white", "zero_coupon_bond_up_and_out", "nelson_siegel"}, PriceConstruction::Aligned,
-        65'536U, 1U, "datasets/curve/nelson_siegel/nelson_siegel_01.json",
+        1'048'576U, 1U, "datasets/curve/nelson_siegel/nelson_siegel_01.json",
         "exact joint Gaussian factor and stochastic rate-integral transitions",
     };
     const auto models = rates::load_models(recipe.model_dataset_path);

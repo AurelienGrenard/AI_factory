@@ -109,6 +109,7 @@ function(add_price_generator target source)
     endif()
     target_link_libraries(
         ${target} PRIVATE ${dependencies} ai_factory_price_dataset
+        ai_factory_cuda_tuning
     )
     target_compile_features(${target} PRIVATE cxx_std_20)
     set_target_properties(${target} PROPERTIES

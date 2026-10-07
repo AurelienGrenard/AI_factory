@@ -21,7 +21,7 @@
     "price",
     "standard_error"
   ],
-  "paths_per_price": 65536,
+  "paths_per_price": 1048576,
   "seeds": {
     "dynamics": 11668829250152038400
   },

@@ -1599,8 +1599,7 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "outputs": (
             ["price", "standard_error"] if stochastic else ["price"]
         ),
-        "paths_per_price": (65_536 if dataset.product == "zero_coupon_bond_up_and_out"
-                            else 1_048_576 if stochastic else 0),
+        "paths_per_price": 1_048_576 if stochastic else 0,
     }
     if dataset.engine.startswith("equity_lsm_") or dataset.engine == "fixed_income_lsm":
         metadata["standard_error_scope"] = (

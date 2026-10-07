@@ -45,8 +45,9 @@ python3 tools/datasets/generate_catalog.py \
 ```
 
 The campaign may take substantial GPU time: 34 gradient recipes and many
-price recipes use Monte Carlo, with 1,048,576 paths per price row in the
-production profile. Check the staged price errors and gradient quality
+price recipes use Monte Carlo. Every public Monte Carlo price and gradient
+recipe uses 1,048,576 paths per price row, including the fixed-income bond
+barrier and rough models. Check the staged price errors and gradient quality
 before any promotion. This campaign does not close rough-price audit findings.
 
 ## Historical parameter refresh
