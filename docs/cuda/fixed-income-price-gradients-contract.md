@@ -161,19 +161,22 @@ silencieusement l’ordre de sommation.
 
 ## Génération et provenance
 
-Le codegen produit 208 recettes fixed income permanentes : 52 pour les
-produits de taux scalaires, 52 pour les options sur zéro-coupon, 52 pour les
-swaptions européennes et 52 pour les bermudéennes. Chaque famille couvre ses
-deux côtés et les constructions alignée et cartésienne. Le catalogue permanent
-publie l'ordre un avec la diagonale de la Hessienne, sauf pour CIR
-standalone/Jamshidian où elle publie seulement le prix et l'ordre un. Les
-autres APIs et templates de codegen conservent les sélections d'ordre un et
-la Hessienne mixte pour les générations ponctuelles.
+Le codegen conserve les variantes fixed income alignées et cartésiennes.
+Le catalogue public sélectionne 104 recettes alignées prix + gradients :
+26 caplets/floorlets, 26 options sur zéro-coupon, 26 swaptions européennes
+et 26 swaptions bermudéennes. Les Bermudéennes utilisent le replay
+`frozen_regression_policy`. Chaque recette publie le prix central et les
+dérivées premières, ainsi que la diagonale de la Hessienne quand elle est
+prise en charge. CIR standalone/Jamshidian publie seulement le prix central
+et l'ordre un. Les autres variantes de codegen restent locales sous `work/`.
+Le call up-and-out sur zéro-coupon n'a pas encore de binding de gradients.
 
 Les recettes analytiques conservent l’URL `/v1/` de leur méthode déterministe.
 Les recettes stochastiques emploient `/v2/`, une seed et le générateur
 `philox`. Toutes déclarent les datasets modèle/courbe/produit,
-les bumps sélectionnés et la recette de prix source. La génération écrit un
+les bumps sélectionnés et l’identité logique de la recette de prix source.
+Le runner vérifie cette identité et le domaine Philox depuis le manifeste
+typé, sans exiger que la recette de prix seul soit publiée. La génération écrit un
 checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 
 ## Responsabilités
@@ -192,7 +195,7 @@ checkpoint durable après chaque lot et reprend au premier préfixe incomplet.
 
 ## Preuves et limites
 
-Les 52 bibliothèques fixed income et les 208 recettes permanentes sont dérivées
+Les 52 bibliothèques fixed income et les 104 recettes alignées publiques sont dérivées
 du même manifeste de capacités. La régénération complète avec comparaison au
 dépôt, les contrôles du catalogue et la compilation des générateurs constituent
 le contrôle d’exhaustivité structurelle. Les templates de Hessienne complète

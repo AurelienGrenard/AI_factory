@@ -12,7 +12,8 @@ from pathlib import Path
 
 @lru_cache(maxsize=8)
 def _routes(root: Path) -> dict[str, str]:
-    manifests = (root / "catalog/manifest.json", root / "work/catalog/manifest.json")
+    # A promoted public recipe takes precedence over a stale local row.
+    manifests = (root / "work/catalog/manifest.json", root / "catalog/manifest.json")
     routes = {}
     for manifest in manifests:
         if not manifest.is_file():

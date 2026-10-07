@@ -129,6 +129,7 @@ def inventory(
     from capability_manifest import (
         AVAILABLE_DATASET_SPECS,
         RNG_DOMAIN_BY_GENERATOR,
+        PRICE_GRADIENT_SOURCE_BY_GENERATOR,
         rng_mapping_version,
     )
 
@@ -163,14 +164,24 @@ def inventory(
         if recipe.get("row_count") != spec.row_count:
             raise ValueError(f"Recipe row count contradicts manifest: {recipe_path}")
         if spec.dataset_kind == "price_gradients":
+            # Price-only recipes can live in a local work catalogue. Validate
+            # the gradient against the typed source capability, which remains
+            # available in a clean delivery checkout.
+            price_source = PRICE_GRADIENT_SOURCE_BY_GENERATOR[spec.generator_path]
             source_path = recipe["sensitivity"]["source_price_recipe"]
-            source_recipe = yaml.safe_load(
-                contained_path(root, source_path).read_text()
-            )
-            if (recipe.get("random_number_generator")
-                    != source_recipe.get("random_number_generator")):
+            if source_path != price_source.recipe_yaml_path:
                 raise ValueError(
-                    f"Sensitivity and price random generators differ: {recipe_path}"
+                    f"Sensitivity source contradicts the capability manifest: {recipe_path}"
+                )
+            source_domain = RNG_DOMAIN_BY_GENERATOR.get(price_source.generator_path)
+            expected_rng = "philox" if source_domain else None
+            if recipe.get("random_number_generator") != expected_rng:
+                raise ValueError(
+                    f"Sensitivity and source random generators differ: {recipe_path}"
+                )
+            if source_domain and recipe.get("seeds", {}).get("dynamics") != source_domain.seed("dynamics"):
+                raise ValueError(
+                    f"Sensitivity seed contradicts the source random domain: {recipe_path}"
                 )
         # Join adjacent C++ literals, including split output paths. No evaluation.
         strings = ["".join(json.loads(token) for token in re.findall(r'"(?:[^"\\]|\\.)*"', group))

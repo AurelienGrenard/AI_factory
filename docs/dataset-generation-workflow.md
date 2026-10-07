@@ -1,48 +1,57 @@
 # Catalogue generation workflow
 
 Use [generate_catalog.py](../tools/datasets/generate_catalog.py) to prepare and
-run a sequential price/sample campaign. It calls the native generators; it does
+run a sequential price, gradient, or sample campaign. It calls the native generators; it does
 not replace their pricing engines, choose new CUDA settings, or certify prices.
 
-## Full model/product parameter refresh and aligned repricing
+## Fixed-income aligned prices and gradients
 
-For the 2026-10-07 complete parameter refresh, the native generators write both
-the JSON and the exact construction `recipe.yaml`. The campaign runner executes
-all 25 model and 27 product generators in an isolated stage, checks their
-1,000 ordered 900/100 rows, validates all generated recipes and receipts,
-then replaces the canonical parameter artifacts only after every generator
-succeeds:
+The public catalogue contains 117 fixed-income aligned price recipes and 104
+fixed-income aligned price-gradient recipes. The latter include 26 Bermudan
+swaptions with `frozen_regression_policy`; the two CIR standalone European
+swaption recipes contain first derivatives only. The bond up-and-out has 13
+price recipes but no gradient binding yet.
 
-```bash
-python3 maintainer/tools/datasets/regenerate_parameter_catalog.py \
-  --build /tmp/ai_factory_aligned_ninja_20261007 \
-  --stage /tmp/ai_factory_parameter_refresh_local_20261007 \
-  --compile --jobs 4 --publish
-```
-
-The parameter refresh above has already been run in this worktree; use a new
-empty stage directory for any rerun. The resulting production inputs are
-listed in the [refresh manifest](../artifacts/audit/parameter-catalog-refresh-20261007.json).
-
-The following command builds and executes **all 655 aligned price recipes**
-using those canonical inputs. It stages outputs and their enriched provenance
-without claiming that the old published prices have been replaced:
+The refreshed model, product, and curve JSON inputs already exist locally,
+except the new bond barrier product. Stage that product first, then compile
+and execute all 221 pricing generators:
 
 ```bash
+cmake --preset local-sm89
+./tools/run_generator.py local-sm89 generate_zero_coupon_bond_up_and_outs_01 \
+  --run-dir work/generation/runs/fixed-income-barrier-product-01
 python3 tools/datasets/generate_catalog.py \
-  --build /tmp/ai_factory_aligned_ninja_20261007 \
-  --kind prices --construction aligned \
-  --compile --compile-jobs 4 \
-  --run-dir work/generation/aligned-price-refresh-20261007 \
+  --build builds/local-cuda12-9-0-sm89 \
+  --catalog-only --kind all --asset-class fixed_income --construction aligned \
+  --input-override datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json=work/generation/runs/fixed-income-barrier-product-01/datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json \
+  --compile --compile-jobs 2 \
+  --run-dir work/generation/fixed-income-aligned-prices-gradients-01 \
   --execute
 ```
 
-Resume an interrupted campaign with `--run-dir
-work/generation/aligned-price-refresh-20261007 --execute --resume`. The 642
-Cartesian price recipes are a separate future campaign; selecting them uses
-`--construction cartesian` and requires much greater compute and storage.
-Existing price artifacts remain historical until the staged outputs have been
-validated and a publication policy for their replacement is approved.
+The results and their `generation.yaml` receipts remain under the two
+`work/generation/` run directories. Existing canonical JSON and receipts are
+not overwritten. An interrupted pricing campaign resumes with:
+
+```bash
+python3 tools/datasets/generate_catalog.py \
+  --run-dir work/generation/fixed-income-aligned-prices-gradients-01 \
+  --execute --resume
+```
+
+The campaign may take substantial GPU time: 34 gradient recipes and many
+price recipes use Monte Carlo, with 1,048,576 paths per price row in the
+production profile. Check the staged price errors and gradient quality
+before any promotion. This campaign does not close rough-price audit findings.
+
+## Historical parameter refresh
+
+The 25 model and 27 original product parameter datasets were regenerated on
+2026-10-07 with revised domains and new random seeds; see the
+[record](audit/parameter-catalog-refresh-2026-10-07.md). The bond barrier
+product was added afterward, and its parameter dataset is staged separately
+by the command above. These historical parameter receipts do not certify
+price outputs under the refreshed inputs.
 
 ## Prepare and inspect
 
