@@ -22,6 +22,26 @@ ont un compromis accepté ou un contrat borné documenté dans
 
 Le verdict VI conserve les contrôles réussis : aucune bibliothèque, aucun exécutable, objet, cache Python ou checkpoint n'est suivi par Git dans les 5 846 entrées inspectées. Trois notebooks suivis ont une fonction de validation ou de rapport. Huit rapports de performance suivis contiennent des chemins absolus historiques ; [la politique locale](../local-artifacts.md) les classe comme références anciennes, sans en faire des commandes actuelles.
 
+## Sélection du catalogue source — 2026-10-07 (étape fixed income)
+
+Après réorganisation, le catalogue livrable contient 1 195 couples
+`generator.cpp`/`recipe.yaml` : 25 modèles, 28 produits, 3 courbes, 655 prix
+alignés et 484 prix avec gradients alignés. Les recettes cartésiennes et les
+samples restent locales. Les 24 prix fixed income sur courbe flat ont été
+réintégrés après un test d'exhaustivité ; le catalogue fixed income contient
+117 prix et 104 recettes prix + gradients. Les 26 gradients de swaption
+bermudéenne sélectionnés utilisent `frozen_regression_policy`, tandis que CIR
+standalone/Jamshidian reste limité à l'ordre un. Le call up-and-out a 13
+recettes de prix mais pas de binding de gradients. Le codegen comparé au
+dépôt, 49 tests dataset, le plan de 221 jobs sur un paquet public sans `work/`,
+et la compilation de cinq générateurs représentatifs passent. Le générateur
+de paramètres du produit barrière a été exécuté en staging (1 000 lignes et
+reçu authentique). La campagne des 221 prix et gradients fixed income est
+prête mais n'a pas été exécutée. Les 618 anciens prix physiquement présents
+ne deviennent pas des références des nouveaux paramètres par ce déplacement.
+`NUM-028` et `NUM-030` restent ouverts ; aucune clôture numérique nouvelle
+n'est revendiquée.
+
 ## Implantation du catalogue — 2026-10-07
 
 Les recettes et données sélectionnées occupent directement `catalog/` et `datasets/`. Les recettes locales, les données hors production et les métadonnées historiques (archives, qualifications, releases) sont sous `work/catalog/` et `work/datasets/`. Les manifestes historiques signés restent inchangés ; leur résolution de chemins est assurée par `catalog_layout.physical_path`. Les 696 sorties sélectionnées, les 24 sorties locales matérialisées et les payloads historiques sous `work/datasets/` sont présents après déplacement ; NUM-029, NUM-030, NUM-036, NUM-037, rough Bergomi et les gates martingale ont été revérifiés. Un générateur de prix aligné Black–Scholes/european_calls a été exécuté en staging sur les nouvelles racines ; il a émis JSON et reçu authentiques, sans publication ni validation indépendante du prix.

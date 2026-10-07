@@ -1,39 +1,26 @@
 # Production catalog layout
 
-The repository publishes selected recipes directly under `catalog/`:
+The deliverable publishes `catalog/` recipes, their `generator.cpp` sources,
+and the CMake/codegen machinery needed to compile them. JSON outputs in
+`datasets/` are generated separately and are not tracked by Git.
 
-```text
-catalog/{curve,model,product}/...
-catalog/manifest.json
-datasets/{curve,model,product}/...
-work/catalog/{curve,model,product}/...
-work/datasets/{curve,model,product}/...
-```
+The current [manifest](../catalog/manifest.json) selects 1,195 leaves: 25
+model parameter generators, 28 product parameter generators, three curve
+generators, 655 aligned price generators, and 484 aligned price-gradient
+generators. Cartesian variants and model-sample generators remain local under
+`work/catalog/` when present. The public fixed-income set has 117 prices and
+104 price-gradient recipes; its 26 Bermudan gradient recipes use frozen
+regression policy. CIR standalone European swaptions expose first derivatives only.
+The bond up-and-out product has a public parameter generator and 13 public
+price generators. It has no gradient binding pending a derivative contract.
 
-`catalog/` contains one published sample and one model parameter dataset per
-model when available, plus one aligned price dataset per model and product
-variant. Fixed-income prices have one selected dataset per available curve and
-product variant. The product and curve parameter inputs needed by selected
-prices are included. The manifest lists 710 catalog leaves: 24 samples, 25
-model parameter datasets, 631 aligned prices, and 30 price inputs.
-The 14 bond barrier leaves contain generators and recipes but are marked
-`ready: false` until current datasets and generation receipts are produced. The sample
-for `quadratic_rough_heston` has not been generated. Price gradients are not
-published yet.
+`catalog/manifest.json` marks a leaf ready only when its JSON and generation
+receipt exist. The parameter inputs and curves already executed retain their
+receipts. The aligned price-gradient leaves and 13 bond barrier price leaves are source
+recipes without current results. Older price JSONs remain local historical
+outputs until they are regenerated against the refreshed parameters.
 
-`datasets/` is ignored by Git. To move the production data to a server, copy
-`catalog/` and `datasets/`, keeping their internal paths.
-`catalog/manifest.json` records the selected dataset paths. Historical release and qualification evidence is retained locally under
-`maintainer/evidence/` and is not part of the GitHub deliverable.
-
-The recipe and generation receipt files retain their historical logical
-`catalog/...` and `datasets/...` paths. `tools/datasets/catalog_layout.py`
-resolves these to the physical selected catalog and dataset paths. The JSON
-files in `datasets/` were checked against the SHA-256 values in their
-completed generation receipts. The 52 regenerated model and product parameter recipes now match their
-receipts by SHA-256. The other 644 completed production recipes retain historical
-receipt hashes that differ from current recipes. The 14 pending barrier
-recipes have no current receipt. Artifact hashes verify stored
-bytes; they do not independently certify price quality.
-
-After changing the production selection, update `catalog/manifest.json`.
+The [generation workflow](dataset-generation-workflow.md) stages new datasets
+under `work/generation/`. A staging run leaves the canonical `datasets/` and
+`catalog/` receipts unchanged. Historical audit evidence remains local under
+`maintainer/evidence/`.

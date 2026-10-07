@@ -80,12 +80,12 @@ The `local-sm89` preset additionally selects the developer's pinned toolchain
 and mathDx paths when those are available. `CUDA_VISIBLE_DEVICES` selects a GPU that can run the compiled
 binary. The default `all` target builds libraries; `local-tests` and
 `local-generators` cover the test and catalogue aggregates explicitly.
-Optional recipes in `work/catalog/` remain buildable by target name when
-present locally, but are excluded from the permanent generator aggregates.
+Cartesian and sample recipes in `work/catalog/` remain buildable by target
+name when present locally, but are excluded from the public aggregates.
 
 ### Run one catalog generator
 
-The local preset can compile and run any of the 710 catalogue generators
+The local preset can compile and run any of the 1,195 catalogue generators
 by CMake target name. The launcher keeps outputs in a new directory under
 `work/generation/runs/`, so an existing dataset is never overwritten. It
 copies required parameter inputs and builds missing parameter generators when
