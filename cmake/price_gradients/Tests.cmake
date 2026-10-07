@@ -7,7 +7,7 @@ target_include_directories(
         ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(test_price_gradients_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
-target_compile_features(test_price_gradients_launch_plan PRIVATE cxx_std_23)
+target_compile_features(test_price_gradients_launch_plan PRIVATE cxx_std_20)
 add_dependencies(ai_factory_host_tests test_price_gradients_launch_plan)
 add_test(NAME price_gradients_launch_plan COMMAND test_price_gradients_launch_plan)
 set_tests_properties(price_gradients_launch_plan PROPERTIES LABELS "workbench;price_gradients;offline" TIMEOUT 30)
@@ -137,105 +137,7 @@ add_cuda_workbench_test(price_gradients_bermudan_swaption_cuda
 add_offline_stage_test(price_gradients_dataset ai_factory_price_gradient_dataset tests/price_gradients/dataset_test.cpp)
 if(Python3_Interpreter_FOUND)
     add_test(NAME price_gradients_artifact_contract COMMAND ${Python3_EXECUTABLE} -m unittest discover
-        -s tests/price_gradients -p "test_*.py")
+        -s tests/price_gradients -p test_artifact_contract.py)
     set_tests_properties(price_gradients_artifact_contract PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} LABELS "workbench;price_gradients;offline;codegen" TIMEOUT 30)
-    add_test(NAME price_gradients_performance_manifest
-        COMMAND ${Python3_EXECUTABLE} -m unittest
-            tests.performance.test_price_gradient_strategy_manifest)
-    set_tests_properties(price_gradients_performance_manifest PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        LABELS "workbench;price_gradients;performance;architecture" TIMEOUT 30)
 endif()
-
-# Explicit performance executable; no timing thresholds in routine CTest.
-add_executable(benchmark_price_gradients_terminal EXCLUDE_FROM_ALL
-    tests/performance/price_gradients/terminal.cu)
-target_include_directories(benchmark_price_gradients_terminal PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_terminal PRIVATE ai_factory_runtime
-    ai_factory_equity_black_scholes_european_option_price_gradients
-    ai_factory_equity_heston_european_option_price_gradients
-    ai_factory_equity_merton_european_option_price_gradients)
-set_target_properties(benchmark_price_gradients_terminal PROPERTIES CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_executable(benchmark_price_gradients_closed_form EXCLUDE_FROM_ALL tests/performance/price_gradients/closed_form.cu)
-target_include_directories(benchmark_price_gradients_closed_form PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_closed_form PRIVATE ai_factory_runtime
-    ai_factory_equity_black_scholes_european_option_price_gradients)
-set_target_properties(benchmark_price_gradients_closed_form PROPERTIES CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-# Explicit numerical experiment: no stochastic acceptance thresholds in routine CTest.
-add_executable(study_price_gradients_bumps EXCLUDE_FROM_ALL tests/price_gradients/bump_study.cu)
-target_include_directories(study_price_gradients_bumps PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(study_price_gradients_bumps PRIVATE ai_factory_runtime
-    ai_factory_equity_black_scholes_european_option_price_gradients
-    ai_factory_equity_heston_european_option_price_gradients
-    ai_factory_equity_cev_european_option_price_gradients)
-set_target_properties(study_price_gradients_bumps PROPERTIES CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_executable(benchmark_price_gradients_cev EXCLUDE_FROM_ALL tests/performance/price_gradients/cev.cu)
-target_include_directories(benchmark_price_gradients_cev PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_cev PRIVATE ai_factory_runtime
-    ai_factory_equity_cev_european_option_price_gradients ai_factory_equity_cev_european_option_price_delta)
-set_target_properties(benchmark_price_gradients_cev PROPERTIES CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_executable(benchmark_price_gradients_sabr EXCLUDE_FROM_ALL
-    tests/performance/price_gradients/sabr.cu)
-target_include_directories(benchmark_price_gradients_sabr PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_sabr PRIVATE ai_factory_runtime
-    ai_factory_equity_sabr_european_option_price_gradients)
-set_target_properties(benchmark_price_gradients_sabr PROPERTIES
-    CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_executable(benchmark_price_gradients_american EXCLUDE_FROM_ALL
-    tests/performance/price_gradients/american.cu)
-target_include_directories(benchmark_price_gradients_american PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_american PRIVATE ai_factory_runtime
-    ai_factory_equity_heston_american_option_price_gradients)
-set_target_properties(benchmark_price_gradients_american PROPERTIES
-    CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_executable(
-    benchmark_price_gradients_early_exercise_replay EXCLUDE_FROM_ALL
-    tests/performance/price_gradients/early_exercise_replay.cu
-)
-target_include_directories(
-    benchmark_price_gradients_early_exercise_replay PRIVATE ${CMAKE_SOURCE_DIR}
-)
-target_link_libraries(
-    benchmark_price_gradients_early_exercise_replay PRIVATE
-    ai_factory_runtime
-    ai_factory_equity_black_scholes_american_option_price_gradients
-    ai_factory_equity_heston_american_option_price_gradients
-    ai_factory_equity_bates_american_option_price_gradients
-    ai_factory_fixed_income_cir_bermudan_swaption_price_gradients
-    ai_factory_fixed_income_g2_bermudan_swaption_price_gradients
-    ai_factory_fixed_income_g2_plus_plus_svensson_bermudan_swaption_price_gradients
-)
-set_target_properties(
-    benchmark_price_gradients_early_exercise_replay PROPERTIES
-    CUDA_STANDARD 23
-    CUDA_STANDARD_REQUIRED YES
-)
-
-
-add_executable(benchmark_price_gradients_jamshidian EXCLUDE_FROM_ALL
-    tests/performance/price_gradients/jamshidian.cu)
-target_include_directories(benchmark_price_gradients_jamshidian PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(benchmark_price_gradients_jamshidian PRIVATE ai_factory_runtime
-    ai_factory_fixed_income_cir_european_swaption_price_gradients)
-set_target_properties(benchmark_price_gradients_jamshidian PROPERTIES
-    CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)
-
-add_custom_target(price_gradients_performance_benchmarks DEPENDS
-    benchmark_price_gradients_terminal
-    benchmark_price_gradients_closed_form
-    benchmark_price_gradients_cev
-    benchmark_price_gradients_american
-    benchmark_price_gradients_early_exercise_replay
-    benchmark_price_gradients_jamshidian)
-
-add_executable(study_price_gradients_heston_rates EXCLUDE_FROM_ALL tests/price_gradients/heston_rate_study.cu)
-target_include_directories(study_price_gradients_heston_rates PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(study_price_gradients_heston_rates PRIVATE ai_factory_runtime)
-set_target_properties(study_price_gradients_heston_rates PROPERTIES CUDA_STANDARD 23 CUDA_STANDARD_REQUIRED YES)

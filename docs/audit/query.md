@@ -1,6 +1,6 @@
 # Référentiel d'audit du dépôt C++/CUDA
 
-Version du référentiel : **10.0 — 2026-09-29**.
+Version du référentiel : **10.1 — 2026-10-02**.
 
 Ce document définit les questions, les preuves et les verdicts de l'audit
 principal d'AI Factory. Il ne contient ni les résultats d'un passage précis, ni
@@ -235,6 +235,34 @@ solveur, continuation, décision et réduction. FP64, rang, conditionnement et
 causes d'échec doivent être visibles. Une politique gelée, un refit et une
 politique centrale représentent des estimateurs différents.
 
+Pour chaque option américaine et swaption bermudéenne, auditer séparément les
+deux replays de sensibilité :
+
+- **`frozen_exercise_time`** : le nœud bumpé garde l'indice d'exercice du
+  chemin central ; son état, payoff et facteur d'actualisation sont ceux du
+  nœud. Contrôler aussi la décision initiale éventuelle à `t0` et le cas
+  terminal ; aucune régression bumpée n'est évaluée.
+- **`frozen_regression_policy`** : conserver coefficients, statuts du solveur,
+  bases et normalisations du fit central ; avancer chaque nœud avec ses propres
+  états et payoffs, puis prendre la première date où l'exercice est préféré.
+  Contrôler les candidats, les échecs de régression, les égalités au seuil,
+  l'exercice à `t0` et la dernière date ; aucun refit bumpé n'est effectué.
+
+Vérifier sur les deux stratégies CUDA le même estimateur pathwise, les mêmes
+innovations lorsque le couplage est annoncé, les prix centraux, les moments et
+leurs erreurs. Tester des chemins construits où le bump change la date
+d'exercice, où il ne la change pas, et où le central exerce à `t0`. Ajouter une
+référence de décision et de payoff indépendante du cœur GPU, puis distinguer
+les deux replays du repricing avec politique refittée et de la dérivée de la
+valeur optimale. Qualifier séparément le biais de gel et l'effet des seuils
+discontinus, notamment pour les Hessiennes.
+
+Pour le prix LSM central, distinguer les chemins utilisés pour ajuster la
+régression de ceux utilisés pour valoriser la politique. Si les mêmes chemins
+servent aux deux opérations, vérifier et annoncer la portée de l'erreur
+standard publiée : la dispersion des cashflows ne mesure pas à elle seule
+l'incertitude liée à l'apprentissage de la politique.
+
 ### Rough
 
 Retracer préparation des coefficients, génération des innovations, FFT,
@@ -257,6 +285,21 @@ SensitivityRequest
 → reconstruction
 → valeur et erreur statistique publiées
 ```
+
+Auditer **séparément les deux topologies de calcul** : la voie `mono`, où
+chaque tâche prépare ses nœuds, les valorise et reconstruit sa sensibilité ; la
+voie `node_graph`, où les nœuds utiles sont partagés entre sensibilités et où
+leurs valeurs sont reconstruites ensuite. Relever les lancements réels du code
+pour chaque moteur : préparation, évaluation, accumulation des moments et
+finalisation peuvent être fusionnées ou séparées selon la famille. Le nom
+« trois kernels » ne suffit pas à prouver trois phases séparées.
+
+Pour chacune, contrôler le mapping ligne/sensibilité/nœud/chemin, les écritures
+uniques, la déduplication, la validité des stencils et le traitement des lignes
+invalides. Comparer les valeurs **pathwise** des nœuds, puis leurs moments et
+erreurs avant la sortie agrégée ; vérifier tailles de chunks, shards et
+frontières de batch. Une parité de sorties entre voies qui partagent le même
+stencil ou payoff ne prouve pas leur justesse commune.
 
 Vérifier :
 
@@ -911,8 +954,12 @@ inputs, stratégie et domaine. Une preuve incompatible reste historique.
 - [status.md](status.md) : tableau de bord du **dernier passage**, remplacé à
   chaque nouvel audit complet ou ciblé ;
 - [response.md](response.md) : constats ouverts uniquement ;
-- [closed.md](closed.md) : archive append-only des constats clos, réfutés,
-  fusionnés ou devenus inapplicables.
+- [unresolved-closures.md](unresolved-closures.md) : constats clos
+  administrativement par exclusion de sorties ou retrait de capacité,
+  dont le problème numérique demeure ;
+- [closed.md](closed.md) : constats réglés par correction vérifiée, contrat
+  explicite, décision de périmètre ou compromis accepté. Les limites connues
+  et les mesures défavorables restent dans chaque entrée.
 
 Les longues preuves résident dans leurs rapports ou `artifacts`; les registres
 les résument et les lient. `status.md` ne doit plus accumuler tous les passages
@@ -934,8 +981,16 @@ Chaque constat contient :
 - critère de clôture vérifiable ;
 - limites et condition de réouverture.
 
-Lire `closed.md` et rechercher les signatures avant d'ouvrir un identifiant. Une
-régression reprend son identifiant historique. Un manque de preuve va d'abord
+Lire `closed.md` et `unresolved-closures.md`, puis rechercher les signatures
+avant d'ouvrir un identifiant. Une correction vérifiée, un contrat qui règle
+le constat dans son périmètre, ou un compromis accepté transfère le constat
+vers `closed.md`, avec les preuves défavorables et les limites ; l'acceptation
+ne change pas un gate général. Si une sortie est exclue ou une capacité
+retirée parce que son calcul reste incorrect ou incertain, le constat va dans
+`unresolved-closures.md`. Après
+résolution et vérification, **déplacer** son entrée vers `closed.md` et la
+supprimer de `unresolved-closures.md` ; ne jamais la dupliquer. Une régression
+reprend son identifiant historique. Un manque de preuve va d'abord
 dans la couverture ; il devient constat seulement lorsqu'il contredit une
 obligation ou crée un risque concret.
 
@@ -961,7 +1016,8 @@ correction. La confiance distingue `prouvée`, `élevée`, `moyenne` et
 3. matrice couverture/verdict des six axes ;
 4. familles et représentants examinés ;
 5. commandes et preuves durables ;
-6. constats ouverts, fermés ou reclassés pendant le passage ;
+6. constats ouverts, fermés, qualifiés avec limite active ou reclassés
+   pendant le passage ;
 7. limites qui interdisent une conclusion globale ;
 8. conclusion concise.
 

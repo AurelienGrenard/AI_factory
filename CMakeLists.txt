@@ -3,15 +3,23 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ai_factory_cuda_workbench LANGUAGES CXX CUDA)
 
-if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 13.3)
-    message(FATAL_ERROR "AI_factory requires CUDA Toolkit 13.3 or newer")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD 20)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+if((CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 12.9
+        OR NOT CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 13.0)
+    AND (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 13.2
+        OR NOT CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 13.3))
+    message(FATAL_ERROR "AI_factory requires CUDA Toolkit 12.9.x or 13.2.x")
 endif()
 
-# CMake has recognized CUDA_STANDARD 23 since 3.20, but older releases do not
-# provide NVIDIA's dialect flag. CUDA 13.3 accepts this flag directly.
-if(NOT DEFINED CMAKE_CUDA23_STANDARD_COMPILE_OPTION)
-    set(CMAKE_CUDA23_STANDARD_COMPILE_OPTION "--std=c++23")
-    set(CMAKE_CUDA23_EXTENSION_COMPILE_OPTION "--std=c++23")
+# CMake has recognized CUDA_STANDARD 20 since 3.20, but older releases do not
+# always provide NVIDIA's dialect flag. CUDA 12.9 accepts this flag directly.
+if(NOT DEFINED CMAKE_CUDA20_STANDARD_COMPILE_OPTION)
+    set(CMAKE_CUDA20_STANDARD_COMPILE_OPTION "--std=c++20")
+    set(CMAKE_CUDA20_EXTENSION_COMPILE_OPTION "--std=c++20")
 endif()
 
 include(CTest)
@@ -54,21 +62,24 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-# Keep the architecture list overridable from the CMake command line. CUDA 13
-# supports offline compilation for Turing (SM 7.5) and newer GPUs.
-set(_cuda_workbench_default_architectures "75;86;89")
+# The PPTI deployment runs on Tesla V100 GPUs (SM 7.0).
+# Keep the architecture list overridable for other CUDA installations.
+set(_cuda_workbench_default_architectures "70")
 set(
     CUDA_WORKBENCH_ARCHITECTURES "${_cuda_workbench_default_architectures}"
     CACHE STRING
-    "CUDA architectures (for example 89, 86, or 75;86;89)"
+    "CUDA architectures (for example 70, 86, or 70;86)"
 )
-set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}")
+# Keep the cache and the actual target flags in sync. CMake may cache the
+# compiler's probed default architecture before this project selects its SM.
+set(CMAKE_CUDA_ARCHITECTURES "${CUDA_WORKBENCH_ARCHITECTURES}" CACHE STRING
+    "CUDA architectures selected for this AI_factory build" FORCE)
 
 # Launch geometry is a replaceable build profile, not a numerical contract.
-# The checked-in defaults are the measured SM89 reference values; deployments
-# on another GPU should configure a new profile id and publish a separate
-# performance baseline after resource and numerical checks.
-set(AI_FACTORY_CUDA_TUNING_PROFILE_ID "sm89_reference_v1" CACHE STRING
+# Launch dimensions originate from prior measurements. The SM70 profile
+# remains unqualified until resource, numerical, and performance checks run
+# on the PPTI Tesla V100s.
+set(AI_FACTORY_CUDA_TUNING_PROFILE_ID "sm70_ppti_unqualified_v1" CACHE STRING
     "Identifier recorded with CUDA launch tuning metadata")
 set(AI_FACTORY_CUDA_MARKOVIAN_THREADS_PER_BLOCK 512 CACHE STRING
     "Threads per block for ordinary Markovian Monte Carlo")
@@ -201,10 +212,22 @@ if(AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS)
     ai_factory_include_owned_module(work/experiments/CMakeLists.txt)
     unset(AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
 endif()
-ai_factory_include_owned_module(cmake/AIFactoryPerformance.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryTests.cmake)
-if(BUILD_TESTING)
-    ai_factory_include_owned_module(cmake/AIFactoryValidation.cmake)
+option(AI_FACTORY_ENABLE_MAINTAINER "Build local audits and performance studies" OFF)
+if(AI_FACTORY_ENABLE_MAINTAINER)
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/maintainer/cmake/AIFactoryPerformance.cmake")
+        message(FATAL_ERROR "AI_FACTORY_ENABLE_MAINTAINER requires maintainer/")
+    endif()
+    ai_factory_include_owned_module(maintainer/cmake/AIFactoryPerformance.cmake)
+    if(BUILD_TESTING)
+        ai_factory_include_owned_module(maintainer/cmake/AIFactoryDiagnostics.cmake)
+        ai_factory_include_owned_module(maintainer/cmake/AIFactoryArchitectureChecks.cmake)
+        ai_factory_include_owned_module(maintainer/cmake/AIFactoryPriceGradientStudies.cmake)
+        ai_factory_include_owned_module(maintainer/cmake/AIFactoryLearningTests.cmake)
+        if(EXISTS "${CMAKE_SOURCE_DIR}/validation")
+            ai_factory_include_owned_module(maintainer/cmake/AIFactoryValidation.cmake)
+        endif()
+    endif()
 endif()
 
 get_property(_ai_factory_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)

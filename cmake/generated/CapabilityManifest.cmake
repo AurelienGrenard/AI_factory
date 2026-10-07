@@ -74,6 +74,7 @@ set(AI_FACTORY_GENERATED_PRODUCTS
     up_no_touch
     up_one_touch
     zero_coupon_bond_option
+    zero_coupon_bond_up_and_out
 )
 
 set(AI_FACTORY_GENERATED_EQUITY_REGULAR_UNITS
@@ -1152,6 +1153,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     cir/product/rate_option_price_gradients
     cir/product/zero_coupon_bond_option
     cir/product/zero_coupon_bond_option_price_gradients
+    cir/product/zero_coupon_bond_up_and_out
     cir/sample
     cir_plus_plus/product/flat/bermudan_swaption
     cir_plus_plus/product/flat/bermudan_swaption_price_gradients
@@ -1161,6 +1163,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     cir_plus_plus/product/flat/rate_option_price_gradients
     cir_plus_plus/product/flat/zero_coupon_bond_option
     cir_plus_plus/product/flat/zero_coupon_bond_option_price_gradients
+    cir_plus_plus/product/flat/zero_coupon_bond_up_and_out
     cir_plus_plus/product/nelson_siegel/bermudan_swaption
     cir_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients
     cir_plus_plus/product/nelson_siegel/european_swaption
@@ -1169,6 +1172,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     cir_plus_plus/product/nelson_siegel/rate_option_price_gradients
     cir_plus_plus/product/nelson_siegel/zero_coupon_bond_option
     cir_plus_plus/product/nelson_siegel/zero_coupon_bond_option_price_gradients
+    cir_plus_plus/product/nelson_siegel/zero_coupon_bond_up_and_out
     cir_plus_plus/product/svensson/bermudan_swaption
     cir_plus_plus/product/svensson/bermudan_swaption_price_gradients
     cir_plus_plus/product/svensson/european_swaption
@@ -1177,6 +1181,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     cir_plus_plus/product/svensson/rate_option_price_gradients
     cir_plus_plus/product/svensson/zero_coupon_bond_option
     cir_plus_plus/product/svensson/zero_coupon_bond_option_price_gradients
+    cir_plus_plus/product/svensson/zero_coupon_bond_up_and_out
     cir_plus_plus/sample
     g2/product/bermudan_swaption
     g2/product/bermudan_swaption_price_gradients
@@ -1186,6 +1191,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     g2/product/rate_option_price_gradients
     g2/product/zero_coupon_bond_option
     g2/product/zero_coupon_bond_option_price_gradients
+    g2/product/zero_coupon_bond_up_and_out
     g2/sample
     g2_plus_plus/product/flat/bermudan_swaption
     g2_plus_plus/product/flat/bermudan_swaption_price_gradients
@@ -1195,6 +1201,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     g2_plus_plus/product/flat/rate_option_price_gradients
     g2_plus_plus/product/flat/zero_coupon_bond_option
     g2_plus_plus/product/flat/zero_coupon_bond_option_price_gradients
+    g2_plus_plus/product/flat/zero_coupon_bond_up_and_out
     g2_plus_plus/product/nelson_siegel/bermudan_swaption
     g2_plus_plus/product/nelson_siegel/bermudan_swaption_price_gradients
     g2_plus_plus/product/nelson_siegel/european_swaption
@@ -1203,6 +1210,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     g2_plus_plus/product/nelson_siegel/rate_option_price_gradients
     g2_plus_plus/product/nelson_siegel/zero_coupon_bond_option
     g2_plus_plus/product/nelson_siegel/zero_coupon_bond_option_price_gradients
+    g2_plus_plus/product/nelson_siegel/zero_coupon_bond_up_and_out
     g2_plus_plus/product/svensson/bermudan_swaption
     g2_plus_plus/product/svensson/bermudan_swaption_price_gradients
     g2_plus_plus/product/svensson/european_swaption
@@ -1211,6 +1219,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     g2_plus_plus/product/svensson/rate_option_price_gradients
     g2_plus_plus/product/svensson/zero_coupon_bond_option
     g2_plus_plus/product/svensson/zero_coupon_bond_option_price_gradients
+    g2_plus_plus/product/svensson/zero_coupon_bond_up_and_out
     g2_plus_plus/sample
     hull_white/product/flat/bermudan_swaption
     hull_white/product/flat/bermudan_swaption_price_gradients
@@ -1220,6 +1229,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     hull_white/product/flat/rate_option_price_gradients
     hull_white/product/flat/zero_coupon_bond_option
     hull_white/product/flat/zero_coupon_bond_option_price_gradients
+    hull_white/product/flat/zero_coupon_bond_up_and_out
     hull_white/product/nelson_siegel/bermudan_swaption
     hull_white/product/nelson_siegel/bermudan_swaption_price_gradients
     hull_white/product/nelson_siegel/european_swaption
@@ -1228,6 +1238,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     hull_white/product/nelson_siegel/rate_option_price_gradients
     hull_white/product/nelson_siegel/zero_coupon_bond_option
     hull_white/product/nelson_siegel/zero_coupon_bond_option_price_gradients
+    hull_white/product/nelson_siegel/zero_coupon_bond_up_and_out
     hull_white/product/svensson/bermudan_swaption
     hull_white/product/svensson/bermudan_swaption_price_gradients
     hull_white/product/svensson/european_swaption
@@ -1236,6 +1247,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     hull_white/product/svensson/rate_option_price_gradients
     hull_white/product/svensson/zero_coupon_bond_option
     hull_white/product/svensson/zero_coupon_bond_option_price_gradients
+    hull_white/product/svensson/zero_coupon_bond_up_and_out
     hull_white/sample
     ornstein_uhlenbeck/product/bermudan_swaption
     ornstein_uhlenbeck/product/bermudan_swaption_price_gradients
@@ -1245,6 +1257,7 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     ornstein_uhlenbeck/product/rate_option_price_gradients
     ornstein_uhlenbeck/product/zero_coupon_bond_option
     ornstein_uhlenbeck/product/zero_coupon_bond_option_price_gradients
+    ornstein_uhlenbeck/product/zero_coupon_bond_up_and_out
     ornstein_uhlenbeck/sample
     vasicek/product/bermudan_swaption
     vasicek/product/bermudan_swaption_price_gradients
@@ -1254,11 +1267,11 @@ set(AI_FACTORY_GENERATED_FIXED_INCOME_UNITS
     vasicek/product/rate_option_price_gradients
     vasicek/product/zero_coupon_bond_option
     vasicek/product/zero_coupon_bond_option_price_gradients
+    vasicek/product/zero_coupon_bond_up_and_out
     vasicek/sample
 )
 
 set(AI_FACTORY_MANIFEST_PARAMETER_GENERATOR_SOURCES
-    work/catalog/curve/flat/flat_01/generator.cpp
     catalog/curve/nelson_siegel/nelson_siegel_01/generator.cpp
     catalog/curve/svensson/svensson_01/generator.cpp
     catalog/model/equity/markovian/bates/parameters/bates_01/generator.cpp
@@ -1313,9 +1326,642 @@ set(AI_FACTORY_MANIFEST_PARAMETER_GENERATOR_SOURCES
     catalog/product/up_no_touch/up_no_touches_01/generator.cpp
     catalog/product/up_one_touch/up_one_touches_01/generator.cpp
     catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/generator.cpp
+    catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generator.cpp
+    work/catalog/curve/flat/flat_01/generator.cpp
 )
 
 set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
+    catalog/model/equity/markovian/bates/prices/american_calls/bates_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/american_puts/bates_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/asian_calls/bates_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/asian_puts/bates_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/cliquets/bates_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/digital_puts/bates_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/double_knock_out_puts/bates_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/european_puts/bates_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/gap_calls/bates_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/gap_puts/bates_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/geometric_asian_calls/bates_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/geometric_asian_puts/bates_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/lookback_options/bates_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/phoenix_autocalls/bates_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/range_accruals/bates_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/up_and_in_calls/bates_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/up_and_out_calls/bates_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/up_no_touches/bates_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/asian_calls/black_scholes_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/asset_or_nothing_puts/black_scholes_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/athena_autocalls/black_scholes_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/digital_calls/black_scholes_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/double_knock_out_calls/black_scholes_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/double_knock_out_puts/black_scholes_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/down_and_out_puts/black_scholes_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/european_puts/black_scholes_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/forward_start_calls/black_scholes_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/gap_calls/black_scholes_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/geometric_asian_puts/black_scholes_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/lookback_options/black_scholes_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/up_and_in_calls/black_scholes_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/up_and_out_calls/black_scholes_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/up_no_touches/black_scholes_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/up_one_touches/black_scholes_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/american_calls/cev_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/american_puts/cev_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/asian_calls/cev_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/asian_puts/cev_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/asset_or_nothing_calls/cev_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/athena_autocalls/cev_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/digital_calls/cev_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/digital_puts/cev_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/double_knock_out_calls/cev_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/double_knock_out_puts/cev_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/down_and_in_puts/cev_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/down_and_out_puts/cev_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/european_puts/cev_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/forward_start_puts/cev_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/geometric_asian_calls/cev_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/geometric_asian_puts/cev_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/lookback_options/cev_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/phoenix_autocalls/cev_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/up_and_in_calls/cev_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/up_and_out_calls/cev_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/up_one_touches/cev_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/american_calls/heston_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/asian_calls/heston_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/asian_puts/heston_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/cliquets/heston_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/digital_calls/heston_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/digital_puts/heston_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/european_puts/heston_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/gap_calls/heston_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/gap_puts/heston_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/lookback_options/heston_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/range_accruals/heston_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/straddles/heston_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/asian_calls/heston_3_2_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/asian_puts/heston_3_2_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/asset_or_nothing_calls/heston_3_2_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/asset_or_nothing_puts/heston_3_2_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/cliquets/heston_3_2_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/digital_calls/heston_3_2_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/digital_puts/heston_3_2_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/double_knock_out_calls/heston_3_2_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/double_knock_out_puts/heston_3_2_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/down_and_in_puts/heston_3_2_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/european_puts/heston_3_2_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/forward_start_calls/heston_3_2_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/gap_calls/heston_3_2_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/gap_puts/heston_3_2_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/geometric_asian_calls/heston_3_2_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/geometric_asian_puts/heston_3_2_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/lookback_options/heston_3_2_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/phoenix_memory_autocalls/heston_3_2_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/range_accruals/heston_3_2_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/up_and_in_calls/heston_3_2_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/up_and_out_calls/heston_3_2_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/up_no_touches/heston_3_2_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/up_one_touches/heston_3_2_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/american_puts/kou_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/asian_calls/kou_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/asian_puts/kou_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/asset_or_nothing_calls/kou_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/asset_or_nothing_puts/kou_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/athena_autocalls/kou_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/cliquets/kou_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/digital_calls/kou_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/digital_puts/kou_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/double_knock_out_calls/kou_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/double_knock_out_puts/kou_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/down_and_in_puts/kou_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/down_and_out_puts/kou_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/european_puts/kou_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/gap_calls/kou_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/gap_puts/kou_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/geometric_asian_calls/kou_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/phoenix_memory_autocalls/kou_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/range_accruals/kou_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/up_and_in_calls/kou_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/up_and_out_calls/kou_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/up_no_touches/kou_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/up_one_touches/kou_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/american_puts/merton_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/asian_calls/merton_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/asian_puts/merton_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/asset_or_nothing_calls/merton_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/athena_autocalls/merton_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/cliquets/merton_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/digital_calls/merton_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/double_knock_out_calls/merton_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/double_knock_out_puts/merton_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/down_and_out_puts/merton_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/gap_calls/merton_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/gap_puts/merton_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/geometric_asian_calls/merton_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/geometric_asian_puts/merton_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/lookback_options/merton_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/phoenix_autocalls/merton_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/straddles/merton_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/up_and_out_calls/merton_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/up_no_touches/merton_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_calls/normal_inverse_gaussian_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/normal_inverse_gaussian_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asian_calls/normal_inverse_gaussian_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asian_puts/normal_inverse_gaussian_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asset_or_nothing_calls/normal_inverse_gaussian_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asset_or_nothing_puts/normal_inverse_gaussian_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/athena_autocalls/normal_inverse_gaussian_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/cliquets/normal_inverse_gaussian_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/double_knock_out_calls/normal_inverse_gaussian_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/double_knock_out_puts/normal_inverse_gaussian_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_in_puts/normal_inverse_gaussian_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_out_puts/normal_inverse_gaussian_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_puts/normal_inverse_gaussian_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_puts/normal_inverse_gaussian_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/gap_calls/normal_inverse_gaussian_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/gap_puts/normal_inverse_gaussian_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/geometric_asian_calls/normal_inverse_gaussian_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/geometric_asian_puts/normal_inverse_gaussian_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/lookback_options/normal_inverse_gaussian_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/phoenix_autocalls/normal_inverse_gaussian_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/phoenix_memory_autocalls/normal_inverse_gaussian_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/straddles/normal_inverse_gaussian_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_in_calls/normal_inverse_gaussian_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_out_calls/normal_inverse_gaussian_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_no_touches/normal_inverse_gaussian_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/asian_calls/sabr_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/asian_puts/sabr_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/asset_or_nothing_calls/sabr_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/asset_or_nothing_puts/sabr_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/cliquets/sabr_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/digital_calls/sabr_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/double_knock_out_calls/sabr_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/double_knock_out_puts/sabr_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/down_and_in_puts/sabr_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/down_and_out_puts/sabr_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/european_puts/sabr_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/forward_start_calls/sabr_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/forward_start_puts/sabr_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/gap_calls/sabr_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/geometric_asian_puts/sabr_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/lookback_options/sabr_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/phoenix_autocalls/sabr_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/straddles/sabr_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/up_and_in_calls/sabr_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/up_and_out_calls/sabr_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/up_no_touches/sabr_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/up_one_touches/sabr_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/american_calls/schobel_zhu_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/american_puts/schobel_zhu_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/asian_calls/schobel_zhu_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/asian_puts/schobel_zhu_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/asset_or_nothing_calls/schobel_zhu_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/asset_or_nothing_puts/schobel_zhu_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/athena_autocalls/schobel_zhu_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/cliquets/schobel_zhu_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/digital_calls/schobel_zhu_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/digital_puts/schobel_zhu_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/double_knock_out_calls/schobel_zhu_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/double_knock_out_puts/schobel_zhu_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/down_and_in_puts/schobel_zhu_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/gap_calls/schobel_zhu_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/gap_puts/schobel_zhu_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/lookback_options/schobel_zhu_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/phoenix_autocalls/schobel_zhu_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/range_accruals/schobel_zhu_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/straddles/schobel_zhu_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/up_and_in_calls/schobel_zhu_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/up_and_out_calls/schobel_zhu_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/up_no_touches/schobel_zhu_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/up_one_touches/schobel_zhu_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/asian_calls/stein_stein_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/asian_puts/stein_stein_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/asset_or_nothing_calls/stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/asset_or_nothing_puts/stein_stein_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/athena_autocalls/stein_stein_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/digital_calls/stein_stein_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/double_knock_out_calls/stein_stein_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/down_and_in_puts/stein_stein_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/down_and_out_puts/stein_stein_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/european_calls/stein_stein_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/european_puts/stein_stein_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/forward_start_puts/stein_stein_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/gap_calls/stein_stein_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/gap_puts/stein_stein_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/geometric_asian_calls/stein_stein_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/geometric_asian_puts/stein_stein_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/lookback_options/stein_stein_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/phoenix_autocalls/stein_stein_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/phoenix_memory_autocalls/stein_stein_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/range_accruals/stein_stein_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/straddles/stein_stein_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/up_and_out_calls/stein_stein_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/up_no_touches/stein_stein_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/up_one_touches/stein_stein_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/american_calls/variance_gamma_01__american_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/american_puts/variance_gamma_01__american_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/asian_calls/variance_gamma_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/asian_puts/variance_gamma_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_calls/variance_gamma_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/athena_autocalls/variance_gamma_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/digital_calls/variance_gamma_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/digital_puts/variance_gamma_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/double_knock_out_calls/variance_gamma_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/forward_start_calls/variance_gamma_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/forward_start_puts/variance_gamma_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/gap_puts/variance_gamma_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_puts/variance_gamma_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/lookback_options/variance_gamma_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/phoenix_memory_autocalls/variance_gamma_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/range_accruals/variance_gamma_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/straddles/variance_gamma_01__straddles_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/up_and_in_calls/variance_gamma_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_puts/log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/athena_autocalls/log_modulated_rough_bergomi_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/cliquets/log_modulated_rough_bergomi_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/digital_calls/log_modulated_rough_bergomi_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/digital_puts/log_modulated_rough_bergomi_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_calls/log_modulated_rough_bergomi_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_calls/log_modulated_rough_bergomi_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/geometric_asian_calls/log_modulated_rough_bergomi_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/geometric_asian_puts/log_modulated_rough_bergomi_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/range_accruals/log_modulated_rough_bergomi_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/asian_calls/quadratic_rough_heston_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/asian_puts/quadratic_rough_heston_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/asset_or_nothing_calls/quadratic_rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/asset_or_nothing_puts/quadratic_rough_heston_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/athena_autocalls/quadratic_rough_heston_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/cliquets/quadratic_rough_heston_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/digital_calls/quadratic_rough_heston_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/digital_puts/quadratic_rough_heston_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_calls/quadratic_rough_heston_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_in_puts/quadratic_rough_heston_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/european_calls/quadratic_rough_heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/european_puts/quadratic_rough_heston_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_calls/quadratic_rough_heston_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_puts/quadratic_rough_heston_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/gap_calls/quadratic_rough_heston_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/gap_puts/quadratic_rough_heston_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/geometric_asian_calls/quadratic_rough_heston_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/geometric_asian_puts/quadratic_rough_heston_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/lookback_options/quadratic_rough_heston_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/phoenix_autocalls/quadratic_rough_heston_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/phoenix_memory_autocalls/quadratic_rough_heston_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/range_accruals/quadratic_rough_heston_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/up_and_in_calls/quadratic_rough_heston_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/up_no_touches/quadratic_rough_heston_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/up_one_touches/quadratic_rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_puts/rough_bergomi_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/athena_autocalls/rough_bergomi_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/cliquets/rough_bergomi_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/digital_calls/rough_bergomi_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/digital_puts/rough_bergomi_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/double_knock_out_calls/rough_bergomi_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/double_knock_out_puts/rough_bergomi_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/down_and_in_puts/rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/down_and_out_puts/rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/forward_start_calls/rough_bergomi_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/gap_puts/rough_bergomi_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/lookback_options/rough_bergomi_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/phoenix_autocalls/rough_bergomi_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/phoenix_memory_autocalls/rough_bergomi_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/straddles/rough_bergomi_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/up_and_in_calls/rough_bergomi_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/asian_calls/rough_heston_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/asian_puts/rough_heston_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/athena_autocalls/rough_heston_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/cliquets/rough_heston_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/digital_calls/rough_heston_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/digital_puts/rough_heston_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/european_calls/rough_heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/european_puts/rough_heston_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/forward_start_calls/rough_heston_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/gap_calls/rough_heston_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/gap_puts/rough_heston_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/geometric_asian_calls/rough_heston_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/geometric_asian_puts/rough_heston_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/lookback_options/rough_heston_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/range_accruals/rough_heston_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/up_and_in_calls/rough_heston_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/asian_calls/rough_sabr_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/athena_autocalls/rough_sabr_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/cliquets/rough_sabr_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/digital_calls/rough_sabr_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/digital_puts/rough_sabr_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/double_knock_out_calls/rough_sabr_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/double_knock_out_puts/rough_sabr_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/down_and_in_puts/rough_sabr_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/down_and_out_puts/rough_sabr_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/european_calls/rough_sabr_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/european_puts/rough_sabr_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/forward_start_calls/rough_sabr_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/forward_start_puts/rough_sabr_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/gap_puts/rough_sabr_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/geometric_asian_calls/rough_sabr_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/geometric_asian_puts/rough_sabr_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/lookback_options/rough_sabr_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/phoenix_autocalls/rough_sabr_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/straddles/rough_sabr_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/up_and_in_calls/rough_sabr_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/up_no_touches/rough_sabr_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/prices/up_one_touches/rough_sabr_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/asian_calls/rough_stein_stein_01__asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/asian_puts/rough_stein_stein_01__asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_puts/rough_stein_stein_01__asset_or_nothing_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/athena_autocalls/rough_stein_stein_01__athena_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/cliquets/rough_stein_stein_01__cliquets_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/digital_calls/rough_stein_stein_01__digital_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/digital_puts/rough_stein_stein_01__digital_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_calls/rough_stein_stein_01__double_knock_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/gap_calls/rough_stein_stein_01__gap_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/gap_puts/rough_stein_stein_01__gap_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/geometric_asian_calls/rough_stein_stein_01__geometric_asian_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/phoenix_autocalls/rough_stein_stein_01__phoenix_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/phoenix_memory_autocalls/rough_stein_stein_01__phoenix_memory_autocalls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/range_accruals/rough_stein_stein_01__range_accruals_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/straddles/rough_stein_stein_01__straddles_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/flat/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/european_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/european_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/floorlets/cir_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/european_receiver_swaptions/g2_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/floorlets/g2_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2/prices/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/flat/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/bermudan_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/european_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/flat/zero_coupon_bond_up_and_out_calls/hull_white_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/bermudan_payer_swaptions/hull_white_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/bermudan_receiver_swaptions/hull_white_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/bermudan_payer_swaptions/hull_white_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/bermudan_receiver_swaptions/hull_white_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/ornstein_uhlenbeck_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
+    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_up_and_out_calls/vasicek_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/american_calls/bates_01__american_calls_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/american_calls/bates_01__american_calls_01__01_cartesian_price_gradient_diagonal_hessian_frozen_policy/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/american_calls/bates_01__american_calls_01__01_price_gradient_diagonal_hessian/generator.cpp
@@ -2624,10 +3270,10 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/cir/price_gradients/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_price_gradient_diagonal_hessian_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/cir/price_gradients/caplets/cir_01__caplets_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
     work/catalog/model/fixed_income/cir/price_gradients/caplets/cir_01__caplets_01__01_price_gradient_diagonal_hessian/generator.cpp
-    work/catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
-    work/catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_price_gradient_diagonal_hessian/generator.cpp
-    work/catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
-    work/catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient_diagonal_hessian/generator.cpp
+    work/catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
+    work/catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    work/catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
+    work/catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
     work/catalog/model/fixed_income/cir/price_gradients/floorlets/cir_01__floorlets_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
     work/catalog/model/fixed_income/cir/price_gradients/floorlets/cir_01__floorlets_01__01_price_gradient_diagonal_hessian/generator.cpp
     work/catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp
@@ -3002,370 +3648,62 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01_cartesian/generator.cpp
     work/catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01_cartesian/generator.cpp
     work/catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01_cartesian/generator.cpp
-    catalog/model/equity/markovian/bates/prices/american_calls/bates_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/american_puts/bates_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/asian_calls/bates_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/asian_puts/bates_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/athena_autocalls/bates_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/cliquets/bates_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/digital_calls/bates_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/digital_puts/bates_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/double_knock_out_calls/bates_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/double_knock_out_puts/bates_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/european_puts/bates_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/gap_calls/bates_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/gap_puts/bates_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/geometric_asian_calls/bates_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/geometric_asian_puts/bates_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/lookback_options/bates_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/phoenix_autocalls/bates_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/range_accruals/bates_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/straddles/bates_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/up_and_in_calls/bates_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/up_and_out_calls/bates_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/up_no_touches/bates_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/bates/prices/up_one_touches/bates_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/asian_calls/black_scholes_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/asian_puts/black_scholes_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/asset_or_nothing_calls/black_scholes_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/asset_or_nothing_puts/black_scholes_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/athena_autocalls/black_scholes_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/digital_calls/black_scholes_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/digital_puts/black_scholes_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/double_knock_out_calls/black_scholes_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/double_knock_out_puts/black_scholes_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/down_and_out_puts/black_scholes_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/european_puts/black_scholes_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/forward_start_calls/black_scholes_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/gap_calls/black_scholes_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/geometric_asian_calls/black_scholes_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/geometric_asian_puts/black_scholes_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/lookback_options/black_scholes_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/phoenix_autocalls/black_scholes_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/phoenix_memory_autocalls/black_scholes_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/range_accruals/black_scholes_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/straddles/black_scholes_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/up_and_in_calls/black_scholes_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/up_and_out_calls/black_scholes_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/up_no_touches/black_scholes_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/up_one_touches/black_scholes_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/american_calls/cev_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/american_puts/cev_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/asian_calls/cev_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/asian_puts/cev_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/asset_or_nothing_calls/cev_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/asset_or_nothing_puts/cev_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/athena_autocalls/cev_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/cliquets/cev_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/digital_calls/cev_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/digital_puts/cev_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/double_knock_out_calls/cev_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/double_knock_out_puts/cev_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/down_and_in_puts/cev_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/down_and_out_puts/cev_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/european_puts/cev_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/forward_start_puts/cev_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/gap_calls/cev_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/gap_puts/cev_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/geometric_asian_calls/cev_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/geometric_asian_puts/cev_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/lookback_options/cev_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/phoenix_autocalls/cev_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/range_accruals/cev_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/up_and_in_calls/cev_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/up_and_out_calls/cev_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/up_no_touches/cev_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/cev/prices/up_one_touches/cev_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/american_calls/heston_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/american_puts/heston_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/asian_calls/heston_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/asian_puts/heston_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/athena_autocalls/heston_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/cliquets/heston_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/digital_calls/heston_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/digital_puts/heston_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/double_knock_out_calls/heston_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/european_puts/heston_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/gap_calls/heston_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/gap_puts/heston_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/geometric_asian_calls/heston_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/geometric_asian_puts/heston_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/lookback_options/heston_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/phoenix_autocalls/heston_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/phoenix_memory_autocalls/heston_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/range_accruals/heston_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/straddles/heston_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/up_and_in_calls/heston_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/up_and_out_calls/heston_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/up_no_touches/heston_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/asian_calls/heston_3_2_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/asian_puts/heston_3_2_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/asset_or_nothing_calls/heston_3_2_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/asset_or_nothing_puts/heston_3_2_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/athena_autocalls/heston_3_2_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/cliquets/heston_3_2_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/digital_calls/heston_3_2_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/digital_puts/heston_3_2_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/double_knock_out_calls/heston_3_2_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/double_knock_out_puts/heston_3_2_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/down_and_in_puts/heston_3_2_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/european_puts/heston_3_2_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/forward_start_calls/heston_3_2_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/gap_calls/heston_3_2_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/gap_puts/heston_3_2_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/geometric_asian_calls/heston_3_2_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/geometric_asian_puts/heston_3_2_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/lookback_options/heston_3_2_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/phoenix_memory_autocalls/heston_3_2_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/range_accruals/heston_3_2_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/straddles/heston_3_2_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/up_and_in_calls/heston_3_2_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/up_and_out_calls/heston_3_2_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/up_no_touches/heston_3_2_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/up_one_touches/heston_3_2_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/american_calls/kou_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/american_puts/kou_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/asian_calls/kou_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/asian_puts/kou_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/asset_or_nothing_calls/kou_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/asset_or_nothing_puts/kou_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/athena_autocalls/kou_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/cliquets/kou_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/digital_calls/kou_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/digital_puts/kou_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/double_knock_out_calls/kou_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/double_knock_out_puts/kou_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/down_and_in_puts/kou_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/down_and_out_puts/kou_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/european_puts/kou_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/gap_calls/kou_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/gap_puts/kou_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/geometric_asian_calls/kou_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/geometric_asian_puts/kou_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/lookback_options/kou_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/phoenix_autocalls/kou_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/phoenix_memory_autocalls/kou_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/range_accruals/kou_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/straddles/kou_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/up_and_in_calls/kou_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/up_and_out_calls/kou_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/up_no_touches/kou_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/kou/prices/up_one_touches/kou_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/american_calls/merton_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/american_puts/merton_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/asian_calls/merton_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/asian_puts/merton_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/asset_or_nothing_calls/merton_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/asset_or_nothing_puts/merton_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/athena_autocalls/merton_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/cliquets/merton_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/digital_calls/merton_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/digital_puts/merton_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/double_knock_out_calls/merton_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/double_knock_out_puts/merton_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/down_and_out_puts/merton_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/gap_calls/merton_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/gap_puts/merton_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/geometric_asian_calls/merton_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/geometric_asian_puts/merton_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/lookback_options/merton_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/phoenix_autocalls/merton_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/phoenix_memory_autocalls/merton_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/straddles/merton_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/up_and_in_calls/merton_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/up_and_out_calls/merton_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/up_no_touches/merton_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/merton/prices/up_one_touches/merton_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_calls/normal_inverse_gaussian_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/american_puts/normal_inverse_gaussian_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asian_calls/normal_inverse_gaussian_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asian_puts/normal_inverse_gaussian_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asset_or_nothing_calls/normal_inverse_gaussian_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/asset_or_nothing_puts/normal_inverse_gaussian_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/athena_autocalls/normal_inverse_gaussian_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/cliquets/normal_inverse_gaussian_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_calls/normal_inverse_gaussian_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/digital_puts/normal_inverse_gaussian_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/double_knock_out_calls/normal_inverse_gaussian_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/double_knock_out_puts/normal_inverse_gaussian_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_in_puts/normal_inverse_gaussian_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_out_puts/normal_inverse_gaussian_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_puts/normal_inverse_gaussian_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_puts/normal_inverse_gaussian_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/gap_calls/normal_inverse_gaussian_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/gap_puts/normal_inverse_gaussian_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/geometric_asian_calls/normal_inverse_gaussian_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/geometric_asian_puts/normal_inverse_gaussian_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/lookback_options/normal_inverse_gaussian_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/phoenix_autocalls/normal_inverse_gaussian_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/phoenix_memory_autocalls/normal_inverse_gaussian_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/range_accruals/normal_inverse_gaussian_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/straddles/normal_inverse_gaussian_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_in_calls/normal_inverse_gaussian_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_out_calls/normal_inverse_gaussian_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_no_touches/normal_inverse_gaussian_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_one_touches/normal_inverse_gaussian_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/asian_calls/sabr_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/asian_puts/sabr_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/asset_or_nothing_calls/sabr_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/asset_or_nothing_puts/sabr_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/cliquets/sabr_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/digital_calls/sabr_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/digital_puts/sabr_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/double_knock_out_calls/sabr_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/double_knock_out_puts/sabr_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/down_and_in_puts/sabr_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/down_and_out_puts/sabr_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/european_puts/sabr_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/forward_start_calls/sabr_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/forward_start_puts/sabr_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/gap_calls/sabr_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/gap_puts/sabr_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/geometric_asian_calls/sabr_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/geometric_asian_puts/sabr_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/lookback_options/sabr_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/phoenix_autocalls/sabr_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/phoenix_memory_autocalls/sabr_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/straddles/sabr_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/up_and_in_calls/sabr_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/up_and_out_calls/sabr_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/up_no_touches/sabr_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/up_one_touches/sabr_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/american_calls/schobel_zhu_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/american_puts/schobel_zhu_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/asian_calls/schobel_zhu_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/asian_puts/schobel_zhu_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/asset_or_nothing_calls/schobel_zhu_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/asset_or_nothing_puts/schobel_zhu_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/athena_autocalls/schobel_zhu_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/cliquets/schobel_zhu_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/digital_calls/schobel_zhu_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/digital_puts/schobel_zhu_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/double_knock_out_calls/schobel_zhu_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/double_knock_out_puts/schobel_zhu_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/down_and_in_puts/schobel_zhu_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/gap_calls/schobel_zhu_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/gap_puts/schobel_zhu_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_calls/schobel_zhu_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/geometric_asian_puts/schobel_zhu_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/lookback_options/schobel_zhu_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/phoenix_autocalls/schobel_zhu_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/phoenix_memory_autocalls/schobel_zhu_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/range_accruals/schobel_zhu_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/straddles/schobel_zhu_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/up_and_in_calls/schobel_zhu_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/up_and_out_calls/schobel_zhu_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/up_no_touches/schobel_zhu_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/up_one_touches/schobel_zhu_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/asian_calls/stein_stein_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/asian_puts/stein_stein_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/asset_or_nothing_calls/stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/asset_or_nothing_puts/stein_stein_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/athena_autocalls/stein_stein_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/digital_calls/stein_stein_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/digital_puts/stein_stein_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/double_knock_out_calls/stein_stein_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/down_and_in_puts/stein_stein_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/down_and_out_puts/stein_stein_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/european_calls/stein_stein_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/european_puts/stein_stein_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/forward_start_puts/stein_stein_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/gap_calls/stein_stein_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/gap_puts/stein_stein_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/geometric_asian_calls/stein_stein_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/geometric_asian_puts/stein_stein_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/lookback_options/stein_stein_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/phoenix_autocalls/stein_stein_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/phoenix_memory_autocalls/stein_stein_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/range_accruals/stein_stein_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/straddles/stein_stein_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/up_and_out_calls/stein_stein_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/up_no_touches/stein_stein_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/up_one_touches/stein_stein_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/american_calls/variance_gamma_01__american_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/american_puts/variance_gamma_01__american_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/asian_calls/variance_gamma_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/asian_puts/variance_gamma_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_calls/variance_gamma_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/athena_autocalls/variance_gamma_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/digital_calls/variance_gamma_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/digital_puts/variance_gamma_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/double_knock_out_calls/variance_gamma_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/forward_start_calls/variance_gamma_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/forward_start_puts/variance_gamma_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/gap_calls/variance_gamma_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/gap_puts/variance_gamma_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_calls/variance_gamma_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/geometric_asian_puts/variance_gamma_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/lookback_options/variance_gamma_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/phoenix_autocalls/variance_gamma_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/phoenix_memory_autocalls/variance_gamma_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/range_accruals/variance_gamma_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/straddles/variance_gamma_01__straddles_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/up_and_in_calls/variance_gamma_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/up_no_touches/variance_gamma_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/up_one_touches/variance_gamma_01__up_one_touches_01__01/generator.cpp
+)
+
+set(AI_FACTORY_MANIFEST_SAMPLE_GENERATOR_SOURCES
+    catalog/model/equity/markovian/bates/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/cev/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/heston/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/kou/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/merton/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/sabr/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/samples/samples_01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/samples/samples_01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/samples/samples_01/generator.cpp
+    catalog/model/equity/rough/rough_heston/samples/samples_01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/samples/samples_01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/cir/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/g2/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/hull_white/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_01/generator.cpp
+    catalog/model/fixed_income/vasicek/samples/samples_01/generator.cpp
+    work/catalog/model/equity/markovian/bates/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/black_scholes/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/cev/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/heston/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/heston_3_2/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/kou/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/merton/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/normal_inverse_gaussian/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/sabr/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/schobel_zhu/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/stein_stein/samples/samples_02/generator.cpp
+    work/catalog/model/equity/markovian/variance_gamma/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/quadratic_rough_heston/samples/samples_01/generator.cpp
+    work/catalog/model/equity/rough/quadratic_rough_heston/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/rough_bergomi/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/rough_heston/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/rough_sabr/samples/samples_02/generator.cpp
+    work/catalog/model/equity/rough/rough_stein_stein/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/cir/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/cir_plus_plus/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/g2/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/g2_plus_plus/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/hull_white/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_02/generator.cpp
+    work/catalog/model/fixed_income/vasicek/samples/samples_02/generator.cpp
+)
+
+set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -3395,35 +3733,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/asian_calls/quadratic_rough_heston_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/asian_puts/quadratic_rough_heston_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/asset_or_nothing_calls/quadratic_rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/asset_or_nothing_puts/quadratic_rough_heston_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/athena_autocalls/quadratic_rough_heston_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/cliquets/quadratic_rough_heston_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/digital_calls/quadratic_rough_heston_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/digital_puts/quadratic_rough_heston_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_calls/quadratic_rough_heston_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_in_puts/quadratic_rough_heston_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/european_calls/quadratic_rough_heston_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/european_puts/quadratic_rough_heston_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_calls/quadratic_rough_heston_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_puts/quadratic_rough_heston_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/gap_calls/quadratic_rough_heston_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/gap_puts/quadratic_rough_heston_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/geometric_asian_calls/quadratic_rough_heston_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/geometric_asian_puts/quadratic_rough_heston_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/lookback_options/quadratic_rough_heston_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/phoenix_autocalls/quadratic_rough_heston_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/phoenix_memory_autocalls/quadratic_rough_heston_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/range_accruals/quadratic_rough_heston_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/straddles/quadratic_rough_heston_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/up_and_in_calls/quadratic_rough_heston_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/up_no_touches/quadratic_rough_heston_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/up_one_touches/quadratic_rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -3453,35 +3763,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/asian_calls/rough_heston_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/asian_puts/rough_heston_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/athena_autocalls/rough_heston_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/cliquets/rough_heston_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/digital_calls/rough_heston_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/digital_puts/rough_heston_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/european_calls/rough_heston_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/european_puts/rough_heston_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/forward_start_calls/rough_heston_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/forward_start_puts/rough_heston_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/gap_calls/rough_heston_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/gap_puts/rough_heston_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/geometric_asian_calls/rough_heston_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/geometric_asian_puts/rough_heston_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/lookback_options/rough_heston_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/phoenix_autocalls/rough_heston_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/phoenix_memory_autocalls/rough_heston_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/range_accruals/rough_heston_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/straddles/rough_heston_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/up_and_in_calls/rough_heston_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/up_no_touches/rough_heston_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_heston/prices/up_one_touches/rough_heston_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_bergomi/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_calls/rough_sabr_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -3511,6 +3793,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/up_no_touches/rough_sabr_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_sabr/prices/up_one_touches/rough_sabr_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_sabr/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_calls/rough_stein_stein_01__asian_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asian_puts/rough_stein_stein_01__asian_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
@@ -3540,142 +3823,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_stein_stein/prices/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/floorlets/cir_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/cir/prices/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/european_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/european_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/floorlets/cir_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/european_payer_swaptions/g2_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/european_receiver_swaptions/g2_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/floorlets/g2_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/g2/prices/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/bermudan_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/european_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/bermudan_payer_swaptions/hull_white_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/bermudan_receiver_swaptions/hull_white_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/bermudan_payer_swaptions/hull_white_01__svensson_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/bermudan_receiver_swaptions/hull_white_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/caplets/hull_white_01__svensson_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/ornstein_uhlenbeck_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/floorlets/ornstein_uhlenbeck_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/floorlets/vasicek_01__floorlets_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01/generator.cpp
-    catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01/generator.cpp
-)
-
-set(AI_FACTORY_MANIFEST_SAMPLE_GENERATOR_SOURCES
-    work/catalog/model/equity/markovian/bates/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/black_scholes/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/cev/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/heston/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/heston_3_2/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/kou/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/merton/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/normal_inverse_gaussian/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/sabr/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/schobel_zhu/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/stein_stein/samples/samples_02/generator.cpp
-    work/catalog/model/equity/markovian/variance_gamma/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/quadratic_rough_heston/samples/samples_01/generator.cpp
-    work/catalog/model/equity/rough/quadratic_rough_heston/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/rough_bergomi/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/rough_heston/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/rough_sabr/samples/samples_02/generator.cpp
-    work/catalog/model/equity/rough/rough_stein_stein/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/cir/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/cir_plus_plus/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/g2/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/g2_plus_plus/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/hull_white/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_02/generator.cpp
-    work/catalog/model/fixed_income/vasicek/samples/samples_02/generator.cpp
-    catalog/model/equity/markovian/bates/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/black_scholes/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/cev/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/heston/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/kou/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/merton/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/sabr/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/stein_stein/samples/samples_01/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_heston/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/samples/samples_01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/cir/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/g2/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/hull_white/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/samples/samples_01/generator.cpp
-    catalog/model/fixed_income/vasicek/samples/samples_01/generator.cpp
-)
-
-set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01_cartesian/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01_cartesian/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_cartesian/generator.cpp
@@ -3796,124 +3944,4 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_cartesian/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01_cartesian/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/samples/samples_02/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_calls/log_modulated_rough_bergomi_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asian_puts/log_modulated_rough_bergomi_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_calls/log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/asset_or_nothing_puts/log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/athena_autocalls/log_modulated_rough_bergomi_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/cliquets/log_modulated_rough_bergomi_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/digital_calls/log_modulated_rough_bergomi_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/digital_puts/log_modulated_rough_bergomi_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_calls/log_modulated_rough_bergomi_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_calls/log_modulated_rough_bergomi_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/gap_puts/log_modulated_rough_bergomi_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/geometric_asian_calls/log_modulated_rough_bergomi_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/geometric_asian_puts/log_modulated_rough_bergomi_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/lookback_options/log_modulated_rough_bergomi_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_autocalls/log_modulated_rough_bergomi_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/phoenix_memory_autocalls/log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/range_accruals/log_modulated_rough_bergomi_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/straddles/log_modulated_rough_bergomi_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_in_calls/log_modulated_rough_bergomi_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_and_out_calls/log_modulated_rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_no_touches/log_modulated_rough_bergomi_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/up_one_touches/log_modulated_rough_bergomi_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/asian_calls/rough_bergomi_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/asian_puts/rough_bergomi_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_calls/rough_bergomi_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/asset_or_nothing_puts/rough_bergomi_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/athena_autocalls/rough_bergomi_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/cliquets/rough_bergomi_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/digital_calls/rough_bergomi_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/digital_puts/rough_bergomi_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/double_knock_out_calls/rough_bergomi_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/double_knock_out_puts/rough_bergomi_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/down_and_in_puts/rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/down_and_out_puts/rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/european_calls/rough_bergomi_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/european_puts/rough_bergomi_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/forward_start_calls/rough_bergomi_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/gap_calls/rough_bergomi_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/gap_puts/rough_bergomi_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_calls/rough_bergomi_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/geometric_asian_puts/rough_bergomi_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/lookback_options/rough_bergomi_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/phoenix_autocalls/rough_bergomi_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/phoenix_memory_autocalls/rough_bergomi_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/range_accruals/rough_bergomi_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/straddles/rough_bergomi_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/up_and_in_calls/rough_bergomi_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_bergomi/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/asian_calls/rough_sabr_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/asian_puts/rough_sabr_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_calls/rough_sabr_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/asset_or_nothing_puts/rough_sabr_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/athena_autocalls/rough_sabr_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/cliquets/rough_sabr_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/digital_calls/rough_sabr_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/digital_puts/rough_sabr_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/double_knock_out_calls/rough_sabr_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/double_knock_out_puts/rough_sabr_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/down_and_in_puts/rough_sabr_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/down_and_out_puts/rough_sabr_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/european_calls/rough_sabr_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/european_puts/rough_sabr_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/forward_start_calls/rough_sabr_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/forward_start_puts/rough_sabr_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/gap_calls/rough_sabr_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/gap_puts/rough_sabr_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/geometric_asian_calls/rough_sabr_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/geometric_asian_puts/rough_sabr_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/lookback_options/rough_sabr_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/phoenix_autocalls/rough_sabr_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/phoenix_memory_autocalls/rough_sabr_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/range_accruals/rough_sabr_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/straddles/rough_sabr_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/up_and_in_calls/rough_sabr_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/up_and_out_calls/rough_sabr_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/up_no_touches/rough_sabr_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/prices/up_one_touches/rough_sabr_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_sabr/samples/samples_01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/asian_calls/rough_stein_stein_01__asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/asian_puts/rough_stein_stein_01__asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_calls/rough_stein_stein_01__asset_or_nothing_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/asset_or_nothing_puts/rough_stein_stein_01__asset_or_nothing_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/athena_autocalls/rough_stein_stein_01__athena_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/cliquets/rough_stein_stein_01__cliquets_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/digital_calls/rough_stein_stein_01__digital_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/digital_puts/rough_stein_stein_01__digital_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_calls/rough_stein_stein_01__double_knock_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/gap_calls/rough_stein_stein_01__gap_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/gap_puts/rough_stein_stein_01__gap_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/geometric_asian_calls/rough_stein_stein_01__geometric_asian_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/lookback_options/rough_stein_stein_01__lookback_options_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/phoenix_autocalls/rough_stein_stein_01__phoenix_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/phoenix_memory_autocalls/rough_stein_stein_01__phoenix_memory_autocalls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/range_accruals/rough_stein_stein_01__range_accruals_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/straddles/rough_stein_stein_01__straddles_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/up_and_in_calls/rough_stein_stein_01__up_and_in_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/samples/samples_01/generator.cpp
 )

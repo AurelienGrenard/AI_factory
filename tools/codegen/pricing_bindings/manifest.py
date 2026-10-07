@@ -18,7 +18,7 @@ class Binding:
 
 
 @dataclass(frozen=True)
-class RoughProductBinding:
+class EquityProductBinding:
     product: str
     product_type: str
     path_policy: str
@@ -64,88 +64,88 @@ class AmericanRecipeSpec:
     regression_precision: str = "FP64 normal equations and Cholesky on GPU"
 
 
-# One canonical product description drives every Gaussian-Volterra binding
-# and both prepared N-factor rough-model lifts.
-ROUGH_PRODUCT_BINDINGS = (
-    RoughProductBinding(
+# One equity product description drives Markovian, Black-Scholes and
+# Gaussian-Volterra bindings, including the prepared N-factor lifts.
+EQUITY_PRODUCT_BINDINGS = (
+    EquityProductBinding(
         "asian_option", "AsianOption", "AsianOptionPathPolicy", "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "asset_or_nothing_option", "AssetOrNothingOption",
         "AssetOrNothingOptionPathPolicy", "terminal"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "athena_autocall", "AthenaAutocall", "AthenaAutocallPathPolicy",
         "regular", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "cliquet", "Cliquet", "CliquetPathPolicy", "regular", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "digital_option", "DigitalOption", "DigitalOptionPathPolicy",
         "terminal"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "double_knock_out_option", "DoubleKnockOutOption",
         "DoubleKnockOutOptionPathPolicy", "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "down_and_in_option", "DownAndInOption",
         "DownAndInOptionPathPolicy", "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "down_and_out_option", "DownAndOutOption",
         "DownAndOutOptionPathPolicy", "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "european_option", "EuropeanOption", "EuropeanOptionPathPolicy",
         "terminal"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "forward_start_option", "ForwardStartOption",
         "ForwardStartOptionPathPolicy", "calendar_2"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "gap_option", "GapOption", "GapOptionPathPolicy", "terminal"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "geometric_asian_option", "GeometricAsianOption",
         "GeometricAsianOptionPathPolicy", "dense",
         observation_coordinate="log_spot",
         required_capabilities=("log_spot",),
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "lookback_option", "LookbackOption", "LookbackOptionPathPolicy",
         "dense", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "phoenix_autocall", "PhoenixAutocall", "PhoenixAutocallPathPolicy",
         "regular", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "phoenix_memory_autocall", "PhoenixMemoryAutocall",
         "PhoenixMemoryAutocallPathPolicy", "regular", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "range_accrual", "RangeAccrual", "RangeAccrualPathPolicy",
         "regular", False, observation_coordinate="log_spot",
         required_capabilities=("log_spot",),
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "straddle", "Straddle", "StraddlePathPolicy", "terminal", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "up_and_in_option", "UpAndInOption", "UpAndInOptionPathPolicy",
         "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "up_and_out_option", "UpAndOutOption", "UpAndOutOptionPathPolicy",
         "dense"
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "up_no_touch", "UpNoTouch", "UpNoTouchPathPolicy", "dense", False
     ),
-    RoughProductBinding(
+    EquityProductBinding(
         "up_one_touch", "UpOneTouch", "UpOneTouchPathPolicy", "dense",
         False
     ),
@@ -229,7 +229,7 @@ BLACK_SCHOLES_MONTE_CARLO_PRODUCTS = frozenset({
 # bindings.  American exercise is the sole equity-product exclusion.
 BLACK_SCHOLES_CLOSED_FORM_PRODUCTS = tuple(
     product.product
-    for product in ROUGH_PRODUCT_BINDINGS
+    for product in EQUITY_PRODUCT_BINDINGS
     if product.product not in BLACK_SCHOLES_MONTE_CARLO_PRODUCTS
 )
 
@@ -270,7 +270,7 @@ BINDINGS = tuple(
         sided=product.sided,
     )
     for model, display, time_kind in MARKOVIAN_MODELS
-    for product in ROUGH_PRODUCT_BINDINGS
+    for product in EQUITY_PRODUCT_BINDINGS
 ) + tuple(
     Binding(
         model="black_scholes",
@@ -282,7 +282,7 @@ BINDINGS = tuple(
         time_kind=_markovian_schedule(product.schedule_kind, "exact")[1],
         sided=product.sided,
     )
-    for product in ROUGH_PRODUCT_BINDINGS
+    for product in EQUITY_PRODUCT_BINDINGS
     if product.product in BLACK_SCHOLES_MONTE_CARLO_PRODUCTS
 )
 

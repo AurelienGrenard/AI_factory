@@ -1,7 +1,9 @@
 # Plan de migration des gradients de prix des modèles à sauts
 
-**État au 23 septembre 2026 :** première tranche terminale intégrée, qualification
-globale encore ouverte dans [NUM-032](../audit/response.md#num-032--ouvrir-les-sensibilités-de-saut-avec-des-marques-centrales-rejouables).
+**État au 23 septembre 2026 :** première tranche terminale intégrée.
+[NUM-032](../audit/closed.md#num-032--sensibilités-des-modèles-à-sauts)
+a été fermé le 2026-10-02 ; les études supplémentaires ci-dessous restent
+des pistes de validation, sans constat d'audit ouvert.
 Merton, Kou et Bates disposent du central événementiel, des sensibilités de
 marque, d’intensité et de maturité européenne aux ordres un et deux diagonal.
 Variance-Gamma et NIG utilisent une reparamétrisation couplée propre à leur
@@ -190,10 +192,10 @@ biais par rapport à une stratégie réentraînée.
   de la voie événementielle face à la somme O(1) Merton/Bates reste explicite
   et bloque une bascule non qualifiée.
 
-NUM-031 ne se ferme que sur l'adressage et l'isolation RNG réellement livrés ;
-NUM-032 suit les lois, les sensibilités et les consommateurs produits. Leurs
-preuves peuvent être produites dans la même campagne sans fusionner leurs
-critères de clôture.
+Les anciennes responsabilités de NUM-031 et NUM-032 restent distinguées :
+adressage/isolation RNG d'une part, lois/sensibilités/consommateurs produits
+d'autre part. Ces deux constats sont fermés depuis le 2026-10-02 ; ce plan
+conserve les expériences supplémentaires possibles.
 
 ## Avancement de l'implémentation terminale
 

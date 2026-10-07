@@ -74,5 +74,19 @@ int main() {
     if (!certification_rejected || read_json_file(directory / "price.json") != result) {
         throw std::runtime_error("A validation override must fail before replacing an artifact");
     }
+    const nlohmann::ordered_json methodology = {
+        {"standard_error_scope", "in-sample cashflow dispersion only"}
+    };
+    write_monte_carlo_price_dataset(
+        directory / "model.json", directory / "product.json",
+        PriceConstruction::Aligned, {1.0f}, {0.01f}, "Philox",
+        directory / "price.json", directory / "generation.yaml",
+        "https://datasets.ai-factory.example/test/price.json", "test MC",
+        32U, "", {{"block_count", 1U}}, methodology, 1U, 0.01, 0.001
+    );
+    if (read_json_file(directory / "price.json").at("methodology")
+            != methodology) {
+        throw std::runtime_error("Monte Carlo methodology was not serialized");
+    }
     std::filesystem::remove_all(directory);
 }

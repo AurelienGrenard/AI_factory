@@ -35,6 +35,15 @@ is intentionally named a bounded positive L2 rule, not BL2: replacing it by a
 published BL2 catalogue or optimizer does not change the CUDA dynamics
 contract.
 
+## Causal FFT experiment
+
+The [causal Volterra FFT engine](../../../../../docs/cuda/causal-volterra-fft.md)
+provides a path-dependent convolution without an N-factor approximation. Its
+FFT result has been checked against direct convolution of the same hybrid
+Euler cell. The time-discretization bias relative to the current N-factor
+pricer is still under study, so the causal binding is separate from the
+catalogue pricing recipes.
+
 ## N-factor approximation
 
 `prepare_dynamics<N>` runs on the host once per model and `dt`. It stores the

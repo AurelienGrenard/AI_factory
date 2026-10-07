@@ -15,8 +15,8 @@ launcher CUDA ; il ne qualifie ni un dataset complet, ni le biais des bumps.
 Commande : `build/benchmark_price_gradients_sabr` ; ajouter
 `AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1` pour les ressources. Le code de la charge et la
 méthode de mesure sont dans
-`tests/performance/price_gradients/sabr.cu` et
-`tests/performance/price_gradients/benchmark_support.cuh`.
+`maintainer/tests/performance/price_gradients/sabr.cu` et
+`maintainer/tests/performance/price_gradients/benchmark_support.cuh`.
 
 | Threads | K | Prix + ordre 1 (ms) | Prix + ordres 1 et 2 diagonal (ms) |
 |---:|---:|---:|---:|

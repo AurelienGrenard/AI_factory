@@ -78,9 +78,9 @@ Exemples :
 ```bash
 cmake --build build --target study_price_gradients_bumps -j2
 ./build/study_price_gradients_bumps 262144 --rates > /tmp/gradient-rates.jsonl
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 tests/price_gradients/analyze_bumps.py \
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 maintainer/tests/price_gradients/analyze_bumps.py \
   /tmp/gradient-rates.jsonl /tmp/gradient-rates-analysis.json
-python3 tests/price_gradients/summarize_rate_bumps.py \
+python3 maintainer/tests/price_gradients/summarize_rate_bumps.py \
   /tmp/gradient-rates.jsonl /tmp/gradient-rates-analysis.json /tmp/gradient-rates-summary.json
 ```
 

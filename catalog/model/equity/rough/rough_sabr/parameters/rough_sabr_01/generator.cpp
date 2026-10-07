@@ -12,9 +12,9 @@ int main() {
     using namespace ai_factory::workbench;
     using namespace ai_factory::workbench::datasets;
 
-    constexpr std::uint64_t seed = 710001201ULL;
-    constexpr float spot_min = 0.05f;
-    constexpr float spot_max = 10.0f;
+    constexpr std::uint64_t seed = 1610001201ULL;
+    constexpr float spot_min = 0.20f;
+    constexpr float spot_max = 5.0f;
     constexpr float core_spot_min = 0.25f;
     constexpr float core_spot_max = 4.0f;
     constexpr float fixed_xi_0 = 0.04f;
@@ -32,10 +32,10 @@ int main() {
         {"spot", spot_min, spot_max},
         {"risk_free_rate", -0.03f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
-        {"eta", 0.10f, 5.0f},
-        {"hurst_exponent", 0.01f, 0.45f},
-        {"rho", -0.99f, 0.20f},
-        {"beta", 0.50f, 1.0f},
+        {"eta", 0.25f, 3.5f},
+        {"hurst_exponent", 0.02f, 0.35f},
+        {"rho", -0.98f, -0.10f},
+        {"beta", 0.60f, 1.0f},
     });
     GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

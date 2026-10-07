@@ -3,7 +3,7 @@
 ## Objet et statut
 
 La politique exécutable
-`tests/price_gradients/qualification_policy_v2.json` définit avant exécution
+`maintainer/tests/price_gradients/qualification_policy_v2.json` définit avant exécution
 les cas, bumps candidats, références et critères de la première campagne
 commune aux calls européens Black--Scholes, Heston et CEV. Son statut initial
 est `candidate` : la présence du fichier et une exécution réussie ne certifient
@@ -124,12 +124,12 @@ ignorée n'est pas distribuée avec un clone.
 cmake --build build --target study_price_gradients_bumps -j2
 ./build/study_price_gradients_bumps 262144 \
   > artifacts/price_gradients/<run>/native.jsonl
-python3 tests/price_gradients/analyze_bumps.py \
+python3 maintainer/tests/price_gradients/analyze_bumps.py \
   artifacts/price_gradients/<run>/native.jsonl \
   artifacts/price_gradients/<run>/analysis.json \
-  --policy tests/price_gradients/qualification_policy_v2.json
-python3 tests/price_gradients/qualify_bumps.py \
-  tests/price_gradients/qualification_policy_v2.json \
+  --policy maintainer/tests/price_gradients/qualification_policy_v2.json
+python3 maintainer/tests/price_gradients/qualify_bumps.py \
+  maintainer/tests/price_gradients/qualification_policy_v2.json \
   artifacts/price_gradients/<run>/analysis.json \
   artifacts/price_gradients/<run>/qualification.json
 ```

@@ -1,28 +1,28 @@
-# Dataset catalog recipes
+# Dataset catalogue
 
-The catalog is divided into `prod` and `other`. Both use the same taxonomy:
+`catalog/` contains the published dataset recipes. Each selected leaf has a
+`generator.cpp` and a `recipe.yaml`; leaves that have actually been executed
+also have a `generation.yaml` receipt. `catalog/manifest.json` lists the
+selected outputs and marks whether each dataset/receipt pair is ready. Generated JSON datasets are written under `datasets/` by the
+generators and are distributed separately from the source tree.
 
 ```text
-catalog/<branch>/curve/<curve>/<dataset-id>/
-catalog/<branch>/model/<asset-class>/<family>/<model>/{parameters,samples,prices,price_gradients}/...
-catalog/<branch>/product/<product>/<dataset-id>/
+catalog/{curve,model,product}/.../generator.cpp
+catalog/{curve,model,product}/.../recipe.yaml
+datasets/{curve,model,product}/...json
 ```
 
-Fixed-income models omit the equity family level. A price path adds its product
-and, when required, its curve before the dataset ID. Every leaf contains a
-`generator.cpp` and a `recipe.yaml`. Published leaves also contain a
-`generation.yaml` receipt. The matching JSON file lives under the same
-relative path in `datasets/<branch>/`.
+Use the CMake target named in the capability manifest to compile a generator.
+`tools/run_generator.py` runs one target in an isolated directory;
+`tools/datasets/generate_catalog.py` plans and resumes price and sample
+campaigns. The schema definitions are in `tools/datasets/schemas/`. Pricing
+bindings and repeated recipes are maintained by
+`tools/codegen/pricing_bindings/`.
 
-`prod` contains the selected published recipes. `other` contains every
-remaining recipe and is ignored by Git; it stays local. All generated JSONs
-are ignored by Git. See [the production layout guide](../docs/deployment-catalog.md)
-for the selection and server copy instructions.
-
-The recipes and receipts retain their historical logical paths and hashes.
-`tools/datasets/catalog_layout.py` resolves those paths into their physical
-branches. Do not rewrite historical receipts to disguise a move.
-
-Generated bindings and repeated price/sample recipes are owned by the
-[typed capability manifest and code generator](../tools/codegen/pricing_bindings/README.md).
-Their schemas live under [`tools/datasets/schemas`](../tools/datasets/schemas/).
+The published generator aggregates select only the recipes in `catalog/`.
+Local experiments may use `work/catalog/` when that directory exists, but it
+is not needed by a delivered source checkout. Published recipe and receipt
+contents retain their original paths and hashes. The 14 fixed-income bond
+barrier leaves contain recipes and generators; their current aligned datasets
+and `generation.yaml` receipts are pending execution against the refreshed
+parameter inputs.

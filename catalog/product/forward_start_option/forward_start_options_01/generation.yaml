@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/forward_start_option/forward_start_options_01/recipe.yaml
-  sha256: fcd25a0dc73788643821e7694e2954862018db870681019bdb36f9b1561ac221
 artifact:
   row_count: 1000
-  sha256: 3573024dfb752100ced3d67b98887b6681c9e3db9b1bf2927e9f7b8c8ca7186e
+  path: datasets/product/forward_start_option/forward_start_options_01.json
+  sha256: 55703842fd1e6bd07acb3a3e3252a59dec2f1a2305ff3ab8003a0e563d4524a7
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/forward_start_option/forward_start_options_01/generator.cpp
+  source_sha256: 3778fadca3c14eadecb360f2eefbc0e06c5d49646ec18d0f91749af2b6c755cc
+  binary_sha256: cc3ebeca2b32b6a7a4927fbd84da81031015824b01cdd2a61f5027e89757f0c8
+  recipe_sha256: e8bde165b8d0ed226a11bca43665bd9b20a616a1558b559cfc1932968ad4ab3f
+  started_at_utc: '2026-10-07T13:47:29.156871+00:00'
+  seed: null
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.007477375002054032
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/forward_start_option/forward_start_options_01/recipe.yaml
+  sha256: e8bde165b8d0ed226a11bca43665bd9b20a616a1558b559cfc1932968ad4ab3f
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: 42632aca84bc0e61e8e9e45dd922c1360640ce61a55802730f51777b703b30c2
+  generator: catalog/product/forward_start_option/forward_start_options_01/generator.cpp
+  generator_sha256: 3778fadca3c14eadecb360f2eefbc0e06c5d49646ec18d0f91749af2b6c755cc
+  binary_sha256: cc3ebeca2b32b6a7a4927fbd84da81031015824b01cdd2a61f5027e89757f0c8
+  parameter_campaign: full model/product refresh
+record_sha256: c6ab5dcf35101c5f9780c6885b227a8c055073f6cdf638cdcc29bdceabb3ffbc

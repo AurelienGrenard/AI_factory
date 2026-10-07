@@ -8,7 +8,7 @@
 int main() {
     using namespace ai_factory::workbench;
     using namespace datasets;
-    constexpr std::uint64_t seed = 710001601ULL;
+    constexpr std::uint64_t seed = 1610001601ULL;
     GeneratedRows rows = core_stress_rows(
         uniform_rows(900U, seed, {
             {"risk_free_rate", 0.001f, 0.08f},
@@ -23,15 +23,19 @@ int main() {
         uniform_rows(100U, seed + 1U, {
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"xi_0", 0.0025f, 0.25f},
-            {"eta", 0.10f, 5.0f},
-            {"hurst_exponent", 0.0f, 0.45f},
-            {"rho", -0.99f, 0.50f},
-            {"log_modulation_scale", 0.005f, 1.0f},
-            {"log_modulation_power", 1.01f, 8.0f},
+            {"xi_0", 0.0025f, 0.12f},
+            {"eta", 0.1f, 3.5f},
+            {"hurst_exponent", 0.01f, 0.35f},
+            {"rho", -0.98f, -0.10f},
+            {"log_modulation_scale", 0.005f, 0.5f},
+            {"log_modulation_power", 1.05f, 5.0f},
         })
     );
     for (auto& row : rows.rows) row["spot"] = 1.0f;
+    rows.construction["aligned_mc_domain"] = {
+        {"rho", "strictly negative spot/Volterra correlation in core and stress rows"},
+        {"stress_tail", "bounded variance, roughness, scale and modulation for Monte Carlo tail quality"},
+    };
     const std::filesystem::path dataset =
         "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json";
     write_model_dataset(

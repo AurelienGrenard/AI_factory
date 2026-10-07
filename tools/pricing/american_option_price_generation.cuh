@@ -42,16 +42,18 @@ inline nlohmann::ordered_json american_option_catalog_sections(
         {"outputs", {
             {
                 "price",
-                {{"estimator", "Longstaff-Schwartz discounted cashflow mean"}}
+                {{"estimator", "In-sample mean of discounted cashflows after fitting the LSM policy on the same paths"}}
             },
             {
                 "standard_error",
                 {{
                     "estimator",
-                    "Conditional standard error of discounted policy cashflows"
+                    "Empirical standard deviation of in-sample discounted cashflows divided by sqrt(paths); excludes variation across policy fits"
                 }}
             },
         }},
+        {"standard_error_scope",
+         "in-sample cashflow dispersion only; no interval for the learned policy or optimal price; excludes fit variability and policy bias"},
         {"exercise_policy", {
             {"method", "Longstaff-Schwartz"},
             {"regression_basis", profile.regression_basis},

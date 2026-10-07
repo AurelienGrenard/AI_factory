@@ -12,9 +12,10 @@ sensibilités sélectionnées :
 4. treize bindings de swaption bermudéenne Longstaff--Schwartz à exercice central
    gelé.
 
-Ces 52 bindings publient le prix central, les dérivées premières, la
-diagonale et les dérivées mixtes sélectionnées. Les formules scalaires
-attribuent une ligne à un thread, Jamshidian une ligne à un bloc coopératif.
+Ces 52 bindings publient le prix central et les dérivées premières.
+Tous sauf le binding CIR standalone/Jamshidian exposent aussi la diagonale
+et les dérivées mixtes sélectionnées. Les formules scalaires attribuent une
+ligne à un thread, Jamshidian une ligne à un bloc coopératif.
 Les voies stochastiques exposent `mono` et `node_graph` pour les demandes
 sans terme mixte, puis `mixed_node_graph` pour une Hessienne sélectionnée ou
 complète.
@@ -112,10 +113,20 @@ restent les logiques communes. Le graphe de sélection décrit les nœuds utiles
 mais la famille analytique les évalue dans son unique kernel coopératif ; elle
 n'utilise pas les trois phases Monte Carlo.
 
-Les mesures historiques du 22 septembre 2026 sur SM89, pour 1 000 lignes,
-sept sensibilités et au plus douze paiements, donnent 1,114 ms pour l’ordre un
-et 1,841 ms pour ordre un plus diagonale sur la voie coopérative. Elles ne
-qualifient ni les autres familles fixed income ni un autre GPU.
+Pour CIR standalone/Jamshidian, le chemin FP32 ne prend en charge que le
+prix et l'ordre un. La préparation et les launchers rejettent explicitement
+les demandes de diagonale ou de dérivées mixtes ; le manifeste de capacités et
+les recettes du catalogue suivent la même restriction. Une quadrature CIR
+T-forward FP64, recoupée par QuantLib, a montré que la seconde différence
+amplifie trop l'arrondi des prix de nœuds : elle peut renvoyer une Hessienne
+strike non nulle alors que le prix est affine en strike. Un pas suffisamment
+large pour rapprocher les deux kernels crée par ailleurs 28,6 % de biais sur
+une autre ligne. Voir le [problème non résolu PERF-027](../audit/unresolved-closures.md).
+
+Les mesures du 22 septembre 2026 sur SM89, pour 1 000 lignes, sept
+sensibilités et au plus douze paiements, donnaient 1,114 ms pour l'ordre un
+et 1,841 ms pour ordre un plus diagonale sur la voie coopérative. La mesure
+diagonale est historique et n'est plus une capacité qualifiée.
 
 ## Longstaff--Schwartz à exercice gelé
 
@@ -154,9 +165,10 @@ Le codegen produit 208 recettes fixed income permanentes : 52 pour les
 produits de taux scalaires, 52 pour les options sur zéro-coupon, 52 pour les
 swaptions européennes et 52 pour les bermudéennes. Chaque famille couvre ses
 deux côtés et les constructions alignée et cartésienne. Le catalogue permanent
-publie l’ordre un avec la diagonale de la Hessienne. Les APIs et templates de
-codegen conservent les sélections d’ordre un et la Hessienne mixte pour les
-générations ponctuelles, sans multiplier les recettes permanentes.
+publie l'ordre un avec la diagonale de la Hessienne, sauf pour CIR
+standalone/Jamshidian où elle publie seulement le prix et l'ordre un. Les
+autres APIs et templates de codegen conservent les sélections d'ordre un et
+la Hessienne mixte pour les générations ponctuelles.
 
 Les recettes analytiques conservent l’URL `/v1/` de leur méthode déterministe.
 Les recettes stochastiques emploient `/v2/`, une seed et le générateur
@@ -190,8 +202,10 @@ dans le catalogue permanent.
 Les tests CUDA permanents couvrent les formules fermées, Jamshidian, G2/G2++
 Monte Carlo et les familles Bermudan CIR terminal-forward, Vasicek un facteur,
 G2 deux facteurs et CIR++ ajusté. Ils contrôlent prix central, ordres un et
-deux, paramètres modèle/courbe/produit, sélections réordonnées et parité des
-stratégies sur leur périmètre commun. La suite globale `price_gradients`
+deux lorsqu'ils sont annoncés, paramètres modèle/courbe/produit, sélections
+réordonnées et parité des stratégies sur leur périmètre commun. Le test
+CIR–Jamshidian contrôle le rejet de l'ordre deux. La suite globale
+`price_gradients`
 passe 27/27 tests. Les quatre modes Compute Sanitizer passent sur un
 représentant Bermudan.
 

@@ -52,6 +52,8 @@ __device__ __forceinline__ void evaluate_nodes_body(
     constexpr std::size_t node_capacity =
         terminal_node_graph_node_capacity<MaximumSensitivities>();
     static_assert(GroupSize * NodesPerWorker >= node_capacity);
+    const std::size_t node_stride =
+        terminal_node_graph_active_node_capacity(plan.sensitivity_count);
 
     using NodePolicy =
         SelectedTerminalNodePolicy<Dynamics, ProductPolicy, Preparation>;
@@ -136,7 +138,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
         );
         if (blockIdx.y == 0U) {
             workspace.node_metadata[
-                local_row * node_capacity + node
+                local_row * node_stride + node
             ] = NodePolicy::prepare_metadata(scenarios[node], plan.time);
         }
     }
@@ -158,7 +160,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
         first_path,
         path_count,
         path_capacity,
-        node_capacity,
+        node_stride,
         local_row,
         workspace,
         dynamic_shared

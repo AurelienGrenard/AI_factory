@@ -1,12 +1,9 @@
 // Gradient-only views that move the last contractual fixed-income date.
 #pragma once
 
-#include "product/european_swaption/pricing_row.cuh"
-
 #include <cuda_runtime.h>
 
 #include <cstdint>
-#include <type_traits>
 
 namespace ai_factory::workbench::fixed_income::price_gradients {
 
@@ -51,16 +48,24 @@ struct TerminalPaymentScheduleView {
 template<typename PreparedRow>
 struct TerminalMaturityRow {
     using Type = PreparedRow;
-};
 
-template<typename Model, typename Schedule>
-struct TerminalMaturityRow<
-    fixed_income::PreparedEuropeanSwaptionRow<Model, Schedule>
-> {
-    using Type = fixed_income::PreparedEuropeanSwaptionRow<
-        Model,
-        TerminalPaymentScheduleView<Schedule>
-    >;
+    __device__ __forceinline__ static Type apply(
+        PreparedRow row,
+        float maturity_years,
+        bool override_terminal
+    ) {
+        if constexpr (requires { row.payment_time_years; }) {
+            if (override_terminal) row.payment_time_years = maturity_years;
+        } else if constexpr (requires { row.bond_maturity_years; }) {
+            if (override_terminal) row.bond_maturity_years = maturity_years;
+        } else {
+            static_assert(
+                sizeof(PreparedRow) == 0,
+                "A terminal-maturity row adapter is required for this product."
+            );
+        }
+        return row;
+    }
 };
 
 template<typename PreparedRow>
@@ -74,25 +79,9 @@ apply_terminal_maturity(
     float maturity_years,
     bool override_terminal
 ) {
-    if constexpr (requires { row.payment_time_years; }) {
-        if (override_terminal) row.payment_time_years = maturity_years;
-        return row;
-    } else if constexpr (requires { row.bond_maturity_years; }) {
-        if (override_terminal) row.bond_maturity_years = maturity_years;
-        return row;
-    } else {
-        const auto count = row.schedule.payment_count();
-        const float prefix = count > 1U
-            ? row.schedule.payment_time(count - 2U)
-            : row.exercise_time_years;
-        return {
-            row.model,
-            row.notional,
-            row.strike,
-            row.exercise_time_years,
-            {row.schedule, maturity_years, prefix, override_terminal},
-        };
-    }
+    return TerminalMaturityRow<PreparedRow>::apply(
+        row, maturity_years, override_terminal
+    );
 }
 
 }  // namespace ai_factory::workbench::fixed_income::price_gradients

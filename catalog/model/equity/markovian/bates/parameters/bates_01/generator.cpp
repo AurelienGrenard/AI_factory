@@ -56,7 +56,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/markovian/bates/parameters/bates_01.json";
 
-    constexpr std::uint64_t seed = 710000301ULL;
+    constexpr std::uint64_t seed = 1610000301ULL;
 
     GeneratedRows ordinary = uniform_rows(900U, seed, {
         {"spot", 1.0f, 1.0f},
@@ -78,16 +78,16 @@ int main() {
         {"spot", 1.0f, 1.0f},
         {"risk_free_rate", -0.03f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
-        {"initial_variance", 0.005f, 0.25f},
-        {"kappa", 0.15f, 6.0f},
-        {"theta", 0.005f, 0.30f},
-        {"rho", -0.99f, 0.10f},
-        {"jump_intensity", 1.0f, 2.5f},
-        {"jump_log_mean", -0.45f, 0.05f},
-        {"jump_log_volatility", 0.30f, 0.55f},
+        {"initial_variance", 0.0075f, 0.20f},
+        {"kappa", 0.30f, 5.0f},
+        {"theta", 0.0075f, 0.20f},
+        {"rho", -0.98f, -0.10f},
+        {"jump_intensity", 0.02f, 1.7f},
+        {"jump_log_mean", -0.35f, 0.08f},
+        {"jump_log_volatility", 0.05f, 0.45f},
     });
     assign_conditional_gamma(
-        stressed, seed + 3ULL, 8.0f, 20.0f, 0.05f, 1.5f
+        stressed, seed + 3ULL, 5.0f, 12.0f, 0.1f, 0.8f
     );
 
     ordinary.construction["conditional_sampling"] = {
@@ -99,8 +99,8 @@ int main() {
     };
     stressed.construction["conditional_sampling"] = {
         {"gamma", {
-            {"minimum", "max(sqrt(kappa * theta / 8), 0.05)"},
-            {"maximum", "min(sqrt(20 * kappa * theta), 1.5)"},
+            {"minimum", "max(sqrt(kappa * theta / 5), 0.1)"},
+            {"maximum", "min(sqrt(12 * kappa * theta), 0.8)"},
             {"distribution", "uniform conditional on kappa and theta"},
         }},
     };

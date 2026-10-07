@@ -1,11 +1,7 @@
-// {model_display} {product_comment} composition over the Volterra FFT engine.
+// {model_display} {product_comment} legacy delta API backed by the rough graph.
 #include "model/equity/rough/{model}/product/{product}_price_delta.cuh"
-
-#include "common/volterra/hybrid_schedule.cuh"
-#include "{kernel_header}"
-#include "common/volterra/hybrid_fft_price_delta.cuh"
-#include "model/equity/rough/{model}/dynamics_impl.cuh"
-#include "product/{product}/pricing_policy.cuh"
+#include "model/equity/rough/{model}/product/{product}_price_gradients.cuh"
+#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::{model} {{
 
@@ -33,34 +29,17 @@ namespace ai_factory::workbench::model::equity::{model} {{
     float* device_deltas,
     float* device_delta_errors
 ) {{
-    using ProductPolicy = {product_policy_expression};
-    volterra::hybrid_fft::launch_price_delta_cuda<
-        {kernel}, PathPolicy, ProductPolicy, {volterra_schedule},
-        ::ai_factory::workbench::equity::price_delta::{path_strategy}<PathPolicy>
-    >(
-        host_models,
-        device_models,
-        model_count,
-        host_products,
-        device_products,
-        product_count,
-        construction,
-        result_count,
-        result_index,
-        monte_carlo_paths_per_price,
-        volterra::HybridTimeConfiguration{{day_fraction, target_dt}},
-        step_count,
-        path_chunk_size,
-        device_workspace,
-        workspace_bytes,
-        base_seed,
-        bump,
-        device_prices,
-        device_standard_errors,
-        device_deltas,
-        device_delta_errors,
-        "{model}.{product}.price_delta",
-        {diagnostic_variant}
+    (void)device_models;
+    (void)device_products;
+    using Graph = {product_type}NodeGraph<{delta_graph_arguments}>;
+    volterra::price_gradients::launch_legacy_fft_spot_delta<Graph>(
+        host_models, model_count, host_products, product_count,
+        construction, result_count, result_index,
+        monte_carlo_paths_per_price, day_fraction, target_dt,
+        step_count, path_chunk_size, device_workspace, workspace_bytes,
+        base_seed, bump, device_prices, device_standard_errors,
+        device_deltas, device_delta_errors,
+        prepare_{model}_{product}_sensitivities
     );
 }}
 

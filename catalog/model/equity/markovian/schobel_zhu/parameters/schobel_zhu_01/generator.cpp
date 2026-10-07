@@ -8,7 +8,7 @@
 
 int main() {
     using namespace ai_factory::workbench::datasets;
-    constexpr std::uint64_t seed = 710000901ULL;
+    constexpr std::uint64_t seed = 1610000901ULL;
     GeneratedRows rows = core_stress_rows(
         uniform_rows(900U, seed, {
             {"risk_free_rate", 0.001f, 0.08f},
@@ -17,16 +17,16 @@ int main() {
             {"mean_reversion", 0.30f, 5.0f},
             {"long_run_volatility", 0.08f, 0.45f},
             {"volatility_of_volatility", 0.03f, 0.60f},
-            {"correlation", -0.90f, 0.30f},
+            {"correlation", -0.90f, -0.10f},
         }),
         uniform_rows(100U, seed + 1U, {
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"initial_volatility", 0.01f, 0.80f},
-            {"mean_reversion", 0.03f, 10.0f},
-            {"long_run_volatility", 0.01f, 0.80f},
-            {"volatility_of_volatility", 0.005f, 1.30f},
-            {"correlation", -0.98f, 0.90f},
+            {"initial_volatility", 0.04f, 0.60f},
+            {"mean_reversion", 0.15f, 7.0f},
+            {"long_run_volatility", 0.04f, 0.60f},
+            {"volatility_of_volatility", 0.02f, 0.80f},
+            {"correlation", -0.98f, -0.05f},
         })
     );
     for (auto& row : rows.rows) {

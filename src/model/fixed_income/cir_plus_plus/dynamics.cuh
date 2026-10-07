@@ -7,4 +7,7 @@
 
 namespace ai_factory::workbench::model::fixed_income::cir_plus_plus {
 using DynamicsPolicy = cir::DynamicsPolicy;
+namespace joint {
+using DynamicsPolicy = cir::joint::DynamicsPolicy;
+}  // namespace joint
 }  // namespace ai_factory::workbench::model::fixed_income::cir_plus_plus

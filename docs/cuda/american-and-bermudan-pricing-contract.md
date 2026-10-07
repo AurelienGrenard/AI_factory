@@ -299,6 +299,26 @@ Une nouvelle base, une taille supérieure à six, un domaine de features plus
 large ou une autre régularisation impose de reprendre les trois comparaisons,
 pas seulement le solveur isolé.
 
+## Portée de l'erreur standard LSM
+
+Le prix publié est la moyenne des cashflows actualisés sur les chemins qui ont
+servi à ajuster la politique d'exercice. `outputs.standard_error` vaut l'écart
+type empirique de ces cashflows divisé par la racine du nombre de chemins.
+C'est une mesure descriptive **sur l'échantillon de fit** ; les décisions
+prises sur ces mêmes chemins créent une dépendance que cette formule ne prend
+pas en compte. Elle ne mesure ni la variabilité entre politiques ajustées avec
+d'autres seeds, ni le biais de la politique apprise, ni l'écart au prix optimal.
+Si l'exercice immédiat en `t0` gagne, le moteur publie une erreur nulle pour
+cette décision déterministe au sein du run ; un changement de seed peut
+pourtant changer la décision et le prix. Les gradients ajoutent une dispersion
+appariée conditionnelle au fit central et omettent en plus les biais de stencil
+et de discrétisation. Aucun intervalle de confiance du prix optimal ne peut
+être déduit directement de ces champs.
+
+Les nouvelles recettes et les nouveaux datasets portent explicitement cette
+portée. Les datasets historiques déjà publiés n'ont pas tous ce champ et
+nécessitent une publication versionnée pour porter le contrat dans l'artefact.
+
 ## Kernels partagés
 
 `longstaff_schwartz_kernels.cuh` contient sept passages communs :

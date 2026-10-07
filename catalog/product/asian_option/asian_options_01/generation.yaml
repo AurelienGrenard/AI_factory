@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/asian_option/asian_options_01/recipe.yaml
-  sha256: e4d298ed10fa44e019bcc3f01c121bfbe936eb63401353d035f06489cc639a92
 artifact:
   row_count: 1000
-  sha256: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
+  path: datasets/product/asian_option/asian_options_01.json
+  sha256: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/asian_option/asian_options_01/generator.cpp
+  source_sha256: 84004420c89fa73dcae11f6851c14805c9553eb6b86bd83459a7d584e0d9ee6c
+  binary_sha256: 64b791108c14fadd1362e24b0c73dba563f13a939bf8822da52d1fdd4fc56da2
+  recipe_sha256: 8defa3febaf32423e9efceefa2abaf0f8903d35c84467b2a9008c366c4242ad8
+  started_at_utc: '2026-10-07T13:47:28.812791+00:00'
+  seed: null
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.009191248998831725
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/asian_option/asian_options_01/recipe.yaml
+  sha256: 8defa3febaf32423e9efceefa2abaf0f8903d35c84467b2a9008c366c4242ad8
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: ce7ff21c0fd9b53fd376a71f36f4abb222032967c2e5666b3faba41a2e70e418
+  generator: catalog/product/asian_option/asian_options_01/generator.cpp
+  generator_sha256: 84004420c89fa73dcae11f6851c14805c9553eb6b86bd83459a7d584e0d9ee6c
+  binary_sha256: 64b791108c14fadd1362e24b0c73dba563f13a939bf8822da52d1fdd4fc56da2
+  parameter_campaign: full model/product refresh
+record_sha256: 2dd2f5b190224e7bba28bcecf01d513368a17cd6d291c916e55aa8d1e126aa14

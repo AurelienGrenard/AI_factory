@@ -169,11 +169,7 @@ struct DeviceInputsWithContext {
     PrimaryInputs primary;
     Context context;
 
-    inline void validate(std::size_t result_count) const
-        requires requires(const Context& device_context) {
-            validate_device_context(device_context);
-        }
-    {
+    inline void validate(std::size_t result_count) const {
         primary.validate(result_count);
         validate_device_context(context);
     }

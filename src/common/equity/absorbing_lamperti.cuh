@@ -29,18 +29,21 @@ __device__ __forceinline__ void advance_absorbing_lamperti_log_spot(
         return;
     }
 
-    const float transformed = powf(spot, one_minus_beta) / one_minus_beta;
-    const float proposal = transformed
-        + one_minus_beta * transformed * drift_time_step
-        + volatility * sqrt_time_step * normal
+    // Work with the relative Lamperti increment. Reconstructing
+    // log((1-beta) * proposal)/(1-beta) subtracts nearly equal FP32 numbers
+    // when beta is close to one and creates a persistent positive spot bias.
+    const float power = expf(one_minus_beta * log_spot);
+    const float relative_increment = one_minus_beta * (
+        drift_time_step
+        + volatility * sqrt_time_step * normal / power
         - 0.5f * beta * volatility * volatility * time_step
-            / (one_minus_beta * transformed);
-    if (proposal > 0.0f) {
-        log_spot = logf(one_minus_beta * proposal) / one_minus_beta;
-    } else if (proposal <= 0.0f) {
+            / (power * power));
+    if (relative_increment > -1.0f) {
+        log_spot += log1pf(relative_increment) / one_minus_beta;
+    } else if (relative_increment <= -1.0f) {
         log_spot = -CUDART_INF_F;
     } else {
-        log_spot = proposal;
+        log_spot = relative_increment;
     }
 }
 

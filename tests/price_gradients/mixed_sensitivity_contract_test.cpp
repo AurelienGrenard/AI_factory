@@ -1,3 +1,4 @@
+// Verify mixed sensitivity stencil reconstruction and graph contracts.
 #include "common/equity/price_gradients/terminal_device_preparation.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/mixed_row_preparation.cuh"
 #include "common/price_gradients/mixed_sensitivity_reconstruction.cuh"

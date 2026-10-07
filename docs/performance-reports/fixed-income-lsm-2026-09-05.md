@@ -27,7 +27,7 @@ cause précise reste indéterminée.
   plafond mémoire explicite. La limite par défaut est 2 Gio ; seuls les
   essais mémoire montent explicitement jusqu'à 14 Gio de budget.
 
-Les [mesures synthétisées](../../tests/performance/reports/fixed_income_lsm_20260905.json)
+Les [mesures synthétisées](../../maintainer/tests/performance/reports/fixed_income_lsm_20260905.json)
 référencent les sorties brutes sous
 `build-dev/lsm-probe-20260905/`. Chaque sous-dossier contient `manifest.json`,
 `results.ndjson`, les sorties individuelles et les snapshots NVIDIA avant/après.
@@ -235,10 +235,10 @@ Depuis la racine `AI_factory` :
 
 ```sh
 cmake --build build-dev --target ai_factory_fixed_income_lsm_probe -j1
-python3 tools/performance/run_fixed_income_lsm_probe.py \
+python3 maintainer/tools/performance/run_fixed_income_lsm_probe.py \
   --suite geometry --output build-dev/lsm-probe-replay/geometry --timeout 30
-python3 tools/performance/run_fixed_income_lsm_probe.py \
-  --jobs tests/performance/fixtures/lsm_probe_confirmation.json \
+python3 maintainer/tools/performance/run_fixed_income_lsm_probe.py \
+  --jobs maintainer/tests/performance/fixtures/lsm_probe_confirmation.json \
   --output build-dev/lsm-probe-replay/confirmation --timeout 30
 ```
 

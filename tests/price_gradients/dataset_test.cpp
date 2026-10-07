@@ -34,6 +34,17 @@ int main() {
         require(valid["sensitivity"]["parameters"][0]["displacement"]==.125);
         require(valid["sensitivity"]["method"]
             == "finite_difference_shared_innovations");
+        auto lsm_recipe = recipe;
+        lsm_recipe.dataset = directory / "lsm_gradients.json";
+        lsm_recipe.catalog = directory / "lsm_generation.yaml";
+        lsm_recipe.exercise_replay =
+            longstaff_schwartz::price_gradients::ExerciseReplayStrategy::
+                frozen_regression_policy;
+        data::write_dataset(lsm_recipe, result);
+        const auto lsm_document = datasets::read_json_file(lsm_recipe.dataset);
+        require(lsm_document["standard_error_scope"].get<std::string>()
+            .find("fit variability") != std::string::npos);
+        require(lsm_document["lsm_fit_and_valuation_paths"] == "same paths");
         auto sparse_recipe = recipe;
         sparse_recipe.configuration.sensitivities.push_back(
             {"model.volatility", {.25, pg::BumpScale::absolute}}

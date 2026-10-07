@@ -5,6 +5,7 @@
 #include "tools/cuda/monte_carlo_generation_checkpoint.cuh"
 
 #include <cuda_runtime.h>
+#include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +22,7 @@
 namespace {
 
 namespace offline_cuda = ai_factory::workbench::offline::cuda;
+namespace longstaff_schwartz = ai_factory::workbench::longstaff_schwartz;
 
 __global__ void analytical_kernel(
     const float* inputs,
@@ -159,6 +161,21 @@ int main() {
     );
     {
         offline_cuda::GenerationProgress progress(inputs.size());
+        const auto previous_observer = longstaff_schwartz::active_host_progress;
+        {
+            offline_cuda::ScopedGenerationProgress scoped(progress);
+            if (longstaff_schwartz::active_host_progress.callback == nullptr
+                || longstaff_schwartz::active_host_progress.context != &progress) {
+                throw std::runtime_error("LSM generator progress adapter is not active");
+            }
+            longstaff_schwartz::report_completed_batch(inputs.size());
+        }
+        if (longstaff_schwartz::active_host_progress.callback
+                != previous_observer.callback
+            || longstaff_schwartz::active_host_progress.context
+                != previous_observer.context) {
+            throw std::runtime_error("LSM generator progress adapter was not restored");
+        }
         const offline_cuda::MonteCarloRun monitored =
             offline_cuda::run_monte_carlo(
                 host_inputs,
@@ -178,10 +195,9 @@ int main() {
         std::istreambuf_iterator<char>(progress_stream),
         std::istreambuf_iterator<char>()
     };
-    if (progress_document.find("\"state\": \"complete\"")
-            == std::string::npos
-        || progress_document.find("\"completed_prices\": 4")
-            == std::string::npos) {
+    const auto progress_record = nlohmann::json::parse(progress_document);
+    if (progress_record.at("state") != "complete"
+        || progress_record.at("completed_prices") != inputs.size()) {
         throw std::runtime_error("generation progress sidecar is incomplete");
     }
     std::filesystem::remove(progress_path);

@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/phoenix_autocall/phoenix_autocalls_01/recipe.yaml
-  sha256: a8d8d0fb69d63a13005c3edd41ffb04950cb3e110a20cdb5bb9fdc4f2f2ee6fc
 artifact:
   row_count: 1000
-  sha256: 51d08ef039565d95fd7f4fabaaf5c3790379c8b1aa854c6b3ddd427041ec9d8b
+  path: datasets/product/phoenix_autocall/phoenix_autocalls_01.json
+  sha256: a04799ef11abbd4a971b56ea5d52ab22bb7f69c35c2e5e70ebd42b3d4977cd39
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/phoenix_autocall/phoenix_autocalls_01/generator.cpp
+  source_sha256: 790a00b2946d1d1268aa4955f59cab16e2a41a3286f17059ba3d132a00596175
+  binary_sha256: 6907db60d4eec231e46e4d5c3fa3538752496c2e28760d69c92e026ba62d967b
+  recipe_sha256: e2b29daa20c9e14a982c40c7aaab44b78b24f132fe75603bd4da0899ebe2cdd7
+  started_at_utc: '2026-10-07T13:47:29.356304+00:00'
+  seed: 1631000301
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.013327925000339746
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/phoenix_autocall/phoenix_autocalls_01/recipe.yaml
+  sha256: e2b29daa20c9e14a982c40c7aaab44b78b24f132fe75603bd4da0899ebe2cdd7
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: b90643ac18ccd755d8b94ce293923b408a0df2bf40fdafd509fc1e6fab0821cf
+  generator: catalog/product/phoenix_autocall/phoenix_autocalls_01/generator.cpp
+  generator_sha256: 790a00b2946d1d1268aa4955f59cab16e2a41a3286f17059ba3d132a00596175
+  binary_sha256: 6907db60d4eec231e46e4d5c3fa3538752496c2e28760d69c92e026ba62d967b
+  parameter_campaign: full model/product refresh
+record_sha256: cf63c24f79c3fd764d384aaaef87986b651101c7d94a0e74d6bbed1ca27bcd76

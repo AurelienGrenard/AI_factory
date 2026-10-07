@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/gap_option/gap_put_options_01/recipe.yaml
-  sha256: 88c9fdf8057be5d998f07582d09d8b0a78e5b03df5b3f9da1e31281b17e4d982
 artifact:
   row_count: 1000
-  sha256: 3bdc863ff2ce9fc35e57789a65c03fa91f37ed99b24c9ee499f2c161440967a3
+  path: datasets/product/gap_option/gap_put_options_01.json
+  sha256: b378d3286ad41354683fc6211c6b353b6da957bc8661b034d11cf5570e869236
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/gap_option/gap_put_options_01/generator.cpp
+  source_sha256: 8e5999960b7e589a2c97df63b44ba1b851007f115cffd264125aeabc7f4c22dc
+  binary_sha256: 25138735871a90728c9aad47e61f1b39d18db862dcb216a6644d187929c5ea11
+  recipe_sha256: c2d08d81b38920b319000a72e4864e89f3573ad1b3e82e99d8f3840ad3015bc2
+  started_at_utc: '2026-10-07T13:47:29.225868+00:00'
+  seed: null
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.011319976001686882
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/gap_option/gap_put_options_01/recipe.yaml
+  sha256: c2d08d81b38920b319000a72e4864e89f3573ad1b3e82e99d8f3840ad3015bc2
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: 9a33c86cc85aea2817909babf401be8d3a946bfa87bcaa250b209abf4bbe8575
+  generator: catalog/product/gap_option/gap_put_options_01/generator.cpp
+  generator_sha256: 8e5999960b7e589a2c97df63b44ba1b851007f115cffd264125aeabc7f4c22dc
+  binary_sha256: 25138735871a90728c9aad47e61f1b39d18db862dcb216a6644d187929c5ea11
+  parameter_campaign: full model/product refresh
+record_sha256: 071133116d702e5b98a210afbc45bfc58620af21ea61e42282047574f4990cf1

@@ -407,7 +407,7 @@ seulement le préfixe déjà validé, puis reprend la simulation à la première
 ligne absente du checkpoint. Les prix, erreurs et gradients du préfixe sont
 restaurés depuis les canaux durables.
 
-Le benchmark ciblé `tests/performance/price_gradients/terminal.cu` conserve
+Le benchmark ciblé `maintainer/tests/performance/price_gradients/terminal.cu` conserve
 les sorties binaires, médiane, p95 et CV pour Black--Scholes, Heston ordre un,
 Heston ordre un plus Hessienne diagonale et Merton. Il utilise cinq
 préchauffages et 21 répétitions. Une qualification doit suivre le
@@ -416,7 +416,7 @@ même binaire, le même GPU, les mêmes données et les mêmes opérations regro
 
 ```bash
 cmake --build build --target price_gradients_performance_benchmarks -j2
-python3 tools/performance/run_price_gradient_strategies.py \
+python3 maintainer/tools/performance/run_price_gradient_strategies.py \
   --build-dir build \
   --output-dir artifacts/audit/price-gradients-strategies-sm89-<run> \
   --profile

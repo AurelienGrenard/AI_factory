@@ -7,6 +7,7 @@
 #include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
 #include "model/fixed_income/cir_plus_plus/flat/analytics_impl.cuh"
 #include <stdexcept>

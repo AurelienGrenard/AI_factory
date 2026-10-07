@@ -66,10 +66,10 @@ int main() {
         "Representative fixing dates and strikes concentrated around 4%."
     );
     GeneratedRows stress = regime(
-        linear_business_day_grid(5U, 3780U, 10U),
-        {5U, 504U},
-        {-0.10f, -0.02f, 0.04f, 0.15f, 0.35f},
-        "Very short/long dates, short/long accruals, and negative/high strikes."
+        linear_business_day_grid(21U, 2520U, 10U),
+        {21U, 252U},
+        {-0.03f, 0.0f, 0.04f, 0.09f, 0.15f},
+        "One-month to ten-year fixings, monthly or annual accruals, and moderate rate-strike tails."
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

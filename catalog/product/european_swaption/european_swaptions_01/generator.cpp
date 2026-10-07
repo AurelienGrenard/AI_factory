@@ -98,17 +98,17 @@ int main() {
         "fixed legs, and strikes concentrated around ordinary rate levels."
     );
     GeneratedRows stress = regular_regime(
-        {1U, 5U, 21U, 7560U, 12600U},
+        {21U, 63U, 252U, 2520U, 6300U},
         {
-            {5U, 1U, 1.0f / 52.0f},
             {21U, 12U, 1.0f / 12.0f},
-            {21U, 600U, 1.0f / 12.0f},
-            {63U, 200U, 0.25f},
-            {252U, 50U, 1.0f},
+            {63U, 20U, 0.25f},
+            {126U, 40U, 0.5f},
+            {252U, 30U, 1.0f},
+            {252U, 1U, 1.0f},
         },
-        {0.0f, 0.001f, 0.15f, 0.35f},
-        "Very short or long expiries, one-payment through fifty-year fixed "
-        "legs, monthly long schedules, and zero or unusually high strikes."
+        {0.0f, 0.005f, 0.08f, 0.15f},
+        "One-month to twenty-five-year expiries, one-to-thirty-year fixed "
+        "legs, monthly through annual schedules, and moderate strike tails."
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

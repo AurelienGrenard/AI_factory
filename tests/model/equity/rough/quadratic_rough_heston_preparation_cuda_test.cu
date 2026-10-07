@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 namespace {
 
@@ -205,6 +206,37 @@ int main() {
             1.0f / 252.0f
         );
     }, "Rough-Heston and quadratic rough-Heston kernel domains diverged.");
+
+    {
+        auto changed_model = valid_model();
+        changed_model.spot = 1.25f;
+        changed_model.feedback_rate = 1.30f;
+        const std::vector<QuadraticParameters> repeated{
+            valid_model(), changed_model, valid_model()
+        };
+        const auto bulk = quadratic::prepare_dynamics<7U>(
+            repeated, 1.0f, 1.0f / 504.0f
+        );
+        require(bulk.size() == repeated.size(),
+                "Cached quadratic rough-Heston preparation lost a model.");
+        for (std::size_t row = 0U; row < repeated.size(); ++row) {
+            const auto single = quadratic::prepare_dynamics<7U>(
+                repeated[row], 1.0f, 1.0f / 504.0f
+            );
+            for (std::size_t factor = 0U; factor < 7U; ++factor) {
+                require(bulk[row].kernel.nodes[factor]
+                            == single.kernel.nodes[factor]
+                        && bulk[row].kernel.weights[factor]
+                            == single.kernel.weights[factor],
+                        "Cached quadratic rough-Heston kernel changed.");
+            }
+            require(bulk[row].initial_log_spot == single.initial_log_spot
+                    && bulk[row].feedback_cell_loading
+                        == single.feedback_cell_loading
+                    && bulk[row].drift_dt == single.drift_dt,
+                    "Cached quadratic rough-Heston model coefficients changed.");
+        }
+    }
 
     constexpr float horizon = 2.0f;
     constexpr float dt = 1.0f / 504.0f;

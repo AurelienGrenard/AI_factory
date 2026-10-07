@@ -140,21 +140,21 @@ GeneratedRows generate_rows(
 
     for (std::size_t row = 0U; row < tail_row_count; ++row) {
         const auto [maturity, interval, observation_count] = schedule(
-            generator, kTailIntervals, 126U, 1764U
+            generator, kTailIntervals, 126U, 1512U
         );
-        const float local_floor = uniform(generator, -0.25f, 0.0f);
-        const float local_cap = uniform(generator, 0.005f, 0.30f);
+        const float local_floor = uniform(generator, -0.15f, 0.0f);
+        const float local_cap = uniform(generator, 0.005f, 0.20f);
         const float minimum_aggregate =
             static_cast<float>(observation_count) * local_floor;
         const float maximum_aggregate =
             static_cast<float>(observation_count) * local_cap;
         const float global_floor = uniform(
-            generator, std::max(-0.50f, 0.80f * minimum_aggregate), 0.0f
+            generator, std::max(-0.30f, 0.80f * minimum_aggregate), 0.0f
         );
         generated.rows.push_back({
             {"maturity", maturity},
             {"observation_interval", interval},
-            {"participation_rate", uniform(generator, 0.25f, 2.0f)},
+            {"participation_rate", uniform(generator, 0.50f, 1.50f)},
             {"local_floor", local_floor},
             {"local_cap", local_cap},
             {"global_floor", global_floor},
@@ -166,7 +166,7 @@ GeneratedRows generate_rows(
                     maximum_aggregate,
                     0.10f,
                     0.95f,
-                    1.50f
+                    1.00f
                 )
             },
         });
@@ -227,12 +227,12 @@ GeneratedRows generate_rows(
             }},
             {"stress", {
                 {"row_count", tail_row_count},
-                {"maturity", {126, 1764}},
+                {"maturity", {126, 1512}},
                 {"observation_interval", {5, 126, 252}},
-                {"participation_rate", {0.25, 2.0}},
-                {"local_floor", {-0.25, 0.0}},
-                {"local_cap", {0.005, 0.30}},
-                {"global_floor", {-0.50, 0.0}},
+                {"participation_rate", {0.50, 1.50}},
+                {"local_floor", {-0.15, 0.0}},
+                {"local_cap", {0.005, 0.20}},
+                {"global_floor", {-0.30, 0.0}},
                 {
                     "global_cap",
                     "10% to 95% of the bounded theoretical local-cap sum"
@@ -242,7 +242,7 @@ GeneratedRows generate_rows(
         {"constraints", {
             "local_floor < local_cap",
             "-1 < global_floor < global_cap",
-                    "global_cap is bounded by 0.75 in core and 1.50 in stress",
+                    "global_cap is bounded by 0.75 in core and 1.00 in stress",
         }},
     };
     return generated;

@@ -7,11 +7,26 @@
 #include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
 #include "model/fixed_income/cir/analytics_impl.cuh"
 #include <stdexcept>
 
 namespace ai_factory::workbench::model::fixed_income::cir {
+
+// Share one scalar Jamshidian evaluation body between sensitivity kernels.
+namespace {
+template<typename Base>
+struct SharedScalarEvaluationPolicy : Base {
+    using Base::evaluate;
+    using InputRow = typename Base::InputRow;
+
+    // Keep Jamshidian's scalar root solve identical across kernels.
+    __device__ __noinline__ static float evaluate(const InputRow& input) {
+        return Base::evaluate(input);
+    }
+};
+}  // namespace
 
 void prepare_european_swaption_price_gradient_stencils_cuda(
     const EuropeanSwaptionPriceGradientPlan& host,
@@ -33,6 +48,10 @@ void prepare_european_swaption_diagonal_sensitivity_stencils_cuda(
     std::size_t result_offset,
     std::size_t result_count
 ) {
+    throw std::invalid_argument(
+        "CIR Jamshidian second-order sensitivities are unsupported "
+        "in the FP32 pricing path."
+    );
     pg::prepare_device_sensitivity_stencils<
         pg::SensitivityOrders::first_and_second
     >(
@@ -70,12 +89,13 @@ void launch_sensitivities(
         product::RegularEuropeanSwaptionParameters,
         product::RegularEuropeanSwaptionScheduleSource
     >;
-    using Policy = ::ai_factory::workbench::fixed_income::price_gradients::
+    using BasePolicy = ::ai_factory::workbench::fixed_income::price_gradients::
     ScenarioClosedFormPolicy<
         PricingPolicy, ModelParameters,
         product::RegularEuropeanSwaptionParameters,
         product::RegularEuropeanSwaptionScheduleSource
     >;
+    using Policy = SharedScalarEvaluationPolicy<BasePolicy>;
     const auto sensitivity_outputs = pg::as_sensitivity_outputs(outputs);
     const bool cooperative =
         distribution == closed_form::WorkDistribution::cooperative
@@ -127,6 +147,10 @@ void launch_cir_european_swaption_diagonal_sensitivities_cuda(
     closed_form::WorkDistribution distribution
 ) {
     static_assert(pg::requests_second_v<Orders>);
+    throw std::invalid_argument(
+        "CIR Jamshidian second-order sensitivities are unsupported "
+        "in the FP32 pricing path."
+    );
     launch_sensitivities<Side, Orders>(
         host, device, stencil_outputs, configuration, outputs, distribution
     );
@@ -138,6 +162,10 @@ std::size_t cir_european_swaption_mixed_node_graph_workspace_bytes(
     const pg::LaunchConfiguration& configuration
 ) {
     (void)configuration;
+    throw std::invalid_argument(
+        "CIR Jamshidian second-order sensitivities are unsupported "
+        "in the FP32 pricing path."
+    );
     return closed_form::price_gradients::mixed_workspace_bytes(host);
 }
 
@@ -154,6 +182,10 @@ void launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda(
     std::size_t workspace_bytes,
     closed_form::WorkDistribution distribution
 ) {
+    throw std::invalid_argument(
+        "CIR Jamshidian second-order sensitivities are unsupported "
+        "in the FP32 pricing path."
+    );
     if (distribution != closed_form::WorkDistribution::scalar
         && distribution != closed_form::WorkDistribution::cooperative) {
         throw std::invalid_argument(
@@ -166,12 +198,13 @@ void launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda(
         product::RegularEuropeanSwaptionParameters,
         product::RegularEuropeanSwaptionScheduleSource
     >;
-    using Policy = ::ai_factory::workbench::fixed_income::price_gradients::
+    using BasePolicy = ::ai_factory::workbench::fixed_income::price_gradients::
     ScenarioClosedFormPolicy<
         PricingPolicy, ModelParameters,
         product::RegularEuropeanSwaptionParameters,
         product::RegularEuropeanSwaptionScheduleSource
     >;
+    using Policy = SharedScalarEvaluationPolicy<BasePolicy>;
     const bool cooperative =
         distribution == closed_form::WorkDistribution::cooperative
         && host.maximum_payment_count > 1U

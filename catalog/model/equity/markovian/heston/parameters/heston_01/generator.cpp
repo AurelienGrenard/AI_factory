@@ -22,7 +22,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json";
 
-    constexpr std::uint64_t seed = 710000201ULL;
+    constexpr std::uint64_t seed = 1610000201ULL;
     GeneratedRows core = uniform_rows(900U, seed, {
         {"spot", 1.0f, 1.0f},
         {"risk_free_rate", 0.001f, 0.08f},
@@ -36,10 +36,10 @@ int main() {
         {"spot", 1.0f, 1.0f},
         {"risk_free_rate", -0.03f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
-        {"initial_variance", 0.003f, 0.30f},
-        {"kappa", 0.10f, 8.0f},
-        {"theta", 0.003f, 0.35f},
-        {"rho", -0.99f, 0.25f},
+        {"initial_variance", 0.0075f, 0.20f},
+        {"kappa", 0.30f, 5.0f},
+        {"theta", 0.0075f, 0.20f},
+        {"rho", -0.98f, -0.10f},
     });
 
     const auto assign_gamma = [](GeneratedRows& regime,
@@ -77,7 +77,7 @@ int main() {
         };
     };
     assign_gamma(core, seed + 1ULL, 5.0f, 12.0f, 0.08f, 0.8f);
-    assign_gamma(stress, seed + 3ULL, 8.0f, 20.0f, 0.03f, 1.8f);
+    assign_gamma(stress, seed + 3ULL, 5.0f, 12.0f, 0.08f, 0.8f);
     GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)
     );

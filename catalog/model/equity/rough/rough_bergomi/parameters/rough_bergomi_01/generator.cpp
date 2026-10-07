@@ -9,7 +9,7 @@
 int main() {
     using namespace ai_factory::workbench::datasets;
 
-    constexpr std::uint64_t seed = 710001001ULL;
+    constexpr std::uint64_t seed = 1610001001ULL;
     constexpr float fixed_spot = 1.0f;
     constexpr float fixed_xi_0 = 0.04f;
 
@@ -23,9 +23,9 @@ int main() {
     GeneratedRows stress = uniform_rows(100U, seed + 1U, {
         {"risk_free_rate", 0.0001f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
-        {"eta", 0.10f, 5.0f},
-        {"hurst_exponent", 0.01f, 0.45f},
-        {"rho", -0.99f, 0.20f},
+        {"eta", 0.25f, 3.5f},
+        {"hurst_exponent", 0.02f, 0.35f},
+        {"rho", -0.98f, -0.15f},
     });
     GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)
@@ -44,6 +44,10 @@ int main() {
         {"spot", fixed_spot},
         {"xi_0", fixed_xi_0},
         {"forward_variance_curve", "xi_0(t) = xi_0 for all t"},
+    };
+    rows.construction["aligned_mc_domain"] = {
+        {"rho", "strictly negative spot/rough-driver correlation in core and stress rows"},
+        {"stress_eta", "at most 4.0 for aligned Monte Carlo references"},
     };
     rows.construction["rough_driver_discretization"] = {
         {"scheme", "Bennedsen-Lunde-Pakkanen hybrid scheme"},

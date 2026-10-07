@@ -4,6 +4,46 @@ Use [generate_catalog.py](../tools/datasets/generate_catalog.py) to prepare and
 run a sequential price/sample campaign. It calls the native generators; it does
 not replace their pricing engines, choose new CUDA settings, or certify prices.
 
+## Full model/product parameter refresh and aligned repricing
+
+For the 2026-10-07 complete parameter refresh, the native generators write both
+the JSON and the exact construction `recipe.yaml`. The campaign runner executes
+all 25 model and 27 product generators in an isolated stage, checks their
+1,000 ordered 900/100 rows, validates all generated recipes and receipts,
+then replaces the canonical parameter artifacts only after every generator
+succeeds:
+
+```bash
+python3 maintainer/tools/datasets/regenerate_parameter_catalog.py \
+  --build /tmp/ai_factory_aligned_ninja_20261007 \
+  --stage /tmp/ai_factory_parameter_refresh_local_20261007 \
+  --compile --jobs 4 --publish
+```
+
+The parameter refresh above has already been run in this worktree; use a new
+empty stage directory for any rerun. The resulting production inputs are
+listed in the [refresh manifest](../artifacts/audit/parameter-catalog-refresh-20261007.json).
+
+The following command builds and executes **all 655 aligned price recipes**
+using those canonical inputs. It stages outputs and their enriched provenance
+without claiming that the old published prices have been replaced:
+
+```bash
+python3 tools/datasets/generate_catalog.py \
+  --build /tmp/ai_factory_aligned_ninja_20261007 \
+  --kind prices --construction aligned \
+  --compile --compile-jobs 4 \
+  --run-dir work/generation/aligned-price-refresh-20261007 \
+  --execute
+```
+
+Resume an interrupted campaign with `--run-dir
+work/generation/aligned-price-refresh-20261007 --execute --resume`. The 642
+Cartesian price recipes are a separate future campaign; selecting them uses
+`--construction cartesian` and requires much greater compute and storage.
+Existing price artifacts remain historical until the staged outputs have been
+validated and a publication policy for their replacement is approved.
+
 ## Prepare and inspect
 
 Existing model, curve and product JSON inputs must be present. Their recipes
@@ -27,8 +67,9 @@ python3 tools/datasets/generate_catalog.py --kind all --model cir
 
 `--model` and `--target` can be repeated. Omitting filters selects every
 available recipe of `--kind prices`, `price_gradients`, `samples`, or `all`. The
-inventory comes from the typed capability manifest. Input paths and sample
-shapes come from the recipes. The compiled launch inspector supplies proposed
+inventory comes from the typed capability manifest. `--catalog-only` limits
+selection to published `catalog/` recipes when local `work/catalog/` experiments
+are present. Input paths and sample shapes come from the recipes. The compiled launch inspector supplies proposed
 pricing settings. No second Python table of CUDA geometries is maintained.
 
 Extend this controller when a campaign needs another manifest filter. Do not
@@ -69,22 +110,31 @@ building or running anything:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --asset-class fixed_income --construction aligned --kind prices
+  --catalog-only --asset-class fixed_income \
+  --construction aligned --kind prices
 ```
 
-The selection comes from the typed capability manifest: currently 80 recipes,
-each with 1,000 aligned price rows. The published price-gradient family also
-contains 80 aligned fixed-income recipes.
-After any other campaign has finished or been stopped, build and run these
-targets sequentially with publication:
+The published selection contains 93 aligned price recipes, each with 1,000
+rows. Thirteen are bond barrier recipes without current datasets or receipts.
+The published price-gradient family contains 80 aligned fixed-income recipes.
+When the bond barrier product parameter dataset is missing, generate it first.
+Then run the missing published fixed-income prices in a new campaign:
 
 ```bash
+cmake --preset local-sm89
+./tools/run_generator.py local-sm89 \
+  generate_zero_coupon_bond_up_and_outs_01 --publish
 python3 tools/datasets/generate_catalog.py \
+  --build builds/local-cuda12-9-0-sm89 --catalog-only --skip-published \
   --asset-class fixed_income --construction aligned --kind prices \
-  --compile \
-  --run-dir work/generation/fixed-income-aligned-01 \
+  --compile --compile-jobs 2 \
+  --run-dir work/generation/fixed-income-barrier-aligned-01 \
   --execute --publish
 ```
+
+Skip the parameter-generator command if that dataset and its receipt already
+exist. `--skip-published` rejects a partial published pair and does not replace
+any existing artifact.
 
 The controller builds only the selected generators and the launch inspector in
 `build/`. It then freezes the inputs and binaries. It runs one job at a time.

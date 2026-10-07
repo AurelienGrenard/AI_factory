@@ -146,14 +146,14 @@ GeneratedRows generate_phoenix_rows(
 
     for (std::size_t row = 0U; row < tail_row_count; ++row) {
         const auto [maturity, interval] = schedule(
-            generator, kTailIntervals, 126U, 1764U
+            generator, kTailIntervals, 126U, 1512U
         );
-        const float protection_barrier = uniform(generator, 0.20f, 0.90f);
+        const float protection_barrier = uniform(generator, 0.40f, 0.80f);
         const float coupon_barrier = uniform(
-            generator, std::max(protection_barrier, 0.30f), 1.05f
+            generator, std::max(protection_barrier, 0.45f), 0.95f
         );
         const float autocall_barrier = uniform(
-            generator, std::max(coupon_barrier, 0.80f), 1.30f
+            generator, std::max(coupon_barrier, 0.90f), 1.20f
         );
         generated.rows.push_back({
             {"maturity", maturity},
@@ -161,7 +161,7 @@ GeneratedRows generate_phoenix_rows(
             {"autocall_barrier", autocall_barrier},
             {"coupon_barrier", coupon_barrier},
             {"protection_barrier", protection_barrier},
-            {"annual_coupon_rate", uniform(generator, 0.005f, 0.30f)},
+            {"annual_coupon_rate", uniform(generator, 0.01f, 0.20f)},
         });
     }
     generated.construction = common_construction(
@@ -179,12 +179,12 @@ GeneratedRows generate_phoenix_rows(
         }},
         {"stress", {
             {"row_count", tail_row_count},
-            {"maturity", {126, 1764}},
+            {"maturity", {126, 1512}},
             {"observation_interval", {5, 126, 252}},
-            {"autocall_barrier", {0.80, 1.30}},
-            {"coupon_barrier", {0.30, 1.05}},
-            {"protection_barrier", {0.20, 0.90}},
-            {"annual_coupon_rate", {0.005, 0.30}},
+            {"autocall_barrier", {0.90, 1.20}},
+            {"coupon_barrier", {0.45, 0.95}},
+            {"protection_barrier", {0.40, 0.80}},
+            {"annual_coupon_rate", {0.01, 0.20}},
         }},
     };
     generated.construction["sampling"]["barriers"] =
@@ -225,18 +225,18 @@ GeneratedRows generate_athena_rows(
 
     for (std::size_t row = 0U; row < tail_row_count; ++row) {
         const auto [maturity, interval] = schedule(
-            generator, kTailIntervals, 126U, 1764U
+            generator, kTailIntervals, 126U, 1512U
         );
-        const float protection_barrier = uniform(generator, 0.20f, 0.90f);
+        const float protection_barrier = uniform(generator, 0.40f, 0.80f);
         const float autocall_barrier = uniform(
-            generator, std::max(protection_barrier, 0.80f), 1.30f
+            generator, std::max(protection_barrier, 0.90f), 1.20f
         );
         generated.rows.push_back({
             {"maturity", maturity},
             {"observation_interval", interval},
             {"autocall_barrier", autocall_barrier},
             {"protection_barrier", protection_barrier},
-            {"annual_coupon_rate", uniform(generator, 0.005f, 0.30f)},
+            {"annual_coupon_rate", uniform(generator, 0.01f, 0.20f)},
         });
     }
     generated.construction = common_construction(
@@ -253,11 +253,11 @@ GeneratedRows generate_athena_rows(
         }},
         {"stress", {
             {"row_count", tail_row_count},
-            {"maturity", {126, 1764}},
+            {"maturity", {126, 1512}},
             {"observation_interval", {5, 126, 252}},
-            {"autocall_barrier", {0.80, 1.30}},
-            {"protection_barrier", {0.20, 0.90}},
-            {"annual_coupon_rate", {0.005, 0.30}},
+            {"autocall_barrier", {0.90, 1.20}},
+            {"protection_barrier", {0.40, 0.80}},
+            {"annual_coupon_rate", {0.01, 0.20}},
         }},
     };
     generated.construction["sampling"]["barriers"] =

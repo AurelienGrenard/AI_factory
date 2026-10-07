@@ -126,7 +126,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/"
         "normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json";
-    constexpr std::uint64_t seed = 710000501ULL;
+    constexpr std::uint64_t seed = 1610000501ULL;
 
     GeneratedRows core = generate_regime(
         900U, seed,
@@ -135,8 +135,8 @@ int main() {
     );
     GeneratedRows stress = generate_regime(
         100U, seed + 1ULL,
-        {-0.03f, 0.12f, 0.0f, 0.10f, 0.6f, 40.0f,
-         -0.95f, 0.70f, 0.03f, 1.00f}
+        {-0.03f, 0.12f, 0.0f, 0.10f, 3.0f, 30.0f,
+         -0.80f, 0.25f, 0.06f, 0.70f}
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

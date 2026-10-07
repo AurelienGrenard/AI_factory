@@ -1,0 +1,55 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: zero_coupon_bond_up_and_outs_01
+generator: generator.cpp
+output:
+  path: datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json
+  format: json
+generation_output: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generation.yaml
+url: https://datasets.ai-factory.example/v1/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json
+product_family: Zero-Coupon Bond Up-and-Out Calls
+row_count: 1000
+time_convention:
+  unit: business_day
+  days_per_year: 252
+parameters:
+  notional: Units of a zero-coupon bond paying 1 currency unit at U.
+  strike: Bond price per unit of face value, in currency units at T.
+  barrier: Upper bond-price threshold in the same units as strike.
+  option_expiry: Payoff date T in business days.
+  bond_maturity: Bond face-value date U > T in business days.
+payoff:
+  expression: N * exp(-integral_0^T r_s ds) * max(P(T,U)-K,0) * 1{P(t,U)<B for all monitored t}
+  payment_time: T
+  normalization: N = 1
+  barrier_breach: P(t,U) >= B, including t=0
+  monitoring: numerical grid; continuous-barrier price is approximated
+construction:
+  method: ordered 90/10 core-stress construction
+  row_order:
+    core: rows 1-900
+    stress: rows 901-1000
+  core_share: 0.9
+  stress_share: 0.1
+  core:
+    row_count: 900
+    generation:
+      method: Cartesian grid
+      rule: Every expiry, bond tenor, strike, and barrier combination.
+      description: Short expiry grid, including barriers breached at inception.
+      option_expiries: [1, 2, 3, 5, 10]
+      bond_tenors: [21, 63, 126]
+      strikes: [0.85, 0.90, 0.95, 0.98, 1.01, 1.05]
+      barriers: [0.96, 0.98, 1.00, 1.02, 1.04, 1.06, 1.08, 1.10, 1.15, 1.20]
+      notional: 1.0
+  stress:
+    row_count: 100
+    generation:
+      method: Cartesian grid
+      rule: Every expiry, bond tenor, strike, and barrier combination.
+      description: Longer expiries and remote or initially breached barriers.
+      option_expiries: [1, 5, 21, 42, 63]
+      bond_tenors: [21, 252]
+      strikes: [0.80, 1.10]
+      barriers: [0.90, 0.98, 1.03, 1.10, 1.30]
+      notional: 1.0

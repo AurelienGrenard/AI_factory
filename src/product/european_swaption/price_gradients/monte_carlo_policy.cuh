@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/fixed_income/swaption_side.cuh"
-#include "common/fixed_income/price_gradients/terminal_maturity.cuh"
+#include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "common/price_gradients/time_configuration.hpp"
 #include "product/european_swaption/pricing_row.cuh"
 #include "product/european_swaption/schedule.cuh"

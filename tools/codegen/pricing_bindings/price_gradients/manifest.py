@@ -452,7 +452,10 @@ def compose_bindings(pricing_bindings):
             ("device_prepared_cooperative_closed_form"
              if binding.product == "european_swaption"
              else "device_prepared_scalar_closed_form"),
-            ("first", "diagonal_second", "mixed_second"),
+            (("first",) if binding.model == "cir"
+             and binding.product == "european_swaption"
+             and binding.curve is None
+             else ("first", "diagonal_second", "mixed_second")),
         )
         for binding in pricing_bindings
         if binding.asset_class == "fixed_income"

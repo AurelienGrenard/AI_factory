@@ -34,6 +34,40 @@ concept EarlyExerciseSchedulePolicy =
     };
 
 template<typename Regressor>
+concept ResidualRefinementRegressor = requires(
+    const typename Regressor::Features& features,
+    double target,
+    const double* prediction_coefficients,
+    double (&residuals)[Regressor::kBasisSize],
+    std::size_t batch_price,
+    std::size_t block_index,
+    std::size_t blocks_per_price,
+    double* partials,
+    double* coefficients,
+    RegressionStatus* status,
+    RegressionDiagnostics* diagnostics,
+    std::uint32_t regression_count,
+    std::uint32_t backward_level
+) {
+    {
+        Regressor::accumulate_residual(
+            features, target, prediction_coefficients, residuals
+        )
+    } -> std::same_as<void>;
+    {
+        Regressor::reduce_and_store_residual_partials(
+            residuals, batch_price, block_index, blocks_per_price, partials
+        )
+    } -> std::same_as<void>;
+    {
+        Regressor::template solve_for_row<true>(
+            regression_count, backward_level, batch_price, blocks_per_price,
+            partials, coefficients, status, diagnostics
+        )
+    } -> std::same_as<void>;
+};
+
+template<typename Regressor>
 concept SmallLinearRegressor =
     std::is_trivially_copyable_v<typename Regressor::Input>
     && std::is_trivially_copyable_v<typename Regressor::Features>
@@ -92,7 +126,9 @@ concept SmallLinearRegressor =
         {
             Regressor::shared_bytes(threads_per_block)
         } -> std::same_as<std::size_t>;
-    };
+    }
+    && (!Regressor::kRefineNormalResidual
+        || ResidualRefinementRegressor<Regressor>);
 
 template<typename PricingPolicy>
 concept EarlyExercisePricingPolicy =

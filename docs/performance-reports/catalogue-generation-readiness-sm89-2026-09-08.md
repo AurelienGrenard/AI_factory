@@ -97,7 +97,7 @@ three measurement samples are retained. No case is retried or selected from
 alternative favorable periods; no compilation runs during timing.
 
 The [dataset notebook](pricing-dataset-runtime-sm89.ipynb) and
-[portable evidence](../../tests/performance/reports/pricing-dataset-runtime-sm89-2026-09-08.json)
+[portable evidence](../../maintainer/tests/performance/reports/pricing-dataset-runtime-sm89-2026-09-08.json)
 separate GPU time, host API, preparation, copy and local JSON/YAML publication,
 with actual grids, native LSM batches and FFT chunks. Summing the measured
 generation phases for one dataset of each of these 29 pairs gives **16 min 57 s**;
@@ -128,7 +128,7 @@ the fix, and the full unconditional preflight replays exactly at 256/128 threads
 These native pilots and their process/check times are functional evidence,
 not substitutes for the qualified-clock requirements of performance tuning.
 
-[Native pilot evidence and resume checks](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json)
+[Native pilot evidence and resume checks](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json)
 close `STRUCT-023/024`. The controller contract owns staging and publication;
 the sample contract owns memory-availability semantics.
 
@@ -144,11 +144,11 @@ The CPU launch inspector accepts all 426 identities at 1,000 and 1M prices
 (852 checks), with `2^20` pricing paths where applicable. Offline inspection
 does not prove device-memory feasibility.
 
-- [Numerical outputs and complete geometry timing samples](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual.ndjson).
-- [Exact linked-symbol/runtime resources](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual-resources.ndjson).
-- [All fresh cost samples, telemetry ranges and kernel-phase attribution](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual-cost.json).
-- [All current sample smoke-test binaries/logs](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/sample-smoke.json).
-- [852 CPU launch-plan checks](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/launch-plan-inspection.json).
+- [Numerical outputs and complete geometry timing samples](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual.ndjson).
+- [Exact linked-symbol/runtime resources](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual-resources.ndjson).
+- [All fresh cost samples, telemetry ranges and kernel-phase attribution](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/lsm/kou-normal-residual-cost.json).
+- [All current sample smoke-test binaries/logs](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/sample-smoke.json).
+- [852 CPU launch-plan checks](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/launch-plan-inspection.json).
 - Current source snapshot, experimental reference sources, sanitizer logs and
   frozen integrated binary: `build-dev/kou-lsm-launch-confirmation.zpDtZU`.
   The 11 exploratory report files are retained in its

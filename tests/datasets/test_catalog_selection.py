@@ -14,6 +14,7 @@ def spec(
     *,
     family: str = "markovian",
     construction: str = "cartesian_parameter_paths",
+    local: bool = False,
 ) -> SimpleNamespace:
     return SimpleNamespace(
         cmake_target=f"generate_{name}_samples_01",
@@ -21,6 +22,10 @@ def spec(
         asset_class="equity",
         source_prefix=f"model/equity/{family}/{name}",
         model=name,
+        generator_path=(
+            f"{'work/catalog' if local else 'catalog'}/model/equity/"
+            f"{family}/{name}/samples/samples_01/generator.cpp"
+        ),
         construction=construction,
         dataset_path=f"datasets/model/equity/{family}/{name}/samples/samples_01.json",
         generation_yaml_path=f"catalog/model/equity/{family}/{name}/samples/samples_01/generation.yaml",
@@ -58,6 +63,16 @@ class CatalogSelectionTest(unittest.TestCase):
             self.assertEqual(
                 self.select(root, (existing, missing), asset_classes={"equity"}),
                 [existing, missing],
+            )
+
+    def test_catalog_only_excludes_local_recipes(self) -> None:
+        published = spec("published")
+        local = spec("local", local=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual(
+                self.select(root, (published, local), catalog_only=True),
+                [published],
             )
 
     def test_rejects_incomplete_publication_pair(self) -> None:

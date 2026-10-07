@@ -85,7 +85,7 @@ int main() {
     const GeneratedRows core = regular_regime(
         {
             126U, 252U, 504U, 756U, 1260U,
-            1764U, 2520U, 3780U, 5040U, 7560U,
+            1764U, 2016U, 2520U, 3150U, 3780U,
         },
         {
             {252U, 2U, 2U, 1.0f},
@@ -103,23 +103,23 @@ int main() {
             0.005f, 0.0125f, 0.020f, 0.0275f, 0.035f,
             0.0425f, 0.050f, 0.065f, 0.080f,
         },
-        "Six-month to thirty-year first exercise dates; two-to-twenty-year "
+        "Six-month to fifteen-year first exercise dates; two-to-twenty-year "
         "co-terminal swaps; annual or semiannual fixed legs; and two-to-ten "
         "exercise opportunities at ordinary fixed rates."
     );
     const GeneratedRows stress = regular_regime(
-        {1U, 5U, 21U, 3780U, 7560U},
+        {21U, 63U, 252U, 2520U, 5040U},
         {
-            {1U, 2U, 2U, 1.0f / 252.0f},
-            {5U, 12U, 4U, 5.0f / 252.0f},
-            {21U, 120U, 12U, 1.0f / 12.0f},
-            {63U, 200U, 8U, 0.25f},
-            {252U, 100U, 10U, 1.0f},
+            {21U, 12U, 4U, 1.0f / 12.0f},
+            {63U, 20U, 6U, 0.25f},
+            {126U, 40U, 8U, 0.5f},
+            {252U, 20U, 10U, 1.0f},
+            {252U, 30U, 10U, 1.0f},
         },
-        {0.0f, 0.001f, 0.15f, 0.35f},
-        "One-day through thirty-year first exercises, daily through annual "
-        "fixed legs, two-payment through hundred-year co-terminal swaps, "
-        "and zero or unusually high fixed rates."
+        {0.0f, 0.005f, 0.08f, 0.15f},
+        "One-month to twenty-year first exercises, monthly through annual "
+        "fixed legs, one-to-thirty-year co-terminal swaps, "
+        "and moderate low/high fixed-rate tails."
     );
     const GeneratedRows rows = core_stress_rows(core, stress);
 

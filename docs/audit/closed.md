@@ -1,7 +1,325 @@
 # Constats d'audit fermes
 
 Les anciens chemins de preuves `build-*` se retrouvent via le
-[plan des artefacts locaux](../local-artifacts.md).
+[plan des artefacts locaux](../local-artifacts.md). Les liens vers
+`artifacts/` et `maintainer/` désignent des preuves conservées localement,
+non incluses dans le dépôt public.
+
+Ce fichier conserve les constats **réglés** : correction vérifiée, contrat
+explicitement borné ou compromis accepté. Les mesures défavorables et les
+limites du périmètre restent documentées dans leurs entrées. Les deux constats
+clos administrativement avec un problème non résolu sont
+[NUM-037 et PERF-027](unresolved-closures.md). Les constats ouverts sont dans
+[response.md](response.md).
+
+## PERF-024 — Le graphe diagonal réserve les nœuds de la capacité maximale
+
+**Décision du 2026-10-07 : fermé par acceptation explicite de l’utilisateur,
+sans validation du gate performance.** Le stride actif est conservé pour son
+gain de mémoire et sa parité numérique. L’utilisateur accepte le dépassement
+p95 API de **+5,51 %** du cas CIR 4 axes/4 096 chemins dans la comparaison
+complète à 512 opérations. La comparaison à 1 024 opérations, également
+archivée, présente cinq ratios p95 au-delà de +5 % (jusqu’à +23,24 % kernel
+sur CIR 7 axes/1 048 576 chemins) et un cas de CV kernel non admissible ;
+elle ne peut pas être présentée comme un pass ni effacée. Ce compromis et ses mesures défavorables restent visibles ici. Le
+protocole général de régression à +5 % et le baseline officiel ne changent pas.
+Cette décision accepte un compromis mémoire/performance pour ce seul changement ;
+elle ne certifie pas le p95 de toutes les charges. Les mesures et binaires
+restent dans [la preuve A/B](../../artifacts/audit/perf024-2026-10-07/README.md).
+
+- **État historique / propriétaire :** ouvert le 2026-10-06 ; propriétaire : workspace et
+  évaluateur des graphes diagonaux MC, path et replay LSM.
+- **Axes / sévérité / priorité / confiance :** IV ; haute / haute / prouvée
+  pour les octets et les batches, gain de temps encore à mesurer.
+- **Contrat :** le graphe doit borner sa mémoire par chunk et par batch sans
+  réserver les nœuds d’axes que la requête n’utilise pas.
+- **Preuve :** `terminal_node_graph/workspace.cuh` calcule
+  `node_values = rows × path_chunk_size × (1 + 3 × MaximumSensitivities)` ;
+  `terminal_node_graph/reconstruction.cuh` et les évaluateurs emploient ce
+  même stride maximal. `node_graph/execution_plan.hpp` réduit ensuite les
+  lignes et chemins pour rester sous 512 Mio. Le probe compilé
+  `workspace_probe.cu` mesure pour le replay Heston (capacité 9),
+  1 048 576 chemins et **quatre** axes demandés : 112,02 Mio par ligne,
+  contre 52,02 Mio avec une capacité 4 ; le plan limité à 512 Mio accepte
+  quatre lignes au lieu de huit. Pour **un** axe, 112,01 Mio contre
+  16,01 Mio, et quatre lignes au lieu de seize. Le benchmark LSM courant
+  avec quatre axes et 4 096 chemins réserve effectivement 477 248 octets
+  de workspace graphe. Le graphe mixte emploie déjà
+  `sensitivity_graph.node_capacity` pour son workspace : le défaut est celui
+  des graphes diagonaux.
+- **Reprise du 2026-10-06 :** le workspace global, l'évaluation et la
+  reconstruction utilisent maintenant `1 + 3 × sensitivity_count` comme
+  stride actif ; la borne de compilation demeure pour les tableaux en shared.
+  Le probe reconstruit sur le code courant mesure, pour une ligne et
+  4 096 chemins, 71 696 / 231 472 / 497 768 octets pour 1 / 4 / 9 axes ;
+  à 1 048 576 chemins, 16 783 376 / 54 544 432 / 117 479 528 octets.
+  Les tests GPU terminal, path et replay American/Bermudan vérifient la
+  parité sur leurs cas représentatifs. [Mesures du build courant](../../artifacts/audit/nonrough-2026-10-06/result.json).
+  Un second probe a mesuré la VRAM libre avant/après allocation sur la RTX
+  4090 Laptop du build courant : 2 097 152 octets observés pour chacun des
+  trois cas à 4 096 chemins, puis 18 874 368 / 56 623 104 / 119 537 664
+  octets pour 1 / 4 / 9 axes à 1 048 576 chemins ; ces deltas incluent les
+  arrondis de l'allocateur CUDA et concordent avec les tailles du workspace.
+  [Trace et empreintes](../../artifacts/audit/nonrough-followup-2026-10-06/README.md).
+  La comparaison A/B oppose le **même moteur `node_graph`** en stride actif
+  au `node_graph` témoin en stride maximal ; `mono` ne sert ici qu'au contrôle
+  numérique, pas de référence de vitesse. Le témoin diffère seulement par
+  les sept appels de stride maximal, avec la même toolchain Release
+  SM89/CUDA 12.9.
+  Trois matrices complètes de 72 mesures chacune ont comparé Heston American
+  (1/4/9 axes) et CIR Bermudan (1/4/7 axes) à 4 096 et 1 048 576 chemins.
+  Les sorties prix, SE, gradients et diagonales sont bit à bit égales sur les
+  12 charges, aussi face au mono sur les six cas à un million de chemins.
+  Le pic de mémoire attribué aux allocations passe de 188 751 924 à
+  88 088 604 octets pour Heston 1 axe et de 188 764 908 à 125 850 332
+  pour Heston 4 axes à un million de chemins ; les gains CIR sont
+  75 497 488 et 37 748 744 octets pour 1 et 4 axes. À la capacité
+  maximale, le pic est inchangé. Les snapshots de sources, exécutables,
+  reçus et télémétries sont hashés dans [la preuve A/B](../../artifacts/audit/nonrough-followup-2026-10-06/perf024/README.md).
+  Le protocole final utilise cinq échauffements, 21 répétitions, trois
+  campagnes, 256 opérations groupées sur les petits cas et un intervalle
+  fixe entre cas. Les CV agrégés sont admissibles et la télémétrie ne montre
+  pas de ralentissement thermique. Onze charges respectent les budgets ;
+  **Heston 4 axes à 4 096 chemins échoue au p95 API** : 1,923475 ms actif
+  contre 1,740048 ms témoin, soit +10,54 % pour +5 % admis. Sa médiane est
+  à +1,96 % et son p95 kernel à +4,64 %. Le CV API du passage qui donne ce
+  p95 est de 7,09 %, mais le protocole conserve le maximum des p95 et ne
+  permet pas de l'ignorer. Avant la décision d’acceptation, le constat restait ouvert ; il manquait une
+  comparaison API sous budget sur cette charge après localisation du coût ou
+  réduction reproductible du bruit de mesure. Les deux premières matrices
+  et leur motif de relance restent archivés.
+- **Reprise du 2026-10-07 :** deux autres comparaisons A/B complètes ont
+  reconstruit les binaires Release SM89/CUDA 12.9.41 dans des builds isolés,
+  avec 512 puis 1 024 opérations identiques par échantillon court, une seule
+  par échantillon à 1 048 576 chemins, et dix secondes fixes entre cas. Le
+  second plan a été déclaré avant sa mesure, après archivage de l'échec du
+  premier. Chaque essai conserve ses trois campagnes de 24 mesures, 5
+  échauffements, 21 répétitions, ordre A/B inversé dans la deuxième campagne,
+  télémétrie et préflights. Tous les préflights passent : secteur, 175 W,
+  aucun frein matériel ou calcul GPU concurrent. Les 12 sorties sont bit à bit
+  égales dans les deux essais. À 512 opérations, les CV sont admissibles et
+  l'ancien blocage Heston 4 axes/4 096 chemins passe (p95 API +3,99 %), mais
+  CIR 4 axes/4 096 chemins atteint +5,51 % de p95 API : le budget de +5 % est
+  dépassé. À 1 024 opérations, CIR 4 axes passe ; cinq ratios p95 échouent,
+  dont CIR 7 axes/1 048 576 chemins à +23,24 % kernel et +18,81 % API. Pour
+  Heston 9 axes/1 048 576 chemins, deux des trois CV kernel actifs dépassent
+  5 %. Les médianes des charges à pic restent proches du témoin, mais le
+  protocole conserve chaque maximum p95 et ne permet pas de déclarer un pass
+  en écartant ces campagnes. [Résultats, sources, binaires et SHA-256](../../artifacts/audit/perf024-2026-10-07/README.md).
+  **Avant la décision d’acceptation, le gate échouait** : la cause des pics
+  GPU/API et une comparaison complète admissible sous budget restaient à établir. Aucune modification de
+  calcul ni régénération de prix n'est justifiée par ces chronos seuls.
+- **Conséquence initiale :** jusqu’à sept fois plus de valeurs par chemin pour une
+  petite demande et deux à quatre fois plus de relances de batches LSM à un
+  million de chemins. Le plafond évite une allocation illimitée ; il ne
+  supprime ni cette pression VRAM ni le trafic du stride élargi.
+- **Alternative examinée :** une capacité statique simplifie les tableaux
+  partagés et la géométrie des workers. Elle ne nécessite pas un stride
+  global maximal pour les nœuds effectivement stockés ; le graphe mixte
+  démontre la séparation entre borne de compilation et taille effective.
+- **Correction minimale :** dimensionner `node_values` et son stride par
+  `1 + 3 × sensitivity_count` dans la planification, l’évaluation et la
+  reconstruction, en gardant une borne de compilation pour les équipes.
+  Comparer aussi une spécialisation par classes de capacité si le stride
+  dynamique coûte plus que la mémoire économisée.
+- **Condition technique initiale :** tailles calculées et pic VRAM mesuré sur 1/4/9 axes Heston
+  et 1/4/7 axes CIR, 4 096 et 1 048 576 chemins ; parité complète avec seed
+  commune ; chronos GPU et API, CV et p95 sur les mêmes lignes, sans
+  régression supérieure au budget du protocole. Le p95 API Heston 4 axes
+  à 4 096 chemins était la condition encore insatisfaite en 2026-10-06 ;
+  la reprise du 2026-10-07 a déplacé le dépassement sur d’autres charges.
+  Le gate de +5 % n’a pas été satisfait lors de la clôture par acceptation.
+
+## PRODUCT-001 — Call up-and-out sur obligation zéro-coupon (2026-10-06)
+
+**Contrat de surveillance :** barrière surveillée sur grille ; la surveillance
+continue reste approximée.
+
+- **État :** fermé après intégration des 13 compositions fixed income déclarées :
+  CIR, G2, Ornstein–Uhlenbeck, Vasicek, et CIR++, G2++, Hull–White avec les
+  courbes flat, Nelson–Siegel et Svensson.
+- **Contrat :** `N exp(-∫₀ᵀ rₛ ds) (P(T,U)-K)⁺` si `P(t,U)<B` aux points de la
+  grille de `0` à `T`, avec `0<T<U`; égalité `P≥B` éteint sans rebate.
+  `N` compte les obligations de nominal 1, `K` et `B` sont des prix par unité
+  de nominal. La grille quotidienne donne une **approximation par le haut**
+  de la barrière continûment surveillée. Les transitions jointes gaussiennes
+  sont exactes pour OU, Vasicek, G2, Hull–White et G2++; CIR et CIR++ utilisent
+  la transition exacte du facteur et une intégrale du taux au trapèze.
+- **Preuve :** [résultat de validation](../../artifacts/audit/product001-2026-10-06/result.json) :
+  13/13 générateurs de prix compilés et exécutés sur le build isolé courant,
+  plus le générateur des 1 000 paramètres produit ; 13 000 prix finis et
+  non négatifs, 14 reçus `generation.yaml` avec SHA des datasets, binaires,
+  recettes et entrées ; codegen `all --compare-root .`
+  sans différence. Le test CUDA OU et une référence CPU FP64 indépendante
+  passent : barrière initialement franchie à zéro, limite européenne
+  `0.083978 ± 0.0000124` contre analytique `0.0839995`, référence
+  déterministe `0.221336` contre `0.221335`. Pour la barrière proche,
+  la grille à 1, 2 et 4 pas/jour donne respectivement `0.00286426`,
+  `0.00270299`, `0.00263437` (524 288 chemins) ; la référence FP64 CPU
+  quotidienne donne `0.00280483 ± 0.00002505`.
+- **Livraison du code :** les 14 recettes (paramètres produit et 13 prix)
+  sont dans `catalog/` avec `ready: false` dans son manifeste. Les reçus
+  historiques de la validation sont conservés localement ; ils portent sur
+  des paramètres antérieurs à la sélection courante. Aucun nouveau prix ni
+  reçu n'est annoncé avant une nouvelle exécution des générateurs.
+- **Limite conservée :** aucun traitement des franchissements entre pas ;
+  les prix issus de cette méthode ne sont pas des prix de premier passage exacts. Les
+  compositions CIR ont aussi un biais d'intégration temporelle. La référence
+  indépendante détaillée porte sur le modèle OU à un facteur ; les autres
+  compositions sont couvertes par compilation, exécution, validation des
+  1 000 lignes et provenance de chaque recette.
+
+## NUM-029 — Parité rough SABR corrigée et publiée (2026-10-06)
+
+- **État :** fermé pour le défaut de précision du pas Lamperti rough SABR.
+  La reconstruction FP32 du spot perdait des chiffres significatifs lorsque
+  `beta` approchait 1 ; l'incrément relatif calculé avec `log1pf` corrige ce
+  mécanisme.
+- **Preuve numérique :** les 15 lignes historiquement signalées (13 core,
+  deux stress) ont chacune été rejouées sur trois couples chemins/graines ;
+  tous les résidus sont sous 1,77 erreur standard. À 1, 2 et 4 pas/jour, la
+  ligne 394 reste compatible avec le premier moment attendu. Le test de
+  précision CUDA, les quantiles, l'absorption et la comparaison FFT/directe
+  passent. [Replays](../../artifacts/audit/rough-price-quality-2026-10-06/rough_sabr_fixed_flag_replays.jsonl).
+- **Publication :** les 29 jeux de prix rough SABR, les 29 prix SABR
+  markoviens touchés par le helper partagé et leurs quatre jeux de samples
+  ont été exécutés dans deux builds isolés : 62 runs, 12 058 000 lignes.
+  La [release `num029-lamperti-20261006-v1`](../../work/catalog/releases/num029-lamperti-20261006-v1/manifest.json)
+  publie les 62 JSON et leurs `generation.yaml` authentiques sans modifier
+  les versions historiques. Le [vérificateur indépendant](../../maintainer/tools/datasets/verify_num029_release.py)
+  contrôle les hashes, reçus et 1 000 paires européennes publiées : zéro
+  signal de parité rough SABR.
+  [Résultat](../../artifacts/audit/rough-price-quality-2026-10-06/num029_release_validation.json).
+- **Limite conservée :** 26 écarts de parité persistent sur le SABR
+  **markovien** publié dans cette même release. Ils relèvent du constat
+  distinct [NUM-037](unresolved-closures.md) ; la release et ses reçus établissent la provenance,
+  pas une certification indépendante de tous les prix. Les treize lignes
+  rough SABR à `ρ>0` ont toutes `β<1` et restent dans le domaine de vraie
+  martingale du modèle continu ; le cas `β=1` est distinct
+  ([analyse du domaine](sabr-martingale-domain.md)).
+
+## NUM-036 — Portée des erreurs standards LSM publiée (2026-10-06)
+
+**Clôture par contrat explicite de la SE conditionnelle ; incertitude totale non estimée.**
+
+- **État :** fermé par qualification explicite des sorties. L'erreur
+  `standard_error` est la dispersion empirique des cashflows actualisés sur
+  les mêmes chemins que ceux ayant servi à ajuster la politique LSM. Elle
+  ne couvre ni l'incertitude entre fits, ni le biais de politique, ni la
+  distance à la valeur optimale.
+- **Code et test :** API, contrat d'exercice, sérialiseur et recettes prix /
+  gradients portent cette portée. Sur 16 graines près du seuil d'exercice
+  initial, 12 sorties à exercice `t0` ont une SE nulle, les quatre autres
+  une SE positive, et les prix diffèrent jusqu'à 0,004241.
+  [Preuve multi-graines](../../artifacts/audit/nonrough-2026-10-06/result.json).
+- **Publication :** la [qualification versionnée](../../work/catalog/qualifications/num036-lsm-error-scope-20261006-v1/manifest.json)
+  contient 36 copies de jeux de prix LSM avec `methodology` explicite.
+  Elle référence les JSON et reçus originaux ; aucune des 36 000 lignes de
+  prix/SE n'a été recalculée ou changée. Le
+  [vérificateur](../../maintainer/tools/datasets/verify_num036_qualification.py) contrôle
+  les 36 originaux, les 36 copies et 4 013 lignes à SE nulle.
+  [Résultat](../../artifacts/audit/nonrough-followup-2026-10-06/num036_qualification_validation.json).
+- **Limite conservée :** il n'existe pas d'estimation d'incertitude totale
+  du prix LSM appris. La qualification dit précisément ce que la SE publiée
+  mesure ; elle ne promet pas une couverture du prix optimal.
+
+## Clôtures décidées le 2026-10-02 — capacités et qualifications numériques
+
+Ces six entrées étaient ouvertes dans `response.md`. Leur clôture suit la
+décision explicite de l'utilisateur du 2026-10-02. Les limites résiduelles
+indiquées ci-dessous restent lisibles ; une clôture par acceptation du périmètre
+n'est pas présentée comme une nouvelle preuve numérique.
+
+### DELTA-001 — Voie prix-delta equity
+
+- **État :** fermé le 2026-10-02 ; la demande d'extension autonome
+  `price_delta` a été absorbée par les kernels de `price_gradients` organisés
+  par sensibilité et par les bindings désormais présents.
+- **Preuve de portée :** les 244 bindings markoviens et huit bindings equity à
+  formule fermée figurent dans le manifeste `PRICE_GRADIENT_BINDING_SPECS` ;
+  les 126 bindings rough gardent leur voie delta spot existante. Les tests de
+  prix central, de couplage spot et de parité sur les fixtures ciblées ont
+  passé sur le build isolé SM89 du 2026-10-02.
+- **Limite conservée :** les gradients généraux rough restent une migration
+  planifiée, distincte de ce chantier historique prix-delta. La clôture ne
+  certifie pas chaque delta de dataset ni chaque paramètre rough.
+- **Réouvrir seulement si :** une capacité prix-delta déclarée disparaît, ou
+  si un défaut reproductible de prix ou de delta propre à cette voie est établi.
+
+### NUM-031 — Adressage des sources Philox
+
+- **État :** fermé le 2026-10-02 ; le mapping `philox_source_step_v2` et
+  l'isolation sélective des sources à consommation variable sont intégrés.
+- **Preuve de portée :** `src/common/philox.cuh`,
+  `src/common/philox_domains.cuh` et les adaptateurs de dynamique portent la
+  clé par ligne, les groupes et les domaines. Les tests ciblés de dynamique à
+  sauts et de gradients ont passé sur le build isolé SM89 du 2026-10-02.
+- **Limite conservée :** les sorties historiques `/v1/` ne sont pas promises
+  bit à bit identiques au nouveau mapping ; toute nouvelle source variable
+  doit déclarer son domaine et qualifier ses innovations.
+- **Réouvrir seulement si :** une collision de compteur, un déplacement des
+  tirages entre sources ou une rupture de replay est reproduit.
+
+### NUM-032 — Sensibilités des modèles à sauts
+
+- **État :** fermé le 2026-10-02 ; les kernels de gradients à nœuds et le
+  mapping Philox courant ont absorbé la demande de couplage des marques.
+- **Preuve de portée :** les adaptateurs Merton, Kou, Bates, VG et NIG
+  rejouent les innovations selon leurs lois ; les tests CUDA ciblés des prix,
+  deltas, sélections et topologies ont passé sur le build isolé SM89.
+- **Limite conservée :** les anciennes demandes de campagnes multi-seeds,
+  fortes intensités et temps complets n'ont pas été rejouées par cette
+  clôture. Elles relèvent d'une validation ultérieure si ces usages l'exigent.
+- **Réouvrir seulement si :** une coordonnée de saut annoncée manque, ou si
+  un contre-exemple de couplage, de compensateur ou de sensibilité est établi.
+
+### NUM-033 — Erreur standard Longstaff--Schwartz
+
+**Contrat accepté :** la SE LSM décrit les cashflows de la politique ajustée
+sur les mêmes chemins.
+
+- **État :** fermé le 2026-10-02 par acceptation de la méthode LSM actuelle.
+- **Preuve de portée :** le calcul des moments sur les chemins utilisés pour
+  l'ajustement est cohérent avec la sortie `standard_error` conditionnelle
+  aux cashflows de la politique calculée ; aucune erreur arithmétique n'a été
+  constatée dans ce calcul.
+- **Limite conservée :** ce nombre n'est pas un intervalle certifié autour de
+  la valeur optimale ; un échantillon de valorisation distinct ne fait pas
+  partie du contrat accepté ici.
+- **Réouvrir seulement si :** la sortie est présentée comme couvrant le biais
+  de politique ou la valeur optimale, ou si une erreur de moments est prouvée.
+
+### NUM-034 — Replays `frozen policy` et `frozen exercise`
+
+**Contrat accepté :** les gradients rejoués portent sur une politique ou des
+décisions d’exercice figées.
+
+- **État :** fermé le 2026-10-02 ; les deux estimateurs sont branchés selon
+  leurs contrats et la qualification supplémentaire de tests est laissée à
+  l'utilisateur.
+- **Preuve de portée :** lecture des kernels de replay, oracle de dates sur
+  l'américaine Black--Scholes, comparaisons `mono`/`node_graph` et tests CUDA
+  américains/bermudéens ciblés passés sur le build isolé SM89.
+- **Limite conservée :** les tests pathwise exhaustifs et la mesure du biais
+  contre un refit complet n'ont pas été effectués dans ce passage ; aucune
+  égalité à la dérivée de la valeur optimale n'est revendiquée.
+- **Réouvrir seulement si :** un payoff, une date, une actualisation ou un
+  moment de replay contredit le contrat publié sur un cas reproductible.
+
+### PERF-016 — Extrapolation des prix à un million de lignes
+
+- **État :** fermé le 2026-10-02 par décision de périmètre ; les mesures
+  existantes sont jugées suffisantes pour l'usage courant. Les mesures
+  supplémentaires accompagneront la simulation réelle de datasets si
+  l'utilisateur les demande.
+- **Preuve de portée :** les 29 cas à 1 000 prix et les rapports de scaling
+  historiques restent disponibles dans `docs/performance-reports/`.
+- **Limite conservée :** le rapport `T(10 000)/(10 T(1 000))` pour les onze
+  représentants proposés n'a pas été mesuré dans ce passage ; un million de
+  prix n'est pas une observation directe. La clôture ne valide pas une loi
+  linéaire universelle.
+- **Réouvrir seulement si :** une charge réelle de production montre un
+  écart de coût bloquant ou requiert cette campagne de dimensionnement.
 
 ## Remédiation de l'architecture `price_gradients` — 2026-09-19
 
@@ -18,7 +336,7 @@ Les anciens chemins de preuves `build-*` se retrouvent via le
   sélectionne les coordonnées scalaires et valide les scénarios bumpés. Le
   vocabulaire du checker reconnaît aussi le rôle canonique des nouveaux
   `parameter_domain.hpp`, sans exception propre à CIR.
-- **Preuve :** `python3 tools/cuda/check_model_layout.py` classe tous les
+- **Preuve :** `python3 maintainer/tools/cuda/check_model_layout.py` classe tous les
   fichiers modèle-produit et sort sans diagnostic.
 - **Réouvrir seulement si :** un helper modèle ou produit ne peut plus être
   classé par son en-tête, ou si une exception de chemin remplace de nouveau un
@@ -669,7 +987,7 @@ doit être conservé/exporté; il n'est pas fourni par un clone.
 - **Correction :** `CMAKE_CONFIGURE_DEPENDS` chez les trois propriétaires,
   règle dans `cmake/README.md`, aucune portée PUBLIC ajoutée.
 - **Preuve :** `cmake-inference.json/.log` : le test
-  `tests/build/inferred_dependencies_test.py` exerce les fonctions
+  `maintainer/tests/build/inferred_dependencies_test.py` exerce les fonctions
   de production dans un projet hôte isolé. Ajout **et retrait** d'includes,
   dépendances de test et générateur, compilation/lien et labels common/equity
   recalculés par le seul `cmake --build`.
@@ -726,8 +1044,8 @@ datées; [response.md](response.md) porte seul l'état courant.
   Phoenix Bates à 4 096 trajectoires; elle ne mesure pas un produit barrière
   pour chaque modèle/méthode jusqu'à 1 000 prix × 1 048 576 trajectoires.
   Arrêts anticipés et monitoring changent la charge par rapport au terminal.
-- **Preuve initiale :** `tests/performance/generic_kernel_benchmark.cu`,
-  `tests/performance/baseline_sm89_v3.json`,
+- **Preuve initiale :** `maintainer/tests/performance/generic_kernel_benchmark.cu`,
+  `maintainer/tests/performance/baseline_sm89_v3.json`,
   `src/common/equity/barrier_pricing_policy.cuh`.
 - **Décision :** les barrières restent des cas distincts dans le constat
   commun; même monitoring et charge comparable entre nombres de prix.
@@ -755,7 +1073,7 @@ datées; [response.md](response.md) porte seul l'état courant.
   trajectoires, 128 threads et 32 blocs/prix. Il ne qualifie pas chaque modèle
   à 1 000 prix × 1 048 576 trajectoires, ni les changements de concurrence
   induits par le workspace. Les sondes du 2026-09-05 restent exploratoires.
-- **Preuve initiale :** `tests/performance/early_exercise_benchmark.cu`,
+- **Preuve initiale :** `maintainer/tests/performance/early_exercise_benchmark.cu`,
   `src/common/longstaff_schwartz/longstaff_schwartz_kernels.cuh`,
   rapports LSM sous `docs/performance-reports`.
 - **Décision :** LSM equity et fixed income restent dans le suivi commun,
@@ -798,7 +1116,7 @@ datées; [response.md](response.md) porte seul l'état courant.
   retrouve les 3M maturités/observables bit à bit entre 256 et 128 threads.
   Première tentative refusée conservée; les nouveaux binaires sont figés
   dans une campagne distincte, pas substitués dans l'ancienne.
-- **Preuves :** [pilotes et empreintes](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json),
+- **Preuves :** [pilotes et empreintes](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json),
   logs et archive `sample-host-memory-sources.tar.gz` sous
   `build-dev/kou-lsm-launch-confirmation.zpDtZU`, SHA-256
   `5742ced6541138cbd417974604063aa83173e93e23a6e2686ac3e06e4341da8d`.
@@ -827,7 +1145,7 @@ datées; [response.md](response.md) porte seul l'état courant.
   La reprise des deux samples complets vérifie leurs hashes, conserve une
   seule tentative et ne relance aucun GPU. La tentative refusée par la garde
   mémoire reste enregistrée, corrigée séparément sous `STRUCT-024`.
-- **Preuves :** [artefacts, hashes, temps de processus et de contrôle distincts](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json).
+- **Preuves :** [artefacts, hashes, temps de processus et de contrôle distincts](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/native-generation-pilot.json).
   Les quatorze destinations JSON/YAML canoniques gardent leurs empreintes.
 - **Limites :** renommage atomique par fichier, pas par paire; pas de checkpoint
   à l'intérieur d'un dataset ni de garantie de temps pour 1M × `2^20`.
@@ -956,7 +1274,7 @@ datées; [response.md](response.md) porte seul l'état courant.
   SASS du banc. Pas de gain avant/après revendiqué : l'ancien chemin rejetait
   des lignes et sautait une partie du travail. Ni retuning, rebaseline,
   certification Premia/QuantLib ni qualification d'un autre GPU.
-- **Preuves conservées :** [synthèse, hashes, matrices et ressources](../../tests/performance/reports/generation-readiness-sm89-2026-09-08/jamshidian-correction.json),
+- **Preuves conservées :** [synthèse, hashes, matrices et ressources](../../maintainer/tests/performance/reports/generation-readiness-sm89-2026-09-08/jamshidian-correction.json),
   fixture `tests/fixtures/jamshidian_stress_rows.hpp`; contrat permanent dans
   `cuda/closed-form-and-monte-carlo-pricing-contract.md`. Les mesures
   historiquement incomplètes de `PERF-022` ne sont pas requalifiées.
@@ -2162,7 +2480,7 @@ historique de cloture.
 - **Clôture :** `tests/performance` possède les benchmarks, fixtures, baseline
   et preuves par architecture; `tools/performance` possède exécution, checker,
   rebaseline et profilage; `docs/performance-regression-protocol.md` porte le
-  contrat durable et `cmake/AIFactoryPerformance.cmake` le graphe de targets.
+  contrat durable et `maintainer/cmake/AIFactoryPerformance.cmake` le graphe de targets.
   Le protocole couvre 41 mesures, quatre frontières de temps et quatre rapports,
   interdit best-of-N et recomposition par clé, conserve chaque campagne brute,
   applique les budgets numériques, ressources compilées, VRAM et binaires, et
@@ -2178,7 +2496,7 @@ historique de cloture.
   et le diff exhaustif d'initialisation
   `205cee367c9b0b152b37a02b1477252949fa9cf9753de41d429524cbd2323717`.
   Les quatre rapports contiennent 18/8/4/11 mesures. Les huit artefacts Nsight
-  Compute 2026.2.1 sous `tests/performance/profiles/sm89` lient le symbole,
+  Compute 2026.2.1 sous `maintainer/tests/performance/profiles/sm89` lient le symbole,
   l'exécutable, le candidat, la baseline, l'environnement et le CSV brut pour
   CIR, sample rough N-factor, LSM Heston et rough SABR FFT. Les 27 tests
   fail-closed, le CTest `performance_baseline_checker`, le build performance
@@ -2413,7 +2731,7 @@ historique de cloture.
   interrompu à 170,54 → 150 W et `*-representative-rough-resume-01` à 175 →
   150 W, sans erreur CUDA et secteur déclaré avant/après. Expériences et
   études de génération bloquées; cela ne prouve pas une panne d'alimentation.
-- **Correction :** règle partagée dans `tools/performance/experiment_environment.py`,
+- **Correction :** règle partagée dans `maintainer/tools/performance/experiment_environment.py`,
   appliquée aux deux pilotes exploratoires. La puissance est observée avant,
   pendant et après; les excursions excluent les timings de façon persistante,
   mais ne tuent plus le calcul et n'empêchent plus le job suivant. Les
@@ -2463,7 +2781,7 @@ historique de cloture.
   branche ou attente thermique dans les quatre pilotes. Recherche globale
   sans seuil actif résiduel; `git diff --check` passe. Aucun test GPU lancé.
 - **Provenance :** le manifeste précédent complet est conservé sous
-  `tests/performance/history/baseline_sm89_v3_pre_perf_020.json`, SHA-256
+  `maintainer/tests/performance/history/baseline_sm89_v3_pre_perf_020.json`, SHA-256
   `de48e3a11fa4ccd50d59d151005e7b30fed2070e022346c4a36364d3a964c327`.
   Les 41 mesures, workloads et budgets statistiques/numériques/ressources
   restent strictement identiques. L'amendement de politique n'est pas une
@@ -2476,3 +2794,180 @@ historique de cloture.
   dans une expérience ou une génération de base, la télémétrie disparaît,
   ou cette suppression sert à masquer une dérive statistique, à réécrire les
   anciennes preuves ou à prétendre lever une protection/autorisation externe.
+
+## Corrections du 2026-10-06 — maturité rough et frontières
+
+### NUM-035 — Préserver les observations antérieures sous bump de maturité rough
+
+- **État :** corrigé et fermé le 2026-10-06. Le constat initial du
+  2026-10-05 démontrait que les calendriers régulier, régulier avec premier
+  intervalle différent et statique replaçaient les dates intermédiaires en
+  fonction du nombre de pas bumpé.
+- **Cause et correction :** `RoughPathPayoffNodePolicy::prepare_metadata`
+  préparait le calendrier avec `scenario.step_count` seul. Il transmet
+  maintenant aussi `scenario.central_step_count`. Les préfixes gardent leurs
+  indices centraux ; la dernière observation suit le nombre de pas du nœud.
+  Les calendriers terminal et dense conservent leur convention.
+- **Preuve :** `rough_path_schedule_node_graph_cuda` enregistre sur GPU
+  chaque callback et son payoff pondéré. Pour 503, 504 et 505 pas autour de
+  504, les jours 21, 42, …, 231 du calendrier régulier, les dates d'un
+  calendrier à premier intervalle différent et le reset statique au jour
+  126 gardent exactement leur indice central ; seul le terme vaut
+  respectivement 503, 504 ou 505. Le même test lance la sensibilité
+  `product.maturity_years` des graphes cliquet et forward-start FFT ;
+  `rough_lift_path_node_graph_cuda` lance ces deux produits dans le
+  graphe N-facteurs. Les deux tests passent sur SM89/CUDA 12.9.
+- **Limite :** ce passage vérifie la règle de calendrier et l'exécution des
+  nœuds, pas une campagne de convergence ou une référence indépendante de
+  chaque dérivée rough publiée. `NUM-028` à `NUM-030` restent distincts.
+- **Réouvrir seulement si :** un bump de maturité déplace une observation
+  contractuelle antérieure, perd l'événement terminal ou produit une
+  divergence pathwise sur une même trajectoire et un même calendrier.
+
+### FACTOR-003 — Isoler la policy terminale commune des graphes rough
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Cause et correction :** le graphe FFT incluait tout le header d'exécution
+  du lift pour accéder à `PreparedLiftTerminalNodePolicy`. Cette policy vit
+  désormais dans `src/common/volterra/price_gradients/terminal_node_policy.cuh`,
+  incluse directement par FFT et lift. L'include de produit option européenne
+  implicite a été remplacé par un include explicite dans son binding.
+- **Preuve :** `gaussian_fft_node_graph.cuh` n'inclut plus
+  `prepared_lift_node_graph.cuh`. Les tests CUDA
+  `rough_gaussian_node_graph_cuda`, `rough_heston_digital_node_graph_cuda`
+  et `rough_lift_node_graph_cuda` passent sur le build isolé SM89.
+- **Réouvrir seulement si :** un moteur terminal dépend de nouveau du header
+  d'exécution de l'autre moteur pour une simple policy ou si une parité
+  prix/nœud représentative se rompt.
+
+### BOUNDARY-008 — Ranger l'adaptation de maturité swaption sous le produit
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Cause et correction :** `common/fixed_income/price_gradients/terminal_maturity.cuh`
+  incluait la ligne concrète swaption et construisait sa vue de maturité.
+  Le commun porte désormais la vue de paiements et la délégation
+  `TerminalMaturityRow`; la spécialisation et la construction de
+  `PreparedEuropeanSwaptionRow` résident dans
+  `product/european_swaption/price_gradients/terminal_maturity.cuh`.
+  Le template codegen analytique et ses unités générées incluent l'adapter
+  depuis leur voie de sensibilités ; la voie Monte Carlo l'inclut directement.
+- **Preuve :** le header commun n'inclut plus de produit. Les sensibilités
+  analytiques CIR et leurs tests CUDA passent, y compris le coupon terminal
+  bumpé ; les cibles Hull–White/Flat analytique et G2 Monte Carlo compilent.
+  `check_model_layout.py` et `git diff --check` passent.
+- **Réouvrir seulement si :** un header commun de maturité dépend de nouveau
+  d'une ligne swaption concrète ou si l'adaptation de coupon terminal change
+  un prix ou une sensibilité représentative.
+
+
+## Clôture du 2026-10-06 — façades sans consommateur
+
+### BOUNDARY-005 — Retirer les treize anciens alias d'exercice gelé
+
+- **État :** réouverture du 2026-10-06 corrigée et fermée le même jour. La clôture historique de 2026-08-27 demeure plus haut dans cette archive.
+- **Correction :** les sept headers `frozen_exercise_node_graph` et `device_prepared_frozen_exercise_kernels.cuh` du commun, ainsi que trois headers American et trois Bermudan, ont été supprimés. Chacun contenait seulement un commentaire, `#pragma once` et un include vers l'équivalent `frozen_replay`. Le dossier devenu vide a été retiré.
+- **Preuve :** aucun include ni référence de ces treize chemins dans `src`, `tools`, `tests`, `catalog`, `work` ou les templates. Le projet n'installe pas ces headers comme API publique. La régénération complète du codegen produit 7 036 sorties identiques au worktree et ne signale aucune sortie orpheline. Les unités CUDA `black_scholes/product/american_option_price_gradients.cu` et `ornstein_uhlenbeck/product/bermudan_swaption_price_gradients.cu` recompilent avec CUDA 12.9/SM89 après retrait.
+- **Limite :** un client externe qui incluait directement un ancien alias privé devrait passer au chemin `frozen_replay` ; aucun contrat de compatibilité externe n'a été identifié.
+- **Réouvrir seulement si :** un consommateur pris en charge de ces anciens chemins est démontré, ou si une composition American/Bermudan échoue à compiler à cause du retrait.
+
+## Clôture du 2026-10-06 — démarrage public et scripts privés
+
+### DOC-004 — Aligner le Quick start avec les fichiers versionnés
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Correction :** les deux scripts d'accès et de préparation de la machine PPTI
+  restent locaux et sont ignorés explicitement par Git. Le README et les
+  guides publics ne demandent plus de les exécuter ; leur procédure est
+  conservée dans `maintainer/evidence/local-docs/ppti.md`, lui-même ignoré. Les trois
+  scripts génériques appelés par le Quick start sont ajoutés à l'index Git :
+  `maintainer/tools/install-local-cuda12.sh`, `maintainer/tools/check-rough-cuda.sh` et
+  `tools/run_generator.py`.
+- **Preuve :** `git check-ignore -v` confirme les deux scripts privés et la
+  note locale ; `git ls-files` ne retourne que les trois scripts publics.
+  Les six invocations de scripts figurant dans le README pointent vers ces
+  fichiers suivis. `bash -n` passe sur les deux scripts shell publics et
+  `run_generator.py local-sm89 --list` s'exécute. Aucun appel aux deux
+  scripts privés ne subsiste dans le README, le guide CMake ou le plan des
+  artefacts. `git diff --check` passe sur les fichiers modifiés.
+- **Limite :** l'installation CUDA, les tests GPU et la génération complète
+  demandent le matériel et les dépendances correspondants ; la clôture
+  porte sur l'autonomie des commandes documentées.
+- **Réouvrir seulement si :** une commande d'entrée publique dépend à nouveau
+  d'un fichier non versionné ou si un script privé est ajouté à l'index Git.
+
+
+## Reprise des frontières et factorisations — 2026-10-06
+
+Les cinq clôtures ci-dessous portent sur les signatures rouvertes ou relevées
+ce jour, dans le worktree courant. [Le résultat et les commandes de
+validation](../../artifacts/audit/nonrough-2026-10-06/result.json) fixent le
+build SM89/CUDA 12.9, les tests et la comparaison complète du codegen.
+
+### BOUNDARY-001 — Rendre la progression LSM indépendante de tools
+
+- **État :** réouverture corrigée et fermée le 2026-10-06 ; la clôture
+  historique reste conservée plus haut dans cette archive.
+- **Correction :** le moteur LSM appelle un observateur hôte neutre sous
+  `src/common/longstaff_schwartz/host_progress.cuh` après la synchronisation
+  de chaque batch. `ScopedGenerationProgress` l'adapte à la télémétrie
+  offline uniquement dans `tools/cuda`.
+- **Preuve :** aucun include ni appel `tools` sous `src`; les prix American et
+  Bermudan et leurs générateurs représentatifs compilent ; le test GPU du
+  runner vérifie l'installation et la restauration du callback, et le test
+  LSM vérifie sa notification. Les tests de prix restent conformes.
+- **Réouvrir seulement si :** une dépendance offline revient sous `src` ou
+  si le suivi de batches perd une notification après synchronisation.
+
+### STRUCT-001 — Placer la composition européenne rough sous son produit
+
+- **État :** réouverture corrigée et fermée le 2026-10-06.
+- **Correction :** `GaussianTerminalProductNodeGraph` vit dans le header
+  générique `common/volterra/price_gradients/gaussian_terminal_product_graph.cuh`.
+  Les compositions et alias européens vivent sous
+  `product/european_option/price_gradients` ; les bindings rough incluent
+  explicitement ce produit lorsqu'ils en ont besoin.
+- **Preuve :** aucun include de produit concret sous
+  `src/common/volterra/price_gradients`; tests CUDA des graphes Gaussian FFT,
+  lift, path et digital rough Heston/Bergomi passés ; codegen complet comparé
+  sans différence.
+- **Réouvrir seulement si :** un graphe générique réintroduit un header
+  européen ou si une composition terminale non européenne en dépend.
+
+### FACTOR-004 — Déplacer la géométrie des tâches de gradients hors du lanceur LSM
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Correction :** le lanceur de prix connaît seulement les hooks explicites
+  `maximum_batch_size` et `validate_batch_grid` des inputs composés.
+  American et Bermudan calculent et valident eux-mêmes le nombre de tâches
+  de gradients par batch.
+- **Preuve :** aucun symbole `price_gradients` dans le lanceur LSM ; les
+  tests prix et gradients American/Bermudan passent, pour les deux replays.
+  Le test de frontière accepte 16 383 lignes × quatre tâches sous
+  `gridDim.y=65 535` et rejette 16 384 lignes.
+- **Réouvrir seulement si :** le lanceur partagé inspecte de nouveau les
+  champs de gradients ou dépasse la grille de la policy composée.
+
+### FACTOR-005 — Couvrir la branche résiduelle dans le concept de régression
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Correction :** `ResidualRefinementRegressor` vérifie les trois appels
+  résiduels uniquement lorsque `kRefineNormalResidual` est vrai.
+- **Preuve :** les assertions de compilation acceptent le faux régresseur
+  sans branche résiduelle quand le booléen est faux, le refusent quand il
+  est vrai, et acceptent le régresseur de production. Le test CUDA de la
+  régression LSM passe.
+- **Réouvrir seulement si :** le moteur appelle une opération non annoncée
+  par le concept dans une branche de raffinement.
+
+### NAME-014 — Nommer la source de vérité des produits equity
+
+- **État :** corrigé et fermé le 2026-10-06.
+- **Correction :** `EquityProductBinding` et `EQUITY_PRODUCT_BINDINGS`
+  remplacent les noms rough dans le manifeste, le codegen, le manifeste
+  de capacités et son guide, sans seconde liste de produits.
+- **Preuve :** la recherche des anciens symboles ne donne aucun consommateur
+  sous `src`, `tools/codegen` ou les tests ; les 34 tests de capacités passent.
+  La génération complète et la comparaison au worktree n'ont aucune
+  différence de sortie.
+- **Réouvrir seulement si :** l'ajout d'un produit equity exige une seconde
+  table centrale ou si les capacités Markovian/rough divergent sans règle.

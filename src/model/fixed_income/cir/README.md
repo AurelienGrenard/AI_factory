@@ -113,6 +113,17 @@ D(0,t)=e^{-I_t}.
 
 Shared rate and swap identities: [fixed-income rate reference](../../../common/fixed_income/fixed-income-rate-identities-reference.md).
 
+## Jamshidian sensitivities
+
+European payer and receiver swaptions expose prices and first derivatives
+through the CIR closed-form Jamshidian binding. Diagonal and mixed Hessians
+are unsupported in its FP32 pricing path. The sensitivity preparation and
+launchers reject second-order requests explicitly. Small finite-difference
+bumps amplify nodal-price roundoff; an independent CIR T-forward reference
+and QuantLib cross-check established incorrect second-order outputs on both
+ordinary and stress cases. See the
+[fixed-income sensitivity contract](../../../../docs/cuda/fixed-income-price-gradients-contract.md).
+
 ## Related contracts
 
 Shared product and engine contracts: [fixed-income entry point](../README.md).

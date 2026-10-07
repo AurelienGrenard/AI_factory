@@ -7,12 +7,13 @@
 #include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
 #include "common/fixed_income/price_gradients/closed_form_policy.cuh"
 #include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
 ${implementation_include}
 #include <stdexcept>
 
 namespace ai_factory::workbench::model::fixed_income::${binding_namespace} {
-
+${shared_scalar_policy_definition}
 void prepare_european_swaption_price_gradient_stencils_cuda(
     const EuropeanSwaptionPriceGradientPlan& host,
     EuropeanSwaptionPriceGradientPlan::DeviceInputs device,
@@ -33,7 +34,7 @@ void prepare_european_swaption_diagonal_sensitivity_stencils_cuda(
     std::size_t result_offset,
     std::size_t result_count
 ) {
-    pg::prepare_device_sensitivity_stencils<
+${second_order_guard}    pg::prepare_device_sensitivity_stencils<
         pg::SensitivityOrders::first_and_second
     >(
         host, device, stencil_outputs, result_offset, result_count,
@@ -65,7 +66,7 @@ void launch_sensitivities(
         );
     }
     using PricingPolicy = ${pricing_policy};
-    using Policy = ${scenario_policy};
+${scenario_policy_declaration}
     const auto sensitivity_outputs = pg::as_sensitivity_outputs(outputs);
     const bool cooperative =
         distribution == closed_form::WorkDistribution::cooperative
@@ -117,7 +118,7 @@ void launch_${function_prefix}_european_swaption_diagonal_sensitivities_cuda(
     closed_form::WorkDistribution distribution
 ) {
     static_assert(pg::requests_second_v<Orders>);
-    launch_sensitivities<Side, Orders>(
+${second_order_guard}    launch_sensitivities<Side, Orders>(
         host, device, stencil_outputs, configuration, outputs, distribution
     );
 }
@@ -128,7 +129,7 @@ std::size_t ${function_prefix}_european_swaption_mixed_node_graph_workspace_byte
     const pg::LaunchConfiguration& configuration
 ) {
     (void)configuration;
-    return closed_form::price_gradients::mixed_workspace_bytes(host);
+${second_order_guard}    return closed_form::price_gradients::mixed_workspace_bytes(host);
 }
 
 template<SwaptionSide Side>
@@ -144,14 +145,14 @@ void launch_${function_prefix}_european_swaption_mixed_node_graph_sensitivities_
     std::size_t workspace_bytes,
     closed_form::WorkDistribution distribution
 ) {
-    if (distribution != closed_form::WorkDistribution::scalar
+${second_order_guard}    if (distribution != closed_form::WorkDistribution::scalar
         && distribution != closed_form::WorkDistribution::cooperative) {
         throw std::invalid_argument(
             "Unknown ${diagnostic_name} mixed-sensitivity work distribution."
         );
     }
     using PricingPolicy = ${pricing_policy};
-    using Policy = ${scenario_policy};
+${scenario_policy_declaration}
     const bool cooperative =
         distribution == closed_form::WorkDistribution::cooperative
         && host.maximum_payment_count > 1U

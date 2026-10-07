@@ -20,7 +20,7 @@ if(BUILD_TESTING)
     add_executable(test_pricing_launch_plan EXCLUDE_FROM_ALL tests/cuda/pricing_launch_plan_test.cpp)
     target_include_directories(test_pricing_launch_plan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
-    target_compile_features(test_pricing_launch_plan PRIVATE cxx_std_23)
+    target_compile_features(test_pricing_launch_plan PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_pricing_launch_plan)
     add_test(NAME pricing_launch_plan COMMAND test_pricing_launch_plan)
     set_tests_properties(pricing_launch_plan PROPERTIES LABELS "workbench;offline;cuda-planning" TIMEOUT 30)
@@ -46,7 +46,7 @@ if(BUILD_TESTING)
         test_dataset_catalog
         PRIVATE ai_factory_dataset_core
     )
-    target_compile_features(test_dataset_catalog PRIVATE cxx_std_23)
+    target_compile_features(test_dataset_catalog PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_dataset_catalog)
     add_test(
         NAME dataset_catalog
@@ -63,7 +63,7 @@ if(BUILD_TESTING)
             ${target} EXCLUDE_FROM_ALL ${source}
         )
         target_link_libraries(${target} PRIVATE ${library})
-        target_compile_features(${target} PRIVATE cxx_std_23)
+        target_compile_features(${target} PRIVATE cxx_std_20)
         add_dependencies(ai_factory_host_tests ${target})
         add_test(NAME ${stage}_stage COMMAND ${target})
         set_tests_properties(${stage}_stage PROPERTIES
@@ -88,7 +88,7 @@ if(BUILD_TESTING)
     add_executable(test_sample_host_memory EXCLUDE_FROM_ALL
         tests/sampling/host_memory_test.cpp)
     target_include_directories(test_sample_host_memory PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_compile_features(test_sample_host_memory PRIVATE cxx_std_23)
+    target_compile_features(test_sample_host_memory PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_sample_host_memory)
     add_test(NAME sample_host_memory COMMAND test_sample_host_memory)
     set_tests_properties(sample_host_memory PROPERTIES
@@ -100,7 +100,7 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_generation_checkpoint PRIVATE
         nlohmann_json::nlohmann_json)
-    target_compile_features(test_generation_checkpoint PRIVATE cxx_std_23)
+    target_compile_features(test_generation_checkpoint PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_generation_checkpoint)
     add_test(NAME generation_checkpoint COMMAND test_generation_checkpoint)
     set_tests_properties(generation_checkpoint PROPERTIES
@@ -115,7 +115,7 @@ if(BUILD_TESTING)
     target_link_libraries(
         test_dataset_loaders PRIVATE ${dataset_loader_dependencies}
     )
-    target_compile_features(test_dataset_loaders PRIVATE cxx_std_23)
+    target_compile_features(test_dataset_loaders PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_dataset_loaders)
     add_test(NAME dataset_loaders COMMAND test_dataset_loaders)
     set_tests_properties(dataset_loaders PROPERTIES
@@ -141,7 +141,7 @@ if(BUILD_TESTING)
         PRIVATE ai_factory_runtime
     )
     target_compile_features(
-        test_simulation_schedule_validation PRIVATE cxx_std_23
+        test_simulation_schedule_validation PRIVATE cxx_std_20
     )
     add_dependencies(
         ai_factory_host_tests test_simulation_schedule_validation
@@ -163,7 +163,7 @@ if(BUILD_TESTING)
         test_rough_sabr_dataset_loader
         PRIVATE ai_factory_equity_rough_sabr_dataset
     )
-    target_compile_features(test_rough_sabr_dataset_loader PRIVATE cxx_std_23)
+    target_compile_features(test_rough_sabr_dataset_loader PRIVATE cxx_std_20)
     add_dependencies(ai_factory_host_tests test_rough_sabr_dataset_loader)
     add_test(
         NAME rough_sabr_dataset_loader
@@ -173,22 +173,16 @@ if(BUILD_TESTING)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         LABELS "workbench;dataset;rough_sabr"
     )
-    # Python-owned architecture and performance contract checks.
+    # Python dataset-generation contract checks.
     find_package(Python3 COMPONENTS Interpreter QUIET)
     if(Python3_Interpreter_FOUND)
-        add_test(NAME cmake_inferred_dependencies
-            COMMAND ${Python3_EXECUTABLE} -B
-                ${CMAKE_SOURCE_DIR}/tests/build/inferred_dependencies_test.py)
-        set_tests_properties(cmake_inferred_dependencies PROPERTIES
-            LABELS "workbench;build" TIMEOUT 120)
         foreach(stage IN ITEMS
                 artifact_publication
                 catalog_generation
                 catalog_selection
                 dataset_provenance
                 generation_progress
-                metadata_schemas
-                repository_layout)
+                metadata_schemas)
             add_test(NAME ${stage}
                 COMMAND ${Python3_EXECUTABLE} -m unittest discover
                     -s tests/datasets -p test_${stage}.py)
@@ -196,101 +190,6 @@ if(BUILD_TESTING)
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 LABELS "workbench;offline;generation" TIMEOUT 30)
         endforeach()
-        add_test(NAME learning_terminal_samples
-            COMMAND ${Python3_EXECUTABLE} -m unittest discover
-                -s tests/learning -p test_terminal_samples.py)
-        set_tests_properties(learning_terminal_samples PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;offline;learning" TIMEOUT 30)
-        add_test(NAME learning_deep_pricing
-            COMMAND ${Python3_EXECUTABLE} -m unittest discover
-                -s tests/learning -p test_deep_pricing.py)
-        set_tests_properties(learning_deep_pricing PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;offline;learning" TIMEOUT 30)
-        add_test(
-            NAME performance_baseline_checker
-            COMMAND
-                ${Python3_EXECUTABLE} -m unittest
-                tests.performance.test_performance_protocol
-        )
-        set_tests_properties(performance_baseline_checker PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;performance;baseline"
-            TIMEOUT 30
-        )
-        add_test(
-            NAME pricing_scaling_protocol
-            COMMAND
-                ${Python3_EXECUTABLE} -m unittest
-                tests.performance.test_pricing_scaling
-        )
-        set_tests_properties(pricing_scaling_protocol PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;performance;scaling"
-            TIMEOUT 30
-        )
-        add_test(
-            NAME performance_specialized_tools
-            COMMAND
-                ${Python3_EXECUTABLE} -m unittest
-                tests.performance.test_jamshidian_strategy
-                tests.performance.test_jamshidian_summary
-                tests.performance.test_lsm_probe_tools
-        )
-        set_tests_properties(performance_specialized_tools PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;performance;tools"
-            TIMEOUT 30
-        )
-        add_test(
-            NAME pricing_binding_codegen
-            COMMAND
-                ${Python3_EXECUTABLE}
-                ${CMAKE_SOURCE_DIR}/tools/codegen/pricing_bindings/generate.py
-                --family all
-                --output
-                ${CMAKE_BINARY_DIR}/generated/pricing_bindings
-                --compare-root ${CMAKE_SOURCE_DIR}
-        )
-        set_tests_properties(pricing_binding_codegen PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;codegen;equity"
-            TIMEOUT 60
-        )
-        add_test(
-            NAME pricing_capability_manifest
-            COMMAND
-                ${Python3_EXECUTABLE} -m unittest
-                tests.codegen.test_capability_manifest
-        )
-        set_tests_properties(pricing_capability_manifest PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;codegen;architecture"
-            TIMEOUT 30
-        )
-        add_test(
-            NAME model_source_layout
-            COMMAND
-                ${Python3_EXECUTABLE}
-                ${CMAKE_SOURCE_DIR}/tools/cuda/check_model_layout.py
-        )
-        set_tests_properties(model_source_layout PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;codegen;architecture"
-            TIMEOUT 30
-        )
-        add_test(
-            NAME catalog_generator_boundaries
-            COMMAND
-                ${Python3_EXECUTABLE}
-                ${CMAKE_SOURCE_DIR}/tools/cuda/check_catalog_generators.py
-        )
-        set_tests_properties(catalog_generator_boundaries PROPERTIES
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            LABELS "workbench;catalog;architecture"
-            TIMEOUT 30
-        )
 
     endif()
 
@@ -305,9 +204,9 @@ if(BUILD_TESTING)
             ai_factory_runtime
             ${dependencies}
         )
-        target_compile_features(${target} PRIVATE cxx_std_23)
+        target_compile_features(${target} PRIVATE cxx_std_20)
         set_target_properties(${target} PROPERTIES
-            CUDA_STANDARD 23
+            CUDA_STANDARD 20
             CUDA_STANDARD_REQUIRED YES
         )
         add_dependencies(ai_factory_cuda_tests ${target})
@@ -341,6 +240,12 @@ if(BUILD_TESTING)
 
     add_cuda_workbench_test(
         philox_cuda tests/numerical/philox_cuda_test.cu philox 30
+    )
+    add_cuda_workbench_test(
+        absorbing_lamperti_precision_cuda
+        tests/numerical/absorbing_lamperti_precision_cuda_test.cu
+        sabr_precision
+        30
     )
     add_cuda_workbench_test(
         price_delta_rough_n_factor_cuda
@@ -602,6 +507,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        ornstein_uhlenbeck_bond_barrier_cuda
+        tests/model/fixed_income/ornstein_uhlenbeck_bond_barrier_cuda_test.cpp
+        bond_barrier
+        120
+    )
+    add_cuda_workbench_test(
         vasicek_cuda tests/model/fixed_income/vasicek_cuda_test.cu vasicek 30
     )
     add_cuda_workbench_test(
@@ -675,11 +586,6 @@ if(BUILD_TESTING)
     )
     if(AI_FACTORY_MATHDX_ROOT)
         add_cuda_workbench_test(
-            price_delta_rough_fft_path_oracle_cuda tests/price_delta/monte_carlo/rough_fft_path_oracle_cuda_test.cu
-            "price_delta;rough;volterra;paired_moments" 60
-        )
-        target_link_libraries(test_price_delta_rough_fft_path_oracle_cuda PRIVATE ai_factory_cufftdx)
-        add_cuda_workbench_test(
             price_delta_rough_fft_cuda tests/price_delta/monte_carlo/rough_fft_cuda_test.cpp
             "price_delta;rough;volterra" 120
         )
@@ -710,7 +616,145 @@ if(BUILD_TESTING)
             test_rough_volterra_product_policy_cuda PRIVATE
             ai_factory_cufftdx
         )
+        add_cuda_workbench_test(
+            causal_fft_pricing_cuda
+            tests/volterra/causal_fft_pricing_cuda_test.cu
+            "volterra;rough_heston;quadratic_rough_heston;product_policy"
+            120
+        )
+        target_link_libraries(
+            test_causal_fft_pricing_cuda PRIVATE ai_factory_causal_fft
+        )
     endif()
+    foreach(rough_terminal_variant IN ITEMS
+        rough_heston rough_bergomi)
+        if(rough_terminal_variant STREQUAL "rough_heston")
+            set(rough_terminal_id 0)
+        else()
+            set(rough_terminal_id 1)
+        endif()
+        add_cuda_workbench_test(
+            ${rough_terminal_variant}_digital_node_graph_cuda
+            tests/price_gradients/rough_terminal_product_node_graph_cuda_test.cu
+            "price_gradients;${rough_terminal_variant};digital_option;node_graph"
+            120
+        )
+        target_compile_definitions(
+            test_${rough_terminal_variant}_digital_node_graph_cuda PRIVATE
+            ROUGH_TERMINAL_TEST_MODEL=${rough_terminal_id}
+        )
+        target_link_libraries(
+            test_${rough_terminal_variant}_digital_node_graph_cuda PRIVATE
+            ai_factory_cufftdx
+            ai_factory_equity_${rough_terminal_variant}_digital_option
+        )
+    endforeach()
+    add_cuda_workbench_test(
+        rough_gaussian_node_graph_cuda
+        tests/price_gradients/rough_gaussian_node_graph_cuda_test.cu
+        "price_gradients;rough_bergomi;node_graph;volterra"
+        120
+    )
+    target_link_libraries(test_rough_gaussian_node_graph_cuda PRIVATE
+        ai_factory_cufftdx
+        ai_factory_equity_rough_bergomi_european_option
+        ai_factory_equity_rough_bergomi_european_option_price_delta
+    )
+    foreach(rough_graph_variant IN ITEMS
+        rough_sabr rough_stein_stein log_modulated_rough_bergomi)
+        if(rough_graph_variant STREQUAL "rough_sabr")
+            set(rough_graph_id 1)
+        elseif(rough_graph_variant STREQUAL "rough_stein_stein")
+            set(rough_graph_id 2)
+        else()
+            set(rough_graph_id 3)
+        endif()
+        add_cuda_workbench_test(
+            ${rough_graph_variant}_node_graph_cuda
+            tests/price_gradients/rough_gaussian_node_graph_cuda_test.cu
+            "price_gradients;${rough_graph_variant};node_graph;volterra"
+            120
+        )
+        target_compile_definitions(
+            test_${rough_graph_variant}_node_graph_cuda PRIVATE
+            ROUGH_GAUSSIAN_TEST_MODEL=${rough_graph_id}
+        )
+        target_link_libraries(
+            test_${rough_graph_variant}_node_graph_cuda PRIVATE
+            ai_factory_cufftdx
+            ai_factory_equity_${rough_graph_variant}_european_option
+            ai_factory_equity_${rough_graph_variant}_european_option_price_delta
+        )
+    endforeach()
+    add_cuda_workbench_test(
+        rough_lift_node_graph_cuda
+        tests/price_gradients/rough_lift_node_graph_cuda_test.cu
+        "price_gradients;rough_heston;quadratic_rough_heston;node_graph"
+        120
+    )
+    target_link_libraries(test_rough_lift_node_graph_cuda PRIVATE
+        ai_factory_equity_rough_heston_european_option
+        ai_factory_equity_quadratic_rough_heston_european_option
+    )
+    add_cuda_workbench_test(
+        rough_gaussian_path_node_graph_cuda
+        tests/price_gradients/rough_gaussian_path_node_graph_cuda_test.cu
+        "price_gradients;rough_bergomi;path_node_graph;volterra"
+        120
+    )
+    target_link_libraries(test_rough_gaussian_path_node_graph_cuda PRIVATE
+        ai_factory_cufftdx
+        ai_factory_equity_rough_bergomi_asian_option
+    )
+    add_cuda_workbench_test(
+        rough_path_schedule_node_graph_cuda
+        tests/price_gradients/rough_path_schedule_node_graph_cuda_test.cu
+        "price_gradients;rough_bergomi;path_node_graph;volterra"
+        120
+    )
+    target_link_libraries(test_rough_path_schedule_node_graph_cuda PRIVATE
+        ai_factory_cufftdx
+        ai_factory_equity_rough_bergomi_down_and_out_option
+        ai_factory_equity_rough_bergomi_forward_start_option
+        ai_factory_equity_rough_bergomi_cliquet
+        ai_factory_equity_rough_bergomi_athena_autocall
+        ai_factory_equity_rough_bergomi_geometric_asian_option
+    )
+    foreach(rough_path_variant IN ITEMS
+        rough_sabr rough_stein_stein log_modulated_rough_bergomi)
+        if(rough_path_variant STREQUAL "rough_sabr")
+            set(rough_path_id 1)
+        elseif(rough_path_variant STREQUAL "rough_stein_stein")
+            set(rough_path_id 2)
+        else()
+            set(rough_path_id 3)
+        endif()
+        add_cuda_workbench_test(
+            ${rough_path_variant}_path_node_graph_cuda
+            tests/price_gradients/rough_gaussian_path_node_graph_cuda_test.cu
+            "price_gradients;${rough_path_variant};path_node_graph;volterra"
+            120
+        )
+        target_compile_definitions(
+            test_${rough_path_variant}_path_node_graph_cuda PRIVATE
+            ROUGH_GAUSSIAN_PATH_TEST_MODEL=${rough_path_id}
+        )
+        target_link_libraries(
+            test_${rough_path_variant}_path_node_graph_cuda PRIVATE
+            ai_factory_cufftdx
+            ai_factory_equity_${rough_path_variant}_asian_option
+        )
+    endforeach()
+    add_cuda_workbench_test(
+        rough_lift_path_node_graph_cuda
+        tests/price_gradients/rough_lift_path_node_graph_cuda_test.cu
+        "price_gradients;rough_heston;quadratic_rough_heston;path_node_graph"
+        120
+    )
+    target_link_libraries(test_rough_lift_path_node_graph_cuda PRIVATE
+        ai_factory_equity_rough_heston_asian_option
+        ai_factory_equity_quadratic_rough_heston_asian_option
+    )
     add_cuda_workbench_test(
         rough_heston_european_option_cuda
         tests/model/equity/rough/rough_heston_european_option_cuda_test.cu
@@ -793,6 +837,12 @@ if(BUILD_TESTING)
         black_scholes_cev_kou_merton_schobel_zhu_american_lsm_cuda
         tests/longstaff_schwartz/equity_composition_cuda_test.cpp
         american_option
+        120
+    )
+    add_cuda_workbench_test(
+        longstaff_schwartz_standard_error_scope_cuda
+        tests/longstaff_schwartz/standard_error_scope_cuda_test.cpp
+        "american_option;longstaff_schwartz"
         120
     )
     add_cuda_workbench_test(

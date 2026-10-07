@@ -34,9 +34,12 @@ L_t=\frac{S_t^{1-\beta}}{1-\beta},\qquad
 -\frac{\beta\alpha_t^2}{2(1-\beta)L_t}\,\mathrm dt.
 ```
 
-The transformed state is floored before mapping it back to spot. This is an
-explicit numerical convention near zero, not an exact treatment of CEV
-absorption.
+The discrete Lamperti proposal is absorbed at zero when it is non-positive;
+once absorbed, the spot remains zero. For a positive proposal, the code
+updates `log(S)` with `log1p` of the *relative* Lamperti increment. This
+avoids the loss of float precision caused by reconstructing a large Lamperti
+coordinate when `beta` is close to one. Absorption is a convention of this
+time-stepping scheme; crossings within a step are not resolved.
 
 ## Numerical scheme
 

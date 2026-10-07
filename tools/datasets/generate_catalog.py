@@ -59,6 +59,7 @@ def select_specs(
     model_families: set[str] | None = None,
     constructions: set[str] | None = None,
     skip_published: bool = False,
+    catalog_only: bool = False,
 ) -> list:
     """Filter manifest specs and optionally exclude complete published pairs."""
     asset_classes = asset_classes or set()
@@ -79,6 +80,10 @@ def select_specs(
         if model_families and source_family(spec) not in model_families:
             continue
         if constructions and spec.construction not in constructions:
+            continue
+        if catalog_only and not contained_path(root, spec.generator_path).is_relative_to(
+            root.resolve() / "catalog"
+        ):
             continue
         if (root / "catalog/manifest.json").is_file():
             generator = contained_path(root, spec.generator_path)
@@ -118,6 +123,7 @@ def inventory(
     model_families: set[str] | None = None,
     constructions: set[str] | None = None,
     skip_published: bool = False,
+    catalog_only: bool = False,
 ) -> list[dict]:
     sys.path.insert(0, str(root / "tools/codegen/pricing_bindings"))
     from capability_manifest import (
@@ -137,6 +143,7 @@ def inventory(
         model_families=model_families,
         constructions=constructions,
         skip_published=skip_published,
+        catalog_only=catalog_only,
     )
     for spec in selected:
         source = contained_path(root, spec.generator_path).read_text()
@@ -362,12 +369,16 @@ def copy_frozen(source: Path, destination: Path) -> str:
     return expected
 
 
-def require_current_build(root: Path, build: Path, jobs: list[dict]) -> None:
+def require_current_build(root: Path, build: Path, jobs: list[dict],
+                          input_overrides: dict[str, Path] | None = None) -> None:
     """Use the native build graph to reject missing or stale generation prerequisites."""
+    input_overrides = input_overrides or {}
     targets = [job["target"] for job in jobs]
     if any(job["kind"] in {"prices", "price_gradients"} for job in jobs):
         targets.append("inspect_pricing_launch_plan")
-    for path in [build / target for target in targets] + [root / item for job in jobs for item in job["inputs"]]:
+    inputs = [input_overrides.get(item, contained_path(root, item))
+              for job in jobs for item in job["inputs"]]
+    for path in [build / target for target in targets] + inputs:
         if not path.is_file():
             raise ValueError(f"Missing build/input prerequisite: {path}")
     # Refuse stale binaries. Build explicitly before starting the campaign.
@@ -448,8 +459,13 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
     return {**description, "semantic_inputs": input_fingerprints(inputs, job["inputs"])}
 
 
-def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) -> dict:
-    require_current_build(root, build, jobs)
+def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
+           input_overrides: dict[str, Path] | None = None) -> dict:
+    input_overrides = input_overrides or {}
+    declared_inputs = {item for job in jobs for item in job["inputs"]}
+    if set(input_overrides) - declared_inputs:
+        raise ValueError("Input override is not used by the selected generators")
+    require_current_build(root, build, jobs, input_overrides)
     revision = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=root, text=True
     ).strip()
@@ -486,9 +502,13 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
             contained_path(root, launch_manifest),
             contained_path(run / "inputs", launch_manifest),
         )
-    for relative in sorted({item for job in jobs for item in job["inputs"]}):
-        state["input_hashes"][relative] = copy_frozen(contained_path(root, relative),
+    state["input_origins"] = {}
+    for relative in sorted(declared_inputs):
+        source = input_overrides.get(relative, contained_path(root, relative))
+        state["input_hashes"][relative] = copy_frozen(source,
                                                       contained_path(run / "inputs", relative))
+        if relative in input_overrides:
+            state["input_origins"][relative] = str(source.resolve())
     for job in jobs:
         job["binary_sha256"] = copy_frozen(build / job["target"], run / "bin" / job["target"])
         job["generator_sha256"] = copy_frozen(
@@ -520,7 +540,7 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool) 
             job["checkpoint"] = f"jobs/{job['target']}/checkpoint"
             job["checkpoint_id"] = fingerprint(checkpoint_contract)
         job["state"] = "pending"
-    require_current_build(root, build, jobs)
+    require_current_build(root, build, jobs, input_overrides)
     save_campaign(run / "campaign.json", state)
     return state
 
@@ -646,7 +666,8 @@ def execute(run: Path, state: dict) -> None:
                     state="running",
                 )
                 save_campaign(run / "campaign.json", state)
-                old_bytes = sum((root / path).stat().st_size for path, value in job["previous"].items() if value)
+                old_bytes = sum(contained_path(root, path).stat().st_size
+                                for path, value in job["previous"].items() if value)
                 # Conservative planning estimate, not a promise of final JSON size.
                 required = job["rows"] * 2048 + old_bytes + 1024**3
                 if shutil.disk_usage(work).free < required:
@@ -729,8 +750,14 @@ def main() -> int:
     parser.add_argument("--construction", action="append", choices=("aligned", "cartesian"), default=[])
     parser.add_argument("--model", action="append", default=[])
     parser.add_argument("--target", action="append", default=[])
+    parser.add_argument(
+        "--input-override", action="append", default=[], metavar="LOGICAL_PATH=SOURCE_PATH",
+        help="freeze SOURCE_PATH as a selected logical parameter input without editing the canonical dataset",
+    )
     parser.add_argument("--skip-published", action="store_true",
                         help="exclude complete JSON/receipt pairs and reject partial pairs")
+    parser.add_argument("--catalog-only", action="store_true",
+                        help="select generators physically present in the published catalog only")
     parser.add_argument("--compile", action="store_true", help="build only the selected generators")
     parser.add_argument("--compile-jobs", type=int, default=1)
     parser.add_argument("--run-dir", type=Path)
@@ -760,7 +787,8 @@ def main() -> int:
                 raise ValueError(f"Controller changed since this campaign was frozen: {name}")
         if (arguments.model or arguments.target or arguments.asset_class
                 or arguments.model_family or arguments.construction
-                or arguments.skip_published or arguments.compile
+                or arguments.input_override or arguments.skip_published
+                or arguments.catalog_only or arguments.compile
                 or arguments.kind != "prices"
                 or (arguments.publish and not state["publish"])):
             raise ValueError("Resume uses the frozen selection and publication policy; do not override them")
@@ -776,6 +804,7 @@ def main() -> int:
             model_families=set(arguments.model_family),
             constructions=set(arguments.construction),
             skip_published=arguments.skip_published,
+            catalog_only=arguments.catalog_only,
         )
     build = Path(state["build"]) if arguments.resume else arguments.build.resolve()
     if not jobs:
@@ -788,6 +817,14 @@ def main() -> int:
         return 0
     if arguments.run_dir is None:
         parser.error("--execute requires a new --run-dir (or --resume)")
+    overrides = {}
+    for assignment in arguments.input_override:
+        logical, separator, source = assignment.partition("=")
+        if not separator or not logical.startswith("datasets/") or not source:
+            parser.error("--input-override requires datasets/...json=SOURCE_PATH")
+        if logical in overrides:
+            parser.error(f"Duplicate input override: {logical}")
+        overrides[logical] = Path(source).resolve()
     # One lock for the repository, including controllers using different builds.
     lock_path = ROOT / "work" / "generation" / ".campaign.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -795,7 +832,7 @@ def main() -> int:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         run = arguments.run_dir.resolve()
         if not arguments.resume:
-            state = freeze(ROOT, build, run, jobs, arguments.publish)
+            state = freeze(ROOT, build, run, jobs, arguments.publish, overrides)
         signal.signal(signal.SIGTERM, interrupt_campaign)
         execute(run, state)
     print("Campaign complete. Independent price validation was not run.")

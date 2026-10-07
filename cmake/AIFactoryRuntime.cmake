@@ -36,7 +36,7 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_link_libraries(inspect_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
-target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_23)
+target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_20)
 
 # Host-only JSON validation shared by runtime loaders and offline tools.
 add_library(ai_factory_dataset_validation STATIC
@@ -49,7 +49,7 @@ target_include_directories(ai_factory_dataset_validation PUBLIC
 target_link_libraries(
     ai_factory_dataset_validation PUBLIC nlohmann_json::nlohmann_json
 )
-target_compile_features(ai_factory_dataset_validation PUBLIC cxx_std_23)
+target_compile_features(ai_factory_dataset_validation PUBLIC cxx_std_20)
 target_compile_options(ai_factory_dataset_validation PRIVATE -O3)
 
 # Independent offline stages: pure sampling, artifact I/O, parameter assembly,
@@ -60,8 +60,13 @@ function(ai_factory_add_offline_library target source)
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
+    # Host-side parameter helpers include CUDA-decorated model types.
+    # Use the headers belonging to the selected CUDA 12.9 compiler.
+    target_include_directories(${target} SYSTEM PUBLIC
+        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    )
     target_link_libraries(${target} PUBLIC nlohmann_json::nlohmann_json)
-    target_compile_features(${target} PUBLIC cxx_std_23)
+    target_compile_features(${target} PUBLIC cxx_std_20)
     target_compile_options(${target} PRIVATE -O3)
 endfunction()
 
@@ -127,7 +132,7 @@ foreach(helper IN LISTS _ai_factory_generation_helpers)
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
     target_link_libraries(${target} PUBLIC ai_factory_sampling)
-    target_compile_features(${target} PUBLIC cxx_std_23)
+    target_compile_features(${target} PUBLIC cxx_std_20)
     target_compile_options(${target} PRIVATE -O3)
     list(APPEND _ai_factory_generation_targets ${target})
 endforeach()

@@ -98,7 +98,7 @@ GeneratedRows generate_rows(
 
     for (std::size_t row = 0U; row < tail_row_count; ++row) {
         const auto [maturity, interval, observation_count] = schedule(
-            generator, kTailIntervals, 126U, 1764U
+            generator, kTailIntervals, 126U, 1512U
         );
         static_cast<void>(observation_count);
         const bool narrow_range = (row % 2U) == 0U;
@@ -108,16 +108,16 @@ GeneratedRows generate_rows(
             {
                 "lower_barrier",
                 narrow_range
-                    ? uniform(generator, 0.94f, 0.995f)
-                    : uniform(generator, 0.25f, 0.70f)
+                    ? uniform(generator, 0.90f, 0.98f)
+                    : uniform(generator, 0.50f, 0.70f)
             },
             {
                 "upper_barrier",
                 narrow_range
-                    ? uniform(generator, 1.005f, 1.06f)
-                    : uniform(generator, 1.40f, 2.50f)
+                    ? uniform(generator, 1.02f, 1.10f)
+                    : uniform(generator, 1.40f, 1.80f)
             },
-            {"coupon_rate", uniform(generator, 0.005f, 0.25f)},
+            {"coupon_rate", uniform(generator, 0.01f, 0.18f)},
         });
     }
     generated.construction = {
@@ -165,14 +165,14 @@ GeneratedRows generate_rows(
             }},
             {"stress", {
                 {"row_count", tail_row_count},
-                {"maturity", {126, 1764}},
+                {"maturity", {126, 1512}},
                 {"observation_interval", {1, 5, 21, 63}},
                 {"range_shape", "50 narrow rows and 50 wide rows"},
-                {"narrow_lower_barrier", {0.94, 0.995}},
-                {"narrow_upper_barrier", {1.005, 1.06}},
-                {"wide_lower_barrier", {0.25, 0.70}},
-                {"wide_upper_barrier", {1.40, 2.50}},
-                {"coupon_rate", {0.005, 0.25}},
+                {"narrow_lower_barrier", {0.90, 0.98}},
+                {"narrow_upper_barrier", {1.02, 1.10}},
+                {"wide_lower_barrier", {0.50, 0.70}},
+                {"wide_upper_barrier", {1.40, 1.80}},
+                {"coupon_rate", {0.01, 0.18}},
             }},
         }},
         {"constraints", {

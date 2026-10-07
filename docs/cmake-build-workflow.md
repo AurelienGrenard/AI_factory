@@ -33,7 +33,7 @@ int main() {
 On peut produire un exécutable sans CMake :
 
 ```bash
-g++ -std=c++23 main.cpp calcul.cpp -o calcul
+g++ -std=c++20 main.cpp calcul.cpp -o calcul
 ./calcul
 ```
 
@@ -59,7 +59,7 @@ plutôt les cibles dans un fichier `CMakeLists.txt` :
 cmake_minimum_required(VERSION 3.20)
 project(exemple LANGUAGES CXX)
 add_executable(calcul main.cpp calcul.cpp)
-target_compile_features(calcul PRIVATE cxx_std_23)
+target_compile_features(calcul PRIVATE cxx_std_20)
 ```
 
 `add_executable(calcul main.cpp calcul.cpp)` dit : « crée une cible nommée
@@ -89,42 +89,46 @@ les règles qu'il vient de préparer ; Ninja compile les sources nécessaires,
 lie leurs résultats et écrit `build/calcul`. La troisième commande exécute le
 programme. CMake ne l'exécute pas à notre place.
 
-Dans ce projet, le dossier `build/` contient notamment `CMakeCache.txt` (les
+Dans cet exemple, le dossier `build/` contient notamment `CMakeCache.txt` (les
 options de configuration retenues), `build.ninja` (les règles remises à Ninja),
 `CMakeFiles/` (des fichiers intermédiaires), des bibliothèques et les
 exécutables effectivement construits. On n'y écrit pas les sources à la main.
 
-## Notre configuration `dev`
+## Notre configuration `ppti`
 
 Le fichier [CMakePresets.json](../CMakePresets.json) enregistre une
-configuration nommée `dev`. Elle fixe notamment Ninja, GCC 14, CUDA 13.3,
-l'architecture GPU 89, le mode `Release` et le dossier `build/`. Le mot `dev`
-est seulement son **nom** : il ne signifie pas que `CMAKE_BUILD_TYPE` vaut
-`Debug`. Le preset désactive aussi `ccache`, un cache de compilation sans effet
-sur la vitesse d'exécution des générateurs.
+configuration nommée `ppti`. Elle cible CUDA 12.9 et les GPU V100 (SM70),
+utilise C++20 et GNU Make, active les tests et place les résultats dans
+`builds/ppti-gpu4/`. Le paquet mathDx 25.12.1 CUDA 12 et un compilateur
+hôte compatible avec CUDA 12.9 doivent être disponibles avant la configuration.
 
-Depuis la racine du projet :
+Depuis la racine du projet, lancer la configuration :
 
 ```bash
-cmake --preset dev
+cmake --preset ppti
 ```
 
-Cette commande remplace la longue configuration où l'on répéterait `-S .`,
-`-B build`, `-G Ninja` et les options du preset. Elle lit le `CMakeLists.txt`
-racine, puis les modules CMake qu'il inclut. Les sources, les listes de cibles
-et les réglages ne viennent pas du dossier `build/` : ils sont dans les fichiers
-du projet suivis par Git.
+Si les chemins locaux diffèrent de ceux du preset, fournir
+`CMAKE_CUDA_COMPILER`, `CMAKE_CUDA_HOST_COMPILER`, `CMAKE_CXX_COMPILER` et
+`AI_FACTORY_MATHDX_ROOT` avec `-D`. CMake lit `CMakeLists.txt` et les modules
+sous `cmake/` ; les sources et les règles ne viennent jamais du dossier de build.
 
 `-DVARIABLE=VALEUR` sert à définir ou remplacer une option de configuration.
-Par exemple, `-DAI_FACTORY_USE_CCACHE=OFF` désactive le cache de compilation ;
-le preset `dev` le fait déjà. `-j2`, utilisé avec `cmake --build`, autorise deux
-tâches de **compilation** simultanées. Cela ne règle ni le nombre de chemins
-Monte Carlo ni les threads du GPU pendant une simulation.
+`-j2`, utilisé avec `cmake --build`, autorise deux tâches de compilation en
+parallèle ; cela ne règle pas le nombre de chemins Monte Carlo ou les threads
+GPU d'une simulation.
 
-Il existe aussi des *presets de build*. Ainsi,
-`cmake --build --preset host-tests` sélectionne les cibles et le parallélisme
-enregistrés sous `host-tests` dans `CMakePresets.json`. Ce n'est pas la même
-étape que `cmake --preset dev`, qui configure le projet.
+Les *presets de build* choisissent des cibles. Par exemple,
+`cmake --build --preset host-tests` construit les tests hôte après la
+configuration du projet. Sur la RTX 4090 locale, `cmake --preset local-sm89`
+utilise le même socle C++20/CUDA 12.9 et crée
+`builds/local-cuda12-9-0-sm89/` ; le choix de l'architecture et le répertoire
+de build restent séparés de ceux du serveur PPTI. Sur le répertoire personnel
+partagé de PPTI, `cmake --preset ppti-gpu1` et `cmake --preset ppti-gpu3`
+utilisent CUDA 13.2/SM120 et créent respectivement `builds/ppti-gpu1/` et
+`builds/ppti-gpu3/`. Le preset `ppti` crée `builds/ppti-gpu4/` en CUDA
+12.9/SM70. Chaque nœud compile ses propres objets et exécutables ; le transfert
+des sources ne copie aucun dossier `builds/`.
 
 ## Construire un générateur précis
 
@@ -136,7 +140,7 @@ déclarations disponibles au compilateur ; il ne remplace ni la compilation des
 implémentations ni leur liaison à l'exécutable. Pour une cible de prix, la
 fonction CMake `add_price_generator` détermine les unités de pricing requises,
 les relie à `ai_factory_price_dataset` et enregistre le `generator.cpp` comme
-source de l'exécutable. Quand on construit cette cible, Ninja construit aussi
+source de l'exécutable. Quand on construit cette cible, Make construit aussi
 les bibliothèques liées qui manquent, puis fait le lien final. Il n'est pas
 nécessaire de nommer chaque `.cu` et `.cpp` dans la commande `cmake --build`.
 
@@ -144,13 +148,14 @@ Après la configuration, on peut construire exactement le générateur Heston
 cartésien prix + gradient + Hessienne diagonale :
 
 ```bash
-cmake --build build --target generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian -j2
+cmake --build builds/ppti-gpu4 --target generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian -j2
 ```
 
 Cette cible produit
-`build/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
+`builds/ppti-gpu4/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
 et correspond au fichier source
-[`generator.cpp`](../catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp).
+`work/catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_price_gradient_diagonal_hessian/generator.cpp`.
+Cette recette locale se trouve sous `work/` et n'est pas versionnée.
 Le nom de la cible n'est donc pas `generator.cpp` : ce nom de fichier est
 réutilisé par de nombreuses recettes.
 
@@ -158,15 +163,14 @@ réutilisé par de nombreuses recettes.
 les cibles principales :
 
 ```bash
-cmake --build build --target help
+cmake --build builds/ppti-gpu4 --target help
 ```
 
 Dans ce grand catalogue, elle ne montre pas tous les générateurs individuels.
-Le preset `dev` utilise Ninja ; pour chercher aussi ces cibles, on peut lire
-sa liste complète et filtrer les noms Heston :
+Pour chercher les cibles Heston dans ce build, afficher les cibles disponibles :
 
 ```bash
-ninja -C build -t targets all | rg '^generate_heston_'
+cmake --build builds/ppti-gpu4 --target help | rg 'generate_heston_'
 ```
 
 On peut demander une cible de regroupement, comme `price_gradient_generators`,
@@ -176,7 +180,7 @@ cible évite de compiler tout le catalogue.
 
 **Compiler n'est pas générer une base.** Les commandes `cmake --build`
 construisent des exécutables ; elles ne les lancent pas. Une commande distincte
-comme `./build/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
+comme `./builds/ppti-gpu4/generate_heston_european_calls_01_cartesian_price_gradient_diagonal_hessian`
 déclenche la simulation et écrit des données. Pour préparer, suivre, publier ou
 reprendre une campagne, voir le
 [workflow de génération](dataset-generation-workflow.md). Le notebook
@@ -186,17 +190,20 @@ construit chaque cible avant de lancer son exécutable.
 
 ## Après une modification du code
 
-Si on redemande une cible déjà construite, Ninja regarde les fichiers modifiés
+Si on redemande une cible déjà construite, Make regarde les fichiers modifiés
 et leurs dépendances. Il recompile ce qui doit l'être, puis refait les liens
-concernés. Si rien n'a changé, il répond `ninja: no work to do.` Il n'y a pas
-besoin d'effacer `build/` pour mettre un exécutable à jour.
+concernés. Si rien n'a changé, aucune ligne `Building` ou `Linking` n'apparaît.
+Il n'y a pas
+besoin d'effacer `builds/ppti-gpu4/` pour mettre un exécutable à jour.
 
-`build/` est ignoré par Git : ce sont des résultats locaux, dépendants de la
+`builds/ppti-gpu4/` est ignoré par Git : ce sont des résultats locaux, dépendants de la
 machine et des outils. GitHub conserve les sources, `CMakeLists.txt`, les
 modules `cmake/` et `CMakePresets.json`, qui permettent de recréer ce dossier.
 Un second build n'est utile que pour garder en parallèle une autre
 configuration, par exemple un autre GPU ou compilateur. On peut alors utiliser
-`cmake -S . -B builds/sm_XX -G Ninja ...` : CMake crée ce nouveau dossier et
-chaque build garde ses propres exécutables. Notre build principal reste
-`build/` ; les preuves historiques et campagnes sont rangées séparément selon
+`cmake -S . -B builds/sm_XX -G "Unix Makefiles" ...` : CMake crée ce nouveau dossier et
+chaque build garde ses propres exécutables. Les builds sont
+`builds/local-cuda12-9-0-sm89/` en local et `builds/ppti-gpu1/`,
+`builds/ppti-gpu3/` ou `builds/ppti-gpu4/` sur le nœud PPTI choisi ;
+les preuves historiques et campagnes sont rangées séparément selon
 le [plan des artefacts locaux](local-artifacts.md).

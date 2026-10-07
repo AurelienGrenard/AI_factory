@@ -23,7 +23,7 @@ int main() {
 
     constexpr std::size_t core_row_count = 900U;
     constexpr std::size_t tail_row_count = 100U;
-    constexpr std::uint64_t seed = 731000401ULL;
+    constexpr std::uint64_t seed = 1631000401ULL;
     GeneratedRows rows = autocall::generate_athena_rows(
         core_row_count, tail_row_count, seed
     );

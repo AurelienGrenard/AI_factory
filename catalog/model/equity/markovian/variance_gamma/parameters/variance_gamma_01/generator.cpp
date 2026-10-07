@@ -114,7 +114,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/"
         "variance_gamma/parameters/variance_gamma_01.json";
-    constexpr std::uint64_t seed = 710000401ULL;
+    constexpr std::uint64_t seed = 1610000401ULL;
 
     GeneratedRows core = generate_regime(
         900U, seed,
@@ -123,8 +123,8 @@ int main() {
     );
     GeneratedRows stress = generate_regime(
         100U, seed + 1ULL,
-        {-0.03f, 0.12f, 0.0f, 0.10f, 0.03f, 0.80f,
-        0.05f, 1.50f, -0.80f, 0.60f}
+        {-0.03f, 0.12f, 0.0f, 0.10f, 0.04f, 0.65f,
+        0.05f, 0.80f, -0.50f, 0.35f}
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

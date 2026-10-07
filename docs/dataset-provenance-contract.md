@@ -101,6 +101,62 @@ An old base can remain useful even if it is not the output of the newest
 implementation. Keep its original recipe and qualifications; do not label it
 as satisfying a changed seed, path count, payoff or discretization.
 
+## Supplementary releases and qualified historical data
+
+The [release index](../work/catalog/releases/index.json) identifies immutable
+supplementary datasets by a release-qualified ID. Its manifest maps each ID to
+the published JSON and the **original receipt from the generator run**. The
+JSON and `generation.yaml` retain their embedded logical IDs and source paths;
+relocation changes neither their bytes nor their provenance. Resolve a
+release-qualified ID through the manifest, then check the hashes and the
+receipt. A release is not a replacement for the historical catalogue entry.
+
+The [qualification index](../work/catalog/qualifications/index.json) identifies
+metadata-only qualifications of historical datasets. A qualification manifest
+records the original hashes, the generation receipts and the evidence for its
+decision. A qualified copy does not acquire a new generator receipt: its
+numerical rows are unchanged and the added `methodology` describes the scope
+of the published statistic. An exclusion mask refers to original rows without
+copying their JSON. Consumers should use the qualification manifest when
+interpreting the data; the historical JSON remains an unmodified record of
+what was originally published.
+
+The [NUM-037 SABR qualification](../work/catalog/qualifications/num037-sabr-parity-20261007-v1/manifest.json)
+is a metadata-only exclusion mask for 26 aligned European call/put pairs in the
+NUM-029 release. It identifies 52 original price rows by ID and hash, marks
+them as **not certified for price or standard-error reference use**, and links
+the replay evidence. The immutable prices and generator receipts are unchanged.
+Unlisted rows do not gain independent certification from this mask. Resolve the
+mask through the qualification index before using that release as a price
+reference. The [unresolved NUM-037 closure](audit/unresolved-closures.md) records the
+SABR price exclusions. The [resolved NUM-036 entry](audit/closed.md) defines
+the conditional scope of LSM standard errors.
+
+The [NUM-030 log-modulated rough Bergomi qualification](../work/catalog/qualifications/num030-lmb-stress-20261007-v1/manifest.json)
+is an exclusion mask for 42 positive-correlation stress parameter rows across
+29 price datasets, plus one negative-correlation up-and-in call with unstable
+Monte Carlo tails. It excludes 1,219 original price/SE rows from reference use;
+the original JSON and receipts are unchanged. NUM-030 remains open because
+stable independent prices are not yet available.
+
+The [rough Bergomi domain qualification](../work/catalog/qualifications/rough-bergomi-martingale-domain-20261007-v1/manifest.json)
+excludes 15 positive-correlation stress rows in each of 29 historical price
+datasets (435 prices/SE) from ordinary martingale reference use. It is a
+model-domain decision, not an observed price discrepancy. The
+[dataset gate](../maintainer/tools/datasets/check_martingale_reference_domains.py)
+recomputes necessary exclusions for both Bergomi models and checks the
+`β=1, ρ>0` boundary for the two SABR models. It fails if a necessary
+Bergomi mask or SABR domain decision is missing. The remaining models and
+Monte Carlo tail quality are outside this gate
+([scope and counts](audit/martingale-reference-datasets.md)).
+
+The release and qualifications are checked with
+[`verify_num029_release.py`](../maintainer/tools/datasets/verify_num029_release.py),
+[`verify_num036_qualification.py`](../maintainer/tools/datasets/verify_num036_qualification.py),
+[`verify_num037_qualification.py`](../maintainer/tools/datasets/verify_num037_qualification.py)
+[`verify_num030_qualification.py`](../maintainer/tools/datasets/verify_num030_qualification.py)
+and [`verify_rough_bergomi_domain_qualification.py`](../maintainer/tools/datasets/verify_rough_bergomi_domain_qualification.py).
+
 ## Legacy data, resume and certification
 
 Existing datasets are not regenerated or backfilled by this change. Missing

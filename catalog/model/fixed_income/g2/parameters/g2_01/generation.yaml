@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/g2/parameters/g2_01/recipe.yaml
-  sha256: 0271b787dc89e80b68ecb250e6650040172d46b9e27dda33af9a746e3d944dda
 artifact:
   row_count: 1000
-  sha256: 2ecf6e4b03ccbadb78130211f519d0ac115768ad2853f5c75bec7f8df9a59ee4
+  path: datasets/model/fixed_income/g2/parameters/g2_01.json
+  sha256: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
+  source_sha256: cc42d1ad49dd156299984d8ff4ae5c32f70f6dd6f72ffd06ca397333fa20a8d8
+  binary_sha256: 255c2143394f97e19b21bc37710804374fdbe8d230b55f2627d41c55daa7fc6d
+  recipe_sha256: 7eb149ab23bafdc42268cddda8f047c90a28a5c138c125ee1880406d5c3b9d04
+  started_at_utc: '2026-10-07T13:47:28.530766+00:00'
+  seed: 1650000201
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.021171339001739398
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/model/fixed_income/g2/parameters/g2_01/recipe.yaml
+  sha256: 7eb149ab23bafdc42268cddda8f047c90a28a5c138c125ee1880406d5c3b9d04
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: 1dadf3eb57f5339403375e5839b653358760ea2167e18a222a805410cc354123
+  generator: catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
+  generator_sha256: cc42d1ad49dd156299984d8ff4ae5c32f70f6dd6f72ffd06ca397333fa20a8d8
+  binary_sha256: 255c2143394f97e19b21bc37710804374fdbe8d230b55f2627d41c55daa7fc6d
+  parameter_campaign: full model/product refresh
+record_sha256: 7b0b0667c08c62f709ee3b44454b901f95f10616543393a898503e6682d0e66b

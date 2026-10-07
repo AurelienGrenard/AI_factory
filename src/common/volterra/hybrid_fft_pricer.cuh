@@ -14,6 +14,8 @@
 #include "common/volterra/hybrid_fft_workspace.cuh"
 #include "common/volterra/hybrid_schedule.cuh"
 #include "common/volterra/hybrid_path_simulation.cuh"
+#include "common/volterra/pricing_moments.cuh"
+#include "common/volterra/pricing_row.cuh"
 
 #include <cuda_runtime.h>
 
@@ -33,28 +35,13 @@ namespace ai_factory::workbench::volterra::hybrid_fft {
 inline constexpr std::uint32_t kDirectMaximumStepCount =
     AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT;
 
-struct PartialMoments {
-    double sum;
-    double sumsq;
-};
+using PartialMoments = volterra::PartialMoments;
 
 template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
-struct PreparedRow {
-    using Kernel = KernelPolicy;
-    using Path = ModelPathPolicy;
-    using Product = ProductPolicy;
-    using Schedule = SchedulePolicy;
-
-    typename Kernel::PreparedKernel kernel;
-    typename Path::PreparedModel model;
-    typename Product::PreparedProduct product;
-    typename Schedule::PreparedSchedule schedule;
-    philox::PhiloxKey key;
-    float sqrt_time_step;
-
-    static_assert(HybridPathPolicyFor<Path, Kernel>);
-};
+using PreparedRow = volterra::PricingRow<
+    KernelPolicy, ModelPathPolicy, ProductPolicy, SchedulePolicy
+>;
 
 #if AI_FACTORY_VOLTERRA_DIRECT_MAX_STEP_COUNT > 0
 template<typename KernelPolicy, typename ModelPathPolicy,
@@ -464,39 +451,6 @@ __global__ void evaluate_direct_paths_kernel(
 }
 #endif
 
-static __global__ void finalize_price_kernel(
-    const PartialMoments* __restrict__ partial_moments,
-    std::size_t partial_count,
-    std::size_t path_count,
-    std::size_t result_index,
-    float* __restrict__ prices,
-    float* __restrict__ standard_errors
-) {
-    double sum = 0.0;
-    double sumsq = 0.0;
-    for (std::size_t partial = threadIdx.x;
-         partial < partial_count;
-         partial += blockDim.x) {
-        sum += partial_moments[partial].sum;
-        sumsq += partial_moments[partial].sumsq;
-    }
-    const reductions::MomentSums total =
-        reductions::reduce_block(sum, sumsq);
-    if (threadIdx.x == 0U) {
-        double price = 0.0;
-        double standard_error = 0.0;
-        reductions::compute_statistics(
-            total,
-            path_count,
-            price,
-            standard_error
-        );
-        prices[result_index] = static_cast<float>(price);
-        standard_errors[result_index] =
-            static_cast<float>(standard_error);
-    }
-}
-
 template<typename KernelPolicy, typename ModelPathPolicy,
          typename ProductPolicy, typename SchedulePolicy>
 void validate_launch(
@@ -605,9 +559,9 @@ struct PricePathConsumer {
     void finish(const PartialMoments* partials, std::size_t paths, std::size_t result,
         float* prices, float* errors, const char* name, const char* variant) const {
         constexpr std::size_t shared = 2U * (tuning::kPricingFinalizationThreads / 32U) * sizeof(double);
-        report_cuda_kernel_phase_launch_if_enabled(name, variant, "finalization", finalize_price_kernel,
+        report_cuda_kernel_phase_launch_if_enabled(name, variant, "finalization", volterra::finalize_price_kernel,
             dim3(1U), dim3(tuning::kPricingFinalizationThreads), shared);
-        finalize_price_kernel<<<1U, tuning::kPricingFinalizationThreads, shared>>>(
+        volterra::finalize_price_kernel<<<1U, tuning::kPricingFinalizationThreads, shared>>>(
             partials, hybrid_fft_partial_moment_count(paths), paths, result, prices, errors);
         check_cuda(cudaGetLastError(), "Volterra hybrid FFT finalization");
     }
@@ -927,6 +881,7 @@ void launch_path_pipeline_cuda(
     const char* diagnostic_variant,
     const PathConsumer& consumer
 ) {
+    static_assert(HybridPathPolicyFor<ModelPathPolicy, KernelPolicy>);
     validate_launch<
         KernelPolicy,
         ModelPathPolicy,

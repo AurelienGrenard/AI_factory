@@ -11,7 +11,7 @@
 #include "product/european_swaption/price_gradients/device_preparation.cuh"
 ${curve_header_include}
 #include <span>
-
+${second_order_include}
 namespace ai_factory::workbench::model::fixed_income::${binding_namespace} {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
@@ -48,7 +48,7 @@ ${curve_span_argument}    std::span<const product::RegularEuropeanSwaptionParame
     const pg::PriceGradientConfiguration& configuration,
     pg::SensitivityRequest request
 ) {
-    return ${prepare_function}<EuropeanSwaptionPriceGradientPlan>(
+${second_order_request_guard}    return ${prepare_function}<EuropeanSwaptionPriceGradientPlan>(
         models,
 ${curve_prepare_argument}        products,
         construction,

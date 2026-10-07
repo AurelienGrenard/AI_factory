@@ -171,7 +171,7 @@ AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 ./build/benchmark_price_gradients_closed_fo
 AI_FACTORY_CUDA_KERNEL_DIAGNOSTICS=1 ./build/benchmark_price_gradients_cev
 ./build/test_price_gradients_cev_cuda
 ./build/study_price_gradients_bumps > /tmp/price-gradient-bumps.jsonl
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 tests/price_gradients/analyze_bumps.py \
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 maintainer/tests/price_gradients/analyze_bumps.py \
   /tmp/price-gradient-bumps.jsonl /tmp/price-gradient-bumps-analysis.json
 ./build/study_price_gradients_heston_rates > /tmp/price-gradient-heston-rates.jsonl
 ```

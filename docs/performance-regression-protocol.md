@@ -37,6 +37,11 @@ Ordinary catalogue timing remains informational metadata.
   regression budget remains 5%; this host-noise allowance cannot turn a slow
   tail into a pass. A noisier blocking comparison is inconclusive and must be
   rerun; noise never becomes a pass.
+  An explicit owner decision may close an audit finding by accepting a scoped
+  performance tradeoff. Record that decision and every failing measurement in
+  [the closed findings register](audit/closed.md). Such a closure does
+  not turn a failed comparison into a pass, change this 5% policy, or create
+  an eligible baseline for later changes.
 - A timing can be `informational` only when repeated attempts cannot remove
   scheduler noise. It remains mandatory, but cannot pass or fail the timing
   gate. The short closed-form launcher latency is the sole such row. Its
@@ -96,24 +101,26 @@ Ordinary catalogue timing remains informational metadata.
   remaining declared attempt is run. The runner stops early when the remaining
   attempt count can no longer reach the required eligible-campaign count.
 
-[`../tests/performance/baseline_sm89_v3.json`](../tests/performance/baseline_sm89_v3.json)
+[`../maintainer/tests/performance/baseline_sm89_v3.json`](../maintainer/tests/performance/baseline_sm89_v3.json)
 is both the workload and budget manifest. Its command list is the only source
 of campaign commands. The same manifest partitions them exactly once
 into the generated `generic_cuda`, `model_sampling`, `early_exercise` and
 `rough` reports.
 Output outside its declared keys, duplicate output, an orphan diagnostic or
-a command without output fails immediately. It is the current measured
-baseline for the available RTX 4090 Laptop GPU. SM75 and SM86 remain functional
+a command without output fails immediately. It is the historical CUDA 13.3 baseline for the RTX 4090 Laptop GPU.
+The current `local-sm89` preset uses CUDA 12.9 and profile
+`sm89_cuda12_unqualified_v1`; this historical baseline cannot qualify that
+profile and the regression gate is currently unavailable for it. SM75 and SM86 remain functional
 compile targets, but no runtime threshold is inferred without their hardware;
 each deployed architecture needs its own native manifest.
 
 ## Reproduction
 
-Configure the `dev` preset, then build the dedicated targets:
+Configure the current `local-sm89` preset, then build the dedicated targets:
 
 ```sh
-cmake --preset dev
-cmake --build build --target performance_benchmarks -j2
+cmake --preset local-sm89
+cmake --build builds/local-cuda12-9-0-sm89 --target performance_benchmarks -j2
 ```
 
 The generic harness covers `index`, `accumulation`, `overhead`, `geometry` and
@@ -143,8 +150,8 @@ production.
 The fixed regression baseline detects changes on stable representative points;
 it does not by itself qualify a production scaling envelope. Before publishing
 new launch geometry or claiming production throughput, run the opt-in probes
-owned by `tests/performance/pricing_scaling*` and
-`tools/performance/*pricing_scaling*`.
+owned by `maintainer/tests/performance/pricing_scaling*` and
+`maintainer/tools/performance/*pricing_scaling*`.
 
 The capability manifest, rather than a second model list, selects exactly one
 side and one representative product for each available configuration:
@@ -203,7 +210,7 @@ blocks, row bounds, LSM blocks per price or FFT chunk without a Python tuning
 table. Build the inspector and the selected probes first. For example:
 
 ```bash
-python3 tools/performance/run_pricing_scaling.py \
+python3 maintainer/tools/performance/run_pricing_scaling.py \
   --stage production --price-counts 1000 --path-counts 1048576 \
   --input-profile catalogue --cases kou__mc_terminal cir__closed_form \
   --output artifacts/performance/production-plan-example --plan-only
@@ -297,7 +304,7 @@ and [dynamic CPU/GPU power allocation](https://www.nvidia.com/en-us/geforce/lapt
 separately; an observed power-limit change alone is not proof of unplugging.
 
 The `PERF-020` policy amendment preserves the previous complete manifest under
-`tests/performance/history/baseline_sm89_v3_pre_perf_020.json`. Its hash and the
+`maintainer/tests/performance/history/baseline_sm89_v3_pre_perf_020.json`. Its hash and the
 scope of the amendment are recorded in the active manifest. Historical timings,
 profiles and rejection evidence remain unchanged; this policy change is not a
 new performance qualification or a measured rebaseline.
@@ -316,7 +323,7 @@ at a time:
 
 ```sh
 cmake --build build --target pricing_scaling_benchmarks -j2
-python3 tools/performance/run_pricing_scaling.py \
+python3 maintainer/tools/performance/run_pricing_scaling.py \
   --build-dir build \
   --output artifacts/performance/pricing-scaling-<campaign> \
   --stage scaling \
@@ -350,7 +357,7 @@ remain distinct workloads. Numerical disagreements require diagnosis, not a
 relaxed tolerance after seeing the results.
 
 ```sh
-python3 tools/performance/summarize_pricing_scaling.py \
+python3 maintainer/tools/performance/summarize_pricing_scaling.py \
   artifacts/performance/pricing-scaling-<campaign> \
   --output artifacts/performance/pricing-scaling-<campaign>/summary.json
 ```
@@ -363,7 +370,7 @@ finalization block sizes are separate CMake profile variables. A retune changes
 that profile, never the pricing or sampling algorithms, and publishes a native
 baseline for every affected architecture.
 
-On the exact SM89 environment, the gate builds and runs three complete
+On the historical SM89/CUDA 13.3 environment, the v3 gate builds and runs three complete
 eligible campaigns (within at most five attempts), retains all raw outputs,
 writes their aggregate candidate and four partitioned reports under the build
 directory, and rejects
@@ -371,7 +378,8 @@ missing, duplicate, unknown, incompatible, numerically invalid,
 resource-regressed, timing-regressed or blocking-inconclusive rows:
 
 ```sh
-cmake --build build --target performance_regression_gate -j2
+# Historical v3 only; the local-sm89 CUDA 12.9 profile has no qualified gate.
+cmake --build <qualified-cuda13-build> --target performance_regression_gate -j2
 ```
 
 No timing result determines campaign eligibility and no campaign is recomposed
@@ -380,8 +388,8 @@ for a kernel or 10% for a host-enclosing public API or publication measurement.
 To inspect a captured candidate:
 
 ```sh
-python3 tools/performance/check_baseline.py \
-  tests/performance/baseline_sm89_v3.json candidate.ndjson
+python3 maintainer/tools/performance/check_baseline.py \
+  maintainer/tests/performance/baseline_sm89_v3.json candidate.ndjson
 ```
 
 An explicit rebaseline requires a retained predecessor, a distinct output, an
@@ -392,15 +400,15 @@ Preserve the predecessor observations, hash and environment, then review the
 exhaustive leaf-level diff before publication:
 
 ```sh
-python3 tools/performance/run_baseline.py \
-  --baseline tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
+python3 maintainer/tools/performance/run_baseline.py \
+  --baseline maintainer/tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
   --build-dir build \
   --output artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --predecessor-baseline \
-    tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
-  --rebaseline-output tests/performance/baseline_sm89_v3.json \
+    maintainer/tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
+  --rebaseline-output maintainer/tests/performance/baseline_sm89_v3.json \
   --rebaseline-diff-output \
-    tests/performance/history/sm89_v3_rebaseline_diff.json \
+    maintainer/tests/performance/history/sm89_v3_rebaseline_diff.json \
   --rebaseline-reason "documented architecture or workload change" \
   --rebaseline-approval "reviewer and approval reference"
 ```
@@ -439,7 +447,7 @@ or another GPU's own qualification.
 
 ## Representative Nsight Compute profiles
 
-[`../tools/performance/profile_kernel.py`](../tools/performance/profile_kernel.py)
+[`../maintainer/tools/performance/profile_kernel.py`](../maintainer/tools/performance/profile_kernel.py)
 resolves the executable, arguments and exact mangled kernel symbol from the
 manifest-owned candidate. It refuses a binary whose SHA-256 differs from the
 timed candidate, applies the same power/concurrency preflight before
@@ -454,36 +462,36 @@ kernel and rough FFT pricing. Run each command separately so the preflight can
 reject any concurrent GPU use:
 
 ```sh
-python3 tools/performance/profile_kernel.py \
-  --baseline tests/performance/baseline_sm89_v3.json \
+python3 maintainer/tools/performance/profile_kernel.py \
+  --baseline maintainer/tests/performance/baseline_sm89_v3.json \
   --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id cir_noinline \
-  --output-dir tests/performance/profiles/sm89
+  --output-dir maintainer/tests/performance/profiles/sm89
 
-python3 tools/performance/profile_kernel.py \
-  --baseline tests/performance/baseline_sm89_v3.json \
+python3 maintainer/tools/performance/profile_kernel.py \
+  --baseline maintainer/tests/performance/baseline_sm89_v3.json \
   --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id model_samples__rough_n_factor_7_12000_x_250 \
-  --output-dir tests/performance/profiles/sm89
+  --output-dir maintainer/tests/performance/profiles/sm89
 
-python3 tools/performance/profile_kernel.py \
-  --baseline tests/performance/baseline_sm89_v3.json \
+python3 maintainer/tools/performance/profile_kernel.py \
+  --baseline maintainer/tests/performance/baseline_sm89_v3.json \
   --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id lsm__equity_multi_state_heston \
   --resource-index 1 \
-  --output-dir tests/performance/profiles/sm89
+  --output-dir maintainer/tests/performance/profiles/sm89
 
-python3 tools/performance/profile_kernel.py \
-  --baseline tests/performance/baseline_sm89_v3.json \
+python3 maintainer/tools/performance/profile_kernel.py \
+  --baseline maintainer/tests/performance/baseline_sm89_v3.json \
   --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id rough_sabr_fft \
   --resource-index 2 \
   --environment-mode resource_only \
-  --output-dir tests/performance/profiles/sm89
+  --output-dir maintainer/tests/performance/profiles/sm89
 ```
 
 The versioned evidence consists of one `*.ncu.csv` raw profile and one
@@ -514,7 +522,7 @@ These are measured decisions for the recorded SM89 environment, not universal
 CUDA constants. Retune on another architecture with the same protocol and
 publish a separate manifest and profile directory.
 
-The [older Volterra CSV fixtures](../tests/performance/fixtures/volterra/README.md)
+The [older Volterra CSV fixtures](../maintainer/tests/performance/fixtures/volterra/README.md)
 are retained only as explicitly scoped exploratory evidence. They are not a
 protocol-v3 baseline or an acceptance source.
 

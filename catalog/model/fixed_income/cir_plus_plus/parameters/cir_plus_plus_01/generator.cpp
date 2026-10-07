@@ -20,7 +20,7 @@ int main() {
         "https://datasets.ai-factory.example/v1/model/"
         "fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json";
 
-    constexpr std::uint64_t seed = 770000801ULL;
+    constexpr std::uint64_t seed = 1670000801ULL;
     const GeneratedRows rows = cir::generate_core_stress_rows(seed);
 
     write_model_dataset(

@@ -19,14 +19,52 @@ from manifest import (
     MODEL_RECIPE_SPECS,
     PRICE_VARIANTS,
     ROUGH_N_FACTOR_MODELS,
-    ROUGH_PRODUCT_BINDINGS,
+    EQUITY_PRODUCT_BINDINGS,
     ROUGH_VOLTERRA_MODELS,
-    RoughProductBinding,
+    EquityProductBinding,
 )
 from sample_manifest import SAMPLE_MODELS
 
 
 SCHEMA_VERSION = 2
+
+# Published v1 parameter URLs predate the current catalogue taxonomy.
+# Preserve them so immutable recipes and receipts stay valid.
+HISTORICAL_PARAMETER_URL_PATHS: dict[tuple[str, str], str] = {
+    ('model_parameters', 'black_scholes_01'): 'model/equity/black_scholes/parameters/black_scholes_01.json',
+    ('model_parameters', 'normal_inverse_gaussian_01'): 'model/equity/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json',
+    ('model_parameters', 'rough_bergomi_01'): 'model/equity/rough_bergomi/parameters/rough_bergomi_01.json',
+    ('model_parameters', 'rough_heston_01'): 'model/equity/rough_heston/parameters/rough_heston_01.json',
+    ('model_parameters', 'rough_sabr_01'): 'model/equity/rough_sabr/parameters/rough_sabr_01.json',
+    ('model_parameters', 'variance_gamma_01'): 'model/equity/variance_gamma/parameters/variance_gamma_01.json',
+    ('product_parameters', 'american_options_01'): 'product/american_options/american_options_01.json',
+    ('product_parameters', 'asian_options_01'): 'product/asian_options/asian_options_01.json',
+    ('product_parameters', 'asset_or_nothing_options_01'): 'product/asset_or_nothing_options/asset_or_nothing_options_01.json',
+    ('product_parameters', 'athena_autocalls_01'): 'product/athena_autocalls/athena_autocalls_01.json',
+    ('product_parameters', 'bermudan_swaptions_01'): 'product/bermudan_swaptions/bermudan_swaptions_01.json',
+    ('product_parameters', 'cliquets_01'): 'product/cliquets/cliquets_01.json',
+    ('product_parameters', 'digital_options_01'): 'product/digital_options/digital_options_01.json',
+    ('product_parameters', 'double_knock_out_options_01'): 'product/double_knock_out_options/double_knock_out_options_01.json',
+    ('product_parameters', 'down_and_in_options_01'): 'product/down_and_in_options/down_and_in_options_01.json',
+    ('product_parameters', 'down_and_out_options_01'): 'product/down_and_out_options/down_and_out_options_01.json',
+    ('product_parameters', 'european_options_01'): 'product/european_options/european_options_01.json',
+    ('product_parameters', 'european_swaptions_01'): 'product/european_swaptions/european_swaptions_01.json',
+    ('product_parameters', 'forward_start_options_01'): 'product/forward_start_options/forward_start_options_01.json',
+    ('product_parameters', 'gap_call_options_01'): 'product/gap_options/gap_call_options_01.json',
+    ('product_parameters', 'gap_put_options_01'): 'product/gap_options/gap_put_options_01.json',
+    ('product_parameters', 'geometric_asian_options_01'): 'product/geometric_asian_options/geometric_asian_options_01.json',
+    ('product_parameters', 'lookback_options_01'): 'product/lookback_options/lookback_options_01.json',
+    ('product_parameters', 'phoenix_autocalls_01'): 'product/phoenix_autocalls/phoenix_autocalls_01.json',
+    ('product_parameters', 'phoenix_memory_autocalls_01'): 'product/phoenix_memory_autocalls/phoenix_memory_autocalls_01.json',
+    ('product_parameters', 'range_accruals_01'): 'product/range_accruals/range_accruals_01.json',
+    ('product_parameters', 'rate_options_01'): 'product/rate_options/rate_options_01.json',
+    ('product_parameters', 'straddles_01'): 'product/straddles/straddles_01.json',
+    ('product_parameters', 'up_and_in_options_01'): 'product/up_and_in_options/up_and_in_options_01.json',
+    ('product_parameters', 'up_and_out_options_01'): 'product/up_and_out_options/up_and_out_options_01.json',
+    ('product_parameters', 'up_no_touches_01'): 'product/up_no_touches/up_no_touches_01.json',
+    ('product_parameters', 'up_one_touches_01'): 'product/up_one_touches/up_one_touches_01.json',
+    ('product_parameters', 'zero_coupon_bond_options_01'): 'product/zero_coupon_bond_options/zero_coupon_bond_options_01.json',
+}
 
 RNG_DOMAIN_VERSION = 4
 RNG_NAMESPACE_BASE = 0xA1F0_0000_0000_0000
@@ -188,7 +226,10 @@ class DatasetSpec:
 
     @property
     def url(self) -> str:
-        relative = PurePosixPath(self.dataset_path).relative_to("datasets")
+        relative = HISTORICAL_PARAMETER_URL_PATHS.get(
+            (self.dataset_kind, self.dataset_id),
+            str(PurePosixPath(self.dataset_path).relative_to("datasets")),
+        )
         stochastic = (
             self.dataset_kind == "samples"
             or self.dataset_kind in {"prices", "price_gradients"}
@@ -266,6 +307,8 @@ class FixedIncomeCapabilitySpec:
     def engine_for(self, product: str) -> str:
         if product == "bermudan_swaption":
             return "fixed_income_lsm"
+        if product == "zero_coupon_bond_up_and_out":
+            return "fixed_income_monte_carlo"
         if product == "european_swaption" and self.factorization in {
             "affine_two_factor", "curve_fitted_two_factor"
         }:
@@ -306,7 +349,7 @@ class ProductBindingSpec:
     source_prefix: str
     template_family: str | None
     transition_contract: str
-    manifest_binding: Binding | RoughProductBinding | None = None
+    manifest_binding: Binding | EquityProductBinding | None = None
     factorization: str | None = None
     implementation: str | None = None
     required_capabilities: tuple[str, ...] = ()
@@ -482,9 +525,9 @@ ENGINE_SPECS = (
         instantiation_strategy="model/curve/side transition specialization",
     ),
     EngineSpec(
-        "fixed_income_monte_carlo", "fixed_income", "terminal exact-transition Monte Carlo CUDA",
+        "fixed_income_monte_carlo", "fixed_income", "exact joint-transition Monte Carlo CUDA",
         "pricing/markovian/fixed_income", "catalog/pricing/fixed_income/monte_carlo",
-        "single contractual exercise date", "exact joint factor/integral transition under Q",
+        "terminal exercise or dense barrier observation grid", "exact joint factor/integral transition under Q",
         "conditional zero-coupon bonds and path discount factor",
         concepts=(S("src/common/monte_carlo/concepts.cuh", "monte_carlo::ScalarMonteCarloPricingPolicy"),),
         launchers=(S("src/common/monte_carlo/monte_carlo_kernel.cuh", "monte_carlo::launch_monte_carlo_cuda"),),
@@ -628,7 +671,7 @@ MODEL_BY_NAME = {model.name: model for model in MODEL_SPECS}
 
 def derive_equity_product_specs(
     variants=PRICE_VARIANTS,
-    product_bindings=ROUGH_PRODUCT_BINDINGS,
+    product_bindings=EQUITY_PRODUCT_BINDINGS,
 ) -> tuple[ProductSpec, ...]:
     datasets: dict[str, set[str]] = {}
     for variant in variants:
@@ -721,6 +764,17 @@ PRODUCT_SPECS = derive_equity_product_specs() + (
         True,
         ("zero_coupon_bond", "bond_option"),
     ),
+    ProductSpec(
+        "zero_coupon_bond_up_and_out",
+        "fixed_income",
+        ("zero_coupon_bond_up_and_outs_01",),
+        "ZeroCouponBondUpAndOutPricingPolicy",
+        "every numerical grid point from 0 through option expiry",
+        "zero-coupon bond P(t,U), exact Gaussian rate integral",
+        "none",
+        False,
+        ("joint_state_integral", "discount_factor", "zero_coupon_bond"),
+    ),
 )
 PRODUCT_BY_NAME = {
     (product.asset_class, product.name): product
@@ -743,12 +797,14 @@ FIXED_INCOME_VARIANTS = {
     "floorlets": "rate_option",
     "zero_coupon_bond_calls": "zero_coupon_bond_option",
     "zero_coupon_bond_puts": "zero_coupon_bond_option",
+    "zero_coupon_bond_up_and_out_calls": "zero_coupon_bond_up_and_out",
     "european_payer_swaptions": "european_swaption",
     "european_receiver_swaptions": "european_swaption",
     "bermudan_payer_swaptions": "bermudan_swaption",
     "bermudan_receiver_swaptions": "bermudan_swaption",
 }
 FIXED_INCOME_ALL_VARIANTS = tuple(FIXED_INCOME_VARIANTS)
+
 FIXED_INCOME_CAPABILITIES = (
     FixedIncomeCapabilitySpec(
         "cir", None, "affine_one_factor", "cir",
@@ -1079,7 +1135,9 @@ RNG_DOMAIN_SPECS = tuple(
                 max(MODEL_BY_NAME[dataset.model].rng_domain_epoch,
                     CURVE_BY_NAME[dataset.curve].rng_domain_epoch
                     if dataset.curve is not None else 0,
-                    int(dataset.engine == "fixed_income_monte_carlo")),
+                    int(dataset.engine == "fixed_income_monte_carlo"),
+                    (4 if dataset.model == "ornstein_uhlenbeck" else 5)
+                    if dataset.product == "zero_coupon_bond_up_and_out" else 0),
                 dataset.generator_path,
             ),
         )
@@ -1444,7 +1502,7 @@ def _product_binding_specs() -> tuple[ProductBindingSpec, ...]:
                 binding,
             )
             for model, _ in models
-            for binding in ROUGH_PRODUCT_BINDINGS
+            for binding in EQUITY_PRODUCT_BINDINGS
         )
     american_models = {
         model.model: (
@@ -1589,6 +1647,12 @@ ALIGNED_PRICE_DATASET_SPECS = tuple(
     dataset for dataset in AVAILABLE_DATASET_SPECS
     if dataset.dataset_kind == "prices" and dataset.construction == "aligned"
 )
+# This barrier contract deliberately publishes only aligned rows: a million-row
+# Cartesian campaign at path-level monitoring has no qualified production budget.
+CARTESIAN_SOURCE_DATASET_SPECS = tuple(
+    dataset for dataset in ALIGNED_PRICE_DATASET_SPECS
+    if dataset.product != "zero_coupon_bond_up_and_out"
+)
 CARTESIAN_PRICE_DATASET_SPECS = tuple(
     replace(
         dataset,
@@ -1604,12 +1668,12 @@ CARTESIAN_PRICE_DATASET_SPECS = tuple(
             else "model_major_product_fastest_cartesian_price_rows"
         ),
     )
-    for dataset in ALIGNED_PRICE_DATASET_SPECS
+    for dataset in CARTESIAN_SOURCE_DATASET_SPECS
 )
 CARTESIAN_PRICE_SOURCE_BY_GENERATOR = {
     cartesian.generator_path: aligned
     for aligned, cartesian in zip(
-        ALIGNED_PRICE_DATASET_SPECS,
+        CARTESIAN_SOURCE_DATASET_SPECS,
         CARTESIAN_PRICE_DATASET_SPECS,
         strict=True,
     )
@@ -1692,7 +1756,7 @@ PRICE_DELTA_SOURCE_BY_GENERATOR.update({
 })
 # The dedicated price-delta catalogue family is retired. A spot-only request
 # remains one of the code-generation variants below; legacy delta launch
-# bindings remain available until rough-model migration is complete.
+# bindings remain available as graph-backed compatibility entry points.
 PRICE_GRADIENT_DATASET_VARIANTS = compose_price_gradient_datasets(
     AVAILABLE_DATASET_SPECS,
     PRICE_GRADIENT_BINDING_SPECS,
@@ -1704,6 +1768,12 @@ PRICE_GRADIENT_DATASET_SPECS = tuple(
     spec
     for spec in PRICE_GRADIENT_DATASET_VARIANTS
     if spec.sensitivity_orders == ("first", "diagonal_second")
+    or (
+        spec.sensitivity_orders == ("first",)
+        and spec.model == "cir"
+        and spec.product == "european_swaption"
+        and spec.curve is None
+    )
 )
 PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
     gradient.generator_path: next(

@@ -21,7 +21,7 @@ function(ai_factory_configure_host_library target)
         ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     )
     target_link_libraries(${target} PUBLIC nlohmann_json::nlohmann_json)
-    target_compile_features(${target} PUBLIC cxx_std_23)
+    target_compile_features(${target} PUBLIC cxx_std_20)
     target_compile_options(${target} PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-O3>
     )
@@ -30,7 +30,7 @@ endfunction()
 function(ai_factory_configure_cuda_library target)
     ai_factory_configure_host_library(${target})
     set_target_properties(${target} PROPERTIES
-        CUDA_STANDARD 23
+        CUDA_STANDARD 20
         CUDA_STANDARD_REQUIRED YES
     )
     target_compile_options(${target} PRIVATE
@@ -192,14 +192,28 @@ if(AI_FACTORY_MATHDX_ROOT)
             "AI_FACTORY_MATHDX_ROOT does not contain include/cufftdx.hpp"
         )
     endif()
-    # cuFFTDx 26.06 requires Turing or newer and exposes explicit descriptors
-    # for the architectures below. A mono-architecture build uses its exact
+    set(_ai_factory_cufftdx_version_header
+        "${AI_FACTORY_MATHDX_ROOT}/include/cufftdx/cufftdx_version.hpp")
+    if(NOT EXISTS "${_ai_factory_cufftdx_version_header}")
+        message(FATAL_ERROR "mathDx is missing the cuFFTDx version header")
+    endif()
+    file(STRINGS "${_ai_factory_cufftdx_version_header}"
+        _ai_factory_cufftdx_version_line
+        REGEX "^#define CUFFTDX_VERSION [0-9]+$")
+    if(NOT _ai_factory_cufftdx_version_line STREQUAL
+        "#define CUFFTDX_VERSION 10601")
+        message(FATAL_ERROR
+            "PPTI FFT targets require cuFFTDx 1.6.1 from mathDx 25.12.1 "
+            "CUDA 12; found '${_ai_factory_cufftdx_version_line}'")
+    endif()
+    # cuFFTDx 1.6.1 (mathDx 25.12.1 CUDA 12) supports Volta SM70 and the
+    # architectures below. A mono-architecture build uses its exact
     # descriptor. A fatbin uses the oldest requested descriptor as a portable
     # implementation profile while nvcc still emits code for every requested
     # architecture. Per-GPU tuning belongs to a separate mono-architecture
     # build and performance baseline.
     set(_ai_factory_cufftdx_supported_architectures
-        75 80 86 87 89 90 100 103 110 120 121
+        70 75 80 86 87 89 90 100 101 103 120 121
     )
     set(_ai_factory_cufftdx_requested_architectures)
     foreach(architecture IN LISTS CUDA_WORKBENCH_ARCHITECTURES)
@@ -213,7 +227,7 @@ if(AI_FACTORY_MATHDX_ROOT)
         if(NOT architecture_number IN_LIST
             _ai_factory_cufftdx_supported_architectures)
             message(FATAL_ERROR
-                "cuFFTDx 26.06 does not expose an SM descriptor for "
+                "cuFFTDx 1.6.1 does not expose an SM descriptor for "
                 "architecture ${architecture_number}; supported project "
                 "descriptors are ${_ai_factory_cufftdx_supported_architectures}"
             )
@@ -258,6 +272,14 @@ if(AI_FACTORY_MATHDX_ROOT)
             "SM${_ai_factory_cufftdx_profile_architecture}"
         )
     endif()
+    # Header-only causal Volterra compositions. Callers can instantiate a new
+    # path/product pair in their own CUDA unit while reusing this FFT profile.
+    add_library(ai_factory_causal_fft INTERFACE)
+    target_include_directories(ai_factory_causal_fft INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+    target_link_libraries(ai_factory_causal_fft INTERFACE ai_factory_cufftdx)
+    target_compile_features(ai_factory_causal_fft INTERFACE cxx_std_20)
     set(_ai_factory_rough_fft_targets)
     foreach(unit_path IN LISTS AI_FACTORY_GENERATED_EQUITY_VOLTERRA_UNITS)
         ai_factory_add_cuda_unit(equity ${unit_path})

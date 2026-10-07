@@ -8,7 +8,7 @@
 int main() {
     using namespace ai_factory::workbench;
     using namespace datasets;
-    constexpr std::uint64_t seed = 710001401ULL;
+    constexpr std::uint64_t seed = 1610001401ULL;
     GeneratedRows rows = core_stress_rows(
         uniform_rows(900U, seed, {
             {"risk_free_rate", 0.001f, 0.08f},
@@ -22,11 +22,11 @@ int main() {
         uniform_rows(100U, seed + 1U, {
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"initial_variance", 0.0025f, 0.25f},
-            {"mean_reversion", 0.5f, 80.0f},
-            {"long_run_variance", 0.0025f, 0.25f},
-            {"volatility_of_variance", 0.2f, 15.0f},
-            {"rho", -0.99f, 0.50f},
+            {"initial_variance", 0.0075f, 0.16f},
+            {"mean_reversion", 3.0f, 50.0f},
+            {"long_run_variance", 0.01f, 0.16f},
+            {"volatility_of_variance", 0.7f, 9.0f},
+            {"rho", -0.98f, -0.05f},
         })
     );
     for (auto& row : rows.rows) row["spot"] = 1.0f;

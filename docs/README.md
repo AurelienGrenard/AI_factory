@@ -9,6 +9,7 @@ and project records.
 
 | Task | Start here | Continue with |
 |---|---|---|
+| Use a price, Greek, SE or dataset as a reference | [Unresolved closures](audit/unresolved-closures.md) | [Open findings](audit/response.md), [resolved contracts](audit/closed.md) and qualification manifests |
 | Explore runtime ownership | [Source reference index](model-and-curve-reference-index.md) | [Shared primitives](../src/common/README.md) |
 | Understand the CUDA architecture | [CUDA documentation](cuda/README.md) | [Pricing-policy composition](cuda/pricing-policy-composition.md) |
 | Understand CMake and build a target | [CMake build guide](cmake-build-workflow.md) | [CMake ownership](../cmake/README.md) |
@@ -28,12 +29,12 @@ and project records.
 | Qualify another GPU | [Performance protocol](performance-regression-protocol.md) | [SM89 hardware notebook](cuda/rtx4090-laptop-memory-map.ipynb) as a scoped example |
 | Find model equations | [Model and curve reference index](model-and-curve-reference-index.md) | Source-local model or curve reference |
 | Understand the protected-download boundary | [Protected-download proposal](proposed-protected-dataset-download-design.md) | The static website is maintained outside this repository |
-| Audit the repository | [Main audit query](audit/query.md) | [Status](audit/status.md), [open findings](audit/response.md), and [closed findings](audit/closed.md) |
+| Audit the repository | [Main audit query](audit/query.md) | [Status](audit/status.md), [open findings](audit/response.md), [unresolved closures](audit/unresolved-closures.md), and [closed history](audit/closed.md) |
 
 ## Architecture contracts
 
 - [Selected equity price gradients](cuda/equity-price-gradients-contract.md) — selectable parameters, CRN scenarios and European/American scope.
-- [Selected fixed-income price gradients](cuda/fixed-income-price-gradients-contract.md) — compact CIR/Jamshidian preparation, scalar/cooperative execution and diagonal Hessians.
+- [Selected fixed-income price gradients](cuda/fixed-income-price-gradients-contract.md) — scalar/cooperative execution; CIR standalone/Jamshidian is limited to price and first derivatives.
 - [Equity price and spot delta](cuda/equity-price-delta-contract.md) — separate
   launchers, shared/coupled paths, bumping and bounded frozen-date LSM pilots.
 
@@ -129,7 +130,8 @@ Source ownership is introduced by the
 The main repository audit and the independent validation audit are separate:
 
 - [Main audit query](audit/query.md), [status](audit/status.md),
-  [open findings](audit/response.md), [closed findings](audit/closed.md).
+  [open findings](audit/response.md), [unresolved closures](audit/unresolved-closures.md),
+  [closed history](audit/closed.md).
 - [Validation query](validation/query.md), [status](validation/status.md),
   [open findings](validation/response.md),
   [closed findings](validation/closed.md).
