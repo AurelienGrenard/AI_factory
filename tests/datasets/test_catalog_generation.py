@@ -98,21 +98,66 @@ class GenerationTests(unittest.TestCase):
                     "inputs": ["models.json"], "dataset": "datasets/gradients.json",
                     "sensitivity": {"source_price_recipe": source["recipe"]}}
         state = {"jobs": [source, gradient]}
-        self.assertEqual(
-            campaign.verify_matching_prices(state, gradient, gradient_work),
-            {"source_target": "generate_prices",
-             "source_dataset_sha256": digest(price_work / source["dataset"]),
-             "matched_rows": 1, "comparison": "binary64_exact"},
-        )
+        exact = campaign.compare_matching_prices(state, gradient, gradient_work)
+        self.assertEqual(exact["status"], "within_budget")
+        self.assertEqual(exact["different_rows"], 0)
+        self.assertEqual(exact["matched_rows"], 1)
         source["artifacts"] = [{"sha256": "0" * 64}]
         with self.assertRaisesRegex(ValueError, "Source price dataset changed"):
-            campaign.verify_matching_prices(state, gradient, gradient_work)
+            campaign.compare_matching_prices(state, gradient, gradient_work)
         source["artifacts"][0]["sha256"] = digest(price_work / source["dataset"])
         output = gradient_work / gradient["dataset"]
         output.write_text(json.dumps({"results": [
             {"id": "000001", "outputs": {"price": 0.10000000000000002}}]}))
-        with self.assertRaisesRegex(ValueError, "Central price differs"):
-            campaign.verify_matching_prices(state, gradient, gradient_work)
+        rounded = campaign.compare_matching_prices(state, gradient, gradient_work)
+        self.assertEqual(rounded["different_rows"], 1)
+        self.assertEqual(rounded["outside_budget_rows"], 0)
+        self.assertEqual(rounded["status"], "within_budget")
+        output.write_text(json.dumps({"results": [
+            {"id": "000001", "outputs": {"price": 0.2}}]}))
+        material = campaign.compare_matching_prices(state, gradient, gradient_work)
+        self.assertEqual(material["outside_budget_rows"], 1)
+        self.assertEqual(material["status"], "review_required")
+
+    def test_verifier_amendment_preserves_original_snapshot(self):
+        original = self.run / "sources/tools/datasets/generate_catalog.py"
+        original.parent.mkdir(parents=True)
+        original.write_text("original verifier")
+        replacement = self.root / "checkout/tools/datasets/generate_catalog.py"
+        replacement.parent.mkdir(parents=True)
+        replacement.write_text("revised verifier")
+        self.state["controller_hashes"] = {
+            "tools/datasets/generate_catalog.py": digest(original),
+        }
+        self.state["jobs"][0]["state"] = "complete"
+        campaign.amend_verifier(self.run, self.state, self.root / "checkout")
+        amendment = self.state["controller_amendments"][0]
+        self.assertEqual(amendment["previous_sha256"], digest(original))
+        self.assertEqual(amendment["sha256"], digest(replacement))
+        self.assertEqual(amendment["completed_jobs_before"], 1)
+        campaign.verify_verifier_amendment(self.run, self.state)
+        self.assertEqual(original.read_text(), "original verifier")
+        self.assertEqual((self.run / "sources.tar.gz").read_text(), "frozen source archive")
+        with self.assertRaisesRegex(ValueError, "unpublished, unamended"):
+            campaign.amend_verifier(self.run, self.state, self.root / "checkout")
+
+    def test_generation_receipt_cites_verifier_amendment(self):
+        from tools.datasets.dataset_provenance import attach_generation
+        work = self.root / "receipt_work"
+        dataset = work / self.job["dataset"]
+        dataset.parent.mkdir(parents=True)
+        dataset.write_text(json.dumps(self.document))
+        receipt = work / self.job["generation"]
+        receipt.parent.mkdir(parents=True)
+        receipt.write_text(yaml.safe_dump(self.receipt))
+        amendment = {"kind": "central_price_comparison_report_only",
+                     "controller": "tools/datasets/generate_catalog.py",
+                     "previous_sha256": "a" * 64, "sha256": "b" * 64,
+                     "snapshot": "amendments/generate_catalog-b.py"}
+        self.state["controller_amendments"] = [amendment]
+        attach_generation(work, self.job, self.state)
+        record = yaml.safe_load(receipt.read_text())
+        self.assertEqual(record["provenance"]["controller_amendments"], [amendment])
 
     def test_inventory(self):
         jobs = campaign.inventory(campaign.ROOT, {"prices", "samples"}, set(), set())

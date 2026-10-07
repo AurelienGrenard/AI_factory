@@ -25,24 +25,35 @@ python3 tools/datasets/generate_catalog.py \
   --catalog-only --kind all --asset-class fixed_income --construction aligned \
   --input-override datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json=work/generation/runs/fixed-income-barrier-product-01/datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json \
   --compile --compile-jobs 2 \
-  --run-dir work/generation/fixed-income-aligned-prices-gradients-01 \
+  --run-dir work/generation/fixed-income-aligned-prices-gradients-04 \
   --execute
 ```
 
-The results and their `generation.yaml` receipts remain under the two
-`work/generation/` run directories. Existing canonical JSON and receipts are
-not overwritten. The controller accepts both Ninja and Unix Makefiles builds;
+Results and their `generation.yaml` receipts remain under the chosen
+`work/generation/` run directory. Existing canonical JSON and receipts are not
+overwritten. The controller accepts both Ninja and Unix Makefiles builds;
 `--compile` updates only stale targets before freezing the campaign. When a
-source price and its gradient recipe are selected together, each gradient job
-requires bitwise equality of all central prices before staging. Its receipt
-records the matching source dataset SHA256 and row count. An interrupted
-pricing campaign resumes with:
+source price and its gradient recipe are selected together, the controller
+records exact matches, differing rows and the numerical budget
+`2e-6 + 2e-5 * max(abs(price_only), abs(gradient_central))`. This comparison
+is a qualification diagnostic, not a generation stop: scalar and cooperative
+FP32 Jamshidian kernels can round differently. Invalid native artifacts,
+changed frozen inputs and altered receipts still stop generation. Each gradient
+receipt cites the matching source dataset SHA256 and comparison result.
+
+The fixed-income `-03` campaign stopped on the earlier bitwise comparator after
+127 jobs. Resume its unchanged binaries and inputs once with a recorded
+verifier amendment:
 
 ```bash
 python3 tools/datasets/generate_catalog.py \
-  --run-dir work/generation/fixed-income-aligned-prices-gradients-01 \
-  --execute --resume
+  --run-dir work/generation/fixed-income-aligned-prices-gradients-03 \
+  --execute --resume --amend-verifier
 ```
+
+The original controller and source archive remain frozen; the amendment stores
+the new controller hash separately and appears in subsequent receipts. Later
+resumes of the same campaign use `--execute --resume` without the amendment flag.
 
 The campaign may take substantial GPU time: 34 gradient recipes and many
 price recipes use Monte Carlo. Every public Monte Carlo price and gradient

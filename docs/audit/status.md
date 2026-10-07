@@ -64,6 +64,18 @@ passent. Deux exécutions natives reconstruites, CIR et CIR++/flat, passent
 `-02` n'est publié ; une nouvelle campagne est requise. La qualité numérique
 des 221 jobs et la parité des prix centraux restent à contrôler.
 
+## Comparaison des prix centraux fixed income — 2026-10-08
+
+La campagne `-03` a 127 jobs terminés, 1 gradient CIR++/Nelson–Siegel payer
+rejeté par un contrôle bit à bit et 93 gradients encore en attente. Le prix
+seul scalaire et le central coopératif diffèrent au plus de 4,4517×10⁻⁷ sur
+les 1 000 lignes du job ; 0 dépasse le budget inter-mode préexistant. Le
+contrôle numérique est désormais une mesure enregistrée, sans arrêt de
+génération. Un amendement explicite du contrôleur permet de reprendre `-03`
+sans refaire les 127 jobs ; la reprise complète et la qualification des 221
+sorties restent à vérifier. Les gardes d'intégrité des artefacts restent
+bloquants.
+
 ## Implantation du catalogue — 2026-10-07
 
 Les recettes et données sélectionnées occupent directement `catalog/` et `datasets/`. Les recettes locales, les données hors production et les métadonnées historiques (archives, qualifications, releases) sont sous `work/catalog/` et `work/datasets/`. Les manifestes historiques signés restent inchangés ; leur résolution de chemins est assurée par `catalog_layout.physical_path`. Les 696 sorties sélectionnées, les 24 sorties locales matérialisées et les payloads historiques sous `work/datasets/` sont présents après déplacement ; NUM-029, NUM-030, NUM-036, NUM-037, rough Bergomi et les gates martingale ont été revérifiés. Un générateur de prix aligné Black–Scholes/european_calls a été exécuté en staging sur les nouvelles racines ; il a émis JSON et reçu authentiques, sans publication ni validation indépendante du prix.

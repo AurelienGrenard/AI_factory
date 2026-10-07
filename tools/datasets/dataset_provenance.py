@@ -104,6 +104,8 @@ def attach_generation(work: Path, job: dict, state: dict) -> None:
             name: state["input_hashes"][name] for name in job["inputs"]
         },
     }
+    if state.get("controller_amendments"):
+        record["provenance"]["controller_amendments"] = state["controller_amendments"]
     record["record_sha256"] = fingerprint(record)
     validate_document(record, "generation", path)
     path.write_text(yaml.safe_dump(record, sort_keys=False))
