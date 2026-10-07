@@ -861,40 +861,48 @@ def interrupt_campaign(*_arguments) -> None:
 
 
 
-def amend_verifier(run: Path, state: dict, root: Path) -> None:
-    """Record a verifier-only change while keeping frozen binaries and inputs.
+AMENDABLE_VERIFIER_FILES = frozenset({
+    "tools/datasets/generate_catalog.py",
+    "tools/datasets/dataset_provenance.py",
+})
 
-    The original controller and source archive remain in the campaign. The
-    replacement controller is copied separately and cited by later receipts.
-    This is allowed only for a staged campaign, once, and only when all other
-    controller files still match their frozen hashes.
+
+def amend_verifier(run: Path, state: dict, root: Path) -> None:
+    """Record verifier and receipt-writer changes without touching frozen jobs.
+
+    The original controller files and source archive remain in the campaign.
+    Replacement files are copied separately and cited by later receipts.
     """
-    name = "tools/datasets/generate_catalog.py"
     if state["publish"] or state.get("controller_amendments"):
         raise ValueError("Verifier amendment requires an unpublished, unamended campaign")
-    old_hash = state["controller_hashes"][name]
-    new_hash = digest(contained_path(root, name))
-    if old_hash == new_hash or digest(contained_path(run / "sources", name)) != old_hash:
-        raise ValueError("No valid frozen controller change to amend")
-    for other, expected in state["controller_hashes"].items():
-        if other != name and digest(contained_path(root, other)) != expected:
-            raise ValueError(f"Other controller changed since this campaign was frozen: {other}")
-    snapshot = f"amendments/generate_catalog-{new_hash}.py"
-    if (run / snapshot).exists():
-        raise ValueError("Verifier amendment snapshot already exists")
-    if copy_frozen(contained_path(root, name), run / snapshot) != new_hash:
-        raise ValueError("Verifier amendment copy changed")
-    amendment = {
-        "kind": "central_price_comparison_report_only",
-        "controller": name,
-        "previous_sha256": old_hash,
-        "sha256": new_hash,
-        "snapshot": snapshot,
-        "unix_time": time.time(),
-        "completed_jobs_before": sum(job["state"] == "complete" for job in state["jobs"]),
-    }
-    state["controller_amendments"] = [amendment]
-    state["controller_hashes"][name] = new_hash
+    changed = [name for name, old in state["controller_hashes"].items()
+               if digest(contained_path(root, name)) != old]
+    if not changed or not set(changed) <= AMENDABLE_VERIFIER_FILES:
+        raise ValueError("Only verifier and receipt-writer files may be amended")
+    prepared = []
+    for name in changed:
+        old_hash = state["controller_hashes"][name]
+        new_hash = digest(contained_path(root, name))
+        snapshot = f"amendments/{Path(name).stem}-{new_hash}.py"
+        if (digest(contained_path(run / "sources", name)) != old_hash
+                or (run / snapshot).exists()):
+            raise ValueError(f"Invalid frozen controller amendment: {name}")
+        prepared.append((name, old_hash, new_hash, snapshot))
+    amendments = []
+    for name, old_hash, new_hash, snapshot in prepared:
+        if copy_frozen(contained_path(root, name), run / snapshot) != new_hash:
+            raise ValueError(f"Verifier amendment copy changed: {name}")
+        amendments.append({
+            "kind": "central_price_comparison_report_only",
+            "controller": name,
+            "previous_sha256": old_hash,
+            "sha256": new_hash,
+            "snapshot": snapshot,
+            "unix_time": time.time(),
+            "completed_jobs_before": sum(job["state"] == "complete" for job in state["jobs"]),
+        })
+        state["controller_hashes"][name] = new_hash
+    state["controller_amendments"] = amendments
     save_campaign(run / "campaign.json", state)
 
 
@@ -953,8 +961,11 @@ def main() -> int:
             raise ValueError("Unsupported campaign version or repository; retain its original controller")
         changed_controllers = [name for name, expected in state["controller_hashes"].items()
                                if digest(contained_path(ROOT, name)) != expected]
-        if changed_controllers != (["tools/datasets/generate_catalog.py"]
-                                   if arguments.amend_verifier else []):
+        if (not arguments.amend_verifier and changed_controllers) or (
+            arguments.amend_verifier
+            and (not changed_controllers
+                 or not set(changed_controllers) <= AMENDABLE_VERIFIER_FILES)
+        ):
             raise ValueError("Controller changed since this campaign was frozen: "
                              + ", ".join(changed_controllers))
         if (arguments.model or arguments.target or arguments.asset_class
