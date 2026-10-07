@@ -116,9 +116,10 @@ Le contrôleur enregistre désormais le nombre de lignes différentes, l'écart
 maximal et les dépassements du budget sans bloquer la génération sur cette
 comparaison. La vérification des artefacts natifs, des entrées et des hashes
 reste bloquante. Une reprise du staging `-03` peut conserver ses 127 jobs
-terminés grâce à un amendement explicite du seul contrôleur : l'ancien
-contrôleur et l'archive source restent conservés, le nouveau fichier et son
-hash sont enregistrés séparément dans la campagne et les reçus suivants.
+terminés grâce à un amendement explicite des fichiers de pilotage et de
+provenance : leurs originaux et l'archive source restent conservés, les
+nouveaux fichiers et leurs hashes sont enregistrés séparément dans la
+campagne et les reçus suivants.
 Cette comparaison n'est pas une validation indépendante des prix et ne clôt
 aucun constat rough.
 

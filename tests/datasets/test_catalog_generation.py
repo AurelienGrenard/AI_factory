@@ -126,15 +126,23 @@ class GenerationTests(unittest.TestCase):
         replacement = self.root / "checkout/tools/datasets/generate_catalog.py"
         replacement.parent.mkdir(parents=True)
         replacement.write_text("revised verifier")
+        original_provenance = self.run / "sources/tools/datasets/dataset_provenance.py"
+        original_provenance.write_text("original receipt writer")
+        replacement_provenance = self.root / "checkout/tools/datasets/dataset_provenance.py"
+        replacement_provenance.write_text("revised receipt writer")
         self.state["controller_hashes"] = {
             "tools/datasets/generate_catalog.py": digest(original),
+            "tools/datasets/dataset_provenance.py": digest(original_provenance),
         }
         self.state["jobs"][0]["state"] = "complete"
         campaign.amend_verifier(self.run, self.state, self.root / "checkout")
-        amendment = self.state["controller_amendments"][0]
-        self.assertEqual(amendment["previous_sha256"], digest(original))
-        self.assertEqual(amendment["sha256"], digest(replacement))
-        self.assertEqual(amendment["completed_jobs_before"], 1)
+        amendments = self.state["controller_amendments"]
+        self.assertEqual(len(amendments), 2)
+        self.assertEqual(amendments[0]["previous_sha256"], digest(original))
+        self.assertEqual(amendments[0]["sha256"], digest(replacement))
+        self.assertEqual(amendments[1]["previous_sha256"], digest(original_provenance))
+        self.assertEqual(amendments[1]["sha256"], digest(replacement_provenance))
+        self.assertTrue(all(item["completed_jobs_before"] == 1 for item in amendments))
         campaign.verify_verifier_amendment(self.run, self.state)
         self.assertEqual(original.read_text(), "original verifier")
         self.assertEqual((self.run / "sources.tar.gz").read_text(), "frozen source archive")

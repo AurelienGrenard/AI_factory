@@ -51,8 +51,9 @@ python3 tools/datasets/generate_catalog.py \
   --execute --resume --amend-verifier
 ```
 
-The original controller and source archive remain frozen; the amendment stores
-the new controller hash separately and appears in subsequent receipts. Later
+The original controller files and source archive remain frozen; the amendment
+stores the new pilot and receipt-writer hashes separately and appears in
+subsequent receipts. Later
 resumes of the same campaign use `--execute --resume` without the amendment flag.
 
 The campaign may take substantial GPU time: 34 gradient recipes and many
