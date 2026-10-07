@@ -80,6 +80,27 @@ nouveaux paramètres par ce déplacement.
 `NUM-028` et `NUM-030` restent ouverts ; aucune clôture numérique nouvelle
 n'est revendiquée.
 
+## Contrôle de la campagne fixed income — URL Bermudan, 2026-10-07
+
+La campagne figée `work/generation/fixed-income-aligned-prices-gradients-02`
+a terminé sept prix, puis a rejeté le premier prix Bermudan CIR : sa recette
+annonce une URL `/v2/`, alors que la configuration native partagée par les
+26 générateurs de prix Bermudans écrivait `/v1/`. Le calcul de 1 000 prix à
+2²⁰ chemins avait terminé ; l'échec est celui du contrôle d'identité du JSON.
+Aucun artefact de cette campagne n'a été publié. Les deux fabriques natives,
+autonome et avec courbe, écrivent désormais `/v2/`. Un test compare les
+versions des 117 recettes de prix fixed income aux sources de leurs
+générateurs, y compris les deux fabriques Bermudan. Les 26 recettes de
+gradients Bermudans conservent `frozen_regression_policy`.
+
+Les générateurs CIR autonome et CIR++/flat reconstruits ont chacun produit
+1 000 lignes à 2²⁰ chemins sur les entrées alignées ; leurs URL, plans de
+lancement et reçus passent `check_outputs`. Les 23 tests ciblés et la
+comparaison complète du codegen passent. La campagne `-02` reste figée ; la
+reprise doit partir d'une nouvelle campagne avec les binaires reconstruits.
+La parité prix seuls/prix centraux des gradients et la qualification numérique
+des 221 jobs restent à vérifier après cette campagne.
+
 ## Reprise complète des paramètres — 2026-10-07
 
 Les [25 modèles et 27 produits canoniques](parameter-catalog-refresh-2026-10-07.md) ont été régénérés à partir de leurs `generator.cpp` avec de nouvelles seeds pour les tirages aléatoires, puis publiés avec recettes et reçus authentiques. Les cœurs ont été conservés sauf les corrélations positives de Schöbel–Zhu, rough Stein–Stein et G2/G2++, le domaine cœur SABR à forte variance MC et le calendrier cœur Bermudan trop long. Les stress ont été resserrés sans supprimer ni écrêter de lignes ; les 52 jeux conservent 900 lignes cœur et 100 stress. Les quatre paires européennes rough testées et la paire SABR affinée ont zéro signal de parité >5 SE et zéro prix matériel à SE relative >25 %. Les anciens prix canoniques n'utilisent pas ces nouvelles entrées : `NUM-028` et `NUM-030` restent ouverts jusqu'au repricing, aux contrôles de tous les payoffs et à la décision sur l'estimand continu QRH. Les [entrées historiques figées](../../work/catalog/archives/parameter-catalog-20261007/manifest.json) préservent la vérification des releases et des masques antérieurs : NUM-029, NUM-030, rough Bergomi et le gate de domaine passent sur leurs anciens prix sans attribuer ces prix aux nouveaux paramètres.

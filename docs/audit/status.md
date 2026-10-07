@@ -50,6 +50,20 @@ nouveaux paramètres par ce déplacement.
 `NUM-028` et `NUM-030` restent ouverts ; aucune clôture numérique nouvelle
 n'est revendiquée.
 
+## Contrôle de la campagne fixed income — URL Bermudan, 2026-10-07
+
+La campagne figée `work/generation/fixed-income-aligned-prices-gradients-02`
+compte 7 jobs complets, 1 échec Bermudan CIR et 213 jobs non exécutés.
+La recette du prix Bermudan demandait `/v2/`, le générateur natif écrivait
+`/v1/` ; le calcul avait terminé mais le JSON a échoué au contrôle d'URL.
+Les deux fabriques Bermudan écrivent maintenant `/v2/`. Les 26 gradients
+Bermudans restent sous `frozen_regression_policy`. Un contrôle statique des
+117 recettes de prix fixed income, 23 tests et la comparaison du codegen
+passent. Deux exécutions natives reconstruites, CIR et CIR++/flat, passent
+`check_outputs` sur 1 000 lignes à 2²⁰ chemins chacune. Aucun résultat de
+`-02` n'est publié ; une nouvelle campagne est requise. La qualité numérique
+des 221 jobs et la parité des prix centraux restent à contrôler.
+
 ## Implantation du catalogue — 2026-10-07
 
 Les recettes et données sélectionnées occupent directement `catalog/` et `datasets/`. Les recettes locales, les données hors production et les métadonnées historiques (archives, qualifications, releases) sont sous `work/catalog/` et `work/datasets/`. Les manifestes historiques signés restent inchangés ; leur résolution de chemins est assurée par `catalog_layout.physical_path`. Les 696 sorties sélectionnées, les 24 sorties locales matérialisées et les payloads historiques sous `work/datasets/` sont présents après déplacement ; NUM-029, NUM-030, NUM-036, NUM-037, rough Bergomi et les gates martingale ont été revérifiés. Un générateur de prix aligné Black–Scholes/european_calls a été exécuté en staging sur les nouvelles racines ; il a émis JSON et reçu authentiques, sans publication ni validation indépendante du prix.
