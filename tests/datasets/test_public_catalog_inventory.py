@@ -2,8 +2,10 @@
 
 import json
 from pathlib import Path
+import re
 import sys
 import unittest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/codegen/pricing_bindings"))
@@ -60,6 +62,32 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                  and spec.product != "bermudan_swaption"]),
             78,
         )
+
+    def test_fixed_income_price_generator_url_versions_match_recipes(self) -> None:
+        helper_path = ROOT / "tools/pricing/bermudan_swaption_price_generation.cuh"
+        helper = helper_path.read_text()
+        bermudan_prefixes = re.findall(
+            r'"(https://datasets\.ai-factory\.example/v\d+/)" \+ relative', helper
+        )
+        self.assertEqual(bermudan_prefixes, ["https://datasets.ai-factory.example/v2/"] * 2)
+        checked = 0
+        for spec in AVAILABLE_DATASET_SPECS:
+            if (spec.asset_class != "fixed_income" or spec.dataset_kind != "prices"
+                    or spec.construction != "aligned"):
+                continue
+            recipe = yaml.safe_load((ROOT / spec.recipe_yaml_path).read_text())
+            generator = (ROOT / spec.generator_path).read_text()
+            expected_version = re.search(r'/v\d+/', recipe["url"]).group()
+            generated_versions = set(re.findall(
+                r'https://datasets\.ai-factory\.example(/v\d+/)', generator
+            ))
+            if spec.product == "bermudan_swaption":
+                self.assertFalse(generated_versions, spec.generator_path)
+                self.assertEqual(expected_version, "/v2/", spec.generator_path)
+            else:
+                self.assertEqual(generated_versions, {expected_version}, spec.generator_path)
+            checked += 1
+        self.assertEqual(checked, 117)
 
 
 if __name__ == "__main__":
